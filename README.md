@@ -1,4 +1,4 @@
-# 🚀 laTrigger
+# 🚀 JobTrigger
 
 > **Trigger Jenkins builds from anywhere — An iOS app for DevOps engineers**
 
