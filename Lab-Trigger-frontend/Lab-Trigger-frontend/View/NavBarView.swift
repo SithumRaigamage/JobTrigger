@@ -8,21 +8,22 @@
 import SwiftUI
 
 struct NavBarView: View {
+    @State private var selectedTab = 0
+
     var body: some View {
-        
         NavigationStack {
-            TabView {
+            TabView(selection: $selectedTab) {
                 HomeView()
                     .tabItem {
                         Label("Home", systemImage: "house")
-                    }
-                
+                    }.tag(0)
+
                 SettingsView()
                     .tabItem {
                         Label("Settings", systemImage: "gear")
-                    }
+                    }.tag(1)
             }
-            .navigationTitle("Dashboard")
+            .navigationTitle(selectedTab == 0 ? "Home" : "Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
