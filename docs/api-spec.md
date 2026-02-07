@@ -1,7 +1,7 @@
 # Jenkins Job Trigger API Specification
 
 ## Overview
-This API endpoint triggers a Jenkins CI pipeline with parameters for building and deploying applications.
+This API endpoint allows you to trigger a Jenkins CI/CD pipeline with custom parameters for building and deploying your application.
 
 ## Endpoint Details
 
@@ -9,32 +9,28 @@ This API endpoint triggers a Jenkins CI pipeline with parameters for building an
 
 **Method:** `POST`
 
-**Authentication:** Basic Auth (Base64 encoded)
+**Authentication:** Basic Authentication (required)
 
-**Token:** `sithum`
+**Query Parameters:**
+- `token` (required): Authentication token for triggering the build
+  - Example: `sithum`
 
----
-
-## Headers
+## Request Headers
 
 | Header | Value | Required |
 |--------|-------|----------|
-| `Content-Type` | `application/x-www-form-urlencoded` | Yes |
-| `Authorization` | `Basic <base64_credentials>` | Yes |
+| Content-Type | `application/x-www-form-urlencoded` | Yes |
+| Authorization | `Basic <base64-encoded-credentials>` | Yes |
 
----
+## Form Parameters
 
-## Parameters
-
-| Parameter | Type | Description | Example Value |
-|-----------|------|-------------|---------------|
-| `RELEASE_VERSION` | string | Version number for the release | `1.0.4` |
-| `ENVIRONMENT` | string | Target deployment environment | `dev`, `staging`, `prod` |
-| `BRANCH` | string | Git branch to build from | `main`, `develop`, `feature/xyz` |
-| `GIT_REPO_URL` | string | Git repository URL | `https://github.com/user-name/repo-name.git` |
-| `SEND_EMAIL` | boolean | Send email notification after build | `true`, `false` |
-
----
+| Parameter | Type | Description | Example | Required |
+|-----------|------|-------------|---------|----------|
+| RELEASE_VERSION | string | Version number for the release | `1.0.4` | Yes |
+| ENVIRONMENT | string | Target deployment environment | `dev`, `staging`, `prod` | Yes |
+| BRANCH | string | Git branch to build from | `main`, `develop`, `feature/*` | Yes |
+| GIT_REPO_URL | string | Full URL of the Git repository | `https://github.com/user-name/repo-name.git` | Yes |
+| SEND_EMAIL | boolean | Whether to send email notifications | `true`, `false` | No |
 
 ## Example Request
 
@@ -54,7 +50,7 @@ curl --location 'http://localhost:8080/job/Projects/job/Hello-World-Node-JS/job/
 ### JavaScript (Fetch)
 
 ```javascript
-const formData = new URLSearchParams();
+const formData = new FormData();
 formData.append('RELEASE_VERSION', '1.0.4');
 formData.append('ENVIRONMENT', 'dev');
 formData.append('BRANCH', 'main');
@@ -64,7 +60,6 @@ formData.append('SEND_EMAIL', 'true');
 fetch('http://localhost:8080/job/Projects/job/Hello-World-Node-JS/job/CI/job/CI-Pipleine/buildWithParameters?token=sithum', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/x-www-form-urlencoded',
     'Authorization': 'Basic U2l0aHVtOjExYjdlYmU2YmIwMDVhMTRhMTNkNzU0MmVlNDE4k='
   },
   body: formData
@@ -80,12 +75,9 @@ fetch('http://localhost:8080/job/Projects/job/Hello-World-Node-JS/job/CI/job/CI-
 import requests
 
 url = "http://localhost:8080/job/Projects/job/Hello-World-Node-JS/job/CI/job/CI-Pipleine/buildWithParameters"
+params = {"token": "sithum"}
 headers = {
-    "Content-Type": "application/x-www-form-urlencoded",
     "Authorization": "Basic U2l0aHVtOjExYjdlYmU2YmIwMDVhMTRhMTNkNzU0MmVlNDE4k="
-}
-params = {
-    "token": "sithum"
 }
 data = {
     "RELEASE_VERSION": "1.0.4",
@@ -95,41 +87,45 @@ data = {
     "SEND_EMAIL": "true"
 }
 
-response = requests.post(url, headers=headers, params=params, data=data)
+response = requests.post(url, params=params, headers=headers, data=data)
 print(response.status_code)
-print(response.text)
 ```
-
----
 
 ## Response
 
-### Success Response
-**Status Code:** `201 Created` or `200 OK`
+Jenkins typically returns a `201 Created` status code when a build is successfully queued.
 
-Jenkins will queue the build job and return a response indicating the job has been triggered successfully.
+**Success Response:**
+- **Status Code:** 201
+- **Headers:** Location header containing the queue item URL
 
-### Error Responses
+## Security Notes
 
-| Status Code | Description |
-|-------------|-------------|
-| `401 Unauthorized` | Invalid credentials or authentication token |
-| `403 Forbidden` | User doesn't have permission to trigger the job |
-| `404 Not Found` | Job or pipeline doesn't exist |
-| `500 Internal Server Error` | Jenkins server error |
+⚠️ **Important Security Considerations:**
+
+1. **Never commit credentials** to version control
+2. Store the Authorization token and API credentials in environment variables or secure vaults
+3. Use HTTPS in production environments instead of HTTP
+4. Rotate API tokens regularly
+5. Implement IP whitelisting for additional security
+
+## Environment-Specific Configuration
+
+| Environment | Recommended Settings |
+|-------------|---------------------|
+| `dev` | Frequent builds, all notifications enabled |
+| `staging` | Pre-production testing, selective notifications |
+| `prod` | Manual approvals, critical notifications only |
+
+## Troubleshooting
+
+### Common Issues
+
+1. **401 Unauthorized:** Check your Authorization header and token parameter
+2. **404 Not Found:** Verify the Jenkins job path is correct
+3. **403 Forbidden:** Ensure the user has build permissions for this job
+4. **Build not triggered:** Check Jenkins job configuration for required parameters
 
 ---
 
-## Notes
-
-⚠️ **Security Reminder:** 
-- Never commit actual credentials to version control
-- Use environment variables or secure credential management systems
-- Rotate tokens and passwords regularly
-- The Authorization header contains sensitive credentials (currently visible in this example)
-
-📝 **Usage Tips:**
-- Ensure Jenkins is running and accessible at the specified URL
-- Verify the job path matches your Jenkins folder structure
-- Test with `SEND_EMAIL="false"` during development to avoid spam
-- Use appropriate environment values based on your deployment pipeline
+**Last Updated:** 2026-02-07
