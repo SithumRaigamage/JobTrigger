@@ -179,8 +179,12 @@ laTrigger/
 │   │   ├── NetworkError.swift
 │   │   └── RequestBuilder.swift
 │   │
+│   ├── Services/
+│   │   ├── CredentialStorageService.swift  # JSON-based credential storage
+│   │   └── JenkinsAPIService.swift         # API client for Jenkins
+│   │
 │   ├── Security/
-│   │   ├── KeychainService.swift
+│   │   ├── KeychainService.swift           # (Future: Production security)
 │   │   ├── BiometricService.swift
 │   │   └── CertificatePinner.swift
 │   │
@@ -214,10 +218,39 @@ laTrigger/
 
 ## 6. Data Models
 
-### 6.1 Core Models
+### 6.1 Credential Storage (Current Implementation)
+
+> **Note:** Current implementation uses JSON file storage for development simplicity.
+> For production, migrate to iOS Keychain for secure credential storage.
 
 ```swift
-// Server Configuration
+// Jenkins Credentials (JSON Storage)
+struct JenkinsCredentials: Codable, Identifiable, Equatable {
+    var id: UUID
+    var serverName: String
+    var jenkinsURL: String
+    var username: String
+    var password: String        // Optional
+    var apiToken: String        // Required for authentication
+    var paramToken: String      // Build trigger token
+    var isDefault: Bool
+    var createdAt: Date
+    var updatedAt: Date
+}
+```
+
+#### Storage Location
+- **Development:** `Documents/jenkins_credentials.json`
+- **Production:** iOS Keychain with `kSecClassGenericPassword`
+
+#### Security Considerations
+| Aspect | Development (JSON) | Production (Keychain) |
+|--------|-------------------|----------------------|
+| Encryption | File Protection | Hardware Encrypted |
+| Backup | Included in iCloud | Excluded by default |
+| Access | App Sandbox | Biometric/Passcode |
+
+### 6.2 Core Models
 struct ServerConfiguration: Codable, Identifiable {
     let id: UUID
     var name: String
