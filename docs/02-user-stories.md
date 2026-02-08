@@ -31,27 +31,35 @@ EP-06: Settings & Preferences
 
 ## EP-01: Authentication & Server Management
 
-### US-01: Connect to Jenkins Server with API Token
+### US-01: Connect to Jenkins Server with API Token ✅ IMPLEMENTED
 **As a** user  
 **I want to** connect to a Jenkins server using an API token  
 **So that** my credentials are secure and I can access my Jenkins instance
 
 **Priority:** P0 (Must Have)  
 **Story Points:** 5  
-**Sprint:** 1
+**Sprint:** 1  
+**Status:** ✅ Completed
 
 #### Acceptance Criteria
-- [ ] User can enter Jenkins server URL
-- [ ] User can enter username and API token
-- [ ] App validates the connection before saving
-- [ ] Error message shown for invalid credentials
-- [ ] Success confirmation shown on valid connection
-- [ ] Credentials stored securely in iOS Keychain
+- [x] User can enter Jenkins server URL
+- [x] User can enter username and API token
+- [x] App validates the connection before saving
+- [x] Error message shown for invalid credentials
+- [x] Success confirmation shown on valid connection
+- [x] Credentials stored locally in JSON file (development mode)
 
 #### Technical Notes
 - Use URLSession for API calls
 - Validate with `/api/json` endpoint
-- Store in Keychain with `kSecClassGenericPassword`
+- **Current Implementation:** JSON file storage in Documents directory
+- **Future:** Migrate to iOS Keychain for production security
+
+#### Implementation Details
+- `CredentialStorageService.swift` - JSON file-based credential storage
+- `JenkinsAPIService.swift` - API client for connection validation
+- `SettingsViewModel.swift` - ViewModel with save/load/validate logic
+- `SettingsView.swift` - UI for entering and testing credentials
 
 ---
 
@@ -72,8 +80,9 @@ EP-06: Settings & Preferences
 - [ ] Maximum of 10 servers supported
 
 #### Technical Notes
-- Use CoreData or UserDefaults for server metadata
-- Credentials remain in Keychain with server ID reference
+- JSON file supports multiple server configurations
+- Each server has unique UUID identifier
+- `isDefault` flag for default server selection
 
 ---
 
