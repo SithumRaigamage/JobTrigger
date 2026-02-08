@@ -1,0 +1,147 @@
+# =========================
+# iOS / Xcode .gitignore
+# =========================
+
+# Xcode User Data
+*.xcuserstate
+xcuserdata/
+*.xcuserdatad
+
+# Build Products
+build/
+DerivedData/
+*.build/
+
+# Xcode Workspace Settings
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+
+# Swift Package Manager
+.swiftpm/
+.build/
+Packages/
+Package.resolved
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+
+# CocoaPods
+Pods/
+*.xcworkspace
+!*.xcodeproj/project.xcworkspace/
+Podfile.lock
+
+# Carthage
+Carthage/Build/
+Carthage/Checkouts/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output/
+
+# Code Injection
+iOSInjectionProject/
+
+# =========================
+# macOS System Files
+# =========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*~
+
+# =========================
+# IDE & Editors
+# =========================
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains (AppCode)
+.idea/
+*.iml
+
+# Vim
+*.swp
+*.swo
+*~
+
+# =========================
+# Secrets & Environment
+# =========================
+.env
+.env.local
+.env.*.local
+*.pem
+*.p12
+*.key
+*.mobileprovision
+*.provisionprofile
+Secrets/
+secrets/
+
+# API Keys (safety net)
+**/APIKeys.swift
+**/Secrets.swift
+**/Config.local.swift
+
+# =========================
+# Testing & Coverage
+# =========================
+*.gcno
+*.gcda
+*.lcov
+coverage/
+*.xcresult
+
+# =========================
+# Archives & Distribution
+# =========================
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.app
+*.xcarchive
+
+# =========================
+# Playgrounds
+# =========================
+timeline.xctimeline
+playground.xcworkspace
+
+# =========================
+# Documentation
+# =========================
+docs/_build/
+*.docset
+
+# =========================
+# Misc
+# =========================
+*.log
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# Crashlytics
+crashlytics-build.properties
+crashlytics.properties
+fabric.properties
+
+# Firebase
+GoogleService-Info.plist
+
+# =========================
+# Project-specific
+# =========================
+
+# Ignore local development configs
+*.local
+local.xcconfig
