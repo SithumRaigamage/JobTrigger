@@ -19,12 +19,21 @@ struct SettingsView: View {
                 }
             } else {
                 Form {
+                    // MARK: - Server Configuration Section
                     Section(
                         header: Text("Jenkins Configuration"),
                         footer: Text(
-                            "These credentials are used to authenticate to Jenkins and trigger builds."
+                            "These credentials are used to authenticate to Jenkins and trigger builds. Credentials are stored locally in a JSON file."
                         )
                     ) {
+                        LabeledField(title: "Server Name") {
+                            TextField(
+                                "My Jenkins Server",
+                                text: $viewModel.serverName
+                            )
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
+                        }
 
                         LabeledField(title: "Jenkins URL") {
                             TextField(
@@ -46,41 +55,67 @@ struct SettingsView: View {
 
                         SecureToggleField(
                             title: "Password",
-                            placeholder: "Password",
+                            placeholder: "Password (optional)",
                             text: $viewModel.password
                         )
 
-                        SecureToggleField(
-                            title: "API Token",
-                            placeholder: "API Token",
-                            text: $viewModel.apiToken
-                        )
+                        // API Token field removed
 
-                        LabeledField(title: "Param Token") {
+                        LabeledField(title: "Build Token") {
                             TextField(
-                                "Param Token",
+                                "Build Token (for triggering)",
                                 text: $viewModel.paramToken
                             )
                             .autocapitalization(.none)
                             .disableAutocorrection(true)
                         }
                     }
+                    
+                    // MARK: - Connection Status Section
+                    if viewModel.connectionStatus != .notTested {
+                        Section(header: Text("Connection Status")) {
+                            HStack {
+                                ConnectionStatusIcon(status: viewModel.connectionStatus)
+                                ConnectionStatusText(status: viewModel.connectionStatus)
+                            }
+                        }
+                    }
 
+                    // MARK: - Actions Section
                     Section {
+                        // Test Connection Button
+                        Button {
+                            viewModel.testConnection()
+                        } label: {
+                            Label(
+                                "Test Connection",
+                                systemImage: "network"
+                            )
+                        }
+                        .disabled(viewModel.isLoading)
+                        
+                        // Save with Validation Button
                         Button {
                             viewModel.saveSettings()
                         } label: {
                             Label(
-                                "Save Settings",
+                                "Save & Validate",
+                                systemImage: "checkmark.shield"
+                            )
+                        }
+                        .disabled(viewModel.isLoading)
+                        
+                        // Save without Validation (Dev mode)
+                        Button {
+                            viewModel.saveWithoutValidation()
+                        } label: {
+                            Label(
+                                "Save Without Validation",
                                 systemImage: "tray.and.arrow.down"
                             )
                         }
-
-                        Button(role: .destructive) {
-                            viewModel.deleteSettings()
-                        } label: {
-                            Label("Delete Settings", systemImage: "trash")
-                        }
+                        .disabled(viewModel.isLoading)
+                        .foregroundColor(.orange)
                     }
                 }
             }
@@ -96,6 +131,7 @@ struct SettingsView: View {
                     .cornerRadius(12)
             }
         }
+        .navigationTitle("Settings")
         .alert(item: $viewModel.alert) { alert in
             Alert(
                 title: Text(alert.title),
@@ -107,5 +143,7 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView()
+    NavigationStack {
+        SettingsView()
+    }
 }

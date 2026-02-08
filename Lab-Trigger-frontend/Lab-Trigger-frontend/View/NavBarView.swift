@@ -28,7 +28,7 @@ struct NavBarView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        print("Profile tapped")
+                        // Profile action - TODO: Implement profile view
                     } label: {
                         Image(systemName: "person.circle")
                     }
