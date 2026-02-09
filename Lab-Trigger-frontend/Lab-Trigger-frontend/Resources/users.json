@@ -1,0 +1,17 @@
+[
+  {
+    "email" : "admin@jobtrigger.com",
+    "id" : "E621E1F8-C36C-495A-93F8-0C247A3E6E5F",
+    "password" : "Admin"
+  },
+  {
+    "email" : "test@example.com",
+    "id" : "7B1C9B7E-9F8A-4B6C-8D2E-5F1A3B0C9D8E",
+    "password" : "password123"
+  },
+  {
+    "email" : "job@developer.com",
+    "id" : "1EF3A7E3-121C-45E5-A64A-9D033677E767",
+    "password" : "Admin@123"
+  }
+]
