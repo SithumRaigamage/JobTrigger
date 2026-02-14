@@ -27,8 +27,8 @@ struct NavBarView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        // Profile action - TODO: Implement profile view
+                    NavigationLink {
+                        ProfileView()
                     } label: {
                         Image(systemName: "person.circle")
                     }
