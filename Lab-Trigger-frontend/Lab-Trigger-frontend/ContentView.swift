@@ -8,11 +8,20 @@
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
+  @StateObject private var authManager = AuthenticationManager.shared
+
+  var body: some View {
+    Group {
+      if authManager.isAuthenticated {
         NavBarView()
+      } else {
+        LoginView()
+      }
     }
+    .notificationManager()
+  }
 }
 
 #Preview {
-    ContentView()
+  ContentView()
 }
