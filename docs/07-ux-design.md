@@ -1,11 +1,11 @@
 # UX Design Document
-## laTrigger — iOS Jenkins Build Trigger App
+## JobTrigger — iOS Jenkins Build Trigger App
 
 | Document Info | |
 |---------------|---|
 | **Version** | 1.0 |
 | **Date** | February 7, 2026 |
-| **Author** | laTrigger Design Team |
+| **Author** | JobTrigger Design Team |
 | **Status** | Draft |
 
 ---
@@ -103,7 +103,7 @@
 ### 3.1 App Structure
 
 ```
-laTrigger
+JobTrigger
 ├── Jobs (Tab 1 - Default)
 │   ├── Job List
 │   │   ├── Search/Filter
@@ -165,7 +165,7 @@ laTrigger
 │                             │
 │        ┌─────────┐          │
 │        │   🚀    │          │
-│        │laTrigger│          │
+│        │JobTrigger│          │
 │        └─────────┘          │
 │                             │
 │                             │
@@ -184,7 +184,7 @@ Transitions to: Onboarding (first launch) or Job List
 ┌─────────────────────────────┐
 │                             │
 │         Welcome to          │
-│        🚀 laTrigger         │
+│        🚀 JobTrigger         │
 │                             │
 │   Trigger Jenkins builds    │
 │      from anywhere          │
@@ -426,7 +426,7 @@ Status Legend:
 │  │ > pod install        │   │
 │  │ Installing pods...   │   │
 │  │ > xcodebuild -scheme │   │
-│  │   laTrigger          │   │
+│  │   JobTrigger          │   │
 │  │ Build Succeeded      │   │
 │  │ > xcodebuild test    │   │
 │  │ Testing...           │   │
@@ -456,6 +456,12 @@ Features:
 │           Settings          │
 ├─────────────────────────────┤
 │                             │
+│  BACKEND STATUS             │
+│  ┌─────────────────────┐    │
+│  │ 🌐 Mode: Online     │    │
+│  │ ☁️ MongoDB Sync      │    │
+│  └─────────────────────┘    │
+│                             │
 │  SERVERS                    │
 │  ┌─────────────────────┐    │
 │  │ 🏢 Prod Jenkins   > │    │
@@ -463,21 +469,17 @@ Features:
 │  │ + Add Server        │    │
 │  └─────────────────────┘    │
 │                             │
-│  NOTIFICATIONS              │
+│  PERSONAL                   │
 │  ┌─────────────────────┐    │
-│  │ Push Notifications  🔘│   │
-│  │ Notify on: All    > │    │
+│  │ 👤 Profile        > │    │
+│  │ 🔑 Account        > │    │
 │  └─────────────────────┘    │
-│                             │
-│  APPEARANCE                 │
-│  ┌─────────────────────┐    │
-│  │ Theme: System     > │    │
-│  └─────────────────────┘    │
-│                             │
-│  SECURITY                   │
-│  ┌─────────────────────┐    │
-│  │ App Lock (Face ID) 🔘│   │
-│  │ Lock on background  🔘│   │
+```
+
+**Interaction Flow:**
+1. **Connectivity Check**: The app heartbeats to the Node.js backend. Status changes to "Offline" automatically if unreachable.
+2. **Offline Mode**: In offline mode, the server list is read-only (cached from last sync). "Add Server" button is disabled.
+3. **Keychain Management**: Tapping a server in the list allows viewing details, but edits are only synced when Online.
 │  └─────────────────────┘    │
 │                             │
 │  ABOUT                      │
@@ -692,20 +694,22 @@ No Jobs Found:
 ### 6.6 Error States
 
 ```
-Connection Error:
+Connection Error (Resilient UI):
 ┌─────────────────────────────┐
 │                             │
 │         ⚠️                  │
 │                             │
-│   Unable to connect         │
+│   Backend Offline           │
 │                             │
-│   Check your network        │
-│   connection and server     │
-│   settings.                 │
+│   The application is        │
+│   unable to reach the       │
+│   service host.             │
 │                             │
-│   [Try Again]  [Settings]   │
+│   [Retry]  [Actions]        │
 │                             │
 └─────────────────────────────┘
+
+*Note: In this state, the server form is hidden to prevent inconsistent data entry, but action buttons remain available for testing.*
 ```
 
 ---

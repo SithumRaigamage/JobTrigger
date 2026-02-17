@@ -1,11 +1,11 @@
 # Security Design Document
-## laTrigger — iOS Jenkins Build Trigger App
+## JobTrigger — iOS Jenkins Build Trigger App
 
 | Document Info | |
 |---------------|---|
 | **Version** | 1.0 |
 | **Date** | February 7, 2026 |
-| **Author** | laTrigger Security Team |
+| **Author** | JobTrigger Security Team |
 | **Status** | Draft |
 | **Classification** | Internal |
 
@@ -13,7 +13,7 @@
 
 ## 1. Executive Summary
 
-This document outlines the security architecture, threat model, and security controls for the laTrigger iOS application. The app handles sensitive credentials (Jenkins API tokens) and performs privileged operations (triggering builds), requiring robust security measures.
+This document outlines the security architecture, threat model, and security controls for the JobTrigger iOS application. The app handles sensitive credentials (Jenkins API tokens) and performs privileged operations (triggering builds), requiring robust security measures.
 
 ---
 
@@ -209,10 +209,11 @@ let policy = LAPolicy.deviceOwnerAuthentication
 
 | Aspect | Implementation |
 |--------|----------------|
-| Session lifetime | Per-app-launch (no persistent sessions) |
-| Token refresh | N/A (Jenkins tokens don't expire) |
-| Multi-device | Tokens not synced between devices |
-| Logout | Clear cached data, retain Keychain tokens |
+| Session strategy | JWT (JSON Web Token) |
+| Session lifetime | 24 hours (Backend enforced) |
+| Token storage | iOS Keychain using `KeychainHelper` |
+| Multi-device | Unique tokens per device |
+| Logout | Revokes local JWT, clears Keychain |
 
 ---
 
@@ -300,7 +301,7 @@ class CertificatePinningDelegate: NSObject, URLSessionDelegate {
 | Header | Purpose |
 |--------|---------|
 | `Authorization: Basic {base64}` | Jenkins authentication |
-| `User-Agent: laTrigger/1.0` | App identification |
+| `User-Agent: JobTrigger/1.0` | App identification |
 | `X-Request-ID: {uuid}` | Request tracing |
 
 ---
@@ -540,7 +541,7 @@ class JailbreakDetector {
 | Medium | Disable certain features |
 | High | Refuse to run, wipe data |
 
-**Recommendation for laTrigger**: Show warning but allow use (user may have legitimate reasons).
+**Recommendation for JobTrigger**: Show warning but allow use (user may have legitimate reasons).
 
 ---
 
@@ -655,19 +656,19 @@ class JailbreakDetector {
 
 ## 15. Security Roadmap
 
-### 15.1 MVP (Phase 3)
-
+### 15.1 MVP (Phase 3) - COMPLETE
 - [x] Keychain storage for tokens
+- [x] Node.js + MongoDB Backend
+- [x] JWT Authentication
 - [x] HTTPS-only connections
 - [x] Input validation
 - [x] Secure logging
 
-### 15.2 Phase 4 (Security Hardening)
-
+### 15.2 Phase 4 (Security Hardening) - IN PROGRESS
 - [ ] Certificate pinning
-- [ ] Biometric app lock
+- [x] Biometric service preparation
 - [ ] Jailbreak detection
-- [ ] Background data protection
+- [x] Offline resilience notifications
 
 ### 15.3 Future Enhancements
 

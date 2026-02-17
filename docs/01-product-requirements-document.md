@@ -1,18 +1,18 @@
 # Product Requirements Document (PRD)
-## laTrigger — iOS Jenkins Build Trigger App
+## JobTrigger — iOS Jenkins Build Trigger App
 
 | Document Info | |
 |---------------|---|
 | **Version** | 1.0 |
 | **Date** | February 7, 2026 |
-| **Author** | laTrigger Team |
+| **Author** | JobTrigger Team |
 | **Status** | In Development |
 
 ---
 
 ## 1. Executive Summary
 
-laTrigger is a native iOS application that enables developers and DevOps engineers to securely trigger, monitor, and manage Jenkins jobs directly from their iOS devices. The app provides a mobile-first experience for CI/CD pipeline management, allowing users to stay connected to their build processes anytime, anywhere.
+JobTrigger is a native iOS application that enables developers and DevOps engineers to securely trigger, monitor, and manage Jenkins jobs directly from their iOS devices. The app provides a mobile-first experience for CI/CD pipeline management, allowing users to stay connected to their build processes anytime, anywhere.
 
 ---
 
@@ -26,7 +26,7 @@ DevOps engineers and developers often need to trigger Jenkins builds when they'r
 
 ### 2.2 Solution
 
-laTrigger provides:
+JobTrigger provides:
 - Native iOS app with intuitive SwiftUI interface
 - Secure authentication via Jenkins API tokens
 - One-tap build triggering with parameter support
@@ -87,7 +87,7 @@ laTrigger provides:
 | ID | Requirement | Priority |
 |----|-------------|----------|
 | FR-01 | User shall authenticate with Jenkins using API token | P0 | Done |
-| FR-02 | User shall save multiple Jenkins server configurations | P1 | Done |
+| FR-02 | User shall save multiple Jenkins server configurations | P0 | Done |
 | FR-03 | User shall switch between saved Jenkins servers | P1 | Done |
 | FR-04 | User shall edit/delete saved server configurations | P1 | Done |
 | FR-05 | App shall validate server connectivity on setup | P0 | Done |
@@ -138,7 +138,7 @@ laTrigger provides:
 
 | ID | Requirement |
 |----|-------------|
-| NFR-01 | Credentials stored in iOS Keychain only | In Progress (Placeholder used) |
+| NFR-01 | Credentials stored in iOS Keychain only | Done |
 | NFR-02 | All API calls over HTTPS/TLS 1.2+ | Done |
 | NFR-03 | No password storage—API tokens only | Done |
 | NFR-04 | Certificate pinning for API calls | Not Started |
@@ -289,4 +289,4 @@ laTrigger provides:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | Feb 7, 2026 | laTrigger Team | Initial draft |
+| 1.0 | Feb 7, 2026 | JobTrigger Team | Initial draft |

@@ -1,11 +1,11 @@
 # Release Plan Document
-## laTrigger — iOS Jenkins Build Trigger App
+## JobTrigger — iOS Jenkins Build Trigger App
 
 | Document Info | |
 |---------------|---|
 | **Version** | 1.0 |
 | **Date** | February 7, 2026 |
-| **Author** | laTrigger Team |
+| **Author** | JobTrigger Team |
 | **Status** | Draft |
 
 ---
@@ -14,7 +14,7 @@
 
 ### 1.1 Release Strategy
 
-laTrigger follows a phased release strategy:
+JobTrigger follows a phased release strategy:
 
 1. **Internal Alpha** — Development team testing
 2. **Private Beta** — Limited TestFlight users
@@ -213,7 +213,7 @@ Week 3-4: Public Beta
 
 | Field | Content |
 |-------|---------|
-| App Name | laTrigger |
+| App Name | JobTrigger |
 | Subtitle | Jenkins Build Trigger |
 | Category | Developer Tools |
 | Content Rating | 4+ |
@@ -222,7 +222,7 @@ Week 3-4: Public Beta
 #### Description
 
 ```
-laTrigger - Trigger Jenkins builds from anywhere.
+JobTrigger - Trigger Jenkins builds from anywhere.
 
 The essential iOS companion for DevOps engineers and developers 
 who need to manage Jenkins pipelines on the go.
@@ -480,9 +480,9 @@ Required disclosures:
 ### 10.3 Release Notes Template
 
 ```markdown
-# laTrigger v1.0.0
+# JobTrigger v1.0.0
 
-We're excited to announce the first release of laTrigger!
+We're excited to announce the first release of JobTrigger!
 
 ## What's New
 
@@ -600,4 +600,4 @@ Prepare answers for:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | Feb 7, 2026 | laTrigger Team | Initial release plan |
+| 1.0 | Feb 7, 2026 | JobTrigger Team | Initial release plan |

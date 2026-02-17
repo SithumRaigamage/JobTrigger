@@ -1,131 +1,65 @@
-# Jenkins Job Trigger API Specification
+# JobTrigger API Specification
 
-## Overview
-This API endpoint allows you to trigger a Jenkins CI/CD pipeline with custom parameters for building and deploying your application.
-
-## Endpoint Details
-
-**URL:** `http://localhost:8080/job/Projects/job/Hello-World-Node-JS/job/CI/job/CI-Pipleine/buildWithParameters`
-
-**Method:** `POST`
-
-**Authentication:** Basic Authentication (required)
-
-**Query Parameters:**
-- `token` (required): Authentication token for triggering the build
-  - Example: `sithum`
-
-## Request Headers
-
-| Header | Value | Required |
-|--------|-------|----------|
-| Content-Type | `application/x-www-form-urlencoded` | Yes |
-| Authorization | `Basic <base64-encoded-credentials>` | Yes |
-
-## Form Parameters
-
-| Parameter | Type | Description | Example | Required |
-|-----------|------|-------------|---------|----------|
-| RELEASE_VERSION | string | Version number for the release | `1.0.4` | Yes |
-| ENVIRONMENT | string | Target deployment environment | `dev`, `staging`, `prod` | Yes |
-| BRANCH | string | Git branch to build from | `main`, `develop`, `feature/*` | Yes |
-| GIT_REPO_URL | string | Full URL of the Git repository | `https://github.com/user-name/repo-name.git` | Yes |
-| SEND_EMAIL | boolean | Whether to send email notifications | `true`, `false` | No |
-
-## Example Request
-
-### cURL
-
-```bash
-curl --location 'http://localhost:8080/job/Projects/job/Hello-World-Node-JS/job/CI/job/CI-Pipleine/buildWithParameters?token=sithum' \
-  --header 'Content-Type: application/x-www-form-urlencoded' \
-  --header 'Authorization: Basic U2l0aHVtOjExYjdlYmU2YmIwMDVhMTRhMTNkNzU0MmVlNDE4k=' \
-  --form 'RELEASE_VERSION="1.0.4"' \
-  --form 'ENVIRONMENT="dev"' \
-  --form 'BRANCH="main"' \
-  --form 'GIT_REPO_URL="https://github.com/user-name/repo-name.git"' \
-  --form 'SEND_EMAIL="true"'
-```
-
-### JavaScript (Fetch)
-
-```javascript
-const formData = new FormData();
-formData.append('RELEASE_VERSION', '1.0.4');
-formData.append('ENVIRONMENT', 'dev');
-formData.append('BRANCH', 'main');
-formData.append('GIT_REPO_URL', 'https://github.com/user-name/repo-name.git');
-formData.append('SEND_EMAIL', 'true');
-
-fetch('http://localhost:8080/job/Projects/job/Hello-World-Node-JS/job/CI/job/CI-Pipleine/buildWithParameters?token=sithum', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Basic U2l0aHVtOjExYjdlYmU2YmIwMDVhMTRhMTNkNzU0MmVlNDE4k='
-  },
-  body: formData
-})
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(error => console.error('Error:', error));
-```
-
-### Python (Requests)
-
-```python
-import requests
-
-url = "http://localhost:8080/job/Projects/job/Hello-World-Node-JS/job/CI/job/CI-Pipleine/buildWithParameters"
-params = {"token": "sithum"}
-headers = {
-    "Authorization": "Basic U2l0aHVtOjExYjdlYmU2YmIwMDVhMTRhMTNkNzU0MmVlNDE4k="
-}
-data = {
-    "RELEASE_VERSION": "1.0.4",
-    "ENVIRONMENT": "dev",
-    "BRANCH": "main",
-    "GIT_REPO_URL": "https://github.com/user-name/repo-name.git",
-    "SEND_EMAIL": "true"
-}
-
-response = requests.post(url, params=params, headers=headers, data=data)
-print(response.status_code)
-```
-
-## Response
-
-Jenkins typically returns a `201 Created` status code when a build is successfully queued.
-
-**Success Response:**
-- **Status Code:** 201
-- **Headers:** Location header containing the queue item URL
-
-## Security Notes
-
-⚠️ **Important Security Considerations:**
-
-1. **Never commit credentials** to version control
-2. Store the Authorization token and API credentials in environment variables or secure vaults
-3. Use HTTPS in production environments instead of HTTP
-4. Rotate API tokens regularly
-5. Implement IP whitelisting for additional security
-
-## Environment-Specific Configuration
-
-| Environment | Recommended Settings |
-|-------------|---------------------|
-| `dev` | Frequent builds, all notifications enabled |
-| `staging` | Pre-production testing, selective notifications |
-| `prod` | Manual approvals, critical notifications only |
-
-## Troubleshooting
-
-### Common Issues
-
-1. **401 Unauthorized:** Check your Authorization header and token parameter
-2. **404 Not Found:** Verify the Jenkins job path is correct
-3. **403 Forbidden:** Ensure the user has build permissions for this job
-4. **Build not triggered:** Check Jenkins job configuration for required parameters
+## 1. Overview
+JobTrigger utilizes a hybrid API architecture:
+1. **Management API**: A Node.js + MongoDB backend handles user authentication and Jenkins credential synchronization.
+2. **Execution API**: The mobile client interacts directly with Jenkins servers using credentials retrieved from the Management API.
 
 ---
 
-**Last Updated:** 2026-02-07
+## 2. Management API (Node.js)
+
+**Base URL:** `http://127.0.0.1:5001/api`
+
+### 2.1 Authentication
+
+#### POST /auth/signup
+Registers a new user.
+- **Body**: `{ "email": "user@example.com", "password": "securepassword" }`
+- **Response**: `200 OK` with JWT token in `x-auth-token` header.
+
+#### POST /auth/login
+Authenticates an existing user.
+- **Body**: `{ "email": "user@example.com", "password": "securepassword" }`
+- **Response**: `200 OK` with JWT token in `x-auth-token` header.
+
+### 2.2 Credentials Management
+*Requires `x-auth-token` header*
+
+#### GET /credentials
+Retrieves all saved Jenkins server configurations for the authenticated user.
+
+#### POST /credentials
+Saves a new Jenkins server configuration.
+- **Body**: `{ "name": "Prod", "url": "...", "username": "...", "password": "...", "token": "..." }`
+
+#### PUT /credentials/:id
+Updates an existing configuration.
+
+#### DELETE /credentials/:id
+Removes a configuration.
+
+---
+
+## 3. Execution API (Jenkins Direct)
+
+The app interacts with Jenkins using standard REST endpoints.
+
+### 3.1 Fetch Jobs
+**URL:** `{SERVER_URL}/api/json?tree=jobs[name,url,color]`
+**Method:** `GET`
+**Auth:** Basic (Base64 encoded `username:api_token`)
+
+### 3.2 Trigger Build
+**URL:** `{SERVER_URL}/job/{JOB_PATH}/buildWithParameters`
+**Method:** `POST`
+**Query Params:** `token={PARAM_TOKEN}` (if configured)
+
+---
+
+## 4. Security
+- **JWT**: Used for all management requests. Stored in iOS Keychain.
+- **Basic Auth**: Used for direct Jenkins requests. Sent over HTTPS only.
+- **Encryption**: Passwords are hashed with Bcrypt on the backend.
+
+**Last Updated:** 2026-02-17

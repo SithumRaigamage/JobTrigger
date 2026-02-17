@@ -1,18 +1,18 @@
 # User Stories Document
-## laTrigger — iOS Jenkins Build Trigger App
+## JobTrigger — iOS Jenkins Build Trigger App
 
 | Document Info | |
 |---------------|---|
 | **Version** | 1.0 |
 | **Date** | February 7, 2026 |
-| **Author** | laTrigger Team |
+| **Author** | JobTrigger Team |
 | **Status** | Draft |
 
 ---
 
 ## Overview
 
-This document contains all user stories for the laTrigger iOS application, organized by epic and ready for import into Jira or similar project management tools.
+This document contains all user stories for the JobTrigger iOS application, organized by epic and ready for import into Jira or similar project management tools.
 
 ---
 
@@ -46,7 +46,7 @@ EP-06: Settings & Preferences
 - [x] App validates the connection before saving
 - [x] Error message shown for invalid credentials
 - [x] Success confirmation shown on valid connection
-- [ ] Credentials stored securely in iOS Keychain (JSON Placeholder used)
+- [x] Credentials stored securely in iOS Keychain via Node.js backend
 
 #### Technical Notes
 - Use URLSession for API calls
@@ -157,12 +157,12 @@ EP-06: Settings & Preferences
 **Sprint:** 2
 
 #### Acceptance Criteria
-- [ ] Jobs displayed in a scrollable list
-- [ ] Each job shows name and last build status
-- [ ] Folder structure represented (nested jobs)
-- [ ] Pull-to-refresh updates job list
-- [ ] Loading indicator while fetching
-- [ ] Empty state when no jobs found
+- [x] Jobs displayed in a scrollable list
+- [x] Each job shows name and last build status
+- [x] Folder structure represented (nested jobs)
+- [x] Pull-to-refresh updates job list
+- [x] Loading indicator while fetching
+- [x] Empty state when no jobs found
 - [x] API Service supports fetching jobs
 
 #### Technical Notes
@@ -528,9 +528,9 @@ EP-06: Settings & Preferences
 **Sprint:** 4
 
 #### Acceptance Criteria
-- [x] Settings accessible from tab bar or menu
+- [x] Settings accessible from tab bar
 - [x] Grouped settings with clear labels
-- [x] Changes applied immediately
+- [x] Changes applied immediately and synced to backend
 
 #### Settings Sections
 - Account & Servers
@@ -638,4 +638,4 @@ A user story is considered "Done" when:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | Feb 7, 2026 | laTrigger Team | Initial user stories |
+| 1.0 | Feb 7, 2026 | JobTrigger Team | Initial user stories |

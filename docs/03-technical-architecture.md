@@ -1,18 +1,18 @@
 # Technical Architecture Document
-## laTrigger — iOS Jenkins Build Trigger App
+## JobTrigger — iOS Jenkins Build Trigger App
 
 | Document Info | |
 |---------------|---|
 | **Version** | 1.0 |
 | **Date** | February 7, 2026 |
-| **Author** | laTrigger Team |
+| **Author** | JobTrigger Team |
 | **Status** | Draft |
 
 ---
 
 ## 1. Overview
 
-This document describes the technical architecture of the laTrigger iOS application. It covers the system architecture, component design, data flow, and technology choices.
+This document describes the technical architecture of the JobTrigger iOS application. It covers the system architecture, component design, data flow, and technology choices.
 
 ---
 
@@ -24,7 +24,7 @@ This document describes the technical architecture of the laTrigger iOS applicat
 │    ┌──────────────┐         HTTPS/TLS          ┌──────────────────┐         │
 │    │              │◄───────────────────────────►│                  │         │
 │    │   iOS App    │                             │  Backend Proxy   │         │
-│    │  (laTrigger) │                             │  (Node.js + MG)  │         │
+│    │  (JobTrigger) │                             │  (Node.js + MG)  │         │
 │    │              │                             └────────┬─────────┘         │
 │    └──────┬───────┘                                      │                   │
 │           │                                              │ HTTPS/TLS         │
@@ -124,9 +124,9 @@ Presentation → ViewModel → Domain ← Data
 ### 5.1 Module Structure
 
 ```
-laTrigger/
+JobTrigger/
 ├── App/
-│   ├── laTriggerApp.swift          # App entry point
+│   ├── JobTriggerApp.swift          # App entry point
 │   ├── AppDelegate.swift           # Push notifications
 │   └── SceneDelegate.swift         # Scene lifecycle
 │
@@ -171,24 +171,23 @@ laTrigger/
 │
 ├── Core/
 │   ├── Network/
-│   │   ├── JenkinsAPIClient.swift
-│   │   ├── APIEndpoint.swift
-│   │   ├── NetworkError.swift
-│   │   └── RequestBuilder.swift
+│   │   ├── BackendClient.swift         # Base networking client
+│   │   ├── APIConfig.swift             # URL/Endpoint configuration
+│   │   ├── JenkinsAPIClient.swift      # Jenkins specific calls
+│   │   └── NetworkError.swift          # Error definitions
 │   │
 │   ├── Security/
-│   │   ├── KeychainService.swift
+│   │   ├── KeychainHelper.swift        # JWT and token storage
 │   │   ├── BiometricService.swift
 │   │   └── CertificatePinner.swift
 │   │
 │   ├── Persistence/
-│   │   ├── CoreDataStack.swift
-│   │   ├── ServerRepository.swift
+│   │   ├── CredentialStorageService.swift # CRUD for backend credentials
 │   │   └── CacheManager.swift
 │   │
 │   └── Notifications/
-│       ├── PushNotificationService.swift
-│       └── NotificationManager.swift
+│       ├── NotificationManager.swift     # Global UI notifications
+│       └── PushNotificationService.swift
 │
 ├── Shared/
 │   ├── Extensions/
@@ -216,7 +215,7 @@ laTrigger/
 ```swift
 // Server Configuration
 struct ServerConfiguration: Codable, Identifiable {
-    let id: UUID
+    let id: String  // MongoDB ObjectId string
     var name: String
     var url: URL
     var username: String
@@ -723,8 +722,7 @@ The backend is a Node.js application using Express and Mongoose to provide a sec
 | SwiftUI over UIKit | Modern, declarative, faster development | Feb 2026 |
 | MVVM pattern | Clean separation, testability | Feb 2026 |
 | URLSession over Alamofire | Reduce dependencies, built-in sufficient | Feb 2026 |
-| CoreData over Realm | Native, no third-party dependency | Feb 2026 |
-| No backend initially | Faster MVP, direct API access | Feb 2026 |
+| Full Backend Migration | Centralized storage, JWT security, multi-device potential | Feb 2026 |
 
 ---
 
@@ -732,5 +730,5 @@ The backend is a Node.js application using Express and Mongoose to provide a sec
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | Feb 7, 2026 | laTrigger Team | Initial architecture |
+| 1.0 | Feb 7, 2026 | JobTrigger Team | Initial architecture |
 | 1.1 | Feb 17, 2026 | Antigravity | Integrated Node.js + MongoDB backend |
