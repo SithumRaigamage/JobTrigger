@@ -30,7 +30,88 @@ final class SettingsViewModel: ObservableObject {
   private let apiService = JenkinsAPIService.shared
 
   // MARK: - Current Credentials
-  private var currentCredentialID: String?
+  var currentCredentialID: String?
+
+  // MARK: - Multi-server Management
+  @Published var allServers: [JenkinsCredentials] = []
+  @Published var selectedServer: JenkinsCredentials? = nil
+  @Published var isPresentingAddEditSheet = false
+  @Published var isEditing = false
+
+  /// Load all servers and set selected
+  @MainActor
+  func loadAllServers() async {
+    do {
+      let servers = try await storageService.loadAll()
+      allServers = servers
+      if let def = servers.first(where: { $0.isDefault }) ?? servers.first {
+        selectServer(def)
+      }
+    } catch {
+      print("❌ Error loading all servers: \(error)")
+      // leave existing state unchanged
+    }
+  }
+
+  /// Select a server (populate form)
+  func selectServer(_ server: JenkinsCredentials) {
+    selectedServer = server
+    currentCredentialID = server.id
+    serverName = server.serverName
+    jenkinsURL = server.jenkinsURL
+    username = server.username
+    password = server.password
+    paramToken = server.paramToken
+    hasExistingCredentials = true
+    connectionStatus = .notTested
+  }
+
+  /// Add or update a server
+  func saveServer(isDefault: Bool = false) async {
+    var cred = currentCredentials
+    cred.isDefault = isDefault
+    do {
+      let saved = try await storageService.save(cred)
+      await loadAllServers()
+      selectServer(saved)
+      isPresentingAddEditSheet = false
+    } catch {
+      alert = .saveError(message: error.localizedDescription)
+    }
+  }
+
+  /// Delete a server
+  func deleteServer(_ server: JenkinsCredentials) async {
+    do {
+      try await storageService.delete(server.id)
+      await loadAllServers()
+      if let first = allServers.first {
+        selectServer(first)
+      } else {
+        // Clear form
+        currentCredentialID = nil
+        serverName = ""
+        jenkinsURL = ""
+        username = ""
+        password = ""
+        paramToken = ""
+        hasExistingCredentials = false
+      }
+    } catch {
+      alert = .saveError(message: error.localizedDescription)
+    }
+  }
+
+  /// Switch active server
+  func switchActiveServer(_ server: JenkinsCredentials) async {
+    do {
+      let updated = try await storageService.setActiveServer(server.id)
+      await loadAllServers()
+      selectServer(updated)
+    } catch {
+      alert = .saveError(message: error.localizedDescription)
+    }
+  }
 
   // MARK: - Connection Status
   enum ConnectionStatus: Equatable {

@@ -19,6 +19,82 @@ struct SettingsView: View {
         }
       } else {
         Form {
+          // MARK: - Servers List Section
+          Section(header: Text("Jenkins Servers")) {
+            if viewModel.allServers.isEmpty {
+              Text("No servers added yet.")
+                .foregroundColor(.secondary)
+            } else {
+              ForEach(viewModel.allServers, id: \.id) { server in
+                HStack {
+                  VStack(alignment: .leading) {
+                    Text(server.serverName)
+                      .fontWeight(.medium)
+                    Text(server.jenkinsURL)
+                      .font(.caption)
+                      .foregroundColor(.secondary)
+                  }
+
+                  Spacer()
+
+                  if server.isDefault {
+                    Text("Active")
+                      .font(.caption)
+                      .padding(6)
+                      .background(Color.green.opacity(0.15))
+                      .cornerRadius(6)
+                  }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                  viewModel.selectServer(server)
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                  Button(role: .destructive) {
+                    Task {
+                      await viewModel.deleteServer(server)
+                    }
+                  } label: {
+                    Label("Delete", systemImage: "trash")
+                  }
+
+                  Button {
+                    Task {
+                      await viewModel.switchActiveServer(server)
+                    }
+                  } label: {
+                    Label("Set Active", systemImage: "star")
+                  }
+                  .tint(.yellow)
+                }
+                .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                  Button {
+                    // Edit
+                    viewModel.selectServer(server)
+                    viewModel.isEditing = true
+                    viewModel.isPresentingAddEditSheet = true
+                  } label: {
+                    Label("Edit", systemImage: "pencil")
+                  }
+                }
+              }
+            }
+
+            Button {
+              // Prepare for adding a new server
+              viewModel.currentCredentialID = nil
+              viewModel.serverName = ""
+              viewModel.jenkinsURL = ""
+              viewModel.username = ""
+              viewModel.password = ""
+              viewModel.paramToken = ""
+              viewModel.isEditing = false
+              viewModel.isPresentingAddEditSheet = true
+            } label: {
+              Label("Add Jenkins Server", systemImage: "plus")
+            }
+          }
+
           // MARK: - Backend Status Section
           Section {
             HStack {
@@ -146,6 +222,7 @@ struct SettingsView: View {
     .onAppear {
       Task {
         await viewModel.loadExistingCredentials()
+        await viewModel.loadAllServers()
       }
     }
     .navigationTitle("Settings")
@@ -162,6 +239,61 @@ struct SettingsView: View {
           AuthenticationManager.shared.signOut()
         } label: {
           Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
+        }
+      }
+    }
+    // Add/Edit sheet for servers
+    .sheet(isPresented: $viewModel.isPresentingAddEditSheet) {
+      NavigationStack {
+        Form {
+          LabeledField(title: "Server Name") {
+            TextField("My Jenkins Server", text: $viewModel.serverName)
+              .autocapitalization(.none)
+              .disableAutocorrection(true)
+          }
+
+          LabeledField(title: "Jenkins URL") {
+            TextField("http://localhost:8080", text: $viewModel.jenkinsURL)
+              .keyboardType(.URL)
+              .textContentType(.URL)
+              .autocapitalization(.none)
+              .disableAutocorrection(true)
+          }
+
+          LabeledField(title: "Username") {
+            TextField("Username", text: $viewModel.username)
+              .textContentType(.username)
+              .autocapitalization(.none)
+              .disableAutocorrection(true)
+          }
+
+          SecureToggleField(
+            title: "Password",
+            placeholder: "Password (optional)",
+            text: $viewModel.password
+          )
+
+          LabeledField(title: "Build Token") {
+            TextField("Build Token (for triggering)", text: $viewModel.paramToken)
+              .autocapitalization(.none)
+              .disableAutocorrection(true)
+          }
+        }
+        .navigationTitle(viewModel.isEditing ? "Edit Server" : "Add Server")
+        .toolbar {
+          ToolbarItem(placement: .cancellationAction) {
+            Button("Cancel") {
+              viewModel.isPresentingAddEditSheet = false
+            }
+          }
+
+          ToolbarItem(placement: .confirmationAction) {
+            Button(viewModel.isEditing ? "Save" : "Add") {
+              Task {
+                await viewModel.saveServer(isDefault: false)
+              }
+            }
+          }
         }
       }
     }

@@ -13,6 +13,8 @@ protocol CredentialStorageProtocol {
   func save(_ credentials: JenkinsCredentials) async throws -> JenkinsCredentials
   func loadAll() async throws -> [JenkinsCredentials]
   func delete(_ id: String) async throws
+  func setActiveServer(_ id: String) async throws -> JenkinsCredentials
+  func fetchById(_ id: String) async throws -> JenkinsCredentials
 }
 
 // MARK: - Backend Credential Storage Service
@@ -56,5 +58,16 @@ final class CredentialStorageService: CredentialStorageProtocol {
       APIConfig.Credentials.forId(id),
       method: "DELETE"
     )
+  }
+
+  /// Switch the active Jenkins server (set as default)
+  func setActiveServer(_ id: String) async throws -> JenkinsCredentials {
+    let url = APIConfig.Credentials.base.appendingPathComponent("switch").appendingPathComponent(id)
+    return try await BackendClient.shared.request(url, method: "POST")
+  }
+
+  /// Fetch a credential by ID
+  func fetchById(_ id: String) async throws -> JenkinsCredentials {
+    return try await BackendClient.shared.request(APIConfig.Credentials.forId(id))
   }
 }

@@ -47,6 +47,13 @@ EP-06: Settings & Preferences
 - [x] Error message shown for invalid credentials
 - [x] Success confirmation shown on valid connection
 - [x] Credentials stored securely in iOS Keychain via Node.js backend
+#### Acceptance Criteria (status verified)
+- [x] User can enter Jenkins server URL
+- [x] User can enter username and API token
+- [x] App validates the connection before saving
+- [x] Error message shown for invalid credentials
+- [x] Success confirmation shown on valid connection
+- [ ] Credentials stored securely in iOS Keychain via Node.js backend
 
 #### Technical Notes
 - Use URLSession for API calls
@@ -70,6 +77,12 @@ EP-06: Settings & Preferences
 - [ ] Server list shows all saved servers
 - [ ] User can set a default server
 - [ ] Maximum of 10 servers supported
+#### Acceptance Criteria (status verified)
+- [x] User can add multiple server configurations
+- [ ] Each server has a unique display name (not enforced)
+- [x] Server list shows all saved servers
+- [x] User can set a default server
+- [ ] Maximum of 10 servers supported
 
 #### Technical Notes
 - Use CoreData or UserDefaults for server metadata
@@ -91,6 +104,11 @@ EP-06: Settings & Preferences
 - [ ] Tap on server name shows server picker
 - [ ] Switching server refreshes job list
 - [ ] Last active server remembered on app launch
+#### Acceptance Criteria (status verified)
+- [ ] Active server displayed in navigation/header
+- [ ] Tap on server name shows server picker
+- [ ] Switching server refreshes job list
+- [x] Last active server remembered on app launch
 
 ---
 
@@ -108,6 +126,11 @@ EP-06: Settings & Preferences
 - [ ] Changes require re-validation before saving
 - [ ] Cancel discards changes
 - [ ] Original config preserved until save confirmed
+#### Acceptance Criteria (status verified)
+- [x] User can edit server name, URL, and credentials
+- [ ] Changes require re-validation before saving
+- [ ] Cancel discards changes (not implemented: edits persist in form state until explicitly reverted)
+- [ ] Original config preserved until save confirmed
 
 ---
 
@@ -122,6 +145,11 @@ EP-06: Settings & Preferences
 
 #### Acceptance Criteria
 - [ ] Swipe-to-delete on server list
+- [ ] Confirmation dialog before deletion
+- [ ] Associated credentials removed from Keychain
+- [ ] Cannot delete if only one server exists (or can with warning)
+#### Acceptance Criteria (status verified)
+- [x] Swipe-to-delete on server list
 - [ ] Confirmation dialog before deletion
 - [ ] Associated credentials removed from Keychain
 - [ ] Cannot delete if only one server exists (or can with warning)

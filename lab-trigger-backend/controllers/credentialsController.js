@@ -80,3 +80,22 @@ exports.deleteCredential = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+
+// Set a Jenkins server as the active/default server for the user
+exports.setActiveServer = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const credential = await JenkinsCredential.findById(id);
+    if (!credential) return res.status(404).json({ message: 'Credential not found' });
+    if (credential.userId.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'User not authorized' });
+    }
+    // Unset all as default, then set this one as default
+    await JenkinsCredential.updateMany({ userId: req.user.id }, { isDefault: false });
+    credential.isDefault = true;
+    await credential.save();
+    res.json(credential);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
