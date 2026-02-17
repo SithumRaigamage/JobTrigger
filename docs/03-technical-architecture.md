@@ -20,22 +20,19 @@ This document describes the technical architecture of the laTrigger iOS applicat
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              SYSTEM CONTEXT                                  │
-├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │    ┌──────────────┐         HTTPS/TLS          ┌──────────────────┐         │
 │    │              │◄───────────────────────────►│                  │         │
-│    │   iOS App    │                             │  Jenkins Server  │         │
-│    │  (laTrigger) │                             │   (REST API)     │         │
-│    │              │                             │                  │         │
-│    └──────┬───────┘                             └──────────────────┘         │
-│           │                                                                  │
-│           │                                                                  │
-│           ▼                                                                  │
+│    │   iOS App    │                             │  Backend Proxy   │         │
+│    │  (laTrigger) │                             │  (Node.js + MG)  │         │
+│    │              │                             └────────┬─────────┘         │
+│    └──────┬───────┘                                      │                   │
+│           │                                              │ HTTPS/TLS         │
+│           ▼                                              ▼                   │
 │    ┌──────────────┐                             ┌──────────────────┐         │
 │    │              │                             │                  │         │
-│    │    APNs      │◄────────────────────────────│  Backend Proxy   │         │
-│    │  (Push)      │                             │  (Future)        │         │
+│    │    APNs      │◄────────────────────────────│  Jenkins Server  │         │
+│    │  (Push)      │                             │   (REST API)     │         │
 │    │              │                             │                  │         │
 │    └──────────────┘                             └──────────────────┘         │
 │                                                                              │
@@ -46,9 +43,9 @@ This document describes the technical architecture of the laTrigger iOS applicat
 
 | System | Description | Integration |
 |--------|-------------|-------------|
-| Jenkins Server | CI/CD server hosting jobs | REST API over HTTPS |
-| Apple Push Notification Service | iOS push notifications | APNs SDK |
-| Backend Proxy (Future) | Optional proxy for security | REST API |
+| Backend Proxy | Node.js + MongoDB service | REST API over HTTPS |
+| Jenkins Server | CI/CD server hosting jobs | Triggered via Backend |
+| APNs | iOS push notifications | APNs SDK |
 
 ---
 
@@ -542,16 +539,18 @@ class CertificatePinner: NSObject, URLSessionDelegate {
 
 ### 11.1 Core Technologies
 
-| Layer | Technology | Version |
-|-------|------------|---------|
-| Language | Swift | 5.9+ |
-| UI Framework | SwiftUI | iOS 16+ |
-| Reactive | Combine | Built-in |
-| Networking | URLSession | Built-in |
-| Persistence | CoreData | Built-in |
-| Security | Keychain Services | Built-in |
-| Push | UserNotifications | Built-in |
-| Analytics | Firebase Crashlytics | Latest |
+| Layer | Technology |
+|-------|------------|
+| Language | Swift 5.9 |
+| UI | SwiftUI |
+| Reactive | Combine |
+| Networking | URLSession |
+| Persistence | CoreData |
+| Security | Keychain Services |
+| Backend | Node.js (Express) |
+| Database | MongoDB |
+| Push | UserNotifications |
+| Analytics | Firebase Crashlytics |
 
 ### 11.2 Third-Party Dependencies (Minimal)
 
@@ -668,35 +667,52 @@ enum LaTriggerError: Error {
 
 ---
 
-## 15. Future Architecture (Phase 7+)
+## 15. Backend Service Architecture (`lab-trigger-backend`)
 
-### 15.1 Backend Proxy Option
+The backend is a Node.js application using Express and Mongoose to provide a secure API for the iOS application.
 
+### 15.1 Component Breakdown
+
+- **Express Server**: Handles routing and HTTP requests.
+- **Mongoose Models**: Defines schemas for MongoDB.
+- **Controllers**: Implementation logic for Auth and Credentials.
+- **Middleware**: JWT authentication and error handling.
+
+### 15.2 Data Schema (MongoDB)
+
+#### User Collection
+```javascript
+{
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true }, // Hashed with bcrypt
+  createdAt: { type: Date, default: Date.now }
+}
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     FUTURE ARCHITECTURE                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   ┌───────────┐      ┌───────────┐      ┌───────────┐          │
-│   │  iOS App  │─────►│  Backend  │─────►│  Jenkins  │          │
-│   │           │      │  (FastAPI)│      │           │          │
-│   └───────────┘      └─────┬─────┘      └───────────┘          │
-│                            │                                     │
-│                            ▼                                     │
-│                      ┌───────────┐                              │
-│                      │  Redis    │                              │
-│                      │  Cache    │                              │
-│                      └───────────┘                              │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+
+#### JenkinsCredential Collection
+```javascript
+{
+  userId: { type: ObjectId, ref: 'User' },
+  serverName: String,
+  jenkinsURL: String,
+  username: String,
+  password: String, // Encrypted/Securely stored
+  paramToken: String,
+  isDefault: Boolean,
+  createdAt: Date
+}
 ```
 
-**Benefits:**
-- Hide Jenkins URL from client
-- Centralized token management
-- Webhook support for real-time notifications
-- Rate limiting and caching
-- Audit logging
+### 15.3 API Endpoints
+
+| Category | Endpoint | Method | Description |
+|----------|----------|--------|-------------|
+| **Auth** | `/api/auth/signup` | POST | Register new user |
+| **Auth** | `/api/auth/login` | POST | Login and receive JWT |
+| **Config** | `/api/credentials` | GET | List user's servers |
+| **Config** | `/api/credentials` | POST | Add new server config |
+| **Config** | `/api/credentials/:id`| PUT | Update server config |
+| **Config** | `/api/credentials/:id`| DELETE | Delete server config |
 
 ---
 
@@ -717,3 +733,4 @@ enum LaTriggerError: Error {
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | Feb 7, 2026 | laTrigger Team | Initial architecture |
+| 1.1 | Feb 17, 2026 | Antigravity | Integrated Node.js + MongoDB backend |

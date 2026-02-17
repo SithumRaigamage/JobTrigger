@@ -85,14 +85,14 @@ MAJOR.MINOR.PATCH (Build)
 
 | Feature | Status | Priority |
 |---------|--------|----------|
-| ✅ Server authentication | Required | P0 |
-| ✅ Multiple server support | Required | P1 |
-| ✅ Job listing | Required | P0 |
-| ✅ Job search | Required | P0 |
-| ✅ Build trigger | Required | P0 |
-| ✅ Build parameters | Required | P0 |
-| ✅ Build status | Required | P0 |
-| ✅ Build logs | Required | P1 |
+| ✅ Server authentication | Done | P0 |
+| ✅ Multiple server support | Done | P1 |
+| 🔄 Job listing | In Progress | P0 |
+| ⬜ Job search | Not Started | P0 |
+| ⬜ Build trigger | Not Started | P0 |
+| ⬜ Build parameters | Not Started | P0 |
+| ⬜ Build status | Not Started | P0 |
+| ⬜ Build logs | Not Started | P1 |
 | ⬜ Push notifications | Deferred | P2 |
 | ⬜ Favorites | Deferred | P2 |
 

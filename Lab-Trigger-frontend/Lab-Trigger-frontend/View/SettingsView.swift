@@ -19,61 +19,85 @@ struct SettingsView: View {
         }
       } else {
         Form {
-          // MARK: - Server Configuration Section
-          Section(
-            header: Text("Jenkins Configuration"),
-            footer: Text(
-              "These credentials are used to authenticate to Jenkins and trigger builds. Credentials are stored locally in a JSON file."
-            )
-          ) {
-            LabeledField(title: "Server Name") {
-              TextField(
-                "My Jenkins Server",
-                text: $viewModel.serverName
-              )
-              .autocapitalization(.none)
-              .disableAutocorrection(true)
+          // MARK: - Backend Status Section
+          Section {
+            HStack {
+              Label(
+                "Backend Server", systemImage: viewModel.isBackendConnected ? "wifi" : "wifi.slash")
+              Spacer()
+              Text(viewModel.isBackendConnected ? "Connected" : "Offline")
+                .foregroundColor(viewModel.isBackendConnected ? .green : .red)
+                .fontWeight(.medium)
             }
 
-            LabeledField(title: "Jenkins URL") {
-              TextField(
-                "http://localhost:8080",
-                text: $viewModel.jenkinsURL
-              )
-              .keyboardType(.URL)
-              .textContentType(.URL)
-              .autocapitalization(.none)
-              .disableAutocorrection(true)
+            if !viewModel.isBackendConnected {
+              HStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                  .foregroundColor(.orange)
+                Text("Backend is unreachable. Please start the server to manage configurations.")
+                  .font(.subheadline)
+                  .foregroundColor(.secondary)
+              }
             }
+          } header: {
+            Text("Connection Status")
+          }
 
-            LabeledField(title: "Username") {
-              TextField("Username", text: $viewModel.username)
-                .textContentType(.username)
+          if viewModel.isBackendConnected {
+            // MARK: - Server Configuration Section
+            Section(
+              header: Text("Jenkins Configuration"),
+              footer: Text(
+                "These credentials are used to authenticate to Jenkins and trigger builds. Credentials are stored locally in a JSON file."
+              )
+            ) {
+              LabeledField(title: "Server Name") {
+                TextField(
+                  "My Jenkins Server",
+                  text: $viewModel.serverName
+                )
                 .autocapitalization(.none)
                 .disableAutocorrection(true)
-            }
+              }
 
-            SecureToggleField(
-              title: "Password",
-              placeholder: "Password (optional)",
-              text: $viewModel.password
-            )
+              LabeledField(title: "Jenkins URL") {
+                TextField(
+                  "http://localhost:8080",
+                  text: $viewModel.jenkinsURL
+                )
+                .keyboardType(.URL)
+                .textContentType(.URL)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+              }
 
-            // API Token field removed
+              LabeledField(title: "Username") {
+                TextField("Username", text: $viewModel.username)
+                  .textContentType(.username)
+                  .autocapitalization(.none)
+                  .disableAutocorrection(true)
+              }
 
-            LabeledField(title: "Build Token") {
-              TextField(
-                "Build Token (for triggering)",
-                text: $viewModel.paramToken
+              SecureToggleField(
+                title: "Password",
+                placeholder: "Password (optional)",
+                text: $viewModel.password
               )
-              .autocapitalization(.none)
-              .disableAutocorrection(true)
+
+              LabeledField(title: "Build Token") {
+                TextField(
+                  "Build Token (for triggering)",
+                  text: $viewModel.paramToken
+                )
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+              }
             }
           }
 
           // MARK: - Connection Status Section
-          if viewModel.connectionStatus != .notTested {
-            Section(header: Text("Connection Status")) {
+          if viewModel.isBackendConnected && viewModel.connectionStatus != .notTested {
+            Section(header: Text("Jenkins Connection Status")) {
               HStack {
                 ConnectionStatusIcon(status: viewModel.connectionStatus)
                 ConnectionStatusText(status: viewModel.connectionStatus)
@@ -88,7 +112,7 @@ struct SettingsView: View {
               viewModel.testConnection()
             } label: {
               Label(
-                "Test Connection",
+                "Test Jenkins Connection",
                 systemImage: "network"
               )
             }
@@ -104,18 +128,6 @@ struct SettingsView: View {
               )
             }
             .disabled(viewModel.isLoading)
-
-            // Save without Validation (Dev mode)
-            Button {
-              viewModel.saveWithoutValidation()
-            } label: {
-              Label(
-                "Save Without Validation",
-                systemImage: "tray.and.arrow.down"
-              )
-            }
-            .disabled(viewModel.isLoading)
-            .foregroundColor(.orange)
           }
         }
       }
@@ -129,6 +141,11 @@ struct SettingsView: View {
           .padding()
           .background(.ultraThinMaterial)
           .cornerRadius(12)
+      }
+    }
+    .onAppear {
+      Task {
+        await viewModel.loadExistingCredentials()
       }
     }
     .navigationTitle("Settings")

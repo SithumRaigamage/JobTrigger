@@ -145,3 +145,6 @@ GoogleService-Info.plist
 # Ignore local development configs
 *.local
 local.xcconfig
+
+
+node_modules

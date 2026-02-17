@@ -41,12 +41,12 @@ EP-06: Settings & Preferences
 **Sprint:** 1
 
 #### Acceptance Criteria
-- [ ] User can enter Jenkins server URL
-- [ ] User can enter username and API token
-- [ ] App validates the connection before saving
-- [ ] Error message shown for invalid credentials
-- [ ] Success confirmation shown on valid connection
-- [ ] Credentials stored securely in iOS Keychain
+- [x] User can enter Jenkins server URL
+- [x] User can enter username and API token
+- [x] App validates the connection before saving
+- [x] Error message shown for invalid credentials
+- [x] Success confirmation shown on valid connection
+- [ ] Credentials stored securely in iOS Keychain (JSON Placeholder used)
 
 #### Technical Notes
 - Use URLSession for API calls
@@ -163,6 +163,7 @@ EP-06: Settings & Preferences
 - [ ] Pull-to-refresh updates job list
 - [ ] Loading indicator while fetching
 - [ ] Empty state when no jobs found
+- [x] API Service supports fetching jobs
 
 #### Technical Notes
 - Use `/api/json?tree=jobs[name,url,color]`
@@ -527,9 +528,9 @@ EP-06: Settings & Preferences
 **Sprint:** 4
 
 #### Acceptance Criteria
-- [ ] Settings accessible from tab bar or menu
-- [ ] Grouped settings with clear labels
-- [ ] Changes applied immediately
+- [x] Settings accessible from tab bar or menu
+- [x] Grouped settings with clear labels
+- [x] Changes applied immediately
 
 #### Settings Sections
 - Account & Servers

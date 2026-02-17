@@ -69,6 +69,28 @@ All project documentation is available in the [`/docs`](./docs) folder:
 - Jenkins 2.x with REST API enabled
 - Valid Jenkins API token
 
+## 🏃 Getting Started
+
+### 1. Create an Account
+
+To use JobTrigger, you first need to create a local account:
+
+- **Email**: Must be a valid email format (e.g., `user@example.com`).
+- **Password**: Must be at least **6 characters** long.
+
+> [!NOTE]
+> For development, accounts are stored locally in `Lab-Trigger-frontend/Resources/users.json`. In production, these will be migrated to a secure backend.
+
+### 2. Configure Jenkins
+
+Once logged in, navigate to **Settings** to add your Jenkins server details:
+
+- **Server Name**: A friendly name for your server.
+- **Jenkins URL**: The full URL (e.g., `https://jenkins.example.com`).
+- **Username**: Your Jenkins username.
+- **Password**: Your Jenkins password or API token.
+- **Build Token**: (Optional) The token used for triggering specific builds.
+
 ## 🚦 Project Status
 
 | Phase | Status | Timeline |
