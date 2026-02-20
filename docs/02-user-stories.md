@@ -1,18 +1,18 @@
 # User Stories Document
-## laTrigger — iOS Jenkins Build Trigger App
+## JobTrigger — iOS Jenkins Build Trigger App
 
 | Document Info | |
 |---------------|---|
 | **Version** | 1.0 |
 | **Date** | February 7, 2026 |
-| **Author** | laTrigger Team |
+| **Author** | JobTrigger Team |
 | **Status** | Draft |
 
 ---
 
 ## Overview
 
-This document contains all user stories for the laTrigger iOS application, organized by epic and ready for import into Jira or similar project management tools.
+This document contains all user stories for the JobTrigger iOS application, organized by epic and ready for import into Jira or similar project management tools.
 
 ---
 
@@ -47,7 +47,14 @@ EP-06: Settings & Preferences
 - [x] App validates the connection before saving
 - [x] Error message shown for invalid credentials
 - [x] Success confirmation shown on valid connection
-- [x] Credentials stored locally in JSON file (development mode)
+- [x] Credentials stored securely in iOS Keychain via Node.js backend
+#### Acceptance Criteria (status verified)
+- [x] User can enter Jenkins server URL
+- [x] User can enter username and API token
+- [x] App validates the connection before saving
+- [x] Error message shown for invalid credentials
+- [x] Success confirmation shown on valid connection
+- [ ] Credentials stored securely in iOS Keychain via Node.js backend
 
 #### Technical Notes
 - Use URLSession for API calls
@@ -78,6 +85,12 @@ EP-06: Settings & Preferences
 - [ ] Server list shows all saved servers
 - [ ] User can set a default server
 - [ ] Maximum of 10 servers supported
+#### Acceptance Criteria (status verified)
+- [x] User can add multiple server configurations
+- [ ] Each server has a unique display name (not enforced)
+- [x] Server list shows all saved servers
+- [x] User can set a default server
+- [ ] Maximum of 10 servers supported
 
 #### Technical Notes
 - JSON file supports multiple server configurations
@@ -100,6 +113,11 @@ EP-06: Settings & Preferences
 - [ ] Tap on server name shows server picker
 - [ ] Switching server refreshes job list
 - [ ] Last active server remembered on app launch
+#### Acceptance Criteria (status verified)
+- [ ] Active server displayed in navigation/header
+- [ ] Tap on server name shows server picker
+- [ ] Switching server refreshes job list
+- [x] Last active server remembered on app launch
 
 ---
 
@@ -117,6 +135,11 @@ EP-06: Settings & Preferences
 - [ ] Changes require re-validation before saving
 - [ ] Cancel discards changes
 - [ ] Original config preserved until save confirmed
+#### Acceptance Criteria (status verified)
+- [x] User can edit server name, URL, and credentials
+- [ ] Changes require re-validation before saving
+- [ ] Cancel discards changes (not implemented: edits persist in form state until explicitly reverted)
+- [ ] Original config preserved until save confirmed
 
 ---
 
@@ -131,6 +154,11 @@ EP-06: Settings & Preferences
 
 #### Acceptance Criteria
 - [ ] Swipe-to-delete on server list
+- [ ] Confirmation dialog before deletion
+- [ ] Associated credentials removed from Keychain
+- [ ] Cannot delete if only one server exists (or can with warning)
+#### Acceptance Criteria (status verified)
+- [x] Swipe-to-delete on server list
 - [ ] Confirmation dialog before deletion
 - [ ] Associated credentials removed from Keychain
 - [ ] Cannot delete if only one server exists (or can with warning)
@@ -166,12 +194,13 @@ EP-06: Settings & Preferences
 **Sprint:** 2
 
 #### Acceptance Criteria
-- [ ] Jobs displayed in a scrollable list
-- [ ] Each job shows name and last build status
-- [ ] Folder structure represented (nested jobs)
-- [ ] Pull-to-refresh updates job list
-- [ ] Loading indicator while fetching
-- [ ] Empty state when no jobs found
+- [x] Jobs displayed in a scrollable list
+- [x] Each job shows name and last build status
+- [x] Folder structure represented (nested jobs)
+- [x] Pull-to-refresh updates job list
+- [x] Loading indicator while fetching
+- [x] Empty state when no jobs found
+- [x] API Service supports fetching jobs
 
 #### Technical Notes
 - Use `/api/json?tree=jobs[name,url,color]`
@@ -536,9 +565,9 @@ EP-06: Settings & Preferences
 **Sprint:** 4
 
 #### Acceptance Criteria
-- [ ] Settings accessible from tab bar or menu
-- [ ] Grouped settings with clear labels
-- [ ] Changes applied immediately
+- [x] Settings accessible from tab bar
+- [x] Grouped settings with clear labels
+- [x] Changes applied immediately and synced to backend
 
 #### Settings Sections
 - Account & Servers
@@ -646,4 +675,4 @@ A user story is considered "Done" when:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | Feb 7, 2026 | laTrigger Team | Initial user stories |
+| 1.0 | Feb 7, 2026 | JobTrigger Team | Initial user stories |

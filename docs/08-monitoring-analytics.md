@@ -1,11 +1,11 @@
 # Monitoring & Analytics Document
-## laTrigger — iOS Jenkins Build Trigger App
+## JobTrigger — iOS Jenkins Build Trigger App
 
 | Document Info | |
 |---------------|---|
 | **Version** | 1.0 |
 | **Date** | February 7, 2026 |
-| **Author** | laTrigger Team |
+| **Author** | JobTrigger Team |
 | **Status** | Draft |
 
 ---
@@ -14,7 +14,7 @@
 
 ### 1.1 Purpose
 
-This document defines the monitoring, analytics, and observability strategy for the laTrigger iOS application. It ensures we can:
+This document defines the monitoring, analytics, and observability strategy for the JobTrigger iOS application. It ensures we can:
 
 - Track app health and stability
 - Understand user behavior
@@ -411,7 +411,7 @@ Automatically tracked:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    laTrigger - Executive Dashboard               │
+│                    JobTrigger - Executive Dashboard               │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐        │
@@ -438,7 +438,7 @@ Automatically tracked:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    laTrigger - Engineering Dashboard             │
+│                    JobTrigger - Engineering Dashboard             │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  STABILITY                         PERFORMANCE                   │
@@ -559,7 +559,7 @@ class AnalyticsConsent {
 ### 10.2 Report Template
 
 ```markdown
-# laTrigger Weekly Report - Week of [Date]
+# JobTrigger Weekly Report - Week of [Date]
 
 ## Summary
 - **Active Users**: X,XXX (▲/▼ X%)
@@ -612,4 +612,4 @@ class AnalyticsConsent {
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | Feb 7, 2026 | laTrigger Team | Initial monitoring plan |
+| 1.0 | Feb 7, 2026 | JobTrigger Team | Initial monitoring plan |

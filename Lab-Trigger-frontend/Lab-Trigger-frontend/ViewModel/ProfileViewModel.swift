@@ -26,25 +26,37 @@ final class ProfileViewModel: ObservableObject {
   // MARK: - Initialization
 
   init() {
-    loadProfileData()
+    Task {
+      await loadProfileData()
+    }
   }
 
   // MARK: - Public Methods
 
-  func loadProfileData() {
+  @MainActor
+  func loadProfileData() async {
     // Load User Info
     if let user = authManager.currentUser {
       userEmail = user.email
     }
 
-    // Load Active Server Info
-    if let credentials = storageService.load() {
-      activeServerName = credentials.serverName
-      activeServerURL = credentials.jenkinsURL
-    }
+    // Load Credentials Info
+    do {
+      let all = try await storageService.loadAll()
+      totalServersCount = all.count
 
-    // Load Total Servers Count
-    totalServersCount = storageService.loadAll().count
+      if let credentials = all.first(where: { $0.isDefault }) ?? all.first {
+        activeServerName = credentials.serverName
+        activeServerURL = credentials.jenkinsURL
+      }
+    } catch {
+      print("❌ Profile View Model: Error loading data: \(error)")
+      NotificationManager.shared.show(
+        type: .error,
+        title: "Data Loading Failed",
+        message: "Failed to load profile data. Please check your connection."
+      )
+    }
 
     // App Version
     if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,

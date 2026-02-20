@@ -1,18 +1,18 @@
 # Product Requirements Document (PRD)
-## laTrigger — iOS Jenkins Build Trigger App
+## JobTrigger — iOS Jenkins Build Trigger App
 
 | Document Info | |
 |---------------|---|
 | **Version** | 1.0 |
 | **Date** | February 7, 2026 |
-| **Author** | laTrigger Team |
-| **Status** | Draft |
+| **Author** | JobTrigger Team |
+| **Status** | In Development |
 
 ---
 
 ## 1. Executive Summary
 
-laTrigger is a native iOS application that enables developers and DevOps engineers to securely trigger, monitor, and manage Jenkins jobs directly from their iOS devices. The app provides a mobile-first experience for CI/CD pipeline management, allowing users to stay connected to their build processes anytime, anywhere.
+JobTrigger is a native iOS application that enables developers and DevOps engineers to securely trigger, monitor, and manage Jenkins jobs directly from their iOS devices. The app provides a mobile-first experience for CI/CD pipeline management, allowing users to stay connected to their build processes anytime, anywhere.
 
 ---
 
@@ -26,7 +26,7 @@ DevOps engineers and developers often need to trigger Jenkins builds when they'r
 
 ### 2.2 Solution
 
-laTrigger provides:
+JobTrigger provides:
 - Native iOS app with intuitive SwiftUI interface
 - Secure authentication via Jenkins API tokens
 - One-tap build triggering with parameter support
@@ -86,49 +86,49 @@ laTrigger provides:
 
 | ID | Requirement | Priority |
 |----|-------------|----------|
-| FR-01 | User shall authenticate with Jenkins using API token | P0 |
-| FR-02 | User shall save multiple Jenkins server configurations | P1 |
-| FR-03 | User shall switch between saved Jenkins servers | P1 |
-| FR-04 | User shall edit/delete saved server configurations | P1 |
-| FR-05 | App shall validate server connectivity on setup | P0 |
+| FR-01 | User shall authenticate with Jenkins using API token | P0 | Done |
+| FR-02 | User shall save multiple Jenkins server configurations | P0 | Done |
+| FR-03 | User shall switch between saved Jenkins servers | P1 | Done |
+| FR-04 | User shall edit/delete saved server configurations | P1 | Done |
+| FR-05 | App shall validate server connectivity on setup | P0 | Done |
 
 ### 5.2 Job Management
 
 | ID | Requirement | Priority |
 |----|-------------|----------|
-| FR-06 | User shall view all available Jenkins jobs | P0 |
-| FR-07 | User shall search/filter jobs by name | P0 |
-| FR-08 | User shall view job details and configuration | P1 |
-| FR-09 | User shall mark jobs as favorites | P2 |
-| FR-10 | User shall view job build history | P1 |
+| FR-06 | User shall view all available Jenkins jobs | P0 | In Progress (API Done) |
+| FR-07 | User shall search/filter jobs by name | P0 | Not Started |
+| FR-08 | User shall view job details and configuration | P1 | Not Started |
+| FR-09 | User shall mark jobs as favorites | P2 | Not Started |
+| FR-10 | User shall view job build history | P1 | Not Started |
 
 ### 5.3 Build Triggering
 
 | ID | Requirement | Priority |
 |----|-------------|----------|
-| FR-11 | User shall trigger a job with one tap | P0 |
-| FR-12 | User shall pass parameters before triggering | P0 |
-| FR-13 | User shall see confirmation before triggering | P1 |
-| FR-14 | User shall cancel a running build | P2 |
-| FR-15 | App shall show immediate feedback on trigger | P0 |
+| FR-11 | User shall trigger a job with one tap | P0 | Not Started |
+| FR-12 | User shall pass parameters before triggering | P0 | Not Started |
+| FR-13 | User shall see confirmation before triggering | P1 | Not Started |
+| FR-14 | User shall cancel a running build | P2 | Not Started |
+| FR-15 | App shall show immediate feedback on trigger | P0 | Not Started |
 
 ### 5.4 Build Monitoring
 
 | ID | Requirement | Priority |
 |----|-------------|----------|
-| FR-16 | User shall view current build status | P0 |
-| FR-17 | User shall view build progress percentage | P1 |
-| FR-18 | User shall view build logs (last N lines) | P1 |
-| FR-19 | User shall refresh build status manually | P0 |
-| FR-20 | App shall auto-refresh build status | P2 |
+| FR-16 | User shall view current build status | P0 | Not Started |
+| FR-17 | User shall view build progress percentage | P1 | Not Started |
+| FR-18 | User shall view build logs (last N lines) | P1 | Not Started |
+| FR-19 | User shall refresh build status manually | P0 | Not Started |
+| FR-20 | App shall auto-refresh build status | P2 | Not Started |
 
 ### 5.5 Notifications
 
 | ID | Requirement | Priority |
 |----|-------------|----------|
-| FR-21 | User shall receive push notification on build completion | P1 |
-| FR-22 | User shall configure notification preferences | P2 |
-| FR-23 | User shall enable/disable notifications per job | P2 |
+| FR-21 | User shall receive push notification on build completion | P1 | Not Started |
+| FR-22 | User shall configure notification preferences | P2 | Partially Done |
+| FR-23 | User shall enable/disable notifications per job | P2 | Not Started |
 
 ---
 
@@ -138,11 +138,11 @@ laTrigger provides:
 
 | ID | Requirement |
 |----|-------------|
-| NFR-01 | Credentials stored in iOS Keychain only |
-| NFR-02 | All API calls over HTTPS/TLS 1.2+ |
-| NFR-03 | No password storage—API tokens only |
-| NFR-04 | Certificate pinning for API calls |
-| NFR-05 | Biometric authentication option (Face ID/Touch ID) |
+| NFR-01 | Credentials stored in iOS Keychain only | Done |
+| NFR-02 | All API calls over HTTPS/TLS 1.2+ | Done |
+| NFR-03 | No password storage—API tokens only | Done |
+| NFR-04 | Certificate pinning for API calls | Not Started |
+| NFR-05 | Biometric authentication option (Face ID/Touch ID) | Not Started |
 
 ### 6.2 Performance
 
@@ -289,4 +289,4 @@ laTrigger provides:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | Feb 7, 2026 | laTrigger Team | Initial draft |
+| 1.0 | Feb 7, 2026 | JobTrigger Team | Initial draft |

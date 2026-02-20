@@ -16,82 +16,71 @@ struct LoginView: View {
         Color(UIColor.systemGroupedBackground)
           .ignoresSafeArea()
 
-        VStack(spacing: 20) {
-          // Header
-          VStack(spacing: 12) {
-            Image(systemName: "bolt.shield.fill")
-              .font(.system(size: 60))
-              .foregroundColor(.blue)
+        Form {
+          Section {
+            VStack(spacing: 12) {
+              Image(systemName: "bolt.shield.fill")
+                .font(.system(size: 60))
+                .foregroundColor(.blue)
 
-            Text("JobTrigger")
-              .font(.largeTitle)
-              .fontWeight(.bold)
+              Text("JobTrigger")
+                .font(.largeTitle)
+                .fontWeight(.bold)
 
-            Text("Sign in to manage your Jenkins builds")
-              .font(.subheadline)
-              .foregroundColor(.secondary)
+              Text("Sign in to manage your Jenkins builds")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
           }
-          .padding(.top, 40)
-          .padding(.bottom, 20)
+          .listRowBackground(Color.clear)
 
-          // Form
-          VStack(spacing: 0) {
-            Form {
-              Section {
-                LabeledField(title: "Email") {
-                  TextField("email@example.com", text: $viewModel.email)
-                    .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
-                    .disableAutocorrection(true)
+          Section {
+            LabeledField(title: "Email") {
+              TextField("email@example.com", text: $viewModel.email)
+                .keyboardType(.emailAddress)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+            }
+
+            SecureToggleField(
+              title: "Password",
+              placeholder: "Required",
+              text: $viewModel.password
+            )
+          }
+
+          Section {
+            Button {
+              viewModel.login()
+            } label: {
+              HStack {
+                Spacer()
+                if viewModel.isLoading {
+                  ProgressView()
+                } else {
+                  Text("Sign In")
+                    .fontWeight(.bold)
                 }
-
-                SecureToggleField(
-                  title: "Password",
-                  placeholder: "Required",
-                  text: $viewModel.password
-                )
-              }
-
-              Section {
-                Button {
-                  viewModel.login()
-                } label: {
-                  HStack {
-                    Spacer()
-                    if viewModel.isLoading {
-                      ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    } else {
-                      Text("Sign In")
-                        .fontWeight(.semibold)
-                    }
-                    Spacer()
-                  }
-                }
-                .padding(.vertical, 8)
-                .listRowBackground(Color.blue)
-                .foregroundColor(.white)
-                .disabled(viewModel.isLoading)
+                Spacer()
               }
             }
-            .frame(height: 280)  // Constrain form height
-            .scrollDisabled(true)
+            .disabled(viewModel.isLoading)
           }
 
-          Spacer()
-
-          // Footer
-          HStack {
-            Text("Don't have an account?")
+          Section {
             Button {
               viewModel.showSignup = true
             } label: {
-              Text("Sign Up")
-                .fontWeight(.bold)
+              HStack {
+                Spacer()
+                Text("Don't have an account? Sign Up")
+                  .font(.footnote)
+                Spacer()
+              }
             }
           }
-          .font(.footnote)
-          .padding(.bottom, 20)
         }
       }
       .navigationDestination(isPresented: $viewModel.showSignup) {

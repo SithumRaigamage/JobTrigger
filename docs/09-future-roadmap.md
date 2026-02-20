@@ -1,11 +1,11 @@
 # Future Enhancements Roadmap
-## laTrigger — iOS Jenkins Build Trigger App
+## JobTrigger — iOS Jenkins Build Trigger App
 
 | Document Info | |
 |---------------|---|
 | **Version** | 1.0 |
 | **Date** | February 7, 2026 |
-| **Author** | laTrigger Team |
+| **Author** | JobTrigger Team |
 | **Status** | Draft |
 
 ---
@@ -40,7 +40,7 @@
 
 | Release | Theme | Target Date |
 |---------|-------|-------------|
-| v1.0 | Foundation | Jun 2026 |
+| v1.0 | Foundation (Backend Migration) | Feb 2026 | Done |
 | v1.1 | Notifications & UX Polish | Jul 2026 |
 | v1.2 | Enhanced Monitoring | Aug 2026 |
 | v2.0 | Integrations | Oct 2026 |
@@ -355,7 +355,7 @@ GitHub REST API v3
 
 ---
 
-### 6.2 Backend Proxy Service
+### 6.2 Backend Proxy Service - COMPLETE
 
 **Priority**: High (Enterprise)  
 **Effort**: Large
@@ -427,8 +427,9 @@ GitHub REST API v3
 
 | Feature | Votes | Complexity |
 |---------|-------|------------|
-| Dark mode | ✅ v1.0 | Low |
-| iPad support | ✅ v1.0 | Medium |
+| Dark mode | ✅ v1.0 | Done |
+| iPad support | ✅ v1.0 | Done |
+| Backend API | ✅ v1.0 | Done |
 | Build artifacts | Planned v1.2 | Medium |
 | GitHub integration | Planned v2.0 | High |
 | Jenkinsfile viewer | Backlog | Medium |
@@ -460,11 +461,11 @@ GitHub REST API v3
 | Hudson Remote | iOS | Basic trigger | Discontinued |
 | CI Status | iOS | Multi-CI status | $4.99 |
 | Buildwatch | iOS | Status monitor | $2.99 |
-| **laTrigger** | iOS | Full management | Free/Pro |
+| **JobTrigger** | iOS | Full management | Free/Pro |
 
 ### 8.2 Differentiation Strategy
 
-| Competitor Weakness | laTrigger Advantage |
+| Competitor Weakness | JobTrigger Advantage |
 |--------------------|---------------------|
 | Complex UI | One-tap triggering |
 | No notifications | Real-time push alerts |
@@ -581,4 +582,4 @@ GitHub REST API v3
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | Feb 7, 2026 | laTrigger Team | Initial roadmap |
+| 1.0 | Feb 7, 2026 | JobTrigger Team | Initial roadmap |

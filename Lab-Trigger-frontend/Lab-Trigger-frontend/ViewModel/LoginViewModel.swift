@@ -31,19 +31,22 @@ final class LoginViewModel: ObservableObject {
     isLoading = true
     errorMessage = nil
 
-    // Simulate a small delay for UI feedback
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-      guard let self = self else { return }
+    Task {
+      do {
+        let response = try await authService.login(email: email, password: password)
 
-      if let user = self.authService.login(email: self.email, password: self.password) {
-        self.authManager.setAuthenticatedUser(user)
-        NotificationManager.shared.show(
-          type: .success, title: "Welcome back!", message: "Successfully signed in.")
-        self.isLoading = false
-      } else {
-        NotificationManager.shared.show(
-          type: .error, title: "Login Failed", message: "Invalid email or password.")
-        self.isLoading = false
+        await MainActor.run {
+          self.authManager.setAuthenticatedUser(response.user, token: response.token)
+          NotificationManager.shared.show(
+            type: .success, title: "Welcome back!", message: "Successfully signed in.")
+          self.isLoading = false
+        }
+      } catch {
+        await MainActor.run {
+          NotificationManager.shared.show(
+            type: .error, title: "Login Failed", message: error.localizedDescription)
+          self.isLoading = false
+        }
       }
     }
   }

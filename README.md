@@ -2,82 +2,87 @@
 
 > **Trigger Jenkins builds from anywhere — An iOS app for DevOps engineers**
 
-[![iOS](https://img.shields.io/badge/iOS-16.0+-blue.svg)](https://developer.apple.com/ios/)
-[![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org/)
-[![SwiftUI](https://img.shields.io/badge/SwiftUI-4.0-green.svg)](https://developer.apple.com/xcode/swiftui/)
+[![iOS](https://img.shields.io/badge/iOS-17.0+-blue.svg)](https://developer.apple.com/ios/)
+[![Swift](https://img.shields.io/badge/Swift-5.10-orange.svg)](https://swift.org/)
+[![SwiftUI](https://img.shields.io/badge/SwiftUI-5.0-green.svg)](https://developer.apple.com/xcode/swiftui/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
 ## 🎯 Product Vision
 
-laTrigger enables developers and DevOps engineers to securely trigger, monitor, and manage Jenkins jobs directly from an iOS device—anytime, anywhere.
+JobTrigger enables developers and DevOps engineers to securely trigger, monitor, and manage Jenkins jobs directly from an iOS device—anytime, anywhere.
 
-## ✨ Features (MVP)
+## ✨ Features
 
-- 🔐 **Secure Authentication** — Connect using Jenkins API tokens
-- 📱 **Multiple Servers** — Manage dev, staging, and prod environments
+- 🔐 **Secure Authentication** — Node.js backend with JWT and iOS Keychain storage
+- 📱 **Backend Sync** — Credentials and user data persisted in MongoDB
 - 📋 **Job Management** — View, search, and organize Jenkins jobs
 - 🚀 **One-Tap Trigger** — Start builds instantly
 - ⚙️ **Build Parameters** — Pass parameters before triggering
 - 📊 **Real-Time Status** — Monitor build progress
 - 📄 **Build Logs** — View console output
 - 🌙 **Dark Mode** — Easy on the eyes
+- 🌐 **Offline Resilience** — Connectivity monitoring and proactive error alerts
 
 ## 🏗️ Architecture
 
+```mermaid
+graph TD
+    iOS["iOS App (SwiftUI)"] <--> API["Node.js API (Express)"]
+    API <--> MongoDB[("MongoDB")]
+    API <--> Jenkins["Jenkins REST API"]
 ```
-iOS App (Swift / SwiftUI)
-   │
-   │ HTTPS + API Token
-   │
-Jenkins REST API
-   │
-Jenkins Jobs / Pipelines
-```
-
-## 📚 Documentation
-
-All project documentation is available in the [`/docs`](./docs) folder:
-
-| Document | Description |
-|----------|-------------|
-| [📋 Product Requirements](./docs/01-product-requirements-document.md) | PRD with vision, goals, and requirements |
-| [📝 User Stories](./docs/02-user-stories.md) | Jira-ready stories with acceptance criteria |
-| [🏛️ Technical Architecture](./docs/03-technical-architecture.md) | System design and components |
-| [🔒 Security Design](./docs/04-security-design.md) | Threat model and security controls |
-| [🧪 Test Plan](./docs/05-test-plan.md) | Test strategy and test cases |
-| [🚀 Release Plan](./docs/06-release-plan.md) | Release strategy and App Store plan |
-| [🎨 UX Design](./docs/07-ux-design.md) | UI screens and design system |
-| [📈 Monitoring](./docs/08-monitoring-analytics.md) | Analytics and observability |
-| [🗺️ Roadmap](./docs/09-future-roadmap.md) | Future enhancements |
 
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Language | Swift 5.9 |
+| Language | Swift 5.10 |
 | UI | SwiftUI |
-| Networking | URLSession |
-| Security | iOS Keychain |
-| Persistence | CoreData |
-| Analytics | Firebase |
+| Networking | URLSession (BackendClient) |
+| Backend | Node.js (Express) |
+| Database | MongoDB |
+| Security | JWT + iOS Keychain |
 
 ## 📱 Requirements
 
-- iOS 16.0+
+- iOS 17.0+
+- Node.js 18.x+ (for backend)
+- MongoDB
 - Jenkins 2.x with REST API enabled
-- Valid Jenkins API token
+
+## 🏃 Getting Started
+
+### 1. Start the Backend
+
+Navigate to the backend directory and start the server:
+
+```bash
+cd lab-trigger-backend
+npm install
+npm run dev
+```
+
+### 2. Launch iOS App
+
+Run the `Lab-Trigger-frontend` in Xcode. The app will automatically connect to `http://127.0.0.1:5001`.
+
+### 3. Create an Account
+
+- **Email**: Must be a valid email format.
+- **Password**: Must be at least **6 characters**.
+- Data is stored securely in MongoDB.
 
 ## 🚦 Project Status
 
 | Phase | Status | Timeline |
 |-------|--------|----------|
 | Discovery & Planning | 🟢 Complete | Feb 2026 |
-| UX & Architecture | 🟡 In Progress | Mar 2026 |
-| MVP Development | ⚪ Pending | Apr-May 2026 |
-| Testing & QA | ⚪ Pending | Jun 2026 |
-| Release | ⚪ Pending | Jun 2026 |
+| Logic & Architecture | 🟢 Complete | Feb 2026 |
+| Backend Migration | 🟢 Complete | Feb 2026 |
+| UI Refinement | 🟢 Complete | Feb 2026 |
+| Release | ⚪ Pending | Mar 2026 |
 
 ## 👥 Target Users
 
@@ -88,18 +93,14 @@ All project documentation is available in the [`/docs`](./docs) folder:
 
 ## 🔐 Security
 
-- API tokens only (no password storage)
-- iOS Keychain for credential storage
-- HTTPS/TLS 1.2+ enforced
-- Optional Face ID/Touch ID lock
+- **JWT Authentication** — Secure stateless sessions
+- **iOS Keychain** — Encryption for sensitive tokens
+- **Bcrypt** — Industry-standard password hashing
+- **TLS Enforcement** — Secure data in transit
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read our contributing guidelines before submitting PRs.
 
 ---
 

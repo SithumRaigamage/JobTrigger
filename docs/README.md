@@ -1,7 +1,7 @@
-# laTrigger Documentation Index
+# JobTrigger Documentation Index
 ## iOS Jenkins Build Trigger App
 
-Welcome to the laTrigger project documentation. This folder contains all SDLC documents for the project.
+Welcome to the JobTrigger project documentation. This folder contains all SDLC documents for the project.
 
 ---
 

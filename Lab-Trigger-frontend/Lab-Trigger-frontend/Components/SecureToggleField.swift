@@ -8,27 +8,37 @@
 import SwiftUI
 
 struct SecureToggleField: View {
-    let title: String
-    let placeholder: String
-    @Binding var text: String
+  let title: String
+  let placeholder: String
+  @Binding var text: String
+  var errorMessage: String? = nil
+  var statusIcon: String? = nil
+  var statusColor: Color = .secondary
 
-    @State private var isVisible = false
+  @State private var isVisible = false
 
-    var body: some View {
-        LabeledField(title: title) {
-            HStack {
-                if isVisible {
-                    TextField(placeholder, text: $text)
-                } else {
-                    SecureField(placeholder, text: $text)
-                }
-
-                Button {
-                    isVisible.toggle()
-                } label: {
-                    Image(systemName: isVisible ? "eye.slash" : "eye")
-                }
-            }
+  var body: some View {
+    LabeledField(
+      title: title,
+      errorMessage: errorMessage,
+      statusIcon: statusIcon,
+      statusColor: statusColor
+    ) {
+      HStack {
+        if isVisible {
+          TextField(placeholder, text: $text)
+            .textInputAutocapitalization(.never)
+        } else {
+          SecureField(placeholder, text: $text)
         }
+
+        Button {
+          isVisible.toggle()
+        } label: {
+          Image(systemName: isVisible ? "eye.slash" : "eye")
+            .foregroundColor(.secondary)
+        }
+      }
     }
+  }
 }

@@ -1,11 +1,11 @@
 # Test Plan Document
-## laTrigger — iOS Jenkins Build Trigger App
+## JobTrigger — iOS Jenkins Build Trigger App
 
 | Document Info | |
 |---------------|---|
 | **Version** | 1.0 |
 | **Date** | February 7, 2026 |
-| **Author** | laTrigger QA Team |
+| **Author** | JobTrigger QA Team |
 | **Status** | Draft |
 
 ---
@@ -14,17 +14,17 @@
 
 ### 1.1 Purpose
 
-This document describes the test strategy, test cases, and quality assurance processes for the laTrigger iOS application. It ensures comprehensive coverage of functional, non-functional, and security requirements.
+This document describes the test strategy, test cases, and quality assurance processes for the JobTrigger iOS application. It ensures comprehensive coverage of functional, non-functional, and security requirements.
 
 ### 1.2 Scope
 
 | In Scope | Out of Scope |
 |----------|--------------|
-| iOS application testing | Jenkins server testing |
-| API integration testing | Backend proxy (future) |
-| UI/UX testing | Third-party integrations |
-| Security testing | Load testing Jenkins |
-| Performance testing | |
+| JobTrigger iOS app testing | Jenkins server testing |
+| Management API (Node.js) | Backend proxy (future) |
+| MongoDB Synchronization | Third-party integrations |
+| security/JWT testing | Load testing Jenkins |
+| offline resilience tests | |
 
 ### 1.3 References
 
@@ -136,12 +136,12 @@ And token should be stored in Keychain
 
 | Test ID | Description | Input | Expected Output |
 |---------|-------------|-------|-----------------|
-| TC-AUTH-001 | Valid connection | Valid URL, user, token | Success, saved |
-| TC-AUTH-002 | Invalid URL format | "not-a-url" | Validation error |
-| TC-AUTH-003 | HTTP URL rejected | "http://jenkins.com" | HTTPS required error |
-| TC-AUTH-004 | Invalid credentials | Wrong token | 401 Unauthorized |
-| TC-AUTH-005 | Server unreachable | Non-existent URL | Connection timeout |
-| TC-AUTH-006 | Empty fields | Empty URL/user/token | Validation error |
+| TC-AUTH-001 | Valid Node.js Login | Valid email, password | Success, JWT returned |
+| TC-AUTH-002 | Valid Signup | New user details | 201 Created, saved |
+| TC-AUTH-003 | JWT Injection | Valid token in header | Access granted |
+| TC-AUTH-004 | Expired JWT | Old token | 401 Unauthorized |
+| TC-AUTH-005 | Invalid pass hashing | Raw pass vs Bcrypt | Authentication failed |
+| TC-AUTH-006 | MongoDB Sync | Save credential | Verifiable in DB |
 
 ### 4.2 Job Management Tests
 
@@ -245,12 +245,12 @@ class JobListViewModelTests: XCTestCase {
 
 | Test ID | Description | Setup | Validation |
 |---------|-------------|-------|------------|
-| TC-API-001 | Full auth flow | Mock server | Token stored in Keychain |
-| TC-API-002 | Job list with pagination | 100+ mock jobs | All jobs loaded |
-| TC-API-003 | Build trigger end-to-end | Mock job | Queue ID returned |
-| TC-API-004 | Build status polling | Running build | Status updates |
-| TC-API-005 | Network retry logic | Flaky connection | Retries succeed |
-| TC-API-006 | Timeout handling | Slow response | Timeout error |
+| TC-API-001 | Full Signup/Login flow | Node.js Backend | JWT stored in Keychain |
+| TC-API-002 | Credential Sync | CRUD on Node.js | MongoDB matches App state |
+| TC-API-003 | Jenkins job fetch | Direct via Jenkins | JSON parsed at Edge |
+| TC-API-004 | Offline UI transition | Kill local sever | "Offline" status shown |
+| TC-API-005 | Token Rotation | Re-auth on 401 | Seamless user experience |
+| TC-API-006 | Keychain encryption | iOS Hardware | Data unreadable by other apps |
 
 ### 5.2 Keychain Integration Tests
 
@@ -293,7 +293,7 @@ class OnboardingUITests: XCTestCase {
     
     func testOnboarding_AddFirstServer() {
         // Verify onboarding screen appears
-        XCTAssertTrue(app.staticTexts["Welcome to laTrigger"].exists)
+        XCTAssertTrue(app.staticTexts["Welcome to JobTrigger"].exists)
         
         // Tap "Add Server" button
         app.buttons["Add Server"].tap()
@@ -568,16 +568,16 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode_15.app
         
       - name: Build
-        run: xcodebuild build -scheme laTrigger -destination 'platform=iOS Simulator,name=iPhone 15'
+        run: xcodebuild build -scheme JobTrigger -destination 'platform=iOS Simulator,name=iPhone 15'
         
       - name: Unit Tests
-        run: xcodebuild test -scheme laTrigger -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:laTriggerTests
+        run: xcodebuild test -scheme JobTrigger -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:JobTriggerTests
         
       - name: UI Tests
-        run: xcodebuild test -scheme laTrigger -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:laTriggerUITests
+        run: xcodebuild test -scheme JobTrigger -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:JobTriggerUITests
         
       - name: Code Coverage
-        run: xcov --scheme laTrigger --minimum_coverage_percentage 75
+        run: xcov --scheme JobTrigger --minimum_coverage_percentage 75
 ```
 
 ### 12.2 Test Reports

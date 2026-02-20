@@ -1,18 +1,18 @@
 # Technical Architecture Document
-## laTrigger — iOS Jenkins Build Trigger App
+## JobTrigger — iOS Jenkins Build Trigger App
 
 | Document Info | |
 |---------------|---|
 | **Version** | 1.0 |
 | **Date** | February 7, 2026 |
-| **Author** | laTrigger Team |
+| **Author** | JobTrigger Team |
 | **Status** | Draft |
 
 ---
 
 ## 1. Overview
 
-This document describes the technical architecture of the laTrigger iOS application. It covers the system architecture, component design, data flow, and technology choices.
+This document describes the technical architecture of the JobTrigger iOS application. It covers the system architecture, component design, data flow, and technology choices.
 
 ---
 
@@ -20,22 +20,19 @@ This document describes the technical architecture of the laTrigger iOS applicat
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              SYSTEM CONTEXT                                  │
-├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │    ┌──────────────┐         HTTPS/TLS          ┌──────────────────┐         │
 │    │              │◄───────────────────────────►│                  │         │
-│    │   iOS App    │                             │  Jenkins Server  │         │
-│    │  (laTrigger) │                             │   (REST API)     │         │
-│    │              │                             │                  │         │
-│    └──────┬───────┘                             └──────────────────┘         │
-│           │                                                                  │
-│           │                                                                  │
-│           ▼                                                                  │
+│    │   iOS App    │                             │  Backend Proxy   │         │
+│    │  (JobTrigger) │                             │  (Node.js + MG)  │         │
+│    │              │                             └────────┬─────────┘         │
+│    └──────┬───────┘                                      │                   │
+│           │                                              │ HTTPS/TLS         │
+│           ▼                                              ▼                   │
 │    ┌──────────────┐                             ┌──────────────────┐         │
 │    │              │                             │                  │         │
-│    │    APNs      │◄────────────────────────────│  Backend Proxy   │         │
-│    │  (Push)      │                             │  (Future)        │         │
+│    │    APNs      │◄────────────────────────────│  Jenkins Server  │         │
+│    │  (Push)      │                             │   (REST API)     │         │
 │    │              │                             │                  │         │
 │    └──────────────┘                             └──────────────────┘         │
 │                                                                              │
@@ -46,9 +43,9 @@ This document describes the technical architecture of the laTrigger iOS applicat
 
 | System | Description | Integration |
 |--------|-------------|-------------|
-| Jenkins Server | CI/CD server hosting jobs | REST API over HTTPS |
-| Apple Push Notification Service | iOS push notifications | APNs SDK |
-| Backend Proxy (Future) | Optional proxy for security | REST API |
+| Backend Proxy | Node.js + MongoDB service | REST API over HTTPS |
+| Jenkins Server | CI/CD server hosting jobs | Triggered via Backend |
+| APNs | iOS push notifications | APNs SDK |
 
 ---
 
@@ -127,9 +124,9 @@ Presentation → ViewModel → Domain ← Data
 ### 5.1 Module Structure
 
 ```
-laTrigger/
+JobTrigger/
 ├── App/
-│   ├── laTriggerApp.swift          # App entry point
+│   ├── JobTriggerApp.swift          # App entry point
 │   ├── AppDelegate.swift           # Push notifications
 │   └── SceneDelegate.swift         # Scene lifecycle
 │
@@ -174,28 +171,27 @@ laTrigger/
 │
 ├── Core/
 │   ├── Network/
-│   │   ├── JenkinsAPIClient.swift
-│   │   ├── APIEndpoint.swift
-│   │   ├── NetworkError.swift
-│   │   └── RequestBuilder.swift
+│   │   ├── BackendClient.swift         # Base networking client
+│   │   ├── APIConfig.swift             # URL/Endpoint configuration
+│   │   ├── JenkinsAPIClient.swift      # Jenkins specific calls
+│   │   └── NetworkError.swift          # Error definitions
 │   │
 │   ├── Services/
 │   │   ├── CredentialStorageService.swift  # JSON-based credential storage
 │   │   └── JenkinsAPIService.swift         # API client for Jenkins
 │   │
 │   ├── Security/
-│   │   ├── KeychainService.swift           # (Future: Production security)
+│   │   ├── KeychainHelper.swift        # JWT and token storage
 │   │   ├── BiometricService.swift
 │   │   └── CertificatePinner.swift
 │   │
 │   ├── Persistence/
-│   │   ├── CoreDataStack.swift
-│   │   ├── ServerRepository.swift
+│   │   ├── CredentialStorageService.swift # CRUD for backend credentials
 │   │   └── CacheManager.swift
 │   │
 │   └── Notifications/
-│       ├── PushNotificationService.swift
-│       └── NotificationManager.swift
+│       ├── NotificationManager.swift     # Global UI notifications
+│       └── PushNotificationService.swift
 │
 ├── Shared/
 │   ├── Extensions/
@@ -252,7 +248,7 @@ struct JenkinsCredentials: Codable, Identifiable, Equatable {
 
 ### 6.2 Core Models
 struct ServerConfiguration: Codable, Identifiable {
-    let id: UUID
+    let id: String  // MongoDB ObjectId string
     var name: String
     var url: URL
     var username: String
@@ -575,16 +571,18 @@ class CertificatePinner: NSObject, URLSessionDelegate {
 
 ### 11.1 Core Technologies
 
-| Layer | Technology | Version |
-|-------|------------|---------|
-| Language | Swift | 5.9+ |
-| UI Framework | SwiftUI | iOS 16+ |
-| Reactive | Combine | Built-in |
-| Networking | URLSession | Built-in |
-| Persistence | CoreData | Built-in |
-| Security | Keychain Services | Built-in |
-| Push | UserNotifications | Built-in |
-| Analytics | Firebase Crashlytics | Latest |
+| Layer | Technology |
+|-------|------------|
+| Language | Swift 5.9 |
+| UI | SwiftUI |
+| Reactive | Combine |
+| Networking | URLSession |
+| Persistence | CoreData |
+| Security | Keychain Services |
+| Backend | Node.js (Express) |
+| Database | MongoDB |
+| Push | UserNotifications |
+| Analytics | Firebase Crashlytics |
 
 ### 11.2 Third-Party Dependencies (Minimal)
 
@@ -701,35 +699,52 @@ enum LaTriggerError: Error {
 
 ---
 
-## 15. Future Architecture (Phase 7+)
+## 15. Backend Service Architecture (`lab-trigger-backend`)
 
-### 15.1 Backend Proxy Option
+The backend is a Node.js application using Express and Mongoose to provide a secure API for the iOS application.
 
+### 15.1 Component Breakdown
+
+- **Express Server**: Handles routing and HTTP requests.
+- **Mongoose Models**: Defines schemas for MongoDB.
+- **Controllers**: Implementation logic for Auth and Credentials.
+- **Middleware**: JWT authentication and error handling.
+
+### 15.2 Data Schema (MongoDB)
+
+#### User Collection
+```javascript
+{
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true }, // Hashed with bcrypt
+  createdAt: { type: Date, default: Date.now }
+}
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     FUTURE ARCHITECTURE                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   ┌───────────┐      ┌───────────┐      ┌───────────┐          │
-│   │  iOS App  │─────►│  Backend  │─────►│  Jenkins  │          │
-│   │           │      │  (FastAPI)│      │           │          │
-│   └───────────┘      └─────┬─────┘      └───────────┘          │
-│                            │                                     │
-│                            ▼                                     │
-│                      ┌───────────┐                              │
-│                      │  Redis    │                              │
-│                      │  Cache    │                              │
-│                      └───────────┘                              │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+
+#### JenkinsCredential Collection
+```javascript
+{
+  userId: { type: ObjectId, ref: 'User' },
+  serverName: String,
+  jenkinsURL: String,
+  username: String,
+  password: String, // Encrypted/Securely stored
+  paramToken: String,
+  isDefault: Boolean,
+  createdAt: Date
+}
 ```
 
-**Benefits:**
-- Hide Jenkins URL from client
-- Centralized token management
-- Webhook support for real-time notifications
-- Rate limiting and caching
-- Audit logging
+### 15.3 API Endpoints
+
+| Category | Endpoint | Method | Description |
+|----------|----------|--------|-------------|
+| **Auth** | `/api/auth/signup` | POST | Register new user |
+| **Auth** | `/api/auth/login` | POST | Login and receive JWT |
+| **Config** | `/api/credentials` | GET | List user's servers |
+| **Config** | `/api/credentials` | POST | Add new server config |
+| **Config** | `/api/credentials/:id`| PUT | Update server config |
+| **Config** | `/api/credentials/:id`| DELETE | Delete server config |
 
 ---
 
@@ -740,8 +755,7 @@ enum LaTriggerError: Error {
 | SwiftUI over UIKit | Modern, declarative, faster development | Feb 2026 |
 | MVVM pattern | Clean separation, testability | Feb 2026 |
 | URLSession over Alamofire | Reduce dependencies, built-in sufficient | Feb 2026 |
-| CoreData over Realm | Native, no third-party dependency | Feb 2026 |
-| No backend initially | Faster MVP, direct API access | Feb 2026 |
+| Full Backend Migration | Centralized storage, JWT security, multi-device potential | Feb 2026 |
 
 ---
 
@@ -749,4 +763,5 @@ enum LaTriggerError: Error {
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | Feb 7, 2026 | laTrigger Team | Initial architecture |
+| 1.0 | Feb 7, 2026 | JobTrigger Team | Initial architecture |
+| 1.1 | Feb 17, 2026 | Antigravity | Integrated Node.js + MongoDB backend |
