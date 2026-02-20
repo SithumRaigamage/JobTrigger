@@ -46,6 +46,8 @@ final class SettingsViewModel: ObservableObject {
       allServers = servers
       if let def = servers.first(where: { $0.isDefault }) ?? servers.first {
         selectServer(def)
+        ActiveServerManager.shared.setActiveServer(def)
+        testConnection()
       }
     } catch {
       print("❌ Error loading all servers: \(error)")
@@ -108,6 +110,7 @@ final class SettingsViewModel: ObservableObject {
       let updated = try await storageService.setActiveServer(server.id)
       await loadAllServers()
       selectServer(updated)
+      ActiveServerManager.shared.setActiveServer(updated)
     } catch {
       alert = .saveError(message: error.localizedDescription)
     }
@@ -142,27 +145,29 @@ final class SettingsViewModel: ObservableObject {
   /// Load existing credentials from storage (Async)
   @MainActor
   func loadExistingCredentials() async {
-    do {
-      let all = try await storageService.loadAll()
-      if let credentials = all.first(where: { $0.isDefault }) ?? all.first {
-        currentCredentialID = credentials.id
-        serverName = credentials.serverName
-        jenkinsURL = credentials.jenkinsURL
-        username = credentials.username
-        password = credentials.password
-        paramToken = credentials.paramToken
-        hasExistingCredentials = true
-      }
+    isLoading = true
+    await ActiveServerManager.shared.loadInitialServer()
+
+    if let credentials = ActiveServerManager.shared.activeServer {
+      currentCredentialID = credentials.id
+      serverName = credentials.serverName
+      jenkinsURL = credentials.jenkinsURL
+      username = credentials.username
+      password = credentials.password
+      paramToken = credentials.paramToken
+      hasExistingCredentials = true
       isBackendConnected = true
-    } catch {
-      isBackendConnected = false
-      print("❌ Settings View Model: Error loading credentials: \(error)")
-      NotificationManager.shared.show(
-        type: .error,
-        title: "Loading Failed",
-        message: "Failed to load existing server settings. Please check your connection."
-      )
+    } else {
+      // Check if backend is even reachable
+      do {
+        let _ = try await storageService.loadAll()
+        isBackendConnected = true
+      } catch {
+        isBackendConnected = false
+        print("❌ Settings View Model: Backend unreachable: \(error)")
+      }
     }
+    isLoading = false
   }
 
   /// Test the connection with current form values
@@ -204,8 +209,8 @@ final class SettingsViewModel: ObservableObject {
         paramToken: paramToken
       )
       switch result {
-      case .success(let connectionResult):
-        connectionStatus = .success(connectionResult.message)
+      case .success:
+        connectionStatus = .success("Alive")
         // Save to backend
         do {
           let saved = try await storageService.save(currentCredentials)
@@ -217,10 +222,10 @@ final class SettingsViewModel: ObservableObject {
           isLoading = false
           alert = .saveError(message: error.localizedDescription)
         }
-      case .failure(let error):
-        connectionStatus = .failed(error.localizedDescription)
+      case .failure:
+        connectionStatus = .failed("Not Alive")
         isLoading = false
-        showConnectionError = true
+      // Removed showConnectionError = true to prevent full-screen redirection
       }
     }
   }
@@ -241,8 +246,8 @@ final class SettingsViewModel: ObservableObject {
       username: username,
       password: password,
       paramToken: paramToken,
-      isDefault: true,
-      createdAt: Date(),
+      isDefault: selectedServer?.isDefault ?? (allServers.isEmpty),
+      createdAt: selectedServer?.createdAt ?? Date(),
       updatedAt: Date()
     )
   }

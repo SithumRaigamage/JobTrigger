@@ -37,12 +37,37 @@ struct SettingsView: View {
 
                   Spacer()
 
-                  if server.isDefault {
-                    Text("Active")
-                      .font(.caption)
-                      .padding(6)
-                      .background(Color.green.opacity(0.15))
-                      .cornerRadius(6)
+                  if server.isDefault || server.id == viewModel.currentCredentialID {
+                    if case .success = viewModel.connectionStatus,
+                      server.id == viewModel.currentCredentialID
+                    {
+                      Text("Alive")
+                        .font(.caption)
+                        .padding(6)
+                        .background(Color.green.opacity(0.15))
+                        .foregroundColor(.green)
+                        .cornerRadius(6)
+                    } else if case .failed = viewModel.connectionStatus,
+                      server.id == viewModel.currentCredentialID
+                    {
+                      Text("Not Alive")
+                        .font(.caption)
+                        .padding(6)
+                        .background(Color.red.opacity(0.15))
+                        .foregroundColor(.red)
+                        .cornerRadius(6)
+                    } else if case .testing = viewModel.connectionStatus,
+                      server.id == viewModel.currentCredentialID
+                    {
+                      Text("Testing...")
+                        .font(.caption)
+                        .padding(6)
+                        .background(Color.blue.opacity(0.15))
+                        .foregroundColor(.blue)
+                        .cornerRadius(6)
+                    } else if server.isDefault {
+                      // Don't show "Active" anymore as requested
+                    }
                   }
                 }
                 .contentShape(Rectangle())
@@ -101,7 +126,7 @@ struct SettingsView: View {
               Label(
                 "Backend Server", systemImage: viewModel.isBackendConnected ? "wifi" : "wifi.slash")
               Spacer()
-              Text(viewModel.isBackendConnected ? "Connected" : "Offline")
+              Text(viewModel.isBackendConnected ? "Online" : "Offline")
                 .foregroundColor(viewModel.isBackendConnected ? .green : .red)
                 .fontWeight(.medium)
             }
@@ -116,7 +141,7 @@ struct SettingsView: View {
               }
             }
           } header: {
-            Text("Connection Status")
+            Text("Backend Server Status")
           }
 
           if viewModel.isBackendConnected {

@@ -8,36 +8,70 @@
 import SwiftUI
 
 struct NavBarView: View {
-    @State private var selectedTab = 0
+  @State private var selectedTab = 0
+  @StateObject private var activeManager = ActiveServerManager.shared
 
-    var body: some View {
-        NavigationStack {
-            TabView(selection: $selectedTab) {
-                HomeView()
-                    .tabItem {
-                        Label("Home", systemImage: "house")
-                    }.tag(0)
+  var body: some View {
+    TabView(selection: $selectedTab) {
+      NavigationStack {
+        HomeView()
+          .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+              NavigationLink {
+                ProfileView()
+              } label: {
+                Image(systemName: "person.circle")
+              }
+            }
+          }
+      }
+      .tabItem {
+        Label("Home", systemImage: "house")
+      }
+      .tag(0)
 
-                SettingsView()
-                    .tabItem {
-                        Label("Settings", systemImage: "gear")
-                    }.tag(1)
+      NavigationStack {
+        GlobalHistoryView()
+          .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+              NavigationLink {
+                ProfileView()
+              } label: {
+                Image(systemName: "person.circle")
+              }
             }
-            .navigationTitle(selectedTab == 0 ? "Home" : "Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink {
-                        ProfileView()
-                    } label: {
-                        Image(systemName: "person.circle")
-                    }
-                }
+          }
+      }
+      .tabItem {
+        Label("History", systemImage: "clock.fill")
+      }
+      .tag(1)
+
+      NavigationStack {
+        SettingsView()
+          .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+              NavigationLink {
+                ProfileView()
+              } label: {
+                Image(systemName: "person.circle")
+              }
             }
-        }
+          }
+      }
+      .tabItem {
+        Label("Settings", systemImage: "gear")
+      }
+      .tag(2)
     }
+    .onAppear {
+      Task {
+        await ActiveServerManager.shared.loadInitialServer()
+      }
+    }
+  }
 }
 
 #Preview {
-    NavBarView()
+  NavBarView()
 }
