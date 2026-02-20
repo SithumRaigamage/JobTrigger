@@ -50,17 +50,26 @@ final class BackendClient {
       }
     }
 
+    print("🔍 [BackendClient] Request: \(method) \(url.absoluteString)")
+    if requiresAuth {
+      print("🔍 [BackendClient] Request requires auth")
+    }
+
     let (data, response) = try await session.data(for: request)
 
     guard let httpResponse = response as? HTTPURLResponse else {
+      print("❌ [BackendClient] Failed to cast response")
       throw BackendError.invalidResponse
     }
+
+    print("✅ [BackendClient] Response Status: \(httpResponse.statusCode)")
 
     if !(200...299).contains(httpResponse.statusCode) {
       // Try to parse error message from backend
       let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data)
-      throw BackendError.apiError(
-        message: errorResponse?.message ?? "Request failed with status \(httpResponse.statusCode)")
+      let msg = errorResponse?.message ?? "Request failed with status \(httpResponse.statusCode)"
+      print("❌ [BackendClient] API Error: \(msg)")
+      throw BackendError.apiError(message: msg)
     }
 
     return try decoder.decode(T.self, from: data)
