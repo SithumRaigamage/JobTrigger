@@ -242,6 +242,13 @@ struct SettingsView: View {
             }
             .disabled(viewModel.isLoading)
           }
+
+          // MARK: - About Section
+          Section(header: Text("About")) {
+            NavigationLink(destination: AppInfoView()) {
+              Label("App Information", systemImage: "info.circle")
+            }
+          }
         }
       }
 

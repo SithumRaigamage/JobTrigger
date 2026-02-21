@@ -613,7 +613,7 @@ EP-06: Settings & Preferences
 
 ---
 
-### US-27: View App Information
+### US-27: View App Information [COMPLETED]
 **As a** user  
 **I want to** view app version and information  
 **So that** I can check for updates and access support
@@ -623,11 +623,11 @@ EP-06: Settings & Preferences
 **Sprint:** 6
 
 #### Acceptance Criteria
-- [ ] Shows app version and build number
-- [ ] Link to privacy policy
-- [ ] Link to terms of service
-- [ ] Link to support/feedback
-- [ ] Open source licenses
+- [x] Shows app version and build number
+- [x] Link to privacy policy
+- [x] Link to terms of service
+- [x] Link to support/feedback
+- [x] Open source licenses
 
 ---
 

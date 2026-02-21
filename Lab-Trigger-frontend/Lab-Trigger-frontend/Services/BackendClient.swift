@@ -16,6 +16,8 @@ enum APIConfig {
       return base.appendingPathComponent(id)
     }
   }
+
+  static let appInfo = baseURL.appendingPathComponent("appinfo")
 }
 
 /// Base client for communicating with the Node.js backend
