@@ -142,6 +142,7 @@ final class JobDetailViewModel: ObservableObject {
     switch result {
     case .success:
       triggerStatus = .success
+      UINotificationFeedbackGenerator().notificationOccurred(.success)
       NotificationManager.shared.show(
         type: .success,
         title: "Build Triggered",
@@ -151,6 +152,7 @@ final class JobDetailViewModel: ObservableObject {
       startPolling()
     case .failure(let error):
       triggerStatus = .failed(error.localizedDescription)
+      UINotificationFeedbackGenerator().notificationOccurred(.error)
       NotificationManager.shared.show(
         type: .error,
         title: "Trigger Failed",

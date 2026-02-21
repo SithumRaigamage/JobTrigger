@@ -10,6 +10,7 @@ import SwiftUI
 struct JobDetailView: View {
   @StateObject private var viewModel: JobDetailViewModel
   @Environment(\.dismiss) var dismiss
+  @State private var showConfirmationDialog = false
 
   init(job: JenkinsJob) {
     _viewModel = StateObject(wrappedValue: JobDetailViewModel(job: job))
@@ -47,6 +48,17 @@ struct JobDetailView: View {
         }
         .padding()
       }
+    }
+    .alert(
+      "Confirm Trigger",
+      isPresented: $showConfirmationDialog
+    ) {
+      Button("Cancel", role: .cancel) {}
+      Button("Build NOW") {
+        Task { await viewModel.triggerBuild() }
+      }
+    } message: {
+      Text("Are you sure you want to trigger a new build for \(viewModel.job.name)?")
     }
     .navigationTitle("Job Details")
     .navigationBarTitleDisplayMode(.inline)
@@ -307,7 +319,7 @@ struct JobDetailView: View {
           .cornerRadius(12)
         } else {
           Button(action: {
-            Task { await viewModel.triggerBuild() }
+            showConfirmationDialog = true
           }) {
             HStack {
               Image(systemName: "play.fill")
