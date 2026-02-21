@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HomeView: View {
   @StateObject private var viewModel = HomeViewModel()
+  @State private var jobToTrigger: JenkinsJob?
 
   var body: some View {
     ZStack {
@@ -117,6 +118,20 @@ struct HomeView: View {
                 viewModel.selectedJob = job
               }
             }
+            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+              if !job.isFolder {
+                Button {
+                  if job.isParameterized {
+                    viewModel.selectedJob = job
+                  } else {
+                    jobToTrigger = job
+                  }
+                } label: {
+                  Label("Build", systemImage: "play.fill")
+                }
+                .tint(.blue)
+              }
+            }
             .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
@@ -127,6 +142,24 @@ struct HomeView: View {
     .listStyle(.plain)
     .navigationDestination(item: $viewModel.selectedJob) { job in
       JobDetailView(job: job)
+    }
+    .alert(
+      "Confirm Trigger",
+      isPresented: Binding(
+        get: { jobToTrigger != nil },
+        set: { if !$0 { jobToTrigger = nil } }
+      ),
+      presenting: jobToTrigger
+    ) { job in
+      Button("Cancel", role: .cancel) {
+        jobToTrigger = nil
+      }
+      Button("Build NOW") {
+        Task { await viewModel.triggerJob(job) }
+        jobToTrigger = nil
+      }
+    } message: { job in
+      Text("Are you sure you want to trigger a new build for \(job.name)?")
     }
     .refreshable {
       await viewModel.refreshJobs()

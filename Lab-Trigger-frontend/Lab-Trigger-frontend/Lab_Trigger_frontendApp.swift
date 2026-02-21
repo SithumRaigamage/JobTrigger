@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct Lab_Trigger_frontendApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+  @AppStorage("appTheme") private var storedTheme: Int = AppTheme.system.rawValue
+
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
+        .preferredColorScheme(AppTheme(rawValue: storedTheme)?.colorScheme)
     }
+  }
 }

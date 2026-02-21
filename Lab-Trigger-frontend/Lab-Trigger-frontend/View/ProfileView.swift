@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProfileView: View {
   @StateObject private var viewModel = ProfileViewModel()
+  @Environment(\.openURL) var openURL
 
   var body: some View {
     List {
@@ -85,11 +86,20 @@ struct ProfileView: View {
             .foregroundColor(.secondary)
         }
 
-        NavigationLink {
-          Text("JobTrigger License Info...")
-            .navigationTitle("Licenses")
+        Button {
+          if let licenseUrl = viewModel.backendAppInfo?.openSourceLicensesUrl,
+            let url = URL(string: licenseUrl)
+          {
+            openURL(url)
+          }
         } label: {
-          Label("Licenses", systemImage: "doc.text")
+          HStack {
+            Label("Licenses", systemImage: "doc.text")
+            Spacer()
+            Image(systemName: "arrow.up.forward.app")
+              .font(.caption)
+              .foregroundColor(.secondary)
+          }
         }
       }
 

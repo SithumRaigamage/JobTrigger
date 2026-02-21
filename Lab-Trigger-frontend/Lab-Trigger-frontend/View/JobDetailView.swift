@@ -10,6 +10,8 @@ import SwiftUI
 struct JobDetailView: View {
   @StateObject private var viewModel: JobDetailViewModel
   @Environment(\.dismiss) var dismiss
+  @State private var showConfirmationDialog = false
+  @State private var showCancelConfirmationDialog = false
 
   init(job: JenkinsJob) {
     _viewModel = StateObject(wrappedValue: JobDetailViewModel(job: job))
@@ -47,6 +49,28 @@ struct JobDetailView: View {
         }
         .padding()
       }
+    }
+    .alert(
+      "Confirm Trigger",
+      isPresented: $showConfirmationDialog
+    ) {
+      Button("Cancel", role: .cancel) {}
+      Button("Build NOW") {
+        Task { await viewModel.triggerBuild() }
+      }
+    } message: {
+      Text("Are you sure you want to trigger a new build for \(viewModel.job.name)?")
+    }
+    .alert(
+      "Cancel Build",
+      isPresented: $showCancelConfirmationDialog
+    ) {
+      Button("No", role: .cancel) {}
+      Button("Yes, Cancel", role: .destructive) {
+        Task { await viewModel.cancelRunningBuild() }
+      }
+    } message: {
+      Text("Are you sure you want to cancel the currently running build?")
     }
     .navigationTitle("Job Details")
     .navigationBarTitleDisplayMode(.inline)
@@ -296,18 +320,34 @@ struct JobDetailView: View {
       }
 
       Group {
-        if viewModel.isTriggering {
+        if viewModel.isTriggering || viewModel.isCancelling {
           HStack {
             ProgressView()
-            Text("Triggering...")
+            Text(viewModel.isTriggering ? "Triggering..." : "Cancelling...")
           }
           .frame(maxWidth: .infinity)
           .padding()
           .background(Color.blue.opacity(0.1))
           .cornerRadius(12)
+        } else if viewModel.job.lastBuild?.building == true {
+          Button(action: {
+            showCancelConfirmationDialog = true
+          }) {
+            HStack {
+              Image(systemName: "stop.circle.fill")
+              Text("Cancel Build")
+            }
+            .font(.headline)
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.red)
+            .cornerRadius(12)
+            .shadow(color: Color.red.opacity(0.3), radius: 5, x: 0, y: 3)
+          }
         } else {
           Button(action: {
-            Task { await viewModel.triggerBuild() }
+            showConfirmationDialog = true
           }) {
             HStack {
               Image(systemName: "play.fill")

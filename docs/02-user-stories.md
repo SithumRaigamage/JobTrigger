@@ -248,9 +248,9 @@ EP-06: Settings & Preferences
 ---
 
 
-### US-11: View Job Build History
+### ✅ US-11: View Job Build History
 
-**Status: COMPLETED** (Sprint 3)
+#### <span style="color:green">**STATUS: COMPLETED**</span>
 
 **As a** user  
 **I want to** view the build history of a job  
@@ -272,9 +272,9 @@ EP-06: Settings & Preferences
 
 ## EP-03: Build Triggering
 
-### 🏃 US-12: Trigger Job with One Tap
+### ✅ US-12: Trigger Job with One Tap
 
-#### <span style="color:blue">**STATUS: IN PROGRESS**</span>
+#### <span style="color:green">**STATUS: COMPLETED**</span>
 
 **As a** user  
 **I want to** trigger a Jenkins job with one tap  
@@ -286,11 +286,11 @@ EP-06: Settings & Preferences
 
 #### Acceptance Criteria
 - [x] "Build" button prominently displayed
-- [ ] Confirmation dialog before triggering
+- [x] Confirmation dialog before triggering
 - [x] Loading state during API call
 - [x] Success toast on successful trigger (Handled by NotificationManager)
 - [x] Error message on failure with retry option (Handled by NotificationManager)
-- [ ] Haptic feedback on trigger
+- [x] Haptic feedback on trigger
 
 #### Technical Notes
 - Use `/job/{jobName}/build` for parameterless jobs
@@ -298,9 +298,9 @@ EP-06: Settings & Preferences
 
 ---
 
-### US-13: Trigger Build with Parameters
+### ✅ US-13: Trigger Build with Parameters
 
-**Status: COMPLETED** (Sprint 3)
+#### <span style="color:green">**STATUS: COMPLETED**</span>
 
 **As a** user  
 **I want to** pass parameters before triggering a build  
@@ -333,7 +333,10 @@ EP-06: Settings & Preferences
 
 ---
 
-### US-14: Quick Trigger from Job List
+### ✅ US-14: Quick Trigger from Job List
+
+#### <span style="color:green">**STATUS: COMPLETED**</span>
+
 **As a** user  
 **I want to** trigger a job directly from the job list  
 **So that** I don't have to navigate to job details for simple triggers
@@ -343,14 +346,14 @@ EP-06: Settings & Preferences
 **Sprint:** 4
 
 #### Acceptance Criteria
-- [ ] Swipe action or quick button on job row
-- [ ] Shows parameter sheet if needed
-- [ ] Same confirmation flow as detail trigger
-- [ ] Only for jobs user has permission to build
+- [x] Swipe action or quick button on job row
+- [x] Shows parameter sheet if needed
+- [x] Same confirmation flow as detail trigger
+- [x] Only for jobs user has permission to build
 
 ---
 
-### US-15: Cancel Running Build
+### ✅ US-15: Cancel Running Build
 **As a** user  
 **I want to** cancel a running build  
 **So that** I can stop builds that were triggered by mistake
@@ -360,10 +363,10 @@ EP-06: Settings & Preferences
 **Sprint:** 5
 
 #### Acceptance Criteria
-- [ ] "Cancel" button visible for running builds
-- [ ] Confirmation before cancellation
-- [ ] Build status updates to "Aborted"
-- [ ] Error handling for permission denied
+- [x] "Cancel" button visible for running builds
+- [x] Confirmation before cancellation
+- [x] Build status updates to "Aborted"
+- [x] Error handling for permission denied
 
 #### Technical Notes
 - Use `/job/{jobName}/{buildNumber}/stop`
@@ -389,9 +392,9 @@ EP-06: Settings & Preferences
 
 ## EP-04: Build Monitoring
 
-### US-17: View Current Build Status
+### ✅ US-17: View Current Build Status
 
-**Status: COMPLETED** (Sprint 3)
+#### <span style="color:green">**STATUS: COMPLETED**</span>
 
 **As a** user  
 **I want to** see the current build status  
@@ -421,9 +424,9 @@ EP-06: Settings & Preferences
 
 ---
 
-### US-18: View Build Progress
+### ✅ US-18: View Build Progress
 
-**Status: COMPLETED** (Sprint 3)
+#### <span style="color:green">**STATUS: COMPLETED**</span>
 
 **As a** user  
 **I want to** see build progress percentage  
@@ -444,9 +447,9 @@ EP-06: Settings & Preferences
 
 ---
 
-### US-19: View Build Logs
+### ✅ US-19: View Build Logs
 
-**Status: COMPLETED** (Sprint 3)
+#### <span style="color:green">**STATUS: COMPLETED**</span>
 
 **As a** user  
 **I want to** view build logs  
@@ -591,7 +594,9 @@ EP-06: Settings & Preferences
 
 ---
 
-### US-26: Dark Mode Support
+### ✅ US-26: Dark Mode Support
+
+#### <span style="color:green">**STATUS: COMPLETED**</span>
 **As a** user  
 **I want to** use the app in dark mode  
 **So that** I can use it comfortably in low-light environments
@@ -601,14 +606,14 @@ EP-06: Settings & Preferences
 **Sprint:** 4
 
 #### Acceptance Criteria
-- [ ] Follows system appearance by default
-- [ ] Option to force light/dark mode
-- [ ] All screens support both modes
-- [ ] Proper contrast ratios maintained
+- [x] Follows system appearance by default
+- [x] Option to force light/dark mode
+- [x] All screens support both modes
+- [x] Proper contrast ratios maintained
 
 ---
 
-### US-27: View App Information
+### US-27: View App Information [COMPLETED]
 **As a** user  
 **I want to** view app version and information  
 **So that** I can check for updates and access support
@@ -618,11 +623,11 @@ EP-06: Settings & Preferences
 **Sprint:** 6
 
 #### Acceptance Criteria
-- [ ] Shows app version and build number
-- [ ] Link to privacy policy
-- [ ] Link to terms of service
-- [ ] Link to support/feedback
-- [ ] Open source licenses
+- [x] Shows app version and build number
+- [x] Link to privacy policy
+- [x] Link to terms of service
+- [x] Link to support/feedback
+- [x] Open source licenses
 
 ---
 

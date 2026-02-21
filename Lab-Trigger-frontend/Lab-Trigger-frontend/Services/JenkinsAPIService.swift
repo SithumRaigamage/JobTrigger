@@ -511,6 +511,74 @@ final class JenkinsAPIService {
     }
   }
 
+  /// Cancel a running Jenkins job build
+  func cancelBuild(
+    jobURL: String,
+    buildNumber: Int,
+    username: String,
+    password: String,
+    paramToken: String? = nil
+  ) async -> Result<Bool, JenkinsAPIError> {
+
+    var endpoint = jobURL
+    if !endpoint.hasSuffix("/") {
+      endpoint += "/"
+    }
+
+    // Hit the /stop API for the running build
+    let buildURLString = "\(endpoint)\(buildNumber)/stop"
+
+    print("🚀 [JenkinsAPIService] Canceling build #\(buildNumber) at: \(buildURLString)")
+
+    guard var components = URLComponents(string: buildURLString) else {
+      return .failure(.invalidURL)
+    }
+
+    // Add token if provided
+    if let token = paramToken, !token.isEmpty {
+      components.queryItems = [URLQueryItem(name: "token", value: token)]
+    }
+
+    guard let apiURL = components.url else {
+      return .failure(.invalidURL)
+    }
+
+    var request = URLRequest(url: apiURL)
+    request.httpMethod = "POST"  // Jenkins exposes /stop as POST only
+
+    // Authentication
+    let authString = "\(username):\(password)"
+    if let authData = authString.data(using: .utf8) {
+      let base64Auth = authData.base64EncodedString()
+      request.setValue("Basic \(base64Auth)", forHTTPHeaderField: "Authorization")
+    }
+
+    do {
+      let (_, response) = try await session.data(for: request)
+
+      guard let httpResponse = response as? HTTPURLResponse else {
+        return .failure(.unknown)
+      }
+
+      print("✅ [JenkinsAPIService] Cancel response code: \(httpResponse.statusCode)")
+
+      // Jenkins returns 302 Found (Redirect) or 200 OK after successfully stopping
+      if [200, 201, 302].contains(httpResponse.statusCode) {
+        return .success(true)
+      } else if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+        return .failure(.invalidCredentials)
+      } else {
+        return .failure(.serverError(httpResponse.statusCode))
+      }
+    } catch let error as URLError {
+      print("❌ [JenkinsAPIService] Cancel URLError: \(error.localizedDescription)")
+      return .failure(.networkError(error))
+    } catch {
+      print("❌ [JenkinsAPIService] Cancel Unexpected error: \(error.localizedDescription)")
+      return .failure(.unknown)
+    }
+  }
+
   /// Fetch build logs incrementally using Progressive Text API
   func fetchBuildLogs(
     buildURL: String,

@@ -17,6 +17,7 @@ final class ProfileViewModel: ObservableObject {
   @Published var activeServerURL: String = "-"
   @Published var totalServersCount: Int = 0
   @Published var appVersion: String = "1.0.0 (1)"
+  @Published var backendAppInfo: AppInfo?
 
   // MARK: - Services
 
@@ -63,6 +64,22 @@ final class ProfileViewModel: ObservableObject {
       let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
     {
       appVersion = "\(version) (\(build))"
+    }
+
+    // Load Backend App Info
+    await fetchBackendAppInfo()
+  }
+
+  @MainActor
+  private func fetchBackendAppInfo() async {
+    do {
+      let info: AppInfo = try await BackendClient.shared.request(
+        APIConfig.appInfo, requiresAuth: false)
+      self.backendAppInfo = info
+      // Override local version with backend version if it exists
+      self.appVersion = "\(info.appVersion) (\(info.buildNumber))"
+    } catch {
+      print("⚠️ Profile View Model: Failed to fetch backend app info: \(error)")
     }
   }
 

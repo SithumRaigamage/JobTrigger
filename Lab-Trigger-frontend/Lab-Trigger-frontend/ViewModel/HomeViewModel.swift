@@ -71,6 +71,50 @@ final class HomeViewModel: ObservableObject {
     self.isLoading = false
   }
 
+  // MARK: - Quick Trigger (US-14)
+
+  @Published var isTriggeringJobId: String? = nil
+
+  @MainActor
+  func triggerJob(_ job: JenkinsJob) async {
+    guard let server = activeServerManager.activeServer else { return }
+    isTriggeringJobId = job.id
+
+    let normalizedURL = apiService.normalizeURL(jobURL: job.url, baseURL: activeJenkinsURL)
+    var updatedJob = job
+    updatedJob.url = normalizedURL
+
+    let result = await apiService.triggerJob(
+      job: updatedJob,
+      username: server.username,
+      password: server.password,
+      paramToken: server.paramToken,
+      parameters: nil
+    )
+
+    switch result {
+    case .success:
+      UINotificationFeedbackGenerator().notificationOccurred(.success)
+      NotificationManager.shared.show(
+        type: .success,
+        title: "Build Triggered",
+        message: "A new build for \(job.name) has been requested."
+      )
+      // Optional: refresh jobs after a short delay
+      try? await Task.sleep(nanoseconds: 2 * 1_000_000_000)
+      await refreshJobs()
+    case .failure(let error):
+      UINotificationFeedbackGenerator().notificationOccurred(.error)
+      NotificationManager.shared.show(
+        type: .error,
+        title: "Trigger Failed",
+        message: error.localizedDescription
+      )
+    }
+
+    isTriggeringJobId = nil
+  }
+
   // MARK: - Search & Filtering
 
   /// Computed property to return jobs displayed in current folder or global search results
