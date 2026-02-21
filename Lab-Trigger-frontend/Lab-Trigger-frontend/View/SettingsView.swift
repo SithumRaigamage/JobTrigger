@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
   @StateObject private var viewModel = SettingsViewModel()
+  @AppStorage("appTheme") private var storedTheme: Int = AppTheme.system.rawValue
 
   var body: some View {
     ZStack {
@@ -118,6 +119,17 @@ struct SettingsView: View {
             } label: {
               Label("Add Jenkins Server", systemImage: "plus")
             }
+          }
+
+          // MARK: - Appearance Section
+          Section(header: Text("Appearance")) {
+            Picker("Theme", selection: $storedTheme) {
+              ForEach(AppTheme.allCases) { theme in
+                Text(theme.title).tag(theme.rawValue)
+              }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .padding(.vertical, 4)
           }
 
           // MARK: - Backend Status Section

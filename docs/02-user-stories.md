@@ -353,7 +353,7 @@ EP-06: Settings & Preferences
 
 ---
 
-### US-15: Cancel Running Build
+### ✅ US-15: Cancel Running Build
 **As a** user  
 **I want to** cancel a running build  
 **So that** I can stop builds that were triggered by mistake
@@ -363,10 +363,10 @@ EP-06: Settings & Preferences
 **Sprint:** 5
 
 #### Acceptance Criteria
-- [ ] "Cancel" button visible for running builds
-- [ ] Confirmation before cancellation
-- [ ] Build status updates to "Aborted"
-- [ ] Error handling for permission denied
+- [x] "Cancel" button visible for running builds
+- [x] Confirmation before cancellation
+- [x] Build status updates to "Aborted"
+- [x] Error handling for permission denied
 
 #### Technical Notes
 - Use `/job/{jobName}/{buildNumber}/stop`
@@ -594,7 +594,9 @@ EP-06: Settings & Preferences
 
 ---
 
-### US-26: Dark Mode Support
+### ✅ US-26: Dark Mode Support
+
+#### <span style="color:green">**STATUS: COMPLETED**</span>
 **As a** user  
 **I want to** use the app in dark mode  
 **So that** I can use it comfortably in low-light environments
@@ -604,10 +606,10 @@ EP-06: Settings & Preferences
 **Sprint:** 4
 
 #### Acceptance Criteria
-- [ ] Follows system appearance by default
-- [ ] Option to force light/dark mode
-- [ ] All screens support both modes
-- [ ] Proper contrast ratios maintained
+- [x] Follows system appearance by default
+- [x] Option to force light/dark mode
+- [x] All screens support both modes
+- [x] Proper contrast ratios maintained
 
 ---
 

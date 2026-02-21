@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
   @StateObject private var authManager = AuthenticationManager.shared
+  @AppStorage("appTheme") private var storedTheme: Int = AppTheme.system.rawValue
 
   var body: some View {
     Group {
@@ -19,6 +20,7 @@ struct ContentView: View {
       }
     }
     .notificationManager()
+    .preferredColorScheme(AppTheme(rawValue: storedTheme)?.colorScheme)
   }
 }
 

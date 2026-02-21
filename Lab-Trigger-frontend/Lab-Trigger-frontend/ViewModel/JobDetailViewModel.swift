@@ -14,6 +14,7 @@ final class JobDetailViewModel: ObservableObject {
   // MARK: - Published Properties
   @Published var job: JenkinsJob
   @Published var isTriggering = false
+  @Published var isCancelling = false
   @Published var triggerStatus: TriggerStatus = .idle
   @Published var parameterValues: [String: String] = [:]
   @Published var isPolling = false
@@ -30,6 +31,7 @@ final class JobDetailViewModel: ObservableObject {
     case idle
     case success
     case failed(String)
+    case cancelled
   }
 
   // MARK: - Initialization
@@ -148,6 +150,52 @@ final class JobDetailViewModel: ObservableObject {
         title: "Build Triggered",
         message: "A new build for \(job.name) has been requested."
       )
+      // Optimistically flip the building state so the UI reacts smoothly right away.
+      if var lastBuild = self.job.lastBuild {
+        // Create a new mock build summarizing our start state
+        let optimisticBuild = BuildSummary(
+          number: (lastBuild.number) + 1,
+          url: lastBuild.url,
+          result: nil,
+          timestamp: Date().timeIntervalSince1970 * 1000,
+          duration: nil,
+          estimatedDuration: lastBuild.estimatedDuration,
+          building: true
+        )
+        self.job = JenkinsJob(
+          name: self.job.name,
+          url: self.job.url,
+          color: self.job.color,
+          description: self.job.description,
+          jobs: self.job.jobs,
+          lastBuild: optimisticBuild,
+          healthReport: self.job.healthReport,
+          property: self.job.property,
+          builds: self.job.builds
+        )
+      } else {
+        // Even if there wasn't a previous build, inject an optimistic one
+        let optimisticBuild = BuildSummary(
+          number: 1,
+          url: self.job.url,
+          result: nil,
+          timestamp: Date().timeIntervalSince1970 * 1000,
+          duration: nil,
+          estimatedDuration: nil,
+          building: true
+        )
+        self.job = JenkinsJob(
+          name: self.job.name,
+          url: self.job.url,
+          color: self.job.color,
+          description: self.job.description,
+          jobs: self.job.jobs,
+          lastBuild: optimisticBuild,
+          healthReport: self.job.healthReport,
+          property: self.job.property,
+          builds: self.job.builds
+        )
+      }
       // Immediately start polling to see the transition to 'building'
       startPolling()
     case .failure(let error):
@@ -161,5 +209,54 @@ final class JobDetailViewModel: ObservableObject {
     }
 
     isTriggering = false
+  }
+
+  @MainActor
+  func cancelRunningBuild() async {
+    guard let server = activeServerManager.activeServer else {
+      self.triggerStatus = .failed("No active server connected")
+      return
+    }
+
+    guard let buildNumber = job.lastBuild?.number, job.lastBuild?.building == true else {
+      self.triggerStatus = .failed("No active build running to cancel")
+      return
+    }
+
+    isCancelling = true
+    triggerStatus = .idle
+
+    let normalizedURL = apiService.normalizeURL(jobURL: job.url, baseURL: activeJenkinsURL)
+
+    let result = await apiService.cancelBuild(
+      jobURL: normalizedURL,
+      buildNumber: buildNumber,
+      username: server.username,
+      password: server.password,
+      paramToken: server.paramToken
+    )
+
+    switch result {
+    case .success:
+      triggerStatus = .cancelled
+      UINotificationFeedbackGenerator().notificationOccurred(.success)
+      NotificationManager.shared.show(
+        type: .success,
+        title: "Cancel Requested",
+        message: "Requested cancellation of build #\(buildNumber)."
+      )
+      // Force an immediate reload to fetch the ABORTED status
+      await loadJobDetails()
+    case .failure(let error):
+      triggerStatus = .failed(error.localizedDescription)
+      UINotificationFeedbackGenerator().notificationOccurred(.error)
+      NotificationManager.shared.show(
+        type: .error,
+        title: "Cancel Failed",
+        message: error.localizedDescription
+      )
+    }
+
+    isCancelling = false
   }
 }
