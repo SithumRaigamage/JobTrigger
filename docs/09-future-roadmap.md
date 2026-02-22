@@ -43,7 +43,8 @@
 | v1.0 | Foundation (Backend Migration) | Feb 2026 | Done |
 | v1.1 | Notifications & UX Polish | Jul 2026 |
 | v1.2 | Enhanced Monitoring | Aug 2026 |
-| v2.0 | Integrations | Oct 2026 |
+| v2.0 | Multi-Tool Hub (Universal Connector) | Oct 2026 |
+| v2.1 | Insights & Code Quality | Nov 2026 |
 | v2.x | Team Collaboration | Q1 2027 |
 | v3.0 | Multi-Platform | Q2 2027 |
 | v3.x | Enterprise Features | Q3 2027 |
@@ -156,11 +157,24 @@ struct JobStatusWidget: Widget {
 
 ---
 
-## 3. Version 2.0 - Integrations
+## 3. Version 2.0 - Multi-Tool Hub
 
 **Target**: October 2026
 
-### 3.1 GitHub Integration
+### 3.1 Universal Tool Connector (Foundation)
+
+**Priority**: Critical
+**Effort**: Large
+
+The current architecture is coupled with Jenkins. To support multiple tools, we will transition to a **Universal Tool Connector** model.
+
+#### Refactoring Strategy
+- **Backend Model**: Generalize `JenkinsCredential` to `ToolCredential` with a `toolType` discriminator.
+- **Frontend Architecture**: Implement a `ToolProvider` protocol in Swift. Each tool (Jenkins, GitHub, etc.) will implement its own fetching and triggering logic while sharing the same UI components.
+
+---
+
+### 3.2 GitHub Actions Integration
 
 **Priority**: High  
 **Effort**: Large
@@ -172,7 +186,8 @@ struct JobStatusWidget: Widget {
 | Trigger from PR | Start build for a PR |
 | Commit status | View commit build status |
 | Branch builds | Trigger branch-specific builds |
-| GitHub Actions | View GitHub Actions alongside Jenkins |
+| GitHub Actions | View GitHub Actions alongside Jenkins | Planned |
+| Workflow Trigger | Manually start GitHub workflows | Planned |
 
 #### API Integration
 ```
@@ -209,6 +224,48 @@ GitHub REST API v3
 | Share build status | Post to Slack channels |
 | Build notifications | Forward to Slack |
 | Slack shortcuts | Trigger from Slack |
+
+---
+
+### 3.5 SonarQube Integration (Code Quality)
+
+**Priority**: High  
+**Effort**: Medium
+
+#### Features
+| Feature | Description |
+|---------|-------------|
+| Quality Gates | View pass/fail status of quality gates |
+| Metrics Dashboard | See Bugs, Vulnerabilities, and Code Coverage |
+| Trend Lines | Visualize code quality over time |
+
+---
+
+### 3.6 Mobile CI/CD Expansion (Bitrise & Appcircle)
+
+**Priority**: Medium
+**Effort**: Medium
+
+#### Features
+| Feature | Description |
+|---------|-------------|
+| Bitrise Build Status | Monitor iOS/Android specific builds |
+| Appcircle Integration | Manage app store deployments |
+| Fastlane Automation | View automation results |
+
+---
+
+### 3.7 Cloud CI/CD (Azure DevOps & CircleCI)
+
+**Priority**: Low
+**Effort**: Large
+
+#### Features
+| Feature | Description |
+|---------|-------------|
+| Azure Pipelines | Support for Microsoft ecosystem |
+| CircleCI Orbs | View CircleCI pipeline status |
+| Travis CI | Legacy support for open-source projects |
 
 ---
 
@@ -583,3 +640,4 @@ GitHub REST API v3
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | Feb 7, 2026 | JobTrigger Team | Initial roadmap |
+| 1.1 | Feb 21, 2026 | Antigravity AI | Added Universal Tool Connector & Multi-CI roadmap |
