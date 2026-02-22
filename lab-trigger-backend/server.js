@@ -24,13 +24,21 @@ async function startServer() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
     const PORT = process.env.PORT || 5001;
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
+    return server;
   } catch (err) {
     console.error('Could not connect to MongoDB', err);
     process.exit(1);
   }
 }
 
-startServer();
+// Only start server when this file is run directly. This allows tests to
+// require the module, set environment variables (in-memory mongo) and then
+// call `startServer()` explicitly.
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = { app, startServer };

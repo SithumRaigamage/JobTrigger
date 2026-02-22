@@ -6,7 +6,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "migrate": "node scripts/migrate.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --file test/setup.js --recursive --exit --timeout 20000"
   },
   "keywords": [],
   "author": "",
@@ -19,5 +19,12 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.1"
+  }
+  ,
+  "devDependencies": {
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7",
+    "supertest": "^6.3.3",
+    "mongodb-memory-server": "^8.12.0"
   }
 }
