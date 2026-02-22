@@ -8,7 +8,9 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Use Ubuntu 20.04 because mongodb-memory-server requires libssl1.1
+    # which is available on 20.04 runners. This avoids libcrypto.so.1.1 errors.
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         node-version: [18.x]
