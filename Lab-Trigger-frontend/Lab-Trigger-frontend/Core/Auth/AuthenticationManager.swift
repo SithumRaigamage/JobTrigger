@@ -51,6 +51,7 @@ final class AuthenticationManager: ObservableObject {
   func signOut() {
     KeychainHelper.shared.delete(for: "jwt_token")
     UserDefaults.standard.removeObject(forKey: "current_user")
+    UserDefaults.standard.removeObject(forKey: "selectedTool")
 
     DispatchQueue.main.async {
       self.currentUser = nil

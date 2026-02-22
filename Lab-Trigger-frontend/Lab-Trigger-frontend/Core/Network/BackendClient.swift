@@ -1,8 +1,9 @@
 import Foundation
 
 /// Configuration for backend API endpoints
+/// Base URL is loaded from Core/Config/Config.plist via AppConfig.
 enum APIConfig {
-  static let rootURL = URL(string: "http://127.0.0.1:5001")!
+  static let rootURL = AppConfig.backendBaseURL
   static let baseURL = rootURL.appendingPathComponent("api")
 
   enum Auth {
