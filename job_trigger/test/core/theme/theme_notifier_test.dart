@@ -5,12 +5,12 @@ import 'package:job_trigger/core/theme/theme_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  test('defaults to ThemeMode.system with nothing persisted', () async {
+  test('defaults to ThemeMode.light with nothing persisted', () async {
     SharedPreferences.setMockInitialValues({});
     final container = ProviderContainer();
     addTearDown(container.dispose);
 
-    expect(container.read(themeNotifierProvider), ThemeMode.system);
+    expect(container.read(themeNotifierProvider), ThemeMode.light);
   });
 
   test('setThemeMode updates state and persists the choice', () async {

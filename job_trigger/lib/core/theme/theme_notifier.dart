@@ -7,13 +7,16 @@ part 'theme_notifier.g.dart';
 const _themeModeKey = 'theme_mode';
 
 /// System/Light/Dark, persisted in `shared_preferences` (theme mode isn't
-/// sensitive, unlike the JWT/Jenkins credentials — see CLAUDE.md §7).
+/// sensitive, unlike the JWT/Jenkins credentials — see CLAUDE.md §7). Default
+/// is [ThemeMode.light] rather than [ThemeMode.system] — the app's white
+/// theme is the intended look regardless of OS appearance; users can still
+/// switch to System or Dark from Settings.
 @riverpod
 class ThemeNotifier extends _$ThemeNotifier {
   @override
   ThemeMode build() {
     _loadPersisted();
-    return ThemeMode.system;
+    return ThemeMode.light;
   }
 
   Future<void> _loadPersisted() async {

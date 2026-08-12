@@ -79,4 +79,24 @@ class AppColors {
   static const ciToolGitlab = Color(0xFFE65929);
   static const ciToolSonarqube = Color(0xFF4F99ED);
   static const ciToolCircleci = Color(0xFF17A694);
+
+  /// iOS system blue — what the SwiftUI app actually rendered as its accent,
+  /// since `AccentColor.colorset` was left empty and every screen tinted off
+  /// the platform default. Used as the Material 3 seed for dark mode and as
+  /// the light-mode primary in `app_theme.dart`, instead of [ciToolJenkins]:
+  /// seeding `ColorScheme.fromSeed` from a red produces desaturated
+  /// brown/terracotta surface and container tones, which doesn't match the
+  /// app's original look.
+  static const brandSeed = Color(0xFF007AFF);
+
+  /// Light-mode surface tokens (ui-ux-pro-max `color --domain` "B2B Service"
+  /// palette), used directly rather than through `fromSeed` — M3's generated
+  /// light surface is only *near*-white and still carries a faint hue tint
+  /// from the seed, which reads as "not really white" against pure-white
+  /// cards elsewhere in the OS chrome.
+  static const surfaceLight = Colors.white;
+  static const backgroundLight = Color(0xFFF8FAFC);
+  static const onSurfaceLight = Color(0xFF0F172A);
+  static const secondaryLight = Color(0xFF334155);
+  static const outlineLight = Color(0xFFE2E8F0);
 }
