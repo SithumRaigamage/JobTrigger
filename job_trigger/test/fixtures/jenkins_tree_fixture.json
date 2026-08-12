@@ -1,0 +1,188 @@
+{
+    "_class": "hudson.model.Hudson",
+    "jobs": [
+        {
+            "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+            "description": "",
+            "name": "Projects",
+            "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/",
+            "jobs": [
+                {
+                    "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+                    "description": "",
+                    "name": "Demon-slayer",
+                    "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/Demon-slayer/",
+                    "jobs": [
+                        {
+                            "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+                            "description": "",
+                            "name": "Demon-slayer-CI",
+                            "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/Demon-slayer/job/Demon-slayer-CI/",
+                            "color": "red",
+                            "lastBuild": {
+                                "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+                                "building": false,
+                                "estimatedDuration": 13389,
+                                "number": 20,
+                                "result": "FAILURE",
+                                "timestamp": 1772450992360,
+                                "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/Demon-slayer/job/Demon-slayer-CI/20/"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+                    "description": "",
+                    "name": "Hello-World-Node-JS",
+                    "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/Hello-World-Node-JS/",
+                    "jobs": [
+                        {
+                            "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+                            "description": "",
+                            "name": "CD",
+                            "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/Hello-World-Node-JS/job/CD/",
+                            "jobs": []
+                        },
+                        {
+                            "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+                            "description": "",
+                            "name": "CI",
+                            "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/Hello-World-Node-JS/job/CI/",
+                            "jobs": [
+                                {
+                                    "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+                                    "description": "",
+                                    "name": "CI-Pipleine",
+                                    "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/Hello-World-Node-JS/job/CI/job/CI-Pipleine/",
+                                    "color": "blue",
+                                    "lastBuild": {
+                                        "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+                                        "building": false,
+                                        "estimatedDuration": 63797,
+                                        "number": 36,
+                                        "result": "SUCCESS",
+                                        "timestamp": 1770494336696,
+                                        "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/Hello-World-Node-JS/job/CI/job/CI-Pipleine/36/"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+                    "description": "",
+                    "name": "Portfolio",
+                    "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/Portfolio/",
+                    "jobs": [
+                        {
+                            "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+                            "description": "",
+                            "name": "Portfolio_CI",
+                            "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/Portfolio/job/Portfolio_CI/",
+                            "color": "yellow",
+                            "lastBuild": {
+                                "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+                                "building": false,
+                                "estimatedDuration": 684111,
+                                "number": 21,
+                                "result": "UNSTABLE",
+                                "timestamp": 1777822580048,
+                                "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/Portfolio/job/Portfolio_CI/21/"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+                    "description": "",
+                    "name": "expensive-tracker",
+                    "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/expensive-tracker/",
+                    "jobs": [
+                        {
+                            "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+                            "description": "",
+                            "name": "expensive-tracker-backend",
+                            "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/expensive-tracker/job/expensive-tracker-backend/",
+                            "jobs": [
+                                {
+                                    "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+                                    "description": "",
+                                    "name": "CI-Pipleine",
+                                    "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/expensive-tracker/job/expensive-tracker-backend/job/CI-Pipleine/",
+                                    "jobs": [
+                                        {
+                                            "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+                                            "description": "",
+                                            "name": "expensive-tracker-backend-CI",
+                                            "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/expensive-tracker/job/expensive-tracker-backend/job/CI-Pipleine/job/expensive-tracker-backend-CI/",
+                                            "color": "blue",
+                                            "lastBuild": {
+                                                "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+                                                "building": false,
+                                                "estimatedDuration": 1054413,
+                                                "number": 9,
+                                                "result": "SUCCESS",
+                                                "timestamp": 1772449005732,
+                                                "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/expensive-tracker/job/expensive-tracker-backend/job/CI-Pipleine/job/expensive-tracker-backend-CI/9/"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+                            "description": "",
+                            "name": "expensive-tracker-frontend",
+                            "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/expensive-tracker/job/expensive-tracker-frontend/",
+                            "jobs": [
+                                {
+                                    "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+                                    "description": "",
+                                    "name": "CI-Pipleine",
+                                    "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/expensive-tracker/job/expensive-tracker-frontend/job/CI-Pipleine/",
+                                    "jobs": [
+                                        {
+                                            "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+                                            "description": "Eexpense tracker frontend CI",
+                                            "name": "expensive-tracker-frontend-CI",
+                                            "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/Projects/job/expensive-tracker/job/expensive-tracker-frontend/job/CI-Pipleine/job/expensive-tracker-frontend-CI/",
+                                            "color": "notbuilt",
+                                            "lastBuild": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+            "description": "",
+            "name": "TEST",
+            "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/TEST/",
+            "jobs": [
+                {
+                    "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+                    "description": "test pipeline for remote ",
+                    "name": "test-pipeline",
+                    "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/TEST/job/test-pipeline/",
+                    "color": "blue",
+                    "lastBuild": {
+                        "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+                        "building": false,
+                        "estimatedDuration": 925,
+                        "number": 13,
+                        "result": "SUCCESS",
+                        "timestamp": 1771752025171,
+                        "url": "https://chasity-unfactorable-cathern.ngrok-free.dev/job/TEST/job/test-pipeline/13/"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,40 @@
+name: Flutter CI - Analyze & Test
+
+on:
+  push:
+    branches: [ develop, feature/** ]
+  pull_request:
+    branches: [ develop, feature/** ]
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: |
+          cd job_trigger
+          flutter pub get
+
+      - name: Verify formatting
+        run: |
+          cd job_trigger
+          dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: |
+          cd job_trigger
+          flutter analyze
+
+      - name: Run tests
+        run: |
+          cd job_trigger
+          flutter test

@@ -45,6 +45,9 @@ creating) its task entry first, and update the task's status when done.
 | Secure storage | `flutter_secure_storage` | JWT + Jenkins passwords/tokens |
 | Non-secure prefs | `shared_preferences` | Theme, last active server id, feature flags |
 | Testing | `flutter_test`, `mocktail`, `riverpod_test` | Unit tests for repositories/notifiers are mandatory for Phase 2+ |
+| Share sheet | `share_plus` | Added in Phase 5 (P5-12) — the build-log copy/share action, explicitly named by that task's own text. Not a substitution of anything on this list, narrowly scoped to one feature. |
+| App version info | `package_info_plus` | Added in Phase 6 (P6-01) — the profile screen's app version footer needs the real installed version/build number, not a hardcoded string. |
+| External links | `url_launcher` | Added in Phase 6 (P6-02) — the app info screen opens privacy policy/terms/licenses URLs and a `mailto:` support link, matching `AppInfoView.swift`'s `openURL` usage exactly. |
 
 Do not introduce a second state-management library, a second HTTP client, or
 a second routing package. If a task seems to require it, flag it instead of

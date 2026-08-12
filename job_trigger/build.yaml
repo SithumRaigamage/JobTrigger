@@ -1,0 +1,14 @@
+targets:
+  $default:
+    builders:
+      riverpod_generator:riverpod_generator:
+        options:
+          # riverpod_generator defaults to stripping a trailing "Notifier"
+          # from class names when deriving provider names (AuthNotifier ->
+          # authProvider), to avoid what it considers a redundant suffix.
+          # This project's naming convention (CLAUDE.md §5,
+          # docs/state-management.md) explicitly wants the full name kept —
+          # authNotifierProvider, themeNotifierProvider, etc. — so stripping
+          # is disabled here rather than annotating every notifier
+          # individually with @Riverpod(name: '...').
+          provider_name_strip_pattern: ''

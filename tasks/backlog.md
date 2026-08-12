@@ -14,6 +14,21 @@ Phase 0–6 task without first moving the item here into an actual phase file
 - Offline caching of the job tree for airplane-mode browsing.
 - Biometric unlock (Face ID / fingerprint) gating app access.
 - Crash reporting / analytics tool selection (flagged in P6-08 — pick a
-  tool with the team before treating this as committed scope).
+  tool with the team before treating this as committed scope). Asked
+  directly during Phase 6; user chose to skip for now rather than commit
+  to Firebase Crashlytics or Sentry. Revisit before public release
+  (P6-13).
 - Backend rewrite or migration off MongoDB/Express — out of scope entirely;
   this migration only changes the client.
+- Settings screen "Backend Server Status" live connectivity indicator
+  (old `SettingsView.swift`'s online/offline health-check row) — no phase
+  task names it; flagged during P6-03 rather than built silently.
+- Bottom tab bar shell (`presentation/navigation/main_scaffold.dart`,
+  mapped in `docs/architecture.md` from the old `NavBarView.swift`'s
+  `TabView`). Currently Home/History/Settings/Profile are reachable via
+  AppBar icon buttons pushed onto the navigation stack instead of true
+  persistent tabs — functional parity, not visual/structural parity.
+  Deferred once already in Phase 1, again in Phase 5; flagging explicitly
+  now rather than deferring silently a third time, since it's a real
+  `go_router` `StatefulShellRoute` restructuring, bigger than any single
+  P6 checkbox's text names.

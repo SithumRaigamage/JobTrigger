@@ -40,11 +40,37 @@ any feature code.
       kept separate from jenkins entities/repository, mirroring
       `docs/api-reference.md`'s split between the backend API and the
       Jenkins API).
-- [ ] P0-05 Set up build flavors / `--dart-define` config for dev/staging/prod
-      backend URLs (feeds `core/config/app_config.dart` in Phase 1).
-- [ ] P0-06 CI pipeline: `flutter analyze` + `flutter test` on every PR.
-- [ ] P0-07 Confirm iOS min target (iOS 17+, matching current app) and set
+- [x] P0-05 Set up build flavors / `--dart-define` config for dev/staging/prod
+      backend URLs (feeds `core/config/app_config.dart` in Phase 1). Used
+      `--dart-define-from-file` with `config/{dev,staging,prod}.json`
+      instead of native Android/iOS product flavors — see
+      `config/README.md` for rationale and usage. `dev.json` mirrors the old
+      SwiftUI app's `Config.plist` backend URL; `staging.json`/`prod.json`
+      use placeholder URLs (no deployments exist yet) that must be updated
+      before those environments are real.
+- [x] P0-06 CI pipeline: `flutter analyze` + `flutter test` on every PR.
+      Added `.github/workflows/flutter-ci.yml`, mirroring the existing
+      `nodejs-test.yml` workflow's trigger branches/style. Also added a
+      `dart format --set-exit-if-changed` step (not just analyze/test) so
+      formatting drift fails CI too. Verified all three steps pass locally
+      against the current skeleton.
+- [x] P0-07 Confirm iOS min target (iOS 17+, matching current app) and set
       Android `minSdkVersion` deliberately (don't leave it at the template
       default without checking against the team's supported device range).
-- [ ] P0-08 App icon, splash screen, and bundle metadata carried over from
-      the SwiftUI app's assets.
+      Confirmed with user: iOS 17.0 (the Xcode project's literal 26.2 was
+      Xcode defaulting to the latest SDK, not a deliberate setting — task
+      file and README both said 17+). Set `IPHONEOS_DEPLOYMENT_TARGET =
+      17.0` in `project.pbxproj`. Android `minSdk` hardcoded to 24 — not
+      arbitrary: `flutter_secure_storage` (a locked dependency) declares
+      `minSdk 24` in its own Android module, which is also the current
+      Flutter template floor.
+- [x] P0-08 App icon, splash screen, and bundle metadata carried over from
+      the SwiftUI app's assets. Bundle display name set to "JobTrigger" on
+      both platforms (`CFBundleDisplayName` / `android:label`) — version
+      1.0.0+1 already matches the old app's `MARKETING_VERSION 1.0` /
+      `CURRENT_PROJECT_VERSION 1`. Confirmed with user: no icon/splash
+      artwork exists to carry over (old app's asset catalogs are empty
+      manifests, no PNGs were ever added), so Flutter's default
+      icon/splash stays as a placeholder; tracked as a blocker note on
+      `tasks/phase-6-polish-release.md` P6-07 for when real artwork is
+      supplied.

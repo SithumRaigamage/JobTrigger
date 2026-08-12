@@ -28,19 +28,33 @@ than waiting for Phase 5 to fully close.
 Use this as the go/no-go list before retiring the SwiftUI app. Each line
 should map to a closed task in `tasks/`.
 
-- [ ] Signup, login, session persistence across app restarts
-- [ ] Add/edit/delete Jenkins server, switch active server
-- [ ] Connection diagnostic (health check) with clear pass/fail states
-- [ ] Recursive job/folder tree to 6 levels, breadcrumb navigation
-- [ ] Live job search across the full tree
-- [ ] Trigger build, with and without parameters (string/choice/boolean)
-- [ ] Real-time build status polling with progress bar
-- [ ] Cancel a running build
-- [ ] Progressive console log streaming, performant at thousands of lines
-- [ ] Global cross-job history (top 50) + per-job history
-- [ ] Theme: system/light/dark
-- [ ] Toast/banner notifications for success/error actions
-- [ ] App info / version screen
+- [x] Signup, login, session persistence across app restarts
+- [x] Add/edit/delete Jenkins server, switch active server
+- [x] Connection diagnostic (health check) with clear pass/fail states
+- [x] Recursive job/folder tree to 6 levels, breadcrumb navigation
+- [x] Live job search across the full tree
+- [x] Trigger build, with and without parameters (string/choice/boolean)
+- [x] Real-time build status polling with progress bar
+- [x] Cancel a running build
+- [x] Progressive console log streaming, performant at thousands of lines
+- [x] Global cross-job history (top 50) + per-job history
+- [x] Theme: system/light/dark
+- [x] Toast/banner notifications for success/error actions
+- [x] App info / version screen
+
+P6-09 regression pass (see `tasks/phase-6-polish-release.md`): every row
+above is functionally implemented and covered by passing unit/widget tests
+(`flutter analyze` clean, full suite green). This confirms feature
+*completeness*, not the dual-platform on-device pass §4/§5 below actually
+call for — no physical iOS or Android device is available in this
+environment (same limitation noted throughout Phases 5–6: P5-13's log
+scroll perf, P6-06's back-gesture). Also still open from §4: all manual
+live-Jenkins verification across every phase was against a single local
+Jenkins instance (nested folders + flat jobs both exist in its tree, but
+it's still one server/one configuration) — the "two differently-configured
+servers" QA gate hasn't been exercised. Both are real, named gaps to close
+with a device and a second Jenkins instance before store submission, not
+silently-passed checkboxes.
 
 ## 4. QA gates
 
