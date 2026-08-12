@@ -110,10 +110,11 @@ earlier phase — don't wait for Phase 5 to fully close to begin these.
       `home_screen_test.dart` exercise the real `Navigator`/`PopScope`
       interaction (not just calling the notifier directly) — verified
       `NavigatorState.maybePop()` is actually intercepted mid-folder and
-      passes through at the root. No physical Android device/emulator is
-      available in this environment (same limitation as P5-13/P6-05's
-      contrast note), so this is a code-level + widget-test verification
-      of the interception logic, not an on-device gesture test.
+      passes through at the root. No Android SDK, `adb`, or emulator is
+      installed in this environment at all (confirmed directly, not just
+      assumed — same limitation as P5-13/P6-05's contrast note), so this
+      is a code-level + widget-test verification of the interception
+      logic, not an on-device gesture test.
 - [ ] P6-07 App icons, splash screens, store screenshots for both platforms.
       Note from P0-08 (Phase 0): the old SwiftUI app never shipped real
       icon/logo artwork — `Assets.xcassets/AppIcon.appiconset` and

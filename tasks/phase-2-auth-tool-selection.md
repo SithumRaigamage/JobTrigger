@@ -88,3 +88,39 @@ the (static) tool-selection grid.
       explicitly rather than claiming it's done. Someone with a working
       local iOS toolchain should run the real manual test before this box
       is fully trusted.
+
+      **Retried during Phase 6 wrap-up, made real progress, still
+      blocked**: real iOS 26.2/26.4 simulator runtimes are now installed
+      (they weren't before), so created and booted a real "JobTrigger Test"
+      simulator (`xcrun simctl create`/`boot`) and wrote a two-step
+      `integration_test/` pair — step 1 signs up a fresh user through the
+      real `SignupScreen` UI against the real local backend and confirms
+      landing on `ToolSelectionScreen`; step 2 pumps a brand-new `MyApp`
+      process on the same device (a fresh process reusing whatever the
+      simulator's real Keychain/shared_preferences already persisted is
+      the closest available equivalent to "kill and relaunch," since a
+      single Dart test process can't literally kill and restart itself as
+      a new OS process). Both were `flutter analyze`-clean. Still couldn't
+      run either: `xcodebuild -showdestinations` for the `Runner` scheme
+      still only ever reports the "Any iOS Device" physical placeholder
+      (needing iOS 26.5) and never lists the booted simulator as a
+      destination at all, eligible or not — confirmed this isn't a stale
+      cache (restarted `CoreSimulatorService`, re-booted, retried) and
+      isn't a project misconfiguration (`IPHONEOS_DEPLOYMENT_TARGET` is
+      17.0, unrelated to this). Root cause: Xcode itself is version 26.5
+      and only ships/has the iOS 26.5 SDK (`xcodebuild -showsdks`
+      confirms), but only 26.2/26.4 *simulator runtimes* are installed —
+      a genuine Xcode-version-vs-installed-platform gap, fixable only by
+      downloading the iOS 26.5 platform via Xcode's Settings > Components
+      (a multi-GB download requiring interactive/Apple ID setup, not
+      something to trigger unilaterally from an agent session) or by
+      someone running it through Xcode's GUI directly. Deleted the temp
+      integration_test files and the `integration_test` dev dependency
+      afterward (per the manual-test convention — nothing left half-used
+      in the tree) rather than leave an unexercised harness around; the
+      two test files' content is preserved here in case someone wants to
+      recreate them once a matching platform is installed. A real physical
+      iPhone was also detected (wirelessly, "Sithum's iPhone") but refused
+      the connection — needs a cable or same-network + Developer Mode
+      enabled on the device, neither of which could be arranged from this
+      session.

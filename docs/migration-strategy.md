@@ -46,9 +46,15 @@ P6-09 regression pass (see `tasks/phase-6-polish-release.md`): every row
 above is functionally implemented and covered by passing unit/widget tests
 (`flutter analyze` clean, full suite green). This confirms feature
 *completeness*, not the dual-platform on-device pass §4/§5 below actually
-call for — no physical iOS or Android device is available in this
-environment (same limitation noted throughout Phases 5–6: P5-13's log
-scroll perf, P6-06's back-gesture). Also still open from §4: all manual
+call for — confirmed concretely rather than assumed: Android has no SDK,
+`adb`, or emulator installed in this environment at all (`flutter devices`
+finds none, `adb`/emulator tooling isn't installed), and iOS got further
+but is still blocked — a real simulator was created and booted, but
+Xcode 26.5's build-destination resolution won't target the installed
+26.2/26.4 simulator runtimes (needs the matching 26.5 platform, a
+multi-GB download requiring interactive setup — see
+`tasks/phase-2-auth-tool-selection.md`'s P2-11 for the full diagnostic).
+Also still open from §4: all manual
 live-Jenkins verification across every phase was against a single local
 Jenkins instance (nested folders + flat jobs both exist in its tree, but
 it's still one server/one configuration) — the "two differently-configured
