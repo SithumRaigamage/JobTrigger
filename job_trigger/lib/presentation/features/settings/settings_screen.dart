@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:go_router/go_router.dart';
-
 import '../../../core/error/error_message.dart';
 import '../../../core/error/result.dart';
 import '../../../core/theme/theme_notifier.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/toast_controller.dart';
-import '../../navigation/app_routes.dart';
 import '../auth/auth_notifier.dart';
 import 'active_server_notifier.dart';
 import 'credentials_notifier.dart';
@@ -35,11 +32,6 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Settings'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            tooltip: 'Profile',
-            onPressed: () => context.push(AppRoutes.profile),
-          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Log out',

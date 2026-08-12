@@ -23,12 +23,3 @@ Phase 0–6 task without first moving the item here into an actual phase file
 - Settings screen "Backend Server Status" live connectivity indicator
   (old `SettingsView.swift`'s online/offline health-check row) — no phase
   task names it; flagged during P6-03 rather than built silently.
-- Bottom tab bar shell (`presentation/navigation/main_scaffold.dart`,
-  mapped in `docs/architecture.md` from the old `NavBarView.swift`'s
-  `TabView`). Currently Home/History/Settings/Profile are reachable via
-  AppBar icon buttons pushed onto the navigation stack instead of true
-  persistent tabs — functional parity, not visual/structural parity.
-  Deferred once already in Phase 1, again in Phase 5; flagging explicitly
-  now rather than deferring silently a third time, since it's a real
-  `go_router` `StatefulShellRoute` restructuring, bigger than any single
-  P6 checkbox's text names.

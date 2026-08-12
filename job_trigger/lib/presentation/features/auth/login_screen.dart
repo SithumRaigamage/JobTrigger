@@ -487,10 +487,14 @@ class _PlatformFooter extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         Text(
+          // Blank while unresolved rather than repeating "JobTrigger" (the
+          // headline above already shows it) -- avoids two identical
+          // "JobTrigger" texts on screen at once before the real version
+          // loads.
           packageInfo.when(
-            data: (info) => 'JobTrigger v${info.version}',
-            loading: () => 'JobTrigger',
-            error: (_, _) => 'JobTrigger',
+            data: (info) => 'v${info.version}',
+            loading: () => '',
+            error: (_, _) => '',
           ),
           style: TextStyle(
             color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),

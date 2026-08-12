@@ -9,17 +9,26 @@ part of 'theme_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// System/Light/Dark, persisted in `shared_preferences` (theme mode isn't
-/// sensitive, unlike the JWT/Jenkins credentials — see CLAUDE.md §7).
+/// sensitive, unlike the JWT/Jenkins credentials — see CLAUDE.md §7). Default
+/// is [ThemeMode.light] rather than [ThemeMode.system] — the app's white
+/// theme is the intended look regardless of OS appearance; users can still
+/// switch to System or Dark from Settings.
 
 @ProviderFor(ThemeNotifier)
 final themeNotifierProvider = ThemeNotifierProvider._();
 
 /// System/Light/Dark, persisted in `shared_preferences` (theme mode isn't
-/// sensitive, unlike the JWT/Jenkins credentials — see CLAUDE.md §7).
+/// sensitive, unlike the JWT/Jenkins credentials — see CLAUDE.md §7). Default
+/// is [ThemeMode.light] rather than [ThemeMode.system] — the app's white
+/// theme is the intended look regardless of OS appearance; users can still
+/// switch to System or Dark from Settings.
 final class ThemeNotifierProvider
     extends $NotifierProvider<ThemeNotifier, ThemeMode> {
   /// System/Light/Dark, persisted in `shared_preferences` (theme mode isn't
-  /// sensitive, unlike the JWT/Jenkins credentials — see CLAUDE.md §7).
+  /// sensitive, unlike the JWT/Jenkins credentials — see CLAUDE.md §7). Default
+  /// is [ThemeMode.light] rather than [ThemeMode.system] — the app's white
+  /// theme is the intended look regardless of OS appearance; users can still
+  /// switch to System or Dark from Settings.
   ThemeNotifierProvider._()
     : super(
         from: null,
@@ -47,10 +56,13 @@ final class ThemeNotifierProvider
   }
 }
 
-String _$themeNotifierHash() => r'a847f191b86f5f91d02e36caf48455c8fd11efc8';
+String _$themeNotifierHash() => r'2b8c4311c6d820d7a138d7b5dcc6cd4c0e03673c';
 
 /// System/Light/Dark, persisted in `shared_preferences` (theme mode isn't
-/// sensitive, unlike the JWT/Jenkins credentials — see CLAUDE.md §7).
+/// sensitive, unlike the JWT/Jenkins credentials — see CLAUDE.md §7). Default
+/// is [ThemeMode.light] rather than [ThemeMode.system] — the app's white
+/// theme is the intended look regardless of OS appearance; users can still
+/// switch to System or Dark from Settings.
 
 abstract class _$ThemeNotifier extends $Notifier<ThemeMode> {
   ThemeMode build();

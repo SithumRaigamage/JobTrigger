@@ -44,23 +44,6 @@ class HomeScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(breadcrumb.isEmpty ? 'Jobs' : breadcrumb.last.name),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.history),
-              tooltip: 'History',
-              onPressed: () => context.push(AppRoutes.globalHistory),
-            ),
-            IconButton(
-              icon: const Icon(Icons.settings),
-              tooltip: 'Settings',
-              onPressed: () => context.push(AppRoutes.settings),
-            ),
-            IconButton(
-              icon: const Icon(Icons.account_circle_outlined),
-              tooltip: 'Profile',
-              onPressed: () => context.push(AppRoutes.profile),
-            ),
-          ],
         ),
         body: Column(
           children: [

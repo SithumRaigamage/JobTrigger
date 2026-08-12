@@ -208,3 +208,33 @@ earlier phase — don't wait for Phase 5 to fully close to begin these.
       real-world, hard-to-reverse action affecting a shared/public system;
       requires the user's explicit action and store-account access. Left
       unchecked, blocked on P6-11/P6-12 above.
+- [x] P6-14 Persistent bottom tab bar — promoted from `tasks/backlog.md`'s
+      long-deferred "Bottom tab bar shell" item. Home/History/Settings/
+      Profile were reachable only via `IconButton`s duplicated across three
+      different AppBars (`context.push`, so screens stacked instead of
+      switching). Replaced with `go_router`'s `StatefulShellRoute
+      .indexedStack` + a new `presentation/navigation/main_scaffold.dart`
+      (`MainScaffold`, Material 3 `NavigationBar`) — matches
+      `docs/architecture.md`'s mapping row from the old `NavBarView.swift`,
+      never built until now. Deliberate structural upgrade beyond the
+      SwiftUI original's 3-tab `TabView` (which didn't have Profile as a
+      tab, only a push-based "person.circle" icon repeated per tab) —
+      confirmed with the user rather than assumed. `jobDetail`/`buildLog`/
+      `jobHistory`/`appInfo` stay flat top-level routes pinned to the root
+      navigator (`parentNavigatorKey`), not nested under a branch — nesting
+      under one branch would silently flip the active tab when pushed from
+      a different one (e.g. `buildLog` is reachable from both Home and
+      History). `HomeScreen`'s P6-06 breadcrumb `PopScope` verified to
+      still work correctly nested inside the shell's Home branch navigator
+      (new `test/presentation/navigation/app_router_test.dart`, against
+      the real `appRouterProvider`), composing with `MainScaffold`'s own
+      outer `PopScope` (non-Home tab → back returns to Home first). New
+      `test/presentation/navigation/main_scaffold_test.dart` covers branch
+      switching, `.indexedStack` state preservation across tab switches,
+      and the active-tab-reset (`initialLocation: true`) behavior in
+      isolation. Along the way, the full test-suite run surfaced a real bug
+      in the earlier theme/login-screen pass: `LoginScreen`'s version
+      footer fell back to the literal string `"JobTrigger"` while
+      `packageInfoProvider` was loading/erroring (no platform channel in
+      tests), duplicating the headline text and breaking
+      `test/widget_test.dart` — changed to a blank fallback.

@@ -17,16 +17,7 @@ class GlobalHistoryScreen extends ConsumerWidget {
     final historyAsync = ref.watch(globalHistoryNotifierProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('History'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            tooltip: 'Profile',
-            onPressed: () => context.push(AppRoutes.profile),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('History')),
       body: historyAsync.when(
         data: (entries) {
           if (entries.isEmpty) {
