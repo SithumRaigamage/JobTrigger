@@ -13,7 +13,7 @@ const seedData = {
 
 const seedDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI, { dbName: 'jobtrigger' });
     console.log('Connected to MongoDB for seeding');
 
     // Clear existing

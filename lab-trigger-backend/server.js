@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
 // Database Connection (start server after DB connection)
 async function startServer() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI, { dbName: 'jobtrigger' });
     console.log('Connected to MongoDB');
     const PORT = process.env.PORT || 5001;
     const server = app.listen(PORT, () => {

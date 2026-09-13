@@ -12,7 +12,7 @@ async function migrate() {
     console.log('🚀 Starting Migration...');
 
     // 1. Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI, { dbName: 'jobtrigger' });
     console.log('✅ Connected to MongoDB');
 
     // 2. Load JSON Data

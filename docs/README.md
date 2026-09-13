@@ -19,6 +19,10 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 - **[State Management](./state-management.md)** — Riverpod provider structure per feature
 - **[Migration Strategy](./migration-strategy.md)** — Phased rollout, parity checklist, QA gates
 
+## 🗄️ Database
+
+- **[Database Migrations](./database-migrations.md)** — Schema, collections, migration scripts, cleanup
+
 ---
 
 ## 🛠️ Development Guides
@@ -45,6 +49,7 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 | Riverpod setup | [State Management](./state-management.md) |
 | Old → new models | [Data Models](./data-models.md) |
 | Migration timeline | [Migration Strategy](./migration-strategy.md) |
+| Database schema & migrations | [Database Migrations](./database-migrations.md) |
 | Project rules | [CLAUDE.md](../CLAUDE.md) |
 | What's left to do | [Tasks](../tasks/README.md) |
 
