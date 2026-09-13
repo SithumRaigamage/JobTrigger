@@ -23,6 +23,10 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 
 - **[Database Migrations](./database-migrations.md)** — Schema, collections, migration scripts, cleanup
 
+## 🧪 Testing
+
+- **[Integration Testing](./integration-testing.md)** — Real end-to-end tests on a live simulator, via `integration_test` (not Playwright — see why)
+
 ---
 
 ## 🛠️ Development Guides

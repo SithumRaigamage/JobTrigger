@@ -82,11 +82,14 @@ class AppColors {
 
   /// iOS system blue — what the SwiftUI app actually rendered as its accent,
   /// since `AccentColor.colorset` was left empty and every screen tinted off
-  /// the platform default. Used as the Material 3 seed for dark mode and as
-  /// the light-mode primary in `app_theme.dart`, instead of [ciToolJenkins]:
-  /// seeding `ColorScheme.fromSeed` from a red produces desaturated
-  /// brown/terracotta surface and container tones, which doesn't match the
-  /// app's original look.
+  /// the platform default. Used as `AppTheme`'s default `accentColor` and as
+  /// the fixed seed for dark mode's base `ColorScheme.fromSeed` (see
+  /// `app_theme.dart`) — *not* used to reseed the whole app per active tool:
+  /// that was tried (seeding `ColorScheme.fromSeed` from [ciToolJenkins] red)
+  /// and produced a muddy, desaturated brown/terracotta tonal palette across
+  /// light-mode surfaces and containers. `AppTheme` instead swaps only
+  /// `primary`/`onPrimary` to the active tool's `CiToolX.accentColor`,
+  /// leaving every other token derived from this blue.
   static const brandSeed = Color(0xFF007AFF);
 
   /// Light-mode surface tokens (ui-ux-pro-max `color --domain` "B2B Service"

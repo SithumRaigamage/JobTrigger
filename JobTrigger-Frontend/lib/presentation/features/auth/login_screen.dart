@@ -402,6 +402,7 @@ class _LoginForm extends StatelessWidget {
         ),
         const SizedBox(height: 32),
         TextField(
+          key: const Key('login_email_field'),
           controller: emailController,
           keyboardType: TextInputType.emailAddress,
           textCapitalization: TextCapitalization.none,
@@ -415,6 +416,7 @@ class _LoginForm extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         TextField(
+          key: const Key('login_password_field'),
           controller: passwordController,
           obscureText: obscurePassword,
           decoration: InputDecoration(
@@ -444,6 +446,7 @@ class _LoginForm extends StatelessWidget {
         SizedBox(
           height: 50,
           child: FilledButton(
+            key: const Key('login_submit_button'),
             onPressed: isLoading ? null : onSignIn,
             child: isLoading
                 ? SizedBox(

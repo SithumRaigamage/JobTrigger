@@ -66,34 +66,95 @@ Full locked-dependency table (and the reasoning behind each choice) lives in
 ## 📱 Requirements
 
 - Flutter SDK (stable channel) — `flutter --version` to check
-- Xcode (for iOS) and/or Android Studio + an emulator/device (for Android)
+- **For iOS**: a Mac with Xcode (full app, not just Command Line Tools) and
+  [CocoaPods](https://cocoapods.org) installed (`sudo gem install cocoapods`
+  or `brew install cocoapods`)
+- For Android: Android Studio + an emulator/device
 - Node.js 18.x+ (for the backend)
-- MongoDB
-- Jenkins 2.x with REST API enabled
+- MongoDB (local via Docker, or a MongoDB Atlas connection string)
+- Jenkins 2.x with REST API enabled (only needed once you get past login —
+  see [Create an Account](#4-create-an-account) below)
+
+Run `flutter doctor` after installing the above — it flags missing Xcode
+license acceptance, CocoaPods, or simulator components before you try to run
+the app.
 
 ## 🏃 Getting Started
 
-### 1. Start MongoDB
+There are two ways to bring up the backend: the one-shot script
+(`setup-dev.sh`), or the manual steps below. Either way, do the [iOS
+Simulator](#2-initialize-the-ios-simulator) and [Flutter app](#3-start-the-flutter-app)
+steps afterwards.
+
+### 1. Start the Backend + Database
+
+**Option A — one-shot script** (seeds the dev user + sample Jenkins
+credentials automatically, see [`docs/dev-setup.md`](docs/dev-setup.md)):
 
 ```bash
-docker compose up -d
+./setup-dev.sh                 # uses MongoDB Cloud (Atlas) — needs MONGODB_URI in JobTrigger-Backend/.env
+USE_DOCKER=true ./setup-dev.sh # or: spin up local MongoDB via Docker instead
 ```
 
-This starts a `mongo:8` container on `localhost:27017` (matching
-`JobTrigger-Backend/.env`'s `MONGODB_URI`), with data persisted in a named
-Docker volume. `docker compose down` stops it (data persists);
-`docker compose down -v` also wipes the volume. Alternatively, run your own
-local MongoDB instance on the same port.
+This blocks the terminal running the backend in watch mode — leave it
+running and use a new terminal tab for the steps that follow. Stop it later
+with `Ctrl+C` then `./stop-dev.sh`.
 
-### 2. Start the Backend
+**Option B — manual steps:**
 
 ```bash
+# 1a. Start MongoDB (skip if using MongoDB Atlas — set MONGODB_URI in .env instead)
+docker compose up -d
+
+# 1b. Install deps and start the backend
 cd JobTrigger-Backend
 npm install
 npm run dev
 ```
 
-The backend listens on `http://127.0.0.1:5001` by default.
+`docker compose up -d` starts a `mongo:8` container on `localhost:27017`
+(matching `JobTrigger-Backend/.env`'s `MONGODB_URI`), with data persisted in
+a named Docker volume. `docker compose down` stops it (data persists);
+`docker compose down -v` also wipes the volume.
+
+The backend listens on `http://127.0.0.1:5001` by default. Confirm it's up:
+
+```bash
+curl http://localhost:5001/api/appinfo
+```
+
+### 2. Initialize the iOS Simulator
+
+Skip this section if you're targeting Android — use an Android Studio
+emulator or physical device instead.
+
+```bash
+# Check for simulators you already have (most Macs with Xcode installed
+# already have one, e.g. "iPhone Air" — skip straight to booting it below)
+xcrun simctl list devices available
+
+# No simulator yet? See what device types + runtimes you can create from:
+xcrun simctl list devicetypes | grep -i iphone
+flutter emulators
+
+# Create a simulator once (only needed the first time — pick a device type
+# from the list above and an installed runtime, e.g. "iOS 26.5")
+xcrun simctl create "iPhone Air" \
+  com.apple.CoreSimulator.SimDeviceType.iPhone-Air \
+  com.apple.CoreSimulator.SimRuntime.iOS-26-5
+
+# Boot it and open Simulator.app
+open -a Simulator
+xcrun simctl boot "iPhone Air"   # no-op / harmless if it's already booted
+```
+
+Alternatively, open Xcode → **Window → Devices and Simulators** to create or
+boot a simulator with a GUI instead of `simctl`. Once a simulator is booted,
+confirm Flutter can see it:
+
+```bash
+flutter devices
+```
 
 ### 3. Start the Flutter App
 
@@ -101,8 +162,7 @@ The backend listens on `http://127.0.0.1:5001` by default.
 cd JobTrigger-Frontend
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
-flutter devices                 # see what's available (simulator/emulator/physical device)
-flutter run --dart-define-from-file=config/dev.json -d <device-id>
+flutter run --dart-define-from-file=config/dev.json -d "iPhone Air"   # or your device's -d id from `flutter devices`
 ```
 
 > **Device names with spaces must be quoted** (e.g. `"iPhone Air"`), otherwise
@@ -111,7 +171,8 @@ flutter run --dart-define-from-file=config/dev.json -d <device-id>
 > ```bash
 > flutter run --dart-define-from-file=config/dev.json -d "iPhone Air"
 > ```
-> Or run `flutter run` with no `-d` flag to pick a device interactively.
+> Or run `flutter run` with no `-d` flag to pick the booted simulator
+> interactively.
 
 `config/dev.json` points the app at `http://127.0.0.1:5001` — see
 [`JobTrigger-Frontend/config/README.md`](JobTrigger-Frontend/config/README.md) for the

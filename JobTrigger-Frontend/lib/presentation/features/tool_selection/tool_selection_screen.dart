@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../common_widgets/gradient_backdrop.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
+import 'active_tool_notifier.dart';
 import 'ci_tool.dart';
 
 /// Ported from `Tools/ToolSelection/ToolSelectionView.swift`. Displayed
@@ -144,20 +146,25 @@ class ToolSelectionScreen extends StatelessWidget {
   }
 }
 
-class _ToolCard extends StatefulWidget {
+class _ToolCard extends ConsumerStatefulWidget {
   const _ToolCard({required this.tool});
 
   final CiTool tool;
 
   @override
-  State<_ToolCard> createState() => _ToolCardState();
+  ConsumerState<_ToolCard> createState() => _ToolCardState();
 }
 
-class _ToolCardState extends State<_ToolCard> {
+class _ToolCardState extends ConsumerState<_ToolCard> {
   bool _pressed = false;
 
   void _setPressed(bool value) {
     if (widget.tool.isAvailable) setState(() => _pressed = value);
+  }
+
+  void _select(CiTool tool) {
+    ref.read(activeToolNotifierProvider.notifier).setActiveTool(tool);
+    context.go(AppRoutes.home);
   }
 
   @override
@@ -166,6 +173,7 @@ class _ToolCardState extends State<_ToolCard> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Opacity(
+      key: Key('tool_card_${tool.name}'),
       opacity: tool.isAvailable ? 1.0 : 0.6,
       child: AnimatedScale(
         scale: _pressed ? 0.97 : 1.0,
@@ -176,7 +184,7 @@ class _ToolCardState extends State<_ToolCard> {
           borderRadius: BorderRadius.circular(20),
           child: InkWell(
             borderRadius: BorderRadius.circular(20),
-            onTap: tool.isAvailable ? () => context.go(AppRoutes.home) : null,
+            onTap: tool.isAvailable ? () => _select(tool) : null,
             onTapDown: (_) => _setPressed(true),
             onTapUp: (_) => _setPressed(false),
             onTapCancel: () => _setPressed(false),
