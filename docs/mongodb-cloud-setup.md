@@ -70,7 +70,7 @@ This will:
 ./setup-dev.sh
 
 # 3. In another terminal, run Flutter app
-cd job_trigger
+cd JobTrigger-Frontend
 flutter run -d "iPhone Air"
 
 # 4. Login with test account

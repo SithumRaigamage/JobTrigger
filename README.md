@@ -98,12 +98,20 @@ The backend listens on `http://127.0.0.1:5001` by default.
 ### 3. Start the Flutter App
 
 ```bash
-cd job_trigger
+cd JobTrigger-Frontend
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 flutter devices                 # see what's available (simulator/emulator/physical device)
 flutter run --dart-define-from-file=config/dev.json -d <device-id>
 ```
+
+> **Device names with spaces must be quoted** (e.g. `"iPhone Air"`), otherwise
+> the shell splits them into separate arguments and Flutter misreads the
+> extra word as a target file (`Target file "Air" not found.`). Example:
+> ```bash
+> flutter run --dart-define-from-file=config/dev.json -d "iPhone Air"
+> ```
+> Or run `flutter run` with no `-d` flag to pick a device interactively.
 
 `config/dev.json` points the app at `http://127.0.0.1:5001` — see
 [`JobTrigger-Frontend/config/README.md`](JobTrigger-Frontend/config/README.md) for the
@@ -123,23 +131,24 @@ flutter test      # run the unit/widget test suite
 - **Password**: Must be at least **6 characters**.
 - Data is stored securely in MongoDB.
 
-**Local dev test account** (seeded via `POST /api/auth/signup` against a
-fresh local MongoDB — not a real/production credential, just a throwaway
-login for local testing):
+**Local dev account** (seeded by `JobTrigger-Backend/scripts/setup-migrations.js`
+— not a real/production credential, just a login for local testing):
 
 | Email | Password |
 |-------|----------|
-| `test@jobtrigger.dev` | `password123` |
+| `developer@jobtrigger.app` | `SecurePassword123!` |
 
-If your local MongoDB is empty (e.g. after `docker compose down -v` or a
-fresh clone), this account won't exist yet — sign up again with any
-email/password from the app's Sign Up screen, or re-seed it:
+If your local/cloud MongoDB is empty (e.g. fresh clone or a wiped database),
+this account won't exist yet — sign up with any email/password from the
+app's Sign Up screen, or re-run the migration script:
 
 ```bash
-curl -X POST http://localhost:5001/api/auth/signup \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@jobtrigger.dev","password":"password123"}'
+cd JobTrigger-Backend
+node scripts/setup-migrations.js
 ```
+
+See [`docs/database-migrations.md`](docs/database-migrations.md) for what
+this script seeds.
 
 ## 🚦 Project Status
 

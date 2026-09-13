@@ -6,7 +6,9 @@
 
 **What it does:**
 - ✅ Checks MongoDB connection (Cloud or Docker)
-- ✅ Seeds test account (`test@jobtrigger.dev` / `password123`)
+- ✅ Runs `JobTrigger-Backend/scripts/setup-migrations.js` — seeds AppInfo, a
+  dev user (`developer@jobtrigger.app` / `SecurePassword123!`), and sample
+  Jenkins credentials (see [Database Migrations](./database-migrations.md))
 - ✅ Starts Node.js backend on `http://127.0.0.1:5001`
 - ✅ Keeps backend running in watch mode (auto-restart on file changes)
 
@@ -24,14 +26,14 @@ USE_DOCKER=true ./setup-dev.sh
 ```
 🚀 JobTrigger Development Setup
 ================================
-☁️  Using MongoDB Cloud (Atlas)
+ℹ️  Environment: MongoDB Cloud (Atlas)
 ✅ MongoDB Cloud connection string found in .env
-🌱 Seeding test account...
-✅ Test account ready (test@jobtrigger.dev / password123)
-🎉 All set! Starting backend...
-================================
+✅ Development user created: developer@jobtrigger.app
+✅ Created 3 Jenkins server credential(s)
+✅ Database migrations completed successfully
+🚀 Starting Backend (Node.js)
 [dotenv] injecting env (3) from .env
-Server running on http://127.0.0.1:5001
+Server is running on port 5001
 Connected to MongoDB
 ```
 
@@ -80,10 +82,10 @@ USE_DOCKER=true ./setup-dev.sh
 ### Terminal 2: Flutter App
 
 ```bash
-cd job_trigger
+cd JobTrigger-Frontend
 
-# Run on iOS simulator
-flutter run -d "iPhone Air"
+# Run on iOS simulator — quote device names that contain spaces
+flutter run --dart-define-from-file=config/dev.json -d "iPhone Air"
 
 # Or choose interactively
 flutter run
@@ -176,14 +178,14 @@ USE_DOCKER=true ./setup-dev.sh
    ```bash
    curl -X POST http://localhost:5001/api/auth/login \
      -H "Content-Type: application/json" \
-     -d '{"email":"test@jobtrigger.dev","password":"password123"}'
+     -d '{"email":"developer@jobtrigger.app","password":"SecurePassword123!"}'
    ```
    Should return user + token ✅
 
 3. **App running:**
    - See login screen on iOS simulator ✅
    - "Remember me" checkbox visible ✅
-   - Can login with test credentials ✅
+   - Can login with the dev credentials above ✅
 
 ---
 

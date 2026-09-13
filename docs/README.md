@@ -68,7 +68,7 @@ USE_DOCKER=true ./setup-dev.sh
 ./stop-dev.sh
 
 # Build Flutter app
-cd job_trigger
+cd JobTrigger-Frontend
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 

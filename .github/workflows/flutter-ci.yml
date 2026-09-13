@@ -21,20 +21,20 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd job_trigger
+          cd JobTrigger-Frontend
           flutter pub get
 
       - name: Verify formatting
         run: |
-          cd job_trigger
+          cd JobTrigger-Frontend
           dart format --output=none --set-exit-if-changed .
 
       - name: Analyze
         run: |
-          cd job_trigger
+          cd JobTrigger-Frontend
           flutter analyze
 
       - name: Run tests
         run: |
-          cd job_trigger
+          cd JobTrigger-Frontend
           flutter test
