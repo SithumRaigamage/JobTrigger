@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/platform/package_info_provider.dart';
+import '../../common_widgets/gradient_backdrop.dart';
 import '../../common_widgets/loading_overlay.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
@@ -94,7 +95,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      body: _GradientBackdrop(
+      body: GradientBackdrop(
         color: colorScheme.primary,
         background: colorScheme.surface,
         child: SafeArea(
@@ -180,57 +181,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
-  }
-}
-
-/// [background] with two softly tinted [color] blobs — enough to keep the
-/// screen from feeling flat without hardcoding a color that would fight the
-/// active theme (light surfaces stay white, dark surfaces stay dark).
-class _GradientBackdrop extends StatelessWidget {
-  const _GradientBackdrop({
-    required this.color,
-    required this.background,
-    required this.child,
-  });
-
-  final Color color;
-  final Color background;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        ColoredBox(color: background),
-        Positioned(
-          top: -120,
-          right: -80,
-          child: _Blob(color: color.withValues(alpha: 0.08), size: 320),
-        ),
-        Positioned(
-          bottom: -140,
-          left: -100,
-          child: _Blob(color: color.withValues(alpha: 0.06), size: 360),
-        ),
-        child,
-      ],
-    );
-  }
-}
-
-class _Blob extends StatelessWidget {
-  const _Blob({required this.color, required this.size});
-  final Color color;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-    );
   }
 }
 
