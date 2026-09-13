@@ -112,7 +112,29 @@ flutter run -d <device>
   details, ask the user or check the documented config patterns in `docs/` or
   `job_trigger/config/`.
 
-## 9. Current status
+## 9. Development workflow (strict)
+
+1. **Plan + design first (strict).** Before writing or editing any code for a
+   task, present a plan (what will change, which files, why) and, for
+   anything touching UI or data flow, a brief design (screens/states
+   affected, how it fits the layers in §4). Do not start implementation
+   until this has been shared.
+2. **Best practices while developing (strict).** Follow this file's
+   conventions (§5), the locked tech stack (§3), and the layering rules
+   (§4) without exception — no shortcuts, no bypassing `AppFailure`/secure
+   storage/layer boundaries "just this once."
+3. **Wait for approval before proceeding (manual).** After presenting the
+   plan/design, and again after implementing, pause for the user's review
+   and explicit go-ahead rather than chaining straight into the next step
+   unprompted.
+4. **Conventional commits, attributed by author.** Commit messages follow
+   [Conventional Commits](https://www.conventionalcommits.org/) format
+   (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, etc.,
+   optionally scoped, e.g. `fix(backend): ...`), and reference the task id
+   from §5 where one exists. Include the real author/co-author trailer on
+   every commit — never omit attribution.
+
+## 10. Current status
 
 Tracked in `tasks/README.md`. Update the phase status table there whenever a
 task moves state — this file doesn't duplicate that tracker.
