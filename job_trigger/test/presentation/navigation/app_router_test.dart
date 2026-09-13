@@ -10,13 +10,23 @@ import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
+import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/presentation/features/auth/auth_notifier.dart';
 import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifier.dart';
 import 'package:job_trigger/presentation/features/home/home_screen.dart';
+import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
 import 'package:job_trigger/presentation/navigation/app_router.dart';
 import 'package:job_trigger/presentation/navigation/app_routes.dart';
 import 'package:job_trigger/presentation/navigation/main_scaffold.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+
+const _fakeServer = JenkinsServer(
+  id: 's1',
+  serverName: 'Test Server',
+  jenkinsURL: 'https://jenkins.test',
+  username: 'user',
+  secret: 'secret',
+);
 
 /// Reused fake from `home_screen_test.dart`'s pattern -- private to each
 /// file since it's not exported there.
@@ -101,6 +111,12 @@ void main() {
       // (tool_selection_screen.dart's own flow is covered elsewhere; this
       // test is specifically about the shell + breadcrumb interaction).
       router.go(AppRoutes.home);
+      await tester.pumpAndSettle();
+
+      // HomeScreen shows a "no server" empty state until one is active.
+      await container
+          .read(activeServerNotifierProvider.notifier)
+          .setActiveServer(_fakeServer);
       await tester.pumpAndSettle();
 
       expect(find.byType(MainScaffold), findsOneWidget);

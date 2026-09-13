@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import 'ci_tool.dart';
 
@@ -17,37 +18,78 @@ class ToolSelectionScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Choose Your Tool',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+            ResponsiveCenter(
+              maxWidth: 900,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                child: Column(
+                  // Centered to match the centered card grid below --
+                  // previously left-aligned while the cards (a Wrap)
+                  // centered as a group, which read as misaligned.
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Choose Your Tool',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Select a CI/CD platform to get started',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    const SizedBox(height: 4),
+                    Text(
+                      'Select a CI/CD platform to get started',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             Expanded(
-              child: GridView.count(
-                padding: const EdgeInsets.all(24),
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 0.95,
-                children: [
-                  for (final tool in CiTool.values) _ToolCard(tool: tool),
-                ],
+              child: ResponsiveCenter(
+                maxWidth: 900,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      const spacing = 16.0;
+                      final columns = responsiveColumnCount(
+                        constraints.maxWidth,
+                        // Wider than the grid utility's own 180 default --
+                        // _ToolCard's fixed-height content (icon +
+                        // up-to-2-line label) overflows its cell below
+                        // ~180px of width at the 0.95 aspect ratio used
+                        // below, so this keeps a safety margin rather than
+                        // tuning it to the exact pixel.
+                        targetTileWidth: 220,
+                      );
+                      final cardWidth =
+                          (constraints.maxWidth - (columns - 1) * spacing) /
+                          columns;
+                      // Wrap (not GridView) so a trailing partial row --
+                      // e.g. 5 tools at 4 columns leaving 1 alone -- centers
+                      // as a group instead of sitting flush left with a
+                      // large empty gap beside it.
+                      return Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: spacing,
+                        runSpacing: spacing,
+                        children: [
+                          for (final tool in CiTool.values)
+                            SizedBox(
+                              width: cardWidth,
+                              height: cardWidth / 0.95,
+                              child: _ToolCard(tool: tool),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           ],
@@ -87,22 +129,22 @@ class _ToolCard extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                    vertical: 28,
+                    vertical: 20,
                     horizontal: 12,
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 72,
-                        height: 72,
+                        width: 64,
+                        height: 64,
                         decoration: BoxDecoration(
                           color: tool.accentColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Icon(
                           tool.icon,
-                          size: 30,
+                          size: 28,
                           color: tool.accentColor,
                         ),
                       ),

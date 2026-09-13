@@ -5,8 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../core/error/error_message.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/no_active_server_view.dart';
+import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/status_indicator.dart';
 import '../../navigation/app_routes.dart';
+import '../settings/active_server_notifier.dart';
 import 'filtered_jobs_provider.dart';
 import 'folder_breadcrumb_notifier.dart';
 import 'job_search_notifier.dart';
@@ -32,6 +35,21 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final activeServer = ref.watch(activeServerNotifierProvider);
+    if (activeServer == null) {
+      return Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            tooltip: 'Tool Selection',
+            onPressed: () => context.go(AppRoutes.toolSelection),
+          ),
+          title: const Text('Jobs'),
+        ),
+        body: const Center(child: NoActiveServerView()),
+      );
+    }
+
     final jobTreeAsync = ref.watch(jobTreeNotifierProvider);
     final breadcrumb = ref.watch(folderBreadcrumbNotifierProvider);
 
@@ -43,27 +61,35 @@ class HomeScreen extends ConsumerWidget {
       },
       child: Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            tooltip: 'Tool Selection',
+            onPressed: () => context.go(AppRoutes.toolSelection),
+          ),
           title: Text(breadcrumb.isEmpty ? 'Jobs' : breadcrumb.last.name),
         ),
-        body: Column(
-          children: [
-            const _SearchField(),
-            const _BreadcrumbHeader(),
-            Expanded(
-              child: jobTreeAsync.when(
-                data: (_) => const _JobListView(),
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
-                error: (error, stackTrace) => Center(
-                  child: ConnectionErrorView(
-                    message: describeError(error),
-                    onRetry: () =>
-                        ref.read(jobTreeNotifierProvider.notifier).refresh(),
+        body: ResponsiveCenter(
+          child: Column(
+            children: [
+              const _SearchField(),
+              const _BreadcrumbHeader(),
+              Expanded(
+                child: jobTreeAsync.when(
+                  data: (_) => const _JobListView(),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stackTrace) => Center(
+                    child: ConnectionErrorView(
+                      message: describeError(error),
+                      onRetry: () => ref
+                          .read(jobTreeNotifierProvider.notifier)
+                          .refresh(),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

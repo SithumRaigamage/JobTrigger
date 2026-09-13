@@ -22,5 +22,16 @@ class SecureStorageService {
 }
 
 @riverpod
-SecureStorageService secureStorage(Ref ref) =>
-    SecureStorageService(const FlutterSecureStorage());
+SecureStorageService secureStorage(Ref ref) => SecureStorageService(
+  const FlutterSecureStorage(
+    // macOS's "data protection keychain" (the default) resolves its
+    // keychain-access-group from the app's code-signing Team ID —
+    // without a real Apple Developer certificate (this is a local-dev-only
+    // macOS target, not a distribution one; see the entitlements files'
+    // comments), that fails with errSecMissingEntitlement (-34018) even
+    // with App Sandbox off. The legacy (non-data-protection) keychain API
+    // doesn't need a Team ID. iOS/Android are unaffected — this option is
+    // macOS-only.
+    mOptions: MacOsOptions(usesDataProtectionKeychain: false),
+  ),
+);

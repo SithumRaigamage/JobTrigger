@@ -17,7 +17,13 @@ Dio buildJenkinsDio({
   required String username,
   required String password,
 }) {
-  final dio = Dio(BaseOptions(baseUrl: baseUrl));
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: baseUrl,
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
+    ),
+  );
 
   final basicAuth = base64Encode(utf8.encode('$username:$password'));
   dio.options.headers['Authorization'] = 'Basic $basicAuth';

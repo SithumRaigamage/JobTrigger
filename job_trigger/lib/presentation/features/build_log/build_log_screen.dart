@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/error/error_message.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/responsive_center.dart';
 import 'build_log_notifier.dart';
 import 'console_log_viewer.dart';
 
@@ -40,14 +41,20 @@ class BuildLogScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: logAsync.when(
-        data: (text) => ConsoleLogViewer(text: text),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(
-          child: ConnectionErrorView(
-            message: describeError(error),
-            onRetry: () =>
-                ref.invalidate(buildLogNotifierProvider(jenkinsBuild.url)),
+      // Wider than the default ResponsiveCenter max width -- log lines
+      // benefit from more horizontal room to read on a desktop window,
+      // unlike list/form-style screens.
+      body: ResponsiveCenter(
+        maxWidth: 1200,
+        child: logAsync.when(
+          data: (text) => ConsoleLogViewer(text: text),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stackTrace) => Center(
+            child: ConnectionErrorView(
+              message: describeError(error),
+              onRetry: () =>
+                  ref.invalidate(buildLogNotifierProvider(jenkinsBuild.url)),
+            ),
           ),
         ),
       ),

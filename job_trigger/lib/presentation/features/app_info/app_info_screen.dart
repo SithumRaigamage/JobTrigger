@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/responsive_center.dart';
 import 'app_info_notifier.dart';
 
 /// Ported from `AppInfoView.swift` — see `docs/state-management.md`'s
@@ -18,63 +19,66 @@ class AppInfoScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('App Information')),
-      body: appInfoAsync.when(
-        data: (info) => ListView(
-          children: [
-            const SizedBox(height: 20),
-            const Icon(Icons.apps, size: 80, color: Colors.blue),
-            const SizedBox(height: 12),
-            const Text(
-              'JobTrigger',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Version ${info.appVersion} (Build ${info.buildNumber})',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+      body: ResponsiveCenter(
+        child: appInfoAsync.when(
+          data: (info) => ListView(
+            children: [
+              const SizedBox(height: 20),
+              const Icon(Icons.apps, size: 80, color: Colors.blue),
+              const SizedBox(height: 12),
+              const Text(
+                'JobTrigger',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Divider(height: 1),
-            if (info.privacyPolicyUrl != null)
-              ListTile(
-                leading: const Icon(Icons.shield_outlined),
-                title: const Text('Privacy Policy'),
-                onTap: () => _open(info.privacyPolicyUrl!),
-              ),
-            if (info.termsOfServiceUrl != null)
-              ListTile(
-                leading: const Icon(Icons.description_outlined),
-                title: const Text('Terms of Service'),
-                onTap: () => _open(info.termsOfServiceUrl!),
-              ),
-            if (info.openSourceLicensesUrl != null)
-              ListTile(
-                leading: const Icon(Icons.account_balance_outlined),
-                title: const Text('Open Source Licenses'),
-                onTap: () => _open(info.openSourceLicensesUrl!),
-              ),
-            if (info.supportEmail != null) ...[
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.email_outlined),
-                title: const Text('Contact Support'),
-                subtitle: const Text(
-                  'For feedback or issues, please contact our support team.',
+              const SizedBox(height: 4),
+              Text(
+                'Version ${info.appVersion} (Build ${info.buildNumber})',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                onTap: () => _open('mailto:${info.supportEmail}'),
               ),
+              const SizedBox(height: 24),
+              const Divider(height: 1),
+              if (info.privacyPolicyUrl != null)
+                ListTile(
+                  leading: const Icon(Icons.shield_outlined),
+                  title: const Text('Privacy Policy'),
+                  onTap: () => _open(info.privacyPolicyUrl!),
+                ),
+              if (info.termsOfServiceUrl != null)
+                ListTile(
+                  leading: const Icon(Icons.description_outlined),
+                  title: const Text('Terms of Service'),
+                  onTap: () => _open(info.termsOfServiceUrl!),
+                ),
+              if (info.openSourceLicensesUrl != null)
+                ListTile(
+                  leading: const Icon(Icons.account_balance_outlined),
+                  title: const Text('Open Source Licenses'),
+                  onTap: () => _open(info.openSourceLicensesUrl!),
+                ),
+              if (info.supportEmail != null) ...[
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.email_outlined),
+                  title: const Text('Contact Support'),
+                  subtitle: const Text(
+                    'For feedback or issues, please contact our support team.',
+                  ),
+                  onTap: () => _open('mailto:${info.supportEmail}'),
+                ),
+              ],
             ],
-          ],
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(
-          child: ConnectionErrorView(
-            message: describeError(error),
-            onRetry: () => ref.read(appInfoNotifierProvider.notifier).refresh(),
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stackTrace) => Center(
+            child: ConnectionErrorView(
+              message: describeError(error),
+              onRetry: () =>
+                  ref.read(appInfoNotifierProvider.notifier).refresh(),
+            ),
           ),
         ),
       ),

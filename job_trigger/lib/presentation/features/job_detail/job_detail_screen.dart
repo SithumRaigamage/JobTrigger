@@ -8,6 +8,7 @@ import '../../../domain/jenkins/build_progress.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/parameter_definition.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import 'build_status_polling_notifier.dart';
 import 'cancel_build_notifier.dart';
@@ -58,33 +59,36 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
           ),
         ],
       ),
-      body: jobAsync.when(
-        data: (job) => _JobDetailBody(
-          job: job,
-          isTriggering: isTriggering,
-          isCancelling: isCancelling,
-          onParametersChanged: (values) => _parameterValues = values,
-          onTrigger: () => ref
-              .read(triggerBuildNotifierProvider(jobUrl).notifier)
-              .trigger(job: job, parameters: _parameterValues),
-          onCancel: (job.lastBuild != null && job.lastBuild!.building)
-              ? () => ref
-                    .read(cancelBuildNotifierProvider(jobUrl).notifier)
-                    .cancel(
-                      buildUrl: job.lastBuild!.url,
-                      buildNumber: job.lastBuild!.number,
-                    )
-              : null,
-          onViewLog: job.lastBuild == null
-              ? null
-              : () => context.push(AppRoutes.buildLog, extra: job.lastBuild),
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(
-          child: ConnectionErrorView(
-            message: describeError(error),
-            onRetry: () =>
-                ref.read(jobDetailNotifierProvider(jobUrl).notifier).refresh(),
+      body: ResponsiveCenter(
+        child: jobAsync.when(
+          data: (job) => _JobDetailBody(
+            job: job,
+            isTriggering: isTriggering,
+            isCancelling: isCancelling,
+            onParametersChanged: (values) => _parameterValues = values,
+            onTrigger: () => ref
+                .read(triggerBuildNotifierProvider(jobUrl).notifier)
+                .trigger(job: job, parameters: _parameterValues),
+            onCancel: (job.lastBuild != null && job.lastBuild!.building)
+                ? () => ref
+                      .read(cancelBuildNotifierProvider(jobUrl).notifier)
+                      .cancel(
+                        buildUrl: job.lastBuild!.url,
+                        buildNumber: job.lastBuild!.number,
+                      )
+                : null,
+            onViewLog: job.lastBuild == null
+                ? null
+                : () => context.push(AppRoutes.buildLog, extra: job.lastBuild),
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stackTrace) => Center(
+            child: ConnectionErrorView(
+              message: describeError(error),
+              onRetry: () => ref
+                  .read(jobDetailNotifierProvider(jobUrl).notifier)
+                  .refresh(),
+            ),
           ),
         ),
       ),

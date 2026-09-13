@@ -12,16 +12,22 @@ Base URL from `core/config/app_config.dart`, e.g. `https://api.jobtrigger.app`
 |---|---|---|---|---|---|
 | `/api/auth/signup` | POST | Public | `{ email, password }` | `{ user, token }` | Client-side validate email regex + min password length before sending |
 | `/api/auth/login` | POST | Public | `{ email, password }` | `{ user, token }` | On success, store token in secure storage immediately |
-| `/api/credentials` | GET | Bearer | — | `Credential[]` | |
-| `/api/credentials` | POST | Bearer | `Credential` (minus id) | `Credential` | |
-| `/api/credentials/:id` | PUT | Bearer | Partial `Credential` | `Credential` | |
-| `/api/credentials/:id` | DELETE | Bearer | — | `{ success }` | If deleting the active server, client must fall back to another `isDefault`/first server |
-| `/api/credentials/switch/:id` | POST | Bearer | — | `Credential` | Backend flips `isDefault`; client also updates `ActiveServerNotifier` locally for instant UI feedback |
+| `/api/credentials` | GET | `x-auth-token` | — | `Credential[]` | |
+| `/api/credentials` | POST | `x-auth-token` | `Credential` (minus id) | `Credential` | |
+| `/api/credentials/:id` | PUT | `x-auth-token` | Partial `Credential` | `Credential` | |
+| `/api/credentials/:id` | DELETE | `x-auth-token` | — | `{ success }` | If deleting the active server, client must fall back to another `isDefault`/first server |
+| `/api/credentials/switch/:id` | POST | `x-auth-token` | — | `Credential` | Backend flips `isDefault`; client also updates `ActiveServerNotifier` locally for instant UI feedback |
 | `/api/appinfo` | GET | Public | — | `AppInfo` | Cache with a short TTL; not worth polling |
 
-`BackendApiClient` interceptor: attach `Authorization: Bearer <token>` from
-secure storage on every request except signup/login/appinfo; on `401`,
-clear stored session and route to login (see `auth_notifier.dart`).
+`BackendApiClient` interceptor: attach a plain `x-auth-token: <token>`
+header from secure storage on every request except signup/login/appinfo;
+on `401`, clear stored session and route to login (see `auth_notifier.dart`).
+**Not** `Authorization: Bearer` — verified directly against
+`lab-trigger-backend/middleware/auth.js`, which only reads
+`req.header('x-auth-token')`. This doc previously said `Bearer`, which never
+matched the real backend and made every authenticated request 401 silently
+(discovered only once the Flutter client was exercised end-to-end against a
+real running backend, not just tested with mocked Dio adapters).
 
 ## 2. Jenkins API (direct, per-server Basic Auth)
 

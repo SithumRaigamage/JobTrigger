@@ -77,8 +77,33 @@ class ToastView extends StatelessWidget {
 /// Ported from `Shared/Components/NotificationModifier.swift`. Wrap the app
 /// (e.g. in `MaterialApp.builder`) so a toast can be shown from anywhere via
 /// `toastControllerProvider`.
+///
+/// `MaterialApp.builder`'s `child` is the app's `Navigator` — content placed
+/// alongside it here (the toast) is a *sibling* of the Navigator, not a
+/// descendant, so it can't reach the Navigator's own `Overlay` via
+/// `Overlay.of(context)`. `ToastView`'s dismiss `IconButton` has a
+/// `tooltip`, which needs one (`Tooltip`/`RawTooltip` requires an `Overlay`
+/// ancestor to build at all, not just to show) — without this wrapper it
+/// throws "No Overlay widget found" the first time any toast is shown.
+/// Providing a dedicated local `Overlay` here, wrapping both `child` and the
+/// toast, gives everything underneath a valid ancestor.
 class ToastOverlay extends ConsumerWidget {
   const ToastOverlay({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Overlay(
+      initialEntries: [
+        OverlayEntry(builder: (context) => _ToastStack(child: child)),
+      ],
+    );
+  }
+}
+
+class _ToastStack extends ConsumerWidget {
+  const _ToastStack({required this.child});
 
   final Widget child;
 

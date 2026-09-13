@@ -9,10 +9,25 @@ import 'test_connection_notifier.dart';
 
 /// Ported from the add/edit sheet in `SettingsView.swift`. [existing] is
 /// null when adding a new server, non-null when editing one.
+///
+/// A bottom sheet is anchored to the bottom edge and spans the full window
+/// width -- fine, thumb-reachable UX on a phone, but reads as "not
+/// centered"/oddly docked on a wide macOS window. Same narrow/wide split as
+/// `LoginScreen`'s responsive layout: a real centered `Dialog` at or above
+/// the breakpoint, the native bottom sheet below it.
 Future<void> showServerEditBottomSheet(
   BuildContext context, {
   JenkinsServer? existing,
 }) {
+  const wideBreakpoint = 900.0;
+  if (MediaQuery.sizeOf(context).width >= wideBreakpoint) {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => Dialog(
+        child: ServerEditBottomSheet(existing: existing),
+      ),
+    );
+  }
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -87,78 +102,96 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              _isEditing ? 'Edit Server' : 'Add Server',
-              style: Theme.of(context).textTheme.titleLarge,
+        // Caps the form at a sane width on a wide macOS window instead of
+        // stretching text fields edge to edge -- same ResponsiveCenter
+        // pattern used by full-page screens, just centered manually here
+        // since this widget is the bottom sheet's content itself.
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  _isEditing ? 'Edit Server' : 'Add Server',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _serverNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Server Name',
+                    hintText: 'My Jenkins Server',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _jenkinsURLController,
+                  keyboardType: TextInputType.url,
+                  autocorrect: false,
+                  decoration: const InputDecoration(
+                    labelText: 'Jenkins URL',
+                    hintText: 'http://localhost:8080',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _usernameController,
+                  autocorrect: false,
+                  decoration: const InputDecoration(
+                    labelText: 'Username',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _paramTokenController,
+                  autocorrect: false,
+                  decoration: const InputDecoration(
+                    labelText: 'Build Token (for triggering)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Set as default server'),
+                  value: _isDefault,
+                  onChanged: (value) => setState(() => _isDefault = value),
+                ),
+                const SizedBox(height: 8),
+                _TestConnectionStatus(state: testState),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.wifi_tethering),
+                  label: const Text('Test Jenkins Connection'),
+                  onPressed: testState.isLoading ? null : _testConnection,
+                ),
+                const SizedBox(height: 12),
+                FilledButton(
+                  onPressed: saveState.isLoading ? null : _save,
+                  child: saveState.isLoading
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(_isEditing ? 'Save' : 'Add'),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _serverNameController,
-              decoration: const InputDecoration(
-                labelText: 'Server Name',
-                hintText: 'My Jenkins Server',
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _jenkinsURLController,
-              keyboardType: TextInputType.url,
-              autocorrect: false,
-              decoration: const InputDecoration(
-                labelText: 'Jenkins URL',
-                hintText: 'http://localhost:8080',
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _usernameController,
-              autocorrect: false,
-              decoration: const InputDecoration(labelText: 'Username'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _paramTokenController,
-              autocorrect: false,
-              decoration: const InputDecoration(
-                labelText: 'Build Token (for triggering)',
-              ),
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Set as default server'),
-              value: _isDefault,
-              onChanged: (value) => setState(() => _isDefault = value),
-            ),
-            const SizedBox(height: 8),
-            _TestConnectionStatus(state: testState),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              icon: const Icon(Icons.wifi_tethering),
-              label: const Text('Test Jenkins Connection'),
-              onPressed: testState.isLoading ? null : _testConnection,
-            ),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: saveState.isLoading ? null : _save,
-              child: saveState.isLoading
-                  ? const SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(_isEditing ? 'Save' : 'Add'),
-            ),
-          ],
+          ),
         ),
       ),
     );

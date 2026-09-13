@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/platform/package_info_provider.dart';
@@ -28,10 +29,45 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   static const _wideBreakpoint = 900.0;
+  static const _savedEmailKey = 'login_saved_email';
+  static const _savedPasswordKey = 'login_saved_password';
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final email = prefs.getString(_savedEmailKey);
+      final password = prefs.getString(_savedPasswordKey);
+      if (email != null) {
+        _emailController.text = email;
+        _rememberMe = true;
+      }
+      if (password != null) {
+        _passwordController.text = password;
+      }
+      if (mounted) setState(() {});
+    } catch (_) {}
+  }
+
+  Future<void> _saveCredentialsIfNeeded() async {
+    if (_rememberMe) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_savedEmailKey, _emailController.text.trim());
+        await prefs.setString(_savedPasswordKey, _passwordController.text);
+      } catch (_) {}
+    }
+  }
 
   @override
   void dispose() {
@@ -86,6 +122,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               onToggleObscure: () => setState(
                                 () => _obscurePassword = !_obscurePassword,
                               ),
+                              rememberMe: _rememberMe,
+                              onRememberMeChanged: (value) {
+                                setState(() => _rememberMe = value ?? false);
+                              },
                               isLoading: isLoading,
                               onSignIn: _submit,
                               onSignUp: () => context.go(AppRoutes.signup),
@@ -112,6 +152,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         onToggleObscure: () => setState(
                           () => _obscurePassword = !_obscurePassword,
                         ),
+                        rememberMe: _rememberMe,
+                        onRememberMeChanged: (value) {
+                          setState(() => _rememberMe = value ?? false);
+                        },
                         isLoading: isLoading,
                         onSignIn: _submit,
                         onSignUp: () => context.go(AppRoutes.signup),
@@ -128,7 +172,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  void _submit() {
+  void _submit() async {
+    await _saveCredentialsIfNeeded();
     ref
         .read(loginNotifierProvider.notifier)
         .login(
@@ -336,6 +381,8 @@ class _LoginForm extends StatelessWidget {
     required this.passwordController,
     required this.obscurePassword,
     required this.onToggleObscure,
+    required this.rememberMe,
+    required this.onRememberMeChanged,
     required this.isLoading,
     required this.onSignIn,
     required this.onSignUp,
@@ -346,6 +393,8 @@ class _LoginForm extends StatelessWidget {
   final TextEditingController passwordController;
   final bool obscurePassword;
   final VoidCallback onToggleObscure;
+  final bool rememberMe;
+  final ValueChanged<bool?> onRememberMeChanged;
   final bool isLoading;
   final VoidCallback onSignIn;
   final VoidCallback onSignUp;
@@ -433,7 +482,15 @@ class _LoginForm extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 12),
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Remember me'),
+          value: rememberMe,
+          onChanged: onRememberMeChanged,
+          dense: true,
+        ),
+        const SizedBox(height: 12),
         SizedBox(
           height: 50,
           child: FilledButton(

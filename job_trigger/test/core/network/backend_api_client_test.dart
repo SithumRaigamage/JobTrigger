@@ -44,7 +44,7 @@ void main() {
   });
 
   test(
-    'attaches Authorization: Bearer from secure storage on protected paths',
+    'attaches x-auth-token from secure storage on protected paths',
     () async {
       await secureStorage.saveToken('token-123');
       final adapter = _FixedStatusAdapter(200);
@@ -56,11 +56,11 @@ void main() {
 
       await dio.get<void>('/api/credentials');
 
-      expect(adapter.lastRequest?.headers['Authorization'], 'Bearer token-123');
+      expect(adapter.lastRequest?.headers['x-auth-token'], 'token-123');
     },
   );
 
-  test('does not attach Authorization on public paths', () async {
+  test('does not attach x-auth-token on public paths', () async {
     await secureStorage.saveToken('token-123');
     final adapter = _FixedStatusAdapter(200);
     final dio = buildBackendDio(
@@ -71,7 +71,10 @@ void main() {
 
     await dio.post<void>('/api/auth/login');
 
-    expect(adapter.lastRequest?.headers.containsKey('Authorization'), isFalse);
+    expect(
+      adapter.lastRequest?.headers.containsKey('x-auth-token'),
+      isFalse,
+    );
   });
 
   test('a 401 response clears the stored session', () async {

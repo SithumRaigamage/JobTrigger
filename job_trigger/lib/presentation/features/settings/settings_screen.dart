@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/error/result.dart';
 import '../../../core/theme/theme_notifier.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/toast_controller.dart';
+import '../../navigation/app_routes.dart';
 import '../auth/auth_notifier.dart';
 import 'active_server_notifier.dart';
 import 'credentials_notifier.dart';
@@ -30,6 +33,11 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Tool Selection',
+          onPressed: () => context.go(AppRoutes.toolSelection),
+        ),
         title: const Text('Settings'),
         actions: [
           IconButton(
@@ -39,27 +47,31 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          const _AppearanceSection(),
-          const Divider(height: 1),
-          Expanded(
-            child: credentialsAsync.when(
-              data: (servers) => _ServerList(
-                servers: servers,
-                activeServerId: activeServer?.id,
-              ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stackTrace) => Center(
-                child: ConnectionErrorView(
-                  message: describeError(error),
-                  onRetry: () =>
-                      ref.read(credentialsNotifierProvider.notifier).refresh(),
+      body: ResponsiveCenter(
+        child: Column(
+          children: [
+            const _AppearanceSection(),
+            const Divider(height: 1),
+            Expanded(
+              child: credentialsAsync.when(
+                data: (servers) => _ServerList(
+                  servers: servers,
+                  activeServerId: activeServer?.id,
+                ),
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) => Center(
+                  child: ConnectionErrorView(
+                    message: describeError(error),
+                    onRetry: () => ref
+                        .read(credentialsNotifierProvider.notifier)
+                        .refresh(),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => showServerEditBottomSheet(context),
@@ -127,7 +139,42 @@ class _ServerList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (servers.isEmpty) {
-      return const Center(child: Text('No servers added yet.'));
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.dns_outlined,
+                size: 60,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'No Servers Yet',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Add a Jenkins server to get started.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                onPressed: () => showServerEditBottomSheet(context),
+                icon: const Icon(Icons.add),
+                label: const Text('Add Jenkins Server'),
+              ),
+            ],
+          ),
+        ),
+      );
     }
     return ListView.builder(
       itemCount: servers.length,

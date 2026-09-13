@@ -4,12 +4,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
+import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifier.dart';
 import 'package:job_trigger/presentation/features/home/home_screen.dart';
+import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+
+const _fakeServer = JenkinsServer(
+  id: 's1',
+  serverName: 'Test Server',
+  jenkinsURL: 'https://jenkins.test',
+  username: 'user',
+  secret: 'secret',
+);
 
 class _FakeJenkinsRepository implements JenkinsRepository {
   _FakeJenkinsRepository(this._jobs);
@@ -49,6 +60,11 @@ class _FakeJenkinsRepository implements JenkinsRepository {
 }
 
 void main() {
+  setUp(() {
+    SharedPreferencesStorePlatform.instance =
+        InMemorySharedPreferencesStore.empty();
+  });
+
   // P6-06: on Android, the system back gesture must walk up one breadcrumb
   // level at a time (like a file browser) instead of immediately popping
   // HomeScreen off the navigator, since folder drill-down is in-place
@@ -94,6 +110,14 @@ void main() {
         ),
       );
       await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+
+      // HomeScreen shows a "no server" empty state until one is active --
+      // set it only once mounted and watching, same auto-dispose pitfall
+      // as the breadcrumb notifier below.
+      await container
+          .read(activeServerNotifierProvider.notifier)
+          .setActiveServer(_fakeServer);
       await tester.pumpAndSettle();
 
       // Drill into the folder only once HomeScreen is mounted and watching
@@ -154,6 +178,11 @@ void main() {
       ),
     );
     await tester.tap(find.byType(ElevatedButton));
+    await tester.pumpAndSettle();
+
+    await container
+        .read(activeServerNotifierProvider.notifier)
+        .setActiveServer(_fakeServer);
     await tester.pumpAndSettle();
 
     final navigatorState = tester.state<NavigatorState>(

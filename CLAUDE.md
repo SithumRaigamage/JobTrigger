@@ -104,7 +104,15 @@ flutter run -d <device>
 - Don't add screens/features not in the original feature matrix without
   flagging it — scope creep during a rewrite is how migrations stall.
 
-## 8. Current status
+## 8. Security rules
+
+- **Do NOT read or access `.env` files** — they contain sensitive credentials
+  (JWT secrets, database URIs, API keys). Never open, read, or reference
+  `.env`, `.env.local`, `.env.example` for any reason. If you need configuration
+  details, ask the user or check the documented config patterns in `docs/` or
+  `job_trigger/config/`.
+
+## 9. Current status
 
 Tracked in `tasks/README.md`. Update the phase status table there whenever a
 task moves state — this file doesn't duplicate that tracker.

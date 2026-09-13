@@ -75,7 +75,15 @@ Full locked-dependency table (and the reasoning behind each choice) lives in
 
 ### 1. Start MongoDB
 
-Make sure a local MongoDB instance is running (default: `mongodb://localhost:27017`).
+```bash
+docker compose up -d
+```
+
+This starts a `mongo:8` container on `localhost:27017` (matching
+`lab-trigger-backend/.env`'s `MONGODB_URI`), with data persisted in a named
+Docker volume. `docker compose down` stops it (data persists);
+`docker compose down -v` also wipes the volume. Alternatively, run your own
+local MongoDB instance on the same port.
 
 ### 2. Start the Backend
 
@@ -114,6 +122,24 @@ flutter test      # run the unit/widget test suite
 - **Email**: Must be a valid email format.
 - **Password**: Must be at least **6 characters**.
 - Data is stored securely in MongoDB.
+
+**Local dev test account** (seeded via `POST /api/auth/signup` against a
+fresh local MongoDB — not a real/production credential, just a throwaway
+login for local testing):
+
+| Email | Password |
+|-------|----------|
+| `test@jobtrigger.dev` | `password123` |
+
+If your local MongoDB is empty (e.g. after `docker compose down -v` or a
+fresh clone), this account won't exist yet — sign up again with any
+email/password from the app's Sign Up screen, or re-seed it:
+
+```bash
+curl -X POST http://localhost:5001/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@jobtrigger.dev","password":"password123"}'
+```
 
 ## 🚦 Project Status
 
