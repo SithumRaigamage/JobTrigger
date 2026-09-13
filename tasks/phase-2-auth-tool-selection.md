@@ -6,7 +6,7 @@ the (static) tool-selection grid.
 - [x] P2-01 `data/models/auth/user_dto.dart`, `domain/auth/user.dart`
       (per `docs/data-models.md`). Deviated from the doc's literal
       `UserDto` snippet: added `@JsonKey(name: '_id')` on `id` — confirmed
-      against `lab-trigger-backend/controllers/authController.js`, which
+      against `JobTrigger-Backend/controllers/authController.js`, which
       actually responds `{ token, user: { _id, email } }`. `UserDto`
       doesn't carry `token` (the docs' sample did) since the real response
       envelope nests it as a sibling of `user`, not inside it — added

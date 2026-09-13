@@ -105,7 +105,7 @@ curl http://localhost:5001/api/appinfo
 
 ## 📋 Environment Variables
 
-**`lab-trigger-backend/.env`** controls backend behavior:
+**`JobTrigger-Backend/.env`** controls backend behavior:
 
 ```env
 # MongoDB connection (MongoDB Cloud)
@@ -205,7 +205,7 @@ USE_DOCKER=true ./setup-dev.sh
 - Check logs for seed response
 
 **"Flutter app won't connect to backend"**
-- Ensure backend URL in `job_trigger/config/dev.json` is `http://127.0.0.1:5001`
+- Ensure backend URL in `JobTrigger-Frontend/config/dev.json` is `http://127.0.0.1:5001`
 - Backend must be running
 - Check phone/simulator can reach localhost
 

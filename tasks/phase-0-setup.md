@@ -5,7 +5,7 @@ any feature code.
 
 - [x] P0-01 `flutter create` with iOS bundle id and Android application id
       matching the existing SwiftUI app (so store listings can be reused).
-      Created `job_trigger/`. iOS bundle id `Sraig.Lab-Trigger-frontend`
+      Created `JobTrigger-Frontend/`. iOS bundle id `Sraig.Lab-Trigger-frontend`
       (matches old app exactly); Android `applicationId`
       `com.sraig.jobtrigger` (no prior Android app existed — confirmed with
       user, based on product name "JobTrigger" per README/CLAUDE.md branding

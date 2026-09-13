@@ -41,7 +41,7 @@ appinfos:
 
 **When to run:**
 ```bash
-cd lab-trigger-backend
+cd JobTrigger-Backend
 node scripts/migrate.js
 ```
 
@@ -179,7 +179,7 @@ docker compose down -v
 USE_DOCKER=true ./setup-dev.sh
 
 # 4. Run migrations in order
-cd lab-trigger-backend
+cd JobTrigger-Backend
 node scripts/seedAppInfo.js    # Add app metadata
 npm run dev                      # Keep running
 

@@ -19,7 +19,7 @@
 
 ### Step 3: Configure Your Backend
 
-Update `lab-trigger-backend/.env`:
+Update `JobTrigger-Backend/.env`:
 
 ```env
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/jobtrigger
@@ -64,7 +64,7 @@ This will:
 ## 🔄 Workflow with MongoDB Cloud
 
 ```bash
-# 1. Update lab-trigger-backend/.env with your connection string
+# 1. Update JobTrigger-Backend/.env with your connection string
 
 # 2. Run setup (no Docker needed!)
 ./setup-dev.sh
@@ -100,7 +100,7 @@ flutter run -d "iPhone Air"
 Test your connection string:
 
 ```bash
-cd lab-trigger-backend
+cd JobTrigger-Backend
 npm run dev
 ```
 

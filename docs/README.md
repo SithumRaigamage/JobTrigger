@@ -87,7 +87,7 @@ flutter analyze
 ## 🔐 Security Rules
 
 - ⛔ **Never read `.env` files** — they contain credentials
-- ⛔ **Never hardcode base URLs** — use `job_trigger/config/`
+- ⛔ **Never hardcode base URLs** — use `JobTrigger-Frontend/config/`
 - ✅ **Store tokens in secure storage** — `flutter_secure_storage` only
 - ✅ **Return `AppFailure` from repos** — never leak raw `DioException` to widgets
 

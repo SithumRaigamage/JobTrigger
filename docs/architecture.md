@@ -59,7 +59,7 @@ graph LR
 | `Tools/Jenkins/Models/*` | `data/models/jenkins/*.dart` (DTOs) + `domain/jenkins/*.dart` (entities) |
 | `Shared/Navigation/NavBarView` | `presentation/navigation/main_scaffold.dart` + `app_router.dart` (go_router) |
 | `Shared/Components/*` | `presentation/common_widgets/*` |
-| `lab-trigger-backend/*` | unchanged, consumed as-is |
+| `JobTrigger-Backend/*` | unchanged, consumed as-is |
 
 ## 4. State management pattern
 

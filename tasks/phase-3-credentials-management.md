@@ -7,7 +7,7 @@ verify a server is reachable before saving it.
       `domain/credential/jenkins_server.dart` (per `docs/data-models.md`;
       remember the `password` → `secret` rename and redacted `toString()`).
       Verified `CredentialDto`'s shape against the real backend model
-      (`lab-trigger-backend/models/JenkinsCredential.js`) — matches the
+      (`JobTrigger-Backend/models/JenkinsCredential.js`) — matches the
       docs exactly. Renamed the Phase 0 skeleton dirs from plural
       `domain/credentials/`/`data/models/credentials/` to singular
       `credential/` to match this task's explicit paths.

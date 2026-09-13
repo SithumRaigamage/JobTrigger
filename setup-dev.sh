@@ -76,12 +76,12 @@ if [ "$USE_DOCKER" = "true" ]; then
 else
   # Using MongoDB Cloud
   log_step "Verifying MongoDB Cloud connection"
-  log_info "Checking for connection string in lab-trigger-backend/.env..."
+  log_info "Checking for connection string in JobTrigger-Backend/.env..."
 
-  if grep -q "mongodb+srv://" lab-trigger-backend/.env 2>/dev/null; then
+  if grep -q "mongodb+srv://" JobTrigger-Backend/.env 2>/dev/null; then
     log_success "MongoDB Cloud connection string found in .env"
   else
-    log_error "MongoDB Cloud URI not found in lab-trigger-backend/.env"
+    log_error "MongoDB Cloud URI not found in JobTrigger-Backend/.env"
     log_info "Please add your connection string:"
     echo -e "  ${YELLOW}MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/jobtrigger${NC}"
     echo ""
@@ -93,8 +93,8 @@ fi
 log_step "Running database migrations"
 log_info "Setting up collections, users, and Jenkins credentials..."
 
-if [ -f "lab-trigger-backend/scripts/setup-migrations.js" ]; then
-  cd lab-trigger-backend
+if [ -f "JobTrigger-Backend/scripts/setup-migrations.js" ]; then
+  cd JobTrigger-Backend
   node scripts/setup-migrations.js
   MIGRATION_EXIT=$?
   cd ..
@@ -131,5 +131,5 @@ log_header "🚀 Starting Backend (Node.js)"
 echo ""
 
 # Step 5: Start backend
-cd lab-trigger-backend
+cd JobTrigger-Backend
 npm run dev

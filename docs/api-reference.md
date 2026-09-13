@@ -3,7 +3,7 @@
 Two distinct APIs, two distinct `Dio` clients, two distinct auth schemes.
 Never share an interceptor or base URL between them.
 
-## 1. Backend API (`lab-trigger-backend`, JWT bearer)
+## 1. Backend API (`JobTrigger-Backend`, JWT bearer)
 
 Base URL from `core/config/app_config.dart`, e.g. `https://api.jobtrigger.app`
 (configurable per build flavor — dev/staging/prod).
@@ -23,7 +23,7 @@ Base URL from `core/config/app_config.dart`, e.g. `https://api.jobtrigger.app`
 header from secure storage on every request except signup/login/appinfo;
 on `401`, clear stored session and route to login (see `auth_notifier.dart`).
 **Not** `Authorization: Bearer` — verified directly against
-`lab-trigger-backend/middleware/auth.js`, which only reads
+`JobTrigger-Backend/middleware/auth.js`, which only reads
 `req.header('x-auth-token')`. This doc previously said `Bearer`, which never
 matched the real backend and made every authenticated request 401 silently
 (discovered only once the Flutter client was exercised end-to-end against a

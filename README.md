@@ -19,7 +19,7 @@
 
 JobTrigger enables developers and DevOps engineers to securely trigger, monitor, and manage Jenkins jobs directly from their phone—anytime, anywhere.
 
-> **Note:** this app started as a SwiftUI/iOS-only client (`Lab-Trigger-frontend`) and has since been fully rewritten in Flutter (`job_trigger/`) for iOS + Android, using a layered Clean Architecture with Riverpod. See [`CLAUDE.md`](CLAUDE.md) and [`docs/`](docs/) for the full architecture and migration record. The Node.js/MongoDB backend (`lab-trigger-backend/`) was kept as-is throughout the rewrite.
+> **Note:** this app started as a SwiftUI/iOS-only client (`Lab-Trigger-frontend`) and has since been fully rewritten in Flutter (`JobTrigger-Frontend/`) for iOS + Android, using a layered Clean Architecture with Riverpod. See [`CLAUDE.md`](CLAUDE.md) and [`docs/`](docs/) for the full architecture and migration record. The Node.js/MongoDB backend (`JobTrigger-Backend/`) was kept as-is throughout the rewrite.
 
 ## ✨ Features
 
@@ -80,7 +80,7 @@ docker compose up -d
 ```
 
 This starts a `mongo:8` container on `localhost:27017` (matching
-`lab-trigger-backend/.env`'s `MONGODB_URI`), with data persisted in a named
+`JobTrigger-Backend/.env`'s `MONGODB_URI`), with data persisted in a named
 Docker volume. `docker compose down` stops it (data persists);
 `docker compose down -v` also wipes the volume. Alternatively, run your own
 local MongoDB instance on the same port.
@@ -88,7 +88,7 @@ local MongoDB instance on the same port.
 ### 2. Start the Backend
 
 ```bash
-cd lab-trigger-backend
+cd JobTrigger-Backend
 npm install
 npm run dev
 ```
@@ -106,11 +106,11 @@ flutter run --dart-define-from-file=config/dev.json -d <device-id>
 ```
 
 `config/dev.json` points the app at `http://127.0.0.1:5001` — see
-[`job_trigger/config/README.md`](job_trigger/config/README.md) for the
+[`JobTrigger-Frontend/config/README.md`](JobTrigger-Frontend/config/README.md) for the
 staging/prod variants. Re-run the `build_runner` command any time you edit a
 `@freezed`/`@riverpod`/`@JsonSerializable` class.
 
-Useful day-to-day commands (from `job_trigger/`):
+Useful day-to-day commands (from `JobTrigger-Frontend/`):
 
 ```bash
 flutter analyze   # must be clean before a PR
