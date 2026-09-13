@@ -6,7 +6,7 @@ part 'user_dto.freezed.dart';
 part 'user_dto.g.dart';
 
 /// Mirrors the backend's user shape exactly — note the Mongo `_id` key
-/// (confirmed against `lab-trigger-backend/controllers/authController.js`,
+/// (confirmed against `JobTrigger-Backend/controllers/authController.js`,
 /// which responds `{ token, user: { _id, email } }` — the old Swift `User`
 /// model's `CodingKeys` maps the same way).
 @freezed

@@ -33,7 +33,7 @@ class _JsonAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-// Real shape confirmed live against lab-trigger-backend (P6-02).
+// Real shape confirmed live against JobTrigger-Backend (P6-02).
 Map<String, dynamic> _appInfoJson() => {
   '_id': 'a1',
   'appVersion': '1.0.0',

@@ -13,7 +13,7 @@ class FormValidationError implements Exception {
 /// Field-validation rules ported 1:1 from `LoginViewModel.swift` /
 /// `SignupViewModel.swift` — same substring-based email check and 6-char
 /// password minimum as the backend itself enforces
-/// (`lab-trigger-backend/controllers/authController.js`).
+/// (`JobTrigger-Backend/controllers/authController.js`).
 class AuthValidation {
   const AuthValidation._();
 

@@ -13,7 +13,7 @@ import '../settings/credentials_notifier.dart';
 /// Ported from `ProfileView.swift`. Deliberately skips the old app's
 /// "Change Password" / "Security Settings" rows — both were unimplemented
 /// "coming soon" placeholders with no backend support (no password-change
-/// route exists in `lab-trigger-backend`), so there's no real feature there
+/// route exists in `JobTrigger-Backend`), so there's no real feature there
 /// to preserve; flagged rather than silently ported as dead UI.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});

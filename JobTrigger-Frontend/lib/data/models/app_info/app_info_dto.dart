@@ -5,7 +5,7 @@ import '../../../domain/app_info/app_info.dart';
 part 'app_info_dto.freezed.dart';
 part 'app_info_dto.g.dart';
 
-/// Mirrors `lab-trigger-backend/models/AppInfo.js` exactly.
+/// Mirrors `JobTrigger-Backend/models/AppInfo.js` exactly.
 @freezed
 abstract class AppInfoDto with _$AppInfoDto {
   const factory AppInfoDto({

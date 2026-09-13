@@ -5,7 +5,7 @@ import '../../../domain/credential/jenkins_server.dart';
 part 'credential_dto.freezed.dart';
 part 'credential_dto.g.dart';
 
-/// Mirrors `lab-trigger-backend/models/JenkinsCredential.js` exactly.
+/// Mirrors `JobTrigger-Backend/models/JenkinsCredential.js` exactly.
 @freezed
 abstract class CredentialDto with _$CredentialDto {
   const factory CredentialDto({

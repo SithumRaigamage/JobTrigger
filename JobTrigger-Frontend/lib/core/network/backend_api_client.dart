@@ -15,7 +15,7 @@ const _publicPaths = ['/auth/signup', '/auth/login', '/appinfo'];
 /// and clears the stored session on `401` (see `docs/api-reference.md`).
 ///
 /// Uses a plain `x-auth-token` header, not `Authorization: Bearer` — verified
-/// directly against `lab-trigger-backend/middleware/auth.js`, which only
+/// directly against `JobTrigger-Backend/middleware/auth.js`, which only
 /// ever reads `req.header('x-auth-token')` with no `Bearer`-scheme handling
 /// or fallback. `docs/api-reference.md` previously documented `Authorization:
 /// Bearer` as the contract (aspirational, never actually matching the real
