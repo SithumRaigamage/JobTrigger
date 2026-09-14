@@ -66,6 +66,7 @@ class _GitHubCredentialEditBottomSheetState
     text: widget.existing?.defaultOwner,
   );
   late bool _isDefault = widget.existing?.isDefault ?? false;
+  bool _obscureToken = true;
 
   bool get _isEditing => widget.existing != null;
 
@@ -127,7 +128,7 @@ class _GitHubCredentialEditBottomSheetState
                 const SizedBox(height: 12),
                 TextField(
                   controller: _tokenController,
-                  obscureText: true,
+                  obscureText: _obscureToken,
                   autocorrect: false,
                   decoration: InputDecoration(
                     labelText: 'Personal Access Token',
@@ -135,6 +136,16 @@ class _GitHubCredentialEditBottomSheetState
                         ? 'Leave blank to keep the current token'
                         : 'ghp_… or github_pat_…',
                     border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureToken
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                      tooltip: _obscureToken ? 'Show token' : 'Hide token',
+                      onPressed: () =>
+                          setState(() => _obscureToken = !_obscureToken),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),

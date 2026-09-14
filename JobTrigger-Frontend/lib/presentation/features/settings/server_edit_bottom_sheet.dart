@@ -82,6 +82,8 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
     text: widget.existing?.paramToken,
   );
   late bool _isDefault = widget.existing?.isDefault ?? false;
+  bool _obscurePassword = true;
+  bool _obscureParamToken = true;
 
   bool get _isEditing => widget.existing != null;
 
@@ -169,19 +171,46 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
                     labelText: 'Password',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                      tooltip: _obscurePassword
+                          ? 'Show password'
+                          : 'Hide password',
+                      onPressed: () => setState(
+                        () => _obscurePassword = !_obscurePassword,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _paramTokenController,
                   autocorrect: false,
-                  decoration: const InputDecoration(
+                  obscureText: _obscureParamToken,
+                  decoration: InputDecoration(
                     labelText: 'Build Token (for triggering)',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureParamToken
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                      tooltip: _obscureParamToken
+                          ? 'Show build token'
+                          : 'Hide build token',
+                      onPressed: () => setState(
+                        () => _obscureParamToken = !_obscureParamToken,
+                      ),
+                    ),
                   ),
                 ),
                 SwitchListTile(
