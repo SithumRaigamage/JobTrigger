@@ -120,5 +120,5 @@ class GitHubCredentialsRepositoryImpl implements GitHubCredentialsRepository {
 }
 
 @riverpod
-GitHubCredentialsRepository githubCredentialsRepository(Ref ref) =>
+GitHubCredentialsRepository gitHubCredentialsRepository(Ref ref) =>
     GitHubCredentialsRepositoryImpl(ref.watch(dioBackendProvider));

@@ -7,7 +7,7 @@ import '../error/result.dart';
 /// this. Unlike Jenkins (a different base URL per server), every GitHub
 /// credential talks to the same `api.github.com`; what varies per
 /// credential is only the Bearer token.
-const githubApiBaseUrl = 'https://api.github.com';
+const gitHubApiBaseUrl = 'https://api.github.com';
 
 /// Builds a per-credential `Dio` instance with a Bearer-token
 /// `Authorization` header set once at construction — see
@@ -15,10 +15,10 @@ const githubApiBaseUrl = 'https://api.github.com';
 /// structurally simpler than `buildJenkinsDio`: no CSRF crumb interceptor
 /// (`NFR-SEC-06` is a Jenkins-only mechanism, GitHub's API doesn't use
 /// one), and the base URL is fixed rather than per-credential.
-Dio buildGithubDio({required String token}) {
+Dio buildGitHubDio({required String token}) {
   final dio = Dio(
     BaseOptions(
-      baseUrl: githubApiBaseUrl,
+      baseUrl: gitHubApiBaseUrl,
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),
       headers: {'Accept': 'application/vnd.github+json'},
@@ -34,16 +34,16 @@ Dio buildGithubDio({required String token}) {
 /// `Dio` instance — never the active credential's client, matching
 /// `testJenkinsConnection()`'s reasoning exactly. Returns the
 /// authenticated username on success.
-Future<Result<String, AppFailure>> testGithubConnection({
+Future<Result<String, AppFailure>> testGitHubConnection({
   required String token,
 }) async {
-  final dio = buildGithubDio(token: token);
+  final dio = buildGitHubDio(token: token);
   try {
     final response = await dio.get<Map<String, dynamic>>('/user');
     final login = response.data?['login'] as String?;
     return Ok(login ?? 'unknown');
   } on DioException catch (exception) {
-    return Err(AppFailure.fromGithubException(exception));
+    return Err(AppFailure.fromGitHubException(exception));
   } finally {
     dio.close();
   }

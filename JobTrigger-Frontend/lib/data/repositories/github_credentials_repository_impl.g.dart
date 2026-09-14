@@ -9,11 +9,11 @@ part of 'github_credentials_repository_impl.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(githubCredentialsRepository)
-final githubCredentialsRepositoryProvider =
-    GithubCredentialsRepositoryProvider._();
+@ProviderFor(gitHubCredentialsRepository)
+final gitHubCredentialsRepositoryProvider =
+    GitHubCredentialsRepositoryProvider._();
 
-final class GithubCredentialsRepositoryProvider
+final class GitHubCredentialsRepositoryProvider
     extends
         $FunctionalProvider<
           GitHubCredentialsRepository,
@@ -21,19 +21,19 @@ final class GithubCredentialsRepositoryProvider
           GitHubCredentialsRepository
         >
     with $Provider<GitHubCredentialsRepository> {
-  GithubCredentialsRepositoryProvider._()
+  GitHubCredentialsRepositoryProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'githubCredentialsRepositoryProvider',
+        name: r'gitHubCredentialsRepositoryProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$githubCredentialsRepositoryHash();
+  String debugGetCreateSourceHash() => _$gitHubCredentialsRepositoryHash();
 
   @$internal
   @override
@@ -43,7 +43,7 @@ final class GithubCredentialsRepositoryProvider
 
   @override
   GitHubCredentialsRepository create(Ref ref) {
-    return githubCredentialsRepository(ref);
+    return gitHubCredentialsRepository(ref);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -55,5 +55,5 @@ final class GithubCredentialsRepositoryProvider
   }
 }
 
-String _$githubCredentialsRepositoryHash() =>
-    r'a0ec0d14c9e2db01e88f3f24dee46faadd535708';
+String _$gitHubCredentialsRepositoryHash() =>
+    r'9e503a12f8a0733e47012cce3df976bbe56f395f';

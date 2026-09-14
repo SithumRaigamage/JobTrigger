@@ -86,11 +86,11 @@ void main() {
     });
   });
 
-  group('AppFailure.fromGithubException', () {
+  group('AppFailure.fromGitHubException', () {
     test(
       'a 403 with X-RateLimit-Remaining: 0 maps to RateLimitFailure',
       () {
-        final failure = AppFailure.fromGithubException(
+        final failure = AppFailure.fromGitHubException(
           _exception(
             type: DioExceptionType.badResponse,
             statusCode: 403,
@@ -107,7 +107,7 @@ void main() {
     test(
       'a 403 with a non-zero X-RateLimit-Remaining is a plain AuthFailure',
       () {
-        final failure = AppFailure.fromGithubException(
+        final failure = AppFailure.fromGitHubException(
           _exception(
             type: DioExceptionType.badResponse,
             statusCode: 403,
@@ -122,7 +122,7 @@ void main() {
     );
 
     test('a 403 with no rate-limit header at all is a plain AuthFailure', () {
-      final failure = AppFailure.fromGithubException(
+      final failure = AppFailure.fromGitHubException(
         _exception(type: DioExceptionType.badResponse, statusCode: 403),
       );
 
@@ -130,7 +130,7 @@ void main() {
     });
 
     test('delegates to fromDioException for everything else (401)', () {
-      final failure = AppFailure.fromGithubException(
+      final failure = AppFailure.fromGitHubException(
         _exception(type: DioExceptionType.badResponse, statusCode: 401),
       );
 
@@ -140,7 +140,7 @@ void main() {
     test(
       'delegates to fromDioException for everything else (connection error)',
       () {
-        final failure = AppFailure.fromGithubException(
+        final failure = AppFailure.fromGitHubException(
           _exception(type: DioExceptionType.connectionError),
         );
 

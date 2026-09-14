@@ -39,7 +39,7 @@ sealed class AppFailure {
   /// ours). Deliberately a separate entry point rather than a change to
   /// [fromDioException]'s generic 401/403 handling, so Jenkins/backend
   /// 403s keep meaning exactly what they already mean.
-  factory AppFailure.fromGithubException(DioException exception) {
+  factory AppFailure.fromGitHubException(DioException exception) {
     final response = exception.response;
     if (response?.statusCode == 403 &&
         response?.headers.value('x-ratelimit-remaining') == '0') {
@@ -84,7 +84,7 @@ final class ServerFailure extends AppFailure {
   final int statusCode;
 }
 
-/// See [AppFailure.fromGithubException] — GitHub-only, never produced by
+/// See [AppFailure.fromGitHubException] — GitHub-only, never produced by
 /// the Jenkins or backend clients.
 final class RateLimitFailure extends AppFailure {
   const RateLimitFailure();

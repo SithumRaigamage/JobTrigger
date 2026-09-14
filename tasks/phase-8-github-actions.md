@@ -124,10 +124,34 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       `github_client_factory_test.dart` (`buildGithubDio` header/base-URL
       construction, per-call token independence). `flutter analyze`
       clean, full suite (177 tests) passing.
-- [ ] P8-05 `activeGithubCredentialNotifier` — same shape as
-      `ActiveServerNotifier`, entirely independent state (switching the
-      active GitHub credential never touches the active Jenkins server,
-      `US-GH-CRED-03`).
+- [x] P8-05 `GitHubCredentialsNotifier` (list, mirrors
+      `CredentialsNotifier`) + `ActiveGitHubCredentialNotifier` (mirrors
+      `ActiveServerNotifier` exactly — rehydrate-from-prefs, set, clear,
+      delete-with-fallback), entirely independent state from
+      `ActiveServerNotifier`: its own provider, its own
+      `SharedPreferences` key (`active_github_credential_id`), zero shared
+      code — switching one never touches the other (`US-GH-CRED-03`).
+
+      **Naming consistency fix caught while wiring this up**: earlier P8
+      commits had drifted between `Github`/`github`/`GitHub` casing across
+      files (`buildGithubDio`, `fromGithubException`, a provider function
+      named `githubCredentialsRepository` that riverpod_generator turned
+      into `githubCredentialsRepositoryProvider`, while the class-based
+      `GitHubCredentialsNotifier` generated `gitHubCredentialsNotifierProvider`
+      — two different casings for what should be one consistent scheme).
+      Standardized everything to `GitHub`/`gitHub` (matching the brand
+      name) across P8-00–P8-04's files before continuing, rather than
+      letting the inconsistency compound over the remaining ~20 tasks:
+      `buildGitHubDio`, `testGitHubConnection`, `gitHubApiBaseUrl`,
+      `AppFailure.fromGitHubException`, `gitHubCredentialsRepository`
+      (provider function).
+
+      4 new tests in `active_github_credential_notifier_test.dart`
+      mirroring `active_server_notifier_test.dart`'s exact fallback-logic
+      coverage (deletes active → falls back to `isDefault`, falls back to
+      first when none default, clears when none remain, deleting
+      non-active leaves active untouched). `flutter analyze` clean, full
+      suite (181 tests) passing.
 - [ ] P8-06 Settings UI: a new "GitHub" section (separate from the
       existing Jenkins server list, not merged into it) — list, add/edit
       bottom sheet (`GitHubCredentialEditBottomSheet`), swipe-delete with
