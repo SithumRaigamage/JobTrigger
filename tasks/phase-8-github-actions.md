@@ -246,10 +246,46 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       clean (only the pre-existing, unrelated `login_screen.dart`
       `unawaited_futures` info), full suite now 192 tests passing (was
       183; +9 from this task: 3 repo-DTO + 2 workflow-DTO + 4 repository).
-- [ ] P8-11 `GitHubRepoScreen` + `GitHubWorkflowListScreen` — glass card
-      list pattern reused from `HomeScreen`'s job tiles; default-org-filter
-      UI; disabled-workflow visual state; client-side search filtering
-      (no per-keystroke network call, `NFR-PERF-02`).
+- [x] P8-11 `GitHubRepoScreen` + `GitHubWorkflowListScreen` — done, plus a
+      routing decision this task's text didn't cover and needed a
+      checkpoint: how users reach these screens at all. `CiTool
+      .githubActions.isAvailable` was hardcoded `false` (GitHub Actions
+      showed a "Soon" badge on `ToolSelectionScreen`, unselectable) —
+      flipped to `true`. The Home tab's route (`AppRoutes.home`) now
+      builds a small `_ToolAwareHomeScreen` wrapper in `app_router.dart`
+      that watches `activeToolNotifierProvider` and renders `HomeScreen`
+      or `GitHubRepoScreen`; the conditional lives only at that router
+      layer, not inside either screen, so both stay fully independent
+      widgets with no cross-tool knowledge. `GitHubRepoScreen` mirrors
+      `HomeScreen`'s glass-card list/search/pull-to-refresh structure
+      minus breadcrumb/folder state (GitHub's repo list is flat, no tree),
+      gated on `activeGitHubCredentialNotifierProvider` via a new
+      `NoActiveGitHubCredentialView` (mirrors `NoActiveServerView`).
+      Search filters client-side by `fullName`, case-insensitive, no
+      per-keystroke network call (`NFR-PERF-02`). New
+      `github_repos_notifier.dart`/`github_repo_search_notifier.dart`/
+      `filtered_github_repos_provider.dart` mirror `job_tree_notifier.dart`
+      /`job_search_notifier.dart`/`filtered_jobs_provider.dart` 1:1.
+      Tapping a repo tile pushes `AppRoutes.githubWorkflows` (new route,
+      root-navigator drill-down like `jobDetail`/`buildLog`, `extra:
+      GitHubRepo`) to `GitHubWorkflowListScreen`, backed by a new family
+      `GitHubWorkflowsNotifier.build(owner, repo)`. Its tiles show a
+      disabled visual state (dimmed + "Disabled" chip) for `!isActive` but
+      are deliberately non-interactive — GH-RUN (the run list a tap would
+      lead to) doesn't exist yet, so a tap target there would be a dead
+      end. Also flipped `ToolSelectionScreen`'s footer copy ("Jenkins and
+      GitHub Actions are fully supported today"). Tests: `filtered_github
+      _repos_provider_test.dart` (3, mirrors `filtered_jobs_provider
+      _test.dart`) plus a new `app_router_test.dart` case exercising the
+      full path end-to-end against the real `appRouter` — GitHub tool
+      active renders `GitHubRepoScreen` not `HomeScreen`, gates on no
+      credential, then renders and taps a repo tile through to
+      `GitHubWorkflowListScreen` showing that repo's real workflow data.
+      No separate notifier unit tests, matching this codebase's existing
+      convention of not testing thin `AsyncNotifier` wrappers standalone
+      (`JobTreeNotifier` has none either — coverage comes from the
+      screen/provider tests that exercise them). `flutter analyze` clean,
+      full suite 196 tests passing (was 192; +4 from this task).
 
 ## GH-RUN — Workflow runs: view, trigger, live status, cancel, steps
 

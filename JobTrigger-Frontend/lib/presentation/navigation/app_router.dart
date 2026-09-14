@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/auth/auth_state.dart';
+import '../../domain/github/github_repo.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../features/app_info/app_info_screen.dart';
@@ -10,12 +12,16 @@ import '../features/auth/auth_notifier.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/signup_screen.dart';
 import '../features/build_log/build_log_screen.dart';
+import '../features/github/github_repo_screen.dart';
+import '../features/github/github_workflow_list_screen.dart';
 import '../features/history/global_history_screen.dart';
 import '../features/history/job_history_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/job_detail/job_detail_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/tool_selection/active_tool_notifier.dart';
+import '../features/tool_selection/ci_tool.dart';
 import '../features/tool_selection/tool_selection_screen.dart';
 import 'app_routes.dart';
 import 'main_scaffold.dart';
@@ -42,6 +48,23 @@ const _authRoutes = {AppRoutes.login, AppRoutes.signup};
 /// see `docs/architecture.md`'s `main_scaffold.dart` mapping row and
 /// `tasks/backlog.md`'s now-promoted bottom-tab-bar item).
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
+/// Picks which screen occupies the shared "Home" tab slot based on the
+/// active CI tool -- kept as a router-wiring concern, not a conditional
+/// inside either screen: `HomeScreen` and `GitHubRepoScreen` stay fully
+/// independent widgets with no knowledge of each other or of `CiTool`.
+class _ToolAwareHomeScreen extends ConsumerWidget {
+  const _ToolAwareHomeScreen();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeTool = ref.watch(activeToolNotifierProvider);
+    return switch (activeTool) {
+      CiTool.githubActions => const GitHubRepoScreen(),
+      _ => const HomeScreen(),
+    };
+  }
+}
 
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
@@ -107,6 +130,12 @@ GoRouter appRouter(Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AppInfoScreen(),
       ),
+      GoRoute(
+        path: AppRoutes.githubWorkflows,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            GitHubWorkflowListScreen(repo: state.extra! as GitHubRepo),
+      ),
       // Persistent bottom tab bar (P6-14) — Home/History/Settings/Profile.
       // See main_scaffold.dart.
       StatefulShellRoute.indexedStack(
@@ -117,7 +146,7 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.home,
-                builder: (context, state) => const HomeScreen(),
+                builder: (context, state) => const _ToolAwareHomeScreen(),
               ),
             ],
           ),

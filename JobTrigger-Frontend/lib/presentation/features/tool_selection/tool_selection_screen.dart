@@ -125,8 +125,8 @@ class ToolSelectionScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'More integrations rolling out — Jenkins is fully '
-                          'supported today.',
+                          'More integrations rolling out — Jenkins and '
+                          'GitHub Actions are fully supported today.',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(

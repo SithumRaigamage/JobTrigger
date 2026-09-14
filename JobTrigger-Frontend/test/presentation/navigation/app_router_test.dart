@@ -6,8 +6,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
+import 'package:job_trigger/data/repositories/github_repository_impl.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/auth/user.dart';
+import 'package:job_trigger/domain/credential/github_credential.dart';
+import 'package:job_trigger/domain/github/github_repo.dart';
+import 'package:job_trigger/domain/github/github_repository.dart';
+import 'package:job_trigger/domain/github/github_workflow.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
@@ -18,13 +23,42 @@ import 'package:job_trigger/domain/jenkins/queue_item.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/presentation/features/auth/auth_notifier.dart';
+import 'package:job_trigger/presentation/features/github/github_repo_screen.dart';
+import 'package:job_trigger/presentation/features/github/github_workflow_list_screen.dart';
 import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifier.dart';
 import 'package:job_trigger/presentation/features/home/home_screen.dart';
+import 'package:job_trigger/presentation/features/settings/active_github_credential_notifier.dart';
 import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
+import 'package:job_trigger/presentation/features/tool_selection/active_tool_notifier.dart';
+import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
 import 'package:job_trigger/presentation/navigation/app_router.dart';
 import 'package:job_trigger/presentation/navigation/app_routes.dart';
 import 'package:job_trigger/presentation/navigation/main_scaffold.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+
+const _fakeGitHubCredential = GitHubCredential(
+  id: 'c1',
+  label: 'Test PAT',
+  secret: 'ghp_test',
+);
+
+/// Reused fake from `filtered_github_repos_provider_test.dart`'s pattern.
+class _FakeGitHubRepository implements GitHubRepository {
+  _FakeGitHubRepository(this._repos, this._workflows);
+
+  final List<GitHubRepo> _repos;
+  final List<GitHubWorkflow> _workflows;
+
+  @override
+  Future<Result<List<GitHubRepo>, AppFailure>> fetchRepos() async =>
+      Ok(_repos);
+
+  @override
+  Future<Result<List<GitHubWorkflow>, AppFailure>> fetchWorkflows(
+    String owner,
+    String repo,
+  ) async => Ok(_workflows);
+}
 
 const _fakeServer = JenkinsServer(
   id: 's1',
@@ -193,6 +227,79 @@ void main() {
         tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
         0,
       );
+    },
+  );
+
+  testWidgets(
+    'the Home tab renders GitHubRepoScreen (not HomeScreen) when GitHub '
+    'Actions is the active tool, and tapping a repo drills into its '
+    'workflows (P8-11)',
+    (tester) async {
+      const repo = GitHubRepo(
+        id: 1,
+        name: 'hello-world',
+        owner: 'octocat',
+        fullName: 'octocat/hello-world',
+      );
+      const workflow = GitHubWorkflow(
+        id: 42,
+        name: 'CI',
+        path: '.github/workflows/ci.yml',
+        state: 'active',
+      );
+      final container = ProviderContainer(
+        overrides: [
+          gitHubRepositoryProvider.overrideWithValue(
+            _FakeGitHubRepository([repo], [workflow]),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(authNotifierProvider, (_, _) {});
+
+      await container
+          .read(authNotifierProvider.notifier)
+          .setSession(const User(id: 'u1', email: 'a@b.com'), 'jwt-abc');
+
+      final router = container.read(appRouterProvider);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go(AppRoutes.home);
+      await tester.pumpAndSettle();
+
+      // Set the active tool only once the Home route is mounted and
+      // watching -- activeToolNotifierProvider is a plain (non-keepAlive)
+      // autoDispose provider, so setting it beforehand risks it resetting
+      // before `_ToolAwareHomeScreen` ever observes it, the same pitfall
+      // documented above for `folderBreadcrumbNotifierProvider`.
+      container
+          .read(activeToolNotifierProvider.notifier)
+          .setActiveTool(CiTool.githubActions);
+      await tester.pumpAndSettle();
+
+      // GitHubRepoScreen shows a "no credential" empty state until one is
+      // active, same gating shape as HomeScreen/NoActiveServerView.
+      await container
+          .read(activeGitHubCredentialNotifierProvider.notifier)
+          .setActiveCredential(_fakeGitHubCredential);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(GitHubRepoScreen), findsOneWidget);
+      expect(find.byType(HomeScreen), findsNothing);
+      expect(find.text('hello-world'), findsOneWidget);
+
+      await tester.tap(find.text('hello-world'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(GitHubWorkflowListScreen), findsOneWidget);
+      expect(find.text('CI'), findsOneWidget);
+      expect(find.text('.github/workflows/ci.yml'), findsOneWidget);
     },
   );
 }

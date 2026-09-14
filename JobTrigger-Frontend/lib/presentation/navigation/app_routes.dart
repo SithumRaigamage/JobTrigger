@@ -13,6 +13,7 @@ abstract class AppRoutes {
   static const buildLog = '/home/job/build-log';
   static const jobHistory = '/home/job/history';
   static const globalHistory = '/history';
+  static const githubWorkflows = '/github/repos/workflows';
   // Add/edit server is a modal bottom sheet (ServerEditBottomSheet), not a
   // route — see presentation/features/settings/server_edit_bottom_sheet.dart.
   static const settings = '/settings';

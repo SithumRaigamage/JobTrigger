@@ -4,8 +4,7 @@ import 'package:simple_icons/simple_icons.dart';
 import '../../../core/theme/app_colors.dart';
 
 /// Ported from `Tools/ToolSelection/CITool.swift`. Static — no notifier per
-/// `docs/state-management.md`'s "Feature: tool_selection" section, unless a
-/// tool beyond Jenkins becomes real (out of scope, see `tasks/backlog.md`).
+/// `docs/state-management.md`'s "Feature: tool_selection" section.
 /// Icons are real brand marks via `simple_icons` — the old app's logo image
 /// assets never actually existed (see `tasks/phase-0-setup.md` P0-08's
 /// note), and generic Material icon fallbacks (gear, diamond, etc.) weren't
@@ -46,7 +45,9 @@ extension CiToolX on CiTool {
     CiTool.circleci => AppColors.ciToolCircleci,
   };
 
-  /// Only Jenkins is available in v1.0 — the rest stay disabled placeholders
-  /// (see `tasks/backlog.md`).
-  bool get isAvailable => this == CiTool.jenkins;
+  /// Jenkins and GitHub Actions are available (`Phase 8`, GH-REPO onward);
+  /// GitLab CI, SonarQube, and CircleCI stay disabled placeholders (see
+  /// `tasks/backlog.md`'s `BACKLOG-01`).
+  bool get isAvailable =>
+      this == CiTool.jenkins || this == CiTool.githubActions;
 }
