@@ -245,11 +245,56 @@ per `CLAUDE.md` §9.
       `Ok(null)`, other-status→`Err`), 1 in
       `build_status_polling_notifier_test.dart` (piggyback-invalidation).
       `flutter analyze` clean, full suite (136 tests) passing.
-- [ ] P7-07 `US-PIPE-05` — Input-step approval. Depends on P7-00 (crumb)
-      and reuses P7-06's stage infra for the pending-input signal.
-      `wfapi/pendingInputActions` read + `wfapi/inputSubmit` POST; new
-      high-visibility banner UI per the story's design notes; reuses
-      `ParameterForm` (`US-JOB-03`) when the input step requests values.
+- [x] P7-07 `US-PIPE-05` — Input-step approval. **⚠️ UNVERIFIED against a
+      real paused pipeline** — confirmed with the user before implementing
+      (no live Jenkins instance with an actual paused input step is
+      available in this environment, same class of gap `NFR-TEST-02`
+      flags elsewhere). Implemented against the documented Pipeline: REST
+      API plugin shape: `GET {buildUrl}wfapi/pendingInputActions` (returns
+      the first entry as `Ok(PendingInput)`, empty array or 404 as
+      `Ok(null)`) for detection, and `POST {buildUrl}input/{id}/
+      proceedEmpty|submit|abort` for submission — not `wfapi/inputSubmit`
+      as the original story text guessed; corrected to the actual
+      documented endpoint shape while implementing. Every uncertain point
+      is flagged directly in code (`pending_input.dart`'s class doc
+      comment, repeated on the repository interface methods) — **must be
+      confirmed against a real server before being trusted in
+      production**, called out as the highest-stakes item in this epic.
+
+      New `PendingInput` domain type, reusing the existing
+      `ParameterDefinition`/`ParameterDefinitionDto` for the input step's
+      requested parameters (assumption: Jenkins serializes them through
+      the same class family as job-trigger parameters — also flagged,
+      also unverified). New `PendingInputNotifier` (detection, family by
+      build URL) and `InputSubmitNotifier` (the action, same
+      loading/haptic/toast shape as `TriggerBuildNotifier`/
+      `CancelBuildNotifier`), refreshing both `JobDetailNotifier` and
+      itself on success. Live-updates via the same
+      `BuildStatusPollingNotifier` 5s tick as P7-06's stage view (third
+      thing it now invalidates).
+
+      New `_PendingInputBanner`: highest-visibility position in the
+      layout (top of the ListView, above description/health report),
+      reuses `ParameterForm` when the input requests values, both
+      Approve/Reject require a confirm dialog (same `showDialog<bool>`/
+      `AlertDialog` pattern as `SettingsScreen`'s existing delete-server
+      confirmation — the closest precedent, since trigger/cancel's own
+      confirmation requirement from `US-JOB-02`/`05` was never actually
+      built despite being in that story's acceptance criteria, a
+      pre-existing gap from Phase 5, not introduced here).
+
+      Interface change rippled through the same 6 fake `JenkinsRepository`
+      implementations (2 new methods this time). 12 new tests: 4 in
+      `pending_input_dto_test.dart`, 7 in
+      `jenkins_repository_impl_pending_input_test.dart` (detection ×3,
+      submission ×4 — proceed-empty, proceed-with-params, abort, failure),
+      1 more in `build_status_polling_notifier_test.dart` (piggyback-
+      invalidation). One test bug found and fixed along the way: the
+      fake adapter claimed a JSON content-type on responses that echoed
+      back a plain request-path string, which made Dio try (and fail) to
+      JSON-decode it — fixed by only claiming JSON content-type when
+      actually returning JSON. `flutter analyze` clean, full suite
+      (148 tests) passing.
 - [ ] P7-08 `US-PIPE-09` — Upstream/downstream navigation. Depends on P7-01
       (cause data carries the upstream link). Downstream requires a new
       field off the job-detail tree query (`downstreamProjects[name,url]`

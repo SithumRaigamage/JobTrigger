@@ -5,6 +5,7 @@ import '../../core/error/result.dart';
 import 'jenkins_build.dart';
 import 'jenkins_job.dart';
 import 'log_chunk.dart';
+import 'pending_input.dart';
 import 'pipeline_stage.dart';
 import 'queue_item.dart';
 import 'test_report.dart';
@@ -82,4 +83,29 @@ abstract class JenkinsRepository {
   Future<Result<List<PipelineStage>?, AppFailure>> fetchPipelineStages(
     String buildUrl,
   );
+
+  /// `GET {buildUrl}wfapi/pendingInputActions` (US-PIPE-05). Returns
+  /// `Ok(null)` (not an [Err]) when nothing is paused — a normal state —
+  /// or the first pending action when one or more exist (Jenkins can in
+  /// principle report several; this app surfaces one at a time, matching
+  /// the single-banner UI). **Unverified against a real paused pipeline**
+  /// — see `pending_input.dart`'s doc comment.
+  Future<Result<PendingInput?, AppFailure>> fetchPendingInput(
+    String buildUrl,
+  );
+
+  /// Resolves and approves/rejects a paused input step (US-PIPE-05).
+  /// [buildUrl] + [inputId] construct `{buildUrl}input/{inputId}/`, then
+  /// POST `proceedEmpty` (no params), `submit` (with [parameters], form-
+  /// urlencoded) when [proceed] is true, or `abort` when false — the CSRF
+  /// crumb (`NFR-SEC-06`) is attached automatically like every other
+  /// Jenkins POST. **Unverified against a real paused pipeline** — see
+  /// `pending_input.dart`'s doc comment; this is the highest-stakes call
+  /// in the PIPE epic, confirm against a real server before trusting it.
+  Future<Result<void, AppFailure>> submitInput({
+    required String buildUrl,
+    required String inputId,
+    required bool proceed,
+    Map<String, String> parameters,
+  });
 }

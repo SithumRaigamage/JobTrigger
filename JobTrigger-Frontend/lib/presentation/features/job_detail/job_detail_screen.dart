@@ -8,6 +8,7 @@ import '../../../domain/jenkins/build_artifact.dart';
 import '../../../domain/jenkins/build_progress.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/parameter_definition.dart';
+import '../../../domain/jenkins/pending_input.dart';
 import '../../../domain/jenkins/pipeline_stage.dart';
 import '../../../domain/jenkins/queue_item.dart';
 import '../../../domain/jenkins/scm_change.dart';
@@ -19,8 +20,10 @@ import '../../navigation/app_routes.dart';
 import 'artifact_download_notifier.dart';
 import 'build_status_polling_notifier.dart';
 import 'cancel_build_notifier.dart';
+import 'input_submit_notifier.dart';
 import 'job_detail_notifier.dart';
 import 'parameter_form.dart';
+import 'pending_input_notifier.dart';
 import 'pipeline_stages_notifier.dart';
 import 'queue_status_notifier.dart';
 import 'test_report_notifier.dart';
@@ -143,6 +146,9 @@ class _JobDetailBody extends ConsumerWidget {
     final pipelineStages = job.lastBuild == null
         ? null
         : ref.watch(pipelineStagesNotifierProvider(job.lastBuild!.url)).value;
+    final pendingInput = job.lastBuild == null
+        ? null
+        : ref.watch(pendingInputNotifierProvider(job.lastBuild!.url)).value;
 
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -152,6 +158,17 @@ class _JobDetailBody extends ConsumerWidget {
         16,
       ),
       children: [
+        // Highest-visibility position in the layout, per the story's own
+        // design note — this is the single most action-relevant thing a
+        // user could open this screen to see.
+        if (pendingInput != null) ...[
+          _PendingInputBanner(
+            jobUrl: job.url,
+            buildUrl: job.lastBuild!.url,
+            input: pendingInput,
+          ),
+          const SizedBox(height: 16),
+        ],
         if (job.description != null && job.description!.isNotEmpty) ...[
           Text(job.description!, style: Theme.of(context).textTheme.bodyMedium),
           const SizedBox(height: 16),
@@ -206,6 +223,133 @@ class _JobDetailBody extends ConsumerWidget {
         ),
       ],
     );
+  }
+}
+
+/// US-PIPE-05: the highest-visibility card on the screen while present —
+/// this can directly gate a production deployment (see `pending_input
+/// .dart`'s doc comment on why this endpoint is unverified against a real
+/// paused pipeline). Approve/reject both require confirmation, same
+/// rationale as `US-JOB-02`/`US-JOB-05`'s trigger/cancel confirmations.
+class _PendingInputBanner extends ConsumerStatefulWidget {
+  const _PendingInputBanner({
+    required this.jobUrl,
+    required this.buildUrl,
+    required this.input,
+  });
+
+  final String jobUrl;
+  final String buildUrl;
+  final PendingInput input;
+
+  @override
+  ConsumerState<_PendingInputBanner> createState() =>
+      _PendingInputBannerState();
+}
+
+class _PendingInputBannerState extends ConsumerState<_PendingInputBanner> {
+  Map<String, String> _parameterValues = const {};
+
+  @override
+  Widget build(BuildContext context) {
+    final isSubmitting = ref
+        .watch(inputSubmitNotifierProvider(widget.buildUrl))
+        .isLoading;
+
+    return Card(
+      color: Theme.of(context).colorScheme.tertiaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.pause_circle,
+                  color: Theme.of(context).colorScheme.onTertiaryContainer,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    widget.input.message ?? 'Waiting for your approval',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onTertiaryContainer,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (widget.input.inputs.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              ParameterForm(
+                parameters: widget.input.inputs,
+                onChanged: (values) => _parameterValues = values,
+              ),
+            ],
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => _confirmAndSubmit(context, proceed: false),
+                  child: Text(widget.input.abortText),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => _confirmAndSubmit(context, proceed: true),
+                  child: Text(
+                    isSubmitting ? 'Submitting…' : widget.input.proceedText,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmAndSubmit(
+    BuildContext context, {
+    required bool proceed,
+  }) async {
+    final actionLabel = proceed ? widget.input.proceedText : widget.input.abortText;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(actionLabel),
+        content: Text(
+          proceed
+              ? 'This will resume the paused pipeline. Are you sure?'
+              : 'This will abort the paused pipeline. Are you sure?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(actionLabel),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    await ref
+        .read(inputSubmitNotifierProvider(widget.buildUrl).notifier)
+        .submit(
+          jobUrl: widget.jobUrl,
+          inputId: widget.input.id,
+          proceed: proceed,
+          parameters: _parameterValues,
+        );
   }
 }
 

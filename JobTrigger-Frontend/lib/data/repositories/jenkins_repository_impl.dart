@@ -10,12 +10,14 @@ import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../../domain/jenkins/jenkins_repository.dart';
 import '../../domain/jenkins/log_chunk.dart';
+import '../../domain/jenkins/pending_input.dart';
 import '../../domain/jenkins/pipeline_stage.dart';
 import '../../domain/jenkins/queue_item.dart';
 import '../../domain/jenkins/test_report.dart';
 import '../models/jenkins/jenkins_build_dto.dart';
 import '../models/jenkins/jenkins_job_dto.dart';
 import '../models/jenkins/jenkins_server_info_dto.dart';
+import '../models/jenkins/pending_input_dto.dart';
 import '../models/jenkins/pipeline_stage_dto.dart';
 import '../models/jenkins/queue_item_dto.dart';
 import '../models/jenkins/test_report_dto.dart';
@@ -263,6 +265,57 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
       // Not a pipeline job (freestyle, or no Pipeline: REST API plugin) is
       // a normal state (US-PIPE-04's fallback scenario), not a failure.
       if (exception.response?.statusCode == 404) return const Ok(null);
+      return Err(AppFailure.fromDioException(exception));
+    }
+  }
+
+  @override
+  Future<Result<PendingInput?, AppFailure>> fetchPendingInput(
+    String buildUrl,
+  ) async {
+    try {
+      final base = buildUrl.endsWith('/') ? buildUrl : '$buildUrl/';
+      final response = await _dio.get<List<dynamic>>(
+        '${base}wfapi/pendingInputActions',
+      );
+      final list = response.data ?? const [];
+      if (list.isEmpty) return const Ok(null);
+      final dto = PendingInputDto.fromJson(list.first as Map<String, dynamic>);
+      return Ok(dto.toDomain());
+    } on DioException catch (exception) {
+      // No Pipeline: REST API plugin, or nothing paused (older Jenkins
+      // versions 404 here instead of returning an empty array) is a
+      // normal state, not a failure.
+      if (exception.response?.statusCode == 404) return const Ok(null);
+      return Err(AppFailure.fromDioException(exception));
+    }
+  }
+
+  @override
+  Future<Result<void, AppFailure>> submitInput({
+    required String buildUrl,
+    required String inputId,
+    required bool proceed,
+    Map<String, String> parameters = const {},
+  }) async {
+    try {
+      final base = buildUrl.endsWith('/') ? buildUrl : '$buildUrl/';
+      final inputBase = '${base}input/${Uri.encodeComponent(inputId)}/';
+      if (!proceed) {
+        await _dio.post<void>('${inputBase}abort');
+        return const Ok(null);
+      }
+      if (parameters.isEmpty) {
+        await _dio.post<void>('${inputBase}proceedEmpty');
+      } else {
+        await _dio.post<void>(
+          '${inputBase}submit',
+          data: parameters,
+          options: Options(contentType: Headers.formUrlEncodedContentType),
+        );
+      }
+      return const Ok(null);
+    } on DioException catch (exception) {
       return Err(AppFailure.fromDioException(exception));
     }
   }

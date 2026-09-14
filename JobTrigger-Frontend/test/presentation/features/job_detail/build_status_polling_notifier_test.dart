@@ -9,11 +9,13 @@ import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
+import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
 import 'package:job_trigger/domain/jenkins/queue_item.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/presentation/features/job_detail/build_status_polling_notifier.dart';
 import 'package:job_trigger/presentation/features/job_detail/job_detail_notifier.dart';
+import 'package:job_trigger/presentation/features/job_detail/pending_input_notifier.dart';
 import 'package:job_trigger/presentation/features/job_detail/pipeline_stages_notifier.dart';
 
 const _jobUrl = 'https://jenkins.test/job/demo/';
@@ -25,6 +27,7 @@ const _buildUrl = '${_jobUrl}1/';
 class _CountingRepository implements JenkinsRepository {
   int fetchJobDetailCallCount = 0;
   int fetchPipelineStagesCallCount = 0;
+  int fetchPendingInputCallCount = 0;
   bool building = true;
 
   @override
@@ -92,6 +95,22 @@ class _CountingRepository implements JenkinsRepository {
     String buildUrl,
     String relativePath,
   ) => throw UnimplementedError();
+
+  @override
+  Future<Result<PendingInput?, AppFailure>> fetchPendingInput(
+    String buildUrl,
+  ) async {
+    fetchPendingInputCallCount++;
+    return const Ok(null);
+  }
+
+  @override
+  Future<Result<void, AppFailure>> submitInput({
+    required String buildUrl,
+    required String inputId,
+    required bool proceed,
+    Map<String, String> parameters = const {},
+  }) => throw UnimplementedError();
 }
 
 void main() {
@@ -140,6 +159,29 @@ void main() {
       await Future<void>.delayed(const Duration(seconds: 6));
 
       expect(repo.fetchPipelineStagesCallCount, greaterThanOrEqualTo(2));
+    },
+    timeout: const Timeout(Duration(seconds: 15)),
+  );
+
+  test(
+    'also invalidates PendingInputNotifier for the current build on the same tick (US-PIPE-05)',
+    () async {
+      final repo = _CountingRepository()..building = true;
+      final container = ProviderContainer(
+        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(jobDetailNotifierProvider(_jobUrl).future);
+      await container.read(pendingInputNotifierProvider(_buildUrl).future);
+      expect(repo.fetchPendingInputCallCount, 1);
+
+      container.listen(buildStatusPollingNotifierProvider(_jobUrl), (_, _) {});
+      container.listen(pendingInputNotifierProvider(_buildUrl), (_, _) {});
+
+      await Future<void>.delayed(const Duration(seconds: 6));
+
+      expect(repo.fetchPendingInputCallCount, greaterThanOrEqualTo(2));
     },
     timeout: const Timeout(Duration(seconds: 15)),
   );

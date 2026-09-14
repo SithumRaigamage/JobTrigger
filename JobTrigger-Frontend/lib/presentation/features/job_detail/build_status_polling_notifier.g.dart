@@ -15,11 +15,11 @@ part of 'build_status_polling_notifier.dart';
 /// #1 leak risk per the original migration notes, per this task's own
 /// warning.
 ///
-/// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) for the current
-/// build on the same tick, when a build URL is known — that story asks
-/// for the stage list to live-update on this exact cadence, and doing it
-/// here (rather than a second independent timer) is one less place a leak
-/// could hide.
+/// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) and
+/// `PendingInputNotifier` (US-PIPE-05) for the current build on the same
+/// tick, when a build URL is known — both stories ask for their data to
+/// live-update on this exact cadence, and doing it here (rather than
+/// separate independent timers) is one fewer place a leak could hide.
 ///
 /// `JobDetailScreen` keeps this alive by watching it; it has no state of
 /// its own worth reading.
@@ -34,11 +34,11 @@ final buildStatusPollingNotifierProvider = BuildStatusPollingNotifierFamily._();
 /// #1 leak risk per the original migration notes, per this task's own
 /// warning.
 ///
-/// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) for the current
-/// build on the same tick, when a build URL is known — that story asks
-/// for the stage list to live-update on this exact cadence, and doing it
-/// here (rather than a second independent timer) is one less place a leak
-/// could hide.
+/// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) and
+/// `PendingInputNotifier` (US-PIPE-05) for the current build on the same
+/// tick, when a build URL is known — both stories ask for their data to
+/// live-update on this exact cadence, and doing it here (rather than
+/// separate independent timers) is one fewer place a leak could hide.
 ///
 /// `JobDetailScreen` keeps this alive by watching it; it has no state of
 /// its own worth reading.
@@ -51,11 +51,11 @@ final class BuildStatusPollingNotifierProvider
   /// #1 leak risk per the original migration notes, per this task's own
   /// warning.
   ///
-  /// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) for the current
-  /// build on the same tick, when a build URL is known — that story asks
-  /// for the stage list to live-update on this exact cadence, and doing it
-  /// here (rather than a second independent timer) is one less place a leak
-  /// could hide.
+  /// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) and
+  /// `PendingInputNotifier` (US-PIPE-05) for the current build on the same
+  /// tick, when a build URL is known — both stories ask for their data to
+  /// live-update on this exact cadence, and doing it here (rather than
+  /// separate independent timers) is one fewer place a leak could hide.
   ///
   /// `JobDetailScreen` keeps this alive by watching it; it has no state of
   /// its own worth reading.
@@ -105,7 +105,7 @@ final class BuildStatusPollingNotifierProvider
 }
 
 String _$buildStatusPollingNotifierHash() =>
-    r'3685b6a08e99e12e6fa30cc6650f056e50b8be96';
+    r'f05b8aa551415055669e2109894099e176f80a3f';
 
 /// Side-effect-only notifier: while the job's `lastBuild.building == true`,
 /// invalidates `JobDetailNotifier` every 5s
@@ -114,11 +114,11 @@ String _$buildStatusPollingNotifierHash() =>
 /// #1 leak risk per the original migration notes, per this task's own
 /// warning.
 ///
-/// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) for the current
-/// build on the same tick, when a build URL is known — that story asks
-/// for the stage list to live-update on this exact cadence, and doing it
-/// here (rather than a second independent timer) is one less place a leak
-/// could hide.
+/// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) and
+/// `PendingInputNotifier` (US-PIPE-05) for the current build on the same
+/// tick, when a build URL is known — both stories ask for their data to
+/// live-update on this exact cadence, and doing it here (rather than
+/// separate independent timers) is one fewer place a leak could hide.
 ///
 /// `JobDetailScreen` keeps this alive by watching it; it has no state of
 /// its own worth reading.
@@ -148,11 +148,11 @@ final class BuildStatusPollingNotifierFamily extends $Family
   /// #1 leak risk per the original migration notes, per this task's own
   /// warning.
   ///
-  /// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) for the current
-  /// build on the same tick, when a build URL is known — that story asks
-  /// for the stage list to live-update on this exact cadence, and doing it
-  /// here (rather than a second independent timer) is one less place a leak
-  /// could hide.
+  /// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) and
+  /// `PendingInputNotifier` (US-PIPE-05) for the current build on the same
+  /// tick, when a build URL is known — both stories ask for their data to
+  /// live-update on this exact cadence, and doing it here (rather than
+  /// separate independent timers) is one fewer place a leak could hide.
   ///
   /// `JobDetailScreen` keeps this alive by watching it; it has no state of
   /// its own worth reading.
@@ -171,11 +171,11 @@ final class BuildStatusPollingNotifierFamily extends $Family
 /// #1 leak risk per the original migration notes, per this task's own
 /// warning.
 ///
-/// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) for the current
-/// build on the same tick, when a build URL is known — that story asks
-/// for the stage list to live-update on this exact cadence, and doing it
-/// here (rather than a second independent timer) is one less place a leak
-/// could hide.
+/// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) and
+/// `PendingInputNotifier` (US-PIPE-05) for the current build on the same
+/// tick, when a build URL is known — both stories ask for their data to
+/// live-update on this exact cadence, and doing it here (rather than
+/// separate independent timers) is one fewer place a leak could hide.
 ///
 /// `JobDetailScreen` keeps this alive by watching it; it has no state of
 /// its own worth reading.

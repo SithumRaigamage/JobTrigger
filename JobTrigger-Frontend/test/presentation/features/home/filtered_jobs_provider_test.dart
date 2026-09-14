@@ -9,6 +9,7 @@ import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
+import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
 import 'package:job_trigger/domain/jenkins/queue_item.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
@@ -71,6 +72,19 @@ class _FakeJenkinsRepository implements JenkinsRepository {
   Future<Result<List<PipelineStage>?, AppFailure>> fetchPipelineStages(
     String buildUrl,
   ) => throw UnimplementedError();
+
+  @override
+  Future<Result<PendingInput?, AppFailure>> fetchPendingInput(
+    String buildUrl,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<Result<void, AppFailure>> submitInput({
+    required String buildUrl,
+    required String inputId,
+    required bool proceed,
+    Map<String, String> parameters = const {},
+  }) => throw UnimplementedError();
 }
 
 JenkinsJob _job(String name, {List<JenkinsJob>? jobs}) =>
