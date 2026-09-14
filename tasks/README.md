@@ -14,12 +14,20 @@ check "where are we."
 |---|---|---|---|
 | 0 — Setup | `phase-0-setup.md` | done | — |
 | 1 — Core infrastructure | `phase-1-core-infrastructure.md` | done | Phase 0 |
-| 2 — Auth + tool selection | `phase-2-auth-tool-selection.md` | blocked | Phase 1 |
+| 2 — Auth + tool selection | `phase-2-auth-tool-selection.md` | done | Phase 1 |
 | 3 — Credentials management | `phase-3-credentials-management.md` | done | Phase 2 |
 | 4 — Jenkins job tree | `phase-4-jenkins-job-tree.md` | done | Phase 3 |
 | 5 — Build execution, logs, history | `phase-5-build-execution-logs-history.md` | done | Phase 4 |
-| 6 — Polish + release | `phase-6-polish-release.md` | blocked | Phase 5 (can start early on some items) |
+| 6 — Polish + release | `phase-6-polish-release.md` | done | Phase 5 (can start early on some items) |
+| Release | `release-checklist.md` | pending | Phase 6 |
 | Backlog | `backlog.md` | n/a | — |
+
+`done` above means **development-complete**, not "in production." A handful
+of items in Phase 2 and Phase 6 are still open but no longer gate phase
+status — they're blocked on external/ops action (real device, real artwork,
+store accounts, real users), not on more development work. They're tracked
+in `release-checklist.md` instead of here so this table reflects what
+engineering can still move on its own.
 
 ## Conventions
 

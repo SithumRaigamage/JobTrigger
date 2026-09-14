@@ -4,6 +4,12 @@ Goal: parity-checklist complete, both platforms feel native, store-ready.
 Some items can start as soon as their underlying feature lands in an
 earlier phase — don't wait for Phase 5 to fully close to begin these.
 
+Dev-complete as of this phase; the open items below (P6-07, P6-11, P6-12,
+P6-13 — artwork, store accounts, dogfooding, public release) are tracked in
+`tasks/release-checklist.md`, not gated here — they're blocked on
+external/ops action, not on more development work. P6-08 stays tracked in
+`backlog.md` as an actual scope decision (skipped, not blocked).
+
 - [x] P6-01 Profile screen — user info, logout, app version footer. Ported
       from `ProfileView.swift`. Only `id`/`email` exist anywhere in the
       domain/DTO layer (`User`, `UserDto`) — no username/avatar/roles — so

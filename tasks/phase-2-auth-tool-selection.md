@@ -3,6 +3,10 @@
 Goal: a user can sign up, log in, stay logged in across restarts, and reach
 the (static) tool-selection grid.
 
+Dev-complete as of this phase; the one open item (P2-11's real-device
+verification) is tracked in `tasks/release-checklist.md`, not here — it's
+blocked on external toolchain access, not on more development work.
+
 - [x] P2-01 `data/models/auth/user_dto.dart`, `domain/auth/user.dart`
       (per `docs/data-models.md`). Deviated from the doc's literal
       `UserDto` snippet: added `@JsonKey(name: '_id')` on `id` — confirmed
