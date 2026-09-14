@@ -14,6 +14,8 @@ import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
+import '../tool_selection/active_tool_notifier.dart';
+import '../tool_selection/ci_tool.dart';
 import 'active_github_credential_notifier.dart';
 import 'active_server_notifier.dart';
 import 'credentials_notifier.dart';
@@ -47,6 +49,16 @@ class SettingsScreen extends ConsumerWidget {
     final activeGithubCredential = ref.watch(
       activeGitHubCredentialNotifierProvider,
     );
+    // Settings is reached from the same tab regardless of which CI tool is
+    // active, but showing *both* credential sections unconditionally reads
+    // as "you're missing GitHub credentials" even to a user who selected
+    // Jenkins and has no reason to care about GitHub yet. Scope each
+    // section to the tool it's actually for; `null` (pre-selection) falls
+    // back to Jenkins, matching this app's other "Jenkins is the default"
+    // conventions (e.g. `CiTool.isAvailable`'s ordering).
+    final activeTool = ref.watch(activeToolNotifierProvider);
+    final showJenkinsSection = activeTool != CiTool.githubActions;
+    final showGitHubSection = activeTool == CiTool.githubActions;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -68,53 +80,57 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             const SliverToBoxAdapter(child: _AppearanceSection()),
-            const SliverToBoxAdapter(child: Divider(height: 1)),
-            SliverToBoxAdapter(
-              child: _SectionHeader(
-                title: 'JENKINS SERVERS',
-                onAdd: () => showServerEditBottomSheet(context),
+            if (showJenkinsSection) ...[
+              const SliverToBoxAdapter(child: Divider(height: 1)),
+              SliverToBoxAdapter(
+                child: _SectionHeader(
+                  title: 'JENKINS SERVERS',
+                  onAdd: () => showServerEditBottomSheet(context),
+                ),
               ),
-            ),
-            ..._credentialSlivers<JenkinsServer>(
-              async: credentialsAsync,
-              onRetry: () =>
-                  ref.read(credentialsNotifierProvider.notifier).refresh(),
-              emptyStateBuilder: () => _EmptyState(
-                icon: Icons.dns_outlined,
-                title: 'No Servers Yet',
-                message: 'Add a Jenkins server to get started.',
-                buttonLabel: 'Add Jenkins Server',
-                onAdd: () => showServerEditBottomSheet(context),
+              ..._credentialSlivers<JenkinsServer>(
+                async: credentialsAsync,
+                onRetry: () =>
+                    ref.read(credentialsNotifierProvider.notifier).refresh(),
+                emptyStateBuilder: () => _EmptyState(
+                  icon: Icons.dns_outlined,
+                  title: 'No Servers Yet',
+                  message: 'Add a Jenkins server to get started.',
+                  buttonLabel: 'Add Jenkins Server',
+                  onAdd: () => showServerEditBottomSheet(context),
+                ),
+                tileBuilder: (context, server) => _ServerTile(
+                  server: server,
+                  isActive: server.id == activeServer?.id,
+                ),
               ),
-              tileBuilder: (context, server) => _ServerTile(
-                server: server,
-                isActive: server.id == activeServer?.id,
+            ],
+            if (showGitHubSection) ...[
+              const SliverToBoxAdapter(child: Divider(height: 1)),
+              SliverToBoxAdapter(
+                child: _SectionHeader(
+                  title: 'GITHUB',
+                  onAdd: () => showGitHubCredentialEditBottomSheet(context),
+                ),
               ),
-            ),
-            const SliverToBoxAdapter(child: Divider(height: 1)),
-            SliverToBoxAdapter(
-              child: _SectionHeader(
-                title: 'GITHUB',
-                onAdd: () => showGitHubCredentialEditBottomSheet(context),
+              ..._credentialSlivers<GitHubCredential>(
+                async: githubCredentialsAsync,
+                onRetry: () => ref
+                    .read(gitHubCredentialsNotifierProvider.notifier)
+                    .refresh(),
+                emptyStateBuilder: () => _EmptyState(
+                  icon: Icons.hub_outlined,
+                  title: 'No GitHub Credentials Yet',
+                  message: 'Add a Personal Access Token to get started.',
+                  buttonLabel: 'Add GitHub Credential',
+                  onAdd: () => showGitHubCredentialEditBottomSheet(context),
+                ),
+                tileBuilder: (context, credential) => _GitHubCredentialTile(
+                  credential: credential,
+                  isActive: credential.id == activeGithubCredential?.id,
+                ),
               ),
-            ),
-            ..._credentialSlivers<GitHubCredential>(
-              async: githubCredentialsAsync,
-              onRetry: () => ref
-                  .read(gitHubCredentialsNotifierProvider.notifier)
-                  .refresh(),
-              emptyStateBuilder: () => _EmptyState(
-                icon: Icons.hub_outlined,
-                title: 'No GitHub Credentials Yet',
-                message: 'Add a Personal Access Token to get started.',
-                buttonLabel: 'Add GitHub Credential',
-                onAdd: () => showGitHubCredentialEditBottomSheet(context),
-              ),
-              tileBuilder: (context, credential) => _GitHubCredentialTile(
-                credential: credential,
-                isActive: credential.id == activeGithubCredential?.id,
-              ),
-            ),
+            ],
             SliverToBoxAdapter(
               child: SizedBox(height: glassNavBarClearance(context) + 12),
             ),
