@@ -11,6 +11,7 @@ import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/queue_item.dart';
+import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/presentation/features/auth/auth_notifier.dart';
 import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifier.dart';
@@ -69,6 +70,10 @@ class _FakeJenkinsRepository implements JenkinsRepository {
 
   @override
   Future<Result<QueueItem, AppFailure>> fetchQueueItem(String queueItemUrl) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Result<TestReport?, AppFailure>> fetchTestReport(String buildUrl) =>
       throw UnimplementedError();
 }
 

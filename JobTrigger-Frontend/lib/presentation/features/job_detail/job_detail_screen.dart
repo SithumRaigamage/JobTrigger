@@ -9,6 +9,7 @@ import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/parameter_definition.dart';
 import '../../../domain/jenkins/queue_item.dart';
 import '../../../domain/jenkins/scm_change.dart';
+import '../../../domain/jenkins/test_report.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
@@ -18,6 +19,7 @@ import 'cancel_build_notifier.dart';
 import 'job_detail_notifier.dart';
 import 'parameter_form.dart';
 import 'queue_status_notifier.dart';
+import 'test_report_notifier.dart';
 import 'trigger_build_notifier.dart';
 
 /// Ported from `JobDetailView.swift`/`JobDetailViewModel.swift`. [job] is
@@ -103,7 +105,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
   }
 }
 
-class _JobDetailBody extends StatelessWidget {
+class _JobDetailBody extends ConsumerWidget {
   const _JobDetailBody({
     required this.job,
     required this.queueItem,
@@ -125,12 +127,15 @@ class _JobDetailBody extends StatelessWidget {
   final VoidCallback? onViewLog;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final parameterDefinitions = job.property
         .expand(
           (prop) => prop.parameterDefinitions ?? const <ParameterDefinition>[],
         )
         .toList();
+    final testReport = job.lastBuild == null
+        ? null
+        : ref.watch(testReportNotifierProvider(job.lastBuild!.url)).value;
 
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -163,7 +168,7 @@ class _JobDetailBody extends StatelessWidget {
           _QueuedCard(queueItem: queueItem!),
           const SizedBox(height: 16),
         ],
-        _LastBuildCard(job: job, onViewLog: onViewLog),
+        _LastBuildCard(job: job, testReport: testReport, onViewLog: onViewLog),
         if (job.lastBuild != null && job.lastBuild!.building) ...[
           const SizedBox(height: 12),
           FilledButton.tonalIcon(
@@ -226,9 +231,14 @@ class _QueuedCard extends StatelessWidget {
 }
 
 class _LastBuildCard extends StatelessWidget {
-  const _LastBuildCard({required this.job, required this.onViewLog});
+  const _LastBuildCard({
+    required this.job,
+    required this.testReport,
+    required this.onViewLog,
+  });
 
   final JenkinsJob job;
+  final TestReport? testReport;
   final VoidCallback? onViewLog;
 
   @override
@@ -275,6 +285,10 @@ class _LastBuildCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 _ChangesList(changes: lastBuild.changes),
               ],
+              if (testReport != null) ...[
+                const SizedBox(height: 8),
+                _TestReportChip(report: testReport!),
+              ],
               if (lastBuild.building) ...[
                 const SizedBox(height: 8),
                 LinearProgressIndicator(
@@ -284,6 +298,56 @@ class _LastBuildCard extends StatelessWidget {
             ],
           ],
         ),
+    );
+  }
+}
+
+/// US-PIPE-06: a compact pass/fail/skip summary; tapping it when there are
+/// failures shows the failing test names (a summary list, not full
+/// stack traces/output — those stay in the console log, US-LOG-01).
+class _TestReportChip extends StatelessWidget {
+  const _TestReportChip({required this.report});
+
+  final TestReport report;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasFailures = report.failCount > 0;
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: hasFailures ? () => _showFailingTests(context) : null,
+      child: Chip(
+        // Count pairs with text, not color alone (NFR-A11Y-03) -- the
+        // numbers themselves already convey pass/fail/skip.
+        label: Text(
+          '${report.passCount} passed · ${report.failCount} failed · '
+          '${report.skipCount} skipped',
+        ),
+        backgroundColor: hasFailures
+            ? AppColors.buildFailure.withValues(alpha: 0.15)
+            : null,
+      ),
+    );
+  }
+
+  void _showFailingTests(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          shrinkWrap: true,
+          children: [
+            Text('Failing tests', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            for (final test in report.failingTests)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(test),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -126,9 +126,35 @@ per `CLAUDE.md` §9.
       without throwing, `toDomain()` passthrough) plus the 2 `copyWith`
       tests above. `flutter analyze` clean, full suite (115 tests)
       passing.
-- [ ] P7-04 `US-PIPE-06` — Test result summary. New repository method for
-      `{buildURL}/testReport/api/json`; compact pass/fail/skip chip on the
-      job-detail card; tap-through to failing test names.
+- [x] P7-04 `US-PIPE-06` — Test result summary. New `TestReport` domain
+      type + `TestReportDto`, new `fetchTestReport(buildUrl)` repository
+      method against `{buildUrl}testReport/api/json` — a genuinely separate
+      Jenkins REST resource from the job-detail `tree=` query, so this
+      needed its own new `TestReportNotifier` (family by build URL,
+      matches `JobHistoryNotifier`'s shape) rather than folding into
+      `_detailsTree` like causes/changes did. A 404 (no published test
+      report) is handled in the repository as `Ok(null)`, not an `Err` —
+      a normal state per the story, not a failure.
+
+      `_JobDetailBody` changed from `StatelessWidget` to `ConsumerWidget`
+      (its first need for `ref` — causes/changes/queue status all came
+      from data already flowing through `job`/`queueItem` props) so it can
+      watch the new provider conditionally on `job.lastBuild` existing.
+      New `_TestReportChip`: compact "N passed · N failed · N skipped"
+      chip, tap-through to a bottom sheet listing failing test names
+      (`ClassName.testName`, FAILED or REGRESSION status) when
+      `failCount > 0`. Additive/non-blocking like P7-01/03's fields — a
+      fetch error here doesn't touch the rest of the screen, since the UI
+      only reads `.value` (null on loading/error) rather than branching on
+      the async state.
+
+      Interface change rippled through the same 6 fake `JenkinsRepository`
+      implementations as P7-02 (mechanical `fetchTestReport` override).
+      9 new tests: 5 in `test_report_dto_test.dart` (counts, multi-suite
+      flatten, missing-className fallback, all-defaults, `toDomain()`) +
+      3 in a new `jenkins_repository_impl_test_report_test.dart` (real
+      parse, 404→`Ok(null)`, other-status→`Err`). `flutter analyze` clean,
+      full suite (123 tests) passing.
 - [ ] P7-05 `US-PIPE-07` — Build artifacts. Extend job-detail fetch with
       `artifacts[fileName,relativePath]`; list + open via `url_launcher`
       (list-and-open only, no on-device download/file management, per the

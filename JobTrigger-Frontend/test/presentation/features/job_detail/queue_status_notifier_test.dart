@@ -8,6 +8,7 @@ import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/queue_item.dart';
+import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/presentation/features/job_detail/job_detail_notifier.dart';
 import 'package:job_trigger/presentation/features/job_detail/queue_status_notifier.dart';
 
@@ -65,6 +66,10 @@ class _ScriptedRepository implements JenkinsRepository {
 
   @override
   Future<Result<void, AppFailure>> cancelBuild(String buildUrl) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Result<TestReport?, AppFailure>> fetchTestReport(String buildUrl) =>
       throw UnimplementedError();
 }
 

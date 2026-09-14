@@ -9,10 +9,12 @@ import '../../domain/jenkins/jenkins_job.dart';
 import '../../domain/jenkins/jenkins_repository.dart';
 import '../../domain/jenkins/log_chunk.dart';
 import '../../domain/jenkins/queue_item.dart';
+import '../../domain/jenkins/test_report.dart';
 import '../models/jenkins/jenkins_build_dto.dart';
 import '../models/jenkins/jenkins_job_dto.dart';
 import '../models/jenkins/jenkins_server_info_dto.dart';
 import '../models/jenkins/queue_item_dto.dart';
+import '../models/jenkins/test_report_dto.dart';
 import 'jenkins_url_rewriter.dart';
 
 part 'jenkins_repository_impl.g.dart';
@@ -43,6 +45,10 @@ const _detailsTree =
     'changeSet[items[msg,author[fullName]]]],'
     'healthReport[description,iconClassName,score],'
     'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices]]';
+
+/// US-PIPE-06 — counts plus enough of each case to identify a failing one.
+const _testReportTree =
+    'passCount,failCount,skipCount,suites[cases[className,name,status]]';
 
 /// Last 20 builds — ported exactly from
 /// `JenkinsAPIService.fetchBuildHistory`'s `historyTree` (Swift).
@@ -190,6 +196,26 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
       final response = await _dio.get<Map<String, dynamic>>('${base}api/json');
       return Ok(QueueItemDto.fromJson(response.data!).toDomain());
     } on DioException catch (exception) {
+      return Err(AppFailure.fromDioException(exception));
+    }
+  }
+
+  @override
+  Future<Result<TestReport?, AppFailure>> fetchTestReport(
+    String buildUrl,
+  ) async {
+    try {
+      final base = buildUrl.endsWith('/') ? buildUrl : '$buildUrl/';
+      final response = await _dio.get<Map<String, dynamic>>(
+        '${base}testReport/api/json',
+        queryParameters: {'tree': _testReportTree},
+      );
+      return Ok(TestReportDto.fromJson(response.data!).toDomain());
+    } on DioException catch (exception) {
+      // No published test report is a normal state (US-PIPE-06's "Build
+      // has no test report" scenario), not a failure -- surfaces as a
+      // real 404 from Jenkins.
+      if (exception.response?.statusCode == 404) return const Ok(null);
       return Err(AppFailure.fromDioException(exception));
     }
   }

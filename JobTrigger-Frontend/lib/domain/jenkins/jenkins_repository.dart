@@ -4,6 +4,7 @@ import 'jenkins_build.dart';
 import 'jenkins_job.dart';
 import 'log_chunk.dart';
 import 'queue_item.dart';
+import 'test_report.dart';
 
 abstract class JenkinsRepository {
   Future<Result<List<JenkinsJob>, AppFailure>> fetchJobTree();
@@ -51,4 +52,10 @@ abstract class JenkinsRepository {
   /// server-wide with no per-job endpoint, so this only tracks a specific
   /// item already known by URL, not "is this job currently queued."
   Future<Result<QueueItem, AppFailure>> fetchQueueItem(String queueItemUrl);
+
+  /// `GET {buildUrl}testReport/api/json` (US-PIPE-06). Returns `Ok(null)`
+  /// (not an [Err]) when the build has no published test report — a
+  /// normal state (the job doesn't publish test results, or this build
+  /// hasn't finished), surfaced as a real 404 from Jenkins.
+  Future<Result<TestReport?, AppFailure>> fetchTestReport(String buildUrl);
 }
