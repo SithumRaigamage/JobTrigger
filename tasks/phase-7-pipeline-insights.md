@@ -13,15 +13,27 @@ stories that depend on other PIPE work landing first. Each task is done
 one at a time — plan/design presented and approved before its code lands,
 per `CLAUDE.md` §9.
 
-- [ ] P7-00 `NFR-SEC-06` — CSRF crumb helper. `GET /crumbIssuer/api/json`
-      on the active Jenkins client, attach the returned header to every
-      state-changing Jenkins POST (`build`, `buildWithParameters`,
-      `{buildNumber}/stop`, and later `wfapi/inputSubmit` in P7-06).
-      Gracefully no-ops on servers without a crumb issuer (older/CSRF-off
-      Jenkins) instead of failing. One retry with a freshly-fetched crumb
-      on a 403 that looks crumb-related, before surfacing a real
-      `AuthFailure`. Fixes existing `US-JOB-02/03/05` silently, not just
-      new PIPE stories.
+- [x] P7-00 `NFR-SEC-06` — CSRF crumb helper. Implemented entirely inside
+      `buildJenkinsDio` (`core/network/jenkins_client_factory.dart`) as a
+      new `_crumbInterceptor`, so `jenkins_repository_impl.dart` and every
+      trigger/cancel notifier needed zero changes — the header attaches
+      transparently for any POST on the shared client. Lazily
+      `GET`s `/crumbIssuer/api/json` on first POST, caches the header
+      name/value for the client's lifetime (rebuilt on server switch, same
+      as Basic Auth); a clean 404 is cached as "no crumb issuer" so further
+      POSTs stop re-fetching; any other fetch failure is left unset so the
+      next POST retries rather than permanently giving up on a blip. A 403
+      triggers exactly one retry with a freshly-fetched crumb, skipped if a
+      404 already confirmed no crumb issuer exists (that 403 is then a real
+      auth/permission failure, not a stale crumb). 6 new tests in
+      `jenkins_client_factory_test.dart` (attach-on-POST, skip-on-GET,
+      404-caches-unavailable, retry-then-succeed, give-up-after-one-retry)
+      using a new `_ScriptedAdapter` fake — snapshots request headers into
+      a fresh map per capture, since Dio mutates/reuses the same
+      `RequestOptions` instance across a retry (first attempt at asserting
+      on the raw `RequestOptions` list showed every earlier entry
+      reflecting the *latest* mutation too). `flutter analyze` clean, full
+      suite (94 tests) passing.
 - [ ] P7-01 `US-PIPE-02` — Build cause. Extend the job-detail `tree` query
       with `actions[causes[shortDescription]]`; new `BuildCause` domain
       field; render as a caption line on the job-detail card.

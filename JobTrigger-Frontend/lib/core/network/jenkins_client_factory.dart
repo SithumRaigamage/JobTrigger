@@ -28,7 +28,100 @@ Dio buildJenkinsDio({
   final basicAuth = base64Encode(utf8.encode('$username:$password'));
   dio.options.headers['Authorization'] = 'Basic $basicAuth';
 
+  dio.interceptors.add(_crumbInterceptor(dio));
+
   return dio;
+}
+
+/// Caches a Jenkins CSRF crumb for one `Dio` client's lifetime — see
+/// `docs/user-stories/09-non-functional-security.md` (`NFR-SEC-06`).
+/// [unavailable] means a clean 404 from the crumb issuer confirmed this
+/// server has CSRF protection off, so further POSTs stop re-fetching.
+class _CrumbCache {
+  String? headerName;
+  String? value;
+  bool unavailable = false;
+
+  bool get isSet => headerName != null && value != null;
+
+  void clear() {
+    headerName = null;
+    value = null;
+    unavailable = false;
+  }
+}
+
+/// `GET {baseUrl}/crumbIssuer/api/json` on the same [dio] instance (a GET,
+/// so it never re-enters this interceptor's POST-only logic below). A 404
+/// is treated as "no crumb issuer" and cached as [_CrumbCache.unavailable];
+/// any other failure is left unset so the *next* POST tries again rather
+/// than permanently giving up on a transient blip.
+Future<void> _fetchCrumb(Dio dio, _CrumbCache cache) async {
+  try {
+    final response = await dio.get<Map<String, dynamic>>(
+      '/crumbIssuer/api/json',
+    );
+    final field = response.data?['crumbRequestField'] as String?;
+    final crumb = response.data?['crumb'] as String?;
+    if (field != null && crumb != null) {
+      cache
+        ..headerName = field
+        ..value = crumb;
+    }
+  } on DioException catch (exception) {
+    if (exception.response?.statusCode == 404) {
+      cache.unavailable = true;
+    }
+  }
+}
+
+/// CSRF crumb interceptor (`NFR-SEC-06`): attaches a Jenkins crumb header
+/// to every POST — `build`, `buildWithParameters`, `{buildNumber}/stop`,
+/// and any future pipeline-mutating call — fetched lazily and cached for
+/// this client's lifetime (rebuilt on server switch, same as the Basic
+/// Auth header). Silently no-ops on servers without a crumb issuer.
+/// Retries a 403 exactly once with a freshly-fetched crumb before giving
+/// up, unless a prior clean 404 already confirmed this server has no
+/// crumb issuer at all (in which case a 403 is a real auth/permission
+/// failure, not a stale crumb, and retrying would only waste a round trip).
+Interceptor _crumbInterceptor(Dio dio) {
+  final cache = _CrumbCache();
+  return InterceptorsWrapper(
+    onRequest: (options, handler) async {
+      if (options.method == 'POST' && !cache.unavailable) {
+        if (!cache.isSet) {
+          await _fetchCrumb(dio, cache);
+        }
+        if (cache.isSet) {
+          options.headers[cache.headerName!] = cache.value;
+        }
+      }
+      handler.next(options);
+    },
+    onError: (error, handler) async {
+      final alreadyRetried = error.requestOptions.extra['crumbRetried'] == true;
+      if (error.response?.statusCode == 403 &&
+          error.requestOptions.method == 'POST' &&
+          !alreadyRetried &&
+          !cache.unavailable) {
+        cache.clear();
+        await _fetchCrumb(dio, cache);
+        if (cache.isSet) {
+          final retryOptions = error.requestOptions
+            ..headers[cache.headerName!] = cache.value
+            ..extra['crumbRetried'] = true;
+          try {
+            handler.resolve(await dio.fetch<dynamic>(retryOptions));
+            return;
+          } on DioException catch (retryError) {
+            handler.next(retryError);
+            return;
+          }
+        }
+      }
+      handler.next(error);
+    },
+  );
 }
 
 /// Rebuilt whenever the active server changes (`docs/state-management.md`).
