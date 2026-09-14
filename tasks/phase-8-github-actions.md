@@ -29,17 +29,28 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
 
 ## Backend
 
-- [ ] P8-00 New `JobTrigger-Backend` `GitHubCredential` Mongoose model +
-      controller + routes, `userId`-scoped, mirroring
-      `models/JenkinsCredential.js`'s existing shape but for GitHub's
-      fields (label, PAT, optional default org/owner filter) — **not** a
-      modification to `JenkinsCredential` itself (separate parallel model,
-      per the credential-architecture decision). CRUD endpoints matching
-      the existing `/api/credentials` pattern's shape
-      (`/api/github-credentials` or similar — confirm naming against the
-      existing route file's conventions before committing to it).
-      `NFR-SEC-01`'s flagged-risk posture applies here too: whether PATs
-      are encrypted at rest is a backend concern, documented not assumed.
+- [x] P8-00 New `JobTrigger-Backend` `GitHubCredential` Mongoose model
+      (`models/GitHubCredential.js`) + controller
+      (`controllers/githubCredentialsController.js`) + routes
+      (`routes/githubCredentialRoutes.js`, mounted at
+      `/api/github-credentials` in `server.js`) — mirrors
+      `JenkinsCredential`'s shape/behavior field-for-field (get/add/update/
+      delete + a `switch/:id` active-credential endpoint, same ownership
+      checks, same "unset others' `isDefault` first" logic, same
+      `{message, error}` 500-error shape), fields renamed for GitHub:
+      `label` (was `serverName`), `token` (was `password` — the PAT),
+      `defaultOwner` (was `paramToken` positionally, new meaning: an
+      optional org/user filter for the repo list, `US-GH-REPO-01`).
+      **Not** a modification to `JenkinsCredential`/`credentialsController`
+      — fully separate files, per the credential-architecture decision.
+      `NFR-SEC-01`'s flagged-risk posture carries over: whether PATs are
+      encrypted at rest is a backend concern, documented not assumed —
+      same as it already was for Jenkins passwords.
+
+      8 new tests in `test/github_credentials.test.js` (add, get, update,
+      delete, switch-active, plus an ownership-and-defaults group mirroring
+      `credentials_ownership.test.js`'s two cases) — full backend suite
+      (20 tests) passing, zero regressions to the existing 12.
 
 ## GH-CRED — Credential management (client)
 
