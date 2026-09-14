@@ -202,10 +202,49 @@ per `CLAUDE.md` §9.
       consistent with `BuildLogScreen`'s existing "Share log" button,
       which also has no such test. `flutter analyze` clean, full suite
       (129 tests) passing.
-- [ ] P7-06 `US-PIPE-04` — Pipeline stage view. New repository method for
-      `{buildURL}/wfapi/describe`; new `PipelineStage` domain type; stage
-      chip row above the console log viewer; falls back to today's
-      log-only view on 404 (freestyle jobs / no Pipeline plugin).
+- [x] P7-06 `US-PIPE-04` — Pipeline stage view. **Scope change from the
+      story text**, caught during design: "tap a stage to jump to its
+      exact log position" needs Jenkins' separate per-node log endpoint —
+      a genuinely different mechanism from the progressive-text log used
+      everywhere else in this app. Scoped down to "tap any stage opens the
+      full console log" (reuses the existing `onViewLog`/`BuildLogScreen`
+      flow), with true log-jumping flagged as a real, deliberate gap.
+
+      New `PipelineStage` domain type + `PipelineDescribeDto`/
+      `PipelineStageDto`, new `fetchPipelineStages(buildUrl)` repository
+      method against `{buildUrl}wfapi/describe` — a separate Jenkins
+      resource, so its own new `PipelineStagesNotifier` (family by build
+      URL, same shape as `TestReportNotifier`). A 404 (not a pipeline job
+      — freestyle, or no Pipeline: REST API plugin) maps to `Ok(null)`,
+      same pattern as P7-04/P7-06's other additive fetches. Placed on the
+      job-detail card (not literally "above the console log viewer" as
+      first drafted in the story — that widget lives on a separate screen;
+      corrected here to match every other PIPE addition's actual
+      placement).
+
+      New `_StageChipRow`: horizontally scrollable chips, icon+text pairs
+      per stage (not color alone, per NFR-A11Y-03) via new
+      `_colorForStageStatus`/`_iconForStageStatus` — Jenkins' stage
+      `status` vocabulary (`FAILED`, `IN_PROGRESS`, `PAUSED_PENDING_INPUT`)
+      doesn't match `AppColors.forBuildResult`'s classic-build-result
+      vocabulary (`FAILURE`), so it needed its own small mapping rather
+      than reusing that one.
+
+      **Live-updating while building, per the story's explicit ask**:
+      rather than a second independent timer, `BuildStatusPollingNotifier`
+      (already polling every 5s for `JobDetailNotifier`) now also
+      invalidates `PipelineStagesNotifier` for the current build on the
+      same tick — one fewer place a timer leak could hide. New test in
+      `build_status_polling_notifier_test.dart` confirms this.
+
+      Interface change rippled through the same 6 fake `JenkinsRepository`
+      implementations (mechanical `fetchPipelineStages` override + a
+      `pipeline_stage.dart` import). 7 new tests: 3 in
+      `pipeline_stage_dto_test.dart`, 3 in
+      `jenkins_repository_impl_pipeline_stages_test.dart` (parse, 404→
+      `Ok(null)`, other-status→`Err`), 1 in
+      `build_status_polling_notifier_test.dart` (piggyback-invalidation).
+      `flutter analyze` clean, full suite (136 tests) passing.
 - [ ] P7-07 `US-PIPE-05` — Input-step approval. Depends on P7-00 (crumb)
       and reuses P7-06's stage infra for the pending-input signal.
       `wfapi/pendingInputActions` read + `wfapi/inputSubmit` POST; new

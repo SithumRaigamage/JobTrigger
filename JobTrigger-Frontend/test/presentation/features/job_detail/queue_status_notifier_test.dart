@@ -9,6 +9,7 @@ import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
+import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
 import 'package:job_trigger/domain/jenkins/queue_item.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/presentation/features/job_detail/job_detail_notifier.dart';
@@ -78,6 +79,11 @@ class _ScriptedRepository implements JenkinsRepository {
   Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
     String buildUrl,
     String relativePath,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<Result<List<PipelineStage>?, AppFailure>> fetchPipelineStages(
+    String buildUrl,
   ) => throw UnimplementedError();
 }
 

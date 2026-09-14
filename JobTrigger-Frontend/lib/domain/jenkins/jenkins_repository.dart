@@ -5,6 +5,7 @@ import '../../core/error/result.dart';
 import 'jenkins_build.dart';
 import 'jenkins_job.dart';
 import 'log_chunk.dart';
+import 'pipeline_stage.dart';
 import 'queue_item.dart';
 import 'test_report.dart';
 
@@ -71,5 +72,14 @@ abstract class JenkinsRepository {
   Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
     String buildUrl,
     String relativePath,
+  );
+
+  /// `GET {buildUrl}wfapi/describe` (US-PIPE-04). Returns `Ok(null)` (not
+  /// an [Err]) when the build isn't a pipeline job — a normal state
+  /// (freestyle job, or the Pipeline: REST API plugin isn't installed),
+  /// surfaced as a real 404 from Jenkins, same pattern as
+  /// [fetchTestReport].
+  Future<Result<List<PipelineStage>?, AppFailure>> fetchPipelineStages(
+    String buildUrl,
   );
 }

@@ -15,6 +15,12 @@ part of 'build_status_polling_notifier.dart';
 /// #1 leak risk per the original migration notes, per this task's own
 /// warning.
 ///
+/// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) for the current
+/// build on the same tick, when a build URL is known — that story asks
+/// for the stage list to live-update on this exact cadence, and doing it
+/// here (rather than a second independent timer) is one less place a leak
+/// could hide.
+///
 /// `JobDetailScreen` keeps this alive by watching it; it has no state of
 /// its own worth reading.
 
@@ -28,6 +34,12 @@ final buildStatusPollingNotifierProvider = BuildStatusPollingNotifierFamily._();
 /// #1 leak risk per the original migration notes, per this task's own
 /// warning.
 ///
+/// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) for the current
+/// build on the same tick, when a build URL is known — that story asks
+/// for the stage list to live-update on this exact cadence, and doing it
+/// here (rather than a second independent timer) is one less place a leak
+/// could hide.
+///
 /// `JobDetailScreen` keeps this alive by watching it; it has no state of
 /// its own worth reading.
 final class BuildStatusPollingNotifierProvider
@@ -38,6 +50,12 @@ final class BuildStatusPollingNotifierProvider
   /// the build finishes. Timer is always cancelled in `ref.onDispose` — the
   /// #1 leak risk per the original migration notes, per this task's own
   /// warning.
+  ///
+  /// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) for the current
+  /// build on the same tick, when a build URL is known — that story asks
+  /// for the stage list to live-update on this exact cadence, and doing it
+  /// here (rather than a second independent timer) is one less place a leak
+  /// could hide.
   ///
   /// `JobDetailScreen` keeps this alive by watching it; it has no state of
   /// its own worth reading.
@@ -87,7 +105,7 @@ final class BuildStatusPollingNotifierProvider
 }
 
 String _$buildStatusPollingNotifierHash() =>
-    r'1810657157e4d8eff96d0712333cc234c2e65843';
+    r'3685b6a08e99e12e6fa30cc6650f056e50b8be96';
 
 /// Side-effect-only notifier: while the job's `lastBuild.building == true`,
 /// invalidates `JobDetailNotifier` every 5s
@@ -95,6 +113,12 @@ String _$buildStatusPollingNotifierHash() =>
 /// the build finishes. Timer is always cancelled in `ref.onDispose` — the
 /// #1 leak risk per the original migration notes, per this task's own
 /// warning.
+///
+/// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) for the current
+/// build on the same tick, when a build URL is known — that story asks
+/// for the stage list to live-update on this exact cadence, and doing it
+/// here (rather than a second independent timer) is one less place a leak
+/// could hide.
 ///
 /// `JobDetailScreen` keeps this alive by watching it; it has no state of
 /// its own worth reading.
@@ -124,6 +148,12 @@ final class BuildStatusPollingNotifierFamily extends $Family
   /// #1 leak risk per the original migration notes, per this task's own
   /// warning.
   ///
+  /// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) for the current
+  /// build on the same tick, when a build URL is known — that story asks
+  /// for the stage list to live-update on this exact cadence, and doing it
+  /// here (rather than a second independent timer) is one less place a leak
+  /// could hide.
+  ///
   /// `JobDetailScreen` keeps this alive by watching it; it has no state of
   /// its own worth reading.
 
@@ -140,6 +170,12 @@ final class BuildStatusPollingNotifierFamily extends $Family
 /// the build finishes. Timer is always cancelled in `ref.onDispose` — the
 /// #1 leak risk per the original migration notes, per this task's own
 /// warning.
+///
+/// Also invalidates `PipelineStagesNotifier` (US-PIPE-04) for the current
+/// build on the same tick, when a build URL is known — that story asks
+/// for the stage list to live-update on this exact cadence, and doing it
+/// here (rather than a second independent timer) is one less place a leak
+/// could hide.
 ///
 /// `JobDetailScreen` keeps this alive by watching it; it has no state of
 /// its own worth reading.

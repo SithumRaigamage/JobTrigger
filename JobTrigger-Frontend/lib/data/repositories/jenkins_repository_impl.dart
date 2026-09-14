@@ -10,11 +10,13 @@ import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../../domain/jenkins/jenkins_repository.dart';
 import '../../domain/jenkins/log_chunk.dart';
+import '../../domain/jenkins/pipeline_stage.dart';
 import '../../domain/jenkins/queue_item.dart';
 import '../../domain/jenkins/test_report.dart';
 import '../models/jenkins/jenkins_build_dto.dart';
 import '../models/jenkins/jenkins_job_dto.dart';
 import '../models/jenkins/jenkins_server_info_dto.dart';
+import '../models/jenkins/pipeline_stage_dto.dart';
 import '../models/jenkins/queue_item_dto.dart';
 import '../models/jenkins/test_report_dto.dart';
 import 'jenkins_url_rewriter.dart';
@@ -243,6 +245,24 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
       );
       return Ok(Uint8List.fromList(response.data!));
     } on DioException catch (exception) {
+      return Err(AppFailure.fromDioException(exception));
+    }
+  }
+
+  @override
+  Future<Result<List<PipelineStage>?, AppFailure>> fetchPipelineStages(
+    String buildUrl,
+  ) async {
+    try {
+      final base = buildUrl.endsWith('/') ? buildUrl : '$buildUrl/';
+      final response = await _dio.get<Map<String, dynamic>>(
+        '${base}wfapi/describe',
+      );
+      return Ok(PipelineDescribeDto.fromJson(response.data!).toDomain());
+    } on DioException catch (exception) {
+      // Not a pipeline job (freestyle, or no Pipeline: REST API plugin) is
+      // a normal state (US-PIPE-04's fallback scenario), not a failure.
+      if (exception.response?.statusCode == 404) return const Ok(null);
       return Err(AppFailure.fromDioException(exception));
     }
   }

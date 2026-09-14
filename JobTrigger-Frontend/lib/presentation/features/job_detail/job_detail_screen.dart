@@ -8,6 +8,7 @@ import '../../../domain/jenkins/build_artifact.dart';
 import '../../../domain/jenkins/build_progress.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/parameter_definition.dart';
+import '../../../domain/jenkins/pipeline_stage.dart';
 import '../../../domain/jenkins/queue_item.dart';
 import '../../../domain/jenkins/scm_change.dart';
 import '../../../domain/jenkins/test_report.dart';
@@ -20,6 +21,7 @@ import 'build_status_polling_notifier.dart';
 import 'cancel_build_notifier.dart';
 import 'job_detail_notifier.dart';
 import 'parameter_form.dart';
+import 'pipeline_stages_notifier.dart';
 import 'queue_status_notifier.dart';
 import 'test_report_notifier.dart';
 import 'trigger_build_notifier.dart';
@@ -138,6 +140,9 @@ class _JobDetailBody extends ConsumerWidget {
     final testReport = job.lastBuild == null
         ? null
         : ref.watch(testReportNotifierProvider(job.lastBuild!.url)).value;
+    final pipelineStages = job.lastBuild == null
+        ? null
+        : ref.watch(pipelineStagesNotifierProvider(job.lastBuild!.url)).value;
 
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -170,7 +175,12 @@ class _JobDetailBody extends ConsumerWidget {
           _QueuedCard(queueItem: queueItem!),
           const SizedBox(height: 16),
         ],
-        _LastBuildCard(job: job, testReport: testReport, onViewLog: onViewLog),
+        _LastBuildCard(
+          job: job,
+          testReport: testReport,
+          pipelineStages: pipelineStages,
+          onViewLog: onViewLog,
+        ),
         if (job.lastBuild != null && job.lastBuild!.building) ...[
           const SizedBox(height: 12),
           FilledButton.tonalIcon(
@@ -236,11 +246,13 @@ class _LastBuildCard extends StatelessWidget {
   const _LastBuildCard({
     required this.job,
     required this.testReport,
+    required this.pipelineStages,
     required this.onViewLog,
   });
 
   final JenkinsJob job;
   final TestReport? testReport;
+  final List<PipelineStage>? pipelineStages;
   final VoidCallback? onViewLog;
 
   @override
@@ -287,6 +299,10 @@ class _LastBuildCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 _ChangesList(changes: lastBuild.changes),
               ],
+              if (pipelineStages != null && pipelineStages!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _StageChipRow(stages: pipelineStages!, onTap: onViewLog),
+              ],
               if (testReport != null) ...[
                 const SizedBox(height: 8),
                 _TestReportChip(report: testReport!),
@@ -310,6 +326,67 @@ class _LastBuildCard extends StatelessWidget {
     );
   }
 }
+
+/// US-PIPE-04: a horizontally scrollable stage chip row. Tapping any chip
+/// opens the full console log (reuses `onViewLog`) rather than scrolling
+/// to that stage's exact log position — Jenkins' per-node log endpoint is
+/// a genuinely different mechanism from the progressive-text log already
+/// used everywhere else in this app, scoped out of this pass; flagged as
+/// a real, deliberate gap rather than attempted half-done.
+class _StageChipRow extends StatelessWidget {
+  const _StageChipRow({required this.stages, required this.onTap});
+
+  final List<PipelineStage> stages;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: stages.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final stage = stages[index];
+          return ActionChip(
+            avatar: Icon(
+              _iconForStageStatus(stage.status),
+              size: 16,
+              color: _colorForStageStatus(stage.status),
+            ),
+            // Status is conveyed by icon shape + this label text, not
+            // color alone (NFR-A11Y-03).
+            label: Text(stage.name),
+            onPressed: onTap,
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Jenkins' pipeline stage `status` uses a different vocabulary than a
+/// build's classic `result` field (`FAILED` here vs `FAILURE` on
+/// `AppColors.forBuildResult`, plus pipeline-only states), so this can't
+/// reuse that mapping directly.
+Color _colorForStageStatus(String status) => switch (status.toUpperCase()) {
+  'SUCCESS' => AppColors.buildSuccess,
+  'FAILED' => AppColors.buildFailure,
+  'UNSTABLE' => AppColors.buildUnstable,
+  'IN_PROGRESS' => Colors.blue,
+  'PAUSED_PENDING_INPUT' => Colors.amber,
+  _ => AppColors.buildAborted, // NOT_EXECUTED, ABORTED, unrecognized.
+};
+
+IconData _iconForStageStatus(String status) => switch (status.toUpperCase()) {
+  'SUCCESS' => Icons.check_circle,
+  'FAILED' => Icons.cancel,
+  'IN_PROGRESS' => Icons.autorenew,
+  'PAUSED_PENDING_INPUT' => Icons.pause_circle,
+  'NOT_EXECUTED' => Icons.circle_outlined,
+  _ => Icons.circle,
+};
 
 /// US-PIPE-06: a compact pass/fail/skip summary; tapping it when there are
 /// failures shows the failing test names (a summary list, not full
