@@ -53,6 +53,22 @@ attempting a workaround that would give false security. Per `CLAUDE.md` §7,
 backend changes are a separate track and require their own task.
 **Applies to:** US-AUTH-01, US-AUTH-02, US-CRED-02, US-LOG-01/03.
 
+### NFR-SEC-06 — CSRF crumb attached to every Jenkins state-changing request
+Every Jenkins POST (`build`, `buildWithParameters`, `{buildNumber}/stop`,
+and any new pipeline-mutating call such as `wfapi/inputSubmit`) fetches and
+attaches a CSRF crumb (`GET {baseURL}/crumbIssuer/api/json` →
+`Jenkins-Crumb` header, or the header/field name the response specifies) on
+instances that have CSRF protection enabled. This is a correctness fix, not
+a new feature: today's `build`/`buildWithParameters`/`stop` calls omit the
+crumb entirely and will silently 403 against any Jenkins with CSRF
+protection on — the default on modern Jenkins installs. A missing/expired
+crumb on a POST surfaces as an `AuthFailure` today (403), which is
+misleading (it isn't a credentials problem); handle it as one retry with a
+freshly-fetched crumb before falling back to a real failure. Instances
+without a crumb issuer endpoint (older/CSRF-disabled Jenkins) continue to
+POST without a crumb, unchanged from today.
+**Applies to:** US-JOB-02, US-JOB-03, US-JOB-05, US-PIPE-05, US-PIPE-08.
+
 ## Testing (TEST)
 
 ### NFR-TEST-01 — Unit/widget coverage for repositories and notifiers

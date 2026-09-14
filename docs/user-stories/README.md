@@ -28,13 +28,14 @@ explicit approval before code is written against it.
 | [08-profile-settings-app-info.md](08-profile-settings-app-info.md) | PROF | Profile, appearance, app info, bottom tab navigation |
 | [09-non-functional-security.md](09-non-functional-security.md) | NFR | Cross-cutting security/testing/accessibility/performance/platform baselines referenced by ID from every story above |
 | [10-out-of-scope-backlog.md](10-out-of-scope-backlog.md) | BACKLOG | Deliberately deferred items, so the set is complete *by exclusion* too |
+| [11-build-insights-pipeline.md](11-build-insights-pipeline.md) | PIPE | New-scope Jenkins capabilities beyond the original SwiftUI app — queue status, build cause, SCM changelog, pipeline stage view, input-step approval, test results, artifacts, replay, upstream/downstream navigation |
 
 ## Story ID convention
 
 `US-<EPIC>-##`, e.g. `US-AUTH-01`. Epic codes: `AUTH`, `TOOL`, `CRED`,
-`TREE`, `JOB`, `LOG`, `HIST`, `PROF`, `DESIGN`. Cross-cutting baselines use
-`NFR-<CATEGORY>-##` (e.g. `NFR-SEC-01`) and are referenced, not repeated.
-Deferred items use `BACKLOG-##`.
+`TREE`, `JOB`, `LOG`, `HIST`, `PROF`, `DESIGN`, `PIPE`. Cross-cutting
+baselines use `NFR-<CATEGORY>-##` (e.g. `NFR-SEC-01`) and are referenced,
+not repeated. Deferred items use `BACKLOG-##`.
 
 ## Story template
 
@@ -126,3 +127,16 @@ Glassmorphism is not on the original parity checklist — it is a new
 requirement layered onto every story above via US-DESIGN-01…05, and tracked
 as its own line item precisely because it changes the definition of "done"
 for every screen already marked complete in `tasks/`.
+
+Epic PIPE ([11-build-insights-pipeline.md](11-build-insights-pipeline.md))
+is layered on the same way, for the same reason glassmorphism is: it is
+**not** required to reach the original migration's definition of done and
+deliberately does not appear in the traceability table above, which stays
+scoped to the original 13 parity rows from `docs/migration-strategy.md`.
+Unlike glassmorphism, PIPE didn't come from a design requirement — it came
+from auditing what the already-shipped Jenkins integration implements
+against what the Jenkins REST API offers, after full parity was reached.
+One PIPE story (US-PIPE-05) and its supporting NFR (NFR-SEC-06) are a
+correctness fix for the existing trigger/cancel flow (a missing CSRF
+crumb), not new scope — everything else in that file is genuinely new
+capability, none of it started.
