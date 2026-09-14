@@ -59,9 +59,12 @@ const _testReportTree =
     'passCount,failCount,skipCount,suites[cases[className,name,status]]';
 
 /// Last 20 builds — ported exactly from
-/// `JenkinsAPIService.fetchBuildHistory`'s `historyTree` (Swift).
+/// `JenkinsAPIService.fetchBuildHistory`'s `historyTree` (Swift), plus
+/// `actions[parameters[name,value]]` (US-PIPE-08 — a build's actually-used
+/// parameter values, for "replay with same parameters").
 const _historyTree =
-    'builds[number,url,result,timestamp,duration,displayName,building,estimatedDuration]{0,20}';
+    'builds[number,url,result,timestamp,duration,displayName,building,'
+    'estimatedDuration,actions[parameters[name,value]]]{0,20}';
 
 class JenkinsRepositoryImpl implements JenkinsRepository {
   JenkinsRepositoryImpl(this._dio);

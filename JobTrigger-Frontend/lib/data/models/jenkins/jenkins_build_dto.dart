@@ -61,6 +61,19 @@ abstract class JenkinsBuildDto with _$JenkinsBuildDto {
     // on the build resource -- unlike causes/changes above, no custom
     // unwrapper needed, just a nested DTO.
     @Default(<BuildArtifactDto>[]) List<BuildArtifactDto> artifacts,
+    // US-PIPE-08: a third field sourced from `actions` (alongside causes/
+    // upstreamCause above) -- this build's *actual recorded* parameter
+    // values (`hudson.model.ParametersAction`), distinct from the job's
+    // currently-declared defaults (`property[parameterDefinitions[...]]`,
+    // already parsed elsewhere for US-JOB-03). Always stringified, same
+    // convention as `parameter_form.dart`'s submitted values.
+    @Default(<String, String>{})
+    @JsonKey(
+      name: 'actions',
+      fromJson: _parameterValuesFromJson,
+      includeToJson: false,
+    )
+    Map<String, String> parameterValues,
   }) = _JenkinsBuildDto;
 
   factory JenkinsBuildDto.fromJson(Map<String, dynamic> json) =>
@@ -113,6 +126,25 @@ UpstreamCause? _upstreamCauseFromJson(dynamic rawActions) {
   return null;
 }
 
+Map<String, String> _parameterValuesFromJson(dynamic rawActions) {
+  if (rawActions is! List) return const {};
+  final values = <String, String>{};
+  for (final action in rawActions) {
+    if (action is! Map<String, dynamic>) continue;
+    final parameters = action['parameters'];
+    if (parameters is! List) continue;
+    for (final parameter in parameters) {
+      if (parameter is! Map<String, dynamic>) continue;
+      final name = parameter['name'];
+      final value = parameter['value'];
+      if (name is String && value != null) {
+        values[name] = value.toString();
+      }
+    }
+  }
+  return values;
+}
+
 List<ScmChange> _changesFromJson(dynamic rawChangeSet) {
   if (rawChangeSet is! Map<String, dynamic>) return const [];
   final items = rawChangeSet['items'];
@@ -153,5 +185,6 @@ extension JenkinsBuildDtoX on JenkinsBuildDto {
         )
         .toList(),
     upstreamCause: upstreamCause,
+    parameterValues: parameterValues,
   );
 }

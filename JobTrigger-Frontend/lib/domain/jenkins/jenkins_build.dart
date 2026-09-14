@@ -18,6 +18,7 @@ class JenkinsBuild {
     this.changes = const [],
     this.artifacts = const [],
     this.upstreamCause,
+    this.parameterValues = const {},
   });
 
   final int number;
@@ -51,6 +52,14 @@ class JenkinsBuild {
   /// in [causes].
   final UpstreamCause? upstreamCause;
 
+  /// This build's actual recorded parameter values (US-PIPE-08's Replay),
+  /// distinct from the job's currently-*declared* defaults
+  /// (`property[parameterDefinitions[...]]`, `US-JOB-03`) — always
+  /// stringified, same convention as `parameter_form.dart`'s submitted
+  /// values. Empty when Jenkins reports none (not requested by every
+  /// fetch — see `_historyTree`).
+  final Map<String, String> parameterValues;
+
   /// Every non-`url` construction site (`jenkins_url_rewriter.dart`,
   /// `JobDetailNotifier.applyOptimisticCancel`) reconstructed `JenkinsBuild`
   /// field-by-field before this existed, which silently dropped `causes`
@@ -70,6 +79,7 @@ class JenkinsBuild {
     List<ScmChange>? changes,
     List<BuildArtifact>? artifacts,
     UpstreamCause? upstreamCause,
+    Map<String, String>? parameterValues,
   }) => JenkinsBuild(
     number: number ?? this.number,
     url: url ?? this.url,
@@ -83,5 +93,6 @@ class JenkinsBuild {
     changes: changes ?? this.changes,
     artifacts: artifacts ?? this.artifacts,
     upstreamCause: upstreamCause ?? this.upstreamCause,
+    parameterValues: parameterValues ?? this.parameterValues,
   );
 }

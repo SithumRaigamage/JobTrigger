@@ -28,6 +28,9 @@ _JenkinsBuildDto _$JenkinsBuildDtoFromJson(Map<String, dynamic> json) =>
               ?.map((e) => BuildArtifactDto.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const <BuildArtifactDto>[],
+      parameterValues: json['actions'] == null
+          ? const <String, String>{}
+          : _parameterValuesFromJson(json['actions']),
     );
 
 Map<String, dynamic> _$JenkinsBuildDtoToJson(_JenkinsBuildDto instance) =>

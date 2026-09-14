@@ -167,6 +167,76 @@ void main() {
     });
   });
 
+  group('JenkinsBuildDto.parameterValues (US-PIPE-08)', () {
+    test('flattens ParametersAction entries to a name->value map', () {
+      final dto = JenkinsBuildDto.fromJson({
+        'number': 12,
+        'url': 'https://jenkins.test/job/x/12/',
+        'timestamp': 1700000000000.0,
+        'actions': [
+          {
+            'parameters': [
+              {'name': 'BRANCH', 'value': 'main'},
+              {'name': 'DEPLOY', 'value': true},
+            ],
+          },
+        ],
+      });
+
+      expect(dto.parameterValues, {'BRANCH': 'main', 'DEPLOY': 'true'});
+    });
+
+    test('coexists with causes/upstreamCause on the same actions array', () {
+      final dto = JenkinsBuildDto.fromJson({
+        'number': 12,
+        'url': 'https://jenkins.test/job/x/12/',
+        'timestamp': 1700000000000.0,
+        'actions': [
+          {
+            'causes': [
+              {'shortDescription': 'Started by user Jane Doe'},
+            ],
+          },
+          {
+            'parameters': [
+              {'name': 'BRANCH', 'value': 'main'},
+            ],
+          },
+        ],
+      });
+
+      expect(dto.causes, ['Started by user Jane Doe']);
+      expect(dto.parameterValues, {'BRANCH': 'main'});
+    });
+
+    test('defaults to an empty map when actions is absent', () {
+      final dto = JenkinsBuildDto.fromJson({
+        'number': 12,
+        'url': 'https://jenkins.test/job/x/12/',
+        'timestamp': 1700000000000.0,
+      });
+
+      expect(dto.parameterValues, isEmpty);
+    });
+
+    test('toDomain() carries parameterValues through unchanged', () {
+      final dto = JenkinsBuildDto.fromJson({
+        'number': 12,
+        'url': 'https://jenkins.test/job/x/12/',
+        'timestamp': 1700000000000.0,
+        'actions': [
+          {
+            'parameters': [
+              {'name': 'BRANCH', 'value': 'main'},
+            ],
+          },
+        ],
+      });
+
+      expect(dto.toDomain().parameterValues, {'BRANCH': 'main'});
+    });
+  });
+
   group('JenkinsBuildDto.changes (US-PIPE-03)', () {
     test('flattens changeSet.items to author + message', () {
       final dto = JenkinsBuildDto.fromJson({

@@ -351,11 +351,53 @@ per `CLAUDE.md` §9.
       just preservation, unlike the earlier causes/changes regression
       test), plus `upstreamCause` added to the existing `copyWith` test.
       `flutter analyze` clean, full suite (156 tests) passing.
-- [ ] P7-09 `US-PIPE-08` — Replay with same parameters. Depends on P7-00
-      (crumb) and reuses `US-JOB-03`'s `ParameterForm` + `US-HIST-02`'s
-      per-job history list. Needs each history build's actual recorded
-      parameter values, not just its metadata — extend `_historyTree` (or
-      a per-build detail fetch) accordingly.
+- [x] P7-09 `US-PIPE-08` — Replay with same parameters. No new repository
+      method — rides the existing `fetchJobHistory`/`_historyTree` fetch,
+      extended with `actions[parameters[name,value]]` (a build's actually-
+      recorded values, `hudson.model.ParametersAction` — distinct from the
+      job's currently-*declared* defaults already parsed for `US-JOB-03`).
+      New `JenkinsBuild.parameterValues: Map<String, String>` field
+      (third field now sourced from the same `actions` JSON key as
+      causes/upstreamCause, same `includeToJson: false` pattern).
+
+      New pure `reconcileReplayParameters()` (`domain/jenkins/`, directly
+      unit-tested, no widget needed to exercise it): takes the job's
+      *current* parameter definitions and a build's historic values,
+      returns the definitions with `defaultValue` overridden wherever a
+      historic value exists. Known parameters pre-fill; a parameter only
+      in current definitions (added since) keeps its current default; a
+      parameter only in historic values (removed since) is silently
+      dropped — matches the story's three-way scenario exactly. Feeding
+      the result straight into the existing `ParameterForm` (`US-JOB-03`)
+      pre-fills it with zero changes to that widget.
+
+      New `ReplaySheet` (a bottom sheet, not a new screen): reuses
+      `ParameterForm` + `TriggerBuildNotifier` completely unchanged —
+      replay is explicitly not a separate Jenkins endpoint, just a
+      pre-filled trigger, so it gets `NFR-SEC-06`'s crumb handling and the
+      existing success/error toast for free. Opening the sheet and
+      reviewing/editing pre-filled values before tapping "Replay" serves
+      as this flow's confirmation step — deliberately not a second confirm
+      dialog stacked on top, matching `US-JOB-02`/`03`'s existing posture
+      (no dialog there either, a known pre-existing gap flagged back in
+      P7-07, not something to solve inconsistently in just this one flow).
+
+      New optional `onReplay` callback on `HistoryTile` (shared with
+      `GlobalHistoryScreen`), wired up only by `JobHistoryScreen` — replay
+      needs the job's current parameter definitions in scope, which the
+      global cross-job history view doesn't have; `GlobalHistoryScreen`'s
+      call site is unchanged (the parameter defaults to not shown).
+
+      No repository interface change — the 6 fake `JenkinsRepository`
+      implementations needed no updates. 9 new tests: 4 in
+      `jenkins_build_dto_test.dart` (flatten, coexists with causes/
+      upstreamCause on the same `actions` array, absent-defaults,
+      `toDomain()`), 5 in `reconcile_replay_parameters_test.dart` (known/
+      new/removed individually, all three mixed together, empty case),
+      plus `parameterValues` added to the existing `copyWith` test.
+      `flutter analyze` clean, full suite (165 tests) passing.
+
+      **This closes out Phase 7 — all 9 `US-PIPE-##` stories implemented.**
 
 Each task needs: the domain/DTO/repository changes, the notifier, the UI,
 and unit tests per `NFR-TEST-01`, plus manual verification against a real

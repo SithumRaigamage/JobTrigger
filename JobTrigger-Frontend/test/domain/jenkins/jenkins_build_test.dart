@@ -24,6 +24,7 @@ void main() {
         projectName: 'foo',
         url: 'https://jenkins.test/job/foo/',
       ),
+      parameterValues: {'BRANCH': 'main'},
     );
 
     test('preserves every field not explicitly overridden', () {
@@ -44,6 +45,7 @@ void main() {
       expect(copy.changes, original.changes);
       expect(copy.artifacts, original.artifacts);
       expect(copy.upstreamCause, original.upstreamCause);
+      expect(copy.parameterValues, original.parameterValues);
     });
 
     test('overrides only the given fields', () {
@@ -56,6 +58,7 @@ void main() {
       expect(copy.changes, original.changes);
       expect(copy.artifacts, original.artifacts);
       expect(copy.upstreamCause, original.upstreamCause);
+      expect(copy.parameterValues, original.parameterValues);
     });
   });
 }

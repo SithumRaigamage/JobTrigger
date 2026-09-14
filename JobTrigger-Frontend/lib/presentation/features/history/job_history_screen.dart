@@ -10,6 +10,7 @@ import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import 'history_tile.dart';
 import 'job_history_notifier.dart';
+import 'replay_sheet.dart';
 
 /// Ported from `HistoryView.swift`. Reuses `HistoryTile` (P5-16) — the same
 /// widget `GlobalHistoryScreen` uses, just without a job name prefix.
@@ -50,6 +51,12 @@ class JobHistoryScreen extends ConsumerWidget {
                     jenkinsBuild: build,
                     onTap: () =>
                         context.push(AppRoutes.buildLog, extra: build),
+                    onReplay: () => showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (context) =>
+                          ReplaySheet(job: job, build: build),
+                    ),
                   );
                 },
               ),

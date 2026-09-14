@@ -12,6 +12,7 @@ class HistoryTile extends StatelessWidget {
     required this.jenkinsBuild,
     this.jobName,
     this.onTap,
+    this.onReplay,
   });
 
   final JenkinsBuild jenkinsBuild;
@@ -21,6 +22,12 @@ class HistoryTile extends StatelessWidget {
   final String? jobName;
 
   final VoidCallback? onTap;
+
+  /// US-PIPE-08: shows a trailing "Replay" action when set. Only
+  /// `JobHistoryScreen` wires this up — reconciling against a job's
+  /// *current* parameter definitions needs that job in scope, which the
+  /// global cross-job history view doesn't have.
+  final VoidCallback? onReplay;
 
   @override
   Widget build(BuildContext context) {
@@ -40,11 +47,25 @@ class HistoryTile extends StatelessWidget {
           ),
           title: Text(title),
           subtitle: Text(_formatTimestamp(jenkinsBuild.timestamp)),
-          trailing: Text(
-            jenkinsBuild.building ? 'Building' : (jenkinsBuild.result ?? '—'),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: AppColors.forBuildResult(jenkinsBuild.result),
-            ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                jenkinsBuild.building
+                    ? 'Building'
+                    : (jenkinsBuild.result ?? '—'),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: AppColors.forBuildResult(jenkinsBuild.result),
+                ),
+              ),
+              if (onReplay != null)
+                IconButton(
+                  icon: const Icon(Icons.replay, size: 20),
+                  tooltip: 'Replay with same parameters',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: onReplay,
+                ),
+            ],
           ),
         ),
       ),
