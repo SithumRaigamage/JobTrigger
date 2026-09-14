@@ -5,9 +5,39 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/data/models/jenkins/jenkins_job_dto.dart';
 import 'package:job_trigger/data/models/jenkins/jenkins_server_info_dto.dart';
 import 'package:job_trigger/data/repositories/jenkins_url_rewriter.dart';
+import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 
 void main() {
+  test(
+    'preserves non-url JenkinsBuild fields (e.g. causes) through the rewrite',
+    () {
+      // Regression test: _rewriteBuild reconstructs JenkinsBuild field by
+      // field rather than copying the source build, so a field added to
+      // JenkinsBuild without a matching update here would silently be
+      // dropped on every job-detail fetch (found happening for `causes`,
+      // US-PIPE-02, before this fix).
+      const job = JenkinsJob(
+        name: 'x',
+        url: 'https://internal.test/job/x/',
+        lastBuild: JenkinsBuild(
+          number: 5,
+          url: 'https://internal.test/job/x/5/',
+          timestamp: 1700000000000,
+          causes: ['Started by user Jane Doe'],
+        ),
+      );
+
+      final rewritten = rewriteJobTreeUrls(
+        [job],
+        'http://localhost:8080',
+      ).single;
+
+      expect(rewritten.lastBuild!.causes, ['Started by user Jane Doe']);
+    },
+  );
+
+
   test(
     'rewrites every url in the tree to the active server, preserving path',
     () {

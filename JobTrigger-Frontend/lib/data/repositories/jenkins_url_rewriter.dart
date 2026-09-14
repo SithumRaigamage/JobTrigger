@@ -49,6 +49,7 @@ JenkinsBuild _rewriteBuild(JenkinsBuild build, Uri activeUri) => JenkinsBuild(
   estimatedDuration: build.estimatedDuration,
   building: build.building,
   displayName: build.displayName,
+  causes: build.causes,
 );
 
 String _rewriteUrl(String rawUrl, Uri activeUri) {
