@@ -20,10 +20,36 @@ abstract class JenkinsBuildDto with _$JenkinsBuildDto {
     double? estimatedDuration,
     @Default(false) bool building,
     String? displayName,
+    // US-PIPE-02: Jenkins' `actions` array is polymorphic -- only some
+    // entries are a `hudson.model.CauseAction` carrying `causes`, and the
+    // tree query (`actions[causes[shortDescription]]`) still returns every
+    // action entry, just pruned to that one field where present. Flatten
+    // straight to the description strings we actually render rather than
+    // modeling the full heterogeneous `actions` shape.
+    @Default(<String>[])
+    @JsonKey(name: 'actions', fromJson: _causesFromJson)
+    List<String> causes,
   }) = _JenkinsBuildDto;
 
   factory JenkinsBuildDto.fromJson(Map<String, dynamic> json) =>
       _$JenkinsBuildDtoFromJson(json);
+}
+
+List<String> _causesFromJson(dynamic rawActions) {
+  if (rawActions is! List) return const [];
+  final descriptions = <String>[];
+  for (final action in rawActions) {
+    if (action is! Map<String, dynamic>) continue;
+    final causes = action['causes'];
+    if (causes is! List) continue;
+    for (final cause in causes) {
+      if (cause is Map<String, dynamic> &&
+          cause['shortDescription'] is String) {
+        descriptions.add(cause['shortDescription'] as String);
+      }
+    }
+  }
+  return descriptions;
 }
 
 extension JenkinsBuildDtoX on JenkinsBuildDto {
@@ -36,5 +62,6 @@ extension JenkinsBuildDtoX on JenkinsBuildDto {
     estimatedDuration: estimatedDuration,
     building: building,
     displayName: displayName,
+    causes: causes,
   );
 }

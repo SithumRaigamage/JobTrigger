@@ -36,7 +36,8 @@ String buildJobTreeQuery() {
 /// `JenkinsAPIService.fetchJobDetails`'s `detailsTree` (Swift).
 const _detailsTree =
     'name,url,color,description,'
-    'lastBuild[number,url,result,timestamp,duration,building,estimatedDuration],'
+    'lastBuild[number,url,result,timestamp,duration,building,estimatedDuration,'
+    'actions[causes[shortDescription]]],'
     'healthReport[description,iconClassName,score],'
     'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices]]';
 

@@ -220,6 +220,13 @@ class _LastBuildCard extends StatelessWidget {
                     ),
                 ],
               ),
+              if (lastBuild.causes.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  lastBuild.causes.join(', '),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
               if (lastBuild.building) ...[
                 const SizedBox(height: 8),
                 LinearProgressIndicator(

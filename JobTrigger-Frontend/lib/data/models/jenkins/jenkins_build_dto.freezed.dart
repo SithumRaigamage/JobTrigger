@@ -17,7 +17,13 @@ mixin _$JenkinsBuildDto {
 
  int get number; String get url; String? get result;// SUCCESS | FAILURE | ABORTED | UNSTABLE | null (building)
  double get timestamp;// epoch ms
- double? get duration; double? get estimatedDuration; bool get building; String? get displayName;
+ double? get duration; double? get estimatedDuration; bool get building; String? get displayName;// US-PIPE-02: Jenkins' `actions` array is polymorphic -- only some
+// entries are a `hudson.model.CauseAction` carrying `causes`, and the
+// tree query (`actions[causes[shortDescription]]`) still returns every
+// action entry, just pruned to that one field where present. Flatten
+// straight to the description strings we actually render rather than
+// modeling the full heterogeneous `actions` shape.
+@JsonKey(name: 'actions', fromJson: _causesFromJson) List<String> get causes;
 /// Create a copy of JenkinsBuildDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,16 +36,16 @@ $JenkinsBuildDtoCopyWith<JenkinsBuildDto> get copyWith => _$JenkinsBuildDtoCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&const DeepCollectionEquality().equals(other.causes, causes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName);
+int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName,const DeepCollectionEquality().hash(causes));
 
 @override
 String toString() {
-  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName)';
+  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName, causes: $causes)';
 }
 
 
@@ -50,7 +56,7 @@ abstract mixin class $JenkinsBuildDtoCopyWith<$Res>  {
   factory $JenkinsBuildDtoCopyWith(JenkinsBuildDto value, $Res Function(JenkinsBuildDto) _then) = _$JenkinsBuildDtoCopyWithImpl;
 @useResult
 $Res call({
- int number, String url, String? result, double timestamp, double? duration, double? estimatedDuration, bool building, String? displayName
+ int number, String url, String? result, double timestamp, double? duration, double? estimatedDuration, bool building, String? displayName,@JsonKey(name: 'actions', fromJson: _causesFromJson) List<String> causes
 });
 
 
@@ -67,7 +73,7 @@ class _$JenkinsBuildDtoCopyWithImpl<$Res>
 
 /// Create a copy of JenkinsBuildDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? number = null,Object? url = null,Object? result = freezed,Object? timestamp = null,Object? duration = freezed,Object? estimatedDuration = freezed,Object? building = null,Object? displayName = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? number = null,Object? url = null,Object? result = freezed,Object? timestamp = null,Object? duration = freezed,Object? estimatedDuration = freezed,Object? building = null,Object? displayName = freezed,Object? causes = null,}) {
   return _then(_self.copyWith(
 number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
 as int,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -77,7 +83,8 @@ as double,duration: freezed == duration ? _self.duration : duration // ignore: c
 as double?,estimatedDuration: freezed == estimatedDuration ? _self.estimatedDuration : estimatedDuration // ignore: cast_nullable_to_non_nullable
 as double?,building: null == building ? _self.building : building // ignore: cast_nullable_to_non_nullable
 as bool,displayName: freezed == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,causes: null == causes ? _self.causes : causes // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 
@@ -162,10 +169,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson)  List<String> causes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JenkinsBuildDto() when $default != null:
-return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName);case _:
+return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes);case _:
   return orElse();
 
 }
@@ -183,10 +190,10 @@ return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.durati
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson)  List<String> causes)  $default,) {final _that = this;
 switch (_that) {
 case _JenkinsBuildDto():
-return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName);case _:
+return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +210,10 @@ return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.durati
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson)  List<String> causes)?  $default,) {final _that = this;
 switch (_that) {
 case _JenkinsBuildDto() when $default != null:
-return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName);case _:
+return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes);case _:
   return null;
 
 }
@@ -218,7 +225,7 @@ return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.durati
 @JsonSerializable()
 
 class _JenkinsBuildDto implements JenkinsBuildDto {
-  const _JenkinsBuildDto({required this.number, required this.url, this.result, required this.timestamp, this.duration, this.estimatedDuration, this.building = false, this.displayName});
+  const _JenkinsBuildDto({required this.number, required this.url, this.result, required this.timestamp, this.duration, this.estimatedDuration, this.building = false, this.displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson) final  List<String> causes = const <String>[]}): _causes = causes;
   factory _JenkinsBuildDto.fromJson(Map<String, dynamic> json) => _$JenkinsBuildDtoFromJson(json);
 
 @override final  int number;
@@ -231,6 +238,25 @@ class _JenkinsBuildDto implements JenkinsBuildDto {
 @override final  double? estimatedDuration;
 @override@JsonKey() final  bool building;
 @override final  String? displayName;
+// US-PIPE-02: Jenkins' `actions` array is polymorphic -- only some
+// entries are a `hudson.model.CauseAction` carrying `causes`, and the
+// tree query (`actions[causes[shortDescription]]`) still returns every
+// action entry, just pruned to that one field where present. Flatten
+// straight to the description strings we actually render rather than
+// modeling the full heterogeneous `actions` shape.
+ final  List<String> _causes;
+// US-PIPE-02: Jenkins' `actions` array is polymorphic -- only some
+// entries are a `hudson.model.CauseAction` carrying `causes`, and the
+// tree query (`actions[causes[shortDescription]]`) still returns every
+// action entry, just pruned to that one field where present. Flatten
+// straight to the description strings we actually render rather than
+// modeling the full heterogeneous `actions` shape.
+@override@JsonKey(name: 'actions', fromJson: _causesFromJson) List<String> get causes {
+  if (_causes is EqualUnmodifiableListView) return _causes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_causes);
+}
+
 
 /// Create a copy of JenkinsBuildDto
 /// with the given fields replaced by the non-null parameter values.
@@ -245,16 +271,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&const DeepCollectionEquality().equals(other._causes, _causes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName);
+int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName,const DeepCollectionEquality().hash(_causes));
 
 @override
 String toString() {
-  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName)';
+  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName, causes: $causes)';
 }
 
 
@@ -265,7 +291,7 @@ abstract mixin class _$JenkinsBuildDtoCopyWith<$Res> implements $JenkinsBuildDto
   factory _$JenkinsBuildDtoCopyWith(_JenkinsBuildDto value, $Res Function(_JenkinsBuildDto) _then) = __$JenkinsBuildDtoCopyWithImpl;
 @override @useResult
 $Res call({
- int number, String url, String? result, double timestamp, double? duration, double? estimatedDuration, bool building, String? displayName
+ int number, String url, String? result, double timestamp, double? duration, double? estimatedDuration, bool building, String? displayName,@JsonKey(name: 'actions', fromJson: _causesFromJson) List<String> causes
 });
 
 
@@ -282,7 +308,7 @@ class __$JenkinsBuildDtoCopyWithImpl<$Res>
 
 /// Create a copy of JenkinsBuildDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? number = null,Object? url = null,Object? result = freezed,Object? timestamp = null,Object? duration = freezed,Object? estimatedDuration = freezed,Object? building = null,Object? displayName = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? number = null,Object? url = null,Object? result = freezed,Object? timestamp = null,Object? duration = freezed,Object? estimatedDuration = freezed,Object? building = null,Object? displayName = freezed,Object? causes = null,}) {
   return _then(_JenkinsBuildDto(
 number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
 as int,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -292,7 +318,8 @@ as double,duration: freezed == duration ? _self.duration : duration // ignore: c
 as double?,estimatedDuration: freezed == estimatedDuration ? _self.estimatedDuration : estimatedDuration // ignore: cast_nullable_to_non_nullable
 as double?,building: null == building ? _self.building : building // ignore: cast_nullable_to_non_nullable
 as bool,displayName: freezed == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,causes: null == causes ? _self._causes : causes // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

@@ -16,6 +16,9 @@ _JenkinsBuildDto _$JenkinsBuildDtoFromJson(Map<String, dynamic> json) =>
       estimatedDuration: (json['estimatedDuration'] as num?)?.toDouble(),
       building: json['building'] as bool? ?? false,
       displayName: json['displayName'] as String?,
+      causes: json['actions'] == null
+          ? const <String>[]
+          : _causesFromJson(json['actions']),
     );
 
 Map<String, dynamic> _$JenkinsBuildDtoToJson(_JenkinsBuildDto instance) =>
@@ -28,4 +31,5 @@ Map<String, dynamic> _$JenkinsBuildDtoToJson(_JenkinsBuildDto instance) =>
       'estimatedDuration': instance.estimatedDuration,
       'building': instance.building,
       'displayName': instance.displayName,
+      'actions': instance.causes,
     };

@@ -34,9 +34,22 @@ per `CLAUDE.md` §9.
       on the raw `RequestOptions` list showed every earlier entry
       reflecting the *latest* mutation too). `flutter analyze` clean, full
       suite (94 tests) passing.
-- [ ] P7-01 `US-PIPE-02` — Build cause. Extend the job-detail `tree` query
-      with `actions[causes[shortDescription]]`; new `BuildCause` domain
-      field; render as a caption line on the job-detail card.
+- [x] P7-01 `US-PIPE-02` — Build cause. Added `List<String> causes` to
+      `JenkinsBuild`/`JenkinsBuildDto` (not a separate `BuildCause` type —
+      Jenkins' cause data is just a flat list of description strings once
+      unwrapped, no other fields worth modeling), flattened out of the
+      polymorphic `actions[causes[shortDescription]]` shape via a custom
+      `@JsonKey(fromJson:)` unwrapper (`_causesFromJson`), same pattern as
+      `ParameterDefinitionDto`'s existing `defaultParameterValue` unwrap.
+      Added to `_detailsTree` only (job detail screen), not
+      `_treeFields`/`_historyTree` — home screen tiles and history lists
+      don't show it, keeping the change contained. Rendered as a caption
+      line under the last-build header in `_LastBuildCard`
+      (`job_detail_screen.dart`), multiple causes comma-joined.
+      5 new tests in `jenkins_build_dto_test.dart` (single cause, multiple
+      causes across multiple action entries, absent actions, no action
+      carrying causes, `toDomain()` passthrough). `flutter analyze` clean,
+      full suite (99 tests) passing.
 - [ ] P7-02 `US-PIPE-01` — Queue status. New repository method hitting
       `{jobURL}/queue/api/json` (called right after a successful trigger,
       and once on job-detail load); new `QueueItem` domain type; job-detail
