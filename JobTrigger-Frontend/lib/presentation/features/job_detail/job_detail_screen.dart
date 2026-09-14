@@ -61,6 +61,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
         .watch(cancelBuildNotifierProvider(jobUrl))
         .isLoading;
     final queueItem = ref.watch(queueStatusNotifierProvider(jobUrl));
+    final job = jobAsync.value;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -75,37 +76,115 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
           ),
         ],
       ),
-      body: ResponsiveCenter(
-        child: jobAsync.when(
-          data: (job) => _JobDetailBody(
-            job: job,
-            queueItem: queueItem,
-            isTriggering: isTriggering,
-            isCancelling: isCancelling,
-            onParametersChanged: (values) => _parameterValues = values,
-            onTrigger: () => ref
-                .read(triggerBuildNotifierProvider(jobUrl).notifier)
-                .trigger(job: job, parameters: _parameterValues),
-            onCancel: (job.lastBuild != null && job.lastBuild!.building)
-                ? () => ref
-                      .read(cancelBuildNotifierProvider(jobUrl).notifier)
-                      .cancel(
-                        buildUrl: job.lastBuild!.url,
-                        buildNumber: job.lastBuild!.number,
-                      )
-                : null,
-            onViewLog: job.lastBuild == null
-                ? null
-                : () => context.push(AppRoutes.buildLog, extra: job.lastBuild),
-          ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) => Center(
-            child: ConnectionErrorView(
-              message: describeError(error),
-              onRetry: () => ref
-                  .read(jobDetailNotifierProvider(jobUrl).notifier)
-                  .refresh(),
+      // Trigger/Cancel are pinned outside the scrollable body (not the
+      // ListView's last items) so they're always reachable without
+      // scrolling, regardless of how much variable content (stages, test
+      // report, parameters, changes) a given job has above them.
+      body: Column(
+        children: [
+          Expanded(
+            child: ResponsiveCenter(
+              child: jobAsync.when(
+                data: (job) => _JobDetailBody(
+                  job: job,
+                  queueItem: queueItem,
+                  onParametersChanged: (values) => _parameterValues = values,
+                  onViewLog: job.lastBuild == null
+                      ? null
+                      : () => context.push(
+                          AppRoutes.buildLog,
+                          extra: job.lastBuild,
+                        ),
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) => Center(
+                  child: ConnectionErrorView(
+                    message: describeError(error),
+                    onRetry: () => ref
+                        .read(jobDetailNotifierProvider(jobUrl).notifier)
+                        .refresh(),
+                  ),
+                ),
+              ),
             ),
+          ),
+          if (job != null)
+            ResponsiveCenter(
+              child: _ActionBar(
+                job: job,
+                isTriggering: isTriggering,
+                isCancelling: isCancelling,
+                onTrigger: () => ref
+                    .read(triggerBuildNotifierProvider(jobUrl).notifier)
+                    .trigger(job: job, parameters: _parameterValues),
+                onCancel: (job.lastBuild != null && job.lastBuild!.building)
+                    ? () => ref
+                          .read(cancelBuildNotifierProvider(jobUrl).notifier)
+                          .cancel(
+                            buildUrl: job.lastBuild!.url,
+                            buildNumber: job.lastBuild!.number,
+                          )
+                    : null,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Fixed action bar pinned below the scrollable body — see the "don't make
+/// the user scroll to find Trigger Build" comment above.
+class _ActionBar extends StatelessWidget {
+  const _ActionBar({
+    required this.job,
+    required this.isTriggering,
+    required this.isCancelling,
+    required this.onTrigger,
+    required this.onCancel,
+  });
+
+  final JenkinsJob job;
+  final bool isTriggering;
+  final bool isCancelling;
+  final VoidCallback onTrigger;
+  final VoidCallback? onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Row(
+            children: [
+              if (onCancel != null) ...[
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: isCancelling ? null : onCancel,
+                    icon: const Icon(Icons.stop_circle),
+                    label: Text(isCancelling ? 'Cancelling…' : 'Cancel Build'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: isTriggering ? null : onTrigger,
+                  icon: const Icon(Icons.play_arrow),
+                  label: Text(isTriggering ? 'Triggering…' : 'Trigger Build'),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -117,21 +196,13 @@ class _JobDetailBody extends ConsumerWidget {
   const _JobDetailBody({
     required this.job,
     required this.queueItem,
-    required this.isTriggering,
-    required this.isCancelling,
     required this.onParametersChanged,
-    required this.onTrigger,
-    required this.onCancel,
     required this.onViewLog,
   });
 
   final JenkinsJob job;
   final QueueItem? queueItem;
-  final bool isTriggering;
-  final bool isCancelling;
   final ValueChanged<Map<String, String>> onParametersChanged;
-  final VoidCallback onTrigger;
-  final VoidCallback? onCancel;
   final VoidCallback? onViewLog;
 
   @override
@@ -199,14 +270,6 @@ class _JobDetailBody extends ConsumerWidget {
           pipelineStages: pipelineStages,
           onViewLog: onViewLog,
         ),
-        if (job.lastBuild != null && job.lastBuild!.building) ...[
-          const SizedBox(height: 12),
-          FilledButton.tonalIcon(
-            onPressed: isCancelling ? null : onCancel,
-            icon: const Icon(Icons.stop_circle),
-            label: Text(isCancelling ? 'Cancelling…' : 'Cancel Build'),
-          ),
-        ],
         if (parameterDefinitions.isNotEmpty) ...[
           const SizedBox(height: 24),
           Text('Parameters', style: Theme.of(context).textTheme.titleMedium),
@@ -216,12 +279,6 @@ class _JobDetailBody extends ConsumerWidget {
             onChanged: onParametersChanged,
           ),
         ],
-        const SizedBox(height: 24),
-        FilledButton.icon(
-          onPressed: isTriggering ? null : onTrigger,
-          icon: const Icon(Icons.play_arrow),
-          label: Text(isTriggering ? 'Triggering…' : 'Trigger Build'),
-        ),
       ],
     );
   }
