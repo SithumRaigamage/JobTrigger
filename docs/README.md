@@ -27,6 +27,10 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 
 - **[Integration Testing](./integration-testing.md)** — Real end-to-end tests on a live simulator, via `integration_test` (not Playwright — see why)
 
+## 📦 Release
+
+- **[Deployment](./deployment.md)** — App Store / Play Store submission process, CI/CD tooling options, what's blocked on store accounts vs. code
+
 ---
 
 ## 🛠️ Development Guides
@@ -54,6 +58,7 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 | Old → new models | [Data Models](./data-models.md) |
 | Migration timeline | [Migration Strategy](./migration-strategy.md) |
 | Database schema & migrations | [Database Migrations](./database-migrations.md) |
+| Store deployment & CI/CD | [Deployment](./deployment.md) |
 | Project rules | [CLAUDE.md](../CLAUDE.md) |
 | What's left to do | [Tasks](../tasks/README.md) |
 
