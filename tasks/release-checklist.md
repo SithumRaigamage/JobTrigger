@@ -16,6 +16,13 @@ only tracks what's left and why.
       this environment to run the real manual test. Needs someone with a
       working local iOS toolchain (or the iOS 26.5 simulator platform
       installed via Xcode) to confirm.
+- [ ] Android on-device build-log jank/performance test (source:
+      `phase-5-build-execution-logs-history.md` P5-13). A 5,000-line log
+      fixture confirms `ListView.builder` actually virtualizes (well under
+      200 live widgets, not 5,000) and doesn't throw/hang — evidence the
+      mechanism is sound, not a substitute for real on-device scroll
+      measurement. No Android device/emulator was available in this
+      environment.
 - [ ] App icons, splash screens, store screenshots for both platforms
       (source: `phase-6-polish-release.md` P6-07). The original SwiftUI app
       never shipped real artwork to port from. Needs real source artwork

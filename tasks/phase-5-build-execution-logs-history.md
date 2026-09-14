@@ -4,6 +4,10 @@ Goal: the highest-complexity phase — trigger builds (with/without
 parameters), watch live status, stream logs, cancel builds, and view
 history. Budget the most time here.
 
+Dev-complete as of this phase; the one open item (P5-13's real-device jank
+test) is tracked in `tasks/release-checklist.md`, not here — it's blocked
+on external device access, not on more development work.
+
 ## Job detail & triggering
 
 - [x] P5-01 `data/models/jenkins/parameter_definition_dto.dart` with the
