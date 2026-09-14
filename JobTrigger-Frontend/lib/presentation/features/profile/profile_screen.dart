@@ -45,7 +45,7 @@ class ProfileScreen extends ConsumerWidget {
             16,
             MediaQuery.paddingOf(context).top + kToolbarHeight + 16,
             16,
-            16 + kGlassNavBarHeight,
+            16 + glassNavBarClearance(context),
           ),
           children: [
             Icon(

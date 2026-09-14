@@ -84,10 +84,22 @@ class MainScaffold extends StatelessWidget {
   }
 }
 
-/// Height to reserve at the bottom of each tab branch's scrollable content
-/// so its last item clears the floating glass nav bar (`extendBody: true`
-/// above means the branch's own `Scaffold` no longer reserves this space
-/// automatically). Matches `NavigationBar`'s default height; screens with a
-/// taller device inset (e.g. gesture nav) still get that via `SafeArea`
-/// around their own content, this only accounts for the bar itself.
+/// `NavigationBar`'s own content height (Material 3 default) — but *not*
+/// its full on-screen height. Don't use this alone for bottom-clearance
+/// padding; use [glassNavBarClearance] instead.
 const kGlassNavBarHeight = 80.0;
+
+/// Full height to reserve at the bottom of each tab branch's scrollable
+/// content (or a floating action button) so it clears the floating glass
+/// nav bar (`extendBody: true` above means the branch's own `Scaffold` no
+/// longer reserves this space automatically).
+///
+/// This is [kGlassNavBarHeight] *plus* the device's bottom safe-area inset
+/// (home indicator / gesture bar), not [kGlassNavBarHeight] alone: Material
+/// 3's `NavigationBar` wraps its 80dp content in its own internal
+/// `SafeArea`, so its actual rendered height on screen is `80 +
+/// MediaQuery.padding.bottom` — content padded by just `kGlassNavBarHeight`
+/// undercounts by that inset and ends up visually clipped by the bar (this
+/// is exactly what was cutting the Settings screen's FAB in half).
+double glassNavBarClearance(BuildContext context) =>
+    kGlassNavBarHeight + MediaQuery.paddingOf(context).bottom;

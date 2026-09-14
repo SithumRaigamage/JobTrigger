@@ -222,7 +222,12 @@ class _JobListView extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: () => ref.read(jobTreeNotifierProvider.notifier).refresh(),
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16 + kGlassNavBarHeight),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          16 + glassNavBarClearance(context),
+        ),
         itemCount: jobs.length,
         itemBuilder: (context, index) => Padding(
           padding: const EdgeInsets.only(bottom: 8),

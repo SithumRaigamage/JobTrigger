@@ -60,7 +60,7 @@ class GlobalHistoryScreen extends ConsumerWidget {
                   8,
                   MediaQuery.paddingOf(context).top + kToolbarHeight + 8,
                   8,
-                  8 + kGlassNavBarHeight,
+                  8 + glassNavBarClearance(context),
                 ),
                 itemCount: entries.length,
                 itemBuilder: (context, index) {

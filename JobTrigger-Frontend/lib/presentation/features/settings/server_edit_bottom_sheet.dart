@@ -35,6 +35,17 @@ Future<void> showServerEditBottomSheet(
   }
   return showModalBottomSheet<void>(
     context: context,
+    // `showModalBottomSheet` defaults to the *nearest* Navigator, unlike
+    // `showDialog` above (which already defaults to the root one) --
+    // Settings lives inside MainScaffold's StatefulShellRoute branch, so
+    // without this the sheet attaches to that branch's own nested
+    // Navigator and ends up part of the Scaffold's `body`, which paints
+    // (and hit-tests) *underneath* the persistent glass nav bar. That cut
+    // the sheet off visually and swallowed taps on whatever fell in the
+    // overlap (e.g. the "Test Jenkins Connection" button). The root
+    // navigator renders above the whole app, nav bar included -- the
+    // normal expectation for a modal.
+    useRootNavigator: true,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (context) => GlassSurface.chrome(

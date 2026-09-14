@@ -75,9 +75,9 @@ class SettingsScreen extends ConsumerWidget {
       ),
       floatingActionButton: Padding(
         // Clears the floating glass bottom nav bar (see MainScaffold's
-        // `extendBody: true` and `kGlassNavBarHeight`) — without this the
+        // `extendBody: true` and `glassNavBarClearance`) — without this the
         // FAB would sit partly behind it.
-        padding: const EdgeInsets.only(bottom: kGlassNavBarHeight),
+        padding: EdgeInsets.only(bottom: glassNavBarClearance(context)),
         child: FloatingActionButton.extended(
           onPressed: () => showServerEditBottomSheet(context),
           icon: const Icon(Icons.add),
@@ -199,11 +199,11 @@ class _ServerList extends ConsumerWidget {
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         12,
         4,
         12,
-        12 + kGlassNavBarHeight,
+        12 + glassNavBarClearance(context),
       ),
       itemCount: servers.length,
       itemBuilder: (context, index) {
@@ -237,29 +237,30 @@ class _ServerList extends ConsumerWidget {
             child: GlassSurface.card(
               onTap: isActive
                   ? null
-                  : () => ref
-                        .read(activeServerNotifierProvider.notifier)
-                        .setActiveServer(server),
+                  : () => _setActiveServer(ref, server),
               child: ListTile(
+                // A radio-style selection indicator, not just a checkmark
+                // that only ever appears on the active row -- without a
+                // control on every row, nothing suggested the *other* rows
+                // were tappable to select them (the whole-row tap "worked"
+                // but had no discoverable affordance).
+                leading: Icon(
+                  isActive
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  color: isActive
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 title: Text(server.serverName),
                 subtitle: Text(server.jenkinsURL),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (isActive)
-                      Icon(
-                        Icons.check_circle,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      tooltip: 'Edit',
-                      onPressed: () => showServerEditBottomSheet(
-                        context,
-                        existing: server,
-                      ),
-                    ),
-                  ],
+                trailing: IconButton(
+                  icon: const Icon(Icons.edit),
+                  tooltip: 'Edit',
+                  onPressed: () => showServerEditBottomSheet(
+                    context,
+                    existing: server,
+                  ),
                 ),
               ),
             ),
@@ -288,6 +289,21 @@ class _ServerList extends ConsumerWidget {
       ),
     );
     return confirmed ?? false;
+  }
+
+  /// Confirms the switch actually happened — without this, nothing told
+  /// the user their tap took effect beyond the radio icon silently moving.
+  Future<void> _setActiveServer(WidgetRef ref, JenkinsServer server) async {
+    await ref.read(activeServerNotifierProvider.notifier).setActiveServer(
+      server,
+    );
+    ref
+        .read(toastControllerProvider)
+        .show(
+          type: ToastType.success,
+          title: 'Server Switched',
+          message: 'Now using ${server.serverName}.',
+        );
   }
 
   /// Delete + active-server fallback (P3-09) lives on `ActiveServerNotifier`
