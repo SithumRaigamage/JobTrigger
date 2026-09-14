@@ -152,16 +152,50 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       first when none default, clears when none remain, deleting
       non-active leaves active untouched). `flutter analyze` clean, full
       suite (181 tests) passing.
-- [ ] P8-06 Settings UI: a new "GitHub" section (separate from the
-      existing Jenkins server list, not merged into it) — list, add/edit
-      bottom sheet (`GitHubCredentialEditBottomSheet`), swipe-delete with
-      confirmation, radio-style active indicator (matching the pattern
-      just fixed for the Jenkins list, not the original checkmark-only
-      one), test-connection status display.
-- [ ] P8-07 Unit tests: `GitHubCredentialRepositoryImpl` CRUD against
-      mocked responses; active-credential fallback logic on delete; crumb-
-      free Bearer-auth header construction; rate-limit-header → distinct
-      `AppFailure` mapping.
+- [x] P8-06 Settings UI: new `GitHubCredentialFormNotifier` (mirrors
+      `ServerFormNotifier`), `TestGitHubConnectionNotifier` (mirrors
+      `TestConnectionNotifier`, surfaces the authenticated username on
+      success instead of a job count — GitHub's `/user` has no count
+      equivalent), `GitHubCredentialEditBottomSheet` (mirrors
+      `ServerEditBottomSheet` exactly: same wide/narrow `Dialog`-vs-sheet
+      split, same `useRootNavigator: true` fix, PAT field never pre-filled
+      when editing, "leave blank to keep the current token" on edit).
+
+      **`SettingsScreen` restructured** from a single `Expanded` Jenkins
+      list to one `CustomScrollView` of slivers, so the new "GitHub"
+      section (separate from the Jenkins list, not merged into it, per the
+      credential-architecture decision) sits below it in one shared scroll
+      region rather than two competing `Expanded` panes or a second
+      floating `FloatingActionButton`. Each section now has its own inline
+      "add" affordance in a `_SectionHeader` instead of one global FAB;
+      the Jenkins section's actual widgets/behavior (radio indicator,
+      swipe-delete confirm, switch-active toast, delete-failed toast) are
+      unchanged, just moved from `_ServerList`/`_ServerTile`-combined into
+      a standalone `_ServerTile` feeding a shared `_credentialSlivers<T>`
+      helper. New `_GitHubCredentialTile` mirrors `_ServerTile` for
+      `GitHubCredential` — deliberately not a shared generic widget, the
+      two domain types don't have matching fields.
+
+      **No real device available to visually verify this restructuring**
+      (confirmed, same standing limitation as every other UI task in this
+      project's history) — added a widget smoke test
+      (`settings_screen_test.dart`, 2 tests: empty-both-sections, and
+      populated-both-sections) that pumps the real `SettingsScreen` with
+      fake repositories and asserts it renders without throwing, which
+      **did** catch this being a genuine risk worth testing (a
+      `CustomScrollView`/sliver restructuring is exactly the kind of
+      change that passes `flutter analyze` cleanly but can still blow up
+      at runtime with an unbounded-height or similar `RenderFlex` error) —
+      both pass, but this is real-device visual verification's substitute,
+      not a replacement for it; flagging the gap rather than claiming full
+      confidence.
+- [x] P8-07 Unit tests: covered incrementally alongside each task above
+      rather than as one separate pass at the end (`GitHubCredentialsRepositoryImpl`
+      CRUD in P8-02, active-credential fallback logic in P8-05,
+      crumb-free Bearer-auth header construction in P8-03/04, rate-limit-
+      header → distinct `AppFailure` mapping in P8-03/04) — no additional
+      tests needed here beyond the 2 new `settings_screen_test.dart` smoke
+      tests. `flutter analyze` clean, full suite (183 tests) passing.
 
 ## GH-REPO — Repository & workflow browsing
 
