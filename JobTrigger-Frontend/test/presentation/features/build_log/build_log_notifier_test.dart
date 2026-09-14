@@ -7,6 +7,7 @@ import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
+import 'package:job_trigger/domain/jenkins/queue_item.dart';
 import 'package:job_trigger/presentation/features/build_log/build_log_notifier.dart';
 
 const _buildUrl = 'https://jenkins.test/job/demo/1/';
@@ -46,7 +47,7 @@ class _ScriptedRepository implements JenkinsRepository {
   ) => throw UnimplementedError();
 
   @override
-  Future<Result<void, AppFailure>> triggerBuild(
+  Future<Result<String?, AppFailure>> triggerBuild(
     String jobUrl, {
     required bool isParameterized,
     Map<String, String> parameters = const {},
@@ -55,6 +56,10 @@ class _ScriptedRepository implements JenkinsRepository {
 
   @override
   Future<Result<void, AppFailure>> cancelBuild(String buildUrl) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Result<QueueItem, AppFailure>> fetchQueueItem(String queueItemUrl) =>
       throw UnimplementedError();
 }
 

@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../domain/jenkins/build_progress.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/parameter_definition.dart';
+import '../../../domain/jenkins/queue_item.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
@@ -15,6 +16,7 @@ import 'build_status_polling_notifier.dart';
 import 'cancel_build_notifier.dart';
 import 'job_detail_notifier.dart';
 import 'parameter_form.dart';
+import 'queue_status_notifier.dart';
 import 'trigger_build_notifier.dart';
 
 /// Ported from `JobDetailView.swift`/`JobDetailViewModel.swift`. [job] is
@@ -47,6 +49,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
     final isCancelling = ref
         .watch(cancelBuildNotifierProvider(jobUrl))
         .isLoading;
+    final queueItem = ref.watch(queueStatusNotifierProvider(jobUrl));
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -65,6 +68,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
         child: jobAsync.when(
           data: (job) => _JobDetailBody(
             job: job,
+            queueItem: queueItem,
             isTriggering: isTriggering,
             isCancelling: isCancelling,
             onParametersChanged: (values) => _parameterValues = values,
@@ -101,6 +105,7 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
 class _JobDetailBody extends StatelessWidget {
   const _JobDetailBody({
     required this.job,
+    required this.queueItem,
     required this.isTriggering,
     required this.isCancelling,
     required this.onParametersChanged,
@@ -110,6 +115,7 @@ class _JobDetailBody extends StatelessWidget {
   });
 
   final JenkinsJob job;
+  final QueueItem? queueItem;
   final bool isTriggering;
   final bool isCancelling;
   final ValueChanged<Map<String, String>> onParametersChanged;
@@ -152,6 +158,10 @@ class _JobDetailBody extends StatelessWidget {
           ),
           const SizedBox(height: 16),
         ],
+        if (queueItem != null) ...[
+          _QueuedCard(queueItem: queueItem!),
+          const SizedBox(height: 16),
+        ],
         _LastBuildCard(job: job, onViewLog: onViewLog),
         if (job.lastBuild != null && job.lastBuild!.building) ...[
           const SizedBox(height: 12),
@@ -177,6 +187,39 @@ class _JobDetailBody extends StatelessWidget {
           label: Text(isTriggering ? 'Triggering…' : 'Trigger Build'),
         ),
       ],
+    );
+  }
+}
+
+/// US-PIPE-01: shown between trigger and the existing "building" state
+/// (`_LastBuildCard`) while a just-triggered build is still waiting for an
+/// executor, distinct from both "not building" and "building" so a queued
+/// build never reads as "my tap did nothing."
+class _QueuedCard extends StatelessWidget {
+  const _QueuedCard({required this.queueItem});
+
+  final QueueItem queueItem;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassSurface.card(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              queueItem.why ?? 'Queued — waiting for an executor',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

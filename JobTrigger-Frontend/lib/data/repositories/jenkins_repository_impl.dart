@@ -8,9 +8,11 @@ import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../../domain/jenkins/jenkins_repository.dart';
 import '../../domain/jenkins/log_chunk.dart';
+import '../../domain/jenkins/queue_item.dart';
 import '../models/jenkins/jenkins_build_dto.dart';
 import '../models/jenkins/jenkins_job_dto.dart';
 import '../models/jenkins/jenkins_server_info_dto.dart';
+import '../models/jenkins/queue_item_dto.dart';
 import 'jenkins_url_rewriter.dart';
 
 part 'jenkins_repository_impl.g.dart';
@@ -134,7 +136,7 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
   }
 
   @override
-  Future<Result<void, AppFailure>> triggerBuild(
+  Future<Result<String?, AppFailure>> triggerBuild(
     String jobUrl, {
     required bool isParameterized,
     Map<String, String> parameters = const {},
@@ -146,7 +148,7 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
       final action = (isParameterized || hasParams)
           ? 'buildWithParameters'
           : 'build';
-      await _dio.post<void>(
+      final response = await _dio.post<void>(
         '$base$action',
         data: hasParams ? parameters : null,
         queryParameters: (paramToken != null && paramToken.isNotEmpty)
@@ -156,7 +158,10 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
             ? Options(contentType: Headers.formUrlEncodedContentType)
             : null,
       );
-      return const Ok(null);
+      final location = response.headers.value('location');
+      return Ok(
+        location == null ? null : rewriteUrl(location, _dio.options.baseUrl),
+      );
     } on DioException catch (exception) {
       return Err(AppFailure.fromDioException(exception));
     }
@@ -168,6 +173,21 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
       final base = buildUrl.endsWith('/') ? buildUrl : '$buildUrl/';
       await _dio.post<void>('${base}stop');
       return const Ok(null);
+    } on DioException catch (exception) {
+      return Err(AppFailure.fromDioException(exception));
+    }
+  }
+
+  @override
+  Future<Result<QueueItem, AppFailure>> fetchQueueItem(
+    String queueItemUrl,
+  ) async {
+    try {
+      final base = queueItemUrl.endsWith('/')
+          ? queueItemUrl
+          : '$queueItemUrl/';
+      final response = await _dio.get<Map<String, dynamic>>('${base}api/json');
+      return Ok(QueueItemDto.fromJson(response.data!).toDomain());
     } on DioException catch (exception) {
       return Err(AppFailure.fromDioException(exception));
     }

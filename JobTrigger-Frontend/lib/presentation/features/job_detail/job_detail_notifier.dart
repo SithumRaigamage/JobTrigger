@@ -43,6 +43,7 @@ class JobDetailNotifier extends _$JobDetailNotifier {
           estimatedDuration: current.lastBuild!.estimatedDuration,
           building: false,
           displayName: current.lastBuild!.displayName,
+          causes: current.lastBuild!.causes,
         ),
         healthReport: current.healthReport,
         property: current.property,

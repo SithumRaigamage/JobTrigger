@@ -52,6 +52,13 @@ JenkinsBuild _rewriteBuild(JenkinsBuild build, Uri activeUri) => JenkinsBuild(
   causes: build.causes,
 );
 
+/// Rewrites a single Jenkins-origin URL that doesn't come from a
+/// `JenkinsJob`/`JenkinsBuild` payload — e.g. a trigger response's
+/// `Location` header pointing at a queue item (US-PIPE-01). Same
+/// scheme/host/port substitution as the tree/build rewrite above.
+String rewriteUrl(String rawUrl, String activeServerUrl) =>
+    _rewriteUrl(rawUrl, Uri.parse(activeServerUrl));
+
 String _rewriteUrl(String rawUrl, Uri activeUri) {
   final parsed = Uri.tryParse(rawUrl);
   if (parsed == null) return rawUrl;

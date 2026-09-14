@@ -9,6 +9,7 @@ import '../../../domain/jenkins/jenkins_job.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../settings/active_server_notifier.dart';
 import 'job_detail_notifier.dart';
+import 'queue_status_notifier.dart';
 
 part 'trigger_build_notifier.g.dart';
 
@@ -41,8 +42,17 @@ class TriggerBuildNotifier extends _$TriggerBuildNotifier {
         );
 
     switch (result) {
-      case Ok():
+      case Ok(:final value):
         await ref.read(jobDetailNotifierProvider(jobUrl).notifier).refresh();
+        if (value != null) {
+          // US-PIPE-01: start tracking the queue item Jenkins assigned
+          // this trigger, if it sent one back. Fire-and-forget — the UI
+          // reads progress via `queueStatusNotifierProvider`, not this
+          // notifier's own state.
+          unawaited(
+            ref.read(queueStatusNotifierProvider(jobUrl).notifier).track(value),
+          );
+        }
         state = const AsyncData(null);
         unawaited(HapticFeedback.mediumImpact());
         ref

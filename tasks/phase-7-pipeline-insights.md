@@ -50,10 +50,53 @@ per `CLAUDE.md` §9.
       causes across multiple action entries, absent actions, no action
       carrying causes, `toDomain()` passthrough). `flutter analyze` clean,
       full suite (99 tests) passing.
-- [ ] P7-02 `US-PIPE-01` — Queue status. New repository method hitting
-      `{jobURL}/queue/api/json` (called right after a successful trigger,
-      and once on job-detail load); new `QueueItem` domain type; job-detail
-      UI gets a "queued" state distinct from building/not-building.
+- [x] P7-02 `US-PIPE-01` — Queue status. Scoped down with the user before
+      implementing: tracks only builds triggered from this app session via
+      the trigger response's `Location` header (`GET {location}api/json`
+      polled every 2s), not a full `GET /queue/api/json` scan — an
+      already-queued build discovered on a cold job-detail load isn't
+      detected, a known and documented gap, not a silent one. New
+      `QueueItem`/`QueueExecutable` domain types + `QueueItemDto`;
+      `triggerBuild`'s return type changed from `Result<void, AppFailure>`
+      to `Result<String?, AppFailure>` (the rewritten queue-item URL, or
+      `null` if Jenkins sent no `Location` header — triggering still
+      succeeded either way). New `QueueStatusNotifier` (family by job URL,
+      imperative `track()` entry point, same timer/`ref.onDispose` shape as
+      `BuildStatusPollingNotifier`) started from `TriggerBuildNotifier` on
+      success; stops and invalidates `JobDetailNotifier` once the item
+      becomes an executable build, so `US-JOB-04`'s existing 5s poll picks
+      up from there. New `_QueuedCard` in `job_detail_screen.dart`, shown
+      between trigger and the existing building state.
+
+      Exposed `rewriteUrl()` (a new public function) from
+      `jenkins_url_rewriter.dart` for the `Location` header, reusing the
+      existing scheme/host/port substitution instead of duplicating it.
+
+      **Found and fixed two real bugs along the way, unrelated to this
+      story's own scope but surfaced by it**: `jenkins_url_rewriter.dart`'s
+      `_rewriteBuild` and `job_detail_notifier.dart`'s
+      `applyOptimisticCancel` both reconstruct `JenkinsBuild` field-by-field
+      rather than copying the source build, so P7-01's new `causes` field
+      was being silently dropped on every real job-detail fetch and every
+      optimistic-cancel UI update. Neither was caught by P7-01's own tests
+      since none exercised the rewrite/optimistic-cancel path. Fixed
+      separately (own commit) before this task could repeat the same
+      mistake for `QueueItem`/`QueueExecutable`, plus regression tests.
+
+      Interface change rippled through 5 fake `JenkinsRepository`
+      implementations across the test suite (mechanical: return-type
+      update + a `fetchQueueItem` override throwing `UnimplementedError`)
+      and `jenkins_repository_impl_trigger_test.dart` (2 new tests: returns
+      the rewritten queue-item URL from `Location`, returns `null` when
+      absent). New `queue_item_dto_test.dart` (3 tests: queued/executable/
+      cancelled shapes) and `queue_status_notifier_test.dart` (3 tests:
+      polls-then-refreshes, cancelled-clears-without-refresh, fetch-failure
+      clears quietly) — the polling test needed two separate
+      `container.listen(...)` keep-alives (`jobDetailNotifierProvider` and
+      `queueStatusNotifierProvider` itself, both autoDispose) to actually
+      observe the second poll/invalidate, matching the same reasoning
+      `build_status_polling_notifier_test.dart` already relies on.
+      `flutter analyze` clean, full suite (108 tests) passing.
 - [ ] P7-03 `US-PIPE-03` — SCM changelog. Extend the job-detail `tree`
       query with `changeSet[items[msg,author[fullName]]]`; render under
       the P7-01 cause line, collapsible past ~3 entries.

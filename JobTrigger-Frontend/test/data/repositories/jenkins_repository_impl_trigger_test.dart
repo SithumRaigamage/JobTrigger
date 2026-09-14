@@ -12,6 +12,9 @@ import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 /// (deploy/push-image/send-email params), so this is done against a fake
 /// adapter instead, per the user's choice for P5-18.
 class _RecordingAdapter implements HttpClientAdapter {
+  _RecordingAdapter({this.locationHeader});
+
+  final String? locationHeader;
   RequestOptions? lastRequest;
 
   @override
@@ -21,7 +24,15 @@ class _RecordingAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     lastRequest = options;
-    return ResponseBody.fromString('', 201);
+    return ResponseBody.fromString(
+      '',
+      201,
+      headers: locationHeader == null
+          ? null
+          : {
+              'location': [locationHeader!],
+            },
+    );
   }
 
   @override
@@ -36,10 +47,53 @@ void main() {
 
     final result = await repo.triggerBuild('https://jenkins.test/job/demo', isParameterized: false);
 
-    expect(result, isA<Ok<void, dynamic>>());
+    expect(result, isA<Ok<String?, dynamic>>());
     expect(adapter.lastRequest?.path, 'https://jenkins.test/job/demo/build');
     expect(adapter.lastRequest?.data, isNull);
   });
+
+  test(
+    'returns the rewritten queue-item URL from the Location header (US-PIPE-01)',
+    () async {
+      final adapter = _RecordingAdapter(
+        locationHeader: 'https://internal.jenkins.test/queue/item/42/',
+      );
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+      final repo = JenkinsRepositoryImpl(dio);
+
+      final result = await repo.triggerBuild(
+        'https://jenkins.test/job/demo',
+        isParameterized: false,
+      );
+
+      // Result has no `==` override (see core/error/result.dart), so
+      // pattern-match out the value rather than comparing instances.
+      expect(result, isA<Ok<String?, dynamic>>());
+      expect(
+        (result as Ok<String?, dynamic>).value,
+        'https://jenkins.test/queue/item/42/',
+      );
+    },
+  );
+
+  test(
+    'returns null when the trigger response has no Location header',
+    () async {
+      final adapter = _RecordingAdapter();
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+      final repo = JenkinsRepositoryImpl(dio);
+
+      final result = await repo.triggerBuild(
+        'https://jenkins.test/job/demo',
+        isParameterized: false,
+      );
+
+      expect(result, isA<Ok<String?, dynamic>>());
+      expect((result as Ok<String?, dynamic>).value, isNull);
+    },
+  );
 
   test('with parameters -> POST .../buildWithParameters, form-urlencoded body', () async {
     final adapter = _RecordingAdapter();
