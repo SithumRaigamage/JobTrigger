@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -42,7 +44,8 @@ const _detailsTree =
     'name,url,color,description,'
     'lastBuild[number,url,result,timestamp,duration,building,estimatedDuration,'
     'actions[causes[shortDescription]],'
-    'changeSet[items[msg,author[fullName]]]],'
+    'changeSet[items[msg,author[fullName]]],'
+    'artifacts[fileName,relativePath]],'
     'healthReport[description,iconClassName,score],'
     'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices]]';
 
@@ -216,6 +219,30 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
       // has no test report" scenario), not a failure -- surfaces as a
       // real 404 from Jenkins.
       if (exception.response?.statusCode == 404) return const Ok(null);
+      return Err(AppFailure.fromDioException(exception));
+    }
+  }
+
+  @override
+  Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
+    String buildUrl,
+    String relativePath,
+  ) async {
+    try {
+      final base = buildUrl.endsWith('/') ? buildUrl : '$buildUrl/';
+      // Each path segment is percent-encoded separately so `/` in a
+      // subdirectory-relative path stays a path separator rather than
+      // being encoded away.
+      final encodedPath = relativePath
+          .split('/')
+          .map(Uri.encodeComponent)
+          .join('/');
+      final response = await _dio.get<List<int>>(
+        '${base}artifact/$encodedPath',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return Ok(Uint8List.fromList(response.data!));
+    } on DioException catch (exception) {
       return Err(AppFailure.fromDioException(exception));
     }
   }

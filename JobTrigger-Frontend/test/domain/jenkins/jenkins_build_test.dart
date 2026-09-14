@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:job_trigger/domain/jenkins/build_artifact.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/scm_change.dart';
 
@@ -15,6 +16,9 @@ void main() {
       displayName: '#5',
       causes: ['Started by user Jane Doe'],
       changes: [ScmChange(author: 'Jane Doe', message: 'Fix bug')],
+      artifacts: [
+        BuildArtifact(fileName: 'app.apk', relativePath: 'build/app.apk'),
+      ],
     );
 
     test('preserves every field not explicitly overridden', () {
@@ -33,6 +37,7 @@ void main() {
       // `changes` too) instead of copying the source build.
       expect(copy.causes, original.causes);
       expect(copy.changes, original.changes);
+      expect(copy.artifacts, original.artifacts);
     });
 
     test('overrides only the given fields', () {
@@ -43,6 +48,7 @@ void main() {
       expect(copy.number, original.number);
       expect(copy.causes, original.causes);
       expect(copy.changes, original.changes);
+      expect(copy.artifacts, original.artifacts);
     });
   });
 }

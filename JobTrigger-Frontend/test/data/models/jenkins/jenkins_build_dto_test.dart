@@ -180,4 +180,47 @@ void main() {
       expect(dto.toDomain().changes.single.author, 'Jane Doe');
     });
   });
+
+  group('JenkinsBuildDto.artifacts (US-PIPE-07)', () {
+    test('parses a flat, non-polymorphic artifacts array', () {
+      final dto = JenkinsBuildDto.fromJson({
+        'number': 12,
+        'url': 'https://jenkins.test/job/x/12/',
+        'timestamp': 1700000000000.0,
+        'artifacts': [
+          {'fileName': 'app.apk', 'relativePath': 'build/app.apk'},
+          {'fileName': 'report.html', 'relativePath': 'report.html'},
+        ],
+      });
+
+      expect(dto.artifacts, hasLength(2));
+      expect(dto.artifacts[0].fileName, 'app.apk');
+      expect(dto.artifacts[0].relativePath, 'build/app.apk');
+    });
+
+    test('defaults to an empty list when artifacts is absent', () {
+      final dto = JenkinsBuildDto.fromJson({
+        'number': 12,
+        'url': 'https://jenkins.test/job/x/12/',
+        'timestamp': 1700000000000.0,
+      });
+
+      expect(dto.artifacts, isEmpty);
+    });
+
+    test('toDomain() maps each artifact through unchanged', () {
+      final dto = JenkinsBuildDto.fromJson({
+        'number': 12,
+        'url': 'https://jenkins.test/job/x/12/',
+        'timestamp': 1700000000000.0,
+        'artifacts': [
+          {'fileName': 'app.apk', 'relativePath': 'build/app.apk'},
+        ],
+      });
+
+      final artifact = dto.toDomain().artifacts.single;
+      expect(artifact.fileName, 'app.apk');
+      expect(artifact.relativePath, 'build/app.apk');
+    });
+  });
 }

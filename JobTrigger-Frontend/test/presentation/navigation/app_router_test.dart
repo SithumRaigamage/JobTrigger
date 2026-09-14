@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -75,6 +77,12 @@ class _FakeJenkinsRepository implements JenkinsRepository {
   @override
   Future<Result<TestReport?, AppFailure>> fetchTestReport(String buildUrl) =>
       throw UnimplementedError();
+
+  @override
+  Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
+    String buildUrl,
+    String relativePath,
+  ) => throw UnimplementedError();
 }
 
 void main() {

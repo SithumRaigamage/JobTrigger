@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../domain/jenkins/build_artifact.dart';
 import '../../../domain/jenkins/build_progress.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/parameter_definition.dart';
@@ -14,6 +15,7 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
+import 'artifact_download_notifier.dart';
 import 'build_status_polling_notifier.dart';
 import 'cancel_build_notifier.dart';
 import 'job_detail_notifier.dart';
@@ -289,6 +291,13 @@ class _LastBuildCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 _TestReportChip(report: testReport!),
               ],
+              if (lastBuild.artifacts.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _ArtifactsList(
+                  buildUrl: lastBuild.url,
+                  artifacts: lastBuild.artifacts,
+                ),
+              ],
               if (lastBuild.building) ...[
                 const SizedBox(height: 8),
                 LinearProgressIndicator(
@@ -347,6 +356,81 @@ class _TestReportChip extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// US-PIPE-07: list-and-share, not an in-app file manager or on-device
+/// download flow — see `ArtifactDownloadNotifier`'s doc comment for why
+/// this goes through the OS share sheet rather than a bare link.
+class _ArtifactsList extends StatelessWidget {
+  const _ArtifactsList({required this.buildUrl, required this.artifacts});
+
+  final String buildUrl;
+  final List<BuildArtifact> artifacts;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final artifact in artifacts)
+          _ArtifactRow(buildUrl: buildUrl, artifact: artifact),
+      ],
+    );
+  }
+}
+
+class _ArtifactRow extends ConsumerWidget {
+  const _ArtifactRow({required this.buildUrl, required this.artifact});
+
+  final String buildUrl;
+  final BuildArtifact artifact;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDownloading = ref
+        .watch(artifactDownloadNotifierProvider(artifact.relativePath))
+        .isLoading;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          const Icon(Icons.insert_drive_file_outlined, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              artifact.fileName,
+              style: Theme.of(context).textTheme.bodySmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (isDownloading)
+            const Padding(
+              padding: EdgeInsets.all(8),
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.ios_share, size: 18),
+              tooltip: 'Share ${artifact.fileName}',
+              visualDensity: VisualDensity.compact,
+              onPressed: () => ref
+                  .read(
+                    artifactDownloadNotifierProvider(
+                      artifact.relativePath,
+                    ).notifier,
+                  )
+                  .download(buildUrl: buildUrl, artifact: artifact),
+            ),
+        ],
       ),
     );
   }

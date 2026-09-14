@@ -1,3 +1,4 @@
+import 'build_artifact.dart';
 import 'scm_change.dart';
 
 /// Unified for both a job's `lastBuild` and its `builds[]` history — see
@@ -14,6 +15,7 @@ class JenkinsBuild {
     this.displayName,
     this.causes = const [],
     this.changes = const [],
+    this.artifacts = const [],
   });
 
   final int number;
@@ -37,6 +39,10 @@ class JenkinsBuild {
   /// by every fetch — see `_detailsTree`).
   final List<ScmChange> changes;
 
+  /// Files this build produced (US-PIPE-07). Empty when Jenkins reports
+  /// none (not requested by every fetch — see `_detailsTree`).
+  final List<BuildArtifact> artifacts;
+
   /// Every non-`url` construction site (`jenkins_url_rewriter.dart`,
   /// `JobDetailNotifier.applyOptimisticCancel`) reconstructed `JenkinsBuild`
   /// field-by-field before this existed, which silently dropped `causes`
@@ -54,6 +60,7 @@ class JenkinsBuild {
     String? displayName,
     List<String>? causes,
     List<ScmChange>? changes,
+    List<BuildArtifact>? artifacts,
   }) => JenkinsBuild(
     number: number ?? this.number,
     url: url ?? this.url,
@@ -65,5 +72,6 @@ class JenkinsBuild {
     displayName: displayName ?? this.displayName,
     causes: causes ?? this.causes,
     changes: changes ?? this.changes,
+    artifacts: artifacts ?? this.artifacts,
   );
 }

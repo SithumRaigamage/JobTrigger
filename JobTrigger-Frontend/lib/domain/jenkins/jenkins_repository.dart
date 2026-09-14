@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
 import 'jenkins_build.dart';
@@ -58,4 +60,16 @@ abstract class JenkinsRepository {
   /// normal state (the job doesn't publish test results, or this build
   /// hasn't finished), surfaced as a real 404 from Jenkins.
   Future<Result<TestReport?, AppFailure>> fetchTestReport(String buildUrl);
+
+  /// `GET {buildUrl}artifact/{relativePath}` (US-PIPE-07), authenticated
+  /// via the same client as every other Jenkins request — deliberately
+  /// not a bare external link, since that would either need embedding
+  /// Basic Auth credentials in a URL (unsafe) or hit an external browser
+  /// unauthenticated (401). The caller hands the returned bytes off via
+  /// the OS share sheet rather than this app managing on-device file
+  /// storage.
+  Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
+    String buildUrl,
+    String relativePath,
+  );
 }

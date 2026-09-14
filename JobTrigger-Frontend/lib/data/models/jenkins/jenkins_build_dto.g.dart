@@ -22,6 +22,11 @@ _JenkinsBuildDto _$JenkinsBuildDtoFromJson(Map<String, dynamic> json) =>
       changes: json['changeSet'] == null
           ? const <ScmChange>[]
           : _changesFromJson(json['changeSet']),
+      artifacts:
+          (json['artifacts'] as List<dynamic>?)
+              ?.map((e) => BuildArtifactDto.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <BuildArtifactDto>[],
     );
 
 Map<String, dynamic> _$JenkinsBuildDtoToJson(_JenkinsBuildDto instance) =>
@@ -35,4 +40,17 @@ Map<String, dynamic> _$JenkinsBuildDtoToJson(_JenkinsBuildDto instance) =>
       'building': instance.building,
       'displayName': instance.displayName,
       'actions': instance.causes,
+      'artifacts': instance.artifacts,
+    };
+
+_BuildArtifactDto _$BuildArtifactDtoFromJson(Map<String, dynamic> json) =>
+    _BuildArtifactDto(
+      fileName: json['fileName'] as String,
+      relativePath: json['relativePath'] as String,
+    );
+
+Map<String, dynamic> _$BuildArtifactDtoToJson(_BuildArtifactDto instance) =>
+    <String, dynamic>{
+      'fileName': instance.fileName,
+      'relativePath': instance.relativePath,
     };

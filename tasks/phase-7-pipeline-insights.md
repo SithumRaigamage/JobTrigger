@@ -155,10 +155,53 @@ per `CLAUDE.md` §9.
       3 in a new `jenkins_repository_impl_test_report_test.dart` (real
       parse, 404→`Ok(null)`, other-status→`Err`). `flutter analyze` clean,
       full suite (123 tests) passing.
-- [ ] P7-05 `US-PIPE-07` — Build artifacts. Extend job-detail fetch with
-      `artifacts[fileName,relativePath]`; list + open via `url_launcher`
-      (list-and-open only, no on-device download/file management, per the
-      story's own scoping).
+- [x] P7-05 `US-PIPE-07` — Build artifacts. **Scope change from the
+      story's original "list + open via `url_launcher`" text**, caught
+      during design before writing code: a bare external-browser link to
+      `{buildUrl}artifact/{path}` would either need embedding Basic Auth
+      credentials in the URL (unsafe — lands in browser history) or hit
+      the browser unauthenticated (401). Implemented what the story's own
+      Security & Privacy Notes actually asked for instead: fetch the bytes
+      through the already-authenticated Jenkins client, write to a temp
+      file, hand off via the OS share sheet (`share_plus`, already a
+      dependency, same pattern as `BuildLogScreen`'s existing "Share log"
+      button) — no new dependency, no `url_launcher` use here.
+
+      `artifacts[fileName,relativePath]` is a flat, non-polymorphic array
+      directly on the build resource — unlike causes/changes, no custom
+      `fromJson` unwrapper needed, just a nested `BuildArtifactDto`
+      (paired with `JenkinsBuildDto` in the same file, same pattern as
+      `QueueItem`/`QueueExecutable`). Added to `_detailsTree`'s
+      `lastBuild[...]` bracket alongside causes/changes — `JenkinsBuild
+      .copyWith()` (added in P7-03) meant `_rewriteBuild` and
+      `applyOptimisticCancel` needed zero changes for this new field, the
+      exact payoff that refactor was for.
+
+      New repository method `fetchArtifactBytes(buildUrl, relativePath)`
+      (`GET {buildUrl}artifact/{relativePath}`, `ResponseType.bytes`,
+      each path segment percent-encoded separately so `/` stays a
+      separator). New family-keyed (by `relativePath`) `ArtifactDownload
+      Notifier` — fetch bytes → temp file → `SharePlus.instance.share`.
+      New `_ArtifactsList`/`_ArtifactRow` (the latter a `ConsumerWidget`,
+      needs `ref` for its own per-artifact loading state and the download
+      action) on the job-detail card.
+
+      Interface change rippled through the same 6 fake `JenkinsRepository`
+      implementations (mechanical `fetchArtifactBytes` override + a
+      `dart:typed_data` import two of them were missing). 9 new tests:
+      3 in `jenkins_build_dto_test.dart` (parse, absent-defaults,
+      `toDomain()`), 3 new in `jenkins_repository_impl_artifact_test.dart`
+      (correct URL construction, path-segment percent-encoding preserving
+      `/`, non-2xx → `Err`), plus `artifacts` added to the existing
+      `copyWith` test (`jenkins_build_test.dart`) — not re-added to
+      `jenkins_url_rewriter_test.dart`'s own regression test, since that
+      file's whole point was proving `_rewriteBuild`'s delegation to
+      `copyWith` is field-agnostic; `copyWith`'s own test is where new
+      fields now get covered. No test attempts to assert
+      on the actual OS share-sheet invocation (a platform channel call) —
+      consistent with `BuildLogScreen`'s existing "Share log" button,
+      which also has no such test. `flutter analyze` clean, full suite
+      (129 tests) passing.
 - [ ] P7-06 `US-PIPE-04` — Pipeline stage view. New repository method for
       `{buildURL}/wfapi/describe`; new `PipelineStage` domain type; stage
       chip row above the console log viewer; falls back to today's

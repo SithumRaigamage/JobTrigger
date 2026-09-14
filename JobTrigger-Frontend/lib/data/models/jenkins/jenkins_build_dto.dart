@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../domain/jenkins/build_artifact.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/scm_change.dart';
 
@@ -43,10 +44,25 @@ abstract class JenkinsBuildDto with _$JenkinsBuildDto {
       includeToJson: false,
     )
     List<ScmChange> changes,
+    // US-PIPE-07: `artifacts[]` is a flat, non-polymorphic array directly
+    // on the build resource -- unlike causes/changes above, no custom
+    // unwrapper needed, just a nested DTO.
+    @Default(<BuildArtifactDto>[]) List<BuildArtifactDto> artifacts,
   }) = _JenkinsBuildDto;
 
   factory JenkinsBuildDto.fromJson(Map<String, dynamic> json) =>
       _$JenkinsBuildDtoFromJson(json);
+}
+
+@freezed
+abstract class BuildArtifactDto with _$BuildArtifactDto {
+  const factory BuildArtifactDto({
+    required String fileName,
+    required String relativePath,
+  }) = _BuildArtifactDto;
+
+  factory BuildArtifactDto.fromJson(Map<String, dynamic> json) =>
+      _$BuildArtifactDtoFromJson(json);
 }
 
 List<String> _causesFromJson(dynamic rawActions) {
@@ -97,5 +113,13 @@ extension JenkinsBuildDtoX on JenkinsBuildDto {
     displayName: displayName,
     causes: causes,
     changes: changes,
+    artifacts: artifacts
+        .map(
+          (a) => BuildArtifact(
+            fileName: a.fileName,
+            relativePath: a.relativePath,
+          ),
+        )
+        .toList(),
   );
 }

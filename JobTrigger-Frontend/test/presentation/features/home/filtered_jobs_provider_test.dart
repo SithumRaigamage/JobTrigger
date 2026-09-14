@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
@@ -57,6 +59,12 @@ class _FakeJenkinsRepository implements JenkinsRepository {
   @override
   Future<Result<TestReport?, AppFailure>> fetchTestReport(String buildUrl) =>
       throw UnimplementedError();
+
+  @override
+  Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
+    String buildUrl,
+    String relativePath,
+  ) => throw UnimplementedError();
 }
 
 JenkinsJob _job(String name, {List<JenkinsJob>? jobs}) =>
