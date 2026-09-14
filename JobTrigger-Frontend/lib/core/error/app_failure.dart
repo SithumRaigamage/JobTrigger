@@ -32,6 +32,22 @@ sealed class AppFailure {
     }
   }
 
+  /// GitHub-specific: a 403 with `X-RateLimit-Remaining: 0` means the
+  /// request was rejected for exceeding GitHub's rate limit, not because
+  /// the credential was rejected — a real API behavior Jenkins/the backend
+  /// don't have (self-hosted Jenkins has no rate limit; the backend is
+  /// ours). Deliberately a separate entry point rather than a change to
+  /// [fromDioException]'s generic 401/403 handling, so Jenkins/backend
+  /// 403s keep meaning exactly what they already mean.
+  factory AppFailure.fromGithubException(DioException exception) {
+    final response = exception.response;
+    if (response?.statusCode == 403 &&
+        response?.headers.value('x-ratelimit-remaining') == '0') {
+      return const RateLimitFailure();
+    }
+    return AppFailure.fromDioException(exception);
+  }
+
   /// Single source of consistent, user-facing error copy.
   String get message => switch (this) {
     NetworkFailure() =>
@@ -41,6 +57,8 @@ sealed class AppFailure {
     NotFoundFailure() => "That couldn't be found — it may have been removed.",
     ServerFailure(:final statusCode) =>
       'Something went wrong on the server (HTTP $statusCode).',
+    RateLimitFailure() =>
+      "GitHub's rate limit was reached. Please wait a bit and try again.",
     UnknownFailure() => 'Something unexpected happened. Please try again.',
   };
 }
@@ -64,6 +82,12 @@ final class ServerFailure extends AppFailure {
   const ServerFailure(this.statusCode);
 
   final int statusCode;
+}
+
+/// See [AppFailure.fromGithubException] — GitHub-only, never produced by
+/// the Jenkins or backend clients.
+final class RateLimitFailure extends AppFailure {
+  const RateLimitFailure();
 }
 
 final class UnknownFailure extends AppFailure {

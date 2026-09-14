@@ -76,18 +76,54 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       succeeds regardless of response body shape, switchActive, a non-2xx
       → `Err`/`ServerFailure`). `flutter analyze` clean, full suite
       (170 tests) passing.
-- [ ] P8-03 `core/network/github_client_factory.dart` —
-      `buildGithubDio({baseUrl: 'https://api.github.com', token})` sets
-      `Authorization: Bearer <token>` once at construction; **no** CSRF
-      crumb interceptor (GitHub's API doesn't use one — that's a
-      Jenkins-specific mechanism, `NFR-SEC-06`, not applicable here). A
-      response interceptor surfacing GitHub's rate-limit headers
-      (`X-RateLimit-Remaining`, `X-RateLimit-Reset`) as a distinguishable
-      `AppFailure` case belongs here too (`US-GH-CRED-04`,
-      `US-GH-RUN-03`).
-- [ ] P8-04 `testGithubConnection()` — `GET /user` with a throwaway Dio
+- [x] P8-03 `core/network/github_client_factory.dart` —
+      `buildGithubDio({token})` sets `Authorization: Bearer <token>` once
+      at construction against a fixed `githubApiBaseUrl` (unlike Jenkins,
+      every credential talks to the same `api.github.com` — only the
+      token varies per credential, not the base URL); **no** CSRF crumb
+      interceptor (`NFR-SEC-06` is Jenkins-only, GitHub's API doesn't use
+      one).
+
+      **Refined from the original task note**: rate-limit detection ended
+      up in `AppFailure.fromGithubException()` (`core/error/app_failure
+      .dart`) rather than a Dio response interceptor — it's passive
+      error-*classification* (does this 403 mean "bad token" or "rate
+      limited"?), not request-*mutation* like the Jenkins crumb
+      interceptor's retry-with-a-fresh-header behavior, so it fits this
+      codebase's existing `AppFailure`-mapping layer better than a new
+      interceptor. New `RateLimitFailure` added to the `AppFailure` sealed
+      hierarchy (had to land in `app_failure.dart` itself — Dart requires
+      a sealed class's direct subtypes in the same file) with its own
+      user-facing message; `fromGithubException` is a **separate entry
+      point** from the existing `fromDioException`, so Jenkins/backend
+      403s keep meaning exactly what they already mean — nothing about
+      shipped 401/403 handling changed.
+- [x] P8-04 `testGithubConnection()` — `GET /user` with a throwaway Dio
       instance (matches `testJenkinsConnection()`'s pattern), surfaces the
-      authenticated username on success (`US-GH-CRED-04`).
+      authenticated username on success (`US-GH-CRED-04`). Implemented in
+      the same file as P8-03, matching how `jenkins_client_factory.dart`
+      already bundles `buildJenkinsDio` + `testJenkinsConnection`.
+
+      **Testability note**: `testGithubConnection` itself has no direct
+      test — it always builds its own internal `Dio` (deliberately, never
+      the active credential's client) with no seam to inject a fake
+      adapter, the exact same shape `testJenkinsConnection` already has in
+      this codebase (also untested, for the same reason — confirmed, not
+      an oversight introduced here). First attempt at testing it via a
+      reimplemented copy of its logic in the test file was caught and
+      rejected as bad test hygiene (verifies a copy, not the shipped
+      function) before being kept. The logic actually worth testing —
+      rate-limited vs. plain 403 — lives in `AppFailure
+      .fromGithubException` and is tested there directly instead.
+
+      7 new tests: 5 in `app_failure_test.dart`'s new
+      `AppFailure.fromGithubException` group (rate-limited 403 →
+      `RateLimitFailure`, non-zero-remaining 403 → plain `AuthFailure`,
+      no-header 403 → plain `AuthFailure`, 401/network-error →
+      delegates to `fromDioException` unchanged), 2 in
+      `github_client_factory_test.dart` (`buildGithubDio` header/base-URL
+      construction, per-call token independence). `flutter analyze`
+      clean, full suite (177 tests) passing.
 - [ ] P8-05 `activeGithubCredentialNotifier` — same shape as
       `ActiveServerNotifier`, entirely independent state (switching the
       active GitHub credential never touches the active Jenkins server,
