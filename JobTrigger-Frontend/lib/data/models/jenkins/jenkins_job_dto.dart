@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../domain/jenkins/downstream_project.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import 'health_report_dto.dart';
 import 'jenkins_build_dto.dart';
@@ -28,10 +29,24 @@ abstract class JenkinsJobDto with _$JenkinsJobDto {
     @Default([]) List<HealthReportDto>? healthReport,
     @Default([]) List<JobPropertyDto>? property, // holds parameterDefinitions
     @Default([]) List<JenkinsBuildDto>? builds,
+    // US-PIPE-09: flat, non-polymorphic array directly on the job
+    // resource, same reasoning as `BuildArtifactDto` on `JenkinsBuildDto`.
+    @Default([]) List<DownstreamProjectDto>? downstreamProjects,
   }) = _JenkinsJobDto;
 
   factory JenkinsJobDto.fromJson(Map<String, dynamic> json) =>
       _$JenkinsJobDtoFromJson(json);
+}
+
+@freezed
+abstract class DownstreamProjectDto with _$DownstreamProjectDto {
+  const factory DownstreamProjectDto({
+    required String name,
+    required String url,
+  }) = _DownstreamProjectDto;
+
+  factory DownstreamProjectDto.fromJson(Map<String, dynamic> json) =>
+      _$DownstreamProjectDtoFromJson(json);
 }
 
 extension JenkinsJobDtoX on JenkinsJobDto {
@@ -47,5 +62,8 @@ extension JenkinsJobDtoX on JenkinsJobDto {
         .toList(),
     property: (property ?? const []).map((dto) => dto.toDomain()).toList(),
     builds: (builds ?? const []).map((dto) => dto.toDomain()).toList(),
+    downstreamProjects: (downstreamProjects ?? const [])
+        .map((dto) => DownstreamProject(name: dto.name, url: dto.url))
+        .toList(),
   );
 }

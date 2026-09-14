@@ -33,6 +33,13 @@ _JenkinsJobDto _$JenkinsJobDtoFromJson(Map<String, dynamic> json) =>
               ?.map((e) => JenkinsBuildDto.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      downstreamProjects:
+          (json['downstreamProjects'] as List<dynamic>?)
+              ?.map(
+                (e) => DownstreamProjectDto.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$JenkinsJobDtoToJson(_JenkinsJobDto instance) =>
@@ -46,4 +53,16 @@ Map<String, dynamic> _$JenkinsJobDtoToJson(_JenkinsJobDto instance) =>
       'healthReport': instance.healthReport,
       'property': instance.property,
       'builds': instance.builds,
+      'downstreamProjects': instance.downstreamProjects,
     };
+
+_DownstreamProjectDto _$DownstreamProjectDtoFromJson(
+  Map<String, dynamic> json,
+) => _DownstreamProjectDto(
+  name: json['name'] as String,
+  url: json['url'] as String,
+);
+
+Map<String, dynamic> _$DownstreamProjectDtoToJson(
+  _DownstreamProjectDto instance,
+) => <String, dynamic>{'name': instance.name, 'url': instance.url};

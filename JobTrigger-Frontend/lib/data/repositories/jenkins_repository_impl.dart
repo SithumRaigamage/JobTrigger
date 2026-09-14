@@ -47,11 +47,12 @@ String buildJobTreeQuery() {
 const _detailsTree =
     'name,url,color,description,'
     'lastBuild[number,url,result,timestamp,duration,building,estimatedDuration,'
-    'actions[causes[shortDescription]],'
+    'actions[causes[shortDescription,upstreamProject,upstreamUrl]],'
     'changeSet[items[msg,author[fullName]]],'
     'artifacts[fileName,relativePath]],'
     'healthReport[description,iconClassName,score],'
-    'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices]]';
+    'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices]],'
+    'downstreamProjects[name,url]';
 
 /// US-PIPE-06 — counts plus enough of each case to identify a failing one.
 const _testReportTree =

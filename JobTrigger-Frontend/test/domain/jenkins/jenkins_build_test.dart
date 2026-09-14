@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/domain/jenkins/build_artifact.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/scm_change.dart';
+import 'package:job_trigger/domain/jenkins/upstream_cause.dart';
 
 void main() {
   group('JenkinsBuild.copyWith', () {
@@ -19,6 +20,10 @@ void main() {
       artifacts: [
         BuildArtifact(fileName: 'app.apk', relativePath: 'build/app.apk'),
       ],
+      upstreamCause: UpstreamCause(
+        projectName: 'foo',
+        url: 'https://jenkins.test/job/foo/',
+      ),
     );
 
     test('preserves every field not explicitly overridden', () {
@@ -38,6 +43,7 @@ void main() {
       expect(copy.causes, original.causes);
       expect(copy.changes, original.changes);
       expect(copy.artifacts, original.artifacts);
+      expect(copy.upstreamCause, original.upstreamCause);
     });
 
     test('overrides only the given fields', () {
@@ -49,6 +55,7 @@ void main() {
       expect(copy.causes, original.causes);
       expect(copy.changes, original.changes);
       expect(copy.artifacts, original.artifacts);
+      expect(copy.upstreamCause, original.upstreamCause);
     });
   });
 }

@@ -5,11 +5,56 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/data/models/jenkins/jenkins_job_dto.dart';
 import 'package:job_trigger/data/models/jenkins/jenkins_server_info_dto.dart';
 import 'package:job_trigger/data/repositories/jenkins_url_rewriter.dart';
+import 'package:job_trigger/domain/jenkins/downstream_project.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/scm_change.dart';
+import 'package:job_trigger/domain/jenkins/upstream_cause.dart';
 
 void main() {
+  test('rewrites the upstream cause URL, not just preserves it (US-PIPE-09)', () {
+    const job = JenkinsJob(
+      name: 'x',
+      url: 'https://internal.test/job/x/',
+      lastBuild: JenkinsBuild(
+        number: 5,
+        url: 'https://internal.test/job/x/5/',
+        timestamp: 1700000000000,
+        upstreamCause: UpstreamCause(
+          projectName: 'foo',
+          url: 'https://internal.test/job/foo/',
+        ),
+      ),
+    );
+
+    final rewritten = rewriteJobTreeUrls([job], 'http://localhost:8080').single;
+
+    expect(
+      rewritten.lastBuild!.upstreamCause!.url,
+      'http://localhost:8080/job/foo/',
+    );
+    expect(rewritten.lastBuild!.upstreamCause!.projectName, 'foo');
+  });
+
+  test('rewrites downstreamProjects URLs (US-PIPE-09)', () {
+    const job = JenkinsJob(
+      name: 'x',
+      url: 'https://internal.test/job/x/',
+      downstreamProjects: [
+        DownstreamProject(
+          name: 'deploy',
+          url: 'https://internal.test/job/deploy/',
+        ),
+      ],
+    );
+
+    final rewritten = rewriteJobTreeUrls([job], 'http://localhost:8080').single;
+
+    expect(
+      rewritten.downstreamProjects.single.url,
+      'http://localhost:8080/job/deploy/',
+    );
+  });
   test(
     'preserves non-url JenkinsBuild fields (e.g. causes, changes) through the rewrite',
     () {

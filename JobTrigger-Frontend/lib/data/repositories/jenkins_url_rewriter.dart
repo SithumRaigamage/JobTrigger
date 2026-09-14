@@ -1,5 +1,7 @@
+import '../../domain/jenkins/downstream_project.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
+import '../../domain/jenkins/upstream_cause.dart';
 
 /// Jenkins returns absolute `url` fields using whatever host it was
 /// configured with internally, which breaks when reached via a different
@@ -38,10 +40,26 @@ JenkinsJob _rewriteJob(JenkinsJob job, Uri activeUri) => JenkinsJob(
   healthReport: job.healthReport,
   property: job.property,
   builds: job.builds.map((build) => _rewriteBuild(build, activeUri)).toList(),
+  downstreamProjects: job.downstreamProjects
+      .map(
+        (d) => DownstreamProject(
+          name: d.name,
+          url: _rewriteUrl(d.url, activeUri),
+        ),
+      )
+      .toList(),
 );
 
 JenkinsBuild _rewriteBuild(JenkinsBuild build, Uri activeUri) =>
-    build.copyWith(url: _rewriteUrl(build.url, activeUri));
+    build.copyWith(
+      url: _rewriteUrl(build.url, activeUri),
+      upstreamCause: build.upstreamCause == null
+          ? null
+          : UpstreamCause(
+              projectName: build.upstreamCause!.projectName,
+              url: _rewriteUrl(build.upstreamCause!.url, activeUri),
+            ),
+    );
 
 /// Rewrites a single Jenkins-origin URL that doesn't come from a
 /// `JenkinsJob`/`JenkinsBuild` payload — e.g. a trigger response's

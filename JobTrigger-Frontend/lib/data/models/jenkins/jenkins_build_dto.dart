@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../domain/jenkins/build_artifact.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/scm_change.dart';
+import '../../../domain/jenkins/upstream_cause.dart';
 
 part 'jenkins_build_dto.freezed.dart';
 part 'jenkins_build_dto.g.dart';
@@ -29,8 +30,20 @@ abstract class JenkinsBuildDto with _$JenkinsBuildDto {
     // straight to the description strings we actually render rather than
     // modeling the full heterogeneous `actions` shape.
     @Default(<String>[])
-    @JsonKey(name: 'actions', fromJson: _causesFromJson)
+    @JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false)
     List<String> causes,
+    // US-PIPE-09: same source (`actions[causes[...]]`) as `causes` above,
+    // pulled out as a second field rather than folded into a richer
+    // `causes` element type -- keeps `causes`'s already-shipped shape
+    // (`List<String>`) untouched. Both fields target the same JSON key,
+    // so both need `includeToJson: false` (this DTO is response-only and
+    // never re-encoded anyway).
+    @JsonKey(
+      name: 'actions',
+      fromJson: _upstreamCauseFromJson,
+      includeToJson: false,
+    )
+    UpstreamCause? upstreamCause,
     // US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
     // `items` (each `{msg, author: {fullName}}`) is requested/parsed;
     // `kind` isn't rendered anywhere so it's left off the tree query.
@@ -82,6 +95,24 @@ List<String> _causesFromJson(dynamic rawActions) {
   return descriptions;
 }
 
+UpstreamCause? _upstreamCauseFromJson(dynamic rawActions) {
+  if (rawActions is! List) return null;
+  for (final action in rawActions) {
+    if (action is! Map<String, dynamic>) continue;
+    final causes = action['causes'];
+    if (causes is! List) continue;
+    for (final cause in causes) {
+      if (cause is! Map<String, dynamic>) continue;
+      final project = cause['upstreamProject'];
+      final url = cause['upstreamUrl'];
+      if (project is String && url is String) {
+        return UpstreamCause(projectName: project, url: url);
+      }
+    }
+  }
+  return null;
+}
+
 List<ScmChange> _changesFromJson(dynamic rawChangeSet) {
   if (rawChangeSet is! Map<String, dynamic>) return const [];
   final items = rawChangeSet['items'];
@@ -121,5 +152,6 @@ extension JenkinsBuildDtoX on JenkinsBuildDto {
           ),
         )
         .toList(),
+    upstreamCause: upstreamCause,
   );
 }

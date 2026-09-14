@@ -1,3 +1,4 @@
+import 'downstream_project.dart';
 import 'health_report.dart';
 import 'jenkins_build.dart';
 import 'job_property.dart';
@@ -13,6 +14,7 @@ class JenkinsJob {
     this.healthReport = const [],
     this.property = const [],
     this.builds = const [],
+    this.downstreamProjects = const [],
   });
 
   final String name;
@@ -24,6 +26,11 @@ class JenkinsJob {
   final List<HealthReport> healthReport;
   final List<JobProperty> property;
   final List<JenkinsBuild> builds;
+
+  /// Jobs this job triggers (US-PIPE-09). Empty when Jenkins reports none
+  /// (not requested by every fetch — see `jenkins_repository_impl.dart`'s
+  /// `_detailsTree`).
+  final List<DownstreamProject> downstreamProjects;
 
   /// Ported from `JenkinsServerInfo.swift`'s `JenkinsJob.isFolder`. Depends
   /// on [jobs] staying genuinely `null` (not `[]`) for leaf jobs — see

@@ -1,5 +1,6 @@
 import 'build_artifact.dart';
 import 'scm_change.dart';
+import 'upstream_cause.dart';
 
 /// Unified for both a job's `lastBuild` and its `builds[]` history — see
 /// `data/models/jenkins/jenkins_build_dto.dart`'s doc comment.
@@ -16,6 +17,7 @@ class JenkinsBuild {
     this.causes = const [],
     this.changes = const [],
     this.artifacts = const [],
+    this.upstreamCause,
   });
 
   final int number;
@@ -43,6 +45,12 @@ class JenkinsBuild {
   /// none (not requested by every fetch — see `_detailsTree`).
   final List<BuildArtifact> artifacts;
 
+  /// Set when one of [causes] was an upstream project/build rather than a
+  /// person/timer/SCM hook (US-PIPE-09) — lets the UI offer a tappable
+  /// link to that job, distinct from the plain description text already
+  /// in [causes].
+  final UpstreamCause? upstreamCause;
+
   /// Every non-`url` construction site (`jenkins_url_rewriter.dart`,
   /// `JobDetailNotifier.applyOptimisticCancel`) reconstructed `JenkinsBuild`
   /// field-by-field before this existed, which silently dropped `causes`
@@ -61,6 +69,7 @@ class JenkinsBuild {
     List<String>? causes,
     List<ScmChange>? changes,
     List<BuildArtifact>? artifacts,
+    UpstreamCause? upstreamCause,
   }) => JenkinsBuild(
     number: number ?? this.number,
     url: url ?? this.url,
@@ -73,5 +82,6 @@ class JenkinsBuild {
     causes: causes ?? this.causes,
     changes: changes ?? this.changes,
     artifacts: artifacts ?? this.artifacts,
+    upstreamCause: upstreamCause ?? this.upstreamCause,
   );
 }

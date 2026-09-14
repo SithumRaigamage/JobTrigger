@@ -13,6 +13,7 @@ import '../../../domain/jenkins/pipeline_stage.dart';
 import '../../../domain/jenkins/queue_item.dart';
 import '../../../domain/jenkins/scm_change.dart';
 import '../../../domain/jenkins/test_report.dart';
+import '../../../domain/jenkins/upstream_cause.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
@@ -439,6 +440,10 @@ class _LastBuildCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
+              if (lastBuild.upstreamCause != null) ...[
+                const SizedBox(height: 4),
+                _UpstreamLink(cause: lastBuild.upstreamCause!),
+              ],
               if (lastBuild.changes.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 _ChangesList(changes: lastBuild.changes),
@@ -465,8 +470,75 @@ class _LastBuildCard extends StatelessWidget {
                 ),
               ],
             ],
+            // Job-level, not build-level -- shown regardless of whether
+            // this job has ever built (unlike everything else on this
+            // card, which lives inside the `lastBuild != null` branch
+            // above).
+            if (job.downstreamProjects.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Downstream',
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
+              const SizedBox(height: 4),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final downstream in job.downstreamProjects)
+                    ActionChip(
+                      label: Text(downstream.name),
+                      onPressed: () => context.push(
+                        AppRoutes.jobDetail,
+                        extra: JenkinsJob(
+                          name: downstream.name,
+                          url: downstream.url,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ],
         ),
+    );
+  }
+}
+
+/// US-PIPE-09: the upstream job/build that caused this one, when known —
+/// tappable through to that job's detail (reuses `US-JOB-01`'s existing
+/// `NotFoundFailure` handling if it's since been deleted/renamed, no new
+/// error handling needed).
+class _UpstreamLink extends StatelessWidget {
+  const _UpstreamLink({required this.cause});
+
+  final UpstreamCause cause;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => context.push(
+        AppRoutes.jobDetail,
+        extra: JenkinsJob(name: cause.projectName, url: cause.url),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.arrow_upward,
+            size: 14,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            cause.projectName,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

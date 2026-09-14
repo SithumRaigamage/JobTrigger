@@ -40,6 +40,7 @@ class JobDetailNotifier extends _$JobDetailNotifier {
         healthReport: current.healthReport,
         property: current.property,
         builds: current.builds,
+        downstreamProjects: current.downstreamProjects,
       ),
     );
   }

@@ -295,11 +295,62 @@ per `CLAUDE.md` §9.
       JSON-decode it — fixed by only claiming JSON content-type when
       actually returning JSON. `flutter analyze` clean, full suite
       (148 tests) passing.
-- [ ] P7-08 `US-PIPE-09` — Upstream/downstream navigation. Depends on P7-01
-      (cause data carries the upstream link). Downstream requires a new
-      field off the job-detail tree query (`downstreamProjects[name,url]`
-      — verify exact field name against a real Jenkins instance before
-      committing to it, per `NFR-TEST-02`).
+- [x] P7-08 `US-PIPE-09` — Upstream/downstream navigation. No new
+      repository method — both pieces ride the existing `_detailsTree`
+      fetch. Upstream: extended `actions[causes[...]]`'s tree fields to
+      also request `upstreamProject,upstreamUrl` and added a second DTO
+      field (`upstreamCause`) sourced from the same `actions` JSON key as
+      P7-01's `causes` — kept `causes`'s already-shipped `List<String>`
+      shape untouched rather than redesigning it into a richer element
+      type. Two fields targeting one JSON key needed `includeToJson:
+      false` on both to avoid a json_serializable `toJson` conflict
+      (retroactively added to `causes`'s existing `@JsonKey` too — it
+      didn't need it before since nothing else targeted `actions`).
+      Downstream: `downstreamProjects[name,url]` added to `_detailsTree`'s
+      top level (a job property, not a build one) — flat,
+      non-polymorphic, no custom unwrapper needed, same as artifacts.
+
+      **Extended the `copyWith` bug-prevention pattern to `JenkinsJob`**:
+      this is the first PIPE field added directly to `JenkinsJob` (not
+      `JenkinsBuild`), and `JobDetailNotifier.applyOptimisticCancel` was
+      *still* reconstructing `JenkinsJob` field-by-field — caught and
+      fixed (`downstreamProjects` added) before it could repeat the exact
+      P7-01 mistake a third time, this time at the job level. Did **not**
+      add a general `JenkinsJob.copyWith()` though: `jobs` has
+      null-vs-empty-list folder/leaf semantics that a naive `??`-based
+      copyWith can't represent (can't distinguish "not overridden" from
+      "explicitly set to null" without a sentinel-value pattern) — `_rewriteJob`
+      was already complete and correctly recursive for every existing
+      field, so extending its explicit field list with `downstreamProjects`
+      (with URL rewriting) was the lower-complexity fix for the actual
+      risk, versus introducing sentinel-value machinery to solve a problem
+      `_rewriteJob` didn't actually have. `_rewriteBuild` did get
+      `upstreamCause` added to its explicit override list, since that
+      field's absolute URL needs the same scheme/host/port rewrite as
+      every other Jenkins-origin URL — `copyWith`'s "preserve what's not
+      overridden" doesn't reach into a nested object's own URL field.
+
+      New `UpstreamCause`/`DownstreamProject` domain types. UI: a tappable
+      `_UpstreamLink` inline with the cause line, and a `Wrap` of tappable
+      downstream chips at the bottom of the card (shown regardless of
+      whether the job has ever built, unlike everything else on the card).
+      Both navigate via a minimal stub `JenkinsJob(name, url)` passed as
+      `extra` to the existing `AppRoutes.jobDetail` route — `JobDetailScreen`
+      already treats its `job` param as "possibly stale, filled in by the
+      real fetch" (`US-JOB-01`), so no new navigation shape was needed, and
+      a deleted/renamed linked job surfaces via that story's existing
+      `NotFoundFailure` handling with no new code.
+
+      No repository interface change — the 6 fake `JenkinsRepository`
+      implementations needed no updates this time. 8 new tests: 4 in
+      `jenkins_build_dto_test.dart` (upstream extraction, null-when-no-
+      upstream-fields, null-when-absent, `toDomain()`), 2 in
+      `jenkins_job_dto_test.dart` (downstream parse + defaults), 2 in
+      `jenkins_url_rewriter_test.dart` (upstream URL actually rewritten,
+      downstream URLs actually rewritten — these test real rewriting, not
+      just preservation, unlike the earlier causes/changes regression
+      test), plus `upstreamCause` added to the existing `copyWith` test.
+      `flutter analyze` clean, full suite (156 tests) passing.
 - [ ] P7-09 `US-PIPE-08` — Replay with same parameters. Depends on P7-00
       (crumb) and reuses `US-JOB-03`'s `ParameterForm` + `US-HIST-02`'s
       per-job history list. Needs each history build's actual recorded

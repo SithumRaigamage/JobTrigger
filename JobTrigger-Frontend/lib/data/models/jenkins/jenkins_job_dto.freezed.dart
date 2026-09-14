@@ -17,7 +17,9 @@ mixin _$JenkinsJobDto {
 
  String get name; String get url; String? get description; String? get color; List<JenkinsJobDto>? get jobs;// nested folders — see the null-vs-[] note above
  JenkinsBuildDto? get lastBuild; List<HealthReportDto>? get healthReport; List<JobPropertyDto>? get property;// holds parameterDefinitions
- List<JenkinsBuildDto>? get builds;
+ List<JenkinsBuildDto>? get builds;// US-PIPE-09: flat, non-polymorphic array directly on the job
+// resource, same reasoning as `BuildArtifactDto` on `JenkinsBuildDto`.
+ List<DownstreamProjectDto>? get downstreamProjects;
 /// Create a copy of JenkinsJobDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,16 +32,16 @@ $JenkinsJobDtoCopyWith<JenkinsJobDto> get copyWith => _$JenkinsJobDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsJobDto&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url)&&(identical(other.description, description) || other.description == description)&&(identical(other.color, color) || other.color == color)&&const DeepCollectionEquality().equals(other.jobs, jobs)&&(identical(other.lastBuild, lastBuild) || other.lastBuild == lastBuild)&&const DeepCollectionEquality().equals(other.healthReport, healthReport)&&const DeepCollectionEquality().equals(other.property, property)&&const DeepCollectionEquality().equals(other.builds, builds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsJobDto&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url)&&(identical(other.description, description) || other.description == description)&&(identical(other.color, color) || other.color == color)&&const DeepCollectionEquality().equals(other.jobs, jobs)&&(identical(other.lastBuild, lastBuild) || other.lastBuild == lastBuild)&&const DeepCollectionEquality().equals(other.healthReport, healthReport)&&const DeepCollectionEquality().equals(other.property, property)&&const DeepCollectionEquality().equals(other.builds, builds)&&const DeepCollectionEquality().equals(other.downstreamProjects, downstreamProjects));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,url,description,color,const DeepCollectionEquality().hash(jobs),lastBuild,const DeepCollectionEquality().hash(healthReport),const DeepCollectionEquality().hash(property),const DeepCollectionEquality().hash(builds));
+int get hashCode => Object.hash(runtimeType,name,url,description,color,const DeepCollectionEquality().hash(jobs),lastBuild,const DeepCollectionEquality().hash(healthReport),const DeepCollectionEquality().hash(property),const DeepCollectionEquality().hash(builds),const DeepCollectionEquality().hash(downstreamProjects));
 
 @override
 String toString() {
-  return 'JenkinsJobDto(name: $name, url: $url, description: $description, color: $color, jobs: $jobs, lastBuild: $lastBuild, healthReport: $healthReport, property: $property, builds: $builds)';
+  return 'JenkinsJobDto(name: $name, url: $url, description: $description, color: $color, jobs: $jobs, lastBuild: $lastBuild, healthReport: $healthReport, property: $property, builds: $builds, downstreamProjects: $downstreamProjects)';
 }
 
 
@@ -50,7 +52,7 @@ abstract mixin class $JenkinsJobDtoCopyWith<$Res>  {
   factory $JenkinsJobDtoCopyWith(JenkinsJobDto value, $Res Function(JenkinsJobDto) _then) = _$JenkinsJobDtoCopyWithImpl;
 @useResult
 $Res call({
- String name, String url, String? description, String? color, List<JenkinsJobDto>? jobs, JenkinsBuildDto? lastBuild, List<HealthReportDto>? healthReport, List<JobPropertyDto>? property, List<JenkinsBuildDto>? builds
+ String name, String url, String? description, String? color, List<JenkinsJobDto>? jobs, JenkinsBuildDto? lastBuild, List<HealthReportDto>? healthReport, List<JobPropertyDto>? property, List<JenkinsBuildDto>? builds, List<DownstreamProjectDto>? downstreamProjects
 });
 
 
@@ -67,7 +69,7 @@ class _$JenkinsJobDtoCopyWithImpl<$Res>
 
 /// Create a copy of JenkinsJobDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? url = null,Object? description = freezed,Object? color = freezed,Object? jobs = freezed,Object? lastBuild = freezed,Object? healthReport = freezed,Object? property = freezed,Object? builds = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? url = null,Object? description = freezed,Object? color = freezed,Object? jobs = freezed,Object? lastBuild = freezed,Object? healthReport = freezed,Object? property = freezed,Object? builds = freezed,Object? downstreamProjects = freezed,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -78,7 +80,8 @@ as List<JenkinsJobDto>?,lastBuild: freezed == lastBuild ? _self.lastBuild : last
 as JenkinsBuildDto?,healthReport: freezed == healthReport ? _self.healthReport : healthReport // ignore: cast_nullable_to_non_nullable
 as List<HealthReportDto>?,property: freezed == property ? _self.property : property // ignore: cast_nullable_to_non_nullable
 as List<JobPropertyDto>?,builds: freezed == builds ? _self.builds : builds // ignore: cast_nullable_to_non_nullable
-as List<JenkinsBuildDto>?,
+as List<JenkinsBuildDto>?,downstreamProjects: freezed == downstreamProjects ? _self.downstreamProjects : downstreamProjects // ignore: cast_nullable_to_non_nullable
+as List<DownstreamProjectDto>?,
   ));
 }
 /// Create a copy of JenkinsJobDto
@@ -175,10 +178,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String url,  String? description,  String? color,  List<JenkinsJobDto>? jobs,  JenkinsBuildDto? lastBuild,  List<HealthReportDto>? healthReport,  List<JobPropertyDto>? property,  List<JenkinsBuildDto>? builds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String url,  String? description,  String? color,  List<JenkinsJobDto>? jobs,  JenkinsBuildDto? lastBuild,  List<HealthReportDto>? healthReport,  List<JobPropertyDto>? property,  List<JenkinsBuildDto>? builds,  List<DownstreamProjectDto>? downstreamProjects)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JenkinsJobDto() when $default != null:
-return $default(_that.name,_that.url,_that.description,_that.color,_that.jobs,_that.lastBuild,_that.healthReport,_that.property,_that.builds);case _:
+return $default(_that.name,_that.url,_that.description,_that.color,_that.jobs,_that.lastBuild,_that.healthReport,_that.property,_that.builds,_that.downstreamProjects);case _:
   return orElse();
 
 }
@@ -196,10 +199,10 @@ return $default(_that.name,_that.url,_that.description,_that.color,_that.jobs,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String url,  String? description,  String? color,  List<JenkinsJobDto>? jobs,  JenkinsBuildDto? lastBuild,  List<HealthReportDto>? healthReport,  List<JobPropertyDto>? property,  List<JenkinsBuildDto>? builds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String url,  String? description,  String? color,  List<JenkinsJobDto>? jobs,  JenkinsBuildDto? lastBuild,  List<HealthReportDto>? healthReport,  List<JobPropertyDto>? property,  List<JenkinsBuildDto>? builds,  List<DownstreamProjectDto>? downstreamProjects)  $default,) {final _that = this;
 switch (_that) {
 case _JenkinsJobDto():
-return $default(_that.name,_that.url,_that.description,_that.color,_that.jobs,_that.lastBuild,_that.healthReport,_that.property,_that.builds);case _:
+return $default(_that.name,_that.url,_that.description,_that.color,_that.jobs,_that.lastBuild,_that.healthReport,_that.property,_that.builds,_that.downstreamProjects);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -216,10 +219,10 @@ return $default(_that.name,_that.url,_that.description,_that.color,_that.jobs,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String url,  String? description,  String? color,  List<JenkinsJobDto>? jobs,  JenkinsBuildDto? lastBuild,  List<HealthReportDto>? healthReport,  List<JobPropertyDto>? property,  List<JenkinsBuildDto>? builds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String url,  String? description,  String? color,  List<JenkinsJobDto>? jobs,  JenkinsBuildDto? lastBuild,  List<HealthReportDto>? healthReport,  List<JobPropertyDto>? property,  List<JenkinsBuildDto>? builds,  List<DownstreamProjectDto>? downstreamProjects)?  $default,) {final _that = this;
 switch (_that) {
 case _JenkinsJobDto() when $default != null:
-return $default(_that.name,_that.url,_that.description,_that.color,_that.jobs,_that.lastBuild,_that.healthReport,_that.property,_that.builds);case _:
+return $default(_that.name,_that.url,_that.description,_that.color,_that.jobs,_that.lastBuild,_that.healthReport,_that.property,_that.builds,_that.downstreamProjects);case _:
   return null;
 
 }
@@ -231,7 +234,7 @@ return $default(_that.name,_that.url,_that.description,_that.color,_that.jobs,_t
 @JsonSerializable()
 
 class _JenkinsJobDto implements JenkinsJobDto {
-  const _JenkinsJobDto({required this.name, required this.url, this.description, this.color, final  List<JenkinsJobDto>? jobs, this.lastBuild, final  List<HealthReportDto>? healthReport = const [], final  List<JobPropertyDto>? property = const [], final  List<JenkinsBuildDto>? builds = const []}): _jobs = jobs,_healthReport = healthReport,_property = property,_builds = builds;
+  const _JenkinsJobDto({required this.name, required this.url, this.description, this.color, final  List<JenkinsJobDto>? jobs, this.lastBuild, final  List<HealthReportDto>? healthReport = const [], final  List<JobPropertyDto>? property = const [], final  List<JenkinsBuildDto>? builds = const [], final  List<DownstreamProjectDto>? downstreamProjects = const []}): _jobs = jobs,_healthReport = healthReport,_property = property,_builds = builds,_downstreamProjects = downstreamProjects;
   factory _JenkinsJobDto.fromJson(Map<String, dynamic> json) => _$JenkinsJobDtoFromJson(json);
 
 @override final  String name;
@@ -278,6 +281,19 @@ class _JenkinsJobDto implements JenkinsJobDto {
   return EqualUnmodifiableListView(value);
 }
 
+// US-PIPE-09: flat, non-polymorphic array directly on the job
+// resource, same reasoning as `BuildArtifactDto` on `JenkinsBuildDto`.
+ final  List<DownstreamProjectDto>? _downstreamProjects;
+// US-PIPE-09: flat, non-polymorphic array directly on the job
+// resource, same reasoning as `BuildArtifactDto` on `JenkinsBuildDto`.
+@override@JsonKey() List<DownstreamProjectDto>? get downstreamProjects {
+  final value = _downstreamProjects;
+  if (value == null) return null;
+  if (_downstreamProjects is EqualUnmodifiableListView) return _downstreamProjects;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
 
 /// Create a copy of JenkinsJobDto
 /// with the given fields replaced by the non-null parameter values.
@@ -292,16 +308,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsJobDto&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url)&&(identical(other.description, description) || other.description == description)&&(identical(other.color, color) || other.color == color)&&const DeepCollectionEquality().equals(other._jobs, _jobs)&&(identical(other.lastBuild, lastBuild) || other.lastBuild == lastBuild)&&const DeepCollectionEquality().equals(other._healthReport, _healthReport)&&const DeepCollectionEquality().equals(other._property, _property)&&const DeepCollectionEquality().equals(other._builds, _builds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsJobDto&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url)&&(identical(other.description, description) || other.description == description)&&(identical(other.color, color) || other.color == color)&&const DeepCollectionEquality().equals(other._jobs, _jobs)&&(identical(other.lastBuild, lastBuild) || other.lastBuild == lastBuild)&&const DeepCollectionEquality().equals(other._healthReport, _healthReport)&&const DeepCollectionEquality().equals(other._property, _property)&&const DeepCollectionEquality().equals(other._builds, _builds)&&const DeepCollectionEquality().equals(other._downstreamProjects, _downstreamProjects));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,url,description,color,const DeepCollectionEquality().hash(_jobs),lastBuild,const DeepCollectionEquality().hash(_healthReport),const DeepCollectionEquality().hash(_property),const DeepCollectionEquality().hash(_builds));
+int get hashCode => Object.hash(runtimeType,name,url,description,color,const DeepCollectionEquality().hash(_jobs),lastBuild,const DeepCollectionEquality().hash(_healthReport),const DeepCollectionEquality().hash(_property),const DeepCollectionEquality().hash(_builds),const DeepCollectionEquality().hash(_downstreamProjects));
 
 @override
 String toString() {
-  return 'JenkinsJobDto(name: $name, url: $url, description: $description, color: $color, jobs: $jobs, lastBuild: $lastBuild, healthReport: $healthReport, property: $property, builds: $builds)';
+  return 'JenkinsJobDto(name: $name, url: $url, description: $description, color: $color, jobs: $jobs, lastBuild: $lastBuild, healthReport: $healthReport, property: $property, builds: $builds, downstreamProjects: $downstreamProjects)';
 }
 
 
@@ -312,7 +328,7 @@ abstract mixin class _$JenkinsJobDtoCopyWith<$Res> implements $JenkinsJobDtoCopy
   factory _$JenkinsJobDtoCopyWith(_JenkinsJobDto value, $Res Function(_JenkinsJobDto) _then) = __$JenkinsJobDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String url, String? description, String? color, List<JenkinsJobDto>? jobs, JenkinsBuildDto? lastBuild, List<HealthReportDto>? healthReport, List<JobPropertyDto>? property, List<JenkinsBuildDto>? builds
+ String name, String url, String? description, String? color, List<JenkinsJobDto>? jobs, JenkinsBuildDto? lastBuild, List<HealthReportDto>? healthReport, List<JobPropertyDto>? property, List<JenkinsBuildDto>? builds, List<DownstreamProjectDto>? downstreamProjects
 });
 
 
@@ -329,7 +345,7 @@ class __$JenkinsJobDtoCopyWithImpl<$Res>
 
 /// Create a copy of JenkinsJobDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? url = null,Object? description = freezed,Object? color = freezed,Object? jobs = freezed,Object? lastBuild = freezed,Object? healthReport = freezed,Object? property = freezed,Object? builds = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? url = null,Object? description = freezed,Object? color = freezed,Object? jobs = freezed,Object? lastBuild = freezed,Object? healthReport = freezed,Object? property = freezed,Object? builds = freezed,Object? downstreamProjects = freezed,}) {
   return _then(_JenkinsJobDto(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -340,7 +356,8 @@ as List<JenkinsJobDto>?,lastBuild: freezed == lastBuild ? _self.lastBuild : last
 as JenkinsBuildDto?,healthReport: freezed == healthReport ? _self._healthReport : healthReport // ignore: cast_nullable_to_non_nullable
 as List<HealthReportDto>?,property: freezed == property ? _self._property : property // ignore: cast_nullable_to_non_nullable
 as List<JobPropertyDto>?,builds: freezed == builds ? _self._builds : builds // ignore: cast_nullable_to_non_nullable
-as List<JenkinsBuildDto>?,
+as List<JenkinsBuildDto>?,downstreamProjects: freezed == downstreamProjects ? _self._downstreamProjects : downstreamProjects // ignore: cast_nullable_to_non_nullable
+as List<DownstreamProjectDto>?,
   ));
 }
 
@@ -357,6 +374,272 @@ $JenkinsBuildDtoCopyWith<$Res>? get lastBuild {
     return _then(_self.copyWith(lastBuild: value));
   });
 }
+}
+
+
+/// @nodoc
+mixin _$DownstreamProjectDto {
+
+ String get name; String get url;
+/// Create a copy of DownstreamProjectDto
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DownstreamProjectDtoCopyWith<DownstreamProjectDto> get copyWith => _$DownstreamProjectDtoCopyWithImpl<DownstreamProjectDto>(this as DownstreamProjectDto, _$identity);
+
+  /// Serializes this DownstreamProjectDto to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownstreamProjectDto&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,name,url);
+
+@override
+String toString() {
+  return 'DownstreamProjectDto(name: $name, url: $url)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DownstreamProjectDtoCopyWith<$Res>  {
+  factory $DownstreamProjectDtoCopyWith(DownstreamProjectDto value, $Res Function(DownstreamProjectDto) _then) = _$DownstreamProjectDtoCopyWithImpl;
+@useResult
+$Res call({
+ String name, String url
+});
+
+
+
+
+}
+/// @nodoc
+class _$DownstreamProjectDtoCopyWithImpl<$Res>
+    implements $DownstreamProjectDtoCopyWith<$Res> {
+  _$DownstreamProjectDtoCopyWithImpl(this._self, this._then);
+
+  final DownstreamProjectDto _self;
+  final $Res Function(DownstreamProjectDto) _then;
+
+/// Create a copy of DownstreamProjectDto
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? url = null,}) {
+  return _then(_self.copyWith(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [DownstreamProjectDto].
+extension DownstreamProjectDtoPatterns on DownstreamProjectDto {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _DownstreamProjectDto value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _DownstreamProjectDto() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _DownstreamProjectDto value)  $default,){
+final _that = this;
+switch (_that) {
+case _DownstreamProjectDto():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _DownstreamProjectDto value)?  $default,){
+final _that = this;
+switch (_that) {
+case _DownstreamProjectDto() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String url)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _DownstreamProjectDto() when $default != null:
+return $default(_that.name,_that.url);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String url)  $default,) {final _that = this;
+switch (_that) {
+case _DownstreamProjectDto():
+return $default(_that.name,_that.url);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String url)?  $default,) {final _that = this;
+switch (_that) {
+case _DownstreamProjectDto() when $default != null:
+return $default(_that.name,_that.url);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _DownstreamProjectDto implements DownstreamProjectDto {
+  const _DownstreamProjectDto({required this.name, required this.url});
+  factory _DownstreamProjectDto.fromJson(Map<String, dynamic> json) => _$DownstreamProjectDtoFromJson(json);
+
+@override final  String name;
+@override final  String url;
+
+/// Create a copy of DownstreamProjectDto
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DownstreamProjectDtoCopyWith<_DownstreamProjectDto> get copyWith => __$DownstreamProjectDtoCopyWithImpl<_DownstreamProjectDto>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$DownstreamProjectDtoToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownstreamProjectDto&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,name,url);
+
+@override
+String toString() {
+  return 'DownstreamProjectDto(name: $name, url: $url)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DownstreamProjectDtoCopyWith<$Res> implements $DownstreamProjectDtoCopyWith<$Res> {
+  factory _$DownstreamProjectDtoCopyWith(_DownstreamProjectDto value, $Res Function(_DownstreamProjectDto) _then) = __$DownstreamProjectDtoCopyWithImpl;
+@override @useResult
+$Res call({
+ String name, String url
+});
+
+
+
+
+}
+/// @nodoc
+class __$DownstreamProjectDtoCopyWithImpl<$Res>
+    implements _$DownstreamProjectDtoCopyWith<$Res> {
+  __$DownstreamProjectDtoCopyWithImpl(this._self, this._then);
+
+  final _DownstreamProjectDto _self;
+  final $Res Function(_DownstreamProjectDto) _then;
+
+/// Create a copy of DownstreamProjectDto
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? url = null,}) {
+  return _then(_DownstreamProjectDto(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
 }
 
 // dart format on

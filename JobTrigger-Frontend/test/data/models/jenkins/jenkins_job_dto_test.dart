@@ -75,4 +75,28 @@ void main() {
     expect(neverBuilt.lastBuild, isNull);
     expect(neverBuilt.color, 'notbuilt');
   });
+
+  group('downstreamProjects (US-PIPE-09)', () {
+    test('parses a flat, non-polymorphic downstreamProjects array', () {
+      final dto = JenkinsJobDto.fromJson({
+        'name': 'x',
+        'url': 'https://jenkins.test/job/x/',
+        'downstreamProjects': [
+          {'name': 'deploy', 'url': 'https://jenkins.test/job/deploy/'},
+        ],
+      });
+
+      expect(dto.toDomain().downstreamProjects, hasLength(1));
+      expect(dto.toDomain().downstreamProjects.single.name, 'deploy');
+    });
+
+    test('defaults to an empty list when downstreamProjects is absent', () {
+      final dto = JenkinsJobDto.fromJson({
+        'name': 'x',
+        'url': 'https://jenkins.test/job/x/',
+      });
+
+      expect(dto.toDomain().downstreamProjects, isEmpty);
+    });
+  });
 }
