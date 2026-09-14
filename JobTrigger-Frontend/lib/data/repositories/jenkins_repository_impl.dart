@@ -39,7 +39,8 @@ String buildJobTreeQuery() {
 const _detailsTree =
     'name,url,color,description,'
     'lastBuild[number,url,result,timestamp,duration,building,estimatedDuration,'
-    'actions[causes[shortDescription]]],'
+    'actions[causes[shortDescription]],'
+    'changeSet[items[msg,author[fullName]]]],'
     'healthReport[description,iconClassName,score],'
     'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices]]';
 

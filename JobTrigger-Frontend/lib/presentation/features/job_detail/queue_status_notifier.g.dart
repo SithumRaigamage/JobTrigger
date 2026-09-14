@@ -113,7 +113,7 @@ final class QueueStatusNotifierProvider
 }
 
 String _$queueStatusNotifierHash() =>
-    r'5696fafddfafc569e8a81c721b57a89c7cbcf1d9';
+    r'914daf497925e7ea927a75b1d7db3a17c2e68ace';
 
 /// US-PIPE-01. Family-keyed by job URL. Tracks the queue item a
 /// just-triggered build was assigned, started imperatively via [track]

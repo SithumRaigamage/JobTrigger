@@ -7,16 +7,19 @@ import 'package:job_trigger/data/models/jenkins/jenkins_server_info_dto.dart';
 import 'package:job_trigger/data/repositories/jenkins_url_rewriter.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
+import 'package:job_trigger/domain/jenkins/scm_change.dart';
 
 void main() {
   test(
-    'preserves non-url JenkinsBuild fields (e.g. causes) through the rewrite',
+    'preserves non-url JenkinsBuild fields (e.g. causes, changes) through the rewrite',
     () {
-      // Regression test: _rewriteBuild reconstructs JenkinsBuild field by
-      // field rather than copying the source build, so a field added to
-      // JenkinsBuild without a matching update here would silently be
-      // dropped on every job-detail fetch (found happening for `causes`,
-      // US-PIPE-02, before this fix).
+      // Regression test: _rewriteBuild originally reconstructed JenkinsBuild
+      // field by field rather than copying the source build, so a field
+      // added to JenkinsBuild without a matching update here would silently
+      // be dropped on every job-detail fetch (found happening for `causes`,
+      // US-PIPE-02). Fixed by switching to `JenkinsBuild.copyWith` (see
+      // `jenkins_build_test.dart` for direct copyWith coverage) -- kept
+      // here too since this is the actual integration point that broke.
       const job = JenkinsJob(
         name: 'x',
         url: 'https://internal.test/job/x/',
@@ -25,6 +28,7 @@ void main() {
           url: 'https://internal.test/job/x/5/',
           timestamp: 1700000000000,
           causes: ['Started by user Jane Doe'],
+          changes: [ScmChange(author: 'Jane Doe', message: 'Fix bug')],
         ),
       );
 
@@ -34,6 +38,7 @@ void main() {
       ).single;
 
       expect(rewritten.lastBuild!.causes, ['Started by user Jane Doe']);
+      expect(rewritten.lastBuild!.changes.single.message, 'Fix bug');
     },
   );
 

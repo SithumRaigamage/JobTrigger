@@ -2,7 +2,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
-import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 
 part 'job_detail_notifier.g.dart';
@@ -34,16 +33,9 @@ class JobDetailNotifier extends _$JobDetailNotifier {
         description: current.description,
         color: current.color,
         jobs: current.jobs,
-        lastBuild: JenkinsBuild(
-          number: current.lastBuild!.number,
-          url: current.lastBuild!.url,
+        lastBuild: current.lastBuild!.copyWith(
           result: 'ABORTED',
-          timestamp: current.lastBuild!.timestamp,
-          duration: current.lastBuild!.duration,
-          estimatedDuration: current.lastBuild!.estimatedDuration,
           building: false,
-          displayName: current.lastBuild!.displayName,
-          causes: current.lastBuild!.causes,
         ),
         healthReport: current.healthReport,
         property: current.property,

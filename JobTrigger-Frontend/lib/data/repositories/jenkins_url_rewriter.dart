@@ -40,17 +40,8 @@ JenkinsJob _rewriteJob(JenkinsJob job, Uri activeUri) => JenkinsJob(
   builds: job.builds.map((build) => _rewriteBuild(build, activeUri)).toList(),
 );
 
-JenkinsBuild _rewriteBuild(JenkinsBuild build, Uri activeUri) => JenkinsBuild(
-  number: build.number,
-  url: _rewriteUrl(build.url, activeUri),
-  result: build.result,
-  timestamp: build.timestamp,
-  duration: build.duration,
-  estimatedDuration: build.estimatedDuration,
-  building: build.building,
-  displayName: build.displayName,
-  causes: build.causes,
-);
+JenkinsBuild _rewriteBuild(JenkinsBuild build, Uri activeUri) =>
+    build.copyWith(url: _rewriteUrl(build.url, activeUri));
 
 /// Rewrites a single Jenkins-origin URL that doesn't come from a
 /// `JenkinsJob`/`JenkinsBuild` payload — e.g. a trigger response's

@@ -23,7 +23,13 @@ mixin _$JenkinsBuildDto {
 // action entry, just pruned to that one field where present. Flatten
 // straight to the description strings we actually render rather than
 // modeling the full heterogeneous `actions` shape.
-@JsonKey(name: 'actions', fromJson: _causesFromJson) List<String> get causes;
+@JsonKey(name: 'actions', fromJson: _causesFromJson) List<String> get causes;// US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
+// `items` (each `{msg, author: {fullName}}`) is requested/parsed;
+// `kind` isn't rendered anywhere so it's left off the tree query.
+// `ScmChange` isn't JSON-serializable itself (no toJson) -- fine, since
+// this DTO is response-only and never re-encoded; `includeToJson:
+// false` tells json_serializable not to try.
+@JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) List<ScmChange> get changes;
 /// Create a copy of JenkinsBuildDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -36,16 +42,16 @@ $JenkinsBuildDtoCopyWith<JenkinsBuildDto> get copyWith => _$JenkinsBuildDtoCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&const DeepCollectionEquality().equals(other.causes, causes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&const DeepCollectionEquality().equals(other.causes, causes)&&const DeepCollectionEquality().equals(other.changes, changes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName,const DeepCollectionEquality().hash(causes));
+int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName,const DeepCollectionEquality().hash(causes),const DeepCollectionEquality().hash(changes));
 
 @override
 String toString() {
-  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName, causes: $causes)';
+  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName, causes: $causes, changes: $changes)';
 }
 
 
@@ -56,7 +62,7 @@ abstract mixin class $JenkinsBuildDtoCopyWith<$Res>  {
   factory $JenkinsBuildDtoCopyWith(JenkinsBuildDto value, $Res Function(JenkinsBuildDto) _then) = _$JenkinsBuildDtoCopyWithImpl;
 @useResult
 $Res call({
- int number, String url, String? result, double timestamp, double? duration, double? estimatedDuration, bool building, String? displayName,@JsonKey(name: 'actions', fromJson: _causesFromJson) List<String> causes
+ int number, String url, String? result, double timestamp, double? duration, double? estimatedDuration, bool building, String? displayName,@JsonKey(name: 'actions', fromJson: _causesFromJson) List<String> causes,@JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) List<ScmChange> changes
 });
 
 
@@ -73,7 +79,7 @@ class _$JenkinsBuildDtoCopyWithImpl<$Res>
 
 /// Create a copy of JenkinsBuildDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? number = null,Object? url = null,Object? result = freezed,Object? timestamp = null,Object? duration = freezed,Object? estimatedDuration = freezed,Object? building = null,Object? displayName = freezed,Object? causes = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? number = null,Object? url = null,Object? result = freezed,Object? timestamp = null,Object? duration = freezed,Object? estimatedDuration = freezed,Object? building = null,Object? displayName = freezed,Object? causes = null,Object? changes = null,}) {
   return _then(_self.copyWith(
 number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
 as int,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -84,7 +90,8 @@ as double?,estimatedDuration: freezed == estimatedDuration ? _self.estimatedDura
 as double?,building: null == building ? _self.building : building // ignore: cast_nullable_to_non_nullable
 as bool,displayName: freezed == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String?,causes: null == causes ? _self.causes : causes // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,changes: null == changes ? _self.changes : changes // ignore: cast_nullable_to_non_nullable
+as List<ScmChange>,
   ));
 }
 
@@ -169,10 +176,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson)  List<String> causes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson)  List<String> causes, @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false)  List<ScmChange> changes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JenkinsBuildDto() when $default != null:
-return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes);case _:
+return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes,_that.changes);case _:
   return orElse();
 
 }
@@ -190,10 +197,10 @@ return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.durati
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson)  List<String> causes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson)  List<String> causes, @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false)  List<ScmChange> changes)  $default,) {final _that = this;
 switch (_that) {
 case _JenkinsBuildDto():
-return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes);case _:
+return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes,_that.changes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -210,10 +217,10 @@ return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.durati
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson)  List<String> causes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson)  List<String> causes, @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false)  List<ScmChange> changes)?  $default,) {final _that = this;
 switch (_that) {
 case _JenkinsBuildDto() when $default != null:
-return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes);case _:
+return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes,_that.changes);case _:
   return null;
 
 }
@@ -225,7 +232,7 @@ return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.durati
 @JsonSerializable()
 
 class _JenkinsBuildDto implements JenkinsBuildDto {
-  const _JenkinsBuildDto({required this.number, required this.url, this.result, required this.timestamp, this.duration, this.estimatedDuration, this.building = false, this.displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson) final  List<String> causes = const <String>[]}): _causes = causes;
+  const _JenkinsBuildDto({required this.number, required this.url, this.result, required this.timestamp, this.duration, this.estimatedDuration, this.building = false, this.displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson) final  List<String> causes = const <String>[], @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) final  List<ScmChange> changes = const <ScmChange>[]}): _causes = causes,_changes = changes;
   factory _JenkinsBuildDto.fromJson(Map<String, dynamic> json) => _$JenkinsBuildDtoFromJson(json);
 
 @override final  int number;
@@ -257,6 +264,25 @@ class _JenkinsBuildDto implements JenkinsBuildDto {
   return EqualUnmodifiableListView(_causes);
 }
 
+// US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
+// `items` (each `{msg, author: {fullName}}`) is requested/parsed;
+// `kind` isn't rendered anywhere so it's left off the tree query.
+// `ScmChange` isn't JSON-serializable itself (no toJson) -- fine, since
+// this DTO is response-only and never re-encoded; `includeToJson:
+// false` tells json_serializable not to try.
+ final  List<ScmChange> _changes;
+// US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
+// `items` (each `{msg, author: {fullName}}`) is requested/parsed;
+// `kind` isn't rendered anywhere so it's left off the tree query.
+// `ScmChange` isn't JSON-serializable itself (no toJson) -- fine, since
+// this DTO is response-only and never re-encoded; `includeToJson:
+// false` tells json_serializable not to try.
+@override@JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) List<ScmChange> get changes {
+  if (_changes is EqualUnmodifiableListView) return _changes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_changes);
+}
+
 
 /// Create a copy of JenkinsBuildDto
 /// with the given fields replaced by the non-null parameter values.
@@ -271,16 +297,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&const DeepCollectionEquality().equals(other._causes, _causes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&const DeepCollectionEquality().equals(other._causes, _causes)&&const DeepCollectionEquality().equals(other._changes, _changes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName,const DeepCollectionEquality().hash(_causes));
+int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName,const DeepCollectionEquality().hash(_causes),const DeepCollectionEquality().hash(_changes));
 
 @override
 String toString() {
-  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName, causes: $causes)';
+  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName, causes: $causes, changes: $changes)';
 }
 
 
@@ -291,7 +317,7 @@ abstract mixin class _$JenkinsBuildDtoCopyWith<$Res> implements $JenkinsBuildDto
   factory _$JenkinsBuildDtoCopyWith(_JenkinsBuildDto value, $Res Function(_JenkinsBuildDto) _then) = __$JenkinsBuildDtoCopyWithImpl;
 @override @useResult
 $Res call({
- int number, String url, String? result, double timestamp, double? duration, double? estimatedDuration, bool building, String? displayName,@JsonKey(name: 'actions', fromJson: _causesFromJson) List<String> causes
+ int number, String url, String? result, double timestamp, double? duration, double? estimatedDuration, bool building, String? displayName,@JsonKey(name: 'actions', fromJson: _causesFromJson) List<String> causes,@JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) List<ScmChange> changes
 });
 
 
@@ -308,7 +334,7 @@ class __$JenkinsBuildDtoCopyWithImpl<$Res>
 
 /// Create a copy of JenkinsBuildDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? number = null,Object? url = null,Object? result = freezed,Object? timestamp = null,Object? duration = freezed,Object? estimatedDuration = freezed,Object? building = null,Object? displayName = freezed,Object? causes = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? number = null,Object? url = null,Object? result = freezed,Object? timestamp = null,Object? duration = freezed,Object? estimatedDuration = freezed,Object? building = null,Object? displayName = freezed,Object? causes = null,Object? changes = null,}) {
   return _then(_JenkinsBuildDto(
 number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
 as int,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -319,7 +345,8 @@ as double?,estimatedDuration: freezed == estimatedDuration ? _self.estimatedDura
 as double?,building: null == building ? _self.building : building // ignore: cast_nullable_to_non_nullable
 as bool,displayName: freezed == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String?,causes: null == causes ? _self._causes : causes // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,changes: null == changes ? _self._changes : changes // ignore: cast_nullable_to_non_nullable
+as List<ScmChange>,
   ));
 }
 

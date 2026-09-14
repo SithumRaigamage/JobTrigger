@@ -97,9 +97,35 @@ per `CLAUDE.md` §9.
       observe the second poll/invalidate, matching the same reasoning
       `build_status_polling_notifier_test.dart` already relies on.
       `flutter analyze` clean, full suite (108 tests) passing.
-- [ ] P7-03 `US-PIPE-03` — SCM changelog. Extend the job-detail `tree`
-      query with `changeSet[items[msg,author[fullName]]]`; render under
-      the P7-01 cause line, collapsible past ~3 entries.
+- [x] P7-03 `US-PIPE-03` — SCM changelog. Added `List<ScmChange> changes`
+      to `JenkinsBuild`/`JenkinsBuildDto`, same shape as P7-01's `causes`:
+      a plain domain type (`ScmChange { author, message }`, no freezed —
+      matches `QueueItem`/`QueueExecutable`'s style), a custom
+      `@JsonKey(fromJson:)` unwrapper (`_changesFromJson`) for Jenkins'
+      nested `changeSet: {items: [{msg, author: {fullName}}]}` shape, and
+      `@JsonKey(includeToJson: false)` since `ScmChange` has no `toJson`
+      and this DTO is response-only (never re-encoded). Added to
+      `_detailsTree` only. Rendered via a new `_ChangesList` (a small
+      `StatefulWidget` — needs local expand/collapse state, unlike the
+      other read-only additions so far), collapsed to 3 entries with a
+      "Show N more" toggle.
+
+      **Closed off the P7-01/P7-02 dropped-field bug class properly**
+      instead of risking a third instance: added `JenkinsBuild.copyWith()`
+      and refactored both `_rewriteBuild` (`jenkins_url_rewriter.dart`) and
+      `applyOptimisticCancel` (`job_detail_notifier.dart`) to use it instead
+      of reconstructing the object field-by-field — any future field
+      addition now carries through both call sites automatically. New
+      `jenkins_build_test.dart` covers `copyWith` directly (preserves
+      unspecified fields including `causes`/`changes`, overrides only the
+      given ones); `jenkins_url_rewriter_test.dart`'s existing regression
+      test extended to also assert `changes` survives the rewrite.
+
+      7 new tests in `jenkins_build_dto_test.dart` (flatten multiple
+      items, absent `changeSet`, empty `items`, a malformed item skipped
+      without throwing, `toDomain()` passthrough) plus the 2 `copyWith`
+      tests above. `flutter analyze` clean, full suite (115 tests)
+      passing.
 - [ ] P7-04 `US-PIPE-06` — Test result summary. New repository method for
       `{buildURL}/testReport/api/json`; compact pass/fail/skip chip on the
       job-detail card; tap-through to failing test names.

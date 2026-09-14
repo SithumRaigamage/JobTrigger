@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../domain/jenkins/jenkins_build.dart';
+import '../../../domain/jenkins/scm_change.dart';
 
 part 'jenkins_build_dto.freezed.dart';
 part 'jenkins_build_dto.g.dart';
@@ -29,6 +30,19 @@ abstract class JenkinsBuildDto with _$JenkinsBuildDto {
     @Default(<String>[])
     @JsonKey(name: 'actions', fromJson: _causesFromJson)
     List<String> causes,
+    // US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
+    // `items` (each `{msg, author: {fullName}}`) is requested/parsed;
+    // `kind` isn't rendered anywhere so it's left off the tree query.
+    // `ScmChange` isn't JSON-serializable itself (no toJson) -- fine, since
+    // this DTO is response-only and never re-encoded; `includeToJson:
+    // false` tells json_serializable not to try.
+    @Default(<ScmChange>[])
+    @JsonKey(
+      name: 'changeSet',
+      fromJson: _changesFromJson,
+      includeToJson: false,
+    )
+    List<ScmChange> changes,
   }) = _JenkinsBuildDto;
 
   factory JenkinsBuildDto.fromJson(Map<String, dynamic> json) =>
@@ -52,6 +66,25 @@ List<String> _causesFromJson(dynamic rawActions) {
   return descriptions;
 }
 
+List<ScmChange> _changesFromJson(dynamic rawChangeSet) {
+  if (rawChangeSet is! Map<String, dynamic>) return const [];
+  final items = rawChangeSet['items'];
+  if (items is! List) return const [];
+  final changes = <ScmChange>[];
+  for (final item in items) {
+    if (item is! Map<String, dynamic>) continue;
+    final message = item['msg'];
+    final author = item['author'];
+    final fullName = author is Map<String, dynamic>
+        ? author['fullName']
+        : null;
+    if (message is String && fullName is String) {
+      changes.add(ScmChange(author: fullName, message: message));
+    }
+  }
+  return changes;
+}
+
 extension JenkinsBuildDtoX on JenkinsBuildDto {
   JenkinsBuild toDomain() => JenkinsBuild(
     number: number,
@@ -63,5 +96,6 @@ extension JenkinsBuildDtoX on JenkinsBuildDto {
     building: building,
     displayName: displayName,
     causes: causes,
+    changes: changes,
   );
 }

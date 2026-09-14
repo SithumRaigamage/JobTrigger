@@ -19,6 +19,9 @@ _JenkinsBuildDto _$JenkinsBuildDtoFromJson(Map<String, dynamic> json) =>
       causes: json['actions'] == null
           ? const <String>[]
           : _causesFromJson(json['actions']),
+      changes: json['changeSet'] == null
+          ? const <ScmChange>[]
+          : _changesFromJson(json['changeSet']),
     );
 
 Map<String, dynamic> _$JenkinsBuildDtoToJson(_JenkinsBuildDto instance) =>

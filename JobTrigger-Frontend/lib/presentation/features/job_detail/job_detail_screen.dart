@@ -8,6 +8,7 @@ import '../../../domain/jenkins/build_progress.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/parameter_definition.dart';
 import '../../../domain/jenkins/queue_item.dart';
+import '../../../domain/jenkins/scm_change.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
@@ -270,6 +271,10 @@ class _LastBuildCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
+              if (lastBuild.changes.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _ChangesList(changes: lastBuild.changes),
+              ],
               if (lastBuild.building) ...[
                 const SizedBox(height: 8),
                 LinearProgressIndicator(
@@ -279,6 +284,56 @@ class _LastBuildCard extends StatelessWidget {
             ],
           ],
         ),
+    );
+  }
+}
+
+/// US-PIPE-03: collapsed to the first 3 changes past that count, so a
+/// large commit batch doesn't push the trigger button off-screen.
+class _ChangesList extends StatefulWidget {
+  const _ChangesList({required this.changes});
+
+  final List<ScmChange> changes;
+
+  @override
+  State<_ChangesList> createState() => _ChangesListState();
+}
+
+class _ChangesListState extends State<_ChangesList> {
+  static const _collapsedLimit = 3;
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final overflow = widget.changes.length - _collapsedLimit;
+    final visible = _expanded || overflow <= 0
+        ? widget.changes
+        : widget.changes.take(_collapsedLimit);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final change in visible)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              '${change.author}: ${change.message}',
+              style: Theme.of(context).textTheme.bodySmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        if (overflow > 0)
+          TextButton(
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(0, 32),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            onPressed: () => setState(() => _expanded = !_expanded),
+            child: Text(_expanded ? 'Show less' : 'Show $overflow more'),
+          ),
+      ],
     );
   }
 }

@@ -90,4 +90,94 @@ void main() {
       expect(dto.toDomain().causes, ['Started by an SCM change']);
     });
   });
+
+  group('JenkinsBuildDto.changes (US-PIPE-03)', () {
+    test('flattens changeSet.items to author + message', () {
+      final dto = JenkinsBuildDto.fromJson({
+        'number': 12,
+        'url': 'https://jenkins.test/job/x/12/',
+        'timestamp': 1700000000000.0,
+        'changeSet': {
+          'kind': 'git',
+          'items': [
+            {
+              'msg': 'Fix null check in trigger flow',
+              'author': {'fullName': 'Jane Doe'},
+            },
+            {
+              'msg': 'Bump dio to 5.x',
+              'author': {'fullName': 'John Smith'},
+            },
+          ],
+        },
+      });
+
+      expect(dto.changes, hasLength(2));
+      expect(dto.changes[0].author, 'Jane Doe');
+      expect(dto.changes[0].message, 'Fix null check in trigger flow');
+      expect(dto.changes[1].author, 'John Smith');
+    });
+
+    test('defaults to an empty list when changeSet is absent', () {
+      final dto = JenkinsBuildDto.fromJson({
+        'number': 12,
+        'url': 'https://jenkins.test/job/x/12/',
+        'timestamp': 1700000000000.0,
+      });
+
+      expect(dto.changes, isEmpty);
+    });
+
+    test('defaults to an empty list when changeSet.items is empty', () {
+      final dto = JenkinsBuildDto.fromJson({
+        'number': 12,
+        'url': 'https://jenkins.test/job/x/12/',
+        'timestamp': 1700000000000.0,
+        'changeSet': {'kind': 'git', 'items': <dynamic>[]},
+      });
+
+      expect(dto.changes, isEmpty);
+    });
+
+    test(
+      'skips a malformed item (missing msg or author.fullName) rather than throwing',
+      () {
+        final dto = JenkinsBuildDto.fromJson({
+          'number': 12,
+          'url': 'https://jenkins.test/job/x/12/',
+          'timestamp': 1700000000000.0,
+          'changeSet': {
+            'items': [
+              {'msg': 'no author here'},
+              {
+                'msg': 'well-formed',
+                'author': {'fullName': 'Jane Doe'},
+              },
+            ],
+          },
+        });
+
+        expect(dto.changes, hasLength(1));
+        expect(dto.changes.single.message, 'well-formed');
+      },
+    );
+
+    test('toDomain() carries changes through unchanged', () {
+      final dto = JenkinsBuildDto.fromJson({
+        'number': 12,
+        'url': 'https://jenkins.test/job/x/12/',
+        'timestamp': 1700000000000.0,
+        'changeSet': {
+          'items': [
+            {
+              'msg': 'Fix null check',
+              'author': {'fullName': 'Jane Doe'},
+            },
+          ],
+        },
+      });
+
+      expect(dto.toDomain().changes.single.author, 'Jane Doe');
+    });
+  });
 }
