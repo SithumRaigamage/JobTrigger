@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/gradient_backdrop.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
@@ -179,37 +180,29 @@ class _ToolCardState extends ConsumerState<_ToolCard> {
         scale: _pressed ? 0.97 : 1.0,
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOut,
-        child: Material(
-          color: colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(20),
-          child: InkWell(
+        // GlassSurface.card's own fill/border/shadow replace the ad hoc
+        // Material+Container decoration this used to be; the tool's
+        // accent-tinted border is layered on top via a second Container
+        // since GlassSurface doesn't know about per-instance accent colors.
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: tool.isAvailable
+                  ? tool.accentColor.withValues(alpha: 0.25)
+                  : Colors.grey.withValues(alpha: 0.1),
+              width: 1.5,
+            ),
+          ),
+          child: GlassSurface.card(
             borderRadius: BorderRadius.circular(20),
             onTap: tool.isAvailable ? () => _select(tool) : null,
             onTapDown: (_) => _setPressed(true),
             onTapUp: (_) => _setPressed(false),
             onTapCancel: () => _setPressed(false),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: tool.isAvailable
-                      ? tool.accentColor.withValues(alpha: 0.25)
-                      : Colors.grey.withValues(alpha: 0.1),
-                  width: 1.5,
-                ),
-                boxShadow: tool.isAvailable
-                    ? [
-                        BoxShadow(
-                          color: tool.accentColor.withValues(alpha: 0.12),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Stack(
-                alignment: Alignment.topRight,
-                children: [
+            child: Stack(
+              alignment: Alignment.topRight,
+              children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: 20,
@@ -292,12 +285,12 @@ class _ToolCardState extends ConsumerState<_ToolCard> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
 class _ComingSoonBadge extends StatelessWidget {
+
   const _ComingSoonBadge();
 
   @override

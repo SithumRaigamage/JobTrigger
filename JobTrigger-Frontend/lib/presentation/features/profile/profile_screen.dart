@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/platform/package_info_provider.dart';
 import '../../../domain/auth/auth_state.dart';
+import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
+import '../../navigation/main_scaffold.dart';
 import '../auth/auth_notifier.dart';
 import '../settings/active_server_notifier.dart';
 import '../settings/credentials_notifier.dart';
@@ -28,7 +30,8 @@ class ProfileScreen extends ConsumerWidget {
     final packageInfoAsync = ref.watch(packageInfoProvider);
 
     return Scaffold(
-      appBar: AppBar(
+      extendBodyBehindAppBar: true,
+      appBar: GlassAppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Tool Selection',
@@ -38,8 +41,13 @@ class ProfileScreen extends ConsumerWidget {
       ),
       body: ResponsiveCenter(
         child: ListView(
+          padding: EdgeInsets.fromLTRB(
+            16,
+            MediaQuery.paddingOf(context).top + kToolbarHeight + 16,
+            16,
+            16 + kGlassNavBarHeight,
+          ),
           children: [
-            const SizedBox(height: 20),
             Icon(
               Icons.account_circle,
               size: 80,
@@ -59,56 +67,79 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Divider(height: 1),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: Text('CURRENT SESSION', style: TextStyle(fontSize: 12)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.dns_outlined),
-              title: const Text('Active Server'),
-              trailing: Text(activeServer?.serverName ?? 'None'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.link),
-              title: const Text('Server URL'),
-              trailing: SizedBox(
-                width: 180,
-                child: Text(
-                  activeServer?.jenkinsURL ?? '—',
-                  textAlign: TextAlign.right,
-                  overflow: TextOverflow.ellipsis,
-                ),
+            GlassSurface.card(
+              child: Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'CURRENT SESSION',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.dns_outlined),
+                    title: const Text('Active Server'),
+                    trailing: Text(activeServer?.serverName ?? 'None'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.link),
+                    title: const Text('Server URL'),
+                    trailing: SizedBox(
+                      width: 180,
+                      child: Text(
+                        activeServer?.jenkinsURL ?? '—',
+                        textAlign: TextAlign.right,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.folder_outlined),
+                    title: const Text('Saved Servers'),
+                    trailing: Text('$serversCount'),
+                  ),
+                ],
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.folder_outlined),
-              title: const Text('Saved Servers'),
-              trailing: Text('$serversCount'),
-            ),
-            const Divider(height: 1),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: Text('APP INFORMATION', style: TextStyle(fontSize: 12)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.info_outline),
-              title: const Text('Version'),
-              trailing: Text(
-                packageInfoAsync.when(
-                  data: (info) => '${info.version} (${info.buildNumber})',
-                  loading: () => '…',
-                  error: (error, stackTrace) => '—',
-                ),
+            const SizedBox(height: 16),
+            GlassSurface.card(
+              child: Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'APP INFORMATION',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.info_outline),
+                    title: const Text('Version'),
+                    trailing: Text(
+                      packageInfoAsync.when(
+                        data: (info) =>
+                            '${info.version} (${info.buildNumber})',
+                        loading: () => '…',
+                        error: (error, stackTrace) => '—',
+                      ),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.description_outlined),
+                    title: const Text('App Information'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push(AppRoutes.appInfo),
+                  ),
+                ],
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.description_outlined),
-              title: const Text('App Information'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push(AppRoutes.appInfo),
-            ),
-            const Divider(height: 1),
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -130,7 +161,6 @@ class ProfileScreen extends ConsumerWidget {
                 child: const Text('Log Out'),
               ),
             ),
-            const SizedBox(height: 20),
           ],
         ),
       ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../common_widgets/glass_surface.dart';
+
 /// Persistent bottom tab shell (P6-14). Wraps go_router's
 /// `StatefulShellRoute.indexedStack` branches (Home/History/Settings/
 /// Profile) in a Material 3 `NavigationBar`, replacing the AppBar
@@ -35,39 +37,57 @@ class MainScaffold extends StatelessWidget {
         navigationShell.goBranch(0);
       },
       child: Scaffold(
+        // Lets branch content scroll up underneath the glass nav bar below
+        // instead of stopping at its top edge — without this there'd be
+        // nothing behind the bar for its BackdropFilter to blur (US-DESIGN-
+        // 01/04). Each branch screen adds matching bottom padding to its
+        // scrollable so the last item isn't hidden behind the bar.
+        extendBody: true,
         body: navigationShell,
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: (index) => navigationShell.goBranch(
-            index,
-            // Tapping the already-active tab resets that branch's stack
-            // to its root, matching common tab-bar convention.
-            initialLocation: index == navigationShell.currentIndex,
+        bottomNavigationBar: GlassSurface.chrome(
+          child: NavigationBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            selectedIndex: navigationShell.currentIndex,
+            onDestinationSelected: (index) => navigationShell.goBranch(
+              index,
+              // Tapping the already-active tab resets that branch's stack
+              // to its root, matching common tab-bar convention.
+              initialLocation: index == navigationShell.currentIndex,
+            ),
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.history),
+                selectedIcon: Icon(Icons.history),
+                label: 'History',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.settings_outlined),
+                selectedIcon: Icon(Icons.settings),
+                label: 'Settings',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.account_circle_outlined),
+                selectedIcon: Icon(Icons.account_circle),
+                label: 'Profile',
+              ),
+            ],
           ),
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.history),
-              selectedIcon: Icon(Icons.history),
-              label: 'History',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: 'Settings',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.account_circle_outlined),
-              selectedIcon: Icon(Icons.account_circle),
-              label: 'Profile',
-            ),
-          ],
         ),
       ),
     );
   }
 }
+
+/// Height to reserve at the bottom of each tab branch's scrollable content
+/// so its last item clears the floating glass nav bar (`extendBody: true`
+/// above means the branch's own `Scaffold` no longer reserves this space
+/// automatically). Matches `NavigationBar`'s default height; screens with a
+/// taller device inset (e.g. gesture nav) still get that via `SafeArea`
+/// around their own content, this only accounts for the bar itself.
+const kGlassNavBarHeight = 80.0;

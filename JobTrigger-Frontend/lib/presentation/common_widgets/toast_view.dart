@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'glass_surface.dart';
 import 'toast_controller.dart';
 
 /// Ported from `Shared/Components/ToastView.swift`.
@@ -17,25 +18,24 @@ class ToastView extends StatelessWidget {
     ToastType.info: Icons.info,
   };
 
-  static const _colorByType = {
-    ToastType.success: Colors.green,
-    ToastType.error: Colors.red,
-    ToastType.warning: Colors.orange,
-    ToastType.info: Colors.blue,
-  };
-
   @override
   Widget build(BuildContext context) {
-    final color = _colorByType[message.type]!;
+    // Not `static const` -- info's color follows the active tool's accent
+    // (`Theme.of(context).colorScheme.primary`) rather than a hardcoded
+    // blue, consistent with the rest of the app's theming.
+    final colorByType = {
+      ToastType.success: Colors.green,
+      ToastType.error: Colors.red,
+      ToastType.warning: Colors.orange,
+      ToastType.info: Theme.of(context).colorScheme.primary,
+    };
+    final color = colorByType[message.type]!;
     return GestureDetector(
       onTap: onDismiss,
-      child: Material(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+      child: GlassSurface.card(
         borderRadius: BorderRadius.circular(12),
-        elevation: 6,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+        padding: const EdgeInsets.all(16),
+        child: Row(
             children: [
               Icon(_iconByType[message.type], size: 20, color: color),
               const SizedBox(width: 12),
@@ -68,7 +68,6 @@ class ToastView extends StatelessWidget {
               ),
             ],
           ),
-        ),
       ),
     );
   }

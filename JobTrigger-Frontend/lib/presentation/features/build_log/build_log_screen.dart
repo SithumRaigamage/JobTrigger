@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/error/error_message.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import 'build_log_notifier.dart';
 import 'console_log_viewer.dart';
@@ -24,7 +25,13 @@ class BuildLogScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
+      appBar: GlassAppBar(
+        // The console is always black regardless of light/dark mode
+        // (see `backgroundColor: Colors.black` above), so its chrome is
+        // pinned to dark glass tokens too, rather than following the app's
+        // theme -- otherwise light mode renders a pale bar with jarring
+        // contrast against the console beneath it.
+        brightness: Brightness.dark,
         title: Text('Build #${jenkinsBuild.number}'),
         actions: [
           IconButton(

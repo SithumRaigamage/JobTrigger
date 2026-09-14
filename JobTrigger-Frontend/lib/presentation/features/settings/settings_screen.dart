@@ -4,13 +4,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/error/result.dart';
+import '../../../core/theme/reduce_transparency_notifier.dart';
 import '../../../core/theme/theme_notifier.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
-import '../auth/auth_notifier.dart';
+import '../../navigation/main_scaffold.dart';
 import 'active_server_notifier.dart';
 import 'credentials_notifier.dart';
 import 'server_edit_bottom_sheet.dart';
@@ -32,24 +34,22 @@ class SettingsScreen extends ConsumerWidget {
     final activeServer = ref.watch(activeServerNotifierProvider);
 
     return Scaffold(
-      appBar: AppBar(
+      extendBodyBehindAppBar: true,
+      appBar: GlassAppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Tool Selection',
           onPressed: () => context.go(AppRoutes.toolSelection),
         ),
         title: const Text('Settings'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Log out',
-            onPressed: () => ref.read(authNotifierProvider.notifier).logout(),
-          ),
-        ],
       ),
       body: ResponsiveCenter(
         child: Column(
           children: [
+            SizedBox(
+              height:
+                  MediaQuery.paddingOf(context).top + kToolbarHeight + 8,
+            ),
             const _AppearanceSection(),
             const Divider(height: 1),
             Expanded(
@@ -73,10 +73,16 @@ class SettingsScreen extends ConsumerWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showServerEditBottomSheet(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Jenkins Server'),
+      floatingActionButton: Padding(
+        // Clears the floating glass bottom nav bar (see MainScaffold's
+        // `extendBody: true` and `kGlassNavBarHeight`) — without this the
+        // FAB would sit partly behind it.
+        padding: const EdgeInsets.only(bottom: kGlassNavBarHeight),
+        child: FloatingActionButton.extended(
+          onPressed: () => showServerEditBottomSheet(context),
+          icon: const Icon(Icons.add),
+          label: const Text('Add Jenkins Server'),
+        ),
       ),
     );
   }
@@ -88,6 +94,7 @@ class _AppearanceSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeNotifierProvider);
+    final reduceTransparency = ref.watch(reduceTransparencyNotifierProvider);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -123,6 +130,21 @@ class _AppearanceSection extends ConsumerWidget {
             onSelectionChanged: (selection) => ref
                 .read(themeNotifierProvider.notifier)
                 .setThemeMode(selection.first),
+          ),
+          // US-DESIGN-03: manual accessibility fallback for the glass
+          // effect -- Flutter doesn't expose iOS's "Reduce Transparency"
+          // signal, so this is a first-party toggle rather than an
+          // OS auto-detect. See ReduceTransparencyNotifier.
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Reduce transparency'),
+            subtitle: const Text(
+              'Use solid surfaces instead of frosted glass',
+            ),
+            value: reduceTransparency,
+            onChanged: (value) => ref
+                .read(reduceTransparencyNotifierProvider.notifier)
+                .setReduceTransparency(value),
           ),
         ],
       ),
@@ -177,48 +199,70 @@ class _ServerList extends ConsumerWidget {
       );
     }
     return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(
+        12,
+        4,
+        12,
+        12 + kGlassNavBarHeight,
+      ),
       itemCount: servers.length,
       itemBuilder: (context, index) {
         final server = servers[index];
         final isActive = server.id == activeServerId;
-        return Dismissible(
-          key: ValueKey(server.id),
-          direction: DismissDirection.endToStart,
-          confirmDismiss: (_) => _confirmDelete(context),
-          onDismissed: (_) => _deleteServer(ref, server),
-          background: Container(
-            color: Theme.of(context).colorScheme.errorContainer,
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Icon(
-              Icons.delete,
-              color: Theme.of(context).colorScheme.onErrorContainer,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Dismissible(
+            key: ValueKey(server.id),
+            direction: DismissDirection.endToStart,
+            confirmDismiss: (_) => _confirmDelete(context),
+            onDismissed: (_) => _deleteServer(ref, server),
+            background: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Icon(
+                Icons.delete,
+                color: Theme.of(context).colorScheme.onErrorContainer,
+              ),
             ),
-          ),
-          child: ListTile(
-            title: Text(server.serverName),
-            subtitle: Text(server.jenkinsURL),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isActive)
-                  Icon(
-                    Icons.check_circle,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  tooltip: 'Edit',
-                  onPressed: () =>
-                      showServerEditBottomSheet(context, existing: server),
+            // `onTap` lives on GlassSurface.card itself, not the ListTile
+            // -- a ListTile's ink splashes paint on the nearest ancestor
+            // Material, and GlassSurface's DecoratedBox fill would sit
+            // between the ListTile and that ancestor and hide them
+            // (Flutter's own "ListTile background color or ink splashes
+            // may be invisible" warning) unless routed through here.
+            child: GlassSurface.card(
+              onTap: isActive
+                  ? null
+                  : () => ref
+                        .read(activeServerNotifierProvider.notifier)
+                        .setActiveServer(server),
+              child: ListTile(
+                title: Text(server.serverName),
+                subtitle: Text(server.jenkinsURL),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isActive)
+                      Icon(
+                        Icons.check_circle,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      tooltip: 'Edit',
+                      onPressed: () => showServerEditBottomSheet(
+                        context,
+                        existing: server,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-            onTap: isActive
-                ? null
-                : () => ref
-                      .read(activeServerNotifierProvider.notifier)
-                      .setActiveServer(server),
           ),
         );
       },

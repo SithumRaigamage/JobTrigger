@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/no_active_server_view.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
+import '../../navigation/main_scaffold.dart';
 import '../settings/active_server_notifier.dart';
 import 'global_history_notifier.dart';
 import 'history_tile.dart';
@@ -26,15 +28,24 @@ class GlobalHistoryScreen extends ConsumerWidget {
 
     if (activeServer == null) {
       return Scaffold(
-        appBar: AppBar(leading: backButton, title: const Text('History')),
-        body: const Center(child: NoActiveServerView()),
+        extendBodyBehindAppBar: true,
+        appBar: GlassAppBar(leading: backButton, title: const Text('History')),
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: MediaQuery.paddingOf(context).top + kToolbarHeight,
+            ),
+            child: const NoActiveServerView(),
+          ),
+        ),
       );
     }
 
     final historyAsync = ref.watch(globalHistoryNotifierProvider);
 
     return Scaffold(
-      appBar: AppBar(leading: backButton, title: const Text('History')),
+      extendBodyBehindAppBar: true,
+      appBar: GlassAppBar(leading: backButton, title: const Text('History')),
       body: ResponsiveCenter(
         child: historyAsync.when(
           data: (entries) {
@@ -45,6 +56,12 @@ class GlobalHistoryScreen extends ConsumerWidget {
               onRefresh: () =>
                   ref.read(globalHistoryNotifierProvider.notifier).refresh(),
               child: ListView.builder(
+                padding: EdgeInsets.fromLTRB(
+                  8,
+                  MediaQuery.paddingOf(context).top + kToolbarHeight + 8,
+                  8,
+                  8 + kGlassNavBarHeight,
+                ),
                 itemCount: entries.length,
                 itemBuilder: (context, index) {
                   final entry = entries[index];

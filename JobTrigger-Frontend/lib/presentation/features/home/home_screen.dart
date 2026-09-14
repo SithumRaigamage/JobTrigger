@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../core/error/error_message.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/no_active_server_view.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/status_indicator.dart';
 import '../../navigation/app_routes.dart';
+import '../../navigation/main_scaffold.dart';
 import '../settings/active_server_notifier.dart';
 import 'filtered_jobs_provider.dart';
 import 'folder_breadcrumb_notifier.dart';
@@ -38,7 +40,8 @@ class HomeScreen extends ConsumerWidget {
     final activeServer = ref.watch(activeServerNotifierProvider);
     if (activeServer == null) {
       return Scaffold(
-        appBar: AppBar(
+        extendBodyBehindAppBar: true,
+        appBar: GlassAppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             tooltip: 'Tool Selection',
@@ -46,7 +49,14 @@ class HomeScreen extends ConsumerWidget {
           ),
           title: const Text('Jobs'),
         ),
-        body: const Center(child: NoActiveServerView()),
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: MediaQuery.paddingOf(context).top + kToolbarHeight,
+            ),
+            child: const NoActiveServerView(),
+          ),
+        ),
       );
     }
 
@@ -60,7 +70,8 @@ class HomeScreen extends ConsumerWidget {
         ref.read(folderBreadcrumbNotifierProvider.notifier).navigateBack();
       },
       child: Scaffold(
-        appBar: AppBar(
+        extendBodyBehindAppBar: true,
+        appBar: GlassAppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             tooltip: 'Tool Selection',
@@ -71,6 +82,9 @@ class HomeScreen extends ConsumerWidget {
         body: ResponsiveCenter(
           child: Column(
             children: [
+              SizedBox(
+                height: MediaQuery.paddingOf(context).top + kToolbarHeight,
+              ),
               const _SearchField(),
               const _BreadcrumbHeader(),
               Expanded(
@@ -129,12 +143,9 @@ class _BreadcrumbHeader extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      child: Container(
+      child: GlassSurface.card(
+        borderRadius: BorderRadius.circular(12),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(12),
-        ),
         child: query.isNotEmpty
             ? Row(
                 children: [
@@ -211,7 +222,7 @@ class _JobListView extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: () => ref.read(jobTreeNotifierProvider.notifier).refresh(),
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16 + kGlassNavBarHeight),
         itemCount: jobs.length,
         itemBuilder: (context, index) => Padding(
           padding: const EdgeInsets.only(bottom: 8),
@@ -260,23 +271,18 @@ class _JobTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          if (job.isFolder) {
-            ref
-                .read(folderBreadcrumbNotifierProvider.notifier)
-                .navigateInto(job);
-          } else {
-            context.push(AppRoutes.jobDetail, extra: job);
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
+    return GlassSurface.card(
+      padding: const EdgeInsets.all(12),
+      onTap: () {
+        if (job.isFolder) {
+          ref
+              .read(folderBreadcrumbNotifierProvider.notifier)
+              .navigateInto(job);
+        } else {
+          context.push(AppRoutes.jobDetail, extra: job);
+        }
+      },
+      child: Row(
             children: [
               if (job.isFolder)
                 Container(
@@ -373,8 +379,6 @@ class _JobTile extends ConsumerWidget {
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 }

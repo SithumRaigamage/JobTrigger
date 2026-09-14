@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
+import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/loading_overlay.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/toast_controller.dart';
@@ -47,7 +48,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final isLoading = ref.watch(signupNotifierProvider).isLoading;
 
     return Scaffold(
-      appBar: AppBar(
+      extendBodyBehindAppBar: true,
+      appBar: GlassAppBar(
         title: const Text('Sign Up'),
         leading: IconButton(
           icon: const Icon(Icons.chevron_left),
@@ -66,9 +68,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           child: ResponsiveCenter(
             maxWidth: 440,
             child: ListView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(24, kToolbarHeight + 24, 24, 24),
               children: [
-                const SizedBox(height: 20),
                 Icon(
                   Icons.person_add_alt_1,
                   size: 60,

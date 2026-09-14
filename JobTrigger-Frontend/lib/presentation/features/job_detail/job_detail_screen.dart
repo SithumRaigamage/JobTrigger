@@ -8,6 +8,7 @@ import '../../../domain/jenkins/build_progress.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/parameter_definition.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import 'build_status_polling_notifier.dart';
@@ -48,7 +49,8 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
         .isLoading;
 
     return Scaffold(
-      appBar: AppBar(
+      extendBodyBehindAppBar: true,
+      appBar: GlassAppBar(
         title: Text(widget.job.name),
         actions: [
           IconButton(
@@ -124,7 +126,12 @@ class _JobDetailBody extends StatelessWidget {
         .toList();
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        MediaQuery.paddingOf(context).top + kToolbarHeight + 16,
+        16,
+        16,
+      ),
       children: [
         if (job.description != null && job.description!.isNotEmpty) ...[
           Text(job.description!, style: Theme.of(context).textTheme.bodyMedium),
@@ -183,14 +190,11 @@ class _LastBuildCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lastBuild = job.lastBuild;
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return GlassSurface.card(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
             if (lastBuild == null)
               const Text('No builds yet')
             else ...[
@@ -225,7 +229,6 @@ class _LastBuildCard extends StatelessWidget {
             ],
           ],
         ),
-      ),
     );
   }
 }

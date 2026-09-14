@@ -82,14 +82,23 @@ class AppColors {
 
   /// iOS system blue — what the SwiftUI app actually rendered as its accent,
   /// since `AccentColor.colorset` was left empty and every screen tinted off
-  /// the platform default. Used as `AppTheme`'s default `accentColor` and as
-  /// the fixed seed for dark mode's base `ColorScheme.fromSeed` (see
-  /// `app_theme.dart`) — *not* used to reseed the whole app per active tool:
-  /// that was tried (seeding `ColorScheme.fromSeed` from [ciToolJenkins] red)
-  /// and produced a muddy, desaturated brown/terracotta tonal palette across
-  /// light-mode surfaces and containers. `AppTheme` instead swaps only
-  /// `primary`/`onPrimary` to the active tool's `CiToolX.accentColor`,
-  /// leaving every other token derived from this blue.
+  /// the platform default. Used as `AppTheme`'s default `accentColor` (i.e.
+  /// before any tool is selected) and passed straight through to
+  /// `ColorScheme.fromSeed` in `app_theme.dart`.
+  ///
+  /// History: a full per-tool reseed (`ColorScheme.fromSeed(seedColor:
+  /// CiToolX.accentColor)`) was tried early on and reverted — from
+  /// [ciToolJenkins] red it produced a muddy, desaturated brown/terracotta
+  /// tonal palette across light-mode surfaces and containers, back when
+  /// those surfaces (cards, tiles, rows) read `colorScheme.surface`/
+  /// `surfaceContainerHigh` directly. `AppTheme` briefly swapped only
+  /// `primary`/`onPrimary` to work around that — but that left anything
+  /// defaulting to `secondary`/`secondaryContainer` (the bottom
+  /// `NavigationBar`'s selected indicator/icon chief among them) stuck on
+  /// this blue regardless of the active tool. Now that big surfaces read
+  /// the app's own independent glass tokens (`glassFillLight`/`Dark`)
+  /// instead, `AppTheme` reseeds the full scheme from `accentColor` again
+  /// — see its doc comment.
   static const brandSeed = Color(0xFF007AFF);
 
   /// Light-mode surface tokens (ui-ux-pro-max `color --domain` "B2B Service"
@@ -102,4 +111,38 @@ class AppColors {
   static const onSurfaceLight = Color(0xFF0F172A);
   static const secondaryLight = Color(0xFF334155);
   static const outlineLight = Color(0xFFE2E8F0);
+
+  /// Dark-mode counterparts, pinned in `app_theme.dart` for the same reason
+  /// as the light-mode set above: `AppTheme` now seeds its *entire*
+  /// `ColorScheme` (including `surface`) from the active tool's accent
+  /// color, and without pinning these, the scaffold background would drift
+  /// toward that accent hue while `GlassSurface`'s cards — which use the
+  /// fixed [glassFillDark] below, not `colorScheme.surface` — would not,
+  /// producing a visible mismatch between card fill and page background.
+  /// `backgroundDark` is deliberately one step darker than [glassFillDark]
+  /// (slate-900 vs. slate-800), matching light mode's own card-lighter-
+  /// than-background relationship.
+  static const backgroundDark = Color(0xFF0F172A);
+  static const onSurfaceDark = Color(0xFFF1F5F9);
+  static const outlineDark = Color(0x33FFFFFF);
+
+  /// Glassmorphism surface tokens (`docs/user-stories/00-design-system-
+  /// glassmorphism.md`, US-DESIGN-01/02) — a "subtle frost": high fill
+  /// opacity so body/status text stays legible per the WCAG AA floor
+  /// US-DESIGN-02 requires, a hairline border, and a soft low-spread
+  /// shadow for depth.
+  static const glassFillLight = Color(0xCCFFFFFF); // white @ ~80%
+  static const glassBorderLight = Color(0x1F0F172A); // onSurfaceLight @ ~12%
+  static const glassShadowLight = Color(0x1A0F172A); // onSurfaceLight @ ~10%
+
+  static const glassFillDark = Color(0xCC1E293B); // slate-800 @ ~80%
+  static const glassBorderDark = Color(0x33FFFFFF); // white @ ~20%
+  static const glassShadowDark = Color(0x40000000); // black @ ~25%
+
+  /// Opaque fallback fill for the reduce-transparency accessibility mode
+  /// (US-DESIGN-03) — same surface role as the glass fill tokens above, but
+  /// fully opaque; used instead of them (with blur skipped entirely) when
+  /// `ReduceTransparencyNotifier` is on.
+  static const glassFallbackFillLight = Color(0xFFF1F5F9);
+  static const glassFallbackFillDark = Color(0xFF1E293B);
 }

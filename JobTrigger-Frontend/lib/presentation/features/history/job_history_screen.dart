@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/error/error_message.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import 'history_tile.dart';
@@ -22,7 +23,8 @@ class JobHistoryScreen extends ConsumerWidget {
     final historyAsync = ref.watch(jobHistoryNotifierProvider(job.url));
 
     return Scaffold(
-      appBar: AppBar(title: Text('${job.name} History')),
+      extendBodyBehindAppBar: true,
+      appBar: GlassAppBar(title: Text('${job.name} History')),
       body: ResponsiveCenter(
         child: historyAsync.when(
           data: (builds) {
@@ -34,6 +36,12 @@ class JobHistoryScreen extends ConsumerWidget {
                   .read(jobHistoryNotifierProvider(job.url).notifier)
                   .refresh(),
               child: ListView.builder(
+                padding: EdgeInsets.fromLTRB(
+                  8,
+                  MediaQuery.paddingOf(context).top + kToolbarHeight + 8,
+                  8,
+                  8,
+                ),
                 itemCount: builds.length,
                 itemBuilder: (context, index) {
                   final build = builds[index];

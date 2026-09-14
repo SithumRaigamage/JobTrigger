@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/platform/package_info_provider.dart';
+import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/gradient_backdrop.dart';
 import '../../common_widgets/loading_overlay.dart';
 import '../../common_widgets/toast_controller.dart';
@@ -524,13 +525,9 @@ class _PlatformChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
+    return GlassSurface.card(
+      borderRadius: BorderRadius.circular(20),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.4)),
-      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

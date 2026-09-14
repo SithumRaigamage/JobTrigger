@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../domain/credential/jenkins_server.dart';
+import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/toast_controller.dart';
 import 'server_form_notifier.dart';
 import 'test_connection_notifier.dart';
@@ -24,14 +25,22 @@ Future<void> showServerEditBottomSheet(
     return showDialog<void>(
       context: context,
       builder: (context) => Dialog(
-        child: ServerEditBottomSheet(existing: existing),
+        backgroundColor: Colors.transparent,
+        child: GlassSurface.chrome(
+          borderRadius: BorderRadius.circular(20),
+          child: ServerEditBottomSheet(existing: existing),
+        ),
       ),
     );
   }
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    builder: (context) => ServerEditBottomSheet(existing: existing),
+    backgroundColor: Colors.transparent,
+    builder: (context) => GlassSurface.chrome(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      child: ServerEditBottomSheet(existing: existing),
+    ),
   );
 }
 

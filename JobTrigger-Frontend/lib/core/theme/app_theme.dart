@@ -2,19 +2,29 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 
-/// Light/dark `ThemeData`. [accentColor] (the active tool's `CiToolX.accentColor`
-/// — see `ActiveToolNotifier` and `main.dart`) drives only `primary`/`onPrimary`
-/// (AppBars, buttons, selected nav state, highlights). Everything else —
-/// surfaces, backgrounds, containers, outlines — comes from the same fixed
-/// tokens as before, regardless of which tool is active.
+/// Light/dark `ThemeData`, fully seeded from [accentColor] (the active
+/// tool's `CiToolX.accentColor` — see `ActiveToolNotifier` and `main.dart`).
 ///
-/// This is deliberately *not* a full `ColorScheme.fromSeed(seedColor:
-/// accentColor, ...)` reseed: that was tried first and reseeding from
-/// Jenkins red produced a muddy, desaturated brown/terracotta tonal palette
-/// across light-mode surfaces and containers — see [AppColors.brandSeed]'s
-/// doc comment for the history. Swapping just the primary swatch gets the
-/// "this is Jenkins" branding on the elements that matter without dragging
-/// every surface tone red-brown.
+/// This used to swap only `primary`/`onPrimary`, leaving every other
+/// `ColorScheme` slot derived from a fixed blue seed — which meant anything
+/// defaulting to `secondary`/`secondaryContainer` (Material 3's
+/// `NavigationBar` selected indicator/icon, `Chip`, `SegmentedButton`,
+/// `FilledButton.tonal`) stayed off-brand no matter which tool was active.
+/// Now the whole scheme is seeded from [accentColor] via
+/// `ColorScheme.fromSeed`, and only the handful of neutral slots that must
+/// stay pinned for the app's clean white/near-black identity are restored
+/// afterward — everything else (including those secondary/tertiary/
+/// container slots) follows the active tool's color.
+///
+/// A *full* reseed was tried once before and reverted — see
+/// [AppColors.brandSeed]'s doc comment — because it dragged large
+/// surface/container fills toward a muddy, desaturated brown/terracotta
+/// when seeded from Jenkins red. That's no longer a risk: the big visible
+/// surfaces (cards, tool tiles, job rows, the bottom sheet) now read the
+/// app's own independent glass tokens (`AppColors.glassFillLight/Dark`),
+/// not `colorScheme.surface`/`surfaceContainerHigh` — so only small,
+/// genuinely brand-relevant elements (nav bar, chips, tonal buttons,
+/// dialogs) pick up the tint.
 class AppTheme {
   const AppTheme._();
 
@@ -22,17 +32,16 @@ class AppTheme {
       ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
-        colorScheme: ColorScheme.light(
-          primary: accentColor,
-          onPrimary: Colors.white,
-          secondary: AppColors.secondaryLight,
-          onSecondary: Colors.white,
-          surface: AppColors.surfaceLight,
-          onSurface: AppColors.onSurfaceLight,
-          outline: AppColors.outlineLight,
-          error: AppColors.buildFailure,
-          onError: Colors.white,
-        ),
+        colorScheme:
+            ColorScheme.fromSeed(
+              seedColor: accentColor,
+              brightness: Brightness.light,
+            ).copyWith(
+              onPrimary: Colors.white,
+              surface: AppColors.surfaceLight,
+              onSurface: AppColors.onSurfaceLight,
+              outline: AppColors.outlineLight,
+            ),
         scaffoldBackgroundColor: AppColors.backgroundLight,
       );
 
@@ -42,11 +51,14 @@ class AppTheme {
         brightness: Brightness.dark,
         colorScheme:
             ColorScheme.fromSeed(
-              seedColor: AppColors.brandSeed,
+              seedColor: accentColor,
               brightness: Brightness.dark,
             ).copyWith(
-              primary: accentColor,
               onPrimary: Colors.white,
+              surface: AppColors.backgroundDark,
+              onSurface: AppColors.onSurfaceDark,
+              outline: AppColors.outlineDark,
             ),
+        scaffoldBackgroundColor: AppColors.backgroundDark,
       );
 }

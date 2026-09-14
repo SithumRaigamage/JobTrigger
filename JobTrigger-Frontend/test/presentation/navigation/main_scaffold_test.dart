@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:job_trigger/presentation/navigation/main_scaffold.dart';
@@ -97,11 +98,18 @@ GoRouter _buildTestRouter() => GoRouter(
   ],
 );
 
+/// MainScaffold's bottom nav is now a `GlassSurface.chrome` (glassmorphism
+/// design system), which is a `ConsumerWidget` reading
+/// `reduceTransparencyNotifierProvider` -- needs a `ProviderScope` ancestor
+/// the same as any real app screen gets from `main.dart`.
+Widget _wrap(GoRouter router) =>
+    ProviderScope(child: MaterialApp.router(routerConfig: router));
+
 void main() {
   testWidgets('tapping a destination switches to that branch', (tester) async {
     final router = _buildTestRouter();
     addTearDown(router.dispose);
-    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpWidget(_wrap(router));
     await tester.pumpAndSettle();
 
     expect(
@@ -127,7 +135,7 @@ void main() {
   ) async {
     final router = _buildTestRouter();
     addTearDown(router.dispose);
-    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpWidget(_wrap(router));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('increment'));
@@ -152,7 +160,7 @@ void main() {
   ) async {
     final router = _buildTestRouter();
     addTearDown(router.dispose);
-    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpWidget(_wrap(router));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('push detail'));
@@ -173,7 +181,7 @@ void main() {
     (tester) async {
       final router = _buildTestRouter();
       addTearDown(router.dispose);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(_wrap(router));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Profile'));
@@ -205,7 +213,7 @@ void main() {
   ) async {
     final router = _buildTestRouter();
     addTearDown(router.dispose);
-    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpWidget(_wrap(router));
     await tester.pumpAndSettle();
 
     final navigatorState = tester.state<NavigatorState>(
