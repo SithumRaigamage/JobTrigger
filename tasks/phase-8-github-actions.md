@@ -54,12 +54,28 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
 
 ## GH-CRED — Credential management (client)
 
-- [ ] P8-01 `data/models/credential/github_credential_dto.dart`,
+- [x] P8-01 `data/models/credential/github_credential_dto.dart`,
       `domain/credential/github_credential.dart` — mirrors
-      `jenkins_server.dart`'s shape (label, PAT as `secret`, optional
-      default org filter), **not** a subtype/variant of `JenkinsServer`.
-- [ ] P8-02 `GitHubCredentialRepository` interface + impl — CRUD against
-      P8-00's new backend endpoints, `Result<T, AppFailure>` throughout.
+      `jenkins_server.dart`'s shape field-for-field (`id`, `label`, PAT
+      renamed `secret` domain-side same as `JenkinsServer.secret`,
+      `defaultOwner`, `isDefault`), including the redacted `toString()`
+      (`NFR-SEC-01`'s concrete mechanism). **Not** a subtype/variant of
+      `JenkinsServer` — a fully independent class, per the
+      credential-architecture decision.
+- [x] P8-02 `GitHubCredentialsRepository` interface + impl — CRUD against
+      P8-00's `/api/github-credentials` endpoints via `dioBackendProvider`
+      (the JWT-authed backend client — credential storage always goes
+      through our own backend regardless of CI tool, this is not the
+      GitHub Actions API client itself), `Result<T, AppFailure>`
+      throughout, mirrors `CredentialsRepositoryImpl` structurally.
+
+      5 new tests in `github_credentials_repository_impl_test.dart`
+      mirroring `credentials_repository_impl_test.dart`'s exact coverage
+      (fetchAll → entity mapping incl. `token`→`secret` rename, add →
+      wire-body field names incl. `secret`→`token` rename, delete
+      succeeds regardless of response body shape, switchActive, a non-2xx
+      → `Err`/`ServerFailure`). `flutter analyze` clean, full suite
+      (170 tests) passing.
 - [ ] P8-03 `core/network/github_client_factory.dart` —
       `buildGithubDio({baseUrl: 'https://api.github.com', token})` sets
       `Authorization: Bearer <token>` once at construction; **no** CSRF
