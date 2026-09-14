@@ -1,7 +1,11 @@
 import 'package:dio/dio.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../presentation/features/settings/active_github_credential_notifier.dart';
 import '../error/app_failure.dart';
 import '../error/result.dart';
+
+part 'github_client_factory.g.dart';
 
 /// GitHub's REST API base — every `GitHubRepository` call is relative to
 /// this. Unlike Jenkins (a different base URL per server), every GitHub
@@ -47,4 +51,17 @@ Future<Result<String, AppFailure>> testGitHubConnection({
   } finally {
     dio.close();
   }
+}
+
+/// Rebuilt whenever the active GitHub credential changes — mirrors
+/// `jenkinsClientProvider` exactly. Throws if there's no active credential
+/// yet; screens that depend on this are expected to already gate on a
+/// credential being configured before reaching that point.
+@riverpod
+Dio gitHubClient(Ref ref) {
+  final credential = ref.watch(activeGitHubCredentialNotifierProvider);
+  if (credential == null) {
+    throw StateError('No active GitHub credential is configured.');
+  }
+  return buildGitHubDio(token: credential.secret);
 }
