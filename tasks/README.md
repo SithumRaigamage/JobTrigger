@@ -21,7 +21,7 @@ check "where are we."
 | 6 — Polish + release | `phase-6-polish-release.md` | done | Phase 5 (can start early on some items) |
 | Release | `release-checklist.md` | pending | Phase 6 |
 | 7 — Pipeline & build insights (epic PIPE) | `phase-7-pipeline-insights.md` | done | none — new scope, not required for parity |
-| 8 — GitHub Actions integration (epic GH) | `phase-8-github-actions.md` | todo | none — second CI tool, promoted from `backlog.md` |
+| 8 — GitHub Actions integration (epic GH) | `phase-8-github-actions.md` | in-progress (Backend + GH-CRED + GH-REPO done, P8-00..11 of 28) | none — second CI tool, promoted from `backlog.md` |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." A handful
