@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_typography.dart';
+import '../../../domain/jenkins/console_log_sanitizer.dart';
 
 /// `ListView.builder` (not a single giant `Text` widget) so it stays smooth
 /// at thousands of lines — only visible lines are ever built. Auto-scrolls
@@ -53,7 +54,7 @@ class _ConsoleLogViewerState extends State<ConsoleLogViewer> {
 
   @override
   Widget build(BuildContext context) {
-    final lines = widget.text.split('\n');
+    final lines = sanitizeConsoleLog(widget.text).split('\n');
 
     return Stack(
       children: [
