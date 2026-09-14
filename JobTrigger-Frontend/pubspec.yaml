@@ -52,6 +52,8 @@ dependencies:
   package_info_plus: ^10.2.1
   url_launcher: ^6.3.2
   simple_icons: ^16.23.0
+  dio_cookie_manager: ^3.5.0
+  cookie_jar: ^4.0.9
 
 dev_dependencies:
   flutter_test:

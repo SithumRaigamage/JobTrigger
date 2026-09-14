@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../presentation/features/settings/active_server_notifier.dart';
@@ -12,6 +14,21 @@ part 'jenkins_client_factory.g.dart';
 /// Builds a per-server `Dio` instance with HTTP Basic Auth set once at
 /// construction — Jenkins credentials aren't JWTs and don't rotate
 /// mid-session (see `docs/api-reference.md#2-jenkins-api-direct-per-server-basic-auth`).
+///
+/// Carries an in-memory cookie jar (`CookieManager`), added after a real
+/// Jenkins instance rejected every trigger POST with "No valid crumb was
+/// included in the request" despite the crumb interceptor below correctly
+/// fetching and attaching a crumb every time. Root cause, confirmed by
+/// inspecting the actual request/response traffic: this server issues a
+/// *new* `JSESSIONID` on every request, and `DefaultCrumbIssuer`'s crumb is
+/// bound to the session that was active when it was issued. Without a
+/// cookie jar, Dio never sends that session cookie back on the follow-up
+/// POST, so Jenkins can't associate the crumb with any session and rejects
+/// it — a fresh crumb via the interceptor's own retry logic doesn't help,
+/// since the retry has exactly the same missing-cookie problem. In-memory
+/// only (not `PersistCookieJar`): a new `Dio` instance is built per active-
+/// server switch anyway, so there's nothing worth persisting across app
+/// restarts, and it keeps no session data on disk.
 Dio buildJenkinsDio({
   required String baseUrl,
   required String username,
@@ -28,7 +45,17 @@ Dio buildJenkinsDio({
   final basicAuth = base64Encode(utf8.encode('$username:$password'));
   dio.options.headers['Authorization'] = 'Basic $basicAuth';
 
+  // Order matters here. `_crumbInterceptor` must run first: it triggers a
+  // nested crumb-fetch request whose response is what actually populates
+  // the cookie jar with the session Jenkins bound the crumb to.
+  // `CookieManager` then has to run *after* it (as the next interceptor in
+  // the chain, for the *same* outer request) so that when it attaches
+  // cookies to the outer POST, the jar already holds that session cookie —
+  // reversed, `CookieManager` would load from the jar before the crumb
+  // fetch ever populates it, and the outer POST would go out with no
+  // cookie at all.
   dio.interceptors.add(_crumbInterceptor(dio));
+  dio.interceptors.add(CookieManager(CookieJar()));
 
   return dio;
 }

@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
 import '../../../data/repositories/credentials_repository_impl.dart';
+import 'active_server_notifier.dart';
 import 'credentials_notifier.dart';
 
 part 'server_form_notifier.g.dart';
@@ -48,8 +49,19 @@ class ServerFormNotifier extends _$ServerFormNotifier {
           );
 
     switch (result) {
-      case Ok():
+      case Ok(:final value):
         await ref.read(credentialsNotifierProvider.notifier).refresh();
+        // "Set as default" only ever wrote the backend's `isDefault` flag —
+        // the locally-active server (what `jenkinsClientProvider` actually
+        // uses) never followed unless this was the very first server ever
+        // saved or the user separately tapped the row in the server list.
+        // Saving with the toggle on should mean "use this one now," not
+        // "flag it and hope a future rehydrate picks it up."
+        if (isDefault) {
+          await ref
+              .read(activeServerNotifierProvider.notifier)
+              .setActiveServer(value);
+        }
         state = const AsyncData(null);
       case Err(:final error):
         state = AsyncError(error, StackTrace.current);
