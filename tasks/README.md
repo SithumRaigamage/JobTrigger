@@ -20,6 +20,7 @@ check "where are we."
 | 5 — Build execution, logs, history | `phase-5-build-execution-logs-history.md` | done | Phase 4 |
 | 6 — Polish + release | `phase-6-polish-release.md` | done | Phase 5 (can start early on some items) |
 | Release | `release-checklist.md` | pending | Phase 6 |
+| 7 — Pipeline & build insights (epic PIPE) | `phase-7-pipeline-insights.md` | todo | none — new scope, not required for parity |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." A handful
