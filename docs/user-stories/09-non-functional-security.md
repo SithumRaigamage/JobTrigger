@@ -26,14 +26,18 @@ backend/Jenkins remains the actual source of truth for validity, and the
 client never assumes its own check is sufficient on its own.
 **Applies to:** US-AUTH-01, US-AUTH-02, US-CRED-02.
 
-### NFR-SEC-03 — Two auth schemes never cross-contaminate
-`BackendApiClient` (JWT-style `x-auth-token` header) and `JenkinsApiClient`
-(per-server HTTP Basic Auth) are separate Dio instances with separate
+### NFR-SEC-03 — Auth schemes never cross-contaminate
+`BackendApiClient` (JWT-style `x-auth-token` header), `JenkinsApiClient`
+(per-server HTTP Basic Auth), and `GitHubApiClient` (per-credential Bearer
+token, added for epic GH) are three separate Dio instances with separate
 interceptors. A failure/expiry in one must never be handled as if it were a
-failure in the other (backend 401 → global logout; Jenkins 401/403 →
-per-server `AuthFailure`, scoped, no logout).
-**Applies to:** US-AUTH-05, US-CRED-05, and every TREE/JOB/LOG story that
-makes a Jenkins call.
+failure in another (backend 401 → global logout; Jenkins 401/403 →
+per-server `AuthFailure`, scoped, no logout; GitHub 401 → per-credential
+`AuthFailure`, scoped, no logout and no effect on the active Jenkins
+session — same isolation Jenkins already has from the backend).
+**Applies to:** US-AUTH-05, US-CRED-05, every TREE/JOB/LOG story that makes
+a Jenkins call, and every GH-CRED/REPO/RUN/LOG/HIST story that makes a
+GitHub call.
 
 ### NFR-SEC-04 — No raw errors leak to the UI
 Repositories return `AppFailure`-typed results; widgets never inspect raw
@@ -87,6 +91,16 @@ before being marked done, and the final regression pass must additionally
 cover **two differently-configured** servers (one with nested folders, one
 flat) per `docs/migration-strategy.md`'s pre-store-submission QA gate.
 **Applies to:** all CRED, TREE, JOB, LOG, and HIST stories.
+
+### NFR-TEST-03 — Verified against a real GitHub repository
+Mocked tests alone are insufficient for GitHub-facing behavior for the same
+reason `NFR-TEST-02` applies to Jenkins — plus GitHub-specific edge cases
+mocks won't naturally cover: a workflow with `workflow_dispatch.inputs`,
+one without (a manual-trigger 422), a disabled workflow, and a rate-limited
+response. Each story touching a GitHub endpoint must be manually verified
+against at least one real repository with real GitHub Actions workflows
+before being marked done.
+**Applies to:** all GH-CRED, GH-REPO, GH-RUN, GH-LOG, and GH-HIST stories.
 
 ## Accessibility (A11Y)
 

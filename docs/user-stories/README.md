@@ -2,12 +2,16 @@
 
 ## Product goal
 
-JobTrigger lets a DevOps engineer trigger, monitor, and inspect Jenkins
-CI/CD builds from their phone (iOS + Android), without needing a laptop open
-to the Jenkins web UI. This story set is the complete, security-conscious
-specification of that product for the Flutter rewrite: every screen a user
-can reach, every action they can take, and the visual language (glassmorphism)
-the rewrite must present it in.
+JobTrigger lets a DevOps engineer trigger, monitor, and inspect CI/CD
+builds from their phone (iOS + Android), without needing a laptop open to
+the CI tool's own web UI. Jenkins was the sole supported tool through the
+Flutter rewrite's original scope (files 00–08); GitHub Actions (epic GH,
+[12-github-actions.md](12-github-actions.md)) was added as a second real
+tool afterward, promoted out of `10-out-of-scope-backlog.md`'s
+`BACKLOG-01`. This story set is the complete, security-conscious
+specification of that product: every screen a user can reach, every action
+they can take, and the visual language (glassmorphism) it must present it
+in.
 
 This is a BA deliverable, not an implementation plan. Per `CLAUDE.md` §9,
 each story (or group of stories) still needs its own plan/design step and
@@ -29,13 +33,16 @@ explicit approval before code is written against it.
 | [09-non-functional-security.md](09-non-functional-security.md) | NFR | Cross-cutting security/testing/accessibility/performance/platform baselines referenced by ID from every story above |
 | [10-out-of-scope-backlog.md](10-out-of-scope-backlog.md) | BACKLOG | Deliberately deferred items, so the set is complete *by exclusion* too |
 | [11-build-insights-pipeline.md](11-build-insights-pipeline.md) | PIPE | New-scope Jenkins capabilities beyond the original SwiftUI app — queue status, build cause, SCM changelog, pipeline stage view, input-step approval, test results, artifacts, replay, upstream/downstream navigation |
+| [12-github-actions.md](12-github-actions.md) | GH | A second real CI tool (promoted out of `BACKLOG-01`): credential management, repository/workflow browsing, run triggering/status/cancel, job logs, history |
 
 ## Story ID convention
 
 `US-<EPIC>-##`, e.g. `US-AUTH-01`. Epic codes: `AUTH`, `TOOL`, `CRED`,
-`TREE`, `JOB`, `LOG`, `HIST`, `PROF`, `DESIGN`, `PIPE`. Cross-cutting
-baselines use `NFR-<CATEGORY>-##` (e.g. `NFR-SEC-01`) and are referenced,
-not repeated. Deferred items use `BACKLOG-##`.
+`TREE`, `JOB`, `LOG`, `HIST`, `PROF`, `DESIGN`, `PIPE`, `GH` (with a
+sub-epic segment for GH: `GH-CRED`, `GH-REPO`, `GH-RUN`, `GH-LOG`,
+`GH-HIST`, e.g. `US-GH-CRED-01`). Cross-cutting baselines use
+`NFR-<CATEGORY>-##` (e.g. `NFR-SEC-01`) and are referenced, not repeated.
+Deferred items use `BACKLOG-##`.
 
 ## Story template
 
@@ -140,3 +147,15 @@ One PIPE story (US-PIPE-05) and its supporting NFR (NFR-SEC-06) are a
 correctness fix for the existing trigger/cancel flow (a missing CSRF
 crumb), not new scope — everything else in that file is genuinely new
 capability, none of it started.
+
+Epic GH ([12-github-actions.md](12-github-actions.md)) is different from
+both of the above: it's not layered onto an already-complete app the way
+PIPE and glassmorphism are, and it's not new-scope-by-audit either — it's
+`10-out-of-scope-backlog.md`'s `BACKLOG-01` (originally deferred with the
+reasoning "v1 scope is Jenkins-only... each additional CI tool is its own
+integration surface and a separate initiative"), explicitly promoted into
+active scope by the user on 2026-09-14. It doesn't appear in the
+traceability table above (that table stays scoped to the original 13
+Jenkins parity rows) for the same structural reason PIPE doesn't: GH is a
+second tool's worth of stories, not a checklist item. Unlike PIPE, none of
+GH reuses Jenkins domain/data code — see the epic's own intro for why.

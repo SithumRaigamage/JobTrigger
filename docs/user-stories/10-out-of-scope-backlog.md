@@ -12,6 +12,12 @@ Tool selection shows these as disabled placeholder cards (US-TOOL-02) today.
 goal; each additional CI tool is its own integration surface (different
 auth model, different API shape) and a separate initiative.
 
+**GitHub Actions promoted out of this item 2026-09-14** — see epic GH,
+[12-github-actions.md](12-github-actions.md). The reasoning above is
+exactly why it's its own epic rather than folded into an existing one: a
+genuinely separate integration surface. GitLab CI, SonarQube, and CircleCI
+remain deferred under this item, unchanged.
+
 ### BACKLOG-02 — Push notifications for build completion
 **Reason deferred:** requires a push infrastructure decision (APNs/FCM,
 backend fan-out) not present in the current backend or architecture docs —

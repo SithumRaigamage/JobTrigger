@@ -5,8 +5,10 @@ are **not** part of reaching feature parity. Don't build these under a
 Phase 0–6 task without first moving the item here into an actual phase file
 — keeping them separate is what prevents the rewrite from scope-creeping.
 
-- Real GitHub Actions / GitLab CI / SonarQube / CircleCI integrations
-  (tool-selection cards for these stay disabled placeholders through v1).
+- Real GitLab CI / SonarQube / CircleCI integrations (tool-selection cards
+  for these stay disabled placeholders through v1). GitHub Actions was
+  promoted out of this item 2026-09-14 — see `tasks/phase-8-github-actions.md`
+  and `docs/user-stories/12-github-actions.md`.
 - Push notifications for build completion/failure.
 - Widget/home-screen extension for build status at a glance.
 - Multi-account support (switching between multiple backend user accounts,

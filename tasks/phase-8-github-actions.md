@@ -1,0 +1,186 @@
+# Phase 8 — GitHub Actions Integration (Epic GH)
+
+Goal: implement `docs/user-stories/12-github-actions.md`'s full-parity
+GitHub Actions support — a second real CI tool alongside Jenkins, promoted
+out of `tasks/backlog.md`'s deferred GitHub Actions item on 2026-09-14
+(decision: full parity, not a read-only MVP; PAT auth, not OAuth; a new
+backend `GitHubCredential` model, not client-storage-only; a separate
+parallel credential type, not a unified polymorphic `Credential`).
+
+This is comparable in size to Phases 3–5 combined, for a structurally
+different API (GitHub's flat repo→workflow→run→job→steps model, not
+Jenkins' recursive folder tree — see the epic doc's intro for why there's
+no "GH-TREE" section). No Jenkins domain/data code is reused; only the
+routing shell, glass UI components (`GlassSurface`, `ResponsiveCenter`),
+the `Result`/`AppFailure` pattern, and Riverpod notifier conventions carry
+over. Endpoint paths/JSON shapes below are verified against GitHub's real
+REST API docs (`docs.github.com`, API version `2022-11-28`), not guessed —
+still needs `NFR-TEST-03`'s real-repository verification before any task
+here is marked done, same as Jenkins tasks needed `NFR-TEST-02`.
+
+Working order is dependency-driven: backend first (nothing client-side can
+work without it), then credentials, then repo/workflow browsing, then run
+detail/trigger/status/cancel, then the two things that build on run detail
+(step breakdown, logs), then history last (the `Could`-priority global
+feed in particular has the least urgency — it's the one story explicitly
+scoped down from a Jenkins equivalent due to GitHub's rate limits, see
+`US-GH-HIST-02`). Each task needs a plan/design checkpoint before its code
+lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
+
+## Backend
+
+- [ ] P8-00 New `JobTrigger-Backend` `GitHubCredential` Mongoose model +
+      controller + routes, `userId`-scoped, mirroring
+      `models/JenkinsCredential.js`'s existing shape but for GitHub's
+      fields (label, PAT, optional default org/owner filter) — **not** a
+      modification to `JenkinsCredential` itself (separate parallel model,
+      per the credential-architecture decision). CRUD endpoints matching
+      the existing `/api/credentials` pattern's shape
+      (`/api/github-credentials` or similar — confirm naming against the
+      existing route file's conventions before committing to it).
+      `NFR-SEC-01`'s flagged-risk posture applies here too: whether PATs
+      are encrypted at rest is a backend concern, documented not assumed.
+
+## GH-CRED — Credential management (client)
+
+- [ ] P8-01 `data/models/credential/github_credential_dto.dart`,
+      `domain/credential/github_credential.dart` — mirrors
+      `jenkins_server.dart`'s shape (label, PAT as `secret`, optional
+      default org filter), **not** a subtype/variant of `JenkinsServer`.
+- [ ] P8-02 `GitHubCredentialRepository` interface + impl — CRUD against
+      P8-00's new backend endpoints, `Result<T, AppFailure>` throughout.
+- [ ] P8-03 `core/network/github_client_factory.dart` —
+      `buildGithubDio({baseUrl: 'https://api.github.com', token})` sets
+      `Authorization: Bearer <token>` once at construction; **no** CSRF
+      crumb interceptor (GitHub's API doesn't use one — that's a
+      Jenkins-specific mechanism, `NFR-SEC-06`, not applicable here). A
+      response interceptor surfacing GitHub's rate-limit headers
+      (`X-RateLimit-Remaining`, `X-RateLimit-Reset`) as a distinguishable
+      `AppFailure` case belongs here too (`US-GH-CRED-04`,
+      `US-GH-RUN-03`).
+- [ ] P8-04 `testGithubConnection()` — `GET /user` with a throwaway Dio
+      instance (matches `testJenkinsConnection()`'s pattern), surfaces the
+      authenticated username on success (`US-GH-CRED-04`).
+- [ ] P8-05 `activeGithubCredentialNotifier` — same shape as
+      `ActiveServerNotifier`, entirely independent state (switching the
+      active GitHub credential never touches the active Jenkins server,
+      `US-GH-CRED-03`).
+- [ ] P8-06 Settings UI: a new "GitHub" section (separate from the
+      existing Jenkins server list, not merged into it) — list, add/edit
+      bottom sheet (`GitHubCredentialEditBottomSheet`), swipe-delete with
+      confirmation, radio-style active indicator (matching the pattern
+      just fixed for the Jenkins list, not the original checkmark-only
+      one), test-connection status display.
+- [ ] P8-07 Unit tests: `GitHubCredentialRepositoryImpl` CRUD against
+      mocked responses; active-credential fallback logic on delete; crumb-
+      free Bearer-auth header construction; rate-limit-header → distinct
+      `AppFailure` mapping.
+
+## GH-REPO — Repository & workflow browsing
+
+- [ ] P8-08 `GitHubRepo`/`GitHubWorkflow` domain types + DTOs (fields per
+      the epic doc's verified JSON shapes:
+      `id,name,path,state` for workflows;
+      `id,name,owner,private` at minimum for repos — confirm the rest
+      against a real `GET /user/repos` response during `NFR-TEST-03`
+      verification, GitHub's repo object has many more fields than
+      needed).
+- [ ] P8-09 `GitHubRepository.fetchRepos()` — `GET /user/repos?per_page=
+      100&sort=updated`, paginated via GitHub's `Link` header (load-more-
+      on-scroll, not all pages upfront, `US-GH-REPO-01`).
+- [ ] P8-10 `GitHubRepository.fetchWorkflows(owner, repo)` — `GET
+      /repos/{owner}/{repo}/actions/workflows` (`US-GH-REPO-02`).
+- [ ] P8-11 `GitHubRepoScreen` + `GitHubWorkflowListScreen` — glass card
+      list pattern reused from `HomeScreen`'s job tiles; default-org-filter
+      UI; disabled-workflow visual state; client-side search filtering
+      (no per-keystroke network call, `NFR-PERF-02`).
+
+## GH-RUN — Workflow runs: view, trigger, live status, cancel, steps
+
+- [ ] P8-12 `GitHubWorkflowRun` domain type + DTO — **two separate
+      fields**, `status` and `conclusion` (not one `result` string like
+      Jenkins), per the verified API shape.
+- [ ] P8-13 `GitHubRepository.fetchRuns(owner, repo, workflowId)` — `GET
+      /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`
+      (`US-GH-RUN-01`).
+- [ ] P8-14 `GitHubRepository.triggerRun(owner, repo, workflowId, {ref,
+      inputs})` — `POST .../dispatches`; 204 response carries no run ID
+      (unlike Jenkins' `Location`-header queue tracking, `US-PIPE-01`) —
+      the notifier refreshes the runs list rather than tracking the new
+      run directly; a 422 (workflow has no `workflow_dispatch` trigger)
+      maps to a specific, clear `AppFailure` message, not a generic
+      server error (`US-GH-RUN-02`).
+- [ ] P8-15 `GitHubRepository.fetchRun(owner, repo, runId)` +
+      `GitHubRunPollingNotifier` — 5s polling while not `completed`, same
+      timer/`ref.onDispose` discipline as `BuildStatusPollingNotifier`;
+      stops on a rate-limit response with a clear message rather than
+      retrying into a worse state (`US-GH-RUN-03`).
+- [ ] P8-16 `GitHubRepository.cancelRun(owner, repo, runId)` — `POST
+      .../cancel` (202 Accepted, genuinely async — no optimistic
+      `cancelled` flip like Jenkins' `US-JOB-05`, a "cancelling…"
+      transitional state instead, corrected by the next poll)
+      (`US-GH-RUN-04`).
+- [ ] P8-17 Workflow-run detail screen: trigger form (ref field defaulting
+      to the repo's default branch, untyped key/value inputs list — no
+      typed `ParameterForm` equivalent is possible here, GitHub's API
+      doesn't expose a workflow's declared input schema, `US-GH-RUN-02`'s
+      flagged gap), confirm-before-trigger and confirm-before-cancel
+      dialogs, live status display.
+- [ ] P8-18 `GitHubJob` domain type + DTO (`id,name,status,conclusion,
+      steps[]`) + `GitHubRepository.fetchJobs(owner, repo, runId)` — `GET
+      .../runs/{run_id}/jobs` (`US-GH-RUN-05`).
+- [ ] P8-19 Promote `_StageChipRow` out of `job_detail_screen.dart` into a
+      shared widget (`presentation/common_widgets/stage_chip_row.dart` or
+      similar) so both Jenkins pipeline stages (`US-PIPE-04`) and GitHub
+      job steps reuse the same rendering — do this as part of P8-18/20's
+      UI work, not a separate unrelated refactor commit.
+- [ ] P8-20 Unit tests: all new repository methods against mocked
+      responses (status/conclusion parsing, 422-on-dispatch mapping,
+      pagination via `Link` header, rate-limit mid-poll handling); polling
+      notifier timer/dispose tests mirroring
+      `build_status_polling_notifier_test.dart`'s coverage.
+
+## GH-LOG — Job log viewing
+
+- [ ] P8-21 `GitHubRepository.fetchJobLog(owner, repo, jobId)` — `GET
+      .../jobs/{job_id}/logs`, follows the 302 redirect and fetches the
+      plain-text body as one atomic operation (the redirect URL itself
+      never reaches the UI or gets cached — it expires in ~1 minute per
+      GitHub's docs). Only offered once a job's `status == 'completed'` —
+      **no polling/live-tail attempt**, GitHub's API has no offset/tail
+      mechanism to poll safely (`US-GH-LOG-01`'s core scope limitation,
+      flagged in the epic doc — don't try to work around it with naive
+      full-redownload polling, that was explicitly rejected as a design
+      option).
+- [ ] P8-22 `GitHubJobLogScreen` — reuses `ConsoleLogViewer` unmodified
+      for rendering (`US-LOG-01`'s virtualized list); a manual "check now"
+      refresh action instead of automatic polling while a job is still
+      running; copy/share via the same `share_plus` pattern as
+      `BuildLogScreen` (`US-GH-LOG-02`).
+- [ ] P8-23 Unit tests: redirect-following log fetch against a mocked
+      302 → text sequence; in-progress-job "not available yet" state.
+
+## GH-HIST — Run history
+
+- [ ] P8-24 Per-workflow history screen reusing `HistoryTile`'s visual
+      pattern (adapted for `GitHubWorkflowRun`) — this is the same data
+      P8-13 already fetches, just a fuller-page presentation
+      (`US-GH-HIST-01`).
+- [ ] P8-25 Global cross-repo history feed (`Could` priority — genuinely
+      optional, do last, revisit whether it's worth the rate-limit cost
+      before starting): fans out one runs-fetch per accessible repo,
+      capped to the N most-recently-updated repos rather than exhausting
+      GitHub's 5,000/hr rate limit on one screen (`US-GH-HIST-02`'s
+      explicit scope-down).
+
+## Cross-cutting
+
+- [ ] P8-26 `NFR-SEC-03` verification: a live test confirming a GitHub
+      401 never triggers Jenkins' per-server auth handling or the
+      backend's global logout, and vice versa — three independent auth
+      failure domains, not two.
+- [ ] P8-27 Full `NFR-TEST-03` pass: every GH-CRED/REPO/RUN/LOG/HIST task
+      above manually verified against a real GitHub repository with real
+      Actions workflows (including at least one with `workflow_dispatch`
+      inputs, one without, and one disabled workflow) before this phase
+      is marked done.
