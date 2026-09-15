@@ -25,7 +25,8 @@ class _FakeCredentialsRepository implements CredentialsRepository {
       Ok(List.of(_servers));
 
   @override
-  Future<Result<void, AppFailure>> delete(String id) => throw UnimplementedError();
+  Future<Result<void, AppFailure>> delete(String id) =>
+      throw UnimplementedError();
 
   @override
   Future<Result<JenkinsServer, AppFailure>> add({
@@ -63,7 +64,8 @@ class _FakeGitHubCredentialsRepository implements GitHubCredentialsRepository {
       Ok(List.of(_credentials));
 
   @override
-  Future<Result<void, AppFailure>> delete(String id) => throw UnimplementedError();
+  Future<Result<void, AppFailure>> delete(String id) =>
+      throw UnimplementedError();
 
   @override
   Future<Result<GitHubCredential, AppFailure>> add({
@@ -206,43 +208,40 @@ void main() {
     },
   );
 
-  testWidgets(
-    'renders a populated GitHub list when GitHub Actions is active, '
-    'without throwing',
-    (tester) async {
-      const credential = GitHubCredential(
-        id: 'g1',
-        label: 'Personal',
-        secret: 'ghp_faketoken',
-        isDefault: true,
-      );
-      final container = ProviderContainer(
-        overrides: [
-          credentialsRepositoryProvider.overrideWithValue(
-            _FakeCredentialsRepository(const []),
-          ),
-          gitHubCredentialsRepositoryProvider.overrideWithValue(
-            _FakeGitHubCredentialsRepository(const [credential]),
-          ),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: const MaterialApp(home: SettingsScreen()),
+  testWidgets('renders a populated GitHub list when GitHub Actions is active, '
+      'without throwing', (tester) async {
+    const credential = GitHubCredential(
+      id: 'g1',
+      label: 'Personal',
+      secret: 'ghp_faketoken',
+      isDefault: true,
+    );
+    final container = ProviderContainer(
+      overrides: [
+        credentialsRepositoryProvider.overrideWithValue(
+          _FakeCredentialsRepository(const []),
         ),
-      );
-      await tester.pumpAndSettle();
+        gitHubCredentialsRepositoryProvider.overrideWithValue(
+          _FakeGitHubCredentialsRepository(const [credential]),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
 
-      container
-          .read(activeToolNotifierProvider.notifier)
-          .setActiveTool(CiTool.githubActions);
-      await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: SettingsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('Personal'), findsOneWidget);
-    },
-  );
+    container
+        .read(activeToolNotifierProvider.notifier)
+        .setActiveTool(CiTool.githubActions);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Personal'), findsOneWidget);
+  });
 }

@@ -167,10 +167,7 @@ void main() {
           .navigateInto(folder);
       await tester.pumpAndSettle();
 
-      expect(
-        container.read(folderBreadcrumbNotifierProvider),
-        hasLength(1),
-      );
+      expect(container.read(folderBreadcrumbNotifierProvider), hasLength(1));
 
       final navigatorState = tester.state<NavigatorState>(
         find.byType(Navigator).first,

@@ -50,8 +50,7 @@ class _FakeGitHubRepository implements GitHubRepository {
   final List<GitHubWorkflow> _workflows;
 
   @override
-  Future<Result<List<GitHubRepo>, AppFailure>> fetchRepos() async =>
-      Ok(_repos);
+  Future<Result<List<GitHubRepo>, AppFailure>> fetchRepos() async => Ok(_repos);
 
   @override
   Future<Result<List<GitHubWorkflow>, AppFailure>> fetchWorkflows(

@@ -87,22 +87,19 @@ void main() {
   });
 
   group('AppFailure.fromGitHubException', () {
-    test(
-      'a 403 with X-RateLimit-Remaining: 0 maps to RateLimitFailure',
-      () {
-        final failure = AppFailure.fromGitHubException(
-          _exception(
-            type: DioExceptionType.badResponse,
-            statusCode: 403,
-            headers: {
-              'x-ratelimit-remaining': ['0'],
-            },
-          ),
-        );
+    test('a 403 with X-RateLimit-Remaining: 0 maps to RateLimitFailure', () {
+      final failure = AppFailure.fromGitHubException(
+        _exception(
+          type: DioExceptionType.badResponse,
+          statusCode: 403,
+          headers: {
+            'x-ratelimit-remaining': ['0'],
+          },
+        ),
+      );
 
-        expect(failure, isA<RateLimitFailure>());
-      },
-    );
+      expect(failure, isA<RateLimitFailure>());
+    });
 
     test(
       'a 403 with a non-zero X-RateLimit-Remaining is a plain AuthFailure',

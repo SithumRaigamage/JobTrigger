@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -176,12 +178,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _submit() async {
     await _saveCredentialsIfNeeded();
-    ref
-        .read(loginNotifierProvider.notifier)
-        .login(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
+    unawaited(
+      ref
+          .read(loginNotifierProvider.notifier)
+          .login(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          ),
+    );
   }
 }
 
@@ -535,10 +539,7 @@ class _PlatformChip extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             label,
-            style: TextStyle(
-              color: colorScheme.onSurfaceVariant,
-              fontSize: 11,
-            ),
+            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 11),
           ),
         ],
       ),

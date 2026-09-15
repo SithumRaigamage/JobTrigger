@@ -95,9 +95,8 @@ class HomeScreen extends ConsumerWidget {
                   error: (error, stackTrace) => Center(
                     child: ConnectionErrorView(
                       message: describeError(error),
-                      onRetry: () => ref
-                          .read(jobTreeNotifierProvider.notifier)
-                          .refresh(),
+                      onRetry: () =>
+                          ref.read(jobTreeNotifierProvider.notifier).refresh(),
                     ),
                   ),
                 ),
@@ -280,110 +279,96 @@ class _JobTile extends ConsumerWidget {
       padding: const EdgeInsets.all(12),
       onTap: () {
         if (job.isFolder) {
-          ref
-              .read(folderBreadcrumbNotifierProvider.notifier)
-              .navigateInto(job);
+          ref.read(folderBreadcrumbNotifierProvider.notifier).navigateInto(job);
         } else {
           context.push(AppRoutes.jobDetail, extra: job);
         }
       },
       child: Row(
-            children: [
-              if (job.isFolder)
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.folder,
-                    color: Colors.orange,
-                    size: 20,
-                  ),
-                )
-              else
-                SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: Center(child: StatusIndicator(color: job.color)),
-                ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (job.isFolder)
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.folder, color: Colors.orange, size: 20),
+            )
+          else
+            SizedBox(
+              width: 44,
+              height: 44,
+              child: Center(child: StatusIndicator(color: job.color)),
+            ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(job.name, style: Theme.of(context).textTheme.bodyMedium),
+                const SizedBox(height: 4),
+                Row(
                   children: [
-                    Text(
-                      job.name,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        if (job.lastBuild != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              '#${job.lastBuild!.number}',
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                            ),
-                          )
-                        else if (!job.isFolder)
-                          Text(
-                            'No builds',
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        if (job.description != null &&
-                            job.description!.isNotEmpty) ...[
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              job.description!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                    if (job.lastBuild != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '#${job.lastBuild!.number}',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
+                      )
+                    else if (!job.isFolder)
+                      Text(
+                        'No builds',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    if (job.description != null &&
+                        job.description!.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          job.description!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                size: 18,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              ),
-            ],
+              ],
+            ),
           ),
+          Icon(
+            Icons.chevron_right,
+            size: 18,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+          ),
+        ],
+      ),
     );
   }
 }

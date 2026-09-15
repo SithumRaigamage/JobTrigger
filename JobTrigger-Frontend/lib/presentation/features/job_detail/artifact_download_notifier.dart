@@ -43,9 +43,7 @@ class ArtifactDownloadNotifier extends _$ArtifactDownloadNotifier {
         final file = File('${tempDir.path}/${artifact.fileName}');
         await file.writeAsBytes(value);
         state = const AsyncData(null);
-        await SharePlus.instance.share(
-          ShareParams(files: [XFile(file.path)]),
-        );
+        await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
       case Err(:final error):
         state = AsyncError(error, StackTrace.current);
         ref

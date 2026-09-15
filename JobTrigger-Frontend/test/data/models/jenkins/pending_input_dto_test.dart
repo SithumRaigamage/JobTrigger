@@ -27,28 +27,28 @@ void main() {
       expect(dto.inputs, isEmpty);
     });
 
-    test('parses requested parameter definitions via the shared ParameterDefinitionDto shape', () {
-      final dto = PendingInputDto.fromJson({
-        'id': 'x',
-        'inputs': [
-          {
-            'name': 'CONFIRM',
-            'type': 'BooleanParameterDefinition',
-            'defaultParameterValue': {'value': false},
-          },
-        ],
-      });
+    test(
+      'parses requested parameter definitions via the shared ParameterDefinitionDto shape',
+      () {
+        final dto = PendingInputDto.fromJson({
+          'id': 'x',
+          'inputs': [
+            {
+              'name': 'CONFIRM',
+              'type': 'BooleanParameterDefinition',
+              'defaultParameterValue': {'value': false},
+            },
+          ],
+        });
 
-      expect(dto.inputs, hasLength(1));
-      expect(dto.inputs.single.name, 'CONFIRM');
-      expect(dto.inputs.single.type, 'BooleanParameterDefinition');
-    });
+        expect(dto.inputs, hasLength(1));
+        expect(dto.inputs.single.name, 'CONFIRM');
+        expect(dto.inputs.single.type, 'BooleanParameterDefinition');
+      },
+    );
 
     test('toDomain() carries every field through unchanged', () {
-      final dto = PendingInputDto.fromJson({
-        'id': 'x',
-        'message': 'Approve?',
-      });
+      final dto = PendingInputDto.fromJson({'id': 'x', 'message': 'Approve?'});
 
       final domain = dto.toDomain();
       expect(domain.id, 'x');

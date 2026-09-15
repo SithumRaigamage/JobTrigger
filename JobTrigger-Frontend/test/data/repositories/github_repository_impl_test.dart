@@ -79,33 +79,36 @@ void main() {
   });
 
   group('GitHubRepositoryImpl.fetchWorkflows (US-GH-REPO-02)', () {
-    test('GETs /repos/{owner}/{repo}/actions/workflows and parses workflows[]', () async {
-      final adapter = _FixedResponseAdapter(200, {
-        'total_count': 1,
-        'workflows': [
-          {
-            'id': 42,
-            'name': 'CI',
-            'path': '.github/workflows/ci.yml',
-            'state': 'active',
-          },
-        ],
-      });
-      final dio = Dio(BaseOptions(baseUrl: 'https://api.github.com'))
-        ..httpClientAdapter = adapter;
-      final repo = GitHubRepositoryImpl(dio);
+    test(
+      'GETs /repos/{owner}/{repo}/actions/workflows and parses workflows[]',
+      () async {
+        final adapter = _FixedResponseAdapter(200, {
+          'total_count': 1,
+          'workflows': [
+            {
+              'id': 42,
+              'name': 'CI',
+              'path': '.github/workflows/ci.yml',
+              'state': 'active',
+            },
+          ],
+        });
+        final dio = Dio(BaseOptions(baseUrl: 'https://api.github.com'))
+          ..httpClientAdapter = adapter;
+        final repo = GitHubRepositoryImpl(dio);
 
-      final result = await repo.fetchWorkflows('octocat', 'my-repo');
+        final result = await repo.fetchWorkflows('octocat', 'my-repo');
 
-      expect(
-        adapter.lastRequest?.path,
-        '/repos/octocat/my-repo/actions/workflows',
-      );
-      expect(result, isA<Ok<List<GitHubWorkflow>, dynamic>>());
-      final workflows = (result as Ok<List<GitHubWorkflow>, dynamic>).value;
-      expect(workflows, hasLength(1));
-      expect(workflows.single.name, 'CI');
-    });
+        expect(
+          adapter.lastRequest?.path,
+          '/repos/octocat/my-repo/actions/workflows',
+        );
+        expect(result, isA<Ok<List<GitHubWorkflow>, dynamic>>());
+        final workflows = (result as Ok<List<GitHubWorkflow>, dynamic>).value;
+        expect(workflows, hasLength(1));
+        expect(workflows.single.name, 'CI');
+      },
+    );
 
     test('a failure maps to Err', () async {
       final adapter = _FixedResponseAdapter(404, {'message': 'Not Found'});

@@ -71,10 +71,7 @@ void main() {
 
     await dio.post<void>('/api/auth/login');
 
-    expect(
-      adapter.lastRequest?.headers.containsKey('x-auth-token'),
-      isFalse,
-    );
+    expect(adapter.lastRequest?.headers.containsKey('x-auth-token'), isFalse);
   });
 
   test('a 401 response clears the stored session', () async {

@@ -60,20 +60,16 @@ class ToolSelectionScreen extends StatelessWidget {
                       Text(
                         'Choose Your Tool',
                         textAlign: TextAlign.center,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Select a CI/CD platform to get started',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium
-                            ?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -130,8 +126,9 @@ class ToolSelectionScreen extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                color: colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.8),
+                                color: colorScheme.onSurfaceVariant.withValues(
+                                  alpha: 0.8,
+                                ),
                               ),
                         ),
                       ],
@@ -203,94 +200,93 @@ class _ToolCardState extends ConsumerState<_ToolCard> {
             child: Stack(
               alignment: Alignment.topRight,
               children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 20,
-                      horizontal: 12,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 12,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: tool.accentColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(
+                          tool.icon,
+                          size: 26,
+                          color: tool.accentColor,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        tool.displayName,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: tool.isAvailable
+                              ? colorScheme.onSurface
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        tool.tagline,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      if (tool.isAvailable) ...[
+                        const SizedBox(height: 10),
                         Container(
-                          width: 64,
-                          height: 64,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
-                            color: tool.accentColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(16),
+                            color: tool.accentColor.withValues(alpha: 0.14),
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Icon(
-                            tool.icon,
-                            size: 26,
-                            color: tool.accentColor,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        Text(
-                          tool.displayName,
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          style: Theme.of(context).textTheme.labelLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: tool.isAvailable
-                                    ? colorScheme.onSurface
-                                    : colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          tool.tagline,
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
-                        ),
-                        if (tool.isAvailable) ...[
-                          const SizedBox(height: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: tool.accentColor.withValues(alpha: 0.14),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              'Recommended',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: tool.accentColor,
-                              ),
+                          child: Text(
+                            'Recommended',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: tool.accentColor,
                             ),
                           ),
-                        ],
+                        ),
                       ],
-                    ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: tool.isAvailable
-                        ? Icon(
-                            Icons.check_circle,
-                            size: 18,
-                            color: tool.accentColor,
-                          )
-                        : const _ComingSoonBadge(),
-                  ),
-                ],
-              ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: tool.isAvailable
+                      ? Icon(
+                          Icons.check_circle,
+                          size: 18,
+                          color: tool.accentColor,
+                        )
+                      : const _ComingSoonBadge(),
+                ),
+              ],
             ),
           ),
         ),
-      );
+      ),
+    );
   }
 }
 
 class _ComingSoonBadge extends StatelessWidget {
-
   const _ComingSoonBadge();
 
   @override

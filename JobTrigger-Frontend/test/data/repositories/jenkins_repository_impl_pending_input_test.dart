@@ -47,30 +47,33 @@ class _ScriptedAdapter implements HttpClientAdapter {
 
 void main() {
   group('JenkinsRepositoryImpl.fetchPendingInput (US-PIPE-05)', () {
-    test('GETs {buildUrl}wfapi/pendingInputActions and parses the first entry', () async {
-      final adapter = _ScriptedAdapter(
-        body: [
-          {'id': 'Deploy to prod', 'message': 'Approve?'},
-        ],
-      );
-      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
-        ..httpClientAdapter = adapter;
-      final repo = JenkinsRepositoryImpl(dio);
+    test(
+      'GETs {buildUrl}wfapi/pendingInputActions and parses the first entry',
+      () async {
+        final adapter = _ScriptedAdapter(
+          body: [
+            {'id': 'Deploy to prod', 'message': 'Approve?'},
+          ],
+        );
+        final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+          ..httpClientAdapter = adapter;
+        final repo = JenkinsRepositoryImpl(dio);
 
-      final result = await repo.fetchPendingInput(
-        'https://jenkins.test/job/demo/12',
-      );
+        final result = await repo.fetchPendingInput(
+          'https://jenkins.test/job/demo/12',
+        );
 
-      expect(
-        adapter.lastRequest?.path,
-        'https://jenkins.test/job/demo/12/wfapi/pendingInputActions',
-      );
-      expect(result, isA<Ok<PendingInput?, dynamic>>());
-      expect(
-        (result as Ok<PendingInput?, dynamic>).value?.id,
-        'Deploy to prod',
-      );
-    });
+        expect(
+          adapter.lastRequest?.path,
+          'https://jenkins.test/job/demo/12/wfapi/pendingInputActions',
+        );
+        expect(result, isA<Ok<PendingInput?, dynamic>>());
+        expect(
+          (result as Ok<PendingInput?, dynamic>).value?.id,
+          'Deploy to prod',
+        );
+      },
+    );
 
     test('returns Ok(null) when the array is empty', () async {
       final adapter = _ScriptedAdapter(body: <dynamic>[]);
@@ -102,24 +105,27 @@ void main() {
   });
 
   group('JenkinsRepositoryImpl.submitInput (US-PIPE-05)', () {
-    test('proceed with no parameters POSTs {buildUrl}input/{id}/proceedEmpty', () async {
-      final adapter = _ScriptedAdapter(statusCode: 200);
-      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
-        ..httpClientAdapter = adapter;
-      final repo = JenkinsRepositoryImpl(dio);
+    test(
+      'proceed with no parameters POSTs {buildUrl}input/{id}/proceedEmpty',
+      () async {
+        final adapter = _ScriptedAdapter(statusCode: 200);
+        final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+          ..httpClientAdapter = adapter;
+        final repo = JenkinsRepositoryImpl(dio);
 
-      final result = await repo.submitInput(
-        buildUrl: 'https://jenkins.test/job/demo/12',
-        inputId: 'Deploy to prod',
-        proceed: true,
-      );
+        final result = await repo.submitInput(
+          buildUrl: 'https://jenkins.test/job/demo/12',
+          inputId: 'Deploy to prod',
+          proceed: true,
+        );
 
-      expect(result, isA<Ok<void, dynamic>>());
-      expect(
-        adapter.lastRequest?.path,
-        'https://jenkins.test/job/demo/12/input/Deploy%20to%20prod/proceedEmpty',
-      );
-    });
+        expect(result, isA<Ok<void, dynamic>>());
+        expect(
+          adapter.lastRequest?.path,
+          'https://jenkins.test/job/demo/12/input/Deploy%20to%20prod/proceedEmpty',
+        );
+      },
+    );
 
     test('proceed with parameters POSTs .../submit, form-urlencoded', () async {
       final adapter = _ScriptedAdapter(statusCode: 200);

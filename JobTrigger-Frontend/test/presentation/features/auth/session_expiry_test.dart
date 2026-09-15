@@ -65,14 +65,10 @@ void main() {
 
       final secureStorage = container.read(secureStorageProvider);
       await secureStorage.saveToken('jwt-abc');
-      await container.read(authNotifierProvider.notifier).setSession(
-        const User(id: 'u1', email: 'a@b.com'),
-        'jwt-abc',
-      );
-      expect(
-        container.read(authNotifierProvider).value,
-        isA<Authenticated>(),
-      );
+      await container
+          .read(authNotifierProvider.notifier)
+          .setSession(const User(id: 'u1', email: 'a@b.com'), 'jwt-abc');
+      expect(container.read(authNotifierProvider).value, isA<Authenticated>());
 
       final dio = container.read(dioBackendProvider)
         ..httpClientAdapter = _FixedStatusAdapter(401);
@@ -99,10 +95,9 @@ void main() {
     container.listen(authNotifierProvider, (_, _) {});
 
     await container.read(secureStorageProvider).saveToken('jwt-abc');
-    await container.read(authNotifierProvider.notifier).setSession(
-      const User(id: 'u1', email: 'a@b.com'),
-      'jwt-abc',
-    );
+    await container
+        .read(authNotifierProvider.notifier)
+        .setSession(const User(id: 'u1', email: 'a@b.com'), 'jwt-abc');
 
     final dio = container.read(dioBackendProvider)
       ..httpClientAdapter = _FixedStatusAdapter(200);

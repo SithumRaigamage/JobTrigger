@@ -92,49 +92,56 @@ void main() {
   });
 
   group('JenkinsBuildDto.upstreamCause (US-PIPE-09)', () {
-    test('extracts upstreamProject/upstreamUrl from an UpstreamCause entry', () {
-      final dto = JenkinsBuildDto.fromJson({
-        'number': 12,
-        'url': 'https://jenkins.test/job/x/12/',
-        'timestamp': 1700000000000.0,
-        'actions': [
-          {
-            'causes': [
-              {
-                'shortDescription': 'Started by upstream project "foo" build number 3',
-                'upstreamProject': 'foo',
-                'upstreamUrl': 'https://jenkins.test/job/foo/',
-              },
-            ],
-          },
-        ],
-      });
+    test(
+      'extracts upstreamProject/upstreamUrl from an UpstreamCause entry',
+      () {
+        final dto = JenkinsBuildDto.fromJson({
+          'number': 12,
+          'url': 'https://jenkins.test/job/x/12/',
+          'timestamp': 1700000000000.0,
+          'actions': [
+            {
+              'causes': [
+                {
+                  'shortDescription':
+                      'Started by upstream project "foo" build number 3',
+                  'upstreamProject': 'foo',
+                  'upstreamUrl': 'https://jenkins.test/job/foo/',
+                },
+              ],
+            },
+          ],
+        });
 
-      // causes (US-PIPE-02) still parses the flat description text too --
-      // the two fields are independent, both sourced from `actions`.
-      expect(dto.causes, [
-        'Started by upstream project "foo" build number 3',
-      ]);
-      expect(dto.upstreamCause?.projectName, 'foo');
-      expect(dto.upstreamCause?.url, 'https://jenkins.test/job/foo/');
-    });
+        // causes (US-PIPE-02) still parses the flat description text too --
+        // the two fields are independent, both sourced from `actions`.
+        expect(dto.causes, [
+          'Started by upstream project "foo" build number 3',
+        ]);
+        expect(dto.upstreamCause?.projectName, 'foo');
+        expect(dto.upstreamCause?.url, 'https://jenkins.test/job/foo/');
+      },
+    );
 
-    test('is null when the cause has no upstreamProject/upstreamUrl (e.g. a user cause)', () {
-      final dto = JenkinsBuildDto.fromJson({
-        'number': 12,
-        'url': 'https://jenkins.test/job/x/12/',
-        'timestamp': 1700000000000.0,
-        'actions': [
-          {
-            'causes': [
-              {'shortDescription': 'Started by user Jane Doe'},
-            ],
-          },
-        ],
-      });
+    test(
+      'is null when the cause has no upstreamProject/upstreamUrl (e.g. a user cause)',
+      () {
+        final dto = JenkinsBuildDto.fromJson({
+          'number': 12,
+          'url': 'https://jenkins.test/job/x/12/',
+          'timestamp': 1700000000000.0,
+          'actions': [
+            {
+              'causes': [
+                {'shortDescription': 'Started by user Jane Doe'},
+              ],
+            },
+          ],
+        });
 
-      expect(dto.upstreamCause, isNull);
-    });
+        expect(dto.upstreamCause, isNull);
+      },
+    );
 
     test('is null when actions is absent', () {
       final dto = JenkinsBuildDto.fromJson({

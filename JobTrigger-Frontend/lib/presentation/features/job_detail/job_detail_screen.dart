@@ -156,9 +156,7 @@ class _ActionBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(
-          top: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
+          top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
       child: SafeArea(
@@ -376,7 +374,9 @@ class _PendingInputBannerState extends ConsumerState<_PendingInputBanner> {
     BuildContext context, {
     required bool proceed,
   }) async {
-    final actionLabel = proceed ? widget.input.proceedText : widget.input.abortText;
+    final actionLabel = proceed
+        ? widget.input.proceedText
+        : widget.input.abortText;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -465,99 +465,94 @@ class _LastBuildCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-            if (lastBuild == null)
-              const Text('No builds yet')
-            else ...[
-              Row(
-                children: [
-                  Icon(
-                    lastBuild.building ? Icons.autorenew : Icons.circle,
-                    size: 16,
-                    color: AppColors.forBuildResult(lastBuild.result),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    lastBuild.building
-                        ? 'Building #${lastBuild.number}…'
-                        : '#${lastBuild.number} ${lastBuild.result ?? ''}',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const Spacer(),
-                  if (onViewLog != null)
-                    TextButton(
-                      onPressed: onViewLog,
-                      child: const Text('View Log'),
-                    ),
-                ],
-              ),
-              if (lastBuild.causes.isNotEmpty) ...[
-                const SizedBox(height: 4),
+          if (lastBuild == null)
+            const Text('No builds yet')
+          else ...[
+            Row(
+              children: [
+                Icon(
+                  lastBuild.building ? Icons.autorenew : Icons.circle,
+                  size: 16,
+                  color: AppColors.forBuildResult(lastBuild.result),
+                ),
+                const SizedBox(width: 8),
                 Text(
-                  lastBuild.causes.join(', '),
-                  style: Theme.of(context).textTheme.bodySmall,
+                  lastBuild.building
+                      ? 'Building #${lastBuild.number}…'
+                      : '#${lastBuild.number} ${lastBuild.result ?? ''}',
+                  style: Theme.of(context).textTheme.titleSmall,
                 ),
+                const Spacer(),
+                if (onViewLog != null)
+                  TextButton(
+                    onPressed: onViewLog,
+                    child: const Text('View Log'),
+                  ),
               ],
-              if (lastBuild.upstreamCause != null) ...[
-                const SizedBox(height: 4),
-                _UpstreamLink(cause: lastBuild.upstreamCause!),
-              ],
-              if (lastBuild.changes.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                _ChangesList(changes: lastBuild.changes),
-              ],
-              if (pipelineStages != null && pipelineStages!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                _StageChipRow(stages: pipelineStages!, onTap: onViewLog),
-              ],
-              if (testReport != null) ...[
-                const SizedBox(height: 8),
-                _TestReportChip(report: testReport!),
-              ],
-              if (lastBuild.artifacts.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                _ArtifactsList(
-                  buildUrl: lastBuild.url,
-                  artifacts: lastBuild.artifacts,
-                ),
-              ],
-              if (lastBuild.building) ...[
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: BuildProgress.ratioFor(lastBuild),
-                ),
-              ],
-            ],
-            // Job-level, not build-level -- shown regardless of whether
-            // this job has ever built (unlike everything else on this
-            // card, which lives inside the `lastBuild != null` branch
-            // above).
-            if (job.downstreamProjects.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Text(
-                'Downstream',
-                style: Theme.of(context).textTheme.labelMedium,
-              ),
+            ),
+            if (lastBuild.causes.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final downstream in job.downstreamProjects)
-                    ActionChip(
-                      label: Text(downstream.name),
-                      onPressed: () => context.push(
-                        AppRoutes.jobDetail,
-                        extra: JenkinsJob(
-                          name: downstream.name,
-                          url: downstream.url,
-                        ),
-                      ),
-                    ),
-                ],
+              Text(
+                lastBuild.causes.join(', '),
+                style: Theme.of(context).textTheme.bodySmall,
               ),
+            ],
+            if (lastBuild.upstreamCause != null) ...[
+              const SizedBox(height: 4),
+              _UpstreamLink(cause: lastBuild.upstreamCause!),
+            ],
+            if (lastBuild.changes.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _ChangesList(changes: lastBuild.changes),
+            ],
+            if (pipelineStages != null && pipelineStages!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _StageChipRow(stages: pipelineStages!, onTap: onViewLog),
+            ],
+            if (testReport != null) ...[
+              const SizedBox(height: 8),
+              _TestReportChip(report: testReport!),
+            ],
+            if (lastBuild.artifacts.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _ArtifactsList(
+                buildUrl: lastBuild.url,
+                artifacts: lastBuild.artifacts,
+              ),
+            ],
+            if (lastBuild.building) ...[
+              const SizedBox(height: 8),
+              LinearProgressIndicator(value: BuildProgress.ratioFor(lastBuild)),
             ],
           ],
-        ),
+          // Job-level, not build-level -- shown regardless of whether
+          // this job has ever built (unlike everything else on this
+          // card, which lives inside the `lastBuild != null` branch
+          // above).
+          if (job.downstreamProjects.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text('Downstream', style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final downstream in job.downstreamProjects)
+                  ActionChip(
+                    label: Text(downstream.name),
+                    onPressed: () => context.push(
+                      AppRoutes.jobDetail,
+                      extra: JenkinsJob(
+                        name: downstream.name,
+                        url: downstream.url,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -697,7 +692,10 @@ class _TestReportChip extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           shrinkWrap: true,
           children: [
-            Text('Failing tests', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Failing tests',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 12),
             for (final test in report.failingTests)
               Padding(

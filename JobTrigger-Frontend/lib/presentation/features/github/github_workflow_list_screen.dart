@@ -49,10 +49,8 @@ class GitHubWorkflowListScreen extends ConsumerWidget {
             ),
             Expanded(
               child: workflowsAsync.when(
-                data: (workflows) => _WorkflowListView(
-                  repo: repo,
-                  workflows: workflows,
-                ),
+                data: (workflows) =>
+                    _WorkflowListView(repo: repo, workflows: workflows),
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stackTrace) => Center(
                   child: ConnectionErrorView(
@@ -90,9 +88,7 @@ class _WorkflowListView extends ConsumerWidget {
 
     return RefreshIndicator(
       onRefresh: () => ref
-          .read(
-            gitHubWorkflowsNotifierProvider(repo.owner, repo.name).notifier,
-          )
+          .read(gitHubWorkflowsNotifierProvider(repo.owner, repo.name).notifier)
           .refresh(),
       child: ListView.builder(
         padding: EdgeInsets.fromLTRB(
@@ -192,10 +188,7 @@ class _WorkflowTile extends StatelessWidget {
             ),
             if (!workflow.isActive)
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 2,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: Colors.grey.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(4),

@@ -30,44 +30,50 @@ class _EchoPathAdapter implements HttpClientAdapter {
 
 void main() {
   group('JenkinsRepositoryImpl.fetchArtifactBytes (US-PIPE-07)', () {
-    test('GETs {buildUrl}artifact/{relativePath} and returns the bytes', () async {
-      final adapter = _EchoPathAdapter();
-      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
-        ..httpClientAdapter = adapter;
-      final repo = JenkinsRepositoryImpl(dio);
+    test(
+      'GETs {buildUrl}artifact/{relativePath} and returns the bytes',
+      () async {
+        final adapter = _EchoPathAdapter();
+        final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+          ..httpClientAdapter = adapter;
+        final repo = JenkinsRepositoryImpl(dio);
 
-      final result = await repo.fetchArtifactBytes(
-        'https://jenkins.test/job/demo/12',
-        'build/app.apk',
-      );
+        final result = await repo.fetchArtifactBytes(
+          'https://jenkins.test/job/demo/12',
+          'build/app.apk',
+        );
 
-      expect(
-        adapter.lastRequest?.path,
-        'https://jenkins.test/job/demo/12/artifact/build/app.apk',
-      );
-      expect(result, isA<Ok<Uint8List, dynamic>>());
-      expect(
-        String.fromCharCodes((result as Ok<Uint8List, dynamic>).value),
-        'https://jenkins.test/job/demo/12/artifact/build/app.apk',
-      );
-    });
+        expect(
+          adapter.lastRequest?.path,
+          'https://jenkins.test/job/demo/12/artifact/build/app.apk',
+        );
+        expect(result, isA<Ok<Uint8List, dynamic>>());
+        expect(
+          String.fromCharCodes((result as Ok<Uint8List, dynamic>).value),
+          'https://jenkins.test/job/demo/12/artifact/build/app.apk',
+        );
+      },
+    );
 
-    test('percent-encodes each path segment, preserving / as a separator', () async {
-      final adapter = _EchoPathAdapter();
-      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
-        ..httpClientAdapter = adapter;
-      final repo = JenkinsRepositoryImpl(dio);
+    test(
+      'percent-encodes each path segment, preserving / as a separator',
+      () async {
+        final adapter = _EchoPathAdapter();
+        final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+          ..httpClientAdapter = adapter;
+        final repo = JenkinsRepositoryImpl(dio);
 
-      await repo.fetchArtifactBytes(
-        'https://jenkins.test/job/demo/12',
-        'build output/my app.apk',
-      );
+        await repo.fetchArtifactBytes(
+          'https://jenkins.test/job/demo/12',
+          'build output/my app.apk',
+        );
 
-      expect(
-        adapter.lastRequest?.path,
-        'https://jenkins.test/job/demo/12/artifact/build%20output/my%20app.apk',
-      );
-    });
+        expect(
+          adapter.lastRequest?.path,
+          'https://jenkins.test/job/demo/12/artifact/build%20output/my%20app.apk',
+        );
+      },
+    );
 
     test('maps a non-2xx response to Err', () async {
       final adapter = _EchoPathAdapter(statusCode: 404);

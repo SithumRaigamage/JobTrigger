@@ -16,43 +16,46 @@ void main() {
       expect(dto.failingTests, isEmpty);
     });
 
-    test('flattens FAILED and REGRESSION cases across suites to ClassName.testName', () {
-      final dto = TestReportDto.fromJson({
-        'passCount': 1,
-        'failCount': 2,
-        'skipCount': 0,
-        'suites': [
-          {
-            'cases': [
-              {
-                'className': 'com.example.AuthTest',
-                'name': 'testLogin',
-                'status': 'FAILED',
-              },
-              {
-                'className': 'com.example.AuthTest',
-                'name': 'testLogout',
-                'status': 'PASSED',
-              },
-            ],
-          },
-          {
-            'cases': [
-              {
-                'className': 'com.example.JobTest',
-                'name': 'testTrigger',
-                'status': 'REGRESSION',
-              },
-            ],
-          },
-        ],
-      });
+    test(
+      'flattens FAILED and REGRESSION cases across suites to ClassName.testName',
+      () {
+        final dto = TestReportDto.fromJson({
+          'passCount': 1,
+          'failCount': 2,
+          'skipCount': 0,
+          'suites': [
+            {
+              'cases': [
+                {
+                  'className': 'com.example.AuthTest',
+                  'name': 'testLogin',
+                  'status': 'FAILED',
+                },
+                {
+                  'className': 'com.example.AuthTest',
+                  'name': 'testLogout',
+                  'status': 'PASSED',
+                },
+              ],
+            },
+            {
+              'cases': [
+                {
+                  'className': 'com.example.JobTest',
+                  'name': 'testTrigger',
+                  'status': 'REGRESSION',
+                },
+              ],
+            },
+          ],
+        });
 
-      expect(dto.failingTests, [
-        'com.example.AuthTest.testLogin',
-        'com.example.JobTest.testTrigger',
-      ]);
-    });
+        expect(dto.failingTests, [
+          'com.example.AuthTest.testLogin',
+          'com.example.JobTest.testTrigger',
+        ]);
+      },
+    );
 
     test('falls back to bare test name when className is absent', () {
       final dto = TestReportDto.fromJson({
@@ -68,14 +71,17 @@ void main() {
       expect(dto.failingTests, ['testSomething']);
     });
 
-    test('defaults to zero counts and empty failingTests when fields are absent', () {
-      final dto = TestReportDto.fromJson(const {});
+    test(
+      'defaults to zero counts and empty failingTests when fields are absent',
+      () {
+        final dto = TestReportDto.fromJson(const {});
 
-      expect(dto.passCount, 0);
-      expect(dto.failCount, 0);
-      expect(dto.skipCount, 0);
-      expect(dto.failingTests, isEmpty);
-    });
+        expect(dto.passCount, 0);
+        expect(dto.failCount, 0);
+        expect(dto.skipCount, 0);
+        expect(dto.failingTests, isEmpty);
+      },
+    );
 
     test('toDomain() carries every field through unchanged', () {
       final dto = TestReportDto.fromJson({
@@ -85,11 +91,7 @@ void main() {
         'suites': [
           {
             'cases': [
-              {
-                'className': 'com.example.X',
-                'name': 'y',
-                'status': 'FAILED',
-              },
+              {'className': 'com.example.X', 'name': 'y', 'status': 'FAILED'},
             ],
           },
         ],

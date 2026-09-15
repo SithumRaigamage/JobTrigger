@@ -76,8 +76,9 @@ class GitHubRepoScreen extends ConsumerWidget {
                 error: (error, stackTrace) => Center(
                   child: ConnectionErrorView(
                     message: describeError(error),
-                    onRetry: () =>
-                        ref.read(gitHubReposNotifierProvider.notifier).refresh(),
+                    onRetry: () => ref
+                        .read(gitHubReposNotifierProvider.notifier)
+                        .refresh(),
                   ),
                 ),
               ),
@@ -181,8 +182,7 @@ class _RepoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return GlassSurface.card(
       padding: const EdgeInsets.all(12),
-      onTap: () =>
-          context.push(AppRoutes.githubWorkflows, extra: repo),
+      onTap: () => context.push(AppRoutes.githubWorkflows, extra: repo),
       child: Row(
         children: [
           Container(
@@ -205,10 +205,7 @@ class _RepoTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  repo.name,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+                Text(repo.name, style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 4),
                 Row(
                   children: [
@@ -225,20 +222,18 @@ class _RepoTile extends StatelessWidget {
                       ),
                       child: Text(
                         repo.defaultBranch,
-                        style: Theme.of(context).textTheme.labelSmall
-                            ?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
                     ),
                     if (repo.private) ...[
                       const SizedBox(width: 8),
                       Text(
                         'Private',
-                        style: Theme.of(context).textTheme.labelSmall
-                            ?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ],

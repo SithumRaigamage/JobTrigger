@@ -42,24 +42,21 @@ JenkinsJob _rewriteJob(JenkinsJob job, Uri activeUri) => JenkinsJob(
   builds: job.builds.map((build) => _rewriteBuild(build, activeUri)).toList(),
   downstreamProjects: job.downstreamProjects
       .map(
-        (d) => DownstreamProject(
-          name: d.name,
-          url: _rewriteUrl(d.url, activeUri),
-        ),
+        (d) =>
+            DownstreamProject(name: d.name, url: _rewriteUrl(d.url, activeUri)),
       )
       .toList(),
 );
 
-JenkinsBuild _rewriteBuild(JenkinsBuild build, Uri activeUri) =>
-    build.copyWith(
-      url: _rewriteUrl(build.url, activeUri),
-      upstreamCause: build.upstreamCause == null
-          ? null
-          : UpstreamCause(
-              projectName: build.upstreamCause!.projectName,
-              url: _rewriteUrl(build.upstreamCause!.url, activeUri),
-            ),
-    );
+JenkinsBuild _rewriteBuild(JenkinsBuild build, Uri activeUri) => build.copyWith(
+  url: _rewriteUrl(build.url, activeUri),
+  upstreamCause: build.upstreamCause == null
+      ? null
+      : UpstreamCause(
+          projectName: build.upstreamCause!.projectName,
+          url: _rewriteUrl(build.upstreamCause!.url, activeUri),
+        ),
+);
 
 /// Rewrites a single Jenkins-origin URL that doesn't come from a
 /// `JenkinsJob`/`JenkinsBuild` payload — e.g. a trigger response's

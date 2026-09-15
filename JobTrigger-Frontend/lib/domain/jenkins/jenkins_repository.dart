@@ -90,9 +90,7 @@ abstract class JenkinsRepository {
   /// principle report several; this app surfaces one at a time, matching
   /// the single-banner UI). **Unverified against a real paused pipeline**
   /// — see `pending_input.dart`'s doc comment.
-  Future<Result<PendingInput?, AppFailure>> fetchPendingInput(
-    String buildUrl,
-  );
+  Future<Result<PendingInput?, AppFailure>> fetchPendingInput(String buildUrl);
 
   /// Resolves and approves/rejects a paused input step (US-PIPE-05).
   /// [buildUrl] + [inputId] construct `{buildUrl}input/{inputId}/`, then

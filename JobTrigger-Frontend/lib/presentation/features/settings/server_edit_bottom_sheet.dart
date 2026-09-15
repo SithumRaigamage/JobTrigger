@@ -184,9 +184,8 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
                       tooltip: _obscurePassword
                           ? 'Show password'
                           : 'Hide password',
-                      onPressed: () => setState(
-                        () => _obscurePassword = !_obscurePassword,
-                      ),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
                 ),

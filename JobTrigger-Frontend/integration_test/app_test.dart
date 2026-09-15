@@ -78,9 +78,7 @@ void main() {
         reason: 'Tapping Jenkins should navigate to HomeScreen ("Jobs").',
       );
       expect(
-        Theme.of(
-          tester.element(find.text('Jobs')),
-        ).colorScheme.primary,
+        Theme.of(tester.element(find.text('Jobs'))).colorScheme.primary,
         AppColors.ciToolJenkins,
         reason: 'Once Jenkins is selected, primary should be Jenkins red.',
       );

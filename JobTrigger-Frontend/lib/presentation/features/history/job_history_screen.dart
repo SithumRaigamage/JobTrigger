@@ -49,13 +49,11 @@ class JobHistoryScreen extends ConsumerWidget {
                   return HistoryTile(
                     key: ValueKey(build.number),
                     jenkinsBuild: build,
-                    onTap: () =>
-                        context.push(AppRoutes.buildLog, extra: build),
+                    onTap: () => context.push(AppRoutes.buildLog, extra: build),
                     onReplay: () => showModalBottomSheet<void>(
                       context: context,
                       isScrollControlled: true,
-                      builder: (context) =>
-                          ReplaySheet(job: job, build: build),
+                      builder: (context) => ReplaySheet(job: job, build: build),
                     ),
                   );
                 },

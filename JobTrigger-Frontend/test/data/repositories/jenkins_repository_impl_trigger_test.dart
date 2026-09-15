@@ -40,17 +40,24 @@ class _RecordingAdapter implements HttpClientAdapter {
 }
 
 void main() {
-  test('no parameters, non-parameterized job -> POST .../build with no body', () async {
-    final adapter = _RecordingAdapter();
-    final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))..httpClientAdapter = adapter;
-    final repo = JenkinsRepositoryImpl(dio);
+  test(
+    'no parameters, non-parameterized job -> POST .../build with no body',
+    () async {
+      final adapter = _RecordingAdapter();
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+      final repo = JenkinsRepositoryImpl(dio);
 
-    final result = await repo.triggerBuild('https://jenkins.test/job/demo', isParameterized: false);
+      final result = await repo.triggerBuild(
+        'https://jenkins.test/job/demo',
+        isParameterized: false,
+      );
 
-    expect(result, isA<Ok<String?, dynamic>>());
-    expect(adapter.lastRequest?.path, 'https://jenkins.test/job/demo/build');
-    expect(adapter.lastRequest?.data, isNull);
-  });
+      expect(result, isA<Ok<String?, dynamic>>());
+      expect(adapter.lastRequest?.path, 'https://jenkins.test/job/demo/build');
+      expect(adapter.lastRequest?.data, isNull);
+    },
+  );
 
   test(
     'returns the rewritten queue-item URL from the Location header (US-PIPE-01)',
@@ -95,62 +102,89 @@ void main() {
     },
   );
 
-  test('with parameters -> POST .../buildWithParameters, form-urlencoded body', () async {
+  test(
+    'with parameters -> POST .../buildWithParameters, form-urlencoded body',
+    () async {
+      final adapter = _RecordingAdapter();
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+      final repo = JenkinsRepositoryImpl(dio);
+
+      await repo.triggerBuild(
+        'https://jenkins.test/job/demo',
+        isParameterized: true,
+        parameters: {'BRANCH': 'main', 'DEPLOY': 'false'},
+      );
+
+      expect(
+        adapter.lastRequest?.path,
+        'https://jenkins.test/job/demo/buildWithParameters',
+      );
+      expect(adapter.lastRequest?.data, {'BRANCH': 'main', 'DEPLOY': 'false'});
+      expect(
+        adapter.lastRequest?.contentType,
+        startsWith('application/x-www-form-urlencoded'),
+      );
+    },
+  );
+
+  test(
+    'isParameterized true with no explicit parameters still uses buildWithParameters',
+    () async {
+      final adapter = _RecordingAdapter();
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+      final repo = JenkinsRepositoryImpl(dio);
+
+      await repo.triggerBuild(
+        'https://jenkins.test/job/demo',
+        isParameterized: true,
+      );
+
+      expect(
+        adapter.lastRequest?.path,
+        'https://jenkins.test/job/demo/buildWithParameters',
+      );
+    },
+  );
+
+  test(
+    'paramToken is appended as a ?token= query parameter when present',
+    () async {
+      final adapter = _RecordingAdapter();
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+      final repo = JenkinsRepositoryImpl(dio);
+
+      await repo.triggerBuild(
+        'https://jenkins.test/job/demo',
+        isParameterized: false,
+        paramToken: 'secret-token',
+      );
+
+      expect(adapter.lastRequest?.queryParameters['token'], 'secret-token');
+    },
+  );
+
+  test('an empty paramToken is not sent as a query parameter', () async {
     final adapter = _RecordingAdapter();
-    final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))..httpClientAdapter = adapter;
-    final repo = JenkinsRepositoryImpl(dio);
-
-    await repo.triggerBuild(
-      'https://jenkins.test/job/demo',
-      isParameterized: true,
-      parameters: {'BRANCH': 'main', 'DEPLOY': 'false'},
-    );
-
-    expect(adapter.lastRequest?.path, 'https://jenkins.test/job/demo/buildWithParameters');
-    expect(adapter.lastRequest?.data, {'BRANCH': 'main', 'DEPLOY': 'false'});
-    expect(
-      adapter.lastRequest?.contentType,
-      startsWith('application/x-www-form-urlencoded'),
-    );
-  });
-
-  test('isParameterized true with no explicit parameters still uses buildWithParameters', () async {
-    final adapter = _RecordingAdapter();
-    final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))..httpClientAdapter = adapter;
-    final repo = JenkinsRepositoryImpl(dio);
-
-    await repo.triggerBuild('https://jenkins.test/job/demo', isParameterized: true);
-
-    expect(adapter.lastRequest?.path, 'https://jenkins.test/job/demo/buildWithParameters');
-  });
-
-  test('paramToken is appended as a ?token= query parameter when present', () async {
-    final adapter = _RecordingAdapter();
-    final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))..httpClientAdapter = adapter;
+    final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+      ..httpClientAdapter = adapter;
     final repo = JenkinsRepositoryImpl(dio);
 
     await repo.triggerBuild(
       'https://jenkins.test/job/demo',
       isParameterized: false,
-      paramToken: 'secret-token',
+      paramToken: '',
     );
-
-    expect(adapter.lastRequest?.queryParameters['token'], 'secret-token');
-  });
-
-  test('an empty paramToken is not sent as a query parameter', () async {
-    final adapter = _RecordingAdapter();
-    final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))..httpClientAdapter = adapter;
-    final repo = JenkinsRepositoryImpl(dio);
-
-    await repo.triggerBuild('https://jenkins.test/job/demo', isParameterized: false, paramToken: '');
 
     expect(adapter.lastRequest?.queryParameters.containsKey('token'), isFalse);
   });
 
   test('cancelBuild POSTs {buildUrl}stop', () async {
     final adapter = _RecordingAdapter();
-    final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))..httpClientAdapter = adapter;
+    final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+      ..httpClientAdapter = adapter;
     final repo = JenkinsRepositoryImpl(dio);
 
     await repo.cancelBuild('https://jenkins.test/job/demo/42/');

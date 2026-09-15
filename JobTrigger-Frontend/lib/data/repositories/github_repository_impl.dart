@@ -26,9 +26,8 @@ class GitHubRepositoryImpl implements GitHubRepository {
       );
       final repos = (response.data ?? const [])
           .map(
-            (json) => GitHubRepoDto.fromJson(
-              json as Map<String, dynamic>,
-            ).toDomain(),
+            (json) =>
+                GitHubRepoDto.fromJson(json as Map<String, dynamic>).toDomain(),
           )
           .toList();
       return Ok(repos);
@@ -46,8 +45,8 @@ class GitHubRepositoryImpl implements GitHubRepository {
       final response = await _dio.get<Map<String, dynamic>>(
         '/repos/$owner/$repo/actions/workflows',
       );
-      final workflowsJson = response.data?['workflows'] as List<dynamic>? ??
-          const [];
+      final workflowsJson =
+          response.data?['workflows'] as List<dynamic>? ?? const [];
       final workflows = workflowsJson
           .map(
             (json) => GitHubWorkflowDto.fromJson(

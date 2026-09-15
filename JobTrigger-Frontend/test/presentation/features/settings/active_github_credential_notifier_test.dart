@@ -84,10 +84,7 @@ void main() {
       final result = await notifier.deleteCredential(credentialA);
 
       expect(result, isA<Ok<void, AppFailure>>());
-      expect(
-        container.read(activeGitHubCredentialNotifierProvider)?.id,
-        'b',
-      );
+      expect(container.read(activeGitHubCredentialNotifierProvider)?.id, 'b');
     },
   );
 
@@ -106,10 +103,7 @@ void main() {
 
       await notifier.deleteCredential(credentialA);
 
-      expect(
-        container.read(activeGitHubCredentialNotifierProvider)?.id,
-        'b',
-      );
+      expect(container.read(activeGitHubCredentialNotifierProvider)?.id, 'b');
     },
   );
 
@@ -143,10 +137,7 @@ void main() {
 
       await notifier.deleteCredential(credentialB);
 
-      expect(
-        container.read(activeGitHubCredentialNotifierProvider)?.id,
-        'a',
-      );
+      expect(container.read(activeGitHubCredentialNotifierProvider)?.id, 'a');
     },
   );
 }

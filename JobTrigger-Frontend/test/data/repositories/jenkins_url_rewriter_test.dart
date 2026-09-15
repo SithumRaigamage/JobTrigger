@@ -12,29 +12,34 @@ import 'package:job_trigger/domain/jenkins/scm_change.dart';
 import 'package:job_trigger/domain/jenkins/upstream_cause.dart';
 
 void main() {
-  test('rewrites the upstream cause URL, not just preserves it (US-PIPE-09)', () {
-    const job = JenkinsJob(
-      name: 'x',
-      url: 'https://internal.test/job/x/',
-      lastBuild: JenkinsBuild(
-        number: 5,
-        url: 'https://internal.test/job/x/5/',
-        timestamp: 1700000000000,
-        upstreamCause: UpstreamCause(
-          projectName: 'foo',
-          url: 'https://internal.test/job/foo/',
+  test(
+    'rewrites the upstream cause URL, not just preserves it (US-PIPE-09)',
+    () {
+      const job = JenkinsJob(
+        name: 'x',
+        url: 'https://internal.test/job/x/',
+        lastBuild: JenkinsBuild(
+          number: 5,
+          url: 'https://internal.test/job/x/5/',
+          timestamp: 1700000000000,
+          upstreamCause: UpstreamCause(
+            projectName: 'foo',
+            url: 'https://internal.test/job/foo/',
+          ),
         ),
-      ),
-    );
+      );
 
-    final rewritten = rewriteJobTreeUrls([job], 'http://localhost:8080').single;
+      final rewritten = rewriteJobTreeUrls([
+        job,
+      ], 'http://localhost:8080').single;
 
-    expect(
-      rewritten.lastBuild!.upstreamCause!.url,
-      'http://localhost:8080/job/foo/',
-    );
-    expect(rewritten.lastBuild!.upstreamCause!.projectName, 'foo');
-  });
+      expect(
+        rewritten.lastBuild!.upstreamCause!.url,
+        'http://localhost:8080/job/foo/',
+      );
+      expect(rewritten.lastBuild!.upstreamCause!.projectName, 'foo');
+    },
+  );
 
   test('rewrites downstreamProjects URLs (US-PIPE-09)', () {
     const job = JenkinsJob(
@@ -77,16 +82,14 @@ void main() {
         ),
       );
 
-      final rewritten = rewriteJobTreeUrls(
-        [job],
-        'http://localhost:8080',
-      ).single;
+      final rewritten = rewriteJobTreeUrls([
+        job,
+      ], 'http://localhost:8080').single;
 
       expect(rewritten.lastBuild!.causes, ['Started by user Jane Doe']);
       expect(rewritten.lastBuild!.changes.single.message, 'Fix bug');
     },
   );
-
 
   test(
     'rewrites every url in the tree to the active server, preserving path',

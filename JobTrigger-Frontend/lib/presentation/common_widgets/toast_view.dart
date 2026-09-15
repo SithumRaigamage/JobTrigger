@@ -36,38 +36,38 @@ class ToastView extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         padding: const EdgeInsets.all(16),
         child: Row(
-            children: [
-              Icon(_iconByType[message.type], size: 20, color: color),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      message.title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+          children: [
+            Icon(_iconByType[message.type], size: 20, color: color),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    message.title,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      message.message,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    message.message,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.close, size: 14),
-                tooltip: 'Dismiss',
-                onPressed: onDismiss,
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, size: 14),
+              tooltip: 'Dismiss',
+              onPressed: onDismiss,
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ),
       ),
     );
   }

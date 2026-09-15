@@ -154,9 +154,7 @@ List<ScmChange> _changesFromJson(dynamic rawChangeSet) {
     if (item is! Map<String, dynamic>) continue;
     final message = item['msg'];
     final author = item['author'];
-    final fullName = author is Map<String, dynamic>
-        ? author['fullName']
-        : null;
+    final fullName = author is Map<String, dynamic> ? author['fullName'] : null;
     if (message is String && fullName is String) {
       changes.add(ScmChange(author: fullName, message: message));
     }
@@ -178,10 +176,8 @@ extension JenkinsBuildDtoX on JenkinsBuildDto {
     changes: changes,
     artifacts: artifacts
         .map(
-          (a) => BuildArtifact(
-            fileName: a.fileName,
-            relativePath: a.relativePath,
-          ),
+          (a) =>
+              BuildArtifact(fileName: a.fileName, relativePath: a.relativePath),
         )
         .toList(),
     upstreamCause: upstreamCause,

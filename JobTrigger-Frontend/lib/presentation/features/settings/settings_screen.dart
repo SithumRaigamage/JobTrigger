@@ -322,9 +322,7 @@ class _AppearanceSection extends ConsumerWidget {
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Reduce transparency'),
-            subtitle: const Text(
-              'Use solid surfaces instead of frosted glass',
-            ),
+            subtitle: const Text('Use solid surfaces instead of frosted glass'),
             value: reduceTransparency,
             onChanged: (value) => ref
                 .read(reduceTransparencyNotifierProvider.notifier)
@@ -423,9 +421,9 @@ class _ServerTile extends ConsumerWidget {
   /// Confirms the switch actually happened — without this, nothing told
   /// the user their tap took effect beyond the radio icon silently moving.
   Future<void> _setActiveServer(WidgetRef ref, JenkinsServer server) async {
-    await ref.read(activeServerNotifierProvider.notifier).setActiveServer(
-      server,
-    );
+    await ref
+        .read(activeServerNotifierProvider.notifier)
+        .setActiveServer(server);
     ref
         .read(toastControllerProvider)
         .show(

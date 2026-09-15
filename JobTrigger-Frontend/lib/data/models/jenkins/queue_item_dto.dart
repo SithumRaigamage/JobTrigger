@@ -34,9 +34,6 @@ extension QueueItemDtoX on QueueItemDto {
     cancelled: cancelled,
     executable: executable == null
         ? null
-        : QueueExecutable(
-            number: executable!.number,
-            url: executable!.url,
-          ),
+        : QueueExecutable(number: executable!.number, url: executable!.url),
   );
 }
