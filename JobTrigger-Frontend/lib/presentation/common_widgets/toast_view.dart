@@ -1,0 +1,141 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'glass_surface.dart';
+import 'toast_controller.dart';
+
+/// Ported from `Shared/Components/ToastView.swift`.
+class ToastView extends StatelessWidget {
+  const ToastView({super.key, required this.message, required this.onDismiss});
+
+  final ToastMessage message;
+  final VoidCallback onDismiss;
+
+  static const _iconByType = {
+    ToastType.success: Icons.check_circle,
+    ToastType.error: Icons.cancel,
+    ToastType.warning: Icons.warning,
+    ToastType.info: Icons.info,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    // Not `static const` -- info's color follows the active tool's accent
+    // (`Theme.of(context).colorScheme.primary`) rather than a hardcoded
+    // blue, consistent with the rest of the app's theming.
+    final colorByType = {
+      ToastType.success: Colors.green,
+      ToastType.error: Colors.red,
+      ToastType.warning: Colors.orange,
+      ToastType.info: Theme.of(context).colorScheme.primary,
+    };
+    final color = colorByType[message.type]!;
+    return GestureDetector(
+      onTap: onDismiss,
+      child: GlassSurface.card(
+        borderRadius: BorderRadius.circular(12),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+            children: [
+              Icon(_iconByType[message.type], size: 20, color: color),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      message.title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      message.message,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, size: 14),
+                tooltip: 'Dismiss',
+                onPressed: onDismiss,
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+      ),
+    );
+  }
+}
+
+/// Ported from `Shared/Components/NotificationModifier.swift`. Wrap the app
+/// (e.g. in `MaterialApp.builder`) so a toast can be shown from anywhere via
+/// `toastControllerProvider`.
+///
+/// `MaterialApp.builder`'s `child` is the app's `Navigator` — content placed
+/// alongside it here (the toast) is a *sibling* of the Navigator, not a
+/// descendant, so it can't reach the Navigator's own `Overlay` via
+/// `Overlay.of(context)`. `ToastView`'s dismiss `IconButton` has a
+/// `tooltip`, which needs one (`Tooltip`/`RawTooltip` requires an `Overlay`
+/// ancestor to build at all, not just to show) — without this wrapper it
+/// throws "No Overlay widget found" the first time any toast is shown.
+/// Providing a dedicated local `Overlay` here, wrapping both `child` and the
+/// toast, gives everything underneath a valid ancestor.
+class ToastOverlay extends ConsumerWidget {
+  const ToastOverlay({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Overlay(
+      initialEntries: [
+        OverlayEntry(builder: (context) => _ToastStack(child: child)),
+      ],
+    );
+  }
+}
+
+class _ToastStack extends ConsumerWidget {
+  const _ToastStack({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final message = ref.watch(currentToastProvider);
+    return Stack(
+      children: [
+        child,
+        Positioned(
+          top: MediaQuery.of(context).padding.top + 10,
+          left: 16,
+          right: 16,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            transitionBuilder: (widget, animation) => SlideTransition(
+              position: Tween(
+                begin: const Offset(0, -1),
+                end: Offset.zero,
+              ).animate(animation),
+              child: FadeTransition(opacity: animation, child: widget),
+            ),
+            child: message == null
+                ? const SizedBox.shrink()
+                : ToastView(
+                    key: ValueKey(message),
+                    message: message,
+                    onDismiss: () =>
+                        ref.read(toastControllerProvider).dismiss(),
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+}
