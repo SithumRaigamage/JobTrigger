@@ -1,6 +1,6 @@
 # Phase 7 — Pipeline & Build Insights (Epic PIPE)
 
-Goal: implement `docs/user-stories/11-build-insights-pipeline.md`'s 9 new
+Goal: implement `docs/user-stories/jenkins/11-build-insights-pipeline.md`'s 9 new
 Jenkins-capability stories. Unlike Phases 0–6, this isn't parity work —
 nothing here is required to close the original migration; see that file's
 intro and `docs/user-stories/README.md`'s PIPE note for why it's tracked

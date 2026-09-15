@@ -1,6 +1,6 @@
 # Phase 8 — GitHub Actions Integration (Epic GH)
 
-Goal: implement `docs/user-stories/12-github-actions.md`'s full-parity
+Goal: implement `docs/user-stories/github-actions/12-github-actions.md`'s full-parity
 GitHub Actions support — a second real CI tool alongside Jenkins, promoted
 out of `tasks/backlog.md`'s deferred GitHub Actions item on 2026-09-14
 (decision: full parity, not a read-only MVP; PAT auth, not OAuth; a new
