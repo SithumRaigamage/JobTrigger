@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const JenkinsCredential = require('../models/JenkinsCredential');
 
 exports.getCredentials = async (req, res) => {
@@ -31,18 +32,20 @@ exports.addCredential = async (req, res) => {
     const credential = await newCredential.save();
     res.status(201).json(credential);
   } catch (err) {
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ message: 'Invalid credential data', error: err.message });
+    }
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
 
 exports.updateCredential = async (req, res) => {
   try {
-    const { serverName, jenkinsURL, username, password, paramToken, isDefault } = req.body;
-
-    // If setting as default, unset others first
-    if (isDefault) {
-      await JenkinsCredential.updateMany({ userId: req.user.id }, { isDefault: false });
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid credential id' });
     }
+
+    const { serverName, jenkinsURL, username, password, paramToken, isDefault } = req.body;
 
     let credential = await JenkinsCredential.findById(req.params.id);
     if (!credential) return res.status(404).json({ message: 'Credential not found' });
@@ -50,6 +53,11 @@ exports.updateCredential = async (req, res) => {
     // Verify ownership
     if (credential.userId.toString() !== req.user.id) {
       return res.status(401).json({ message: 'User not authorized' });
+    }
+
+    // If setting as default, unset others first
+    if (isDefault) {
+      await JenkinsCredential.updateMany({ userId: req.user.id }, { isDefault: false });
     }
 
     credential = await JenkinsCredential.findByIdAndUpdate(
@@ -66,6 +74,10 @@ exports.updateCredential = async (req, res) => {
 
 exports.deleteCredential = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid credential id' });
+    }
+
     const credential = await JenkinsCredential.findById(req.params.id);
     if (!credential) return res.status(404).json({ message: 'Credential not found' });
 
@@ -85,6 +97,9 @@ exports.deleteCredential = async (req, res) => {
 exports.setActiveServer = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid credential id' });
+    }
     const credential = await JenkinsCredential.findById(id);
     if (!credential) return res.status(404).json({ message: 'Credential not found' });
     if (credential.userId.toString() !== req.user.id) {
