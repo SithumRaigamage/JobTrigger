@@ -118,7 +118,7 @@ wasn't exhaustively audited.
 
 ## CD (dormant — build verification only, no signing/upload)
 
-- [ ] P9-09 New `.github/workflows/cd.yml`, `workflow_dispatch`-only
+- [x] P9-09 New `.github/workflows/cd.yml`, `workflow_dispatch`-only
       trigger (no automatic `push`/`pull_request` — exists and is
       invokable from the Actions tab, never runs on its own): a
       `flutter-build` job (`flutter build apk --release`, `flutter build
@@ -132,22 +132,31 @@ wasn't exhaustively audited.
 
 ## Dev tooling
 
-- [ ] P9-10 `.github/dependabot.yml`: `pub` (`JobTrigger-Frontend`), `npm`
+- [x] P9-10 `.github/dependabot.yml`: `pub` (`JobTrigger-Frontend`), `npm`
       (`JobTrigger-Backend`), `github-actions` ecosystems, weekly. Native
       GitHub feature, zero new dependency.
-- [ ] P9-11 Codecov: `codecov/codecov-action@v4` step in both
+- [x] P9-11 Codecov: `codecov/codecov-action@v4` step in both
       `flutter-ci.yml` (uploads `coverage/lcov.info` from P9-04..08's
       `flutter test --coverage`) and `nodejs-test.yml` (uploads P9-03's
-      `c8` lcov output), each gated `if: ${{ secrets.CODECOV_TOKEN != ''
-      }}` so CI stays green until the token secret exists.
-- [ ] P9-12 SonarCloud: `sonar-project.properties` at repo root (source
+      `c8` lcov output via a new `npm run test:coverage` call replacing the
+      plain `npm test` step), each gated on a secret-backed `env:` var
+      (`if: secrets.*` isn't valid in a step `if:` — routed through `env:`
+      first) so CI stays green until the token secret exists.
+- [x] P9-12 SonarCloud: `sonar-project.properties` at repo root (source
       paths for both subprojects, exclusions for generated
       `*.g.dart`/`*.freezed.dart`/`node_modules`), scan step
-      (`SonarSource/sonarcloud-github-action`) in CI, gated `if: ${{
-      secrets.SONAR_TOKEN != '' }}` the same way. Analyzes this repo's own
-      code quality — unrelated to the separate `SonarQube` user-story epic,
-      which is about a user connecting *their own* SonarQube server inside
-      the app.
+      (`SonarSource/sonarqube-scan-action@v5` — the current action;
+      `sonarcloud-github-action` is deprecated) in `nodejs-test.yml`, gated
+      the same way as Codecov above. **Scoped to the backend**: SonarCloud
+      has no native Dart analyzer, so `JobTrigger-Frontend` is included in
+      `sonar.sources` for basic size/duplication metrics only, not
+      Dart-specific rules — flagged in the properties file's comments so
+      this isn't oversold as full Flutter code-quality scanning. Analyzes
+      this repo's own code quality — unrelated to the separate `SonarQube`
+      user-story epic, which is about a user connecting *their own*
+      SonarQube server inside the app.
+      `sonar.projectKey`/`sonar.organization` are placeholders (`CHANGE_ME`)
+      until a real SonarCloud project exists to fill them in with.
 
 **Manual prerequisite for P9-11/P9-12** (can't be done from this
 environment): create the Codecov and SonarCloud accounts/projects and add
