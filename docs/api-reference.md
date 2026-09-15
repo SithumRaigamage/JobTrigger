@@ -17,6 +17,11 @@ Base URL from `core/config/app_config.dart`, e.g. `https://api.jobtrigger.app`
 | `/api/credentials/:id` | PUT | `x-auth-token` | Partial `Credential` | `Credential` | |
 | `/api/credentials/:id` | DELETE | `x-auth-token` | — | `{ success }` | If deleting the active server, client must fall back to another `isDefault`/first server |
 | `/api/credentials/switch/:id` | POST | `x-auth-token` | — | `Credential` | Backend flips `isDefault`; client also updates `ActiveServerNotifier` locally for instant UI feedback |
+| `/api/sonarqube-credentials` | GET | `x-auth-token` | — | `SonarQubeCredential[]` | |
+| `/api/sonarqube-credentials` | POST | `x-auth-token` | `SonarQubeCredential` (minus id) | `SonarQubeCredential` | |
+| `/api/sonarqube-credentials/:id` | PUT | `x-auth-token` | Partial `SonarQubeCredential` | `SonarQubeCredential` | |
+| `/api/sonarqube-credentials/:id` | DELETE | `x-auth-token` | — | `{ message }` | |
+| `/api/sonarqube-credentials/switch/:id` | POST | `x-auth-token` | — | `SonarQubeCredential` | Backend flips `isDefault`; client also updates `ActiveSonarQubeCredentialNotifier` locally for instant UI feedback |
 | `/api/appinfo` | GET | Public | — | `AppInfo` | Cache with a short TTL; not worth polling |
 
 `BackendApiClient` interceptor: attach a plain `x-auth-token: <token>`

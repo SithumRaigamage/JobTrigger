@@ -57,6 +57,37 @@ Domain `JenkinsServer` entity drops the raw `password` field name in favor
 of `secret` to make clear at call sites it's sensitive, and is never logged
 (add a custom `toString()` override that redacts it).
 
+## SonarQube Credential
+
+New — no SwiftUI equivalent, see epic SQ
+(`docs/user-stories/sonarqube/14-sonarqube.md`). Backend:
+`JobTrigger-Backend/models/SonarQubeCredential.js`.
+
+```dart
+@freezed
+class SonarQubeCredentialDto with _$SonarQubeCredentialDto {
+  const factory SonarQubeCredentialDto({
+    @JsonKey(name: '_id') required String id,
+    required String label,
+    required String baseUrl,
+    required String token,
+    String? defaultOrganization,
+    @Default(false) bool isDefault,
+    String? createdAt,
+    String? updatedAt,
+  }) = _SonarQubeCredentialDto;
+
+  factory SonarQubeCredentialDto.fromJson(Map<String, dynamic> json) =>
+      _$SonarQubeCredentialDtoFromJson(json);
+}
+```
+Domain `SonarQubeCredential` entity renames `token` to `secret`, same
+sensitive-field convention as `JenkinsServer`/`GitHubCredential`, and is
+never logged (redacted `toString()`). `baseUrl` defaults to
+`https://sonarcloud.io` but is editable for a self-hosted SonarQube Server
+instance — unlike `GitHubCredential`, which has no configurable base URL at
+all (GitHub Actions is cloud-only in this app's current scope).
+
 ## Jenkins Server Info / Job Tree
 
 Old: `JenkinsServerInfo.swift`
