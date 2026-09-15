@@ -20,7 +20,7 @@ plan/design checkpoint before its code lands, per `CLAUDE.md` §9.
 
 ## CI hygiene
 
-- [ ] P9-00 Fix both failing GitHub Actions workflows. `flutter-ci.yml`:
+- [x] P9-00 Fix both failing GitHub Actions workflows. `flutter-ci.yml`:
       run `dart format .` for real (44 files currently fail
       `--set-exit-if-changed`, verified locally against the CI-pinned
       Flutter 3.44.9/Dart 3.12.2) — formatting only, no logic changes.
@@ -34,7 +34,7 @@ plan/design checkpoint before its code lands, per `CLAUDE.md` §9.
 
 ## Backend testing
 
-- [ ] P9-01 Fix two real bugs surfaced by the coverage audit before testing
+- [x] P9-01 Fix two real bugs surfaced by the coverage audit before testing
       around them: `middleware/auth.js` never checks the JWT's user still
       exists (a deleted user's unexpired token authenticates forever) →
       add a 401 on missing user; `credentialsController.js` +
@@ -44,38 +44,56 @@ plan/design checkpoint before its code lands, per `CLAUDE.md` §9.
       valid-but-missing id also 500s instead of 404. `authController.js`
       signup 500s on a missing `password`/`email` (calls `.length` on
       `undefined`) instead of a clean 400.
-- [ ] P9-02 New backend tests for the highest-risk gaps found (see audit):
+- [x] P9-02 New backend tests for the highest-risk gaps found (see audit):
       switch-endpoint ownership violation (Jenkins + GitHub — only
       update/delete ownership was tested), Jenkins credential update/delete
       happy path (asymmetric vs. GitHub's existing coverage), malformed-id
       and not-found cases for update/delete/switch on both credential
       types, signup missing-field cases, expired-JWT and deleted-user-JWT
       cases, add-credential missing-required-field → 400.
-- [ ] P9-03 Backend coverage tooling: add `c8` devDependency, add
+- [x] P9-03 Backend coverage tooling: add `c8` devDependency, add
       `npm run test:coverage` (`c8 --reporter=lcov --reporter=text npm
       test`) without touching the existing plain `npm test` script CI
       already calls.
 
+Backend: 20 → 43 tests, 93.79% statement coverage, `middleware/auth.js` at
+100%. Also fixed, while fixing update/delete/switch's ownership check: an
+ordering bug where `isDefault: true` on a malicious update request unset the
+real owner's other credentials *before* the 401 was returned.
+
 ## Frontend testing
 
-- [ ] P9-04 Auth: tests for `auth_validation.dart` (no test file exists
+- [x] P9-04 Auth: tests for `auth_validation.dart` (no test file exists
       today), `signup_notifier.dart`, `login_notifier.dart`.
-- [ ] P9-05 Credential/settings notifiers with zero coverage today:
+- [x] P9-05 Credential/settings notifiers with zero coverage today:
       `credentials_notifier`, `github_credentials_notifier`,
       `server_form_notifier`, `github_credential_form_notifier`,
       `test_connection_notifier`, `test_github_connection_notifier`.
-- [ ] P9-06 `jenkins_repository_impl.dart` methods with no isolated
+
+      Found and fixed a real bug while testing: `GitHubCredentialFormNotifier
+      .save()` never set a new `isDefault: true` credential as active,
+      unlike `ServerFormNotifier`'s existing fix for the same gap on the
+      Jenkins side.
+- [x] P9-06 `jenkins_repository_impl.dart` methods with no isolated
       repository-level test (only exercised indirectly via notifier
       tests today): `fetchJobTree`, `fetchJobDetail`, `streamBuildLog`,
       `fetchJobHistory`, `fetchQueueItem` — success + failure cases against
       a fake `HttpClientAdapter`, matching the existing sibling test files'
       pattern.
-- [ ] P9-07 DTOs with no test file: `credential_dto`, `github_credential_dto`,
+
+      Found and fixed two real bugs while testing: `jenkins_url_rewriter`'s
+      `Uri.replace(port: null)` doesn't clear a port (Dart treats `null` as
+      "unchanged"), so a rewritten URL could keep a stale internal port when
+      the active server URL had none; and `fetchQueueItem` never rewrote
+      `executable.url` through the rewriter at all, unlike every other
+      job/build URL (dormant today — nothing reads that field yet — but
+      inconsistent with the rest of the codebase).
+- [x] P9-07 DTOs with no test file: `credential_dto`, `github_credential_dto`,
       `user_dto`, `app_info_dto`, `jenkins_server_info_dto`,
       `health_report_dto`, `parameter_definition_dto`, `job_property_dto` —
       field-mapping + default-value tests matching `github_repo_dto_test.dart`'s
       style.
-- [ ] P9-08 Remaining untested notifiers: `job_search`,
+- [x] P9-08 Remaining untested notifiers: `job_search`,
       `folder_breadcrumb`, `job_tree`, `app_info`, `active_tool`,
       `github_repo_search`, `github_repos`, `github_workflows`,
       `job_history`, `global_history`, `test_report`, `trigger_build`,
@@ -87,6 +105,16 @@ plan/design checkpoint before its code lands, per `CLAUDE.md` §9.
       flow. Expanding it into real E2E coverage needs a live backend +
       Jenkins/GitHub Actions target per `NFR-TEST-02/03` and is a separate,
       larger initiative.
+
+Frontend: 203 → 345 tests (142 new), `flutter analyze` clean throughout.
+**Flagged, not fixed**: `ProviderContainer`'s default retry policy (Riverpod
+v3.3.1+) retries a failed `AsyncNotifier.build()` with backoff instead of
+settling into `AsyncError`, so the `container.listen(...); await
+expectLater(provider.future, throwsA(...))` failure-path pattern used by
+several existing tests can hang/slow-resolve unless `retry: (_, __) => null`
+is passed to the container. New tests were written with the workaround where
+needed; whether this affects already-committed tests using the same pattern
+wasn't exhaustively audited.
 
 ## CD (dormant — build verification only, no signing/upload)
 
