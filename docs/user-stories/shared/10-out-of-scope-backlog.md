@@ -13,10 +13,17 @@ goal; each additional CI tool is its own integration surface (different
 auth model, different API shape) and a separate initiative.
 
 **GitHub Actions promoted out of this item 2026-09-14** — see epic GH,
-[12-github-actions.md](12-github-actions.md). The reasoning above is
+[12-github-actions.md](../github-actions/12-github-actions.md). The reasoning above is
 exactly why it's its own epic rather than folded into an existing one: a
-genuinely separate integration surface. GitLab CI, SonarQube, and CircleCI
-remain deferred under this item, unchanged.
+genuinely separate integration surface.
+
+**GitLab CI, SonarQube, and CircleCI got their own epic docs on
+2026-09-15** — [13-gitlab-ci.md](../gitlab/13-gitlab-ci.md),
+[14-sonarqube.md](../sonarqube/14-sonarqube.md),
+[15-circleci.md](../circleci/15-circleci.md) — but that's a BA/documentation
+step only, not a promotion into active development. All three remain
+deferred under this item for actual implementation until one is separately
+promoted the way GH was.
 
 ### BACKLOG-02 — Push notifications for build completion
 **Reason deferred:** requires a push infrastructure decision (APNs/FCM,

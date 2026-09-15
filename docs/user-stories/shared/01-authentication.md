@@ -3,7 +3,7 @@
 Backend auth against `JobTrigger-Backend` (`/api/auth/*`), JWT-equivalent
 token carried as the `x-auth-token` header on subsequent backend calls (not
 `Authorization: Bearer` — see `docs/api-reference.md`). Entirely separate
-from Jenkins per-server Basic Auth (see [03-credential-management.md](03-credential-management.md)).
+from Jenkins per-server Basic Auth (see [03-credential-management.md](../jenkins/03-credential-management.md)).
 
 ---
 
