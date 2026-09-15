@@ -11,6 +11,7 @@ import '../features/app_info/app_info_screen.dart';
 import '../features/auth/auth_notifier.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/signup_screen.dart';
+import '../common_widgets/glass_surface.dart';
 import '../features/build_log/build_log_screen.dart';
 import '../features/github/github_repo_screen.dart';
 import '../features/github/github_workflow_list_screen.dart';
@@ -63,6 +64,57 @@ class _ToolAwareHomeScreen extends ConsumerWidget {
       CiTool.githubActions => const GitHubRepoScreen(),
       _ => const HomeScreen(),
     };
+  }
+}
+
+/// Same tool-aware routing as [_ToolAwareHomeScreen] for the History tab.
+/// GitHub Actions has no history epic yet (`GH-HIST`, `tasks/phase-8-github-actions.md`
+/// P8-24/25 are unimplemented) -- without this, the branch fell through to
+/// always rendering `GlobalHistoryScreen`, which reads Jenkins' own
+/// `activeServerNotifierProvider` and shows real Jenkins build history even
+/// while GitHub Actions is the selected tool, since the two "active"
+/// notifiers are intentionally independent (`NFR-SEC-03`) and neither knows
+/// about `activeToolNotifierProvider`.
+class _ToolAwareHistoryScreen extends ConsumerWidget {
+  const _ToolAwareHistoryScreen();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeTool = ref.watch(activeToolNotifierProvider);
+    return switch (activeTool) {
+      CiTool.githubActions => const _GitHubHistoryUnavailableScreen(),
+      _ => const GlobalHistoryScreen(),
+    };
+  }
+}
+
+/// Placeholder shown for the History tab while GitHub Actions is active --
+/// `GH-HIST` doesn't exist yet, so this is an explicit "not built" state
+/// rather than silently showing Jenkins data or a dead screen.
+class _GitHubHistoryUnavailableScreen extends StatelessWidget {
+  const _GitHubHistoryUnavailableScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: GlassAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Tool Selection',
+          onPressed: () => context.go(AppRoutes.toolSelection),
+        ),
+        title: const Text('History'),
+      ),
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.only(
+            top: MediaQuery.paddingOf(context).top + kToolbarHeight,
+          ),
+          child: const Text('GitHub Actions run history is coming soon'),
+        ),
+      ),
+    );
   }
 }
 
@@ -154,7 +206,7 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.globalHistory,
-                builder: (context, state) => const GlobalHistoryScreen(),
+                builder: (context, state) => const _ToolAwareHistoryScreen(),
               ),
             ],
           ),
