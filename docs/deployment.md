@@ -1,10 +1,11 @@
 # Deployment (App Store / Play Store) and CI/CD
 
-Not yet implemented — this is reference material for when the app is ready
-to submit, written up after a chat discussion on 2026-09-14. Everything
-blocking an actual store release (accounts, signing, artwork) is tracked as
-external/ops action in [`tasks/release-checklist.md`](../tasks/release-checklist.md);
-this doc is the "how," that one is the "what's left."
+Written up after a chat discussion on 2026-09-14; the build-verification
+step below landed 2026-09-15 as part of `tasks/phase-9-testing-cicd-hardening.md`
+(P9-09). Everything blocking an actual store release (accounts, signing,
+artwork) is tracked as external/ops action in
+[`tasks/release-checklist.md`](../tasks/release-checklist.md); this doc is
+the "how," that one is the "what's left."
 
 ## Prerequisites (regardless of tooling)
 
@@ -37,18 +38,35 @@ internal testing" and "Dogfood window" items.
 | **GitHub Actions + Fastlane** | Free, full control, matches this repo's existing `.github/workflows/flutter-ci.yml` convention. You write/maintain the signing + upload scripting yourself (Fastlane lanes, App Store Connect API keys, Play service-account JSON as GitHub secrets). |
 | **Codemagic** | Flutter-specific SaaS; handles code signing through its UI instead of scripting it, fastest path to an automated store release. Free tier exists. Separate service/account to manage. |
 | **Bitrise** | Similar to Codemagic, more general-purpose mobile CI, more setup than Codemagic for a Flutter-only project. |
-| **Manual for now** | Build locally, upload by hand via Xcode/Play Console. What this project effectively does today — see `.github/workflows/flutter-ci.yml`, which only runs `flutter analyze`/`flutter test`, no build/sign/upload step. |
+| **Manual for now** | Upload by hand via Xcode/Play Console once a build exists. Build *verification* is automated (`.github/workflows/cd.yml`), but signing and upload are still manual/nonexistent — see below. |
+
+## What's automated today (P9-09)
+
+`.github/workflows/cd.yml` exists and is invokable from the Actions tab
+(`workflow_dispatch` only — it never runs automatically on push/PR, per the
+"don't build the deploy pipeline yet" reasoning below, which still holds).
+It builds `flutter build apk --release` (debug-signed, since
+`android/app/build.gradle`'s release build type has no real signing config
+yet) and `flutter build ipa --release --no-codesign`, uploading both as
+workflow artifacts — nothing is pushed to a store or a registry. A second
+job does `docker build` against a new `JobTrigger-Backend/Dockerfile`
+(no `push`), verifying the backend still containerizes; no registry is
+configured to push it to yet.
+
+This satisfies recommendation #1 below, already done. `.github/workflows/flutter-ci.yml`
+itself (the one that actually gates PRs) is deliberately left as
+analyze/test-only — build verification lives in the separate,
+manually-triggered `cd.yml` instead, so PR CI stays fast.
 
 ## Recommendation
 
 Don't build the full auto-deploy pipeline yet — the project is pre-artwork
 and pre-store-accounts (`tasks/release-checklist.md`), so wiring signing
-secrets into CI now would be premature; there's nothing to sign with. Two
-things worth doing once relevant:
+secrets into CI now would be premature; there's nothing to sign with. One
+thing left worth doing once relevant:
 
-1. Extend `.github/workflows/flutter-ci.yml` with a `flutter build apk`/
-   `flutter build ipa --no-codesign` step — catches "doesn't actually
-   build for release" regressions early, no store accounts needed.
+1. ~~Extend CI with a `flutter build apk`/`flutter build ipa --no-codesign`
+   step~~ — done, see above.
 2. Once both store accounts and real signing keys exist, add a
    Fastlane-based deploy job (GitHub Actions is the natural fit given
    what's already here) targeting internal/TestFlight tracks only,
