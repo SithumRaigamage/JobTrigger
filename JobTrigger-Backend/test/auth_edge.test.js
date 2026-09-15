@@ -38,4 +38,16 @@ describe('Auth edge cases', function() {
     const res = await request(app).post('/api/auth/login').send({ email: 'noone@example.com', password: 'pw' });
     expect(res.status).to.equal(400);
   });
+
+  it('should not allow signup with a missing email', async function() {
+    const res = await request(app).post('/api/auth/signup').send({ password: 'password' });
+    expect(res.status).to.equal(400);
+    expect(res.body.message).to.match(/required/i);
+  });
+
+  it('should not allow signup with a missing password', async function() {
+    const res = await request(app).post('/api/auth/signup').send({ email: 'nopassword@example.com' });
+    expect(res.status).to.equal(400);
+    expect(res.body.message).to.match(/required/i);
+  });
 });

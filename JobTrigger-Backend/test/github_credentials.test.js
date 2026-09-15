@@ -127,6 +127,26 @@ describe('GitHub Credentials ownership and defaults', function() {
     expect(deleteRes.status).to.equal(401);
   });
 
+  it("should prevent one user from switching another user's credential active", async function() {
+    const a = await request(app).post('/api/auth/signup').send({ email: 'ghswitcha@example.com', password: 'password' });
+    const tokenA = a.body.token;
+
+    const credRes = await request(app)
+      .post('/api/github-credentials')
+      .set('x-auth-token', tokenA)
+      .send({ label: 'A GitHub', token: 'ghp_a', isDefault: false });
+    const credId = credRes.body._id;
+
+    const b = await request(app).post('/api/auth/signup').send({ email: 'ghswitchb@example.com', password: 'password' });
+    const tokenB = b.body.token;
+
+    const switchRes = await request(app)
+      .post(`/api/github-credentials/switch/${credId}`)
+      .set('x-auth-token', tokenB);
+
+    expect(switchRes.status).to.equal(401);
+  });
+
   it('should ensure only one default credential per user when adding', async function() {
     const u = await request(app).post('/api/auth/signup').send({ email: 'ghdef@example.com', password: 'password' });
     const token = u.body.token;
