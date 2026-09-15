@@ -58,45 +58,50 @@ would be unrelated scope creep for this phase.
 
 ## SQ-CRED — Credential management (client)
 
-- [ ] P10-01 `data/models/credential/sonarqube_credential_dto.dart`,
+- [x] P10-01 `data/models/credential/sonarqube_credential_dto.dart`,
       `domain/credential/sonarqube_credential.dart` — mirrors
       `github_credential.dart`'s shape (`id`, `label`, PAT renamed `secret`
       domain-side, `baseUrl`, `defaultOrganization`, `isDefault`),
       including the redacted `toString()`.
-- [ ] P10-02 `SonarQubeCredentialsRepository` interface + impl — CRUD
+- [x] P10-02 `SonarQubeCredentialsRepository` interface + impl — CRUD
       against P10-00's `/api/sonarqube-credentials` endpoints via
       `dioBackendProvider`, `Result<T, AppFailure>` throughout, mirrors
       `GitHubCredentialsRepositoryImpl` structurally.
-- [ ] P10-03 `core/network/sonarqube_client_factory.dart` —
+- [x] P10-03 `core/network/sonarqube_client_factory.dart` —
       `buildSonarQubeDio({baseUrl, token})` sets
       `Authorization: Bearer <token>` against the credential's own
       `baseUrl` (configurable per-credential, unlike GitHub's fixed
       `api.github.com` — closer to Jenkins' per-server client shape) +
       `testSonarQubeConnection()` hitting `GET {baseUrl}/api/authentication/validate`
       (US-SQ-CRED-04's dedicated validation endpoint, not a "fetch my
-      user" pattern like the other three tools).
-- [ ] P10-04 `SonarQubeCredentialsNotifier` (list, mirrors
+      user" pattern like the other three tools). Returns `Result<void,
+      AppFailure>` since the endpoint has nothing else to report.
+- [x] P10-04 `SonarQubeCredentialsNotifier` (list, mirrors
       `GitHubCredentialsNotifier`) + `ActiveSonarQubeCredentialNotifier`
       (mirrors `ActiveGitHubCredentialNotifier` exactly — rehydrate,
       set, clear, delete-with-fallback), entirely independent state: its
       own provider, its own `SharedPreferences` key
       (`active_sonarqube_credential_id`), zero shared code (`NFR-SEC-03`,
       now four independent auth/active-state domains).
-- [ ] P10-05 Settings UI: `SonarQubeCredentialFormNotifier` (mirrors
+- [x] P10-05 Settings UI: `SonarQubeCredentialFormNotifier` (mirrors
       `GitHubCredentialFormNotifier`, **including** the
       set-active-on-`isDefault` fix from `tasks/phase-9-testing-cicd-hardening.md`
-      P9-05 from day one), `TestSonarQubeConnectionNotifier`,
-      `SonarQubeCredentialEditBottomSheet` (mirrors
+      P9-05 from day one), `TestSonarQubeConnectionNotifier` (state is
+      `AsyncValue<bool?>`, not `<void>` -- a `void` state can't distinguish
+      "never tested" from "tested successfully," both render as
+      `AsyncData(null)`), `SonarQubeCredentialEditBottomSheet` (mirrors
       `GitHubCredentialEditBottomSheet`, with `baseUrl`/`defaultOrganization`
       fields in place of GitHub's fields). `SettingsScreen` gets a new
       "SonarQube" section alongside Jenkins/GitHub's, via the existing
-      shared `_credentialSlivers<T>` helper.
-- [ ] P10-06 Unit tests for all of the above — repository CRUD, active-
+      shared `_credentialSlivers<T>` helper -- `showJenkinsSection`'s
+      condition had to change from a single negation to excluding both
+      other tools.
+- [x] P10-06 Unit tests for all of the above — repository CRUD, active-
       credential fallback logic, client factory header/base-URL
-      construction, notifier state transitions — mirroring the exact test
-      files GH's equivalent tasks produced (`github_credentials_repository_impl_test.dart`,
-      `active_github_credential_notifier_test.dart`,
-      `github_client_factory_test.dart`, etc.).
+      construction, notifier state transitions, plus two new
+      `settings_screen_test.dart` cases — mirroring the exact test files
+      GH's equivalent tasks produced. 26 new tests, full suite now 371
+      (was 345), `flutter analyze` clean throughout.
 
 ## SQ-PROJ — Project Browsing
 
