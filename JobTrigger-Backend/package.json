@@ -6,7 +6,8 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "migrate": "node scripts/migrate.js",
-    "test": "mocha --file test/setup.js --recursive --exit --timeout 20000"
+    "test": "mocha --file test/setup.js --recursive --exit --timeout 20000",
+    "test:coverage": "c8 --reporter=lcov --reporter=text npm test"
   },
   "keywords": [],
   "author": "",
@@ -19,12 +20,12 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.1"
-  }
-  ,
+  },
   "devDependencies": {
-    "mocha": "^10.2.0",
+    "c8": "^12.0.0",
     "chai": "^4.3.7",
-    "supertest": "^6.3.3",
-    "mongodb-memory-server": "^8.12.0"
+    "mocha": "^10.2.0",
+    "mongodb-memory-server": "^11.2.0",
+    "supertest": "^6.3.3"
   }
 }
