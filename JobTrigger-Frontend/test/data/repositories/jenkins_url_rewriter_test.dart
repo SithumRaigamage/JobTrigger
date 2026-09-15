@@ -148,4 +148,22 @@ void main() {
     final projects = rewritten.firstWhere((job) => job.name == 'Projects');
     expect(projects.url, 'https://jenkins.example.com/job/Projects/');
   });
+
+  test(
+    'drops the raw URL\'s explicit port when the active server URL has none',
+    () {
+      // Regression test: Uri.replace(port: null) means "leave unchanged,"
+      // not "clear" -- rewriting a raw URL with an explicit non-default
+      // port (e.g. an internal http://host:8080 tunnel) to a portless
+      // active server URL used to silently keep the stale port instead of
+      // dropping it.
+      const job = JenkinsJob(name: 'x', url: 'http://internal:8080/job/x/');
+
+      final rewritten = rewriteJobTreeUrls([
+        job,
+      ], 'https://jenkins.example.com').single;
+
+      expect(rewritten.url, 'https://jenkins.example.com/job/x/');
+    },
+  );
 }

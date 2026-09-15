@@ -1,6 +1,7 @@
 import '../../domain/jenkins/downstream_project.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
+import '../../domain/jenkins/queue_item.dart';
 import '../../domain/jenkins/upstream_cause.dart';
 
 /// Jenkins returns absolute `url` fields using whatever host it was
@@ -58,6 +59,22 @@ JenkinsBuild _rewriteBuild(JenkinsBuild build, Uri activeUri) => build.copyWith(
         ),
 );
 
+/// Rewrites a queue item's `executable.url` (US-PIPE-01) -- the one
+/// Jenkins-origin URL `JenkinsRepositoryImpl.fetchQueueItem` previously left
+/// unrewritten, unlike every other job/build URL in the app.
+QueueItem rewriteQueueItemUrl(QueueItem item, String activeServerUrl) {
+  final executable = item.executable;
+  if (executable == null) return item;
+  return QueueItem(
+    why: item.why,
+    cancelled: item.cancelled,
+    executable: QueueExecutable(
+      number: executable.number,
+      url: _rewriteUrl(executable.url, Uri.parse(activeServerUrl)),
+    ),
+  );
+}
+
 /// Rewrites a single Jenkins-origin URL that doesn't come from a
 /// `JenkinsJob`/`JenkinsBuild` payload — e.g. a trigger response's
 /// `Location` header pointing at a queue item (US-PIPE-01). Same
@@ -68,11 +85,23 @@ String rewriteUrl(String rawUrl, String activeServerUrl) =>
 String _rewriteUrl(String rawUrl, Uri activeUri) {
   final parsed = Uri.tryParse(rawUrl);
   if (parsed == null) return rawUrl;
-  return parsed
-      .replace(
-        scheme: activeUri.scheme,
-        host: activeUri.host,
-        port: activeUri.hasPort ? activeUri.port : null,
-      )
+  // Uri.replace treats a null argument as "leave unchanged," not "clear" --
+  // passing port: null when activeUri has no explicit port would silently
+  // keep the raw URL's own port instead of dropping it. Route through
+  // Uri.replace(port:) only when there's an explicit port to set, and
+  // Uri(...) otherwise so the scheme's default port applies.
+  return (activeUri.hasPort
+          ? parsed.replace(
+              scheme: activeUri.scheme,
+              host: activeUri.host,
+              port: activeUri.port,
+            )
+          : Uri(
+              scheme: activeUri.scheme,
+              host: activeUri.host,
+              path: parsed.path,
+              query: parsed.query.isEmpty ? null : parsed.query,
+              fragment: parsed.fragment.isEmpty ? null : parsed.fragment,
+            ))
       .toString();
 }

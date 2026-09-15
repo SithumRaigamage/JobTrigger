@@ -203,7 +203,8 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
     try {
       final base = queueItemUrl.endsWith('/') ? queueItemUrl : '$queueItemUrl/';
       final response = await _dio.get<Map<String, dynamic>>('${base}api/json');
-      return Ok(QueueItemDto.fromJson(response.data!).toDomain());
+      final item = QueueItemDto.fromJson(response.data!).toDomain();
+      return Ok(rewriteQueueItemUrl(item, _dio.options.baseUrl));
     } on DioException catch (exception) {
       return Err(AppFailure.fromDioException(exception));
     }
