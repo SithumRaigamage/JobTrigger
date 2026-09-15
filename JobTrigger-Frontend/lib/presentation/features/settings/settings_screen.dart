@@ -8,6 +8,7 @@ import '../../../core/theme/reduce_transparency_notifier.dart';
 import '../../../core/theme/theme_notifier.dart';
 import '../../../domain/credential/github_credential.dart';
 import '../../../domain/credential/jenkins_server.dart';
+import '../../../domain/credential/sonarqube_credential.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
@@ -18,10 +19,13 @@ import '../tool_selection/active_tool_notifier.dart';
 import '../tool_selection/ci_tool.dart';
 import 'active_github_credential_notifier.dart';
 import 'active_server_notifier.dart';
+import 'active_sonarqube_credential_notifier.dart';
 import 'credentials_notifier.dart';
 import 'github_credential_edit_bottom_sheet.dart';
 import 'github_credentials_notifier.dart';
 import 'server_edit_bottom_sheet.dart';
+import 'sonarqube_credential_edit_bottom_sheet.dart';
+import 'sonarqube_credentials_notifier.dart';
 
 /// Ported from `SettingsView.swift`'s server list — see
 /// `docs/state-management.md`'s "Feature: settings / server management".
@@ -49,16 +53,24 @@ class SettingsScreen extends ConsumerWidget {
     final activeGithubCredential = ref.watch(
       activeGitHubCredentialNotifierProvider,
     );
+    final sonarQubeCredentialsAsync = ref.watch(
+      sonarQubeCredentialsNotifierProvider,
+    );
+    final activeSonarQubeCredential = ref.watch(
+      activeSonarQubeCredentialNotifierProvider,
+    );
     // Settings is reached from the same tab regardless of which CI tool is
-    // active, but showing *both* credential sections unconditionally reads
-    // as "you're missing GitHub credentials" even to a user who selected
-    // Jenkins and has no reason to care about GitHub yet. Scope each
-    // section to the tool it's actually for; `null` (pre-selection) falls
-    // back to Jenkins, matching this app's other "Jenkins is the default"
-    // conventions (e.g. `CiTool.isAvailable`'s ordering).
+    // active, but showing *every* credential section unconditionally reads
+    // as "you're missing GitHub/SonarQube credentials" even to a user who
+    // selected Jenkins and has no reason to care about either yet. Scope
+    // each section to the tool it's actually for; `null` (pre-selection)
+    // falls back to Jenkins, matching this app's other "Jenkins is the
+    // default" conventions (e.g. `CiTool.isAvailable`'s ordering).
     final activeTool = ref.watch(activeToolNotifierProvider);
-    final showJenkinsSection = activeTool != CiTool.githubActions;
+    final showJenkinsSection =
+        activeTool != CiTool.githubActions && activeTool != CiTool.sonarqube;
     final showGitHubSection = activeTool == CiTool.githubActions;
+    final showSonarQubeSection = activeTool == CiTool.sonarqube;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -129,6 +141,33 @@ class SettingsScreen extends ConsumerWidget {
                   credential: credential,
                   isActive: credential.id == activeGithubCredential?.id,
                 ),
+              ),
+            ],
+            if (showSonarQubeSection) ...[
+              const SliverToBoxAdapter(child: Divider(height: 1)),
+              SliverToBoxAdapter(
+                child: _SectionHeader(
+                  title: 'SONARQUBE',
+                  onAdd: () => showSonarQubeCredentialEditBottomSheet(context),
+                ),
+              ),
+              ..._credentialSlivers<SonarQubeCredential>(
+                async: sonarQubeCredentialsAsync,
+                onRetry: () => ref
+                    .read(sonarQubeCredentialsNotifierProvider.notifier)
+                    .refresh(),
+                emptyStateBuilder: () => _EmptyState(
+                  icon: Icons.verified_outlined,
+                  title: 'No SonarQube Credentials Yet',
+                  message: 'Add a User Token to get started.',
+                  buttonLabel: 'Add SonarQube Credential',
+                  onAdd: () => showSonarQubeCredentialEditBottomSheet(context),
+                ),
+                tileBuilder: (context, credential) =>
+                    _SonarQubeCredentialTile(
+                      credential: credential,
+                      isActive: credential.id == activeSonarQubeCredential?.id,
+                    ),
               ),
             ],
             SliverToBoxAdapter(
@@ -560,6 +599,122 @@ class _GitHubCredentialTile extends ConsumerWidget {
   ) async {
     final result = await ref
         .read(activeGitHubCredentialNotifierProvider.notifier)
+        .deleteCredential(credential);
+    if (result case Err(:final error)) {
+      ref
+          .read(toastControllerProvider)
+          .show(
+            type: ToastType.error,
+            title: 'Delete Failed',
+            message: describeError(error),
+          );
+    }
+  }
+}
+
+/// Mirrors `_GitHubCredentialTile` exactly, for a `SonarQubeCredential`
+/// instead — deliberately not a shared generic widget, same reasoning as
+/// `_GitHubCredentialTile`'s own doc comment.
+class _SonarQubeCredentialTile extends ConsumerWidget {
+  const _SonarQubeCredentialTile({
+    required this.credential,
+    required this.isActive,
+  });
+
+  final SonarQubeCredential credential;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Dismissible(
+        key: ValueKey(credential.id),
+        direction: DismissDirection.endToStart,
+        confirmDismiss: (_) => _confirmDelete(context),
+        onDismissed: (_) => _deleteCredential(ref, credential),
+        background: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.errorContainer,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Icon(
+            Icons.delete,
+            color: Theme.of(context).colorScheme.onErrorContainer,
+          ),
+        ),
+        child: GlassSurface.card(
+          onTap: isActive ? null : () => _setActiveCredential(ref, credential),
+          child: ListTile(
+            leading: Icon(
+              isActive
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+              color: isActive
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            title: Text(credential.label),
+            subtitle: Text(credential.baseUrl),
+            trailing: IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Edit',
+              onPressed: () => showSonarQubeCredentialEditBottomSheet(
+                context,
+                existing: credential,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<bool> _confirmDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete SonarQube credential?'),
+        content: const Text('This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
+
+  Future<void> _setActiveCredential(
+    WidgetRef ref,
+    SonarQubeCredential credential,
+  ) async {
+    await ref
+        .read(activeSonarQubeCredentialNotifierProvider.notifier)
+        .setActiveCredential(credential);
+    ref
+        .read(toastControllerProvider)
+        .show(
+          type: ToastType.success,
+          title: 'Credential Switched',
+          message: 'Now using ${credential.label}.',
+        );
+  }
+
+  Future<void> _deleteCredential(
+    WidgetRef ref,
+    SonarQubeCredential credential,
+  ) async {
+    final result = await ref
+        .read(activeSonarQubeCredentialNotifierProvider.notifier)
         .deleteCredential(credential);
     if (result case Err(:final error)) {
       ref
