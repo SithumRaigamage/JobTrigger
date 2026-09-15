@@ -5,15 +5,16 @@ are **not** part of reaching feature parity. Don't build these under a
 Phase 0–6 task without first moving the item here into an actual phase file
 — keeping them separate is what prevents the rewrite from scope-creeping.
 
-- Real GitLab CI / SonarQube / CircleCI integrations (tool-selection cards
-  for these stay disabled placeholders through v1). GitHub Actions was
-  promoted out of this item 2026-09-14 — see `tasks/phase-8-github-actions.md`
-  and `docs/user-stories/github-actions/12-github-actions.md`. GitLab CI,
+- Real GitLab CI / CircleCI integrations (tool-selection cards for these
+  stay disabled placeholders through v1). GitHub Actions was promoted out
+  of this item 2026-09-14 — see `tasks/phase-8-github-actions.md` and
+  `docs/user-stories/github-actions/12-github-actions.md`. GitLab CI,
   SonarQube, and CircleCI got their own epic docs on 2026-09-15 —
   `docs/user-stories/gitlab/13-gitlab-ci.md`,
   `docs/user-stories/sonarqube/14-sonarqube.md`,
-  `docs/user-stories/circleci/15-circleci.md` — but remain deferred here
-  for actual implementation, same as GH was before 2026-09-14.
+  `docs/user-stories/circleci/15-circleci.md`. SonarQube was itself
+  promoted out of this item 2026-09-15 — see `tasks/phase-10-sonarqube.md`.
+  GitLab CI and CircleCI remain deferred here for actual implementation.
 - Push notifications for build completion/failure.
 - Widget/home-screen extension for build status at a glance.
 - Multi-account support (switching between multiple backend user accounts,

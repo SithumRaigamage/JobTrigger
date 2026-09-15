@@ -22,7 +22,8 @@ check "where are we."
 | Release | `release-checklist.md` | pending | Phase 6 |
 | 7 — Pipeline & build insights (epic PIPE) | `phase-7-pipeline-insights.md` | done | none — new scope, not required for parity |
 | 8 — GitHub Actions integration (epic GH) | `phase-8-github-actions.md` | in-progress (Backend + GH-CRED + GH-REPO done, P8-00..11 of 28) | none — second CI tool, promoted from `backlog.md` |
-| 9 — Testing, CI/CD hardening, dev tooling (epic HARDEN) | `phase-9-testing-cicd-hardening.md` | in-progress | none — dev/QA/tooling work, promoted from a direct user request 2026-09-15 |
+| 9 — Testing, CI/CD hardening, dev tooling (epic HARDEN) | `phase-9-testing-cicd-hardening.md` | done | none — dev/QA/tooling work, promoted from a direct user request 2026-09-15 |
+| 10 — SonarQube integration (epic SQ) | `phase-10-sonarqube.md` | in-progress (Backend done, P10-00 of 16) | none — fourth CI tool, promoted from `backlog.md` |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." A handful

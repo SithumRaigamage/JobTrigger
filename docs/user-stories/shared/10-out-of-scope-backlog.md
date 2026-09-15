@@ -20,10 +20,13 @@ genuinely separate integration surface.
 **GitLab CI, SonarQube, and CircleCI got their own epic docs on
 2026-09-15** — [13-gitlab-ci.md](../gitlab/13-gitlab-ci.md),
 [14-sonarqube.md](../sonarqube/14-sonarqube.md),
-[15-circleci.md](../circleci/15-circleci.md) — but that's a BA/documentation
-step only, not a promotion into active development. All three remain
-deferred under this item for actual implementation until one is separately
-promoted the way GH was.
+[15-circleci.md](../circleci/15-circleci.md).
+
+**SonarQube promoted out of this item 2026-09-15** — see epic SQ,
+[14-sonarqube.md](../sonarqube/14-sonarqube.md), and
+`tasks/phase-10-sonarqube.md`. GitLab CI and CircleCI remain deferred under
+this item for actual implementation until separately promoted the way GH
+and SQ were.
 
 ### BACKLOG-02 — Push notifications for build completion
 **Reason deferred:** requires a push infrastructure decision (APNs/FCM,

@@ -11,7 +11,9 @@ was added as a second real tool afterward, promoted out of
 `shared/10-out-of-scope-backlog.md`'s `BACKLOG-01` and later implemented.
 GitLab CI, SonarQube, and CircleCI (epics GL/SQ/CC) got their own epic docs
 on 2026-09-15, the same BA-deliverable step GH went through before it was
-promoted — see each epic's own file for what's actually different about it.
+promoted; SonarQube (epic SQ) was itself promoted into active development
+that same day (`tasks/phase-10-sonarqube.md`) — see each epic's own file
+for what's actually different about it.
 This story set is the complete, security-conscious specification of that
 product: every screen a user can reach, every action they can take, and the
 visual language (glassmorphism) it must present it in.
@@ -44,7 +46,7 @@ to the same file, just at a new path.
 | `jenkins/` | [11-build-insights-pipeline.md](jenkins/11-build-insights-pipeline.md) | PIPE | New-scope Jenkins capabilities beyond the original SwiftUI app — queue status, build cause, SCM changelog, pipeline stage view, input-step approval, test results, artifacts, replay, upstream/downstream navigation |
 | `github-actions/` | [12-github-actions.md](github-actions/12-github-actions.md) | GH | A second real CI tool (promoted out of `BACKLOG-01`, **implemented**): credential management, repository/workflow browsing, run triggering/status/cancel, job logs, history |
 | `gitlab/` | [13-gitlab-ci.md](gitlab/13-gitlab-ci.md) | GL | A third real CI tool (docs-only, **not promoted/implemented**): credential management, project/pipeline browsing, run triggering/status/cancel/retry, live job trace, history |
-| `sonarqube/` | [14-sonarqube.md](sonarqube/14-sonarqube.md) | SQ | A code-quality server, not a build-trigger tool (docs-only, **not promoted/implemented**): credential management, project browsing, quality gate/measures/issues |
+| `sonarqube/` | [14-sonarqube.md](sonarqube/14-sonarqube.md) | SQ | A code-quality server, not a build-trigger tool (**promoted, in progress** — `tasks/phase-10-sonarqube.md`): credential management, project browsing, quality gate/measures/issues |
 | `circleci/` | [15-circleci.md](circleci/15-circleci.md) | CC | A fourth real CI tool (docs-only, **not promoted/implemented**): credential management, project/pipeline/workflow browsing, run triggering/status/cancel/rerun, per-step job output, history |
 
 ## Story ID convention
@@ -187,10 +189,10 @@ own intro for why.
 Epics GL ([gitlab/13-gitlab-ci.md](gitlab/13-gitlab-ci.md)), SQ
 ([sonarqube/14-sonarqube.md](sonarqube/14-sonarqube.md)), and CC
 ([circleci/15-circleci.md](circleci/15-circleci.md)) are the same
-`BACKLOG-01` item, one BA-deliverable step further than GH was before
-2026-09-14: written on 2026-09-15, but **not** promoted into an active
-implementation phase the way GH was — no code, no `CiTool.isAvailable`
-flip, against any of the three yet. They don't appear in the traceability
+`BACKLOG-01` item as GH, written 2026-09-15. **SQ was promoted into active
+development 2026-09-15** — see `tasks/phase-10-sonarqube.md`, currently
+in progress; GL and CC remain docs-only, not promoted, no code, no
+`CiTool.isAvailable` flip. None of the three appear in the traceability
 table for the same reason GH doesn't. SQ in particular is structurally
 unlike every other epic in this set (GH/GL/PIPE all being build-trigger
 tools) — see its intro for why there's no SQ-RUN/SQ-LOG/SQ-HIST.
