@@ -47,7 +47,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-08 | High | UX / Safety | Trigger and Cancel fire with no confirmation, violating the Must criteria of US-JOB-02/03/05 | open |
 | AUD-09 | High | Bug | Global history uses duplicate `ValueKey`s when job names repeat across folders | open |
 | AUD-10 | High | Bug | Folder breadcrumb shows stale or other-server contents after refresh or server switch | open |
-| AUD-11 | High | Bug / Architecture | Non-`DioException` errors escape the data layer and bypass `AppFailure` | open |
+| AUD-11 | High | Bug / Architecture | Non-`DioException` errors escape the data layer and bypass `AppFailure` | fixed (P12-04) |
 | AUD-12 | High | Performance | Console log re-sanitizes and re-splits the whole log every second (O(n²)) | open |
 | AUD-13 | Medium | Bug | A transient log-poll error discards the displayed log | open |
 | AUD-14 | High | Security / UX | Jenkins URL unvalidated; Basic Auth sent over `http://` silently; cleartext failures shown as generic errors | open |
@@ -68,7 +68,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-29 | Low | Bug | Artifact download state keyed by relative path only, shared across builds | open |
 | AUD-30 | Low | UI / A11y | Hardcoded colors bypass `AppColors` tokens (dark-mode contrast) | open |
 | AUD-31 | Low | Code quality (backend) | Three copy-pasted credential controllers | open |
-| AUD-32 | Low | Code quality | Trailing-slash URL normalisation duplicated 11× in `JenkinsRepositoryImpl` | open |
+| AUD-32 | Low | Code quality | Trailing-slash URL normalisation duplicated 11× in `JenkinsRepositoryImpl` | fixed (P12-04) |
 | AUD-33 | Low | UX | Search results lack folder context; empty state can't pull to refresh | open (→ P11-06) |
 | AUD-34 | Low | Bug | Log sanitizer leaves `\r` from CRLF; escape sequences split across chunks leak | open (→ P11-11) |
 | AUD-35 | Low | Docs | `CLAUDE.md` §1 still says "JWT bearer"; the backend actually uses `x-auth-token` | open |

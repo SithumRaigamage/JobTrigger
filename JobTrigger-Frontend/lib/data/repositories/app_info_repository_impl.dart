@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/error/app_failure.dart';
+import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../core/network/backend_api_client.dart';
 import '../../domain/app_info/app_info.dart';
@@ -16,14 +17,10 @@ class AppInfoRepositoryImpl implements AppInfoRepository {
   final Dio _dio;
 
   @override
-  Future<Result<AppInfo, AppFailure>> fetchAppInfo() async {
-    try {
-      final response = await _dio.get<Map<String, dynamic>>('/api/appinfo');
-      return Ok(AppInfoDto.fromJson(response.data!).toDomain());
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  Future<Result<AppInfo, AppFailure>> fetchAppInfo() => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>('/api/appinfo');
+    return AppInfoDto.fromJson(response.data!).toDomain();
+  });
 }
 
 @riverpod

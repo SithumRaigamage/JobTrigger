@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/error/app_failure.dart';
+import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../core/network/jenkins_client_factory.dart';
 import '../../domain/jenkins/jenkins_build.dart';
@@ -66,92 +67,83 @@ const _historyTree =
     'builds[number,url,result,timestamp,duration,displayName,building,'
     'estimatedDuration,actions[parameters[name,value]]]{0,20}';
 
+/// Jenkins resource URLs are directories; every sub-path (`api/json`,
+/// `build`, `stop`, …) is appended to a trailing-slash form (AUD-32).
+String _withSlash(String url) => url.endsWith('/') ? url : '$url/';
+
+/// "No such resource" is a normal, non-error state for optional per-build
+/// data (no test report, not a pipeline, nothing paused) — surfaced by
+/// Jenkins as a real 404.
+Result<T?, AppFailure>? _notFoundAsNull<T>(DioException exception) =>
+    exception.response?.statusCode == 404 ? const Ok(null) : null;
+
 class JenkinsRepositoryImpl implements JenkinsRepository {
   JenkinsRepositoryImpl(this._dio);
 
   final Dio _dio;
 
-  @override
-  Future<Result<List<JenkinsJob>, AppFailure>> fetchJobTree() async {
-    try {
-      final response = await _dio.get<Map<String, dynamic>>(
-        '/api/json',
-        queryParameters: {'tree': buildJobTreeQuery()},
-      );
-      final serverInfo = JenkinsServerInfoDto.fromJson(response.data!);
-      final jobs = serverInfo.jobs.map((dto) => dto.toDomain()).toList();
-      return Ok(rewriteJobTreeUrls(jobs, _dio.options.baseUrl));
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  String get _baseUrl => _dio.options.baseUrl;
 
   @override
-  Future<Result<JenkinsJob, AppFailure>> fetchJobDetail(String jobUrl) async {
-    try {
-      final base = jobUrl.endsWith('/') ? jobUrl : '$jobUrl/';
-      final response = await _dio.get<Map<String, dynamic>>(
-        '${base}api/json',
-        queryParameters: {'tree': _detailsTree},
-      );
-      final job = JenkinsJobDto.fromJson(response.data!).toDomain();
-      return Ok(rewriteJobTreeUrls([job], _dio.options.baseUrl).single);
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  Future<Result<List<JenkinsJob>, AppFailure>> fetchJobTree() =>
+      guardRequest(() async {
+        final response = await _dio.get<Map<String, dynamic>>(
+          '/api/json',
+          queryParameters: {'tree': buildJobTreeQuery()},
+        );
+        final serverInfo = JenkinsServerInfoDto.fromJson(response.data!);
+        final jobs = serverInfo.jobs.map((dto) => dto.toDomain()).toList();
+        return rewriteJobTreeUrls(jobs, _baseUrl);
+      });
+
+  @override
+  Future<Result<JenkinsJob, AppFailure>> fetchJobDetail(String jobUrl) =>
+      guardRequest(() async {
+        final response = await _dio.get<Map<String, dynamic>>(
+          '${_withSlash(jobUrl)}api/json',
+          queryParameters: {'tree': _detailsTree},
+        );
+        final job = JenkinsJobDto.fromJson(response.data!).toDomain();
+        return rewriteJobTreeUrls([job], _baseUrl).single;
+      });
 
   @override
   Future<Result<LogChunk, AppFailure>> streamBuildLog(
     String buildUrl, {
     int start = 0,
-  }) async {
-    try {
-      final base = buildUrl.endsWith('/') ? buildUrl : '$buildUrl/';
-      final response = await _dio.get<String>(
-        '${base}logText/progressiveText',
-        queryParameters: {'start': start},
-        options: Options(responseType: ResponseType.plain),
-      );
-      final text = response.data ?? '';
-      final nextOffsetHeader = response.headers.value('X-Text-Size');
-      final hasMoreHeader = response.headers.value('X-More-Data');
-      return Ok(
-        LogChunk(
-          text: text,
-          nextOffset:
-              int.tryParse(nextOffsetHeader ?? '') ?? (start + text.length),
-          hasMoreData: hasMoreHeader?.toLowerCase() == 'true',
-        ),
-      );
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  }) => guardRequest(() async {
+    final response = await _dio.get<String>(
+      '${_withSlash(buildUrl)}logText/progressiveText',
+      queryParameters: {'start': start},
+      options: Options(responseType: ResponseType.plain),
+    );
+    final text = response.data ?? '';
+    final nextOffsetHeader = response.headers.value('X-Text-Size');
+    final hasMoreHeader = response.headers.value('X-More-Data');
+    return LogChunk(
+      text: text,
+      nextOffset: int.tryParse(nextOffsetHeader ?? '') ?? (start + text.length),
+      hasMoreData: hasMoreHeader?.toLowerCase() == 'true',
+    );
+  });
 
   @override
   Future<Result<List<JenkinsBuild>, AppFailure>> fetchJobHistory(
     String jobUrl,
-  ) async {
-    try {
-      final base = jobUrl.endsWith('/') ? jobUrl : '$jobUrl/';
-      final response = await _dio.get<Map<String, dynamic>>(
-        '${base}api/json',
-        queryParameters: {'tree': _historyTree},
-      );
-      final buildsJson = response.data?['builds'] as List<dynamic>? ?? const [];
-      final builds = buildsJson
-          .map(
-            (json) => JenkinsBuildDto.fromJson(
-              json as Map<String, dynamic>,
-            ).toDomain(),
-          )
-          .toList();
-      return Ok(rewriteBuildUrls(builds, _dio.options.baseUrl));
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '${_withSlash(jobUrl)}api/json',
+      queryParameters: {'tree': _historyTree},
+    );
+    final buildsJson = response.data?['builds'] as List<dynamic>? ?? const [];
+    final builds = buildsJson
+        .map(
+          (json) =>
+              JenkinsBuildDto.fromJson(json as Map<String, dynamic>).toDomain(),
+        )
+        .toList();
+    return rewriteBuildUrls(builds, _baseUrl);
+  });
 
   @override
   Future<Result<String?, AppFailure>> triggerBuild(
@@ -159,140 +151,104 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
     required bool isParameterized,
     Map<String, String> parameters = const {},
     String? paramToken,
-  }) async {
-    try {
-      final base = jobUrl.endsWith('/') ? jobUrl : '$jobUrl/';
-      final hasParams = parameters.isNotEmpty;
-      final action = (isParameterized || hasParams)
-          ? 'buildWithParameters'
-          : 'build';
-      final response = await _dio.post<void>(
-        '$base$action',
-        data: hasParams ? parameters : null,
-        queryParameters: (paramToken != null && paramToken.isNotEmpty)
-            ? {'token': paramToken}
-            : null,
-        options: hasParams
-            ? Options(contentType: Headers.formUrlEncodedContentType)
-            : null,
-      );
-      final location = response.headers.value('location');
-      return Ok(
-        location == null ? null : rewriteUrl(location, _dio.options.baseUrl),
-      );
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  }) => guardRequest(() async {
+    final hasParams = parameters.isNotEmpty;
+    final action = (isParameterized || hasParams)
+        ? 'buildWithParameters'
+        : 'build';
+    final response = await _dio.post<void>(
+      '${_withSlash(jobUrl)}$action',
+      data: hasParams ? parameters : null,
+      queryParameters: (paramToken != null && paramToken.isNotEmpty)
+          ? {'token': paramToken}
+          : null,
+      options: hasParams
+          ? Options(contentType: Headers.formUrlEncodedContentType)
+          : null,
+    );
+    final location = response.headers.value('location');
+    return location == null ? null : rewriteUrl(location, _baseUrl);
+  });
 
   @override
-  Future<Result<void, AppFailure>> cancelBuild(String buildUrl) async {
-    try {
-      final base = buildUrl.endsWith('/') ? buildUrl : '$buildUrl/';
-      await _dio.post<void>('${base}stop');
-      return const Ok(null);
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  Future<Result<void, AppFailure>> cancelBuild(String buildUrl) =>
+      guardRequest(() => _dio.post<void>('${_withSlash(buildUrl)}stop'));
 
   @override
-  Future<Result<QueueItem, AppFailure>> fetchQueueItem(
-    String queueItemUrl,
-  ) async {
-    try {
-      final base = queueItemUrl.endsWith('/') ? queueItemUrl : '$queueItemUrl/';
-      final response = await _dio.get<Map<String, dynamic>>('${base}api/json');
-      final item = QueueItemDto.fromJson(response.data!).toDomain();
-      return Ok(rewriteQueueItemUrl(item, _dio.options.baseUrl));
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  Future<Result<QueueItem, AppFailure>> fetchQueueItem(String queueItemUrl) =>
+      guardRequest(() async {
+        final response = await _dio.get<Map<String, dynamic>>(
+          '${_withSlash(queueItemUrl)}api/json',
+        );
+        final item = QueueItemDto.fromJson(response.data!).toDomain();
+        return rewriteQueueItemUrl(item, _baseUrl);
+      });
 
   @override
-  Future<Result<TestReport?, AppFailure>> fetchTestReport(
-    String buildUrl,
-  ) async {
-    try {
-      final base = buildUrl.endsWith('/') ? buildUrl : '$buildUrl/';
-      final response = await _dio.get<Map<String, dynamic>>(
-        '${base}testReport/api/json',
-        queryParameters: {'tree': _testReportTree},
+  Future<Result<TestReport?, AppFailure>> fetchTestReport(String buildUrl) =>
+      guardRequest(
+        () async {
+          final response = await _dio.get<Map<String, dynamic>>(
+            '${_withSlash(buildUrl)}testReport/api/json',
+            queryParameters: {'tree': _testReportTree},
+          );
+          return TestReportDto.fromJson(response.data!).toDomain();
+        },
+        // No published test report (US-PIPE-06).
+        recover: _notFoundAsNull,
       );
-      return Ok(TestReportDto.fromJson(response.data!).toDomain());
-    } on DioException catch (exception) {
-      // No published test report is a normal state (US-PIPE-06's "Build
-      // has no test report" scenario), not a failure -- surfaces as a
-      // real 404 from Jenkins.
-      if (exception.response?.statusCode == 404) return const Ok(null);
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
 
   @override
   Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
     String buildUrl,
     String relativePath,
-  ) async {
-    try {
-      final base = buildUrl.endsWith('/') ? buildUrl : '$buildUrl/';
-      // Each path segment is percent-encoded separately so `/` in a
-      // subdirectory-relative path stays a path separator rather than
-      // being encoded away.
-      final encodedPath = relativePath
-          .split('/')
-          .map(Uri.encodeComponent)
-          .join('/');
-      final response = await _dio.get<List<int>>(
-        '${base}artifact/$encodedPath',
-        options: Options(responseType: ResponseType.bytes),
-      );
-      return Ok(Uint8List.fromList(response.data!));
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  ) => guardRequest(() async {
+    // Each path segment is percent-encoded separately so `/` in a
+    // subdirectory-relative path stays a path separator rather than
+    // being encoded away.
+    final encodedPath = relativePath
+        .split('/')
+        .map(Uri.encodeComponent)
+        .join('/');
+    final response = await _dio.get<List<int>>(
+      '${_withSlash(buildUrl)}artifact/$encodedPath',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return Uint8List.fromList(response.data!);
+  });
 
   @override
   Future<Result<List<PipelineStage>?, AppFailure>> fetchPipelineStages(
     String buildUrl,
-  ) async {
-    try {
-      final base = buildUrl.endsWith('/') ? buildUrl : '$buildUrl/';
+  ) => guardRequest(
+    () async {
       final response = await _dio.get<Map<String, dynamic>>(
-        '${base}wfapi/describe',
+        '${_withSlash(buildUrl)}wfapi/describe',
       );
-      return Ok(PipelineDescribeDto.fromJson(response.data!).toDomain());
-    } on DioException catch (exception) {
-      // Not a pipeline job (freestyle, or no Pipeline: REST API plugin) is
-      // a normal state (US-PIPE-04's fallback scenario), not a failure.
-      if (exception.response?.statusCode == 404) return const Ok(null);
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+      return PipelineDescribeDto.fromJson(response.data!).toDomain();
+    },
+    // Freestyle job, or no Pipeline: REST API plugin (US-PIPE-04).
+    recover: _notFoundAsNull,
+  );
 
   @override
   Future<Result<PendingInput?, AppFailure>> fetchPendingInput(
     String buildUrl,
-  ) async {
-    try {
-      final base = buildUrl.endsWith('/') ? buildUrl : '$buildUrl/';
+  ) => guardRequest(
+    () async {
       final response = await _dio.get<List<dynamic>>(
-        '${base}wfapi/pendingInputActions',
+        '${_withSlash(buildUrl)}wfapi/pendingInputActions',
       );
       final list = response.data ?? const [];
-      if (list.isEmpty) return const Ok(null);
-      final dto = PendingInputDto.fromJson(list.first as Map<String, dynamic>);
-      return Ok(dto.toDomain());
-    } on DioException catch (exception) {
-      // No Pipeline: REST API plugin, or nothing paused (older Jenkins
-      // versions 404 here instead of returning an empty array) is a
-      // normal state, not a failure.
-      if (exception.response?.statusCode == 404) return const Ok(null);
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+      if (list.isEmpty) return null;
+      return PendingInputDto.fromJson(
+        list.first as Map<String, dynamic>,
+      ).toDomain();
+    },
+    // No Pipeline: REST API plugin, or an older Jenkins that 404s instead
+    // of returning an empty array when nothing is paused.
+    recover: _notFoundAsNull,
+  );
 
   @override
   Future<Result<void, AppFailure>> submitInput({
@@ -300,28 +256,21 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
     required String inputId,
     required bool proceed,
     Map<String, String> parameters = const {},
-  }) async {
-    try {
-      final base = buildUrl.endsWith('/') ? buildUrl : '$buildUrl/';
-      final inputBase = '${base}input/${Uri.encodeComponent(inputId)}/';
-      if (!proceed) {
-        await _dio.post<void>('${inputBase}abort');
-        return const Ok(null);
-      }
-      if (parameters.isEmpty) {
-        await _dio.post<void>('${inputBase}proceedEmpty');
-      } else {
-        await _dio.post<void>(
-          '${inputBase}submit',
-          data: parameters,
-          options: Options(contentType: Headers.formUrlEncodedContentType),
-        );
-      }
-      return const Ok(null);
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
+  }) => guardRequest(() async {
+    final inputBase =
+        '${_withSlash(buildUrl)}input/${Uri.encodeComponent(inputId)}/';
+    if (!proceed) {
+      await _dio.post<void>('${inputBase}abort');
+    } else if (parameters.isEmpty) {
+      await _dio.post<void>('${inputBase}proceedEmpty');
+    } else {
+      await _dio.post<void>(
+        '${inputBase}submit',
+        data: parameters,
+        options: Options(contentType: Headers.formUrlEncodedContentType),
+      );
     }
-  }
+  });
 }
 
 @riverpod

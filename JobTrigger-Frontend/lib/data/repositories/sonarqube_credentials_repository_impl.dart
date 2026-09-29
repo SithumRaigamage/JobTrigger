@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/error/app_failure.dart';
+import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../core/network/backend_api_client.dart';
 import '../../domain/credential/sonarqube_credential.dart';
@@ -23,23 +24,20 @@ class SonarQubeCredentialsRepositoryImpl
   final Dio _dio;
 
   @override
-  Future<Result<List<SonarQubeCredential>, AppFailure>> fetchAll() async {
-    try {
-      final response = await _dio.get<List<dynamic>>(
-        '/api/sonarqube-credentials',
-      );
-      final credentials = response.data!
-          .map(
-            (json) => SonarQubeCredentialDto.fromJson(
-              json as Map<String, dynamic>,
-            ).toDomain(),
-          )
-          .toList();
-      return Ok(credentials);
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  Future<Result<List<SonarQubeCredential>, AppFailure>> fetchAll() =>
+      guardRequest(() async {
+        final response = await _dio.get<List<dynamic>>(
+          '/api/sonarqube-credentials',
+        );
+        final credentials = response.data!
+            .map(
+              (json) => SonarQubeCredentialDto.fromJson(
+                json as Map<String, dynamic>,
+              ).toDomain(),
+            )
+            .toList();
+        return credentials;
+      });
 
   @override
   Future<Result<SonarQubeCredential, AppFailure>> add({
@@ -48,23 +46,19 @@ class SonarQubeCredentialsRepositoryImpl
     required String secret,
     String? defaultOrganization,
     bool isDefault = false,
-  }) async {
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        '/api/sonarqube-credentials',
-        data: _body(
-          label: label,
-          baseUrl: baseUrl,
-          secret: secret,
-          defaultOrganization: defaultOrganization,
-          isDefault: isDefault,
-        ),
-      );
-      return Ok(SonarQubeCredentialDto.fromJson(response.data!).toDomain());
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  }) => guardRequest(() async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/api/sonarqube-credentials',
+      data: _body(
+        label: label,
+        baseUrl: baseUrl,
+        secret: secret,
+        defaultOrganization: defaultOrganization,
+        isDefault: isDefault,
+      ),
+    );
+    return SonarQubeCredentialDto.fromJson(response.data!).toDomain();
+  });
 
   @override
   Future<Result<SonarQubeCredential, AppFailure>> update(
@@ -74,47 +68,33 @@ class SonarQubeCredentialsRepositoryImpl
     required String secret,
     String? defaultOrganization,
     bool isDefault = false,
-  }) async {
-    try {
-      final response = await _dio.put<Map<String, dynamic>>(
-        '/api/sonarqube-credentials/$id',
-        data: _body(
-          label: label,
-          baseUrl: baseUrl,
-          secret: secret,
-          defaultOrganization: defaultOrganization,
-          isDefault: isDefault,
-        ),
-      );
-      return Ok(SonarQubeCredentialDto.fromJson(response.data!).toDomain());
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  }) => guardRequest(() async {
+    final response = await _dio.put<Map<String, dynamic>>(
+      '/api/sonarqube-credentials/$id',
+      data: _body(
+        label: label,
+        baseUrl: baseUrl,
+        secret: secret,
+        defaultOrganization: defaultOrganization,
+        isDefault: isDefault,
+      ),
+    );
+    return SonarQubeCredentialDto.fromJson(response.data!).toDomain();
+  });
 
   @override
-  Future<Result<void, AppFailure>> delete(String id) async {
-    try {
-      await _dio.delete<void>('/api/sonarqube-credentials/$id');
-      return const Ok(null);
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  Future<Result<void, AppFailure>> delete(String id) => guardRequest(() async {
+    await _dio.delete<void>('/api/sonarqube-credentials/$id');
+  });
 
   @override
-  Future<Result<SonarQubeCredential, AppFailure>> switchActive(
-    String id,
-  ) async {
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        '/api/sonarqube-credentials/switch/$id',
-      );
-      return Ok(SonarQubeCredentialDto.fromJson(response.data!).toDomain());
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  Future<Result<SonarQubeCredential, AppFailure>> switchActive(String id) =>
+      guardRequest(() async {
+        final response = await _dio.post<Map<String, dynamic>>(
+          '/api/sonarqube-credentials/switch/$id',
+        );
+        return SonarQubeCredentialDto.fromJson(response.data!).toDomain();
+      });
 
   Map<String, dynamic> _body({
     required String label,

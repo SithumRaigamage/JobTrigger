@@ -59,6 +59,9 @@ sealed class AppFailure {
       'Something went wrong on the server (HTTP $statusCode).',
     RateLimitFailure() =>
       "GitHub's rate limit was reached. Please wait a bit and try again.",
+    UnexpectedResponseFailure() =>
+      "The server sent a response the app didn't understand. Check that "
+          'the server URL is correct — not a login page or proxy.',
     UnknownFailure() => 'Something unexpected happened. Please try again.',
   };
 }
@@ -88,6 +91,17 @@ final class ServerFailure extends AppFailure {
 /// the Jenkins or backend clients.
 final class RateLimitFailure extends AppFailure {
   const RateLimitFailure();
+}
+
+/// The request completed but the response couldn't be understood — an HTML
+/// SSO/proxy page returned with `200`, a plugin returning an unexpected JSON
+/// shape, or a malformed server URL (AUD-11). Produced only by
+/// `guardRequest` (`core/error/guard.dart`). [debugMessage] is for logs and
+/// tests, never shown to the user (`NFR-SEC-04`).
+final class UnexpectedResponseFailure extends AppFailure {
+  const UnexpectedResponseFailure([this.debugMessage]);
+
+  final String? debugMessage;
 }
 
 final class UnknownFailure extends AppFailure {

@@ -32,7 +32,7 @@ AUD-08 (P11-04), AUD-10 (P11-05), AUD-12 (P11-11), AUD-13 (P11-11), AUD-18
       manifest.
 - [x] P12-03 **AUD-16.** Run CI on `flutter-migration` (and on all PRs to
       `develop`).
-- [ ] P12-04 **AUD-11 and AUD-32.** Add a shared repository guard mapping
+- [x] P12-04 **AUD-11 and AUD-32.** Add a shared repository guard mapping
       `DioException` to `fromDioException` and any other exception to a new
       `UnexpectedResponseFailure` (user-safe copy). Apply it to the
       Jenkins, GitHub, and SonarQube repositories and to

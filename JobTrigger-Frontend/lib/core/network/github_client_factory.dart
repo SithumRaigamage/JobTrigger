@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../presentation/features/settings/active_github_credential_notifier.dart';
 import '../error/app_failure.dart';
+import '../error/guard.dart';
 import '../error/result.dart';
 
 part 'github_client_factory.g.dart';
@@ -43,11 +44,11 @@ Future<Result<String, AppFailure>> testGitHubConnection({
 }) async {
   final dio = buildGitHubDio(token: token);
   try {
-    final response = await dio.get<Map<String, dynamic>>('/user');
-    final login = response.data?['login'] as String?;
-    return Ok(login ?? 'unknown');
-  } on DioException catch (exception) {
-    return Err(AppFailure.fromGitHubException(exception));
+    return await guardRequest(() async {
+      final response = await dio.get<Map<String, dynamic>>('/user');
+      final login = response.data?['login'] as String?;
+      return login ?? 'unknown';
+    }, mapDioException: AppFailure.fromGitHubException);
   } finally {
     dio.close();
   }

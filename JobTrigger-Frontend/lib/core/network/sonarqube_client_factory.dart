@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../presentation/features/settings/active_sonarqube_credential_notifier.dart';
 import '../error/app_failure.dart';
+import '../error/guard.dart';
 import '../error/result.dart';
 
 part 'sonarqube_client_factory.g.dart';
@@ -40,13 +41,17 @@ Future<Result<void, AppFailure>> testSonarQubeConnection({
 }) async {
   final dio = buildSonarQubeDio(baseUrl: baseUrl, token: token);
   try {
-    final response = await dio.get<Map<String, dynamic>>(
-      '/api/authentication/validate',
-    );
-    final valid = response.data?['valid'] == true;
-    return valid ? const Ok(null) : const Err(AuthFailure());
-  } on DioException catch (exception) {
-    return Err(AppFailure.fromDioException(exception));
+    final result = await guardRequest(() async {
+      final response = await dio.get<Map<String, dynamic>>(
+        '/api/authentication/validate',
+      );
+      return response.data?['valid'] == true;
+    });
+    return switch (result) {
+      Ok(value: true) => const Ok(null),
+      Ok() => const Err(AuthFailure()),
+      Err(:final error) => Err(error),
+    };
   } finally {
     dio.close();
   }

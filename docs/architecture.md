@@ -108,6 +108,26 @@ and use it everywhere). Notifiers unwrap `Either` and rethrow the failure so
 Riverpod's `AsyncError` machinery handles it; screens render failure copy
 from a single `AppFailure → String` mapper so error messaging is consistent.
 
+**As built:** the hand-rolled `Result<T, E>` was chosen (`core/error/result.dart`,
+no `fpdart`). Every repository method, and every "test connection" helper,
+runs its request through `guardRequest` (`core/error/guard.dart`, AUD-11)
+rather than writing its own `try`/`catch`:
+
+- `DioException` → `recover` (optional: return a `Result` to treat, say, a
+  404 as `Ok(null)`) → `mapDioException` (`AppFailure.fromDioException` by
+  default, `AppFailure.fromGitHubException` for GitHub).
+- Any other throwable → `UnexpectedResponseFailure`. That covers an HTML
+  SSO or proxy page returned with `200`, an unexpected JSON shape, a
+  malformed server URL, and Dio-wrapped `FormatException`/`TypeError`
+  decode failures. It's logged via `dart:developer`, and the raw text is
+  never shown to the user (`NFR-SEC-04`).
+
+Do all parsing and URL rewriting *inside* the guarded closure, so those
+failures are covered too. The sealed `AppFailure` variants are
+`NetworkFailure`, `AuthFailure`, `NotFoundFailure`,
+`ServerFailure(statusCode)`, `RateLimitFailure` (GitHub),
+`UnexpectedResponseFailure`, and `UnknownFailure`.
+
 ## 7. Background polling lifecycle
 
 Both real-time status polling (job detail) and log streaming (build log) use

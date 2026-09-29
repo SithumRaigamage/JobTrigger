@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/error/app_failure.dart';
+import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../core/network/backend_api_client.dart';
 import '../../domain/credential/github_credential.dart';
@@ -21,8 +22,8 @@ class GitHubCredentialsRepositoryImpl implements GitHubCredentialsRepository {
   final Dio _dio;
 
   @override
-  Future<Result<List<GitHubCredential>, AppFailure>> fetchAll() async {
-    try {
+  Future<Result<List<GitHubCredential>, AppFailure>> fetchAll() => guardRequest(
+    () async {
       final response = await _dio.get<List<dynamic>>('/api/github-credentials');
       final credentials = response.data!
           .map(
@@ -31,11 +32,9 @@ class GitHubCredentialsRepositoryImpl implements GitHubCredentialsRepository {
             ).toDomain(),
           )
           .toList();
-      return Ok(credentials);
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+      return credentials;
+    },
+  );
 
   @override
   Future<Result<GitHubCredential, AppFailure>> add({
@@ -43,22 +42,18 @@ class GitHubCredentialsRepositoryImpl implements GitHubCredentialsRepository {
     required String secret,
     String? defaultOwner,
     bool isDefault = false,
-  }) async {
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        '/api/github-credentials',
-        data: _body(
-          label: label,
-          secret: secret,
-          defaultOwner: defaultOwner,
-          isDefault: isDefault,
-        ),
-      );
-      return Ok(GitHubCredentialDto.fromJson(response.data!).toDomain());
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  }) => guardRequest(() async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/api/github-credentials',
+      data: _body(
+        label: label,
+        secret: secret,
+        defaultOwner: defaultOwner,
+        isDefault: isDefault,
+      ),
+    );
+    return GitHubCredentialDto.fromJson(response.data!).toDomain();
+  });
 
   @override
   Future<Result<GitHubCredential, AppFailure>> update(
@@ -67,44 +62,32 @@ class GitHubCredentialsRepositoryImpl implements GitHubCredentialsRepository {
     required String secret,
     String? defaultOwner,
     bool isDefault = false,
-  }) async {
-    try {
-      final response = await _dio.put<Map<String, dynamic>>(
-        '/api/github-credentials/$id',
-        data: _body(
-          label: label,
-          secret: secret,
-          defaultOwner: defaultOwner,
-          isDefault: isDefault,
-        ),
-      );
-      return Ok(GitHubCredentialDto.fromJson(response.data!).toDomain());
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  }) => guardRequest(() async {
+    final response = await _dio.put<Map<String, dynamic>>(
+      '/api/github-credentials/$id',
+      data: _body(
+        label: label,
+        secret: secret,
+        defaultOwner: defaultOwner,
+        isDefault: isDefault,
+      ),
+    );
+    return GitHubCredentialDto.fromJson(response.data!).toDomain();
+  });
 
   @override
-  Future<Result<void, AppFailure>> delete(String id) async {
-    try {
-      await _dio.delete<void>('/api/github-credentials/$id');
-      return const Ok(null);
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  Future<Result<void, AppFailure>> delete(String id) => guardRequest(() async {
+    await _dio.delete<void>('/api/github-credentials/$id');
+  });
 
   @override
-  Future<Result<GitHubCredential, AppFailure>> switchActive(String id) async {
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        '/api/github-credentials/switch/$id',
-      );
-      return Ok(GitHubCredentialDto.fromJson(response.data!).toDomain());
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  Future<Result<GitHubCredential, AppFailure>> switchActive(String id) =>
+      guardRequest(() async {
+        final response = await _dio.post<Map<String, dynamic>>(
+          '/api/github-credentials/switch/$id',
+        );
+        return GitHubCredentialDto.fromJson(response.data!).toDomain();
+      });
 
   Map<String, dynamic> _body({
     required String label,
