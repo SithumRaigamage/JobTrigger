@@ -8,7 +8,11 @@ class HistoryEntry {
   final String jobName;
   final JenkinsBuild build;
 
-  String get id => '$jobName-${build.number}';
+  /// Stable, globally unique row identity — the build's absolute URL.
+  /// Previously `'$jobName-$number'`, which collided whenever two jobs in
+  /// different folders share a name and build number (every multibranch
+  /// repo has a `main` #1), producing duplicate list keys (AUD-09).
+  String get id => build.url;
 }
 
 /// Builds the cross-job history timeline from an already-fetched job tree

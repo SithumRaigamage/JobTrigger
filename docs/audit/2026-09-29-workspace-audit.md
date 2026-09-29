@@ -45,7 +45,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-06 | High | Security (backend) | 500 responses leak internal `err.message` | open |
 | AUD-07 | High | Security (backend) | Vulnerable dependencies (`path-to-regexp` ReDoS, `mongoose`, `qs`) | open |
 | AUD-08 | High | UX / Safety | Trigger and Cancel fire with no confirmation, violating the Must criteria of US-JOB-02/03/05 | open |
-| AUD-09 | High | Bug | Global history uses duplicate `ValueKey`s when job names repeat across folders | open |
+| AUD-09 | High | Bug | Global history uses duplicate `ValueKey`s when job names repeat across folders | fixed (P12-05) |
 | AUD-10 | High | Bug | Folder breadcrumb shows stale or other-server contents after refresh or server switch | open |
 | AUD-11 | High | Bug / Architecture | Non-`DioException` errors escape the data layer and bypass `AppFailure` | fixed (P12-04) |
 | AUD-12 | High | Performance | Console log re-sanitizes and re-splits the whole log every second (O(n²)) | open |

@@ -38,7 +38,7 @@ AUD-08 (P11-04), AUD-10 (P11-05), AUD-12 (P11-11), AUD-13 (P11-11), AUD-18
       Jenkins, GitHub, and SonarQube repositories and to
       `testJenkinsConnection`. Add a `_withSlash` helper. Tests cover an
       HTML 200 body, a malformed JSON shape, and a malformed server URL.
-- [ ] P12-05 **AUD-09.** Key history rows by build URL. Add a test for
+- [x] P12-05 **AUD-09.** Key history rows by build URL. Add a test for
       colliding job names.
 - [ ] P12-06 **AUD-14.** Jenkins URL validation (scheme and host,
       normalised), an inline `http://` warning, and a specific message for
