@@ -44,7 +44,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-05 | High | Security (backend) | No rate limiting or lockout on login | open |
 | AUD-06 | High | Security (backend) | 500 responses leak internal `err.message` | open |
 | AUD-07 | High | Security (backend) | Vulnerable dependencies (`path-to-regexp` ReDoS, `mongoose`, `qs`) | open |
-| AUD-08 | High | UX / Safety | Trigger and Cancel fire with no confirmation, violating the Must criteria of US-JOB-02/03/05 | open |
+| AUD-08 | High | UX / Safety | Trigger and Cancel fire with no confirmation, violating the Must criteria of US-JOB-02/03/05 | fixed (P11-04) |
 | AUD-09 | High | Bug | Global history uses duplicate `ValueKey`s when job names repeat across folders | fixed (P12-05) |
 | AUD-10 | High | Bug | Folder breadcrumb shows stale or other-server contents after refresh or server switch | open |
 | AUD-11 | High | Bug / Architecture | Non-`DioException` errors escape the data layer and bypass `AppFailure` | fixed (P12-04) |
@@ -54,7 +54,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-15 | High | Release | Android release build signed with the debug key | open |
 | AUD-16 | High | DevOps | CI does not run on the active `flutter-migration` branch | fixed (P12-03) |
 | AUD-17 | High | DevOps / Security | Node 20 (EOL) in Dockerfile and CI; container runs as root | open |
-| AUD-18 | Medium | Bug | Edited build-parameter values silently reset when the form scrolls off-screen | open |
+| AUD-18 | Medium | Bug | Edited build-parameter values silently reset when the form scrolls off-screen | fixed (P11-04) |
 | AUD-19 | Medium | Bug | Folders at the tree depth limit render as jobs (5 levels fetched, docs say 6) | open |
 | AUD-20 | Medium | Performance | Home fetches the whole recursive tree (all levels, with `lastBuild`) on every load | open |
 | AUD-21 | Medium | Bug / Performance | Artifact download buffers the whole file in memory with a 15s timeout | open |
@@ -63,7 +63,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-24 | Medium | Security (backend) | Ownership failures return 401 (enables id probing); `isDefault` switch not atomic | open |
 | AUD-25 | Medium | Security (backend) | Wide-open CORS, no security headers, no fail-fast on missing `JWT_SECRET` | open |
 | AUD-26 | Medium | Security (backend) | Weak password policy, no server-side email validation, 7-day JWT with no revocation | open |
-| AUD-27 | Medium | Security / UX | Password build parameters rendered in plaintext and pre-filled | open (→ P11-04) |
+| AUD-27 | Medium | Security / UX | Password build parameters rendered in plaintext and pre-filled | fixed (P11-04) |
 | AUD-28 | Low | Privacy | Logout leaves per-user preferences behind on a shared device | open |
 | AUD-29 | Low | Bug | Artifact download state keyed by relative path only, shared across builds | open |
 | AUD-30 | Low | UI / A11y | Hardcoded colors bypass `AppColors` tokens (dark-mode contrast) | open |
@@ -72,9 +72,11 @@ are cross-referenced instead of being fixed twice.
 | AUD-33 | Low | UX | Search results lack folder context; empty state can't pull to refresh | open (→ P11-06) |
 | AUD-34 | Low | Bug | Log sanitizer leaves `\r` from CRLF; escape sequences split across chunks leak | open (→ P11-11) |
 | AUD-35 | Low | Docs | `CLAUDE.md` §1 still says "JWT bearer"; the backend actually uses `x-auth-token` | open |
+| AUD-37 | High | Bug | A duplicate parameterized trigger (Jenkins `303`, merged into the queued build) is reported as a failure | fixed (P11-04) |
+| AUD-38 | High | Bug | Triggering a job with a Run parameter from the untouched form fails (empty value → Jenkins `500`) | open (→ P11-06) |
 | AUD-36 | Low | Hygiene | Untracked leftovers in the workspace (1.2 GB build output, coverage, stray tool dirs) | fixed (local cleanup 2026-09-29) |
 
-**Counts:** 3 Critical, 13 High, 11 Medium, 9 Low (36 total).
+**Counts:** 3 Critical, 15 High, 11 Medium, 9 Low (38 total). AUD-37 and AUD-38 were found on 2026-09-29 during P11-04's real-server verification.
 
 ---
 
@@ -382,6 +384,29 @@ are cross-referenced instead of being fixed twice.
 - **What:** `PasswordParameterDefinition` falls through to a visible
   `TextFormField` pre-filled with the default. Tracked and fixed as
   **P11-04**.
+
+### AUD-37 — Duplicate parameterized trigger reported as a failure
+
+- **Where:** `JenkinsRepositoryImpl.triggerBuild`
+- **What:** When an identical parameterized build is already queued,
+  Jenkins merges the request into it and answers `303 See Other`, with the
+  existing queue item as `Location` (verified on the fixture Jenkins).
+  Dart doesn't follow redirects for POST, and Dio only accepts 2xx, so the
+  user saw "Something went wrong on the server (HTTP 303)" for a trigger
+  Jenkins had accepted.
+- **Fix (P11-04):** `followRedirects: false` and accept any status below
+  400. The `Location` is still returned, so queue tracking follows the
+  merged item.
+
+### AUD-38 — Empty Run parameter makes Jenkins return 500
+
+- **Where:** `parameter_form.dart` (a `RunParameterDefinition` falls
+  through to a free-text field that starts empty)
+- **What:** `buildWithParameters` with `BASE_BUILD=` (empty) returns HTTP
+  500, verified on the fixture Jenkins. Triggering any job that declares a
+  Run parameter, without typing a valid `job#number`, fails.
+- **Fix:** P11-06 (US-JX-02) adds a build picker for Run parameters and
+  keeps Trigger disabled until one is chosen.
 
 ## Low
 

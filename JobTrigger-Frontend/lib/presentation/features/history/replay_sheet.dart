@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/parameter_definition.dart';
+import '../../../domain/jenkins/parameter_values.dart';
 import '../../../domain/jenkins/reconcile_replay_parameters.dart';
+import '../job_detail/parameter_edits_notifier.dart';
 import '../job_detail/parameter_form.dart';
 import '../job_detail/trigger_build_notifier.dart';
 
@@ -28,18 +30,19 @@ class ReplaySheet extends ConsumerStatefulWidget {
 }
 
 class _ReplaySheetState extends ConsumerState<ReplaySheet> {
-  Map<String, String> _parameterValues = const {};
+  String get _formKey => 'replay:${widget.build.url}';
+
+  List<ParameterDefinition> get _reconciled => reconcileReplayParameters(
+    widget.job.parameterDefinitions,
+    widget.build.parameterValues,
+  );
 
   @override
   Widget build(BuildContext context) {
-    final currentDefinitions = widget.job.property
-        .expand(
-          (prop) => prop.parameterDefinitions ?? const <ParameterDefinition>[],
-        )
-        .toList();
-    final reconciled = reconcileReplayParameters(
-      currentDefinitions,
-      widget.build.parameterValues,
+    final reconciled = _reconciled;
+    final values = effectiveParameterValues(
+      reconciled,
+      ref.watch(parameterEditsNotifierProvider(_formKey)),
     );
     final isTriggering = ref
         .watch(triggerBuildNotifierProvider(widget.job.url))
@@ -72,7 +75,10 @@ class _ReplaySheetState extends ConsumerState<ReplaySheet> {
                 const SizedBox(height: 16),
                 ParameterForm(
                   parameters: reconciled,
-                  onChanged: (values) => _parameterValues = values,
+                  values: values,
+                  onChanged: ref
+                      .read(parameterEditsNotifierProvider(_formKey).notifier)
+                      .setValue,
                 ),
               ],
               const SizedBox(height: 16),
@@ -92,7 +98,13 @@ class _ReplaySheetState extends ConsumerState<ReplaySheet> {
     final navigator = Navigator.of(context);
     await ref
         .read(triggerBuildNotifierProvider(widget.job.url).notifier)
-        .trigger(job: widget.job, parameters: _parameterValues);
+        .trigger(
+          job: widget.job,
+          parameters: effectiveParameterValues(
+            _reconciled,
+            ref.read(parameterEditsNotifierProvider(_formKey)),
+          ),
+        );
     if (mounted) navigator.pop();
   }
 }

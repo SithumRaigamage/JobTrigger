@@ -7,13 +7,14 @@ import '../../../core/theme/app_colors.dart';
 import '../../../domain/jenkins/build_artifact.dart';
 import '../../../domain/jenkins/build_progress.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
-import '../../../domain/jenkins/parameter_definition.dart';
+import '../../../domain/jenkins/parameter_values.dart';
 import '../../../domain/jenkins/pending_input.dart';
 import '../../../domain/jenkins/pipeline_stage.dart';
 import '../../../domain/jenkins/queue_item.dart';
 import '../../../domain/jenkins/scm_change.dart';
 import '../../../domain/jenkins/test_report.dart';
 import '../../../domain/jenkins/upstream_cause.dart';
+import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
@@ -23,6 +24,7 @@ import 'build_status_polling_notifier.dart';
 import 'cancel_build_notifier.dart';
 import 'input_submit_notifier.dart';
 import 'job_detail_notifier.dart';
+import 'parameter_edits_notifier.dart';
 import 'parameter_form.dart';
 import 'pending_input_notifier.dart';
 import 'pipeline_stages_notifier.dart';
@@ -34,24 +36,22 @@ import 'trigger_build_notifier.dart';
 /// the (possibly stale, tree-fetched) job passed via navigation `extra` —
 /// used as the family key and as a display fallback until the richer
 /// detail fetch completes.
-class JobDetailScreen extends ConsumerStatefulWidget {
+class JobDetailScreen extends ConsumerWidget {
   const JobDetailScreen({super.key, required this.job});
 
   final JenkinsJob job;
 
   @override
-  ConsumerState<JobDetailScreen> createState() => _JobDetailScreenState();
-}
-
-class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
-  Map<String, String> _parameterValues = const {};
-
-  @override
-  Widget build(BuildContext context) {
-    final jobUrl = widget.job.url;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final jobUrl = job.url;
     // Keeps the 5s poll-while-building loop alive for as long as this
     // screen is on screen; cancelled automatically when it's not (P5-06).
     ref.watch(buildStatusPollingNotifierProvider(jobUrl));
+    // Watched here (not only in the body) so parameter edits survive for
+    // the screen's lifetime, whatever the body is doing (AUD-18). Read
+    // again at tap time, never captured here -- a closure built from this
+    // frame's value could miss an edit made just before the tap.
+    ref.watch(parameterEditsNotifierProvider(jobUrl));
 
     final jobAsync = ref.watch(jobDetailNotifierProvider(jobUrl));
     final isTriggering = ref
@@ -61,18 +61,17 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
         .watch(cancelBuildNotifierProvider(jobUrl))
         .isLoading;
     final queueItem = ref.watch(queueStatusNotifierProvider(jobUrl));
-    final job = jobAsync.value;
+    final loadedJob = jobAsync.value;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlassAppBar(
-        title: Text(widget.job.name),
+        title: Text(job.name),
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
             tooltip: 'History',
-            onPressed: () =>
-                context.push(AppRoutes.jobHistory, extra: widget.job),
+            onPressed: () => context.push(AppRoutes.jobHistory, extra: job),
           ),
         ],
       ),
@@ -87,8 +86,8 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
               child: jobAsync.when(
                 data: (job) => _JobDetailBody(
                   job: job,
+                  formKey: jobUrl,
                   queueItem: queueItem,
-                  onParametersChanged: (values) => _parameterValues = values,
                   onViewLog: job.lastBuild == null
                       ? null
                       : () => context.push(
@@ -108,27 +107,102 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
               ),
             ),
           ),
-          if (job != null)
+          if (loadedJob != null)
             ResponsiveCenter(
               child: _ActionBar(
-                job: job,
+                job: loadedJob,
                 isTriggering: isTriggering,
                 isCancelling: isCancelling,
-                onTrigger: () => ref
-                    .read(triggerBuildNotifierProvider(jobUrl).notifier)
-                    .trigger(job: job, parameters: _parameterValues),
-                onCancel: (job.lastBuild != null && job.lastBuild!.building)
-                    ? () => ref
-                          .read(cancelBuildNotifierProvider(jobUrl).notifier)
-                          .cancel(
-                            buildUrl: job.lastBuild!.url,
-                            buildNumber: job.lastBuild!.number,
-                          )
+                onTrigger: () => _confirmAndTrigger(context, ref, loadedJob),
+                onCancel:
+                    (loadedJob.lastBuild != null &&
+                        loadedJob.lastBuild!.building)
+                    ? () => _confirmAndCancel(context, ref, loadedJob)
                     : null,
               ),
             ),
         ],
       ),
+    );
+  }
+
+  /// AUD-08 / US-JOB-02/03: triggering has real side effects on a live
+  /// system, so it's never a single accidental tap. The summary shows what
+  /// will be sent, with secrets masked.
+  Future<void> _confirmAndTrigger(
+    BuildContext context,
+    WidgetRef ref,
+    JenkinsJob job,
+  ) async {
+    final values = effectiveParameterValues(
+      job.parameterDefinitions,
+      ref.read(parameterEditsNotifierProvider(job.url)),
+    );
+    final summary = parameterSummary(job.parameterDefinitions, values);
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Trigger build?',
+      message: 'Start a new build of ${job.name}.',
+      confirmLabel: 'Trigger',
+      details: summary.isEmpty ? null : _ParameterSummaryList(rows: summary),
+    );
+    if (!confirmed) return;
+    await ref
+        .read(triggerBuildNotifierProvider(job.url).notifier)
+        .trigger(job: job, parameters: values);
+  }
+
+  /// AUD-08 / US-JOB-05.
+  Future<void> _confirmAndCancel(
+    BuildContext context,
+    WidgetRef ref,
+    JenkinsJob job,
+  ) async {
+    final build = job.lastBuild!;
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Cancel build #${build.number}?',
+      message: 'This stops the running build of ${job.name}.',
+      confirmLabel: 'Cancel build',
+      destructive: true,
+    );
+    if (!confirmed) return;
+    await ref
+        .read(cancelBuildNotifierProvider(job.url).notifier)
+        .cancel(buildUrl: build.url, buildNumber: build.number);
+  }
+}
+
+/// The parameter values a trigger will send, as shown in its confirmation.
+class _ParameterSummaryList extends StatelessWidget {
+  const _ParameterSummaryList({required this.rows});
+
+  final List<ParameterSummaryRow> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final row in rows)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '${row.name}: ',
+                    style: textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  TextSpan(text: row.display, style: textTheme.bodySmall),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -193,23 +267,25 @@ class _ActionBar extends StatelessWidget {
 class _JobDetailBody extends ConsumerWidget {
   const _JobDetailBody({
     required this.job,
+    required this.formKey,
     required this.queueItem,
-    required this.onParametersChanged,
     required this.onViewLog,
   });
 
   final JenkinsJob job;
+
+  /// `ParameterEditsNotifier` key for this job's trigger form.
+  final String formKey;
   final QueueItem? queueItem;
-  final ValueChanged<Map<String, String>> onParametersChanged;
   final VoidCallback? onViewLog;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final parameterDefinitions = job.property
-        .expand(
-          (prop) => prop.parameterDefinitions ?? const <ParameterDefinition>[],
-        )
-        .toList();
+    final parameterDefinitions = job.parameterDefinitions;
+    final parameterValues = effectiveParameterValues(
+      parameterDefinitions,
+      ref.watch(parameterEditsNotifierProvider(formKey)),
+    );
     final testReport = job.lastBuild == null
         ? null
         : ref.watch(testReportNotifierProvider(job.lastBuild!.url)).value;
@@ -274,7 +350,10 @@ class _JobDetailBody extends ConsumerWidget {
           const SizedBox(height: 12),
           ParameterForm(
             parameters: parameterDefinitions,
-            onChanged: onParametersChanged,
+            values: parameterValues,
+            onChanged: ref
+                .read(parameterEditsNotifierProvider(formKey).notifier)
+                .setValue,
           ),
         ],
       ],
@@ -303,10 +382,14 @@ class _PendingInputBanner extends ConsumerStatefulWidget {
 }
 
 class _PendingInputBannerState extends ConsumerState<_PendingInputBanner> {
-  Map<String, String> _parameterValues = const {};
+  String get _formKey => 'input:${widget.buildUrl}#${widget.input.id}';
 
   @override
   Widget build(BuildContext context) {
+    final parameterValues = effectiveParameterValues(
+      widget.input.inputs,
+      ref.watch(parameterEditsNotifierProvider(_formKey)),
+    );
     final isSubmitting = ref
         .watch(inputSubmitNotifierProvider(widget.buildUrl))
         .isLoading;
@@ -339,7 +422,10 @@ class _PendingInputBannerState extends ConsumerState<_PendingInputBanner> {
               const SizedBox(height: 12),
               ParameterForm(
                 parameters: widget.input.inputs,
-                onChanged: (values) => _parameterValues = values,
+                values: parameterValues,
+                onChanged: ref
+                    .read(parameterEditsNotifierProvider(_formKey).notifier)
+                    .setValue,
               ),
             ],
             const SizedBox(height: 12),
@@ -373,31 +459,26 @@ class _PendingInputBannerState extends ConsumerState<_PendingInputBanner> {
     BuildContext context, {
     required bool proceed,
   }) async {
-    final actionLabel = proceed
-        ? widget.input.proceedText
-        : widget.input.abortText;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(actionLabel),
-        content: Text(
-          proceed
-              ? 'This will resume the paused pipeline. Are you sure?'
-              : 'This will abort the paused pipeline. Are you sure?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(actionLabel),
-          ),
-        ],
-      ),
+    // Read at tap time, not captured at build (see `_confirmAndTrigger`).
+    final values = effectiveParameterValues(
+      widget.input.inputs,
+      ref.read(parameterEditsNotifierProvider(_formKey)),
     );
-    if (confirmed != true || !context.mounted) return;
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: proceed ? widget.input.proceedText : widget.input.abortText,
+      message: proceed
+          ? 'This will resume the paused pipeline. Are you sure?'
+          : 'This will abort the paused pipeline. Are you sure?',
+      confirmLabel: proceed ? widget.input.proceedText : widget.input.abortText,
+      destructive: !proceed,
+      details: proceed && widget.input.inputs.isNotEmpty
+          ? _ParameterSummaryList(
+              rows: parameterSummary(widget.input.inputs, values),
+            )
+          : null,
+    );
+    if (!confirmed || !context.mounted) return;
 
     await ref
         .read(inputSubmitNotifierProvider(widget.buildUrl).notifier)
@@ -405,7 +486,7 @@ class _PendingInputBannerState extends ConsumerState<_PendingInputBanner> {
           jobUrl: widget.jobUrl,
           inputId: widget.input.id,
           proceed: proceed,
-          parameters: _parameterValues,
+          parameters: proceed ? values : const {},
         );
   }
 }

@@ -163,9 +163,16 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
       queryParameters: (paramToken != null && paramToken.isNotEmpty)
           ? {'token': paramToken}
           : null,
-      options: hasParams
-          ? Options(contentType: Headers.formUrlEncodedContentType)
-          : null,
+      options: Options(
+        contentType: hasParams ? Headers.formUrlEncodedContentType : null,
+        // AUD-37: when an identical parameterized build is already queued,
+        // Jenkins merges the request into it and answers `303 See Other`
+        // with that queue item as `Location`. That's an accepted trigger,
+        // but Dart doesn't follow redirects for POST, so without this Dio
+        // reported it as a failure. Verified on the fixture Jenkins.
+        followRedirects: false,
+        validateStatus: (status) => status != null && status < 400,
+      ),
     );
     final location = response.headers.value('location');
     return location == null ? null : rewriteUrl(location, _baseUrl);

@@ -2,6 +2,7 @@ import 'downstream_project.dart';
 import 'health_report.dart';
 import 'jenkins_build.dart';
 import 'job_property.dart';
+import 'parameter_definition.dart';
 
 class JenkinsJob {
   const JenkinsJob({
@@ -39,4 +40,9 @@ class JenkinsJob {
 
   bool get isParameterized =>
       property.any((prop) => prop.parameterDefinitions != null);
+
+  /// Every parameter the job declares, flattened across its properties.
+  List<ParameterDefinition> get parameterDefinitions => [
+    for (final prop in property) ...?prop.parameterDefinitions,
+  ];
 }

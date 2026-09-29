@@ -11,7 +11,9 @@ import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
+import 'package:job_trigger/domain/jenkins/job_property.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
+import 'package:job_trigger/domain/jenkins/parameter_definition.dart';
 import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
 import 'package:job_trigger/domain/jenkins/queue_item.dart';
@@ -30,6 +32,7 @@ class _FakeRepository implements JenkinsRepository {
   Result<String?, AppFailure>? triggerResult;
   int fetchJobDetailCallCount = 0;
   int triggerBuildCallCount = 0;
+  Map<String, String>? lastParameters;
 
   @override
   Future<Result<JenkinsJob, AppFailure>> fetchJobDetail(String jobUrl) async {
@@ -45,6 +48,7 @@ class _FakeRepository implements JenkinsRepository {
     String? paramToken,
   }) async {
     triggerBuildCallCount++;
+    lastParameters = parameters;
     return triggerResult!;
   }
 
@@ -219,6 +223,52 @@ void main() {
       expect(state.error, isA<NetworkFailure>());
       expect(repo.fetchJobDetailCallCount, 1);
       expect(container.read(currentToastProvider)?.type, ToastType.error);
+    },
+  );
+
+  test(
+    'a blank password parameter is omitted, not sent empty (US-JX-01)',
+    () async {
+      final repo = _FakeRepository()..triggerResult = const Ok(null);
+      final container = ProviderContainer(
+        overrides: [
+          jenkinsRepositoryProvider.overrideWithValue(repo),
+          credentialsRepositoryProvider.overrideWithValue(
+            _FakeCredentialsRepository(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(jobDetailNotifierProvider(_jobUrl), (_, _) {});
+      container.listen(triggerBuildNotifierProvider(_jobUrl), (_, _) {});
+
+      const job = JenkinsJob(
+        name: 'demo',
+        url: _jobUrl,
+        property: [
+          JobProperty(
+            parameterDefinitions: [
+              ParameterDefinition(
+                name: 'BRANCH',
+                type: 'StringParameterDefinition',
+              ),
+              ParameterDefinition(
+                name: 'DEPLOY_TOKEN',
+                type: 'PasswordParameterDefinition',
+              ),
+            ],
+          ),
+        ],
+      );
+
+      await container
+          .read(triggerBuildNotifierProvider(_jobUrl).notifier)
+          .trigger(
+            job: job,
+            parameters: {'BRANCH': 'main', 'DEPLOY_TOKEN': ''},
+          );
+
+      expect(repo.lastParameters, {'BRANCH': 'main'});
     },
   );
 }

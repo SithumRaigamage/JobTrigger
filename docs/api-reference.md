@@ -47,7 +47,7 @@ Jenkins credentials are not JWTs and don't rotate mid-session.
 | `{baseURL}/api/json?tree=jobs[name,url,color,jobs[name,url,color,jobs[...]]]` | GET | Recursive job/folder tree | Depth-limit the `tree` query at 6 levels to match the original app; going deeper risks huge payloads on large Jenkins instances. **Note (AUD-19):** the code currently builds 5 levels, not 6. Phase 11 replaces this with lazy per-folder loading (see below) |
 | `{jobURL}api/json?tree={detailsTree}` | GET | Job detail: params, health, recent builds | `detailsTree` includes `property[parameterDefinitions[*]],healthReport[*],lastBuild[*],builds[number,url,result,timestamp,duration,building]` |
 | `{jobURL}build` | POST | Trigger build, no params | |
-| `{jobURL}buildWithParameters` | POST | Trigger build with params | Body: `application/x-www-form-urlencoded`, all values stringified |
+| `{jobURL}buildWithParameters` | POST | Trigger build with params | Body: `application/x-www-form-urlencoded`, all values stringified. **A blank password parameter is omitted**, because an explicit `''` overrides the stored secret (US-JX-01). A duplicate of an already-queued identical build returns **303** with that queue item as `Location`, which counts as success (AUD-37). An empty Run parameter returns **500** (AUD-38) |
 | `{jobURL}{buildNumber}/stop` | POST | Cancel a running build | Optimistically flip local state to `ABORTED` before the next poll confirms it |
 | `{buildURL}logText/progressiveText?start={offset}` | GET | Incremental console log | Read `X-Text-Size` (next offset) and `X-More-Data` (bool) response headers; stop polling when `X-More-Data` is absent/false |
 

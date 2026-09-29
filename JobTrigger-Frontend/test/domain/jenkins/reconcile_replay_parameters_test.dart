@@ -89,4 +89,18 @@ void main() {
       expect(reconcileReplayParameters(const [], const {}), isEmpty);
     });
   });
+
+  test('never replays a secret -- it stays blank for the server default', () {
+    final result = reconcileReplayParameters(
+      const [
+        ParameterDefinition(
+          name: 'DEPLOY_TOKEN',
+          type: 'PasswordParameterDefinition',
+        ),
+      ],
+      {'DEPLOY_TOKEN': 'historic-secret'},
+    );
+
+    expect(result.single.defaultValue, isNull);
+  });
 }

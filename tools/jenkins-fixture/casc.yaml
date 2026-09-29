@@ -122,7 +122,11 @@ jobs:
           }
         }
         steps {
-          shell('echo "BRANCH=$BRANCH DRY_RUN=$DRY_RUN TARGET=$TARGET BASE_BUILD=$BASE_BUILD"; [ -f config.json ] && echo "config.json: $(wc -c < config.json) bytes" || echo "no config.json"')
+          // Prints the secret's LENGTH only (never its value), so tests can
+          // tell "server default used" (22) from "sent empty" (0).
+          // `#!/bin/sh -e`, not Jenkins' default `sh -xe`: the -x trace
+          // would echo the expanded secret into the console.
+          shell('#!/bin/sh -e\necho "BRANCH=$BRANCH DRY_RUN=$DRY_RUN TARGET=$TARGET BASE_BUILD=$BASE_BUILD"; echo "DEPLOY_TOKEN length: $(printf %s "$DEPLOY_TOKEN" | wc -c | tr -d " ")"; [ -f config.json ] && echo "config.json: $(wc -c < config.json) bytes" || echo "no config.json"')
         }
       }
 

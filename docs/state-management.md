@@ -32,6 +32,22 @@ their screen under `presentation/features/<feature>/`.
   (AUD-01). Its `build()` also deletes the legacy `login_saved_password`
   key that builds before AUD-01 wrote.
 
+## Feature: job_detail — parameters (P11-04)
+
+- `ParameterEditsNotifier` (`Notifier<Map<String, String>>`, family by a
+  form key) holds **only the user's edits**. The key is the job URL for
+  the trigger form, `replay:<buildUrl>` for replay, and
+  `input:<buildUrl>#<inputId>` for an input step. What a form shows is
+  `effectiveParameterValues(definitions, edits)`, a pure function in
+  `domain/jenkins/parameter_values.dart`. So a 5s poll re-fetching the job
+  never resets typed values, and a field rebuilt after scrolling keeps
+  them (AUD-18). Screens read the edits **at tap time** when confirming,
+  not from a closure captured at build.
+- `TriggerBuildNotifier.trigger` sends
+  `triggerParameters(definitions, values)`. That omits blank password
+  parameters so Jenkins applies its stored default (US-JX-01), and every
+  trigger path (job detail, replay) gets the rule.
+
 ## Feature: tool_selection
 
 - No notifier needed initially (static grid); if GitHub Actions/GitLab/etc.

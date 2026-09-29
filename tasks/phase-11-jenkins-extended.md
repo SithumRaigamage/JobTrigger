@@ -114,13 +114,33 @@ Each task names the `AUD-##` ids it closes.
 
 ## Part C — Depth gaps in existing features
 
-- [ ] P11-04 **US-JX-01 password parameters and safe triggering.** Mask
+- [x] P11-04 **US-JX-01 password parameters and safe triggering.** Mask
       password parameters with no pre-fill (AUD-27). Lift parameter values
       out of `ParameterForm` state into a `ParameterValuesNotifier` family
       keyed by job URL, so edits survive scrolling (AUD-18). Add a
       confirmation sheet before trigger (with a parameter summary, passwords
       shown as `••••`) and before cancel, meeting the Must criteria of
       US-JOB-02/03/05 (AUD-08). Exclude password values from replay.
+      **Done 2026-09-29.** Summary:
+      - **Domain:** pure rules in `domain/jenkins/parameter_values.dart`
+        (initial, effective, and trigger values, plus the summary), and
+        `JenkinsJob.parameterDefinitions`.
+      - **State:** `ParameterEditsNotifier` stores only edits, so poll
+        refreshes and scrolling can't reset them.
+      - **UI:** `ParameterForm` is now stateless. There's a shared
+        `showConfirmationDialog` for trigger, cancel, and input steps.
+        Values are read at tap time, never captured at build.
+      - **Real-server findings:**
+        1. Jenkins never returns password defaults or recorded values.
+        2. Sending a blank password as `''` **overwrote the stored secret**
+           (proved on the fixture, where the logged length went from 22 to
+           0). Blank secrets are now omitted.
+        3. A duplicate parameterized trigger returns 303. That's a success,
+           and it's now handled (AUD-37).
+        4. An empty Run parameter returns 500 (AUD-38, handed to P11-06).
+      - **Fixture job fix:** `params-all` uses `#!/bin/sh -e`, since
+        Jenkins' default `sh -xe` trace echoed the secret.
+      - **Tests:** 24 new unit and widget tests, plus 4 fixture tests.
 - [ ] P11-05 **Tree foundations.** Add `_class`, `displayName`, and
       `buildable` to the job DTO. Replace the depth-limited whole-tree fetch
       with root plus lazy per-folder loading and a per-folder cache
@@ -129,7 +149,11 @@ Each task names the `AUD-##` ids it closes.
       Debounce search at 250 ms. Search runs over an index built from loaded
       folders plus a background full crawl, bounded by `NFR-PERF-02`.
       Global history (P5-14) is rebuilt on the new source.
-- [ ] P11-06 **US-JX-02 all parameter types.** Text (multi-line), Run
+- [ ] P11-06 **US-JX-02 all parameter types.** **Must also close
+      AUD-38:** an empty Run parameter is a Jenkins 500, so Run needs a
+      real picker and Trigger stays disabled until a build is chosen. Also
+      decide Credentials: an empty value was accepted (201) on the fixture,
+      but check that the job's own default applies when it's omitted. Text (multi-line), Run
       (build picker), Credentials (id field), File (multipart upload, 50 MB
       guard; **new dependency `file_picker`**), and unknown plugin types
       with a labelled fallback. Validation keeps Trigger disabled until the

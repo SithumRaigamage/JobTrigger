@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 
@@ -12,9 +13,10 @@ import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 /// (deploy/push-image/send-email params), so this is done against a fake
 /// adapter instead, per the user's choice for P5-18.
 class _RecordingAdapter implements HttpClientAdapter {
-  _RecordingAdapter({this.locationHeader});
+  _RecordingAdapter({this.locationHeader, this.statusCode = 201});
 
   final String? locationHeader;
+  final int statusCode;
   RequestOptions? lastRequest;
 
   @override
@@ -26,7 +28,7 @@ class _RecordingAdapter implements HttpClientAdapter {
     lastRequest = options;
     return ResponseBody.fromString(
       '',
-      201,
+      statusCode,
       headers: locationHeader == null
           ? null
           : {
@@ -190,5 +192,45 @@ void main() {
     await repo.cancelBuild('https://jenkins.test/job/demo/42/');
 
     expect(adapter.lastRequest?.path, 'https://jenkins.test/job/demo/42/stop');
+  });
+
+  test(
+    '303 for a duplicate of an already-queued build is a success (AUD-37)',
+    () async {
+      final adapter = _RecordingAdapter(
+        statusCode: 303,
+        locationHeader: 'http://jenkins.internal:8080/queue/item/75/',
+      );
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+      final repo = JenkinsRepositoryImpl(dio);
+
+      final result = await repo.triggerBuild(
+        'https://jenkins.test/job/demo',
+        isParameterized: true,
+        parameters: {'BRANCH': 'main'},
+      );
+
+      expect(result, isA<Ok<String?, AppFailure>>());
+      // The existing queue item, rewritten to the active server.
+      expect(
+        (result as Ok<String?, AppFailure>).value,
+        'https://jenkins.test/queue/item/75/',
+      );
+    },
+  );
+
+  test('a 4xx trigger response is still a failure', () async {
+    final adapter = _RecordingAdapter(statusCode: 403);
+    final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+      ..httpClientAdapter = adapter;
+    final repo = JenkinsRepositoryImpl(dio);
+
+    final result = await repo.triggerBuild(
+      'https://jenkins.test/job/demo',
+      isParameterized: false,
+    );
+
+    expect((result as Err<String?, AppFailure>).error, isA<AuthFailure>());
   });
 }

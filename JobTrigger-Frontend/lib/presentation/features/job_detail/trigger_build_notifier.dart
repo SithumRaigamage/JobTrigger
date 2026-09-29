@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
+import '../../../domain/jenkins/parameter_values.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../settings/active_server_notifier.dart';
 import 'job_detail_notifier.dart';
@@ -37,7 +38,10 @@ class TriggerBuildNotifier extends _$TriggerBuildNotifier {
         .triggerBuild(
           jobUrl,
           isParameterized: job.isParameterized,
-          parameters: parameters,
+          // Blank secrets are omitted so Jenkins keeps its stored default
+          // (US-JX-01) -- applied here so every trigger path (job detail,
+          // replay) gets it.
+          parameters: triggerParameters(job.parameterDefinitions, parameters),
           paramToken: paramToken,
         );
 
