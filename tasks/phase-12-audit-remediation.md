@@ -22,7 +22,7 @@ AUD-08 (P11-04), AUD-10 (P11-05), AUD-12 (P11-11), AUD-13 (P11-11), AUD-18
 
 ## Frontend and tooling
 
-- [ ] P12-01 **AUD-01 (Critical).** Stop persisting the login password.
+- [x] P12-01 **AUD-01 (Critical).** Stop persisting the login password.
       Remember only the email, clear saved values when "Remember me" is
       unchecked, and delete the legacy `login_saved_password` key on
       startup. Move the logic from `LoginScreen` into a notifier with

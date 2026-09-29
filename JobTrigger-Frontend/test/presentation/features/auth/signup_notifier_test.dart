@@ -45,11 +45,13 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    await container.read(signupNotifierProvider.notifier).signup(
-      email: 'not-an-email',
-      password: 'password',
-      confirmPassword: 'password',
-    );
+    await container
+        .read(signupNotifierProvider.notifier)
+        .signup(
+          email: 'not-an-email',
+          password: 'password',
+          confirmPassword: 'password',
+        );
 
     expect(container.read(signupNotifierProvider).hasError, isTrue);
     expect(repo.signupCallCount, 0);
@@ -62,11 +64,9 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    await container.read(signupNotifierProvider.notifier).signup(
-      email: 'a@b.com',
-      password: 'short',
-      confirmPassword: 'short',
-    );
+    await container
+        .read(signupNotifierProvider.notifier)
+        .signup(email: 'a@b.com', password: 'short', confirmPassword: 'short');
 
     expect(container.read(signupNotifierProvider).hasError, isTrue);
     expect(repo.signupCallCount, 0);
@@ -79,11 +79,13 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    await container.read(signupNotifierProvider.notifier).signup(
-      email: 'a@b.com',
-      password: 'password',
-      confirmPassword: 'different',
-    );
+    await container
+        .read(signupNotifierProvider.notifier)
+        .signup(
+          email: 'a@b.com',
+          password: 'password',
+          confirmPassword: 'different',
+        );
 
     expect(container.read(signupNotifierProvider).hasError, isTrue);
     expect(repo.signupCallCount, 0);
@@ -96,11 +98,9 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    await container.read(signupNotifierProvider.notifier).signup(
-      email: 'a@b.com',
-      password: 'password',
-      confirmPassword: '',
-    );
+    await container
+        .read(signupNotifierProvider.notifier)
+        .signup(email: 'a@b.com', password: 'password', confirmPassword: '');
 
     expect(container.read(signupNotifierProvider).hasError, isTrue);
     expect(repo.signupCallCount, 0);
@@ -118,11 +118,13 @@ void main() {
     addTearDown(container.dispose);
     container.listen(authNotifierProvider, (_, _) {});
 
-    await container.read(signupNotifierProvider.notifier).signup(
-      email: 'a@b.com',
-      password: 'password',
-      confirmPassword: 'password',
-    );
+    await container
+        .read(signupNotifierProvider.notifier)
+        .signup(
+          email: 'a@b.com',
+          password: 'password',
+          confirmPassword: 'password',
+        );
 
     expect(container.read(signupNotifierProvider).hasError, isFalse);
     expect(container.read(authNotifierProvider).value, isA<Authenticated>());
@@ -136,11 +138,13 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    await container.read(signupNotifierProvider.notifier).signup(
-      email: 'a@b.com',
-      password: 'password',
-      confirmPassword: 'password',
-    );
+    await container
+        .read(signupNotifierProvider.notifier)
+        .signup(
+          email: 'a@b.com',
+          password: 'password',
+          confirmPassword: 'password',
+        );
 
     expect(container.read(signupNotifierProvider).error, isA<AppFailure>());
   });

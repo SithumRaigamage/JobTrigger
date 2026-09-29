@@ -38,21 +38,23 @@ void main() {
         InMemorySharedPreferencesStore.empty();
   });
 
-  test('rejects an empty email or password without calling the repository', () async {
-    final repo = _FakeAuthRepository();
-    final container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
+  test(
+    'rejects an empty email or password without calling the repository',
+    () async {
+      final repo = _FakeAuthRepository();
+      final container = ProviderContainer(
+        overrides: [authRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(container.dispose);
 
-    await container.read(loginNotifierProvider.notifier).login(
-      email: '',
-      password: '',
-    );
+      await container
+          .read(loginNotifierProvider.notifier)
+          .login(email: '', password: '');
 
-    expect(container.read(loginNotifierProvider).hasError, isTrue);
-    expect(repo.loginCallCount, 0);
-  });
+      expect(container.read(loginNotifierProvider).hasError, isTrue);
+      expect(repo.loginCallCount, 0);
+    },
+  );
 
   test('rejects a malformed email without calling the repository', () async {
     final repo = _FakeAuthRepository();
@@ -61,10 +63,9 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    await container.read(loginNotifierProvider.notifier).login(
-      email: 'not-an-email',
-      password: 'password',
-    );
+    await container
+        .read(loginNotifierProvider.notifier)
+        .login(email: 'not-an-email', password: 'password');
 
     expect(container.read(loginNotifierProvider).hasError, isTrue);
     expect(repo.loginCallCount, 0);
@@ -82,10 +83,9 @@ void main() {
     addTearDown(container.dispose);
     container.listen(authNotifierProvider, (_, _) {});
 
-    await container.read(loginNotifierProvider.notifier).login(
-      email: 'a@b.com',
-      password: 'password',
-    );
+    await container
+        .read(loginNotifierProvider.notifier)
+        .login(email: 'a@b.com', password: 'password');
 
     expect(container.read(loginNotifierProvider).hasError, isFalse);
     expect(container.read(authNotifierProvider).value, isA<Authenticated>());
@@ -99,10 +99,9 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    await container.read(loginNotifierProvider.notifier).login(
-      email: 'a@b.com',
-      password: 'wrong',
-    );
+    await container
+        .read(loginNotifierProvider.notifier)
+        .login(email: 'a@b.com', password: 'wrong');
 
     expect(container.read(loginNotifierProvider).error, isA<AppFailure>());
   });

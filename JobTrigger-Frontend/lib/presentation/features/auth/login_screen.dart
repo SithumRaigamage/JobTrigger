@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/platform/package_info_provider.dart';
@@ -13,6 +12,7 @@ import '../../common_widgets/loading_overlay.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
 import 'login_notifier.dart';
+import 'remembered_email_notifier.dart';
 
 /// Ported from `Features/Auth/LoginView.swift`. Errors surface as a toast
 /// (matching the original's `NotificationManager` usage) rather than inline
@@ -33,44 +33,33 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   static const _wideBreakpoint = 900.0;
-  static const _savedEmailKey = 'login_saved_email';
-  static const _savedPasswordKey = 'login_saved_password';
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = false;
 
+  /// Prefill from [rememberedEmailNotifierProvider] exactly once, when it
+  /// first resolves — never again, so it can't overwrite what the user has
+  /// since typed.
+  bool _prefilled = false;
+
+  void _prefillRememberedEmail(String? email) {
+    if (_prefilled) return;
+    _prefilled = true;
+    if (email == null) return;
+    setState(() {
+      _emailController.text = email;
+      _rememberMe = true;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    _loadSavedCredentials();
-  }
-
-  Future<void> _loadSavedCredentials() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final email = prefs.getString(_savedEmailKey);
-      final password = prefs.getString(_savedPasswordKey);
-      if (email != null) {
-        _emailController.text = email;
-        _rememberMe = true;
-      }
-      if (password != null) {
-        _passwordController.text = password;
-      }
-      if (mounted) setState(() {});
-    } catch (_) {}
-  }
-
-  Future<void> _saveCredentialsIfNeeded() async {
-    if (_rememberMe) {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_savedEmailKey, _emailController.text.trim());
-        await prefs.setString(_savedPasswordKey, _passwordController.text);
-      } catch (_) {}
-    }
+    ref.listenManual(rememberedEmailNotifierProvider, (previous, next) {
+      if (next case AsyncData(:final value)) _prefillRememberedEmail(value);
+    }, fireImmediately: true);
   }
 
   @override
@@ -176,14 +165,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  void _submit() async {
-    await _saveCredentialsIfNeeded();
+  void _submit() {
     unawaited(
       ref
           .read(loginNotifierProvider.notifier)
           .login(
             email: _emailController.text.trim(),
             password: _passwordController.text,
+            rememberMe: _rememberMe,
           ),
     );
   }

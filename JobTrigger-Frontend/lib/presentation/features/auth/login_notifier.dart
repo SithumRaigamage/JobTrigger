@@ -4,6 +4,7 @@ import '../../../core/error/result.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
 import '../../../domain/auth/auth_validation.dart';
 import 'auth_notifier.dart';
+import 'remembered_email_notifier.dart';
 
 part 'login_notifier.g.dart';
 
@@ -15,7 +16,13 @@ class LoginNotifier extends _$LoginNotifier {
   @override
   FutureOr<void> build() {}
 
-  Future<void> login({required String email, required String password}) async {
+  /// [rememberMe] is applied only after a successful login — a failed
+  /// attempt never changes what's remembered.
+  Future<void> login({
+    required String email,
+    required String password,
+    bool rememberMe = false,
+  }) async {
     if (email.isEmpty || password.isEmpty) {
       state = AsyncError(
         const FormValidationError('Please fill in all fields.'),
@@ -40,6 +47,12 @@ class LoginNotifier extends _$LoginNotifier {
         await ref
             .read(authNotifierProvider.notifier)
             .setSession(value.user, value.token);
+        final rememberedEmail = ref.read(
+          rememberedEmailNotifierProvider.notifier,
+        );
+        await (rememberMe
+            ? rememberedEmail.remember(email)
+            : rememberedEmail.forget());
         state = const AsyncData(null);
       case Err(:final error):
         state = AsyncError(error, StackTrace.current);

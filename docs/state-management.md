@@ -24,7 +24,13 @@ their screen under `presentation/features/<feature>/`.
 
 - `LoginNotifier` / `SignupNotifier` (`AsyncNotifier<void>`) — hold
   form-submit state (`loading`/`error`); on success call
-  `authNotifierProvider.notifier.setSession(user)`.
+  `authNotifierProvider.notifier.setSession(user)`. `LoginNotifier.login`
+  also takes `rememberMe` and, only after a successful login, calls
+  `rememberedEmailNotifierProvider.notifier.remember(email)` or `forget()`.
+- `RememberedEmailNotifier` (`AsyncNotifier<String?>`) — the "Remember me"
+  email, in `shared_preferences`. **Email only, never the password**
+  (AUD-01). Its `build()` also deletes the legacy `login_saved_password`
+  key that builds before AUD-01 wrote.
 
 ## Feature: tool_selection
 

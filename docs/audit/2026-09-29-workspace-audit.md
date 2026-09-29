@@ -37,7 +37,7 @@ are cross-referenced instead of being fixed twice.
 
 | Id | Severity | Area | Title | Status |
 |---|---|---|---|---|
-| AUD-01 | Critical | Security | Login password persisted in plaintext `shared_preferences` | open |
+| AUD-01 | Critical | Security | Login password persisted in plaintext `shared_preferences` | fixed (P12-01) |
 | AUD-02 | Critical | Release | Release Android build has no `INTERNET` permission | open |
 | AUD-03 | Critical | Security (backend) | Jenkins passwords and tokens, GitHub PATs, SonarQube tokens stored unencrypted in MongoDB | open |
 | AUD-04 | High | Security (backend) | NoSQL operator injection in `/api/auth/login` and `/signup` | open |
