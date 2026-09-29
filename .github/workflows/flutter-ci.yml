@@ -28,6 +28,14 @@ jobs:
           cd JobTrigger-Frontend
           flutter pub get
 
+      # AUD-02: debug/profile manifests always declare INTERNET (Flutter
+      # tooling), so no debug run or test can catch a release manifest
+      # that forgot it -- check the release (main) manifest directly.
+      - name: Verify release manifest declares INTERNET
+        run: |
+          grep -q 'android.permission.INTERNET' \
+            JobTrigger-Frontend/android/app/src/main/AndroidManifest.xml
+
       - name: Verify formatting
         run: |
           cd JobTrigger-Frontend

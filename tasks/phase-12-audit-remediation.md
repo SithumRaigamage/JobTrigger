@@ -27,7 +27,7 @@ AUD-08 (P11-04), AUD-10 (P11-05), AUD-12 (P11-11), AUD-13 (P11-11), AUD-18
       unchecked, and delete the legacy `login_saved_password` key on
       startup. Move the logic from `LoginScreen` into a notifier with
       tests.
-- [ ] P12-02 **AUD-02 (Critical).** Declare `INTERNET` in the main Android
+- [x] P12-02 **AUD-02 (Critical).** Declare `INTERNET` in the main Android
       manifest, and add a CI step asserting the permission in the release
       manifest.
 - [ ] P12-03 **AUD-16.** Run CI on `flutter-migration` (and on all PRs to

@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required in the main manifest, not only debug/profile: the Flutter
+         template declares INTERNET only for debug/profile (tooling), so a
+         release build without this line can't open any socket (AUD-02). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="JobTrigger"
         android:name="${applicationName}"
