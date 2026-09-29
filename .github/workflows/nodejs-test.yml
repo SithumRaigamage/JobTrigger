@@ -2,7 +2,9 @@ name: Node.js CI - Tests
 
 on:
   push:
-    branches: [ develop, feature/** ]
+    # flutter-migration is where the rewrite lands day-to-day (AUD-16);
+    # without it here, nothing on that branch was ever analyzed or tested.
+    branches: [ develop, flutter-migration, feature/** ]
   pull_request:
     branches: [ develop, feature/** ]
 

@@ -30,7 +30,7 @@ AUD-08 (P11-04), AUD-10 (P11-05), AUD-12 (P11-11), AUD-13 (P11-11), AUD-18
 - [x] P12-02 **AUD-02 (Critical).** Declare `INTERNET` in the main Android
       manifest, and add a CI step asserting the permission in the release
       manifest.
-- [ ] P12-03 **AUD-16.** Run CI on `flutter-migration` (and on all PRs to
+- [x] P12-03 **AUD-16.** Run CI on `flutter-migration` (and on all PRs to
       `develop`).
 - [ ] P12-04 **AUD-11 and AUD-32.** Add a shared repository guard mapping
       `DioException` to `fromDioException` and any other exception to a new

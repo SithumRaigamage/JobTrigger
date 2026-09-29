@@ -52,7 +52,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-13 | Medium | Bug | A transient log-poll error discards the displayed log | open |
 | AUD-14 | High | Security / UX | Jenkins URL unvalidated; Basic Auth sent over `http://` silently; cleartext failures shown as generic errors | open |
 | AUD-15 | High | Release | Android release build signed with the debug key | open |
-| AUD-16 | High | DevOps | CI does not run on the active `flutter-migration` branch | open |
+| AUD-16 | High | DevOps | CI does not run on the active `flutter-migration` branch | fixed (P12-03) |
 | AUD-17 | High | DevOps / Security | Node 20 (EOL) in Dockerfile and CI; container runs as root | open |
 | AUD-18 | Medium | Bug | Edited build-parameter values silently reset when the form scrolls off-screen | open |
 | AUD-19 | Medium | Bug | Folders at the tree depth limit render as jobs (5 levels fetched, docs say 6) | open |
