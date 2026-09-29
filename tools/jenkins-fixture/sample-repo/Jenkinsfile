@@ -1,0 +1,21 @@
+// Multibranch fixture pipeline (US-JX-03). The Dockerfile flips the flag
+// below to `true` on the `feature/login` branch so one branch fails.
+def FIXTURE_BRANCH_FAILS=false
+
+pipeline {
+  agent any
+  options { timestamps() }
+  stages {
+    stage('Build') {
+      steps { echo "Building ${env.BRANCH_NAME}" }
+    }
+    stage('Test') {
+      steps {
+        script {
+          if (FIXTURE_BRANCH_FAILS) { error('Fixture: this branch fails on purpose') }
+        }
+        echo 'Tests passed'
+      }
+    }
+  }
+}

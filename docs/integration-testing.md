@@ -72,3 +72,61 @@ clean up in the test) rather than assuming a pristine database per test.
   doesn't reset previous tests' provider state, keep scenarios in one file
   roughly sequential/dependent (as the two here are) rather than assuming
   full isolation.
+
+## Fixture Jenkins (real-server verification)
+
+`NFR-TEST-02` requires Jenkins-facing behaviour to be verified against a
+real Jenkins, not only against mocked HTTP. `tools/jenkins-fixture/` is a
+disposable, fully scripted Jenkins for that (task P11-01).
+
+```bash
+tools/jenkins-fixture/fixture.sh up      # build + start on http://localhost:8090, seed builds
+tools/jenkins-fixture/fixture.sh test    # run the `fixture`-tagged Flutter tests against it
+tools/jenkins-fixture/fixture.sh creds   # print the URL and API tokens (e.g. to add it as a server in the app)
+tools/jenkins-fixture/fixture.sh down    # stop, keeping data
+tools/jenkins-fixture/fixture.sh reset   # stop and delete all data and generated credentials
+```
+
+- **Needs:** Docker running. The first build takes a few minutes while
+  plugins download.
+- **Pinned:** Jenkins `2.568.3-lts-jdk21`. Plugins are listed in
+  `plugins.txt`. Everything is configured by `casc.yaml` (Configuration as
+  Code plus Job DSL). There is no setup wizard or manual step.
+- **Credentials:** `fixture.sh up` generates random passwords and one API
+  token per user into `tools/jenkins-fixture/.fixture-credentials`, which is
+  git-ignored and `chmod 600`. Nothing secret is committed. The only
+  committed "credential" is the obviously fake `deploy-creds`, used by the
+  credentials-parameter fixture.
+- **Users:** `admin` has full access. `viewer` is read-only, so the
+  permission (403) paths are testable.
+- **Deliberate traps:**
+  - Jenkins' configured root URL is `http://jenkins.internal:8080/`, which
+    doesn't match `localhost:8090`. That forces the app's URL rewriting
+    (`docs/architecture.md` §5) to work for real.
+  - CSRF protection is on.
+  - `agent-1` is a permanent agent that never connects, so there's always
+    one offline node.
+- **Bound to `127.0.0.1` only:** never expose this server on a network.
+
+| Seeded job | Scenario (story) |
+|---|---|
+| `nested/level-2/…/level-7/deep-job` | 7-level folder tree (US-TREE-*, AUD-19) |
+| `freestyle-simple` | Parameterless trigger, cancel (US-JOB-02/05) |
+| `params-all` | One parameter of every core type, including password, file, run, and credentials (US-JX-01/02) |
+| `pipeline-stages` | Sequential and parallel stages with a failing branch (US-PIPE-04, US-JX-04) |
+| `pipeline-input-simple` · `pipeline-input-params` | Paused input steps, without and with parameters (US-PIPE-05) |
+| `big-log` | 50,000-line ANSI-colored, timestamped log with an `ERROR` marker (US-JX-07, P5-13) |
+| `junit-report` | Pass, fail with a stack trace, and skip; build goes UNSTABLE (US-PIPE-06, US-JX-08) |
+| `artifacts` | 25 small artifacts, a path containing a space, and a 60 MB artifact (US-PIPE-07, AUD-21) |
+| `slow-build` | 90 s build without concurrent builds, for polling, cancel, and queue tests (US-JOB-04/05, US-JX-09) |
+| `upstream-freestyle` → `downstream-freestyle`, `upstream-pipeline` | Upstream and downstream links (US-PIPE-09) |
+| `disabled-job` | Disabled job (US-JX-13) |
+| `sample-multibranch` | Branches `main` and `feature/login` (seen as `feature%2Flogin`), tag `v1.0.0`, and views `default`/`tags` (US-JX-03) |
+
+**Writing a fixture test:** put it under `JobTrigger-Frontend/test/fixture/`
+with `@Tags(['fixture'])`. Get the server lazily
+(`late final jenkins = FixtureJenkins.fromEnvironment();`) and use the
+helpers in `fixture_support.dart`: `triggerAndAwaitStart`,
+`awaitCompletion`, `pollUntil`, and `expectOk`. Tests go through the
+production `buildJenkinsDio` and `JenkinsRepositoryImpl`. `dart_test.yaml`
+skips the tag in normal runs and in CI.

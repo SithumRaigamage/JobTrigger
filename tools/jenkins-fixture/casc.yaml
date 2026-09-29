@@ -1,0 +1,173 @@
+# Configuration-as-Code for the fixture Jenkins (P11-01). Everything the app's
+# real-server verification needs is declared here — no manual setup.
+jenkins:
+  systemMessage: "JobTrigger fixture Jenkins — local test server, not for real use."
+  numExecutors: 4
+  mode: NORMAL
+  # CSRF protection on (the modern default) so NFR-SEC-06's crumb flow and
+  # the session-cookie fix in jenkins_client_factory.dart are exercised.
+  crumbIssuer: "standard"
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          name: "Fixture Admin"
+          password: "${FIXTURE_ADMIN_PASSWORD}"
+        - id: "viewer"
+          name: "Fixture Viewer"
+          password: "${FIXTURE_VIEWER_PASSWORD}"
+  # `viewer` can read but not build/cancel/configure: every admin-flavoured
+  # action's 403 path (US-JX-12/13, AUD-24-style permission copy) is testable.
+  authorizationStrategy:
+    globalMatrix:
+      entries:
+        - user:
+            name: "admin"
+            permissions:
+              - "Overall/Administer"
+        - user:
+            name: "viewer"
+            permissions:
+              - "Overall/Read"
+              - "Job/Read"
+  # A permanent agent that never connects, so the nodes screen (US-JX-12)
+  # always has one offline node to show next to the built-in one.
+  nodes:
+    - permanent:
+        name: "agent-1"
+        remoteFS: "/home/jenkins/agent"
+        numExecutors: 2
+        labelString: "linux"
+        launcher:
+          inbound: {}
+
+unclassified:
+  # Deliberately NOT the address the fixture is reached at (localhost:8090):
+  # every `url` Jenkins returns then points at an unreachable host, so the
+  # app's URL rewriting (docs/architecture.md §5) is exercised for real.
+  location:
+    url: "http://jenkins.internal:8080/"
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          # Fake value, only for the credentials-parameter fixture (US-JX-02).
+          - usernamePassword:
+              scope: GLOBAL
+              id: "deploy-creds"
+              username: "fixture-deployer"
+              password: "not-a-real-secret"
+              description: "Fixture credential for the credentials parameter"
+
+jobs:
+  - script: |
+      def repo = '/srv/repos/sample.git'
+      def fromRepo = { String name, String path ->
+        pipelineJob(name) {
+          definition {
+            cpsScm {
+              scm {
+                git {
+                  remote { url(repo) }
+                  branch('main')
+                }
+              }
+              scriptPath(path)
+              lightweight(true)
+            }
+          }
+        }
+      }
+
+      // US-TREE-*, AUD-19: 7 levels of nested folders.
+      def path = 'nested'
+      folder(path)
+      (2..7).each { level ->
+        // Plain concatenation: CasC substitutes dollar-brace syntax itself.
+        path = path + '/level-' + level
+        folder(path)
+      }
+      job(path + '/deep-job') {
+        steps { shell('echo deep') }
+      }
+
+      job('freestyle-simple') {
+        description('A parameterless freestyle job.')
+        steps { shell('echo "Hello from freestyle-simple"') }
+      }
+
+      // US-JX-01 / US-JX-02: one parameter of every core type.
+      job('params-all') {
+        description('Every parameter type the app must handle.')
+        parameters {
+          stringParam('BRANCH', 'main', 'Branch to build')
+          textParam('RELEASE_NOTES', 'First line\nSecond line', 'Multi-line notes')
+          booleanParam('DRY_RUN', true, 'Skip the real deploy')
+          choiceParam('TARGET', ['staging', 'production'], 'Target environment')
+          fileParam('config.json', 'Optional config file')
+          runParam('BASE_BUILD', 'freestyle-simple', 'Build to base on', 'ALL')
+          credentialsParam('DEPLOY_CREDS') {
+            type('com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl')
+            defaultValue('deploy-creds')
+            description('Credentials id used for the deploy')
+          }
+        }
+        configure { project ->
+          project / 'properties' / 'hudson.model.ParametersDefinitionProperty' / 'parameterDefinitions' << 'hudson.model.PasswordParameterDefinition' {
+            name('DEPLOY_TOKEN')
+            description('Secret token')
+            defaultValue('fixture-default-secret')
+          }
+        }
+        steps {
+          shell('echo "BRANCH=$BRANCH DRY_RUN=$DRY_RUN TARGET=$TARGET BASE_BUILD=$BASE_BUILD"; [ -f config.json ] && echo "config.json: $(wc -c < config.json) bytes" || echo "no config.json"')
+        }
+      }
+
+      fromRepo('pipeline-stages', 'pipelines/stages.Jenkinsfile')
+      fromRepo('pipeline-input-simple', 'pipelines/input-simple.Jenkinsfile')
+      fromRepo('pipeline-input-params', 'pipelines/input-params.Jenkinsfile')
+      fromRepo('big-log', 'pipelines/big-log.Jenkinsfile')
+      fromRepo('junit-report', 'pipelines/junit.Jenkinsfile')
+      fromRepo('artifacts', 'pipelines/artifacts.Jenkinsfile')
+      fromRepo('slow-build', 'pipelines/slow.Jenkinsfile')
+      fromRepo('upstream-pipeline', 'pipelines/upstream.Jenkinsfile')
+
+      // US-PIPE-09: freestyle's BuildTrigger is what populates a job's
+      // `downstreamProjects`.
+      job('downstream-freestyle') {
+        steps { shell('echo downstream') }
+      }
+      job('upstream-freestyle') {
+        steps { shell('echo upstream') }
+        publishers { downstream('downstream-freestyle') }
+      }
+
+      // US-JX-13: a disabled job (color `disabled`, buildable false).
+      job('disabled-job') {
+        disabled()
+        steps { shell('echo never runs') }
+      }
+
+      // US-JX-03: branches `main` and `feature/login`, tag `v1.0.0`.
+      multibranchPipelineJob('sample-multibranch') {
+        branchSources {
+          branchSource {
+            source {
+              git {
+                id('sample-repo')
+                remote(repo)
+                traits {
+                  gitBranchDiscovery()
+                  gitTagDiscovery()
+                }
+              }
+            }
+          }
+        }
+        orphanedItemStrategy {
+          discardOldItems { numToKeep(10) }
+        }
+      }

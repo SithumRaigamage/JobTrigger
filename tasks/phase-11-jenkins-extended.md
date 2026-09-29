@@ -40,7 +40,7 @@ Each task names the `AUD-##` ids it closes.
 
 ## Part B — Verification
 
-- [ ] P11-01 **Local Jenkins fixture.** Add an opt-in
+- [x] P11-01 **Local Jenkins fixture.** Add an opt-in
       `docker-compose.jenkins.yml` (Jenkins LTS, JDK 21) seeded with
       Configuration-as-Code and Job DSL. Seed an admin user and API token,
       CSRF on, plugins `workflow-aggregator`, `pipeline-stage-view`,
@@ -63,6 +63,27 @@ Each task names the `AUD-##` ids it closes.
       credentials committed: the admin password and token are generated on
       first boot and printed once. **Needs:** the Docker daemon running
       locally.
+      **Done 2026-09-29:** `tools/jenkins-fixture/`, pinned to Jenkins
+      2.568.3 LTS, documented in `docs/integration-testing.md`. Deviations
+      from the plan above:
+      - The compose file lives at `tools/jenkins-fixture/docker-compose.yml`.
+      - Pipelines are Jenkinsfiles in the seeded git repo (`pipelines/`),
+        not inline in `casc.yaml`, to avoid three layers of escaping (YAML,
+        CasC substitution, Groovy).
+      - Seeding needs no extra plugins beyond the list. `parameterized-trigger`
+        was dropped because core's `BuildTrigger` covers downstream links.
+      - PR branches can't be simulated with a plain git source (they need a
+        GitHub or GitLab branch source), so the `change-requests` grouping
+        in US-JX-03 stays unit-tested only.
+
+      Verified by `test/fixture/jenkins_smoke_fixture_test.dart`:
+      - tree fetch with URL rewriting from `jenkins.internal:8080`
+      - a real trigger with the CSRF crumb and session cookie
+      - `viewer` getting `AuthFailure`
+
+      Real payloads confirmed: multibranch views `default`/`tags`, branch
+      `name` `feature%2Flogin` with `displayName` `feature/login`, and all
+      8 parameter `type` strings.
 - [ ] P11-02 **Verify US-PIPE-05 (input-step approval)** end-to-end on the
       fixture: detection via `wfapi/pendingInputActions`, and each of
       `proceedEmpty`, `submit` (with parameters, including a password
