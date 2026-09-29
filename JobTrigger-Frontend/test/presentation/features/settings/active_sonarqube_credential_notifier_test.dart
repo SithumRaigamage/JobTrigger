@@ -62,9 +62,7 @@ SonarQubeCredential _credential(String id, {bool isDefault = false}) =>
 ProviderContainer _containerWith(List<SonarQubeCredential> credentials) {
   final repo = _FakeSonarQubeCredentialsRepository(credentials);
   return ProviderContainer(
-    overrides: [
-      sonarQubeCredentialsRepositoryProvider.overrideWithValue(repo),
-    ],
+    overrides: [sonarQubeCredentialsRepositoryProvider.overrideWithValue(repo)],
   );
 }
 

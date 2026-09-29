@@ -62,5 +62,8 @@ Dio sonarQubeClient(Ref ref) {
   if (credential == null) {
     throw StateError('No active SonarQube credential is configured.');
   }
-  return buildSonarQubeDio(baseUrl: credential.baseUrl, token: credential.secret);
+  return buildSonarQubeDio(
+    baseUrl: credential.baseUrl,
+    token: credential.secret,
+  );
 }

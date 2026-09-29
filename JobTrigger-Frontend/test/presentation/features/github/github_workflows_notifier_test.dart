@@ -12,9 +12,7 @@ const _owner = 'octocat';
 const _repoName = 'hello-world';
 
 class _FakeGitHubRepository implements GitHubRepository {
-  Result<List<GitHubWorkflow>, AppFailure> fetchWorkflowsResult = const Ok(
-    [],
-  );
+  Result<List<GitHubWorkflow>, AppFailure> fetchWorkflowsResult = const Ok([]);
   int fetchWorkflowsCallCount = 0;
   String? lastOwner;
   String? lastRepo;
@@ -35,8 +33,12 @@ class _FakeGitHubRepository implements GitHubRepository {
       throw UnimplementedError();
 }
 
-GitHubWorkflow _workflow(int id, String name) =>
-    GitHubWorkflow(id: id, name: name, path: '.github/workflows/$name.yml', state: 'active');
+GitHubWorkflow _workflow(int id, String name) => GitHubWorkflow(
+  id: id,
+  name: name,
+  path: '.github/workflows/$name.yml',
+  state: 'active',
+);
 
 void main() {
   test(
@@ -61,8 +63,7 @@ void main() {
   );
 
   test('an empty repository response surfaces as an empty list', () async {
-    final repo = _FakeGitHubRepository()
-      ..fetchWorkflowsResult = const Ok([]);
+    final repo = _FakeGitHubRepository()..fetchWorkflowsResult = const Ok([]);
     final container = ProviderContainer(
       retry: (retryCount, error) => null,
       overrides: [gitHubRepositoryProvider.overrideWithValue(repo)],
@@ -76,30 +77,35 @@ void main() {
     expect(workflows, isEmpty);
   });
 
-  test('a repository failure surfaces as an AsyncError with the AppFailure', () async {
-    final repo = _FakeGitHubRepository()
-      ..fetchWorkflowsResult = const Err(NotFoundFailure());
-    final container = ProviderContainer(
-      retry: (retryCount, error) => null,
-      overrides: [gitHubRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
-    container.listen(
-      gitHubWorkflowsNotifierProvider(_owner, _repoName),
-      (_, _) {},
-    );
+  test(
+    'a repository failure surfaces as an AsyncError with the AppFailure',
+    () async {
+      final repo = _FakeGitHubRepository()
+        ..fetchWorkflowsResult = const Err(NotFoundFailure());
+      final container = ProviderContainer(
+        retry: (retryCount, error) => null,
+        overrides: [gitHubRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(container.dispose);
+      container.listen(
+        gitHubWorkflowsNotifierProvider(_owner, _repoName),
+        (_, _) {},
+      );
 
-    await expectLater(
-      container.read(gitHubWorkflowsNotifierProvider(_owner, _repoName).future),
-      throwsA(isA<NotFoundFailure>()),
-    );
+      await expectLater(
+        container.read(
+          gitHubWorkflowsNotifierProvider(_owner, _repoName).future,
+        ),
+        throwsA(isA<NotFoundFailure>()),
+      );
 
-    final state = container.read(
-      gitHubWorkflowsNotifierProvider(_owner, _repoName),
-    );
-    expect(state.hasError, isTrue);
-    expect(state.error, isA<NotFoundFailure>());
-  });
+      final state = container.read(
+        gitHubWorkflowsNotifierProvider(_owner, _repoName),
+      );
+      expect(state.hasError, isTrue);
+      expect(state.error, isA<NotFoundFailure>());
+    },
+  );
 
   test('refresh() re-fetches the workflow list', () async {
     final repo = _FakeGitHubRepository()
@@ -117,7 +123,10 @@ void main() {
       gitHubWorkflowsNotifierProvider(_owner, _repoName).future,
     );
 
-    repo.fetchWorkflowsResult = Ok([_workflow(1, 'CI'), _workflow(2, 'Deploy')]);
+    repo.fetchWorkflowsResult = Ok([
+      _workflow(1, 'CI'),
+      _workflow(2, 'Deploy'),
+    ]);
     await container
         .read(gitHubWorkflowsNotifierProvider(_owner, _repoName).notifier)
         .refresh();

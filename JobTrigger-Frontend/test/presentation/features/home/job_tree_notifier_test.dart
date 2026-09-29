@@ -116,25 +116,28 @@ void main() {
     expect(jobs, isEmpty);
   });
 
-  test('a repository failure surfaces as an AsyncError with the AppFailure', () async {
-    final repo = _FakeJenkinsRepository()
-      ..fetchJobTreeResult = const Err(NetworkFailure());
-    final container = ProviderContainer(
-      retry: (retryCount, error) => null,
-      overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
-    container.listen(jobTreeNotifierProvider, (_, _) {});
+  test(
+    'a repository failure surfaces as an AsyncError with the AppFailure',
+    () async {
+      final repo = _FakeJenkinsRepository()
+        ..fetchJobTreeResult = const Err(NetworkFailure());
+      final container = ProviderContainer(
+        retry: (retryCount, error) => null,
+        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(container.dispose);
+      container.listen(jobTreeNotifierProvider, (_, _) {});
 
-    await expectLater(
-      container.read(jobTreeNotifierProvider.future),
-      throwsA(isA<NetworkFailure>()),
-    );
+      await expectLater(
+        container.read(jobTreeNotifierProvider.future),
+        throwsA(isA<NetworkFailure>()),
+      );
 
-    final state = container.read(jobTreeNotifierProvider);
-    expect(state.hasError, isTrue);
-    expect(state.error, isA<NetworkFailure>());
-  });
+      final state = container.read(jobTreeNotifierProvider);
+      expect(state.hasError, isTrue);
+      expect(state.error, isA<NetworkFailure>());
+    },
+  );
 
   test('refresh() re-fetches the job tree', () async {
     final repo = _FakeJenkinsRepository()..fetchJobTreeResult = Ok([_job('a')]);

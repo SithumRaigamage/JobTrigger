@@ -43,25 +43,28 @@ void main() {
     expect(info.supportEmail, 'support@jobtrigger.com');
   });
 
-  test('a repository failure surfaces as an AsyncError with the AppFailure', () async {
-    final repo = _FakeAppInfoRepository()
-      ..fetchAppInfoResult = const Err(NotFoundFailure());
-    final container = ProviderContainer(
-      retry: (retryCount, error) => null,
-      overrides: [appInfoRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
-    container.listen(appInfoNotifierProvider, (_, _) {});
+  test(
+    'a repository failure surfaces as an AsyncError with the AppFailure',
+    () async {
+      final repo = _FakeAppInfoRepository()
+        ..fetchAppInfoResult = const Err(NotFoundFailure());
+      final container = ProviderContainer(
+        retry: (retryCount, error) => null,
+        overrides: [appInfoRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(container.dispose);
+      container.listen(appInfoNotifierProvider, (_, _) {});
 
-    await expectLater(
-      container.read(appInfoNotifierProvider.future),
-      throwsA(isA<NotFoundFailure>()),
-    );
+      await expectLater(
+        container.read(appInfoNotifierProvider.future),
+        throwsA(isA<NotFoundFailure>()),
+      );
 
-    final state = container.read(appInfoNotifierProvider);
-    expect(state.hasError, isTrue);
-    expect(state.error, isA<NotFoundFailure>());
-  });
+      final state = container.read(appInfoNotifierProvider);
+      expect(state.hasError, isTrue);
+      expect(state.error, isA<NotFoundFailure>());
+    },
+  );
 
   test('refresh() re-fetches the app info', () async {
     final repo = _FakeAppInfoRepository()

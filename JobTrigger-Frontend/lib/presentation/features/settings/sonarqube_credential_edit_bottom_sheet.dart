@@ -167,7 +167,8 @@ class _SonarQubeCredentialEditBottomSheetState
                   autocorrect: false,
                   decoration: const InputDecoration(
                     labelText: 'Organization (optional)',
-                    hintText: 'Required for SonarCloud, unused for self-hosted Server',
+                    hintText:
+                        'Required for SonarCloud, unused for self-hosted Server',
                     border: OutlineInputBorder(),
                   ),
                 ),

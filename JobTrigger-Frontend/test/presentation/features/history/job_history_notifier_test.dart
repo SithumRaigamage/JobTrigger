@@ -118,8 +118,7 @@ void main() {
   );
 
   test('an empty repository response surfaces as an empty list', () async {
-    final repo = _FakeJenkinsRepository()
-      ..fetchJobHistoryResult = const Ok([]);
+    final repo = _FakeJenkinsRepository()..fetchJobHistoryResult = const Ok([]);
     final container = ProviderContainer(
       retry: (retryCount, error) => null,
       overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
@@ -133,25 +132,28 @@ void main() {
     expect(builds, isEmpty);
   });
 
-  test('a repository failure surfaces as an AsyncError with the AppFailure', () async {
-    final repo = _FakeJenkinsRepository()
-      ..fetchJobHistoryResult = const Err(NetworkFailure());
-    final container = ProviderContainer(
-      retry: (retryCount, error) => null,
-      overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
-    container.listen(jobHistoryNotifierProvider(_jobUrl), (_, _) {});
+  test(
+    'a repository failure surfaces as an AsyncError with the AppFailure',
+    () async {
+      final repo = _FakeJenkinsRepository()
+        ..fetchJobHistoryResult = const Err(NetworkFailure());
+      final container = ProviderContainer(
+        retry: (retryCount, error) => null,
+        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(container.dispose);
+      container.listen(jobHistoryNotifierProvider(_jobUrl), (_, _) {});
 
-    await expectLater(
-      container.read(jobHistoryNotifierProvider(_jobUrl).future),
-      throwsA(isA<NetworkFailure>()),
-    );
+      await expectLater(
+        container.read(jobHistoryNotifierProvider(_jobUrl).future),
+        throwsA(isA<NetworkFailure>()),
+      );
 
-    final state = container.read(jobHistoryNotifierProvider(_jobUrl));
-    expect(state.hasError, isTrue);
-    expect(state.error, isA<NetworkFailure>());
-  });
+      final state = container.read(jobHistoryNotifierProvider(_jobUrl));
+      expect(state.hasError, isTrue);
+      expect(state.error, isA<NetworkFailure>());
+    },
+  );
 
   test('refresh() re-fetches the build history', () async {
     final repo = _FakeJenkinsRepository()

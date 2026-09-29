@@ -180,7 +180,10 @@ void main() {
       // not synchronous, so wait for it before checking the call count.
       await container.read(jobDetailNotifierProvider(_jobUrl).future);
 
-      expect(container.read(triggerBuildNotifierProvider(_jobUrl)).hasError, isFalse);
+      expect(
+        container.read(triggerBuildNotifierProvider(_jobUrl)).hasError,
+        isFalse,
+      );
       expect(repo.triggerBuildCallCount, 1);
       expect(repo.fetchJobDetailCallCount, 2);
       expect(container.read(currentToastProvider)?.type, ToastType.success);
@@ -190,7 +193,8 @@ void main() {
   test(
     'a repository failure surfaces as AsyncError and shows an error toast, without refreshing job detail',
     () async {
-      final repo = _FakeRepository()..triggerResult = const Err(NetworkFailure());
+      final repo = _FakeRepository()
+        ..triggerResult = const Err(NetworkFailure());
       final container = ProviderContainer(
         overrides: [
           jenkinsRepositoryProvider.overrideWithValue(repo),

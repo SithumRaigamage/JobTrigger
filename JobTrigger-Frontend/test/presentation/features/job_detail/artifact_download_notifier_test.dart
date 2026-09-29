@@ -138,7 +138,9 @@ void main() {
       );
 
       await container
-          .read(artifactDownloadNotifierProvider(_artifact.relativePath).notifier)
+          .read(
+            artifactDownloadNotifierProvider(_artifact.relativePath).notifier,
+          )
           .download(buildUrl: _buildUrl, artifact: _artifact);
 
       final state = container.read(
@@ -163,7 +165,9 @@ void main() {
       );
 
       await container
-          .read(artifactDownloadNotifierProvider(_artifact.relativePath).notifier)
+          .read(
+            artifactDownloadNotifierProvider(_artifact.relativePath).notifier,
+          )
           .download(buildUrl: _buildUrl, artifact: _artifact);
 
       final state = container.read(

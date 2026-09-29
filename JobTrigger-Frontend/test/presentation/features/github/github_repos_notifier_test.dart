@@ -60,25 +60,28 @@ void main() {
     expect(repos, isEmpty);
   });
 
-  test('a repository failure surfaces as an AsyncError with the AppFailure', () async {
-    final repo = _FakeGitHubRepository()
-      ..fetchReposResult = const Err(RateLimitFailure());
-    final container = ProviderContainer(
-      retry: (retryCount, error) => null,
-      overrides: [gitHubRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
-    container.listen(gitHubReposNotifierProvider, (_, _) {});
+  test(
+    'a repository failure surfaces as an AsyncError with the AppFailure',
+    () async {
+      final repo = _FakeGitHubRepository()
+        ..fetchReposResult = const Err(RateLimitFailure());
+      final container = ProviderContainer(
+        retry: (retryCount, error) => null,
+        overrides: [gitHubRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(container.dispose);
+      container.listen(gitHubReposNotifierProvider, (_, _) {});
 
-    await expectLater(
-      container.read(gitHubReposNotifierProvider.future),
-      throwsA(isA<RateLimitFailure>()),
-    );
+      await expectLater(
+        container.read(gitHubReposNotifierProvider.future),
+        throwsA(isA<RateLimitFailure>()),
+      );
 
-    final state = container.read(gitHubReposNotifierProvider);
-    expect(state.hasError, isTrue);
-    expect(state.error, isA<RateLimitFailure>());
-  });
+      final state = container.read(gitHubReposNotifierProvider);
+      expect(state.hasError, isTrue);
+      expect(state.error, isA<RateLimitFailure>());
+    },
+  );
 
   test('refresh() re-fetches the repo list', () async {
     final repo = _FakeGitHubRepository()

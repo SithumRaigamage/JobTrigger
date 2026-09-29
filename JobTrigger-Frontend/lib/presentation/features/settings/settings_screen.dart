@@ -163,11 +163,10 @@ class SettingsScreen extends ConsumerWidget {
                   buttonLabel: 'Add SonarQube Credential',
                   onAdd: () => showSonarQubeCredentialEditBottomSheet(context),
                 ),
-                tileBuilder: (context, credential) =>
-                    _SonarQubeCredentialTile(
-                      credential: credential,
-                      isActive: credential.id == activeSonarQubeCredential?.id,
-                    ),
+                tileBuilder: (context, credential) => _SonarQubeCredentialTile(
+                  credential: credential,
+                  isActive: credential.id == activeSonarQubeCredential?.id,
+                ),
               ),
             ],
             SliverToBoxAdapter(

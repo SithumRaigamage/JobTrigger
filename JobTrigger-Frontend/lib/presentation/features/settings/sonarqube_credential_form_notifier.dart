@@ -15,7 +15,8 @@ part 'sonarqube_credential_form_notifier.g.dart';
 /// are passed in at call time (owned by the widget's `TextEditingController`s),
 /// not stored on the notifier.
 @riverpod
-class SonarQubeCredentialFormNotifier extends _$SonarQubeCredentialFormNotifier {
+class SonarQubeCredentialFormNotifier
+    extends _$SonarQubeCredentialFormNotifier {
   @override
   FutureOr<void> build() {}
 

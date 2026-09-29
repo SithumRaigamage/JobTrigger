@@ -144,7 +144,8 @@ void main() {
     'saving with isDefault: true sets the new credential as the active one',
     () async {
       final saved = _credential('a', isDefault: true);
-      final repo = _FakeSonarQubeCredentialsRepository([])..addResult = Ok(saved);
+      final repo = _FakeSonarQubeCredentialsRepository([])
+        ..addResult = Ok(saved);
       final container = ProviderContainer(
         overrides: [
           sonarQubeCredentialsRepositoryProvider.overrideWithValue(repo),

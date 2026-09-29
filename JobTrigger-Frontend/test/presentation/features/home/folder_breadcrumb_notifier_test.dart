@@ -46,9 +46,7 @@ void main() {
     addTearDown(container.dispose);
     final projects = _folder('Projects');
     final frontend = _folder('frontend');
-    final notifier = container.read(
-      folderBreadcrumbNotifierProvider.notifier,
-    );
+    final notifier = container.read(folderBreadcrumbNotifierProvider.notifier);
     notifier.navigateInto(projects);
     notifier.navigateInto(frontend);
 
@@ -69,9 +67,7 @@ void main() {
   test('reset clears the breadcrumb back to empty', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
-    final notifier = container.read(
-      folderBreadcrumbNotifierProvider.notifier,
-    );
+    final notifier = container.read(folderBreadcrumbNotifierProvider.notifier);
     notifier.navigateInto(_folder('Projects'));
 
     notifier.reset();

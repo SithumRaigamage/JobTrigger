@@ -139,25 +139,28 @@ void main() {
     },
   );
 
-  test('a repository failure maps to AsyncError carrying the AppFailure', () async {
-    final repo = _FakeRepository(const Err(NotFoundFailure()));
-    final container = ProviderContainer(
-      overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
-    // Keep the (autoDispose) provider alive so its settled error state can
-    // be observed below -- `.future` itself isn't used here: awaiting it
-    // for a family provider that already has a permanent listener attached
-    // never resolves in this Riverpod version, so the settled `AsyncError`
-    // is polled for directly instead.
-    container.listen(testReportNotifierProvider(_buildUrl), (_, _) {});
+  test(
+    'a repository failure maps to AsyncError carrying the AppFailure',
+    () async {
+      final repo = _FakeRepository(const Err(NotFoundFailure()));
+      final container = ProviderContainer(
+        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(container.dispose);
+      // Keep the (autoDispose) provider alive so its settled error state can
+      // be observed below -- `.future` itself isn't used here: awaiting it
+      // for a family provider that already has a permanent listener attached
+      // never resolves in this Riverpod version, so the settled `AsyncError`
+      // is polled for directly instead.
+      container.listen(testReportNotifierProvider(_buildUrl), (_, _) {});
 
-    final state = await _settled(
-      () => container.read(testReportNotifierProvider(_buildUrl)),
-    );
+      final state = await _settled(
+        () => container.read(testReportNotifierProvider(_buildUrl)),
+      );
 
-    expect(state.error, isA<NotFoundFailure>());
-  });
+      expect(state.error, isA<NotFoundFailure>());
+    },
+  );
 }
 
 /// Polls [read] until it stops reporting `AsyncLoading`, for asserting on an

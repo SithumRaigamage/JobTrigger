@@ -151,8 +151,7 @@ void main() {
   test(
     'a repository failure surfaces as AsyncError and shows an error toast, without refreshing anything',
     () async {
-      final repo = _FakeRepository()
-        ..submitResult = const Err(AuthFailure());
+      final repo = _FakeRepository()..submitResult = const Err(AuthFailure());
       final container = ProviderContainer(
         overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
       );

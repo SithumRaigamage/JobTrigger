@@ -167,13 +167,13 @@ void main() {
         expect(
           adapter.lastRequest?.queryParameters['tree'],
           'name,url,color,description,'
-              'lastBuild[number,url,result,timestamp,duration,building,estimatedDuration,'
-              'actions[causes[shortDescription,upstreamProject,upstreamUrl]],'
-              'changeSet[items[msg,author[fullName]]],'
-              'artifacts[fileName,relativePath]],'
-              'healthReport[description,iconClassName,score],'
-              'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices]],'
-              'downstreamProjects[name,url]',
+          'lastBuild[number,url,result,timestamp,duration,building,estimatedDuration,'
+          'actions[causes[shortDescription,upstreamProject,upstreamUrl]],'
+          'changeSet[items[msg,author[fullName]]],'
+          'artifacts[fileName,relativePath]],'
+          'healthReport[description,iconClassName,score],'
+          'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices]],'
+          'downstreamProjects[name,url]',
         );
         expect(result, isA<Ok<JenkinsJob, dynamic>>());
         final job = (result as Ok<JenkinsJob, dynamic>).value;
@@ -321,7 +321,7 @@ void main() {
         expect(
           adapter.lastRequest?.queryParameters['tree'],
           'builds[number,url,result,timestamp,duration,displayName,building,'
-              'estimatedDuration,actions[parameters[name,value]]]{0,20}',
+          'estimatedDuration,actions[parameters[name,value]]]{0,20}',
         );
         expect(result, isA<Ok<List<JenkinsBuild>, dynamic>>());
         final builds = (result as Ok<List<JenkinsBuild>, dynamic>).value;

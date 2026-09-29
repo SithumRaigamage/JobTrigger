@@ -91,26 +91,29 @@ class _FakeRepository implements JenkinsRepository {
 }
 
 void main() {
-  test('a successful fetch for a pipeline job resolves to its stages', () async {
-    final repo = _FakeRepository(
-      const Ok([
-        PipelineStage(id: '1', name: 'Build', status: 'SUCCESS'),
-        PipelineStage(id: '2', name: 'Test', status: 'IN_PROGRESS'),
-      ]),
-    );
-    final container = ProviderContainer(
-      overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
+  test(
+    'a successful fetch for a pipeline job resolves to its stages',
+    () async {
+      final repo = _FakeRepository(
+        const Ok([
+          PipelineStage(id: '1', name: 'Build', status: 'SUCCESS'),
+          PipelineStage(id: '2', name: 'Test', status: 'IN_PROGRESS'),
+        ]),
+      );
+      final container = ProviderContainer(
+        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(container.dispose);
 
-    final stages = await container.read(
-      pipelineStagesNotifierProvider(_buildUrl).future,
-    );
+      final stages = await container.read(
+        pipelineStagesNotifierProvider(_buildUrl).future,
+      );
 
-    expect(stages, hasLength(2));
-    expect(stages?.first.name, 'Build');
-    expect(repo.fetchPipelineStagesCallCount, 1);
-  });
+      expect(stages, hasLength(2));
+      expect(stages?.first.name, 'Build');
+      expect(repo.fetchPipelineStagesCallCount, 1);
+    },
+  );
 
   test(
     'a successful fetch for a non-pipeline job resolves to null (not an error)',
@@ -133,25 +136,28 @@ void main() {
     },
   );
 
-  test('a repository failure maps to AsyncError carrying the AppFailure', () async {
-    final repo = _FakeRepository(const Err(UnknownFailure()));
-    final container = ProviderContainer(
-      overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
-    // Keep the (autoDispose) provider alive so its settled error state can
-    // be observed below -- `.future` itself isn't used here: awaiting it
-    // for a family provider that already has a permanent listener attached
-    // never resolves in this Riverpod version, so the settled `AsyncError`
-    // is polled for directly instead.
-    container.listen(pipelineStagesNotifierProvider(_buildUrl), (_, _) {});
+  test(
+    'a repository failure maps to AsyncError carrying the AppFailure',
+    () async {
+      final repo = _FakeRepository(const Err(UnknownFailure()));
+      final container = ProviderContainer(
+        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(container.dispose);
+      // Keep the (autoDispose) provider alive so its settled error state can
+      // be observed below -- `.future` itself isn't used here: awaiting it
+      // for a family provider that already has a permanent listener attached
+      // never resolves in this Riverpod version, so the settled `AsyncError`
+      // is polled for directly instead.
+      container.listen(pipelineStagesNotifierProvider(_buildUrl), (_, _) {});
 
-    final state = await _settled(
-      () => container.read(pipelineStagesNotifierProvider(_buildUrl)),
-    );
+      final state = await _settled(
+        () => container.read(pipelineStagesNotifierProvider(_buildUrl)),
+      );
 
-    expect(state.error, isA<UnknownFailure>());
-  });
+      expect(state.error, isA<UnknownFailure>());
+    },
+  );
 }
 
 /// Polls [read] until it stops reporting `AsyncLoading`, for asserting on an

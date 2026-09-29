@@ -133,8 +133,7 @@ void main() {
       // one now," not just flag it and hope a future rehydrate picks it
       // up.
       final saved = _credential('a', isDefault: true);
-      final repo = _FakeGitHubCredentialsRepository([])
-        ..addResult = Ok(saved);
+      final repo = _FakeGitHubCredentialsRepository([])..addResult = Ok(saved);
       final container = ProviderContainer(
         overrides: [
           gitHubCredentialsRepositoryProvider.overrideWithValue(repo),
@@ -149,10 +148,7 @@ void main() {
           .read(gitHubCredentialFormNotifierProvider.notifier)
           .save(label: 'Credential a', secret: 'ghp_a', isDefault: true);
 
-      expect(
-        container.read(activeGitHubCredentialNotifierProvider)?.id,
-        'a',
-      );
+      expect(container.read(activeGitHubCredentialNotifierProvider)?.id, 'a');
     },
   );
 

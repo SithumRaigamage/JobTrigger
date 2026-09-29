@@ -50,26 +50,32 @@ Map<String, dynamic> _credentialJson({
 };
 
 void main() {
-  test('fetchAll maps the JSON array to SonarQubeCredential entities', () async {
-    final adapter = _JsonAdapter(200, [
-      _credentialJson(id: 'c1'),
-      _credentialJson(id: 'c2'),
-    ]);
-    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'))
-      ..httpClientAdapter = adapter;
-    final repo = SonarQubeCredentialsRepositoryImpl(dio);
+  test(
+    'fetchAll maps the JSON array to SonarQubeCredential entities',
+    () async {
+      final adapter = _JsonAdapter(200, [
+        _credentialJson(id: 'c1'),
+        _credentialJson(id: 'c2'),
+      ]);
+      final dio = Dio(BaseOptions(baseUrl: 'https://example.test'))
+        ..httpClientAdapter = adapter;
+      final repo = SonarQubeCredentialsRepositoryImpl(dio);
 
-    final result = await repo.fetchAll();
+      final result = await repo.fetchAll();
 
-    expect(result, isA<Ok<List<SonarQubeCredential>, AppFailure>>());
-    final credentials =
-        (result as Ok<List<SonarQubeCredential>, AppFailure>).value;
-    expect(credentials, hasLength(2));
-    expect(credentials.first.id, 'c1');
-    expect(credentials.first.secret, 'squ_faketoken'); // token -> secret rename
-    expect(credentials.first.baseUrl, 'https://sonarcloud.io');
-    expect(credentials.first.defaultOrganization, 'octocat-org');
-  });
+      expect(result, isA<Ok<List<SonarQubeCredential>, AppFailure>>());
+      final credentials =
+          (result as Ok<List<SonarQubeCredential>, AppFailure>).value;
+      expect(credentials, hasLength(2));
+      expect(credentials.first.id, 'c1');
+      expect(
+        credentials.first.secret,
+        'squ_faketoken',
+      ); // token -> secret rename
+      expect(credentials.first.baseUrl, 'https://sonarcloud.io');
+      expect(credentials.first.defaultOrganization, 'octocat-org');
+    },
+  );
 
   test('add posts label/baseUrl/token/defaultOrganization/isDefault', () async {
     final adapter = _JsonAdapter(201, _credentialJson());

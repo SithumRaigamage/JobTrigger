@@ -14,13 +14,17 @@ part 'test_sonarqube_connection_notifier.g.dart';
 /// would have made "never tested" and "tested successfully" both render
 /// as `AsyncData(null)`, indistinguishable to the UI.
 @riverpod
-class TestSonarQubeConnectionNotifier extends _$TestSonarQubeConnectionNotifier {
+class TestSonarQubeConnectionNotifier
+    extends _$TestSonarQubeConnectionNotifier {
   @override
   FutureOr<bool?> build() => null;
 
   Future<void> test({required String baseUrl, required String token}) async {
     state = const AsyncLoading();
-    final result = await testSonarQubeConnection(baseUrl: baseUrl, token: token);
+    final result = await testSonarQubeConnection(
+      baseUrl: baseUrl,
+      token: token,
+    );
     state = switch (result) {
       Ok() => const AsyncData(true),
       Err(:final error) => AsyncError(error, StackTrace.current),

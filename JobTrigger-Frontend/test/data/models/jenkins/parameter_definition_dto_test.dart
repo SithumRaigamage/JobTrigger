@@ -45,19 +45,16 @@ void main() {
       expect(dto.choices, ['dev', 'staging', 'prod']);
     });
 
-    test(
-      'leaves description/choices/defaultValue null when absent',
-      () {
-        final dto = ParameterDefinitionDto.fromJson({
-          'name': 'BRANCH',
-          'type': 'StringParameterDefinition',
-        });
+    test('leaves description/choices/defaultValue null when absent', () {
+      final dto = ParameterDefinitionDto.fromJson({
+        'name': 'BRANCH',
+        'type': 'StringParameterDefinition',
+      });
 
-        expect(dto.description, isNull);
-        expect(dto.choices, isNull);
-        expect(dto.defaultValue, isNull);
-      },
-    );
+      expect(dto.description, isNull);
+      expect(dto.choices, isNull);
+      expect(dto.defaultValue, isNull);
+    });
 
     test('toDomain() carries every field through unchanged', () {
       final dto = ParameterDefinitionDto.fromJson({
