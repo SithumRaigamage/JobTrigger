@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/jenkins/pending_input.dart';
@@ -16,6 +17,9 @@ class _ScriptedAdapter implements HttpClientAdapter {
 
   final int statusCode;
   final dynamic body;
+
+  /// A raw (non-JSON) response body, e.g. a Jenkins HTML error page.
+  String? bodyOverride;
   RequestOptions? lastRequest;
 
   @override
@@ -31,7 +35,7 @@ class _ScriptedAdapter implements HttpClientAdapter {
     // try (and fail) to decode that as JSON purely because the header
     // said so.
     return ResponseBody.fromString(
-      body == null ? options.path : jsonEncode(body),
+      bodyOverride ?? (body == null ? options.path : jsonEncode(body)),
       statusCode,
       headers: body == null
           ? {}
@@ -127,28 +131,76 @@ void main() {
       },
     );
 
-    test('proceed with parameters POSTs .../submit, form-urlencoded', () async {
-      final adapter = _ScriptedAdapter(statusCode: 200);
+    test(
+      'proceed with parameters POSTs .../proceed with a Stapler json field',
+      () async {
+        final adapter = _ScriptedAdapter(statusCode: 200);
+        final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+          ..httpClientAdapter = adapter;
+        final repo = JenkinsRepositoryImpl(dio);
+
+        final result = await repo.submitInput(
+          buildUrl: 'https://jenkins.test/job/demo/12',
+          inputId: 'x',
+          proceed: true,
+          parameters: {'VERSION': '9.9.9', 'REGION': 'us-east-1'},
+        );
+
+        expect(result, isA<Ok<void, dynamic>>());
+        expect(
+          adapter.lastRequest?.path,
+          'https://jenkins.test/job/demo/12/input/x/proceed',
+        );
+        expect(
+          adapter.lastRequest?.contentType,
+          startsWith('application/x-www-form-urlencoded'),
+        );
+        // The real contract (verified on the fixture Jenkins, P11-02).
+        final form = adapter.lastRequest?.data as Map<String, dynamic>;
+        expect(jsonDecode(form['json'] as String), {
+          'parameter': [
+            {'name': 'VERSION', 'value': '9.9.9'},
+            {'name': 'REGION', 'value': 'us-east-1'},
+          ],
+        });
+      },
+    );
+
+    test(
+      'a 400 permission page maps to AuthFailure, not ServerFailure',
+      () async {
+        final adapter = _ScriptedAdapter(statusCode: 400, body: null)
+          ..bodyOverride =
+              '<html><h1>Error</h1><p>You need to have Job/Build permissions '
+              'to submit this.</p></html>';
+        final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+          ..httpClientAdapter = adapter;
+        final repo = JenkinsRepositoryImpl(dio);
+
+        final result = await repo.submitInput(
+          buildUrl: 'https://jenkins.test/job/demo/12',
+          inputId: 'x',
+          proceed: true,
+        );
+
+        expect((result as Err<void, AppFailure>).error, isA<AuthFailure>());
+      },
+    );
+
+    test('any other 400 stays a ServerFailure', () async {
+      final adapter = _ScriptedAdapter(statusCode: 400)
+        ..bodyOverride = '<html>Bad request</html>';
       final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
         ..httpClientAdapter = adapter;
       final repo = JenkinsRepositoryImpl(dio);
 
-      await repo.submitInput(
+      final result = await repo.submitInput(
         buildUrl: 'https://jenkins.test/job/demo/12',
         inputId: 'x',
-        proceed: true,
-        parameters: {'CONFIRM': 'true'},
+        proceed: false,
       );
 
-      expect(
-        adapter.lastRequest?.path,
-        'https://jenkins.test/job/demo/12/input/x/submit',
-      );
-      expect(adapter.lastRequest?.data, {'CONFIRM': 'true'});
-      expect(
-        adapter.lastRequest?.contentType,
-        startsWith('application/x-www-form-urlencoded'),
-      );
+      expect((result as Err<void, AppFailure>).error, isA<ServerFailure>());
     });
 
     test('reject POSTs {buildUrl}input/{id}/abort', () async {

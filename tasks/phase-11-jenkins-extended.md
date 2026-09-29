@@ -84,13 +84,29 @@ Each task names the `AUD-##` ids it closes.
       Real payloads confirmed: multibranch views `default`/`tags`, branch
       `name` `feature%2Flogin` with `displayName` `feature/login`, and all
       8 parameter `type` strings.
-- [ ] P11-02 **Verify US-PIPE-05 (input-step approval)** end-to-end on the
+- [x] P11-02 **Verify US-PIPE-05 (input-step approval)** end-to-end on the
       fixture: detection via `wfapi/pendingInputActions`, and each of
       `proceedEmpty`, `submit` (with parameters, including a password
       parameter), and `abort`. Record the real response shapes as test
       fixtures, fix any mismatch, and remove the **UNVERIFIED** notes from
       `pending_input.dart`, `jenkins_repository.dart`, and P7-07 only if
       everything passes.
+      **Done 2026-09-29.** `test/fixture/input_step_fixture_test.dart` runs 7
+      real-server tests. Found and fixed three bugs:
+      1. **Parameterized approval never worked.** Plain `name=value` fields
+         get a 400. The fix POSTs `input/{id}/proceed` with a Stapler
+         `json` field. That route was chosen over the advertised
+         `wfapi/inputSubmit` because it gives the same 400/404 semantics as
+         `proceedEmpty` and `abort`, where `wfapi` returns a bare 500 on
+         permission denial.
+      2. **Input parameters use a different wire shape**
+         (`definition.{defaultVal, choices}`), so choice dropdowns in the
+         banner were empty. A new `PendingInputParameterDto` handles it.
+      3. **Permission denial is a 400 HTML page**, not a 403. It's now
+         mapped to `AuthFailure` via `guardRequest`'s `recover`.
+      The real payload is recorded at
+      `test/fixtures/jenkins_pending_input_params.json`, and the unit tests
+      were rewritten against it. The UNVERIFIED notes were removed.
 - [ ] P11-03 **P5-13 on-device log performance.** Blocked on a physical
       Android device or emulator (none in this environment). Re-run after
       P11-11 lands, since that task removes the O(n²) cause (AUD-12). Stays

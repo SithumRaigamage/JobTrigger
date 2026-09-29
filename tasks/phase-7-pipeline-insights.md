@@ -245,7 +245,17 @@ per `CLAUDE.md` §9.
       `Ok(null)`, other-status→`Err`), 1 in
       `build_status_polling_notifier_test.dart` (piggyback-invalidation).
       `flutter analyze` clean, full suite (136 tests) passing.
-- [x] P7-07 `US-PIPE-05` — Input-step approval. **⚠️ UNVERIFIED against a
+- [x] P7-07 `US-PIPE-05` — Input-step approval. **✅ Verified 2026-09-29
+      in P11-02** against the fixture Jenkins. That verification found and
+      fixed three defects in the original guess:
+      1. Parameterized approval must POST `input/{id}/proceed` with a
+         Stapler `json` form field. The original sent plain fields to
+         `submit`, which got a 400/302.
+      2. Input parameters nest default and choices under `definition`, so
+         choice dropdowns were empty.
+      3. A read-only user's rejection is a 400 page, now mapped to
+         `AuthFailure`.
+      Original note, kept for history: **⚠️ UNVERIFIED against a
       real paused pipeline** — confirmed with the user before implementing
       (no live Jenkins instance with an actual paused input step is
       available in this environment, same class of gap `NFR-TEST-02`

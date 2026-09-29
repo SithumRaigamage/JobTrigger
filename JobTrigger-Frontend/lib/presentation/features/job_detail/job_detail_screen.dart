@@ -284,8 +284,7 @@ class _JobDetailBody extends ConsumerWidget {
 
 /// US-PIPE-05: the highest-visibility card on the screen while present —
 /// this can directly gate a production deployment (see `pending_input
-/// .dart`'s doc comment on why this endpoint is unverified against a real
-/// paused pipeline). Approve/reject both require confirmation, same
+/// .dart`'s doc comment). Approve/reject both require confirmation, same
 /// rationale as `US-JOB-02`/`US-JOB-05`'s trigger/cancel confirmations.
 class _PendingInputBanner extends ConsumerStatefulWidget {
   const _PendingInputBanner({

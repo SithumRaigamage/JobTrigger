@@ -55,7 +55,7 @@ final class RememberedEmailNotifierProvider
 }
 
 String _$rememberedEmailNotifierHash() =>
-    r'fa3a2be1d6d2c936ddb8871670354c7268fafaec';
+    r'3ce171b94a692d429f4829be0f10805946589af6';
 
 /// "Remember me" on the login screen: remembers the **email only**.
 ///

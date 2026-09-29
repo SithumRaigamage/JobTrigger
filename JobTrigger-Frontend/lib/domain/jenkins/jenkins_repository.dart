@@ -88,18 +88,21 @@ abstract class JenkinsRepository {
   /// `Ok(null)` (not an [Err]) when nothing is paused — a normal state —
   /// or the first pending action when one or more exist (Jenkins can in
   /// principle report several; this app surfaces one at a time, matching
-  /// the single-banner UI). **Unverified against a real paused pipeline**
-  /// — see `pending_input.dart`'s doc comment.
+  /// the single-banner UI). Verified against a real paused pipeline
+  /// (P11-02, `test/fixture/input_step_fixture_test.dart`).
   Future<Result<PendingInput?, AppFailure>> fetchPendingInput(String buildUrl);
 
   /// Resolves and approves/rejects a paused input step (US-PIPE-05).
   /// [buildUrl] + [inputId] construct `{buildUrl}input/{inputId}/`, then
-  /// POST `proceedEmpty` (no params), `submit` (with [parameters], form-
-  /// urlencoded) when [proceed] is true, or `abort` when false — the CSRF
-  /// crumb (`NFR-SEC-06`) is attached automatically like every other
-  /// Jenkins POST. **Unverified against a real paused pipeline** — see
-  /// `pending_input.dart`'s doc comment; this is the highest-stakes call
-  /// in the PIPE epic, confirm against a real server before trusting it.
+  /// POST `proceedEmpty` (no params) or `proceed` (with [parameters] as a
+  /// Stapler `json` form field) when [proceed] is true, or `abort` when
+  /// false. The CSRF crumb (`NFR-SEC-06`) is attached automatically like
+  /// every other Jenkins POST. A user without `Job/Build` gets
+  /// [AuthFailure] (Jenkins answers that with a 400 page, not a 403), and
+  /// an input someone else already handled gets [NotFoundFailure].
+  /// Verified end to end on the fixture Jenkins (P11-02), which found and
+  /// fixed the parameter encoding and permission mapping that P7-07 had
+  /// guessed.
   Future<Result<void, AppFailure>> submitInput({
     required String buildUrl,
     required String inputId,

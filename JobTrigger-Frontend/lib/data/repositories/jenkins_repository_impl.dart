@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -259,18 +260,53 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
   }) => guardRequest(() async {
     final inputBase =
         '${_withSlash(buildUrl)}input/${Uri.encodeComponent(inputId)}/';
+    // Plain text, so a rejection's HTML body is readable in `recover`.
+    final options = Options(responseType: ResponseType.plain);
     if (!proceed) {
-      await _dio.post<void>('${inputBase}abort');
+      await _dio.post<String>('${inputBase}abort', options: options);
     } else if (parameters.isEmpty) {
-      await _dio.post<void>('${inputBase}proceedEmpty');
+      await _dio.post<String>('${inputBase}proceedEmpty', options: options);
     } else {
-      await _dio.post<void>(
-        '${inputBase}submit',
-        data: parameters,
-        options: Options(contentType: Headers.formUrlEncodedContentType),
+      // Verified on a real server (P11-02): Jenkins reads an input step's
+      // values from a Stapler `json` form field, never from plain
+      // `name=value` fields (those get a 400).
+      await _dio.post<String>(
+        '${inputBase}proceed',
+        data: {'json': jsonEncode(_staplerParameters(parameters))},
+        options: options.copyWith(
+          contentType: Headers.formUrlEncodedContentType,
+        ),
       );
     }
-  });
+  }, recover: _inputPermissionDenied);
+
+  static Map<String, Object> _staplerParameters(
+    Map<String, String> parameters,
+  ) => {
+    'parameter': [
+      for (final MapEntry(:key, :value) in parameters.entries)
+        {'name': key, 'value': value},
+    ],
+  };
+
+  /// Jenkins rejects an input submission from a user without `Job/Build`
+  /// with a **400** HTML error page ("You need to have Job/Build
+  /// permissions to submit this."), not a 403 — verified on the fixture's
+  /// read-only user (P11-02). Mapped to [AuthFailure] so it reads as a
+  /// permission problem, not a server error. The app sends no
+  /// `Accept-Language`, so Jenkins answers in its default (English) locale.
+  static Result<void, AppFailure>? _inputPermissionDenied(
+    DioException exception,
+  ) {
+    final response = exception.response;
+    final body = response?.data;
+    if (response?.statusCode == 400 &&
+        body is String &&
+        body.contains('permission')) {
+      return const Err(AuthFailure());
+    }
+    return null;
+  }
 }
 
 @riverpod

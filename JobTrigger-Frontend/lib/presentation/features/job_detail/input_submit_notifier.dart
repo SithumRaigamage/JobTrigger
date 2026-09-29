@@ -13,7 +13,7 @@ part 'input_submit_notifier.g.dart';
 
 /// US-PIPE-05. Family-keyed by build URL. Approves/rejects a paused input
 /// step — see `JenkinsRepository.submitInput`'s doc comment for the
-/// (unverified) endpoint mechanics. Same success/error haptic + toast
+/// endpoint mechanics (verified in P11-02). Same success/error haptic + toast
 /// shape as `TriggerBuildNotifier`/`CancelBuildNotifier`, plus refreshing
 /// both `JobDetailNotifier` (the pipeline may have resumed/finished) and
 /// `PendingInputNotifier` (this input is resolved either way) on success.

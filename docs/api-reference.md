@@ -60,8 +60,8 @@ Jenkins credentials are not JWTs and don't rotate mid-session.
 | `{buildURL}testReport/api/json` | GET | Test summary (US-PIPE-06) | A 404 means no report, which is a normal state |
 | `{buildURL}artifact/{relativePath}` | GET | Artifact bytes (US-PIPE-07) | Each path segment is percent-encoded |
 | `{buildURL}wfapi/describe` | GET | Pipeline stages (US-PIPE-04) | A 404 means not a pipeline |
-| `{buildURL}wfapi/pendingInputActions` | GET | Paused input step (US-PIPE-05) | A 404 or empty list means nothing is paused |
-| `{buildURL}input/{id}/proceedEmpty` · `submit` · `abort` | POST | Approve or reject an input step | `submit` is form-urlencoded. **Unverified** until P11-01 |
+| `{buildURL}wfapi/pendingInputActions` | GET | Paused input step (US-PIPE-05) | A 404 or empty list means nothing is paused. Each input's parameters are `{name, type, description, definition: {defaultVal, choices}}`, which is **not** the job-parameter shape |
+| `{buildURL}input/{id}/proceedEmpty` · `proceed` · `abort` | POST | Approve or reject an input step | `proceed` takes the Stapler form field `json={"parameter":[{"name":…,"value":…}]}`, because plain `name=value` fields get a 400. Permission denied is a **400** HTML page ("You need to have Job/Build permissions…"), mapped to `AuthFailure`. An already-handled input returns 404. Verified in P11-02 |
 
 ### Epic JX endpoints (Phase 11, planned)
 
