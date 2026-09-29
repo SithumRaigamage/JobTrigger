@@ -15,12 +15,17 @@ Phase 0–6 task without first moving the item here into an actual phase file
   `docs/user-stories/circleci/15-circleci.md`. SonarQube was itself
   promoted out of this item 2026-09-15 — see `tasks/phase-10-sonarqube.md`.
   GitLab CI and CircleCI remain deferred here for actual implementation.
-- Push notifications for build completion/failure.
-- Widget/home-screen extension for build status at a glance.
+- Push notifications for build completion/failure. *(Local, on-device
+  notifications promoted 2026-09-29 → `phase-11-jenkins-extended.md`
+  P11-24 / US-JX-10; true server push remains here.)*
+- ~~Widget/home-screen extension for build status at a glance.~~ Promoted
+  2026-09-29 → P11-26 / US-JX-23.
 - Multi-account support (switching between multiple backend user accounts,
   not just multiple Jenkins servers).
-- Offline caching of the job tree for airplane-mode browsing.
-- Biometric unlock (Face ID / fingerprint) gating app access.
+- ~~Offline caching of the job tree for airplane-mode browsing.~~ Promoted
+  2026-09-29 → P11-23 / US-JX-20.
+- ~~Biometric unlock (Face ID / fingerprint) gating app access.~~ Promoted
+  2026-09-29 → P11-25 / US-JX-21.
 - Crash reporting / analytics tool selection (flagged in P6-08 — pick a
   tool with the team before treating this as committed scope). Asked
   directly during Phase 6; user chose to skip for now rather than commit

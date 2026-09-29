@@ -29,11 +29,13 @@ this item for actual implementation until separately promoted the way GH
 and SQ were.
 
 ### BACKLOG-02 — Push notifications for build completion
+**Partially promoted 2026-09-29:** on-device *local* notifications (app-alive polling + best-effort background checks) are `US-JX-10` in `jenkins/16-jenkins-extended.md`. True server push stays deferred here for the reason below.
 **Reason deferred:** requires a push infrastructure decision (APNs/FCM,
 backend fan-out) not present in the current backend or architecture docs —
 a backend-track initiative, not a client-only addition.
 
 ### BACKLOG-03 — Home-screen widget
+**Promoted 2026-09-29** to `US-JX-23` (`jenkins/16-jenkins-extended.md`). The security concern below is addressed there: the widget only renders an app-written snapshot, holds no credentials, and never fetches itself.
 **Reason deferred:** platform-specific (iOS WidgetKit / Android App
 Widgets) work with its own data-refresh and security model (would need to
 display job status outside the authenticated app context); not part of the
@@ -45,12 +47,14 @@ single stored token) assumes one active account; supporting multiple would
 change session storage design significantly.
 
 ### BACKLOG-05 — Offline job-tree caching
+**Promoted 2026-09-29** to `US-JX-20` (`jenkins/16-jenkins-extended.md`), with the explicit staleness UX this entry asked for (timestamped offline banner, and state-changing actions disabled while offline).
 **Reason deferred:** the product's value is *live* Jenkins state — a stale
 cached job tree risks a user triggering a build against outdated
 assumptions about current status. Would need explicit staleness UX if ever
 pursued.
 
 ### BACKLOG-06 — Biometric unlock
+**Promoted 2026-09-29** to `US-JX-21` (`jenkins/16-jenkins-extended.md`).
 **Reason deferred:** additive security feature, not required for parity
 with the original SwiftUI app; secure storage already protects the token
 at rest regardless.

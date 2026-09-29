@@ -24,6 +24,8 @@ check "where are we."
 | 8 — GitHub Actions integration (epic GH) | `phase-8-github-actions.md` | in-progress (Backend + GH-CRED + GH-REPO done, P8-00..11 of 28) | none — second CI tool, promoted from `backlog.md` |
 | 9 — Testing, CI/CD hardening, dev tooling (epic HARDEN) | `phase-9-testing-cicd-hardening.md` | done | none — dev/QA/tooling work, promoted from a direct user request 2026-09-15 |
 | 10 — SonarQube integration (epic SQ) | `phase-10-sonarqube.md` | in-progress (Backend + SQ-CRED done, P10-00..06 of 16) | none — fourth CI tool, promoted from `backlog.md` |
+| 11 — Jenkins extended capabilities (epic JX) | `phase-11-jenkins-extended.md` | todo (planned 2026-09-29, awaiting plan approval) | P12-04 (shared repository guard); P11-01 fixture Jenkins for verification |
+| 12 — Audit remediation (epic AUDIT) | `phase-12-audit-remediation.md` | todo (audit 2026-09-29, 36 findings — tracker: `docs/audit/2026-09-29-workspace-audit.md`) | none; backend-track items need per-item approval |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." A handful

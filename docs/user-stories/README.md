@@ -48,11 +48,12 @@ to the same file, just at a new path.
 | `gitlab/` | [13-gitlab-ci.md](gitlab/13-gitlab-ci.md) | GL | A third real CI tool (docs-only, **not promoted/implemented**): credential management, project/pipeline browsing, run triggering/status/cancel/retry, live job trace, history |
 | `sonarqube/` | [14-sonarqube.md](sonarqube/14-sonarqube.md) | SQ | A code-quality server, not a build-trigger tool (**promoted, in progress** — `tasks/phase-10-sonarqube.md`): credential management, project browsing, quality gate/measures/issues |
 | `circleci/` | [15-circleci.md](circleci/15-circleci.md) | CC | A fourth real CI tool (docs-only, **not promoted/implemented**): credential management, project/pipeline/workflow browsing, run triggering/status/cancel/rerun, per-step job output, history |
+| `jenkins/` | [16-jenkins-extended.md](jenkins/16-jenkins-extended.md) | JX | New-scope Jenkins depth and capabilities added 2026-09-29 (**promoted, in progress** — `tasks/phase-11-jenkins-extended.md`): secure/complete parameter types, multibranch, stage logs, history paging, console search/colors, test details, server queue, notifications, pinned jobs, nodes, enable/disable, keep-forever, trends, edited replay, views, server status, deep links, offline tree, biometric lock, token hygiene, home-screen widget |
 
 ## Story ID convention
 
 `US-<EPIC>-##`, e.g. `US-AUTH-01`. Epic codes: `AUTH`, `TOOL`, `CRED`,
-`TREE`, `JOB`, `LOG`, `HIST`, `PROF`, `DESIGN`, `PIPE`, `GH` (sub-epics
+`TREE`, `JOB`, `LOG`, `HIST`, `PROF`, `DESIGN`, `PIPE`, `JX`, `GH` (sub-epics
 `GH-CRED`, `GH-REPO`, `GH-RUN`, `GH-LOG`, `GH-HIST`), `GL` (sub-epics
 `GL-CRED`, `GL-PROJ`, `GL-RUN`, `GL-LOG`, `GL-HIST`), `SQ` (sub-epics
 `SQ-CRED`, `SQ-PROJ`, `SQ-QUALITY` — no RUN/LOG/HIST, SonarQube has no
@@ -65,7 +66,7 @@ Deferred items use `BACKLOG-##`.
 ## Story template
 
 Every story in `shared/`'s and `jenkins/`'s files 00–08 follows this shape
-(and every epic added afterward — PIPE, GH, GL, SQ, CC — follows it too):
+(and every epic added afterward — PIPE, JX, GH, GL, SQ, CC — follows it too):
 
 ```
 ### US-XXX-## — <Title>

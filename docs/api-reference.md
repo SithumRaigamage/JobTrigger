@@ -44,12 +44,60 @@ Jenkins credentials are not JWTs and don't rotate mid-session.
 | Endpoint pattern | Method | Purpose | Notes |
 |---|---|---|---|
 | `{baseURL}/api/json` | GET | Connection health check | Used by "test connection" in server add/edit flow; surface job count or the raw HTTP status on failure |
-| `{baseURL}/api/json?tree=jobs[name,url,color,jobs[name,url,color,jobs[...]]]` | GET | Recursive job/folder tree | Depth-limit the `tree` query at 6 levels to match the original app; going deeper risks huge payloads on large Jenkins instances |
+| `{baseURL}/api/json?tree=jobs[name,url,color,jobs[name,url,color,jobs[...]]]` | GET | Recursive job/folder tree | Depth-limit the `tree` query at 6 levels to match the original app; going deeper risks huge payloads on large Jenkins instances. **Note (AUD-19):** the code currently builds 5 levels, not 6. Phase 11 replaces this with lazy per-folder loading (see below) |
 | `{jobURL}api/json?tree={detailsTree}` | GET | Job detail: params, health, recent builds | `detailsTree` includes `property[parameterDefinitions[*]],healthReport[*],lastBuild[*],builds[number,url,result,timestamp,duration,building]` |
 | `{jobURL}build` | POST | Trigger build, no params | |
 | `{jobURL}buildWithParameters` | POST | Trigger build with params | Body: `application/x-www-form-urlencoded`, all values stringified |
 | `{jobURL}{buildNumber}/stop` | POST | Cancel a running build | Optimistically flip local state to `ABORTED` before the next poll confirms it |
 | `{buildURL}logText/progressiveText?start={offset}` | GET | Incremental console log | Read `X-Text-Size` (next offset) and `X-More-Data` (bool) response headers; stop polling when `X-More-Data` is absent/false |
+
+### Epic PIPE endpoints (implemented, Phase 7)
+
+| Endpoint pattern | Method | Purpose | Notes |
+|---|---|---|---|
+| `{baseURL}/crumbIssuer/api/json` | GET | CSRF crumb (`NFR-SEC-06`) | Fetched lazily by the client interceptor on the first POST. A 404 means no crumb issuer |
+| `{queueItemURL}api/json` | GET | Track a triggered build's queue item (US-PIPE-01) | Queue-item URL comes from the trigger response's `Location` header |
+| `{buildURL}testReport/api/json` | GET | Test summary (US-PIPE-06) | A 404 means no report, which is a normal state |
+| `{buildURL}artifact/{relativePath}` | GET | Artifact bytes (US-PIPE-07) | Each path segment is percent-encoded |
+| `{buildURL}wfapi/describe` | GET | Pipeline stages (US-PIPE-04) | A 404 means not a pipeline |
+| `{buildURL}wfapi/pendingInputActions` | GET | Paused input step (US-PIPE-05) | A 404 or empty list means nothing is paused |
+| `{buildURL}input/{id}/proceedEmpty` · `submit` · `abort` | POST | Approve or reject an input step | `submit` is form-urlencoded. **Unverified** until P11-01 |
+
+### Epic JX endpoints (Phase 11, planned)
+
+Each row's status changes from *planned* to *implemented* in the same change
+that ships its task. Response shapes are **provisional** until verified
+against the fixture Jenkins (P11-02, `NFR-TEST-02`).
+
+| Endpoint pattern | Method | Story | Status |
+|---|---|---|---|
+| `{folderURL}api/json?tree=jobs[_class,name,displayName,url,color,buildable,lastBuild[…]]` | GET | Lazy per-folder tree (AUD-19/20), US-JX-03 | planned |
+| `{multibranchURL}api/json?tree=views[name,jobs[url]]` | GET | US-JX-03 branch/PR/tag grouping | planned |
+| `{multibranchURL}build?delay=0` | POST | US-JX-03 scan repository now | planned |
+| `{multibranchURL}indexing/api/json` · `indexing/consoleText` | GET | US-JX-03 scan status and log | planned |
+| `{buildURL}execution/node/{id}/wfapi/describe` | GET | US-JX-04 stage steps | planned |
+| `{buildURL}execution/node/{id}/wfapi/log` | GET | US-JX-04 step log (`text`, `hasMore`) | planned |
+| `{jobURL}api/json?tree=lastSuccessfulBuild[…],lastFailedBuild[…],lastStableBuild[…]` | GET | US-JX-05 | planned |
+| `{jobURL}api/json?tree=allBuilds[…]{start,end}` | GET | US-JX-06 paging | planned |
+| `{buildURL}consoleText` | GET | US-JX-07 full-log download and earlier lines | planned |
+| `{buildURL}timestamps/?time=HH:mm:ss&appendLog` | GET | US-JX-07 timestamps (Timestamper plugin; a 404 hides the toggle) | planned |
+| `{buildURL}testReport/api/json?tree=suites[cases[…,errorDetails,errorStackTrace,age]{0,200}]` | GET | US-JX-08 | planned |
+| `{baseURL}/queue/api/json?tree=items[…]` | GET | US-JX-09 server queue | planned |
+| `{baseURL}/queue/cancelItem?id={id}` | POST | US-JX-09 cancel queued item | planned |
+| `{baseURL}/computer/api/json?tree=computer[…]` | GET | US-JX-12 nodes and executors | planned |
+| `{baseURL}/computer/{name}/toggleOffline?offlineMessage=…` | POST | US-JX-12 (`(built-in)` for the controller) | planned |
+| `{jobURL}enable` · `{jobURL}disable` | POST | US-JX-13 | planned |
+| `{buildURL}toggleLogKeep` | POST | US-JX-14 keep forever | planned |
+| `{buildURL}submitDescription` (form `description`) | POST | US-JX-14 | planned |
+| `{buildURL}replay/run` (form `mainScript` + Stapler `json`) | POST | US-JX-16, verification-gated | planned |
+| `{baseURL}/api/json?tree=views[name,url],primaryView[name]` · `{viewURL}api/json` | GET | US-JX-17 views | planned |
+| `{baseURL}/api/json?tree=quietingDown,mode` + `X-Jenkins` header | GET | US-JX-18 server status | planned |
+| `{jobURL}buildWithParameters` as `multipart/form-data` | POST | US-JX-02 file parameters | planned |
+
+Every POST above goes through the shared Jenkins client, so it gets the CSRF
+crumb and session cookie automatically. A 403 on an admin-flavoured action
+(scan, node toggle, enable/disable, replay) is shown as a *permission*
+message, not "credentials rejected" (see US-JX-12).
 
 ### URL rewriting
 
