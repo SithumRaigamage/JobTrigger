@@ -8,6 +8,7 @@ import '../../core/error/app_failure.dart';
 import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../core/network/jenkins_client_factory.dart';
+import '../../domain/jenkins/branch_kind.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../../domain/jenkins/jenkins_repository.dart';
@@ -125,6 +126,41 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
             .toList();
         return rewriteJobTreeUrls(jobs, _baseUrl);
       });
+
+  @override
+  Future<Result<Map<String, BranchKind>, AppFailure>> fetchBranchKinds(
+    String multibranchUrl,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '${_withSlash(multibranchUrl)}api/json',
+      queryParameters: {'tree': 'views[name,jobs[name]]'},
+    );
+    final views = response.data?['views'] as List<dynamic>? ?? const [];
+    return branchKindsFromViews({
+      for (final view in views.cast<Map<String, dynamic>>())
+        view['name'] as String: [
+          for (final job
+              in (view['jobs'] as List<dynamic>? ?? const [])
+                  .cast<Map<String, dynamic>>())
+            job['name'] as String,
+        ],
+    });
+  });
+
+  @override
+  Future<Result<void, AppFailure>> scanMultibranch(String projectUrl) =>
+      guardRequest(
+        () => _dio.post<void>(
+          '${_withSlash(projectUrl)}build',
+          queryParameters: {'delay': 0},
+          // Jenkins redirects (302) back to the project after queueing the
+          // scan; Dart doesn't follow redirects for POST.
+          options: Options(
+            followRedirects: false,
+            validateStatus: (status) => status != null && status < 400,
+          ),
+        ),
+      );
 
   @override
   Future<Result<JenkinsJob, AppFailure>> fetchJobDetail(String jobUrl) =>
@@ -347,7 +383,7 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
   /// Jenkins rejects an input submission from a user without `Job/Build`
   /// with a **400** HTML error page ("You need to have Job/Build
   /// permissions to submit this."), not a 403 — verified on the fixture's
-  /// read-only user (P11-02). Mapped to [AuthFailure] so it reads as a
+  /// read-only user (P11-02). Mapped to [PermissionFailure] so it reads as a
   /// permission problem, not a server error. The app sends no
   /// `Accept-Language`, so Jenkins answers in its default (English) locale.
   static Result<void, AppFailure>? _inputPermissionDenied(
@@ -358,7 +394,7 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
     if (response?.statusCode == 400 &&
         body is String &&
         body.contains('permission')) {
-      return const Err(AuthFailure());
+      return const Err(PermissionFailure());
     }
     return null;
   }

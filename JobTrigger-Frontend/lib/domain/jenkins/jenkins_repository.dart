@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
+import 'branch_kind.dart';
 import 'jenkins_build.dart';
 import 'jenkins_job.dart';
 import 'log_chunk.dart';
@@ -22,6 +23,19 @@ abstract class JenkinsRepository {
   /// Children of a returned folder are `null` until that folder is fetched
   /// itself; `JenkinsJob.isFolder` still recognises it by class.
   Future<Result<List<JenkinsJob>, AppFailure>> fetchFolder(String? folderUrl);
+
+  /// US-JX-03: which of a multibranch project's jobs are branches, pull
+  /// requests, or tags, keyed by job `name`, from the project's views.
+  Future<Result<Map<String, BranchKind>, AppFailure>> fetchBranchKinds(
+    String multibranchUrl,
+  );
+
+  /// US-JX-03: "Scan repository now" — `POST {projectUrl}build?delay=0` on
+  /// a multibranch project or organization folder. Jenkins answers with a
+  /// 302 back to the project, which counts as success. Progress and the
+  /// scan log come from [streamBuildLog] on `{projectUrl}indexing/`
+  /// (`X-More-Data` is true while a scan runs).
+  Future<Result<void, AppFailure>> scanMultibranch(String projectUrl);
 
   /// [jobUrl] is the job's already-rewritten absolute URL (from a
   /// previously-fetched tree), not a relative path.
@@ -113,7 +127,7 @@ abstract class JenkinsRepository {
   /// Stapler `json` form field) when [proceed] is true, or `abort` when
   /// false. The CSRF crumb (`NFR-SEC-06`) is attached automatically like
   /// every other Jenkins POST. A user without `Job/Build` gets
-  /// [AuthFailure] (Jenkins answers that with a 400 page, not a 403), and
+  /// [PermissionFailure] (Jenkins answers that with a 400 page, not a 403), and
   /// an input someone else already handled gets [NotFoundFailure].
   /// Verified end to end on the fixture Jenkins (P11-02), which found and
   /// fixed the parameter encoding and permission mapping that P7-07 had

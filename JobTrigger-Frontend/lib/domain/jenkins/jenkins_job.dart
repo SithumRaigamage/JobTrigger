@@ -62,6 +62,18 @@ class JenkinsJob {
   /// jobs — see `data/models/jenkins/jenkins_job_dto.dart`'s doc comment.
   bool get isFolder => jobs != null || folderClasses.contains(jobClass);
 
+  static const multibranchClass =
+      'org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject';
+  static const organizationFolderClass = 'jenkins.branch.OrganizationFolder';
+
+  /// A multibranch pipeline project (US-JX-03).
+  bool get isMultibranch => jobClass == multibranchClass;
+
+  /// A project that can be re-scanned for branches/repositories — a
+  /// multibranch project or an organization folder (US-JX-03).
+  bool get isScannable =>
+      jobClass == multibranchClass || jobClass == organizationFolderClass;
+
   /// What to show the user: `displayName`, else the URL-decoded [name]
   /// (`feature%2Flogin` → `feature/login`), else [name] as-is.
   String get label {

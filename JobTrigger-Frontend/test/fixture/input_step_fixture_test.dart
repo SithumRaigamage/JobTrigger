@@ -161,7 +161,7 @@ void main() {
   });
 
   test(
-    'a read-only user cannot submit parameters either (AuthFailure)',
+    'a read-only user cannot submit parameters either (PermissionFailure)',
     () async {
       final (buildUrl, number, input) = await startPaused(
         'pipeline-input-params',
@@ -173,7 +173,7 @@ void main() {
         proceed: true,
         parameters: {'VERSION': '6.6.6', 'REGION': 'eu-west-1', 'OTP': 'x'},
       );
-      expect((result as Err).error, isA<AuthFailure>());
+      expect((result as Err).error, isA<PermissionFailure>());
 
       expectOk(
         await jenkins.adminRepository().submitInput(
@@ -187,7 +187,7 @@ void main() {
   );
 
   test(
-    'a read-only user cannot approve (AuthFailure), build stays paused',
+    'a read-only user cannot approve (PermissionFailure), build stays paused',
     () async {
       final (buildUrl, number, input) = await startPaused(
         'pipeline-input-simple',
@@ -199,7 +199,7 @@ void main() {
         proceed: true,
       );
       expect(result, isA<Err<void, AppFailure>>());
-      expect((result as Err).error, isA<AuthFailure>());
+      expect((result as Err).error, isA<PermissionFailure>());
 
       final stillPaused = expectOk(
         await jenkins.adminRepository().fetchPendingInput(buildUrl),

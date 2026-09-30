@@ -12,20 +12,35 @@ part 'folder_breadcrumb_notifier.g.dart';
 /// pull-to-refresh inside a folder showed stale contents (AUD-10). The
 /// children now always come from `FolderContentsNotifier` for [url].
 class FolderRef {
-  const FolderRef({required this.url, required this.label});
+  const FolderRef({required this.url, required this.label, this.jobClass});
 
-  factory FolderRef.of(JenkinsJob folder) =>
-      FolderRef(url: folder.url, label: folder.label);
+  factory FolderRef.of(JenkinsJob folder) => FolderRef(
+    url: folder.url,
+    label: folder.label,
+    jobClass: folder.jobClass,
+  );
 
   final String url;
   final String label;
 
-  @override
-  bool operator ==(Object other) =>
-      other is FolderRef && other.url == url && other.label == label;
+  /// Jenkins `_class`, so Home knows a multibranch project or organization
+  /// folder when it's inside one (US-JX-03).
+  final String? jobClass;
+
+  bool get isMultibranch => jobClass == JenkinsJob.multibranchClass;
+
+  bool get isScannable =>
+      isMultibranch || jobClass == JenkinsJob.organizationFolderClass;
 
   @override
-  int get hashCode => Object.hash(url, label);
+  bool operator ==(Object other) =>
+      other is FolderRef &&
+      other.url == url &&
+      other.label == label &&
+      other.jobClass == jobClass;
+
+  @override
+  int get hashCode => Object.hash(url, label, jobClass);
 }
 
 /// Navigation stack for folder drill-down — pure local UI state, no

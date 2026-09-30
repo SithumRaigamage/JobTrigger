@@ -32,7 +32,11 @@ class BuildLogScreen extends ConsumerWidget {
         // theme -- otherwise light mode renders a pale bar with jarring
         // contrast against the console beneath it.
         brightness: Brightness.dark,
-        title: Text('Build #${jenkinsBuild.number}'),
+        // A non-build log (e.g. a multibranch scan log, US-JX-03) passes its
+        // title as `displayName`.
+        title: Text(
+          jenkinsBuild.displayName ?? 'Build #${jenkinsBuild.number}',
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.copy),

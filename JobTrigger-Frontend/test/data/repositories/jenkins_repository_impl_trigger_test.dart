@@ -233,7 +233,10 @@ void main() {
       isParameterized: false,
     );
 
-    expect((result as Err<String?, AppFailure>).error, isA<AuthFailure>());
+    expect(
+      (result as Err<String?, AppFailure>).error,
+      isA<PermissionFailure>(),
+    );
   });
 
   test(

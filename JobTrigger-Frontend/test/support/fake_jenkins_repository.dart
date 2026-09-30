@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
+import 'package:job_trigger/domain/jenkins/branch_kind.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
@@ -24,6 +25,15 @@ class FakeJenkinsRepository implements JenkinsRepository {
   @override
   Future<Result<List<JenkinsJob>, AppFailure>> fetchFolder(String? folderUrl) =>
       throw UnimplementedError('fetchFolder');
+
+  @override
+  Future<Result<Map<String, BranchKind>, AppFailure>> fetchBranchKinds(
+    String multibranchUrl,
+  ) => throw UnimplementedError('fetchBranchKinds');
+
+  @override
+  Future<Result<void, AppFailure>> scanMultibranch(String projectUrl) =>
+      throw UnimplementedError('scanMultibranch');
 
   @override
   Future<Result<JenkinsJob, AppFailure>> fetchJobDetail(String jobUrl) =>

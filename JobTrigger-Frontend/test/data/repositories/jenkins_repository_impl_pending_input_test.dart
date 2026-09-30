@@ -167,7 +167,7 @@ void main() {
     );
 
     test(
-      'a 400 permission page maps to AuthFailure, not ServerFailure',
+      'a 400 permission page maps to PermissionFailure, not ServerFailure',
       () async {
         final adapter = _ScriptedAdapter(statusCode: 400, body: null)
           ..bodyOverride =
@@ -183,7 +183,10 @@ void main() {
           proceed: true,
         );
 
-        expect((result as Err<void, AppFailure>).error, isA<AuthFailure>());
+        expect(
+          (result as Err<void, AppFailure>).error,
+          isA<PermissionFailure>(),
+        );
       },
     );
 

@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
+import '../../../domain/jenkins/branch_kind.dart';
+import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
+import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/no_active_server_view.dart';
@@ -14,6 +17,7 @@ import '../../navigation/main_scaffold.dart';
 import '../settings/active_server_notifier.dart';
 import 'folder_breadcrumb_notifier.dart';
 import 'job_search_notifier.dart';
+import 'multibranch_notifiers.dart';
 import 'visible_jobs_provider.dart';
 
 /// Ported from `HomeView.swift`. Doesn't port the swipe-to-trigger-build
@@ -77,6 +81,10 @@ class HomeScreen extends ConsumerWidget {
             onPressed: () => context.go(AppRoutes.toolSelection),
           ),
           title: Text(breadcrumb.isEmpty ? 'Jobs' : breadcrumb.last.label),
+          actions: [
+            if (breadcrumb.isNotEmpty && breadcrumb.last.isScannable)
+              _ScanActions(project: breadcrumb.last),
+          ],
         ),
         body: ResponsiveCenter(
           child: Column(
@@ -88,7 +96,17 @@ class HomeScreen extends ConsumerWidget {
               const _BreadcrumbHeader(),
               Expanded(
                 child: visibleJobs.when(
-                  data: (jobs) => _JobListView(jobs: jobs),
+                  data: (jobs) => _JobListView(
+                    jobs: jobs,
+                    // Branch/PR/tag sections only when browsing (not
+                    // searching) inside a multibranch project.
+                    multibranch:
+                        breadcrumb.isNotEmpty &&
+                            breadcrumb.last.isMultibranch &&
+                            ref.watch(jobSearchNotifierProvider).isEmpty
+                        ? breadcrumb.last
+                        : null,
+                  ),
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
                   error: (error, stackTrace) => Center(
@@ -205,9 +223,13 @@ class _BreadcrumbHeader extends ConsumerWidget {
 }
 
 class _JobListView extends ConsumerWidget {
-  const _JobListView({required this.jobs});
+  const _JobListView({required this.jobs, this.multibranch});
 
   final List<JenkinsJob> jobs;
+
+  /// The multibranch project being browsed, if any: its jobs are grouped
+  /// into branch / pull request / tag sections (US-JX-03).
+  final FolderRef? multibranch;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -216,6 +238,13 @@ class _JobListView extends ConsumerWidget {
     if (jobs.isEmpty) {
       return _EmptyState(query: query);
     }
+
+    final project = multibranch;
+    // Grouping is additive: until (or if) the views load, show a flat list.
+    final kinds = project == null
+        ? null
+        : ref.watch(branchKindsProvider(project.url)).value;
+    final items = kinds == null ? jobs : _grouped(jobs, kinds);
 
     return RefreshIndicator(
       onRefresh: () => refreshVisibleJobs(ref),
@@ -226,13 +255,96 @@ class _JobListView extends ConsumerWidget {
           16,
           16 + glassNavBarClearance(context),
         ),
-        itemCount: jobs.length,
-        itemBuilder: (context, index) => Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: _JobTile(job: jobs[index]),
-        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) => switch (items[index]) {
+          final JenkinsJob job => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _JobTile(job: job),
+          ),
+          final String header => Padding(
+            padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
+            child: Text(header, style: Theme.of(context).textTheme.labelLarge),
+          ),
+          _ => const SizedBox.shrink(),
+        },
       ),
     );
+  }
+
+  /// Section header strings interleaved with their jobs, in
+  /// branches → pull requests → tags order, empty sections omitted.
+  static List<Object> _grouped(
+    List<JenkinsJob> jobs,
+    Map<String, BranchKind> kinds,
+  ) => [
+    for (final kind in BranchKind.values)
+      if (jobs.where((job) => (kinds[job.name] ?? BranchKind.branch) == kind)
+          case final section when section.isNotEmpty) ...[
+        kind.sectionTitle,
+        ...section,
+      ],
+  ];
+}
+
+/// US-JX-03: "Scan now" plus the scan log, for a multibranch project or
+/// organization folder. Scanning is a state-changing POST, so it asks first.
+class _ScanActions extends ConsumerWidget {
+  const _ScanActions({required this.project});
+
+  final FolderRef project;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scanning = ref.watch(multibranchScanNotifierProvider(project.url));
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (scanning)
+          const Padding(
+            padding: EdgeInsets.all(14),
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          )
+        else
+          IconButton(
+            icon: const Icon(Icons.sync),
+            tooltip: 'Scan now',
+            onPressed: () => _confirmAndScan(context, ref),
+          ),
+        IconButton(
+          icon: const Icon(Icons.receipt_long),
+          tooltip: 'Scan log',
+          onPressed: () => context.push(
+            AppRoutes.buildLog,
+            extra: JenkinsBuild(
+              number: 0,
+              url:
+                  '${project.url.endsWith('/') ? project.url : '${project.url}/'}indexing/',
+              timestamp: 0,
+              displayName: 'Scan log · ${project.label}',
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmAndScan(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Scan ${project.label}?',
+      message:
+          'Jenkins will re-scan the repository for branches, pull requests, '
+          'and tags, and may start builds for new ones.',
+      confirmLabel: 'Scan',
+    );
+    if (!confirmed) return;
+    await ref
+        .read(multibranchScanNotifierProvider(project.url).notifier)
+        .scan();
   }
 }
 
@@ -293,7 +405,23 @@ class _JobTile extends ConsumerWidget {
                 color: Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.folder, color: Colors.orange, size: 20),
+              // Distinct shapes, not just color (NFR-A11Y-03): a
+              // multibranch project and an organization folder aren't
+              // plain folders (US-JX-03).
+              child: Icon(
+                job.isMultibranch
+                    ? Icons.account_tree
+                    : job.isScannable
+                    ? Icons.corporate_fare
+                    : Icons.folder,
+                color: Colors.orange,
+                size: 20,
+                semanticLabel: job.isMultibranch
+                    ? 'Multibranch project'
+                    : job.isScannable
+                    ? 'Organization folder'
+                    : 'Folder',
+              ),
             )
           else
             SizedBox(

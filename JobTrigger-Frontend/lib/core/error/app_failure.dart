@@ -19,7 +19,12 @@ sealed class AppFailure {
       case DioExceptionType.badResponse:
         final statusCode = exception.response?.statusCode;
         return switch (statusCode) {
-          401 || 403 => const AuthFailure(),
+          401 => const AuthFailure(),
+          // Authenticated fine, but not allowed to do this (e.g. a Jenkins
+          // user without Job/Build or Computer/Disconnect). Distinct from
+          // 401 so the copy doesn't send the user off to re-enter
+          // credentials that are actually correct (US-JX-12/13).
+          403 => const PermissionFailure(),
           404 => const NotFoundFailure(),
           final code? => ServerFailure(code),
           null => const UnknownFailure(),
@@ -54,6 +59,8 @@ sealed class AppFailure {
       "Can't reach the server. Check your connection and try again.",
     AuthFailure() =>
       'Your credentials were rejected. Please check them and try again.',
+    PermissionFailure() =>
+      "You don't have permission to do this on this server.",
     NotFoundFailure() => "That couldn't be found — it may have been removed.",
     ServerFailure(:final statusCode) =>
       'Something went wrong on the server (HTTP $statusCode).',
@@ -75,6 +82,12 @@ final class NetworkFailure extends AppFailure {
 /// session) are never conflated, per `docs/api-reference.md`.
 final class AuthFailure extends AppFailure {
   const AuthFailure();
+}
+
+/// Authenticated, but the server refused this action (HTTP 403, or Jenkins'
+/// 400 "You need to have … permission" page for input steps).
+final class PermissionFailure extends AppFailure {
+  const PermissionFailure();
 }
 
 final class NotFoundFailure extends AppFailure {

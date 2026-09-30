@@ -202,10 +202,25 @@ Each task names the `AUD-##` ids it closes.
         file, and readiness ignores stale logs.
       - **Tests:** 20 new unit and widget tests, plus 5 fixture tests. The
         full fixture suite (22) passes.
-- [ ] P11-07 **US-JX-03 multibranch and organization folders.** Class-based
+- [x] P11-07 **US-JX-03 multibranch and organization folders.** Class-based
       icons, `displayName` everywhere, Branches/PRs/Tags grouping from
       `views`, "Scan now" with indexing progress and scan log, and 403 shown
       as a permission message.
+      **Done 2026-09-30.**
+      - **Grouping:** `BranchKind` plus `fetchBranchKinds`, from views,
+        into Branches, Pull requests, and Tags sections. A flat list shows
+        until the views load.
+      - **Scan:** "Scan now" (with confirmation) through
+        `MultibranchScanNotifier`: POST, then poll the indexing log every
+        2 s (capped at 5 min), then refresh. The scan log reuses
+        `BuildLogScreen`, titled via `displayName`.
+      - **Icons:** multibranch and org-folder icons carry semantic labels.
+      - **Permissions:** a new `PermissionFailure` for 403 and the Jenkins
+        400 permission page, so 401 and 403 are no longer conflated.
+      - **Real-server findings:** scan POST returns 302; there's no
+        indexing JSON API; X-More-Data signals a running scan.
+      - **Not verifiable locally:** PR grouping needs a hosted SCM
+        (GitHub/GitLab) branch source. It's covered by unit tests only.
 - [ ] P11-08 **US-JX-04 stage logs and parallel branches.** Stage sheet →
       steps → step log (live while running), auto-expand of the failed step,
       and fallback to the full console on 404.

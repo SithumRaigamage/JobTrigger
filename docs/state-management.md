@@ -78,6 +78,12 @@ their screen under `presentation/features/<feature>/`.
   from current data (AUD-10). It watches the active server id, so a server
   switch resets it to the root.
 - `JobSearchNotifier` (`Notifier<String>`) holds the search query.
+- `branchKindsProvider(projectUrl)` (`FutureProvider`) classifies a
+  multibranch project's jobs as branch, PR, or tag, and is watched only
+  while Home is inside that project (US-JX-03).
+  `MultibranchScanNotifier(projectUrl)` (`Notifier<bool>`, true while
+  scanning) POSTs the scan, then polls the indexing log on a timer that's
+  cancelled on dispose.
 - `visibleJobsProvider` (`Provider<AsyncValue<List<JenkinsJob>>>`) is what
   Home renders. With no query, it's the current folder's contents. It also
   watches the root and every breadcrumb ancestor, so "Back" is instant and

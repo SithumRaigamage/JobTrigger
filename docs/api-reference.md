@@ -72,9 +72,9 @@ against the fixture Jenkins (P11-02, `NFR-TEST-02`).
 | Endpoint pattern | Method | Story | Status |
 |---|---|---|---|
 | `{folderURL}api/json?tree=jobs[_class,name,displayName,url,color,description,buildable,lastBuild[…]]` (the root uses `/api/json`) | GET | Lazy per-folder tree (AUD-19/20), US-JX-03 | **implemented** (P11-05) |
-| `{multibranchURL}api/json?tree=views[name,jobs[url]]` | GET | US-JX-03 branch/PR/tag grouping | planned |
-| `{multibranchURL}build?delay=0` | POST | US-JX-03 scan repository now | planned |
-| `{multibranchURL}indexing/api/json` · `indexing/consoleText` | GET | US-JX-03 scan status and log | planned |
+| `{multibranchURL}api/json?tree=views[name,jobs[name]]` | GET | US-JX-03 branch/PR/tag grouping. Verified view names: `default` (branches), `tags`; `change-requests` for PRs | **implemented** (P11-07) |
+| `{multibranchURL}build?delay=0` | POST | US-JX-03 scan repository now. Returns **302** back to the project, which counts as success | **implemented** (P11-07) |
+| `{multibranchURL}indexing/logText/progressiveText` | GET | US-JX-03 scan status and log. There's **no** `indexing/api/json` (404). `X-More-Data` means a scan is running, the same contract as a build log | **implemented** (P11-07) |
 | `{buildURL}execution/node/{id}/wfapi/describe` | GET | US-JX-04 stage steps | planned |
 | `{buildURL}execution/node/{id}/wfapi/log` | GET | US-JX-04 step log (`text`, `hasMore`) | planned |
 | `{jobURL}api/json?tree=lastSuccessfulBuild[…],lastFailedBuild[…],lastStableBuild[…]` | GET | US-JX-05 | planned |
@@ -115,8 +115,14 @@ rewrite in the repository layer, once, not ad hoc at each call site.
 
 ### Error shapes to handle explicitly
 
-- `401`/`403` from Jenkins → `AuthFailure` → prompt to re-check credentials
+- `401` from Jenkins → `AuthFailure` → prompt to re-check credentials
   for that server (not the global app session — Jenkins auth is per-server).
+- `403` → `PermissionFailure` (P11-07): the credentials are fine, but the user
+  lacks the permission for this action (e.g. `Job/Build`, a scan, a node
+  toggle). The copy is "You don't have permission to do this on this
+  server" and never sends the user off to re-enter correct credentials.
+  Jenkins' input-step endpoints report the same condition as a **400** page,
+  also mapped to `PermissionFailure`.
 - Connection refused / timeout → `NetworkFailure` → shown as "can't reach
   server", with a retry action.
 - Any other non-2xx → `ServerFailure(statusCode)` → generic message with

@@ -42,12 +42,12 @@ void main() {
     expect(finished.result, 'SUCCESS');
   });
 
-  test('a read-only user gets AuthFailure when triggering', () async {
+  test('a read-only user gets PermissionFailure when triggering', () async {
     final result = await jenkins.viewerRepository().triggerBuild(
       jenkins.jobUrl('freestyle-simple'),
       isParameterized: false,
     );
     expect(result, isA<Err<String?, AppFailure>>());
-    expect((result as Err).error, isA<AuthFailure>());
+    expect((result as Err).error, isA<PermissionFailure>());
   });
 }

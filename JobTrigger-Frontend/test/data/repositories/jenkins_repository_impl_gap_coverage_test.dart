@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
+import 'package:job_trigger/domain/jenkins/branch_kind.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
@@ -206,6 +207,61 @@ void main() {
         adapter.lastRequest?.path,
         'https://jenkins.test/job/nested/job/level-2/api/json',
       );
+    });
+  });
+
+  group('multibranch (US-JX-03)', () {
+    test('fetchBranchKinds classifies jobs from the project views', () async {
+      final adapter = _JsonResponseAdapter(200, {
+        'views': [
+          {
+            'name': 'default',
+            'jobs': [
+              {'name': 'main'},
+            ],
+          },
+          {
+            'name': 'tags',
+            'jobs': [
+              {'name': 'v1.0.0'},
+            ],
+          },
+        ],
+      });
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+
+      final result = await JenkinsRepositoryImpl(
+        dio,
+      ).fetchBranchKinds('https://jenkins.test/job/api');
+
+      expect(
+        adapter.lastRequest?.path,
+        'https://jenkins.test/job/api/api/json',
+      );
+      expect(
+        adapter.lastRequest?.queryParameters['tree'],
+        'views[name,jobs[name]]',
+      );
+      expect((result as Ok<Map<String, BranchKind>, dynamic>).value, {
+        'main': BranchKind.branch,
+        'v1.0.0': BranchKind.tag,
+      });
+    });
+
+    test('scanMultibranch POSTs build?delay=0 and accepts the 302', () async {
+      final adapter = _JsonResponseAdapter(302, const {});
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+
+      final result = await JenkinsRepositoryImpl(
+        dio,
+      ).scanMultibranch('https://jenkins.test/job/api');
+
+      expect(adapter.lastRequest?.method, 'POST');
+      expect(adapter.lastRequest?.path, 'https://jenkins.test/job/api/build');
+      expect(adapter.lastRequest?.queryParameters, {'delay': 0});
+      expect(result, isA<Ok<void, dynamic>>());
     });
   });
 
