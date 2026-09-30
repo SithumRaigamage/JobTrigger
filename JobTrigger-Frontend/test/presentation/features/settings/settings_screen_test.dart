@@ -12,9 +12,12 @@ import 'package:job_trigger/domain/credential/github_credentials_repository.dart
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credentials_repository.dart';
+import 'package:job_trigger/core/platform/biometric_service.dart';
+import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
 import 'package:job_trigger/presentation/features/settings/settings_screen.dart';
 import 'package:job_trigger/presentation/features/tool_selection/active_tool_notifier.dart';
 import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
+import '../../../support/fake_biometric_service.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
 /// Minimal fakes — only `fetchAll` is exercised by this smoke test.
@@ -384,4 +387,69 @@ void main() {
       expect(find.text('Personal'), findsOneWidget);
     },
   );
+
+  group('app lock (US-JX-21)', () {
+    Future<ProviderContainer> pumpSettings(
+      WidgetTester tester,
+      FakeBiometricService biometrics,
+    ) async {
+      final container = ProviderContainer(
+        overrides: [
+          credentialsRepositoryProvider.overrideWithValue(
+            _FakeCredentialsRepository(const []),
+          ),
+          gitHubCredentialsRepositoryProvider.overrideWithValue(
+            _FakeGitHubCredentialsRepository(const []),
+          ),
+          sonarQubeCredentialsRepositoryProvider.overrideWithValue(
+            _FakeSonarQubeCredentialsRepository(const []),
+          ),
+          biometricServiceProvider.overrideWithValue(biometrics),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(currentToastProvider, (_, _) {});
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: SettingsScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return container;
+    }
+
+    testWidgets('turning it on reveals the timeout and actions options', (
+      tester,
+    ) async {
+      await pumpSettings(tester, FakeBiometricService());
+      expect(find.text('Lock after leaving the app'), findsNothing);
+
+      await tester.tap(find.text('Require biometrics'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Lock after leaving the app'), findsOneWidget);
+      expect(find.text('After 5 minutes'), findsOneWidget);
+      expect(find.text('Require for actions'), findsOneWidget);
+    });
+
+    testWidgets('without device security it explains why it stays off', (
+      tester,
+    ) async {
+      final container = await pumpSettings(
+        tester,
+        FakeBiometricService(AuthOutcome.unavailable),
+      );
+
+      await tester.tap(find.text('Require biometrics'));
+      await tester.pump();
+
+      expect(
+        container.read(currentToastProvider)?.title,
+        "Can't turn on app lock",
+      );
+      expect(find.text('Lock after leaving the app'), findsNothing);
+      await tester.pump(const Duration(seconds: 4)); // Toast auto-dismiss.
+    });
+  });
 }

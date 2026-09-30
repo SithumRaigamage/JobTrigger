@@ -493,9 +493,25 @@ their approvals don't block the rest.
       `flutter_secure_storage` 11 needs compileSdk 37); fixed, and CI now
       builds a debug APK. Both `flutter build apk --debug` and
       `flutter build ios --simulator --debug` pass.
-- [ ] P11-25 **US-JX-21 biometric app lock:** lock on cold start and after a
+- [x] P11-25 **US-JX-21 biometric app lock:** lock on cold start and after a
       resume timeout, a privacy overlay in the app switcher, and optional
       re-prompts for sensitive actions. **New dependency: `local_auth`.**
+      *Done 2026-09-30:* Settings → Security: "Require biometrics" (turning
+      it on authenticates once, and is refused with an explanation when the
+      phone has no passcode or biometrics), a resume timeout (immediately,
+      1, 5, or 15 minutes; default 5), and "Require for actions". The
+      cover keeps navigation mounted but hides it from sight, taps, and
+      screen readers, and prompts automatically when it locks. If the
+      phone's passcode is removed after the lock was turned on, the next
+      unlock turns the lock off instead of locking the user out for good
+      (removing it needs the passcode, so this isn't a bypass). Native:
+      `FlutterFragmentActivity`, `USE_BIOMETRIC`, AppCompat launch/normal
+      themes (the prompt crashes under platform themes on Android 8 and
+      below; minSdk is 24), and `NSFaceIDUsageDescription`. Both debug
+      builds pass. The Android app-switcher cover is best effort: the
+      snapshot can race Flutter's frame, and `FLAG_SECURE` was not used
+      because it would also block screenshots users take on purpose. Not
+      yet verified on a device.
 - [ ] P11-26 **US-JX-23 home-screen widget:** an app-written snapshot of
       pinned jobs (no secrets), an iOS WidgetKit extension, an Android
       AppWidget, and deep-link taps. **New dependency: `home_widget`.**

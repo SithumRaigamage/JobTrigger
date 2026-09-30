@@ -8,6 +8,7 @@ import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../common_widgets/toast_controller.dart';
 import 'job_detail_notifier.dart';
 import 'pending_input_notifier.dart';
+import '../app_lock/app_lock_notifier.dart';
 
 part 'input_submit_notifier.g.dart';
 
@@ -28,6 +29,11 @@ class InputSubmitNotifier extends _$InputSubmitNotifier {
     required bool proceed,
     Map<String, String> parameters = const {},
   }) async {
+    // US-JX-21: re-prompt when the user asked for it.
+    final allowed = await ref
+        .read(appLockNotifierProvider.notifier)
+        .confirmSensitive(proceed ? 'Confirm to approve' : 'Confirm to abort');
+    if (!allowed || !ref.mounted) return;
     state = const AsyncLoading();
 
     final result = await ref

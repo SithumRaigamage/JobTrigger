@@ -22,7 +22,9 @@ import '../../navigation/main_scaffold.dart';
 import '../tool_selection/active_tool_notifier.dart';
 import '../tool_selection/ci_tool.dart';
 import 'active_github_credential_notifier.dart';
+import '../app_lock/app_lock_notifier.dart';
 import '../notifications/build_watch_notifier.dart';
+import '../../../domain/app_lock/app_lock_settings.dart';
 import 'active_server_notifier.dart';
 import 'active_sonarqube_credential_notifier.dart';
 import 'credentials_notifier.dart';
@@ -97,6 +99,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             const SliverToBoxAdapter(child: _AppearanceSection()),
+            const SliverToBoxAdapter(child: _SecuritySection()),
             if (showJenkinsSection) ...[
               const SliverToBoxAdapter(child: Divider(height: 1)),
               SliverToBoxAdapter(
@@ -373,6 +376,92 @@ class _AppearanceSection extends ConsumerWidget {
                 .read(reduceTransparencyNotifierProvider.notifier)
                 .setReduceTransparency(value),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// US-JX-21: the biometric app lock.
+class _SecuritySection extends ConsumerWidget {
+  const _SecuritySection();
+
+  static String _timeoutLabel(Duration timeout) => switch (timeout.inMinutes) {
+    0 => 'Immediately',
+    1 => 'After 1 minute',
+    final minutes => 'After $minutes minutes',
+  };
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(
+      appLockNotifierProvider.select((lock) => lock.settings),
+    );
+    final notifier = ref.read(appLockNotifierProvider.notifier);
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'SECURITY',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Require biometrics'),
+            subtitle: const Text(
+              'Face ID, fingerprint, or your device passcode to open the app',
+            ),
+            value: settings.enabled,
+            onChanged: (value) async {
+              final change = await notifier.setEnabled(value);
+              if (change == LockChange.noDeviceSecurity) {
+                ref
+                    .read(toastControllerProvider)
+                    .show(
+                      type: ToastType.warning,
+                      title: "Can't turn on app lock",
+                      message:
+                          'Set up a passcode, fingerprint, or face unlock on '
+                          'your phone first.',
+                    );
+              }
+            },
+          ),
+          if (settings.enabled) ...[
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Lock after leaving the app'),
+              trailing: DropdownButton<Duration>(
+                value: settings.timeout,
+                underline: const SizedBox.shrink(),
+                items: [
+                  for (final timeout in AppLockSettings.timeouts)
+                    DropdownMenuItem(
+                      value: timeout,
+                      child: Text(_timeoutLabel(timeout)),
+                    ),
+                ],
+                onChanged: (timeout) {
+                  if (timeout != null) notifier.setTimeout(timeout);
+                },
+              ),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Require for actions'),
+              subtitle: const Text(
+                'Trigger, cancel, approve, replay, node and job changes',
+              ),
+              value: settings.requireForSensitive,
+              onChanged: notifier.setRequireForSensitive,
+            ),
+          ],
         ],
       ),
     );

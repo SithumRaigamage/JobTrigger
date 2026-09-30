@@ -12,6 +12,7 @@ import '../../common_widgets/toast_controller.dart';
 import '../settings/active_server_notifier.dart';
 import 'job_detail_notifier.dart';
 import 'queue_status_notifier.dart';
+import '../app_lock/app_lock_notifier.dart';
 
 part 'trigger_build_notifier.g.dart';
 
@@ -32,6 +33,11 @@ class TriggerBuildNotifier extends _$TriggerBuildNotifier {
     Map<String, String> parameters = const {},
     Map<String, ParameterFile> files = const {},
   }) async {
+    // US-JX-21: re-prompt when the user asked for it.
+    final allowed = await ref
+        .read(appLockNotifierProvider.notifier)
+        .confirmSensitive('Confirm to trigger ${job.label}');
+    if (!allowed || !ref.mounted) return;
     state = const AsyncLoading();
     final paramToken = ref.read(activeServerNotifierProvider)?.paramToken;
 

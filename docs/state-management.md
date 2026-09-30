@@ -156,6 +156,23 @@ their screen under `presentation/features/<feature>/`.
 - `notificationTapsProvider` (`Stream<String>`, keepAlive) emits tapped
   notifications' job URLs; `main.dart` opens job detail for each.
 
+## Feature: app_lock (P11-25)
+
+- `AppLockNotifier` (`Notifier<AppLockState>`, keepAlive, US-JX-21) holds
+  the lock settings (`shared_preferences`: on/off, resume timeout, "require
+  for actions"; nothing secret) and whether the app is `locked` or
+  `obscured`. `AppLockGate`, wrapped around the whole app in
+  `MaterialApp.builder`, forwards lifecycle changes to it and covers the
+  app while the settings load, while locked, and while it's inactive (the
+  app-switcher snapshot). `shouldLockOnResume` (domain) decides the
+  timeout; lifecycle changes caused by the OS prompt itself are ignored.
+- `confirmSensitive(reason)` is awaited at the top of every sensitive
+  action notifier (trigger, which also covers replay; cancel; input
+  submit; job enable/disable; node offline toggle; queue cancel). It's a
+  no-op unless the user turned on "Require for actions".
+- `BiometricService` (`core/platform`) wraps `local_auth` and maps its
+  exceptions to `AuthOutcome`, so no plugin types reach the notifier.
+
 ## Rules of thumb
 
 - If two screens need the same server-derived state, don't duplicate the

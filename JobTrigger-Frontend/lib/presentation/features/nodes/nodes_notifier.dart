@@ -7,6 +7,7 @@ import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_node.dart';
 import '../../common_widgets/toast_controller.dart';
+import '../app_lock/app_lock_notifier.dart';
 
 part 'nodes_notifier.g.dart';
 
@@ -39,6 +40,11 @@ class NodesNotifier extends _$NodesNotifier {
 
   /// Takes [node] temporarily offline (with [reason]) or brings it back.
   Future<void> toggleOffline(JenkinsNode node, {String reason = ''}) async {
+    // US-JX-21: re-prompt when the user asked for it.
+    final allowed = await ref
+        .read(appLockNotifierProvider.notifier)
+        .confirmSensitive('Confirm to change ${node.displayName}');
+    if (!allowed || !ref.mounted) return;
     final result = await ref
         .read(jenkinsRepositoryProvider)
         .toggleNodeOffline(node, message: reason);

@@ -10,10 +10,14 @@ import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/parameter_file.dart';
 import 'package:job_trigger/domain/jenkins/job_property.dart';
 import 'package:job_trigger/domain/jenkins/parameter_definition.dart';
+import 'package:job_trigger/core/platform/biometric_service.dart';
 import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
+import 'package:job_trigger/presentation/features/app_lock/app_lock_notifier.dart';
 import 'package:job_trigger/presentation/features/job_detail/job_detail_notifier.dart';
 import 'package:job_trigger/presentation/features/job_detail/trigger_build_notifier.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+import '../../../support/fake_biometric_service.dart';
 import '../../../support/fake_jenkins_repository.dart';
 
 const _jobUrl = 'https://jenkins.test/job/demo/';
@@ -190,4 +194,43 @@ void main() {
       expect(repo.lastParameters, {'BRANCH': 'main'});
     },
   );
+
+  test('with "Require for actions" on, a declined prompt triggers nothing '
+      '(US-JX-21)', () async {
+    // Also resets the cached instance an earlier test created.
+    SharedPreferences.setMockInitialValues({
+      'app_lock_enabled': true,
+      'app_lock_sensitive': true,
+    });
+    final repo = _FakeRepository()..triggerResult = const Ok(null);
+    final biometrics = FakeBiometricService();
+    final container = ProviderContainer(
+      overrides: [
+        jenkinsRepositoryProvider.overrideWithValue(repo),
+        credentialsRepositoryProvider.overrideWithValue(
+          _FakeCredentialsRepository(),
+        ),
+        biometricServiceProvider.overrideWithValue(biometrics),
+      ],
+    );
+    addTearDown(container.dispose);
+    container
+      ..listen(triggerBuildNotifierProvider(_jobUrl), (_, _) {})
+      ..read(appLockNotifierProvider);
+    await Future<void>.delayed(Duration.zero); // Lock settings load.
+    await Future<void>.delayed(Duration.zero); // Cold-start unlock.
+
+    biometrics.outcome = AuthOutcome.failed;
+    await container
+        .read(triggerBuildNotifierProvider(_jobUrl).notifier)
+        .trigger(job: _job);
+    expect(repo.triggerBuildCallCount, 0);
+    expect(biometrics.reasons.last, 'Confirm to trigger demo');
+
+    biometrics.outcome = AuthOutcome.success;
+    await container
+        .read(triggerBuildNotifierProvider(_jobUrl).notifier)
+        .trigger(job: _job);
+    expect(repo.triggerBuildCallCount, 1);
+  });
 }

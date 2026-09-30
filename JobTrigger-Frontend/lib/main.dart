@@ -11,6 +11,7 @@ import 'presentation/navigation/app_router.dart';
 import 'presentation/navigation/app_routes.dart';
 import 'core/platform/notification_service.dart';
 import 'domain/jenkins/jenkins_job.dart';
+import 'presentation/features/app_lock/app_lock_gate.dart';
 import 'presentation/features/notifications/build_watch_notifier.dart';
 
 void main() {
@@ -53,8 +54,10 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.dark(accentColor: accentColor),
       themeMode: themeMode,
       routerConfig: router,
-      builder: (context, child) =>
-          ToastOverlay(child: child ?? const SizedBox.shrink()),
+      // US-JX-21: the lock covers everything, toasts included.
+      builder: (context, child) => AppLockGate(
+        child: ToastOverlay(child: child ?? const SizedBox.shrink()),
+      ),
     );
   }
 }

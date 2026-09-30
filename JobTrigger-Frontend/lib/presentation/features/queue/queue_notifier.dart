@@ -7,6 +7,7 @@ import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/queue_entry.dart';
 import '../../common_widgets/toast_controller.dart';
+import '../app_lock/app_lock_notifier.dart';
 
 part 'queue_notifier.g.dart';
 
@@ -28,6 +29,11 @@ class QueueNotifier extends _$QueueNotifier {
   /// Cancels a queued item: removed from the list at once, then confirmed
   /// by the next refresh. On failure the item comes back with a toast.
   Future<void> cancel(QueueEntry entry) async {
+    // US-JX-21: re-prompt when the user asked for it.
+    final allowed = await ref
+        .read(appLockNotifierProvider.notifier)
+        .confirmSensitive('Confirm to cancel the queued build');
+    if (!allowed || !ref.mounted) return;
     final before = state.value;
     if (before != null) {
       state = AsyncData([
