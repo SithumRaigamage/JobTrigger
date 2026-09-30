@@ -12,10 +12,9 @@ import '../../common_widgets/status_indicator.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../settings/active_server_notifier.dart';
-import 'filtered_jobs_provider.dart';
 import 'folder_breadcrumb_notifier.dart';
 import 'job_search_notifier.dart';
-import 'job_tree_notifier.dart';
+import 'visible_jobs_provider.dart';
 
 /// Ported from `HomeView.swift`. Doesn't port the swipe-to-trigger-build
 /// action or the backend connectivity check — triggering builds is Phase 5
@@ -60,7 +59,7 @@ class HomeScreen extends ConsumerWidget {
       );
     }
 
-    final jobTreeAsync = ref.watch(jobTreeNotifierProvider);
+    final visibleJobs = ref.watch(visibleJobsProvider);
     final breadcrumb = ref.watch(folderBreadcrumbNotifierProvider);
 
     return PopScope(
@@ -77,7 +76,7 @@ class HomeScreen extends ConsumerWidget {
             tooltip: 'Tool Selection',
             onPressed: () => context.go(AppRoutes.toolSelection),
           ),
-          title: Text(breadcrumb.isEmpty ? 'Jobs' : breadcrumb.last.name),
+          title: Text(breadcrumb.isEmpty ? 'Jobs' : breadcrumb.last.label),
         ),
         body: ResponsiveCenter(
           child: Column(
@@ -88,15 +87,14 @@ class HomeScreen extends ConsumerWidget {
               const _SearchField(),
               const _BreadcrumbHeader(),
               Expanded(
-                child: jobTreeAsync.when(
-                  data: (_) => const _JobListView(),
+                child: visibleJobs.when(
+                  data: (jobs) => _JobListView(jobs: jobs),
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
                   error: (error, stackTrace) => Center(
                     child: ConnectionErrorView(
                       message: describeError(error),
-                      onRetry: () =>
-                          ref.read(jobTreeNotifierProvider.notifier).refresh(),
+                      onRetry: () => refreshVisibleJobs(ref),
                     ),
                   ),
                 ),
@@ -184,7 +182,7 @@ class _BreadcrumbHeader extends ConsumerWidget {
                             for (final folder in breadcrumb) ...[
                               const TextSpan(text: ' / '),
                               TextSpan(
-                                text: folder.name,
+                                text: folder.label,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: Theme.of(context).colorScheme.primary,
@@ -207,11 +205,12 @@ class _BreadcrumbHeader extends ConsumerWidget {
 }
 
 class _JobListView extends ConsumerWidget {
-  const _JobListView();
+  const _JobListView({required this.jobs});
+
+  final List<JenkinsJob> jobs;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final jobs = ref.watch(filteredJobsProvider);
     final query = ref.watch(jobSearchNotifierProvider);
 
     if (jobs.isEmpty) {
@@ -219,7 +218,7 @@ class _JobListView extends ConsumerWidget {
     }
 
     return RefreshIndicator(
-      onRefresh: () => ref.read(jobTreeNotifierProvider.notifier).refresh(),
+      onRefresh: () => refreshVisibleJobs(ref),
       child: ListView.builder(
         padding: EdgeInsets.fromLTRB(
           16,
@@ -307,7 +306,7 @@ class _JobTile extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(job.name, style: Theme.of(context).textTheme.bodyMedium),
+                Text(job.label, style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 4),
                 Row(
                   children: [

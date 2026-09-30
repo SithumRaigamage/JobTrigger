@@ -11,7 +11,6 @@ import 'package:job_trigger/domain/credential/credentials_repository.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
-import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/job_property.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/parameter_definition.dart';
@@ -21,6 +20,7 @@ import 'package:job_trigger/domain/jenkins/queue_item.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/presentation/features/job_detail/job_detail_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../support/fake_jenkins_repository.dart';
 
 const _jobUrl = 'https://jenkins.test/job/deploy/';
 
@@ -51,7 +51,7 @@ const _job = JenkinsJob(
   ],
 );
 
-class _RecordingRepository implements JenkinsRepository {
+class _RecordingRepository extends FakeJenkinsRepository {
   int triggerCalls = 0;
   int cancelCalls = 0;
 

@@ -31,7 +31,7 @@ List<HistoryEntry> buildHistoryTimeline(
   void collect(List<JenkinsJob> jobs) {
     for (final job in jobs) {
       if (job.lastBuild != null) {
-        entries.add(HistoryEntry(jobName: job.name, build: job.lastBuild!));
+        entries.add(HistoryEntry(jobName: job.label, build: job.lastBuild!));
       }
       if (job.jobs != null) collect(job.jobs!);
     }

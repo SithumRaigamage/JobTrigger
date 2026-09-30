@@ -64,7 +64,7 @@ class TriggerBuildNotifier extends _$TriggerBuildNotifier {
             .show(
               type: ToastType.success,
               title: 'Build Triggered',
-              message: 'A new build for ${job.name} has been requested.',
+              message: 'A new build for ${job.label} has been requested.',
             );
       case Err(:final error):
         state = AsyncError(error, StackTrace.current);

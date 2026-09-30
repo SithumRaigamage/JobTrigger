@@ -7,17 +7,17 @@ import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
-import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
 import 'package:job_trigger/domain/jenkins/queue_item.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/presentation/features/job_detail/test_report_notifier.dart';
+import '../../../support/fake_jenkins_repository.dart';
 
 const _buildUrl = 'https://jenkins.test/job/demo/1/';
 
-class _FakeRepository implements JenkinsRepository {
+class _FakeRepository extends FakeJenkinsRepository {
   _FakeRepository(this.result);
 
   final Result<TestReport?, AppFailure> result;

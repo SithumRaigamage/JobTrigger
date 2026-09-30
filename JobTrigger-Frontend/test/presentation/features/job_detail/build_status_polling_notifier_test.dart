@@ -7,7 +7,6 @@ import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
-import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
@@ -17,6 +16,7 @@ import 'package:job_trigger/presentation/features/job_detail/build_status_pollin
 import 'package:job_trigger/presentation/features/job_detail/job_detail_notifier.dart';
 import 'package:job_trigger/presentation/features/job_detail/pending_input_notifier.dart';
 import 'package:job_trigger/presentation/features/job_detail/pipeline_stages_notifier.dart';
+import '../../../support/fake_jenkins_repository.dart';
 
 const _jobUrl = 'https://jenkins.test/job/demo/';
 const _buildUrl = '${_jobUrl}1/';
@@ -24,7 +24,7 @@ const _buildUrl = '${_jobUrl}1/';
 /// Counts `fetchJobDetail`/`fetchPipelineStages` calls so tests can
 /// observe whether the polling loop actually fired (or, for the dispose
 /// test, correctly did not).
-class _CountingRepository implements JenkinsRepository {
+class _CountingRepository extends FakeJenkinsRepository {
   int fetchJobDetailCallCount = 0;
   int fetchPipelineStagesCallCount = 0;
   int fetchPendingInputCallCount = 0;

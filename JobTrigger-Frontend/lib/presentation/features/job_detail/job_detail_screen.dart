@@ -66,7 +66,7 @@ class JobDetailScreen extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlassAppBar(
-        title: Text(job.name),
+        title: Text(job.label),
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
@@ -142,7 +142,7 @@ class JobDetailScreen extends ConsumerWidget {
     final confirmed = await showConfirmationDialog(
       context,
       title: 'Trigger build?',
-      message: 'Start a new build of ${job.name}.',
+      message: 'Start a new build of ${job.label}.',
       confirmLabel: 'Trigger',
       details: summary.isEmpty ? null : _ParameterSummaryList(rows: summary),
     );
@@ -162,7 +162,7 @@ class JobDetailScreen extends ConsumerWidget {
     final confirmed = await showConfirmationDialog(
       context,
       title: 'Cancel build #${build.number}?',
-      message: 'This stops the running build of ${job.name}.',
+      message: 'This stops the running build of ${job.label}.',
       confirmLabel: 'Cancel build',
       destructive: true,
     );

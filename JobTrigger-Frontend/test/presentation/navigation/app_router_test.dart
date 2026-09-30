@@ -15,7 +15,6 @@ import 'package:job_trigger/domain/github/github_repository.dart';
 import 'package:job_trigger/domain/github/github_workflow.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
-import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
@@ -35,6 +34,7 @@ import 'package:job_trigger/presentation/navigation/app_router.dart';
 import 'package:job_trigger/presentation/navigation/app_routes.dart';
 import 'package:job_trigger/presentation/navigation/main_scaffold.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+import '../../support/fake_jenkins_repository.dart';
 
 const _fakeGitHubCredential = GitHubCredential(
   id: 'c1',
@@ -69,7 +69,7 @@ const _fakeServer = JenkinsServer(
 
 /// Reused fake from `home_screen_test.dart`'s pattern -- private to each
 /// file since it's not exported there.
-class _FakeJenkinsRepository implements JenkinsRepository {
+class _FakeJenkinsRepository extends FakeJenkinsRepository {
   _FakeJenkinsRepository(this._jobs);
 
   final List<JenkinsJob> _jobs;
@@ -77,6 +77,24 @@ class _FakeJenkinsRepository implements JenkinsRepository {
   @override
   Future<Result<List<JenkinsJob>, AppFailure>> fetchJobTree() async =>
       Ok(_jobs);
+
+  /// Home browses lazily (P11-05): the root, or one folder's own children.
+  @override
+  Future<Result<List<JenkinsJob>, AppFailure>> fetchFolder(
+    String? folderUrl,
+  ) async {
+    if (folderUrl == null) return Ok(_jobs);
+    List<JenkinsJob>? find(List<JenkinsJob> jobs) {
+      for (final job in jobs) {
+        if (job.url == folderUrl) return job.jobs ?? const [];
+        final nested = job.jobs == null ? null : find(job.jobs!);
+        if (nested != null) return nested;
+      }
+      return null;
+    }
+
+    return Ok(find(_jobs) ?? const []);
+  }
 
   @override
   Future<Result<JenkinsJob, AppFailure>> fetchJobDetail(String jobUrl) =>

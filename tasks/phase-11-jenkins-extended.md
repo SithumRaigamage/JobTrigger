@@ -141,7 +141,7 @@ Each task names the `AUD-##` ids it closes.
       - **Fixture job fix:** `params-all` uses `#!/bin/sh -e`, since
         Jenkins' default `sh -xe` trace echoed the secret.
       - **Tests:** 24 new unit and widget tests, plus 4 fixture tests.
-- [ ] P11-05 **Tree foundations.** Add `_class`, `displayName`, and
+- [x] P11-05 **Tree foundations.** Add `_class`, `displayName`, and
       `buildable` to the job DTO. Replace the depth-limited whole-tree fetch
       with root plus lazy per-folder loading and a per-folder cache
       (AUD-19, AUD-20). Key the breadcrumb by folder URL and resolve it
@@ -149,6 +149,27 @@ Each task names the `AUD-##` ids it closes.
       Debounce search at 250 ms. Search runs over an index built from loaded
       folders plus a background full crawl, bounded by `NFR-PERF-02`.
       Global history (P5-14) is rebuilt on the new source.
+      **Done 2026-09-30.**
+      - **Browsing:** `fetchFolder` plus `FolderContentsNotifier` for lazy,
+        unlimited-depth browsing.
+      - **Cache:** `visibleJobsProvider` keeps the breadcrumb path cached
+        with no timers. A timed cache was tried first, and dropped because
+        a stray timer outlived its listeners.
+      - **Breadcrumb:** holds `FolderRef`s and resets on server switch.
+      - **Model and crawl:** `JenkinsJob` gains `jobClass`, `displayName`,
+        `buildable`, `label`, and `copyWith`. The crawl is fixed at 6 levels.
+        `label` is used in every job-name display site.
+      - **Tests:** a shared `test/support/fake_jenkins_repository.dart`
+        base; 18 fakes now `extends` it.
+      - **Deviations:**
+        - **No search debounce:** once the crawl is cached, filtering is an
+          in-memory scan, and a debounce would only add lag.
+        - **No partial index:** search is the crawl itself, not an index
+          built from loaded folders plus a background crawl. It's bounded
+          at 6 levels (`NFR-PERF-02`), and lazy browsing covers the rest.
+      - **Verified on the fixture:** lazy browsing reaches the 7-level
+        `deep-job`; multibranch is a folder, with `feature%2Flogin` shown as
+        `feature/login`; the crawl stops at level 6.
 - [ ] P11-06 **US-JX-02 all parameter types.** **Must also close
       AUD-38:** an empty Run parameter is a Jenkins 500, so Run needs a
       real picker and Trigger stays disabled until a build is chosen. Also

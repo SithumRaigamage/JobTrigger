@@ -56,7 +56,7 @@ final class JobDetailNotifierProvider
   }
 }
 
-String _$jobDetailNotifierHash() => r'fb9fabc5b3ad19bb2e950f78ea4ec6bec2613acc';
+String _$jobDetailNotifierHash() => r'77a2e137ab57e42250f8e3bed400d0ee7b657ccd';
 
 /// Fetches one job's detail (params, health, last build) — family-keyed by
 /// the job's absolute URL. Standard shape from `docs/architecture.md §4`.

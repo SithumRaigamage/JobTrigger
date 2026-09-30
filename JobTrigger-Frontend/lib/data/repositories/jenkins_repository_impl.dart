@@ -27,18 +27,25 @@ import 'jenkins_url_rewriter.dart';
 
 part 'jenkins_repository_impl.g.dart';
 
-/// Fields requested at every level of the recursive tree query — ported
-/// exactly from `JenkinsAPIService.fetchJobs` (Swift). Deliberately lean
-/// (no healthReport/property/builds[]) — those come from the richer
-/// per-job detail query in Phase 5, not this top-level fetch.
+/// Fields requested for each job in a tree or folder listing — ported from
+/// `JenkinsAPIService.fetchJobs` (Swift), plus `_class`, `displayName`, and
+/// `buildable` (P11-05). Deliberately lean (no healthReport/property/
+/// builds[]) — those come from the per-job detail query.
 const _treeFields =
-    'name,url,color,description,lastBuild[number,url,result,building,estimatedDuration,timestamp]';
+    '_class,name,displayName,url,color,description,buildable,'
+    'lastBuild[number,url,result,building,estimatedDuration,timestamp]';
 
-/// Builds the depth-limited (6 levels) `tree` query param — see
-/// `docs/api-reference.md`'s "Recursive job/folder tree" row.
+/// How many folder levels the recursive crawl (search and global history)
+/// reaches. Browsing isn't limited by this: Home loads folders lazily via
+/// [JenkinsRepositoryImpl.fetchFolder] (AUD-19/20).
+const jobTreeCrawlDepth = 6;
+
+/// Builds the depth-limited `tree` query param for the recursive crawl —
+/// see `docs/api-reference.md`'s "Recursive job/folder tree" row. Previously
+/// built 5 levels while documenting 6 (AUD-19).
 String buildJobTreeQuery() {
   var nested = _treeFields;
-  for (var i = 0; i < 4; i++) {
+  for (var level = 1; level < jobTreeCrawlDepth; level++) {
     nested = '$_treeFields,jobs[$nested]';
   }
   return 'jobs[$nested]';
@@ -47,7 +54,7 @@ String buildJobTreeQuery() {
 /// Richer per-job fields — params, health, last build — ported exactly from
 /// `JenkinsAPIService.fetchJobDetails`'s `detailsTree` (Swift).
 const _detailsTree =
-    'name,url,color,description,'
+    '_class,name,displayName,url,color,description,buildable,'
     'lastBuild[number,url,result,timestamp,duration,building,estimatedDuration,'
     'actions[causes[shortDescription,upstreamProject,upstreamUrl]],'
     'changeSet[items[msg,author[fullName]]],'
@@ -94,6 +101,27 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
         );
         final serverInfo = JenkinsServerInfoDto.fromJson(response.data!);
         final jobs = serverInfo.jobs.map((dto) => dto.toDomain()).toList();
+        return rewriteJobTreeUrls(jobs, _baseUrl);
+      });
+
+  @override
+  Future<Result<List<JenkinsJob>, AppFailure>> fetchFolder(String? folderUrl) =>
+      guardRequest(() async {
+        final path = folderUrl == null
+            ? '/api/json'
+            : '${_withSlash(folderUrl)}api/json';
+        final response = await _dio.get<Map<String, dynamic>>(
+          path,
+          queryParameters: {'tree': 'jobs[$_treeFields]'},
+        );
+        final jobsJson = response.data?['jobs'] as List<dynamic>? ?? const [];
+        final jobs = jobsJson
+            .map(
+              (json) => JenkinsJobDto.fromJson(
+                json as Map<String, dynamic>,
+              ).toDomain(),
+            )
+            .toList();
         return rewriteJobTreeUrls(jobs, _baseUrl);
       });
 

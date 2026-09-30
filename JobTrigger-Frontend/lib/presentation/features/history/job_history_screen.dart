@@ -25,7 +25,7 @@ class JobHistoryScreen extends ConsumerWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GlassAppBar(title: Text('${job.name} History')),
+      appBar: GlassAppBar(title: Text('${job.label} History')),
       body: ResponsiveCenter(
         child: historyAsync.when(
           data: (builds) {

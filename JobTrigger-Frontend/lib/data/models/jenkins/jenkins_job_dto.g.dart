@@ -10,7 +10,10 @@ _JenkinsJobDto _$JenkinsJobDtoFromJson(Map<String, dynamic> json) =>
     _JenkinsJobDto(
       name: json['name'] as String,
       url: json['url'] as String,
+      jobClass: json['_class'] as String?,
+      displayName: json['displayName'] as String?,
       description: json['description'] as String?,
+      buildable: json['buildable'] as bool?,
       color: json['color'] as String?,
       jobs: (json['jobs'] as List<dynamic>?)
           ?.map((e) => JenkinsJobDto.fromJson(e as Map<String, dynamic>))
@@ -46,7 +49,10 @@ Map<String, dynamic> _$JenkinsJobDtoToJson(_JenkinsJobDto instance) =>
     <String, dynamic>{
       'name': instance.name,
       'url': instance.url,
+      '_class': instance.jobClass,
+      'displayName': instance.displayName,
       'description': instance.description,
+      'buildable': instance.buildable,
       'color': instance.color,
       'jobs': instance.jobs,
       'lastBuild': instance.lastBuild,

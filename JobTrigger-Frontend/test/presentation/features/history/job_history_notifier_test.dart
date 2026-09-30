@@ -7,17 +7,17 @@ import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
-import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
 import 'package:job_trigger/domain/jenkins/queue_item.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/presentation/features/history/job_history_notifier.dart';
+import '../../../support/fake_jenkins_repository.dart';
 
 const _jobUrl = 'https://jenkins.test/job/demo/';
 
-class _FakeJenkinsRepository implements JenkinsRepository {
+class _FakeJenkinsRepository extends FakeJenkinsRepository {
   Result<List<JenkinsBuild>, AppFailure> fetchJobHistoryResult = const Ok([]);
   int fetchJobHistoryCallCount = 0;
   String? lastJobUrl;

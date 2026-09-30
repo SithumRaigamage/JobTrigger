@@ -11,7 +11,16 @@ import 'queue_item.dart';
 import 'test_report.dart';
 
 abstract class JenkinsRepository {
+  /// The recursive crawl, 6 levels deep (`jobTreeCrawlDepth`) — used for
+  /// cross-folder search and the global history timeline, not for browsing.
   Future<Result<List<JenkinsJob>, AppFailure>> fetchJobTree();
+
+  /// One level of jobs: the server root when [folderUrl] is null, else that
+  /// folder's direct children (P11-05). Home browses with this, so there's
+  /// no depth limit and no whole-tree download on load (AUD-19/20).
+  /// Children of a returned folder are `null` until that folder is fetched
+  /// itself; `JenkinsJob.isFolder` still recognises it by class.
+  Future<Result<List<JenkinsJob>, AppFailure>> fetchFolder(String? folderUrl);
 
   /// [jobUrl] is the job's already-rewritten absolute URL (from a
   /// previously-fetched tree), not a relative path.

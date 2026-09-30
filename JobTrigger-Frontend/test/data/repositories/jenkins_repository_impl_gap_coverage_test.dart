@@ -140,6 +140,75 @@ void main() {
     });
   });
 
+  test('the recursive crawl reaches the documented 6 levels (AUD-19)', () {
+    expect(
+      'jobs['.allMatches(buildJobTreeQuery()),
+      hasLength(jobTreeCrawlDepth),
+    );
+    expect(jobTreeCrawlDepth, 6);
+  });
+
+  group('JenkinsRepositoryImpl.fetchFolder (P11-05)', () {
+    test(
+      'root: GETs /api/json one level deep with class and display name',
+      () async {
+        final adapter = _JsonResponseAdapter(200, {
+          'jobs': [
+            {
+              '_class':
+                  'org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject',
+              'name': 'api',
+              'url': 'http://jenkins.internal:8080/job/api/',
+            },
+            {
+              '_class': 'hudson.model.FreeStyleProject',
+              'name': 'build',
+              'displayName': 'Build',
+              'url': 'http://jenkins.internal:8080/job/build/',
+              'color': 'blue',
+              'buildable': true,
+            },
+          ],
+        });
+        final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+          ..httpClientAdapter = adapter;
+
+        final result = await JenkinsRepositoryImpl(dio).fetchFolder(null);
+
+        expect(adapter.lastRequest?.path, '/api/json');
+        final tree = adapter.lastRequest?.queryParameters['tree'] as String;
+        expect(tree, startsWith('jobs[_class,name,displayName,'));
+        // One level only: no nested `jobs[` inside the job fields.
+        expect('jobs['.allMatches(tree), hasLength(1));
+        final jobs = (result as Ok<List<JenkinsJob>, dynamic>).value;
+        expect(jobs.map((job) => job.url), [
+          'https://jenkins.test/job/api/',
+          'https://jenkins.test/job/build/',
+        ]);
+        // A multibranch project is a folder even though `jobs` wasn't fetched.
+        expect(jobs[0].isFolder, isTrue);
+        expect(jobs[1].isFolder, isFalse);
+        expect(jobs[1].label, 'Build');
+        expect(jobs[1].buildable, isTrue);
+      },
+    );
+
+    test('folder: GETs {folderUrl}api/json', () async {
+      final adapter = _JsonResponseAdapter(200, {'jobs': <Object>[]});
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+
+      await JenkinsRepositoryImpl(
+        dio,
+      ).fetchFolder('https://jenkins.test/job/nested/job/level-2');
+
+      expect(
+        adapter.lastRequest?.path,
+        'https://jenkins.test/job/nested/job/level-2/api/json',
+      );
+    });
+  });
+
   group('JenkinsRepositoryImpl.fetchJobDetail', () {
     test(
       'GETs {jobUrl}api/json with the details tree and rewrites the job URL',
@@ -166,7 +235,7 @@ void main() {
         );
         expect(
           adapter.lastRequest?.queryParameters['tree'],
-          'name,url,color,description,'
+          '_class,name,displayName,url,color,description,buildable,'
           'lastBuild[number,url,result,timestamp,duration,building,estimatedDuration,'
           'actions[causes[shortDescription,upstreamProject,upstreamUrl]],'
           'changeSet[items[msg,author[fullName]]],'

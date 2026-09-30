@@ -44,7 +44,7 @@ Jenkins credentials are not JWTs and don't rotate mid-session.
 | Endpoint pattern | Method | Purpose | Notes |
 |---|---|---|---|
 | `{baseURL}/api/json` | GET | Connection health check | Used by "test connection" in server add/edit flow; surface job count or the raw HTTP status on failure |
-| `{baseURL}/api/json?tree=jobs[name,url,color,jobs[name,url,color,jobs[...]]]` | GET | Recursive job/folder tree | Depth-limit the `tree` query at 6 levels to match the original app; going deeper risks huge payloads on large Jenkins instances. **Note (AUD-19):** the code currently builds 5 levels, not 6. Phase 11 replaces this with lazy per-folder loading (see below) |
+| `{baseURL}/api/json?tree=jobs[name,url,color,jobs[name,url,color,jobs[...]]]` | GET | Recursive job/folder tree | Depth-limit the `tree` query at 6 levels to match the original app; going deeper risks huge payloads on large Jenkins instances. Fixed at 6 in P11-05 (`jobTreeCrawlDepth`). Now used only for search and global history, while Home browses lazily per folder (see below) |
 | `{jobURL}api/json?tree={detailsTree}` | GET | Job detail: params, health, recent builds | `detailsTree` includes `property[parameterDefinitions[*]],healthReport[*],lastBuild[*],builds[number,url,result,timestamp,duration,building]` |
 | `{jobURL}build` | POST | Trigger build, no params | |
 | `{jobURL}buildWithParameters` | POST | Trigger build with params | Body: `application/x-www-form-urlencoded`, all values stringified. **A blank password parameter is omitted**, because an explicit `''` overrides the stored secret (US-JX-01). A duplicate of an already-queued identical build returns **303** with that queue item as `Location`, which counts as success (AUD-37). An empty Run parameter returns **500** (AUD-38) |
@@ -71,7 +71,7 @@ against the fixture Jenkins (P11-02, `NFR-TEST-02`).
 
 | Endpoint pattern | Method | Story | Status |
 |---|---|---|---|
-| `{folderURL}api/json?tree=jobs[_class,name,displayName,url,color,buildable,lastBuild[…]]` | GET | Lazy per-folder tree (AUD-19/20), US-JX-03 | planned |
+| `{folderURL}api/json?tree=jobs[_class,name,displayName,url,color,description,buildable,lastBuild[…]]` (the root uses `/api/json`) | GET | Lazy per-folder tree (AUD-19/20), US-JX-03 | **implemented** (P11-05) |
 | `{multibranchURL}api/json?tree=views[name,jobs[url]]` | GET | US-JX-03 branch/PR/tag grouping | planned |
 | `{multibranchURL}build?delay=0` | POST | US-JX-03 scan repository now | planned |
 | `{multibranchURL}indexing/api/json` · `indexing/consoleText` | GET | US-JX-03 scan status and log | planned |

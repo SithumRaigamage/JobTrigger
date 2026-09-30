@@ -46,7 +46,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-07 | High | Security (backend) | Vulnerable dependencies (`path-to-regexp` ReDoS, `mongoose`, `qs`) | open |
 | AUD-08 | High | UX / Safety | Trigger and Cancel fire with no confirmation, violating the Must criteria of US-JOB-02/03/05 | fixed (P11-04) |
 | AUD-09 | High | Bug | Global history uses duplicate `ValueKey`s when job names repeat across folders | fixed (P12-05) |
-| AUD-10 | High | Bug | Folder breadcrumb shows stale or other-server contents after refresh or server switch | open |
+| AUD-10 | High | Bug | Folder breadcrumb shows stale or other-server contents after refresh or server switch | fixed (P11-05) |
 | AUD-11 | High | Bug / Architecture | Non-`DioException` errors escape the data layer and bypass `AppFailure` | fixed (P12-04) |
 | AUD-12 | High | Performance | Console log re-sanitizes and re-splits the whole log every second (O(n²)) | open |
 | AUD-13 | Medium | Bug | A transient log-poll error discards the displayed log | open |
@@ -55,8 +55,8 @@ are cross-referenced instead of being fixed twice.
 | AUD-16 | High | DevOps | CI does not run on the active `flutter-migration` branch | fixed (P12-03) |
 | AUD-17 | High | DevOps / Security | Node 20 (EOL) in Dockerfile and CI; container runs as root | open |
 | AUD-18 | Medium | Bug | Edited build-parameter values silently reset when the form scrolls off-screen | fixed (P11-04) |
-| AUD-19 | Medium | Bug | Folders at the tree depth limit render as jobs (5 levels fetched, docs say 6) | open |
-| AUD-20 | Medium | Performance | Home fetches the whole recursive tree (all levels, with `lastBuild`) on every load | open |
+| AUD-19 | Medium | Bug | Folders at the tree depth limit render as jobs (5 levels fetched, docs say 6) | fixed (P11-05) |
+| AUD-20 | Medium | Performance | Home fetches the whole recursive tree (all levels, with `lastBuild`) on every load | fixed (P11-05) |
 | AUD-21 | Medium | Bug / Performance | Artifact download buffers the whole file in memory with a 15s timeout | open |
 | AUD-22 | Medium | Bug | App Info links do nothing on Android 11+ (`canLaunchUrl` without `<queries>`) | open |
 | AUD-23 | Medium | Bug (backend) | Credential `PUT` skips validators and never updates `updatedAt` | open |

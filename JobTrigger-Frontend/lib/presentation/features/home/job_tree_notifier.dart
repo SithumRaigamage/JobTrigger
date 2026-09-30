@@ -6,9 +6,11 @@ import '../../../domain/jenkins/jenkins_job.dart';
 
 part 'job_tree_notifier.g.dart';
 
-/// Fetches the full job tree from the active server — standard shape from
-/// `docs/architecture.md §4`. `refresh()` backs pull-to-refresh on
-/// `HomeScreen`.
+/// The recursive crawl of the active server (6 folder levels) — standard
+/// shape from `docs/architecture.md §4`. Since P11-05 it backs only
+/// cross-folder search and the global history timeline; Home browses
+/// lazily with `FolderContentsNotifier`. So it's first fetched when someone
+/// searches or opens global history, not on every Home load (AUD-20).
 @riverpod
 class JobTreeNotifier extends _$JobTreeNotifier {
   @override

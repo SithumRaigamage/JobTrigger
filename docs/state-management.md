@@ -63,13 +63,24 @@ their screen under `presentation/features/<feature>/`.
 
 ## Feature: home (job tree)
 
-- `JobTreeNotifier` (`AsyncNotifier<List<JenkinsJob>>`) — fetches full tree
-  from `jenkinsRepositoryProvider`; `refresh()` invalidates self.
-- `JobSearchNotifier` (`Notifier<String>`) — search query; a derived
-  `filteredJobsProvider` (plain `Provider`, computed) flattens the tree and
-  filters by name, watched by `JobTreeNotifier`'s output.
-- `FolderBreadcrumbNotifier` (`Notifier<List<JenkinsJob>>`) — navigation
-  stack for folder drill-down; pure local UI state, no repository calls.
+- `FolderContentsNotifier` (`AsyncNotifier<List<JenkinsJob>>`, family by
+  folder URL, with `''` for the root; P11-05) fetches **one level** via
+  `fetchFolder`. Home browses with this, so there's no depth limit and no
+  whole-tree download on load (AUD-19/20).
+- `JobTreeNotifier` (`AsyncNotifier<List<JenkinsJob>>`) is the 6-level
+  recursive crawl. It's used only for cross-folder search and the global
+  history timeline, and is first fetched when one of those is opened.
+- `FolderBreadcrumbNotifier` (`Notifier<List<FolderRef>>`) holds the
+  folder **URLs and labels**, never job snapshots, so children always come
+  from current data (AUD-10). It watches the active server id, so a server
+  switch resets it to the root.
+- `JobSearchNotifier` (`Notifier<String>`) holds the search query.
+- `visibleJobsProvider` (`Provider<AsyncValue<List<JenkinsJob>>>`) is what
+  Home renders. With no query, it's the current folder's contents. It also
+  watches the root and every breadcrumb ancestor, so "Back" is instant and
+  nothing is cached once Home is left, with no timers involved. With a
+  query, it's the crawl flattened and filtered by `label` or `name`.
+  `refreshVisibleJobs(ref)` re-fetches whichever source is showing.
 
 ## Feature: job_detail
 

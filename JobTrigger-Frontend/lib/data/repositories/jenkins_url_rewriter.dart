@@ -29,17 +29,12 @@ List<JenkinsBuild> rewriteBuildUrls(
   return builds.map((build) => _rewriteBuild(build, activeUri)).toList();
 }
 
-JenkinsJob _rewriteJob(JenkinsJob job, Uri activeUri) => JenkinsJob(
-  name: job.name,
+JenkinsJob _rewriteJob(JenkinsJob job, Uri activeUri) => job.copyWith(
   url: _rewriteUrl(job.url, activeUri),
-  description: job.description,
-  color: job.color,
   jobs: job.jobs?.map((child) => _rewriteJob(child, activeUri)).toList(),
   lastBuild: job.lastBuild == null
       ? null
       : _rewriteBuild(job.lastBuild!, activeUri),
-  healthReport: job.healthReport,
-  property: job.property,
   builds: job.builds.map((build) => _rewriteBuild(build, activeUri)).toList(),
   downstreamProjects: job.downstreamProjects
       .map(

@@ -7,7 +7,6 @@ import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/jenkins/build_artifact.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
-import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
@@ -15,6 +14,7 @@ import 'package:job_trigger/domain/jenkins/queue_item.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
 import 'package:job_trigger/presentation/features/job_detail/artifact_download_notifier.dart';
+import '../../../support/fake_jenkins_repository.dart';
 
 const _buildUrl = 'https://jenkins.test/job/demo/1/';
 const _artifact = BuildArtifact(
@@ -31,7 +31,7 @@ const _artifact = BuildArtifact(
 /// the test, not something asserted on directly.
 const _shareChannel = MethodChannel('dev.fluttercommunity.plus/share');
 
-class _FakeRepository implements JenkinsRepository {
+class _FakeRepository extends FakeJenkinsRepository {
   _FakeRepository(this.result);
 
   final Result<Uint8List, AppFailure> result;

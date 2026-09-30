@@ -11,6 +11,10 @@ part of 'folder_breadcrumb_notifier.dart';
 /// Navigation stack for folder drill-down — pure local UI state, no
 /// repository calls (`docs/state-management.md`). `navigateInto`/
 /// `navigateBack` port `HomeViewModel.navigateInto`/`navigateBack` (Swift).
+///
+/// Watches the active server, so switching servers rebuilds this back to
+/// the root — previously the breadcrumb (and the folder contents it held)
+/// survived a switch, showing server A's folder under server B (AUD-10).
 
 @ProviderFor(FolderBreadcrumbNotifier)
 final folderBreadcrumbNotifierProvider = FolderBreadcrumbNotifierProvider._();
@@ -18,11 +22,19 @@ final folderBreadcrumbNotifierProvider = FolderBreadcrumbNotifierProvider._();
 /// Navigation stack for folder drill-down — pure local UI state, no
 /// repository calls (`docs/state-management.md`). `navigateInto`/
 /// `navigateBack` port `HomeViewModel.navigateInto`/`navigateBack` (Swift).
+///
+/// Watches the active server, so switching servers rebuilds this back to
+/// the root — previously the breadcrumb (and the folder contents it held)
+/// survived a switch, showing server A's folder under server B (AUD-10).
 final class FolderBreadcrumbNotifierProvider
-    extends $NotifierProvider<FolderBreadcrumbNotifier, List<JenkinsJob>> {
+    extends $NotifierProvider<FolderBreadcrumbNotifier, List<FolderRef>> {
   /// Navigation stack for folder drill-down — pure local UI state, no
   /// repository calls (`docs/state-management.md`). `navigateInto`/
   /// `navigateBack` port `HomeViewModel.navigateInto`/`navigateBack` (Swift).
+  ///
+  /// Watches the active server, so switching servers rebuilds this back to
+  /// the root — previously the breadcrumb (and the folder contents it held)
+  /// survived a switch, showing server A's folder under server B (AUD-10).
   FolderBreadcrumbNotifierProvider._()
     : super(
         from: null,
@@ -42,32 +54,36 @@ final class FolderBreadcrumbNotifierProvider
   FolderBreadcrumbNotifier create() => FolderBreadcrumbNotifier();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<JenkinsJob> value) {
+  Override overrideWithValue(List<FolderRef> value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<List<JenkinsJob>>(value),
+      providerOverride: $SyncValueProvider<List<FolderRef>>(value),
     );
   }
 }
 
 String _$folderBreadcrumbNotifierHash() =>
-    r'66e3e34e127a4aa804c3ccd9ef663aae390159c6';
+    r'9cafbbb9e6f4df528e544e0605866bc754b6c93c';
 
 /// Navigation stack for folder drill-down — pure local UI state, no
 /// repository calls (`docs/state-management.md`). `navigateInto`/
 /// `navigateBack` port `HomeViewModel.navigateInto`/`navigateBack` (Swift).
+///
+/// Watches the active server, so switching servers rebuilds this back to
+/// the root — previously the breadcrumb (and the folder contents it held)
+/// survived a switch, showing server A's folder under server B (AUD-10).
 
-abstract class _$FolderBreadcrumbNotifier extends $Notifier<List<JenkinsJob>> {
-  List<JenkinsJob> build();
+abstract class _$FolderBreadcrumbNotifier extends $Notifier<List<FolderRef>> {
+  List<FolderRef> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<List<JenkinsJob>, List<JenkinsJob>>;
+    final ref = this.ref as $Ref<List<FolderRef>, List<FolderRef>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<List<JenkinsJob>, List<JenkinsJob>>,
-              List<JenkinsJob>,
+              AnyNotifier<List<FolderRef>, List<FolderRef>>,
+              List<FolderRef>,
               Object?,
               Object?
             >;

@@ -7,13 +7,13 @@ import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
-import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
 import 'package:job_trigger/domain/jenkins/queue_item.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/presentation/features/job_detail/job_detail_notifier.dart';
+import '../../../support/fake_jenkins_repository.dart';
 
 const _jobUrl = 'https://jenkins.test/job/demo/';
 
@@ -21,7 +21,7 @@ const _jobUrl = 'https://jenkins.test/job/demo/';
 /// last entry once exhausted -- mirrors
 /// `queue_status_notifier_test.dart`'s `_ScriptedRepository` style, applied
 /// here to the notifier's own fetch instead of a downstream one.
-class _ScriptedRepository implements JenkinsRepository {
+class _ScriptedRepository extends FakeJenkinsRepository {
   _ScriptedRepository(this.responses);
 
   final List<Result<JenkinsJob, AppFailure>> responses;

@@ -10,7 +10,6 @@ import 'package:job_trigger/domain/credential/credentials_repository.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
-import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/job_property.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/parameter_definition.dart';
@@ -22,13 +21,14 @@ import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
 import 'package:job_trigger/presentation/features/job_detail/job_detail_notifier.dart';
 import 'package:job_trigger/presentation/features/job_detail/trigger_build_notifier.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+import '../../../support/fake_jenkins_repository.dart';
 
 const _jobUrl = 'https://jenkins.test/job/demo/';
 
 /// Fakes only what `TriggerBuildNotifier` and the `JobDetailNotifier` it
 /// refreshes actually call -- same "throw UnimplementedError for the rest"
 /// style as `build_status_polling_notifier_test.dart`'s `_CountingRepository`.
-class _FakeRepository implements JenkinsRepository {
+class _FakeRepository extends FakeJenkinsRepository {
   Result<String?, AppFailure>? triggerResult;
   int fetchJobDetailCallCount = 0;
   int triggerBuildCallCount = 0;
