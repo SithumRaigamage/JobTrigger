@@ -111,11 +111,14 @@ file lists them.
       failures only. Limits and `TRUST_PROXY` come from env (documented
       in `dev-setup.md`). 2 mocha tests with a small probe limiter, and 2
       client tests.
-- [ ] P12-25 **AUD-23, AUD-24, AUD-31.** A credential-controller factory
+- [x] P12-25 **AUD-23, AUD-24, AUD-31.** A credential-controller factory
       shared by the Jenkins, GitHub, and SonarQube controllers:
       `{ timestamps: true }`, `runValidators`, `{ _id, userId }`-scoped
       queries returning 404, and an atomic default switch. The existing
       mocha tests must pass unchanged, plus new tests for each fix.
+      *Done 2026-09-30:* all existing tests pass unchanged except the
+      nine ownership assertions, which moved from 401 to 404 as AUD-24
+      requires. 15 new tests (5 behaviours × 3 routes); 92 passing.
 - [ ] P12-26 **AUD-03 (Critical).** AES-256-GCM field encryption for tool
       secrets (key from `CREDENTIALS_ENCRYPTION_KEY`, with a key-id prefix
       for rotation), a migration script for existing rows, and docs in

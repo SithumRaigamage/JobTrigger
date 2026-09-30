@@ -27,14 +27,14 @@ describe('Credentials ownership and defaults', function() {
       .set('x-auth-token', tokenB)
       .send({ serverName: 'B Hacked', jenkinsURL: 'http://b', username: 'b', password: 'p' });
 
-    expect(updateRes.status).to.equal(401);
+    expect(updateRes.status).to.equal(404); // AUD-24: indistinguishable from missing.
 
     // Attempt delete by B
     const deleteRes = await request(app)
       .delete(`/api/credentials/${credId}`)
       .set('x-auth-token', tokenB);
 
-    expect(deleteRes.status).to.equal(401);
+    expect(deleteRes.status).to.equal(404); // AUD-24: indistinguishable from missing.
   });
 
   it("should prevent one user from switching another user's credential active", async function() {
@@ -54,7 +54,7 @@ describe('Credentials ownership and defaults', function() {
       .post(`/api/credentials/switch/${credId}`)
       .set('x-auth-token', tokenB);
 
-    expect(switchRes.status).to.equal(401);
+    expect(switchRes.status).to.equal(404); // AUD-24: indistinguishable from missing.
   });
 
   it('should ensure only one default credential per user when adding', async function() {

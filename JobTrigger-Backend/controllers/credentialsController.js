@@ -1,119 +1,13 @@
-const mongoose = require('mongoose');
 const JenkinsCredential = require('../models/JenkinsCredential');
+const { makeCredentialController } = require('./credentialControllerFactory');
 
-exports.getCredentials = async (req, res, next) => {
-  try {
-    const credentials = await JenkinsCredential.find({ userId: req.user.id });
-    res.json(credentials);
-  } catch (err) {
-    next(err);
-  }
-};
+// The user's Jenkins servers (AUD-31: shared implementation).
+const controller = makeCredentialController(JenkinsCredential, ['serverName', 'jenkinsURL', 'username', 'password', 'paramToken']);
 
-exports.addCredential = async (req, res, next) => {
-  try {
-    const { serverName, jenkinsURL, username, password, paramToken, isDefault } = req.body;
-
-    // If setting as default, unset others first
-    if (isDefault) {
-      await JenkinsCredential.updateMany({ userId: req.user.id }, { isDefault: false });
-    }
-
-    const newCredential = new JenkinsCredential({
-      userId: req.user.id,
-      serverName,
-      jenkinsURL,
-      username,
-      password,
-      paramToken,
-      isDefault
-    });
-
-    const credential = await newCredential.save();
-    res.status(201).json(credential);
-  } catch (err) {
-    if (err.name === 'ValidationError') {
-      return res.status(400).json({
-        message: 'Invalid credential data',
-        fields: Object.keys(err.errors ?? {}),
-      });
-    }
-    next(err);
-  }
-};
-
-exports.updateCredential = async (req, res, next) => {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid credential id' });
-    }
-
-    const { serverName, jenkinsURL, username, password, paramToken, isDefault } = req.body;
-
-    let credential = await JenkinsCredential.findById(req.params.id);
-    if (!credential) return res.status(404).json({ message: 'Credential not found' });
-
-    // Verify ownership
-    if (credential.userId.toString() !== req.user.id) {
-      return res.status(401).json({ message: 'User not authorized' });
-    }
-
-    // If setting as default, unset others first
-    if (isDefault) {
-      await JenkinsCredential.updateMany({ userId: req.user.id }, { isDefault: false });
-    }
-
-    credential = await JenkinsCredential.findByIdAndUpdate(
-      req.params.id,
-      { $set: { serverName, jenkinsURL, username, password, paramToken, isDefault } },
-      { new: true }
-    );
-
-    res.json(credential);
-  } catch (err) {
-    next(err);
-  }
-};
-
-exports.deleteCredential = async (req, res, next) => {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid credential id' });
-    }
-
-    const credential = await JenkinsCredential.findById(req.params.id);
-    if (!credential) return res.status(404).json({ message: 'Credential not found' });
-
-    // Verify ownership
-    if (credential.userId.toString() !== req.user.id) {
-      return res.status(401).json({ message: 'User not authorized' });
-    }
-
-    await JenkinsCredential.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Credential removed' });
-  } catch (err) {
-    next(err);
-  }
-};
-
-// Set a Jenkins server as the active/default server for the user
-exports.setActiveServer = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid credential id' });
-    }
-    const credential = await JenkinsCredential.findById(id);
-    if (!credential) return res.status(404).json({ message: 'Credential not found' });
-    if (credential.userId.toString() !== req.user.id) {
-      return res.status(401).json({ message: 'User not authorized' });
-    }
-    // Unset all as default, then set this one as default
-    await JenkinsCredential.updateMany({ userId: req.user.id }, { isDefault: false });
-    credential.isDefault = true;
-    await credential.save();
-    res.json(credential);
-  } catch (err) {
-    next(err);
-  }
+module.exports = {
+  getCredentials: controller.list,
+  addCredential: controller.create,
+  updateCredential: controller.update,
+  deleteCredential: controller.remove,
+  setActiveServer: controller.setDefault,
 };

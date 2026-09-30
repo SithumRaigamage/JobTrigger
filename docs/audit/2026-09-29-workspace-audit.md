@@ -59,15 +59,15 @@ are cross-referenced instead of being fixed twice.
 | AUD-20 | Medium | Performance | Home fetches the whole recursive tree (all levels, with `lastBuild`) on every load | fixed (P11-05) |
 | AUD-21 | Medium | Bug / Performance | Artifact download buffers the whole file in memory with a 15s timeout | fixed (P12-08) |
 | AUD-22 | Medium | Bug | App Info links do nothing on Android 11+ (`canLaunchUrl` without `<queries>`) | fixed (P12-07) |
-| AUD-23 | Medium | Bug (backend) | Credential `PUT` skips validators and never updates `updatedAt` | open |
-| AUD-24 | Medium | Security (backend) | Ownership failures return 401 (enables id probing); `isDefault` switch not atomic | open |
+| AUD-23 | Medium | Bug (backend) | Credential `PUT` skips validators and never updates `updatedAt` | fixed (P12-25) |
+| AUD-24 | Medium | Security (backend) | Ownership failures return 401 (enables id probing); `isDefault` switch not atomic | fixed (P12-25) |
 | AUD-25 | Medium | Security (backend) | Wide-open CORS, no security headers, no fail-fast on missing `JWT_SECRET` | fixed (P12-23) |
 | AUD-26 | Medium | Security (backend) | Weak password policy, no server-side email validation, 7-day JWT with no revocation | open |
 | AUD-27 | Medium | Security / UX | Password build parameters rendered in plaintext and pre-filled | fixed (P11-04) |
 | AUD-28 | Low | Privacy | Logout leaves per-user preferences behind on a shared device | fixed (P12-09) |
 | AUD-29 | Low | Bug | Artifact download state keyed by relative path only, shared across builds | fixed (P12-09) |
 | AUD-30 | Low | UI / A11y | Hardcoded colors bypass `AppColors` tokens (dark-mode contrast) | fixed (P12-09) |
-| AUD-31 | Low | Code quality (backend) | Three copy-pasted credential controllers | open |
+| AUD-31 | Low | Code quality (backend) | Three copy-pasted credential controllers | fixed (P12-25) |
 | AUD-32 | Low | Code quality | Trailing-slash URL normalisation duplicated 11× in `JenkinsRepositoryImpl` | fixed (P12-04) |
 | AUD-33 | Low | UX | Search results lack folder context; empty state can't pull to refresh | fixed (P11-10) |
 | AUD-34 | Low | Bug | Log sanitizer leaves `\r` from CRLF; escape sequences split across chunks leak | fixed (P11-11) |
@@ -402,6 +402,9 @@ are cross-referenced instead of being fixed twice.
 - **What:** `PUT` can blank required fields, and `updatedAt` is never
   refreshed.
 - **Fix:** Use schema `{ timestamps: true }` and `runValidators: true`.
+- **Fixed (P12-25, 2026-09-30):** both, in the shared controller. A PUT
+  that blanks a required field is a 400 naming the field; fields the PUT
+  leaves out are unchanged; `updatedAt` refreshes on update.
 
 ### AUD-24 — Ownership failures return 401; non-atomic default switch (backend track)
 
@@ -412,6 +415,14 @@ are cross-referenced instead of being fixed twice.
 - **Fix:** Scope every query by `{ _id, userId }` and return 404 when
   nothing matches. Do the default switch with a transaction or a single
   `bulkWrite`.
+- **Fixed (P12-25, 2026-09-30):** every lookup is `{ _id, userId }`, and
+  another user's id is a 404 on update, delete, and switch. The nine
+  ownership test assertions changed from 401 to 404 on purpose; every
+  other existing test passes unchanged. The default switch is one ordered
+  `bulkWrite` (unset all, set one), the audit's second option: no
+  transaction, because the local and test MongoDB are standalone. Two
+  switches racing from the same account could still interleave, and the
+  next switch repairs that.
 
 ### AUD-25 — CORS, headers, and config fail-fast (backend track)
 
@@ -531,7 +542,9 @@ are cross-referenced instead of being fixed twice.
 - **AUD-31 — Duplicated backend controllers:** `credentialsController`,
   `githubCredentialsController`, and `sonarqubeCredentialsController` are
   copy-pastes. Fix: a `makeCredentialController(Model, fields)` factory,
-  done with AUD-23/24 so the fixes land once.
+  done with AUD-23/24 so the fixes land once. **Fixed (P12-25):**
+  `controllers/credentialControllerFactory.js`. The three controllers are
+  now 15-line configurations, and the routes are unchanged.
 - **AUD-32 — Duplicated URL normalisation:** `base = url.endsWith('/') ? …`
   appears in 11 methods. Fix: an `_withSlash()` helper, folded into the
   AUD-11 `guard` refactor.

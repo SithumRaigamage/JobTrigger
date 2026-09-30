@@ -21,20 +21,11 @@ const githubCredentialSchema = new mongoose.Schema({
   isDefault: {
     type: Boolean,
     default: false
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
   }
+}, {
+  // AUD-23: maintained on save *and* on findOneAndUpdate.
+  timestamps: true
 });
 
-// Update the updatedAt field before saving
-githubCredentialSchema.pre('save', function() {
-  this.updatedAt = Date.now();
-});
 
 module.exports = mongoose.model('GitHubCredential', githubCredentialSchema);
