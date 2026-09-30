@@ -9,6 +9,7 @@ import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../core/network/jenkins_client_factory.dart';
 import '../../domain/jenkins/branch_kind.dart';
+import '../../domain/jenkins/history_filter.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../../domain/jenkins/jenkins_repository.dart';
@@ -72,13 +73,16 @@ const _detailsTree =
 const _testReportTree =
     'passCount,failCount,skipCount,suites[cases[className,name,status]]';
 
-/// Last 20 builds — ported exactly from
-/// `JenkinsAPIService.fetchBuildHistory`'s `historyTree` (Swift), plus
-/// `actions[parameters[name,value]]` (US-PIPE-08 — a build's actually-used
-/// parameter values, for "replay with same parameters").
-const _historyTree =
-    'builds[number,url,result,timestamp,duration,displayName,building,'
-    'estimatedDuration,actions[parameters[name,value]]]{0,20}';
+/// One page of history — ported from `JenkinsAPIService.fetchBuildHistory`'s
+/// `historyTree` (Swift), plus `actions[parameters[name,value]]` (US-PIPE-08
+/// replay) and `causes[userId]` (US-JX-06 "started by me"). Uses
+/// `allBuilds{from,to}` rather than `builds`, which Jenkins caps at 100, so
+/// paging reaches all of history (verified on the fixture; past the end is
+/// an empty list).
+String _historyTree(int from, int to) =>
+    'allBuilds[number,url,result,timestamp,duration,displayName,building,'
+    'estimatedDuration,actions[parameters[name,value],causes[userId]]]'
+    '{$from,$to}';
 
 /// Jenkins resource URLs are directories; every sub-path (`api/json`,
 /// `build`, `stop`, …) is appended to a trailing-slash form (AUD-32).
@@ -198,13 +202,16 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
 
   @override
   Future<Result<List<JenkinsBuild>, AppFailure>> fetchJobHistory(
-    String jobUrl,
-  ) => guardRequest(() async {
+    String jobUrl, {
+    int start = 0,
+    int count = historyPageSize,
+  }) => guardRequest(() async {
     final response = await _dio.get<Map<String, dynamic>>(
       '${_withSlash(jobUrl)}api/json',
-      queryParameters: {'tree': _historyTree},
+      queryParameters: {'tree': _historyTree(start, start + count)},
     );
-    final buildsJson = response.data?['builds'] as List<dynamic>? ?? const [];
+    final buildsJson =
+        response.data?['allBuilds'] as List<dynamic>? ?? const [];
     final builds = buildsJson
         .map(
           (json) =>

@@ -69,7 +69,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-30 | Low | UI / A11y | Hardcoded colors bypass `AppColors` tokens (dark-mode contrast) | open |
 | AUD-31 | Low | Code quality (backend) | Three copy-pasted credential controllers | open |
 | AUD-32 | Low | Code quality | Trailing-slash URL normalisation duplicated 11× in `JenkinsRepositoryImpl` | fixed (P12-04) |
-| AUD-33 | Low | UX | Search results lack folder context; empty state can't pull to refresh | open (→ P11-06) |
+| AUD-33 | Low | UX | Search results lack folder context; empty state can't pull to refresh | fixed (P11-10) |
 | AUD-34 | Low | Bug | Log sanitizer leaves `\r` from CRLF; escape sequences split across chunks leak | open (→ P11-11) |
 | AUD-35 | Low | Docs | `CLAUDE.md` §1 still says "JWT bearer"; the backend actually uses `x-auth-token` | open |
 | AUD-37 | High | Bug | A duplicate parameterized trigger (Jenkins `303`, merged into the queued build) is reported as a failure | fixed (P11-04) |

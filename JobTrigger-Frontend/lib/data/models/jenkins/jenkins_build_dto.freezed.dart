@@ -29,7 +29,8 @@ mixin _$JenkinsBuildDto {
 // (`List<String>`) untouched. Both fields target the same JSON key,
 // so both need `includeToJson: false` (this DTO is response-only and
 // never re-encoded anyway).
-@JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) UpstreamCause? get upstreamCause;// US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
+@JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) UpstreamCause? get upstreamCause;// US-JX-06 "started by me": `userId` of each UserIdCause.
+@JsonKey(name: 'actions', fromJson: _startedByUserIdsFromJson, includeToJson: false) List<String> get startedByUserIds;// US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
 // `items` (each `{msg, author: {fullName}}`) is requested/parsed;
 // `kind` isn't rendered anywhere so it's left off the tree query.
 // `ScmChange` isn't JSON-serializable itself (no toJson) -- fine, since
@@ -57,16 +58,16 @@ $JenkinsBuildDtoCopyWith<JenkinsBuildDto> get copyWith => _$JenkinsBuildDtoCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&const DeepCollectionEquality().equals(other.causes, causes)&&(identical(other.upstreamCause, upstreamCause) || other.upstreamCause == upstreamCause)&&const DeepCollectionEquality().equals(other.changes, changes)&&const DeepCollectionEquality().equals(other.artifacts, artifacts)&&const DeepCollectionEquality().equals(other.parameterValues, parameterValues));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&const DeepCollectionEquality().equals(other.causes, causes)&&(identical(other.upstreamCause, upstreamCause) || other.upstreamCause == upstreamCause)&&const DeepCollectionEquality().equals(other.startedByUserIds, startedByUserIds)&&const DeepCollectionEquality().equals(other.changes, changes)&&const DeepCollectionEquality().equals(other.artifacts, artifacts)&&const DeepCollectionEquality().equals(other.parameterValues, parameterValues));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName,const DeepCollectionEquality().hash(causes),upstreamCause,const DeepCollectionEquality().hash(changes),const DeepCollectionEquality().hash(artifacts),const DeepCollectionEquality().hash(parameterValues));
+int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName,const DeepCollectionEquality().hash(causes),upstreamCause,const DeepCollectionEquality().hash(startedByUserIds),const DeepCollectionEquality().hash(changes),const DeepCollectionEquality().hash(artifacts),const DeepCollectionEquality().hash(parameterValues));
 
 @override
 String toString() {
-  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName, causes: $causes, upstreamCause: $upstreamCause, changes: $changes, artifacts: $artifacts, parameterValues: $parameterValues)';
+  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName, causes: $causes, upstreamCause: $upstreamCause, startedByUserIds: $startedByUserIds, changes: $changes, artifacts: $artifacts, parameterValues: $parameterValues)';
 }
 
 
@@ -77,7 +78,7 @@ abstract mixin class $JenkinsBuildDtoCopyWith<$Res>  {
   factory $JenkinsBuildDtoCopyWith(JenkinsBuildDto value, $Res Function(JenkinsBuildDto) _then) = _$JenkinsBuildDtoCopyWithImpl;
 @useResult
 $Res call({
- int number, String url, String? result, double timestamp, double? duration, double? estimatedDuration, bool building, String? displayName,@JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false) List<String> causes,@JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) UpstreamCause? upstreamCause,@JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) List<ScmChange> changes, List<BuildArtifactDto> artifacts,@JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false) Map<String, String> parameterValues
+ int number, String url, String? result, double timestamp, double? duration, double? estimatedDuration, bool building, String? displayName,@JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false) List<String> causes,@JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) UpstreamCause? upstreamCause,@JsonKey(name: 'actions', fromJson: _startedByUserIdsFromJson, includeToJson: false) List<String> startedByUserIds,@JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) List<ScmChange> changes, List<BuildArtifactDto> artifacts,@JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false) Map<String, String> parameterValues
 });
 
 
@@ -94,7 +95,7 @@ class _$JenkinsBuildDtoCopyWithImpl<$Res>
 
 /// Create a copy of JenkinsBuildDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? number = null,Object? url = null,Object? result = freezed,Object? timestamp = null,Object? duration = freezed,Object? estimatedDuration = freezed,Object? building = null,Object? displayName = freezed,Object? causes = null,Object? upstreamCause = freezed,Object? changes = null,Object? artifacts = null,Object? parameterValues = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? number = null,Object? url = null,Object? result = freezed,Object? timestamp = null,Object? duration = freezed,Object? estimatedDuration = freezed,Object? building = null,Object? displayName = freezed,Object? causes = null,Object? upstreamCause = freezed,Object? startedByUserIds = null,Object? changes = null,Object? artifacts = null,Object? parameterValues = null,}) {
   return _then(_self.copyWith(
 number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
 as int,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -106,7 +107,8 @@ as double?,building: null == building ? _self.building : building // ignore: cas
 as bool,displayName: freezed == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String?,causes: null == causes ? _self.causes : causes // ignore: cast_nullable_to_non_nullable
 as List<String>,upstreamCause: freezed == upstreamCause ? _self.upstreamCause : upstreamCause // ignore: cast_nullable_to_non_nullable
-as UpstreamCause?,changes: null == changes ? _self.changes : changes // ignore: cast_nullable_to_non_nullable
+as UpstreamCause?,startedByUserIds: null == startedByUserIds ? _self.startedByUserIds : startedByUserIds // ignore: cast_nullable_to_non_nullable
+as List<String>,changes: null == changes ? _self.changes : changes // ignore: cast_nullable_to_non_nullable
 as List<ScmChange>,artifacts: null == artifacts ? _self.artifacts : artifacts // ignore: cast_nullable_to_non_nullable
 as List<BuildArtifactDto>,parameterValues: null == parameterValues ? _self.parameterValues : parameterValues // ignore: cast_nullable_to_non_nullable
 as Map<String, String>,
@@ -194,10 +196,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false)  List<String> causes, @JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false)  UpstreamCause? upstreamCause, @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false)  List<ScmChange> changes,  List<BuildArtifactDto> artifacts, @JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false)  Map<String, String> parameterValues)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false)  List<String> causes, @JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false)  UpstreamCause? upstreamCause, @JsonKey(name: 'actions', fromJson: _startedByUserIdsFromJson, includeToJson: false)  List<String> startedByUserIds, @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false)  List<ScmChange> changes,  List<BuildArtifactDto> artifacts, @JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false)  Map<String, String> parameterValues)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JenkinsBuildDto() when $default != null:
-return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes,_that.upstreamCause,_that.changes,_that.artifacts,_that.parameterValues);case _:
+return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes,_that.upstreamCause,_that.startedByUserIds,_that.changes,_that.artifacts,_that.parameterValues);case _:
   return orElse();
 
 }
@@ -215,10 +217,10 @@ return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.durati
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false)  List<String> causes, @JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false)  UpstreamCause? upstreamCause, @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false)  List<ScmChange> changes,  List<BuildArtifactDto> artifacts, @JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false)  Map<String, String> parameterValues)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false)  List<String> causes, @JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false)  UpstreamCause? upstreamCause, @JsonKey(name: 'actions', fromJson: _startedByUserIdsFromJson, includeToJson: false)  List<String> startedByUserIds, @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false)  List<ScmChange> changes,  List<BuildArtifactDto> artifacts, @JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false)  Map<String, String> parameterValues)  $default,) {final _that = this;
 switch (_that) {
 case _JenkinsBuildDto():
-return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes,_that.upstreamCause,_that.changes,_that.artifacts,_that.parameterValues);case _:
+return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes,_that.upstreamCause,_that.startedByUserIds,_that.changes,_that.artifacts,_that.parameterValues);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -235,10 +237,10 @@ return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.durati
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false)  List<String> causes, @JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false)  UpstreamCause? upstreamCause, @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false)  List<ScmChange> changes,  List<BuildArtifactDto> artifacts, @JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false)  Map<String, String> parameterValues)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int number,  String url,  String? result,  double timestamp,  double? duration,  double? estimatedDuration,  bool building,  String? displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false)  List<String> causes, @JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false)  UpstreamCause? upstreamCause, @JsonKey(name: 'actions', fromJson: _startedByUserIdsFromJson, includeToJson: false)  List<String> startedByUserIds, @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false)  List<ScmChange> changes,  List<BuildArtifactDto> artifacts, @JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false)  Map<String, String> parameterValues)?  $default,) {final _that = this;
 switch (_that) {
 case _JenkinsBuildDto() when $default != null:
-return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes,_that.upstreamCause,_that.changes,_that.artifacts,_that.parameterValues);case _:
+return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.duration,_that.estimatedDuration,_that.building,_that.displayName,_that.causes,_that.upstreamCause,_that.startedByUserIds,_that.changes,_that.artifacts,_that.parameterValues);case _:
   return null;
 
 }
@@ -250,7 +252,7 @@ return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.durati
 @JsonSerializable()
 
 class _JenkinsBuildDto implements JenkinsBuildDto {
-  const _JenkinsBuildDto({required this.number, required this.url, this.result, required this.timestamp, this.duration, this.estimatedDuration, this.building = false, this.displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false) final  List<String> causes = const <String>[], @JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) this.upstreamCause, @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) final  List<ScmChange> changes = const <ScmChange>[], final  List<BuildArtifactDto> artifacts = const <BuildArtifactDto>[], @JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false) final  Map<String, String> parameterValues = const <String, String>{}}): _causes = causes,_changes = changes,_artifacts = artifacts,_parameterValues = parameterValues;
+  const _JenkinsBuildDto({required this.number, required this.url, this.result, required this.timestamp, this.duration, this.estimatedDuration, this.building = false, this.displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false) final  List<String> causes = const <String>[], @JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) this.upstreamCause, @JsonKey(name: 'actions', fromJson: _startedByUserIdsFromJson, includeToJson: false) final  List<String> startedByUserIds = const <String>[], @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) final  List<ScmChange> changes = const <ScmChange>[], final  List<BuildArtifactDto> artifacts = const <BuildArtifactDto>[], @JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false) final  Map<String, String> parameterValues = const <String, String>{}}): _causes = causes,_startedByUserIds = startedByUserIds,_changes = changes,_artifacts = artifacts,_parameterValues = parameterValues;
   factory _JenkinsBuildDto.fromJson(Map<String, dynamic> json) => _$JenkinsBuildDtoFromJson(json);
 
 @override final  int number;
@@ -289,6 +291,15 @@ class _JenkinsBuildDto implements JenkinsBuildDto {
 // so both need `includeToJson: false` (this DTO is response-only and
 // never re-encoded anyway).
 @override@JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) final  UpstreamCause? upstreamCause;
+// US-JX-06 "started by me": `userId` of each UserIdCause.
+ final  List<String> _startedByUserIds;
+// US-JX-06 "started by me": `userId` of each UserIdCause.
+@override@JsonKey(name: 'actions', fromJson: _startedByUserIdsFromJson, includeToJson: false) List<String> get startedByUserIds {
+  if (_startedByUserIds is EqualUnmodifiableListView) return _startedByUserIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_startedByUserIds);
+}
+
 // US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
 // `items` (each `{msg, author: {fullName}}`) is requested/parsed;
 // `kind` isn't rendered anywhere so it's left off the tree query.
@@ -354,16 +365,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&const DeepCollectionEquality().equals(other._causes, _causes)&&(identical(other.upstreamCause, upstreamCause) || other.upstreamCause == upstreamCause)&&const DeepCollectionEquality().equals(other._changes, _changes)&&const DeepCollectionEquality().equals(other._artifacts, _artifacts)&&const DeepCollectionEquality().equals(other._parameterValues, _parameterValues));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&const DeepCollectionEquality().equals(other._causes, _causes)&&(identical(other.upstreamCause, upstreamCause) || other.upstreamCause == upstreamCause)&&const DeepCollectionEquality().equals(other._startedByUserIds, _startedByUserIds)&&const DeepCollectionEquality().equals(other._changes, _changes)&&const DeepCollectionEquality().equals(other._artifacts, _artifacts)&&const DeepCollectionEquality().equals(other._parameterValues, _parameterValues));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName,const DeepCollectionEquality().hash(_causes),upstreamCause,const DeepCollectionEquality().hash(_changes),const DeepCollectionEquality().hash(_artifacts),const DeepCollectionEquality().hash(_parameterValues));
+int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName,const DeepCollectionEquality().hash(_causes),upstreamCause,const DeepCollectionEquality().hash(_startedByUserIds),const DeepCollectionEquality().hash(_changes),const DeepCollectionEquality().hash(_artifacts),const DeepCollectionEquality().hash(_parameterValues));
 
 @override
 String toString() {
-  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName, causes: $causes, upstreamCause: $upstreamCause, changes: $changes, artifacts: $artifacts, parameterValues: $parameterValues)';
+  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName, causes: $causes, upstreamCause: $upstreamCause, startedByUserIds: $startedByUserIds, changes: $changes, artifacts: $artifacts, parameterValues: $parameterValues)';
 }
 
 
@@ -374,7 +385,7 @@ abstract mixin class _$JenkinsBuildDtoCopyWith<$Res> implements $JenkinsBuildDto
   factory _$JenkinsBuildDtoCopyWith(_JenkinsBuildDto value, $Res Function(_JenkinsBuildDto) _then) = __$JenkinsBuildDtoCopyWithImpl;
 @override @useResult
 $Res call({
- int number, String url, String? result, double timestamp, double? duration, double? estimatedDuration, bool building, String? displayName,@JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false) List<String> causes,@JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) UpstreamCause? upstreamCause,@JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) List<ScmChange> changes, List<BuildArtifactDto> artifacts,@JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false) Map<String, String> parameterValues
+ int number, String url, String? result, double timestamp, double? duration, double? estimatedDuration, bool building, String? displayName,@JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false) List<String> causes,@JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) UpstreamCause? upstreamCause,@JsonKey(name: 'actions', fromJson: _startedByUserIdsFromJson, includeToJson: false) List<String> startedByUserIds,@JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) List<ScmChange> changes, List<BuildArtifactDto> artifacts,@JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false) Map<String, String> parameterValues
 });
 
 
@@ -391,7 +402,7 @@ class __$JenkinsBuildDtoCopyWithImpl<$Res>
 
 /// Create a copy of JenkinsBuildDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? number = null,Object? url = null,Object? result = freezed,Object? timestamp = null,Object? duration = freezed,Object? estimatedDuration = freezed,Object? building = null,Object? displayName = freezed,Object? causes = null,Object? upstreamCause = freezed,Object? changes = null,Object? artifacts = null,Object? parameterValues = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? number = null,Object? url = null,Object? result = freezed,Object? timestamp = null,Object? duration = freezed,Object? estimatedDuration = freezed,Object? building = null,Object? displayName = freezed,Object? causes = null,Object? upstreamCause = freezed,Object? startedByUserIds = null,Object? changes = null,Object? artifacts = null,Object? parameterValues = null,}) {
   return _then(_JenkinsBuildDto(
 number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
 as int,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -403,7 +414,8 @@ as double?,building: null == building ? _self.building : building // ignore: cas
 as bool,displayName: freezed == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String?,causes: null == causes ? _self._causes : causes // ignore: cast_nullable_to_non_nullable
 as List<String>,upstreamCause: freezed == upstreamCause ? _self.upstreamCause : upstreamCause // ignore: cast_nullable_to_non_nullable
-as UpstreamCause?,changes: null == changes ? _self._changes : changes // ignore: cast_nullable_to_non_nullable
+as UpstreamCause?,startedByUserIds: null == startedByUserIds ? _self._startedByUserIds : startedByUserIds // ignore: cast_nullable_to_non_nullable
+as List<String>,changes: null == changes ? _self._changes : changes // ignore: cast_nullable_to_non_nullable
 as List<ScmChange>,artifacts: null == artifacts ? _self._artifacts : artifacts // ignore: cast_nullable_to_non_nullable
 as List<BuildArtifactDto>,parameterValues: null == parameterValues ? _self._parameterValues : parameterValues // ignore: cast_nullable_to_non_nullable
 as Map<String, String>,

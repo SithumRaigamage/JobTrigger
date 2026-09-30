@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
+import 'package:job_trigger/domain/jenkins/history_filter.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/presentation/features/history/job_history_notifier.dart';
 import '../../../support/fake_jenkins_repository.dart';
@@ -16,8 +17,10 @@ class _FakeJenkinsRepository extends FakeJenkinsRepository {
 
   @override
   Future<Result<List<JenkinsBuild>, AppFailure>> fetchJobHistory(
-    String jobUrl,
-  ) async {
+    String jobUrl, {
+    int start = 0,
+    int count = historyPageSize,
+  }) async {
     fetchJobHistoryCallCount++;
     lastJobUrl = jobUrl;
     return fetchJobHistoryResult;

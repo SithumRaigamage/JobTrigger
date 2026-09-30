@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/domain/jenkins/branch_kind.dart';
+import 'package:job_trigger/domain/jenkins/history_filter.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
@@ -47,8 +48,10 @@ class FakeJenkinsRepository implements JenkinsRepository {
 
   @override
   Future<Result<List<JenkinsBuild>, AppFailure>> fetchJobHistory(
-    String jobUrl,
-  ) => throw UnimplementedError('fetchJobHistory');
+    String jobUrl, {
+    int start = 0,
+    int count = historyPageSize,
+  }) => throw UnimplementedError('fetchJobHistory');
 
   @override
   Future<Result<String?, AppFailure>> triggerBuild(

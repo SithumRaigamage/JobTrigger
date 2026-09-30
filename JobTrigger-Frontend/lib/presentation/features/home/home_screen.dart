@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../domain/jenkins/branch_kind.dart';
+import '../../../domain/jenkins/history_filter.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../common_widgets/confirmation_dialog.dart';
@@ -236,7 +237,22 @@ class _JobListView extends ConsumerWidget {
     final query = ref.watch(jobSearchNotifierProvider);
 
     if (jobs.isEmpty) {
-      return _EmptyState(query: query);
+      // Still pull-to-refreshable: an empty folder may just be stale
+      // (AUD-33).
+      return RefreshIndicator(
+        onRefresh: () => refreshVisibleJobs(ref),
+        child: LayoutBuilder(
+          builder: (context, constraints) => ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              SizedBox(
+                height: constraints.maxHeight,
+                child: _EmptyState(query: query),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     final project = multibranch;
@@ -259,7 +275,9 @@ class _JobListView extends ConsumerWidget {
         itemBuilder: (context, index) => switch (items[index]) {
           final JenkinsJob job => Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: _JobTile(job: job),
+            // Search spans every folder, so say where each result lives
+            // (AUD-33).
+            child: _JobTile(job: job, showFolderPath: query.isNotEmpty),
           ),
           final String header => Padding(
             padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
@@ -380,9 +398,10 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _JobTile extends ConsumerWidget {
-  const _JobTile({required this.job});
+  const _JobTile({required this.job, this.showFolderPath = false});
 
   final JenkinsJob job;
+  final bool showFolderPath;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -435,6 +454,15 @@ class _JobTile extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(job.label, style: Theme.of(context).textTheme.bodyMedium),
+                if (showFolderPath && folderPathOf(job.url).isNotEmpty)
+                  Text(
+                    folderPathOf(job.url),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 const SizedBox(height: 4),
                 Row(
                   children: [

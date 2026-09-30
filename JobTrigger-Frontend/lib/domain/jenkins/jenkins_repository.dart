@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
 import 'branch_kind.dart';
+import 'history_filter.dart';
 import 'jenkins_build.dart';
 import 'jenkins_job.dart';
 import 'log_chunk.dart';
@@ -51,7 +52,15 @@ abstract class JenkinsRepository {
   /// Last 20 builds for one job (per-job history, P5-16) — a separate
   /// fetch from [fetchJobDetail], per `JenkinsAPIService.fetchBuildHistory`
   /// (Swift).
-  Future<Result<List<JenkinsBuild>, AppFailure>> fetchJobHistory(String jobUrl);
+  ///
+  /// US-JX-06: pages through all of history — [start] is the 0-based index
+  /// of the newest build to return, [count] how many. A short page means
+  /// the end of history.
+  Future<Result<List<JenkinsBuild>, AppFailure>> fetchJobHistory(
+    String jobUrl, {
+    int start = 0,
+    int count = historyPageSize,
+  });
 
   /// POSTs `build` (no params) or `buildWithParameters` (form-urlencoded),
   /// chosen the same way as `JenkinsAPIService.triggerJob` (Swift): use

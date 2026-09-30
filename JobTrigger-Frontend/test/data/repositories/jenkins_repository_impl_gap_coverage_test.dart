@@ -493,7 +493,7 @@ void main() {
       'GETs {jobUrl}api/json with the history tree and rewrites build URLs',
       () async {
         final adapter = _JsonResponseAdapter(200, {
-          'builds': [
+          'allBuilds': [
             {
               'number': 13,
               'url': 'http://internal-jenkins/job/demo/13/',
@@ -517,8 +517,9 @@ void main() {
         );
         expect(
           adapter.lastRequest?.queryParameters['tree'],
-          'builds[number,url,result,timestamp,duration,displayName,building,'
-          'estimatedDuration,actions[parameters[name,value]]]{0,20}',
+          'allBuilds[number,url,result,timestamp,duration,displayName,'
+          'building,estimatedDuration,'
+          'actions[parameters[name,value],causes[userId]]]{0,20}',
         );
         expect(result, isA<Ok<List<JenkinsBuild>, dynamic>>());
         final builds = (result as Ok<List<JenkinsBuild>, dynamic>).value;
@@ -529,6 +530,23 @@ void main() {
         expect(builds.single.url, 'https://jenkins.test/job/demo/13/');
       },
     );
+
+    test('pages with allBuilds{start,start+count} (US-JX-06)', () async {
+      final adapter = _JsonResponseAdapter(200, const {
+        'allBuilds': <Object>[],
+      });
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+
+      await JenkinsRepositoryImpl(
+        dio,
+      ).fetchJobHistory('https://jenkins.test/job/demo', start: 40, count: 20);
+
+      expect(
+        adapter.lastRequest?.queryParameters['tree'] as String,
+        endsWith(']{40,60}'),
+      );
+    });
 
     test('returns an empty list when the response has no builds key', () async {
       final adapter = _JsonResponseAdapter(200, const {});

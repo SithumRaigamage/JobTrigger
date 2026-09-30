@@ -20,6 +20,9 @@ _JenkinsBuildDto _$JenkinsBuildDtoFromJson(Map<String, dynamic> json) =>
           ? const <String>[]
           : _causesFromJson(json['actions']),
       upstreamCause: _upstreamCauseFromJson(json['actions']),
+      startedByUserIds: json['actions'] == null
+          ? const <String>[]
+          : _startedByUserIdsFromJson(json['actions']),
       changes: json['changeSet'] == null
           ? const <ScmChange>[]
           : _changesFromJson(json['changeSet']),

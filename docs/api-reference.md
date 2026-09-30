@@ -78,7 +78,7 @@ against the fixture Jenkins (P11-02, `NFR-TEST-02`).
 | `{buildURL}execution/node/{id}/wfapi/describe` | GET | US-JX-04 stage steps (`stageFlowNodes[id,name,status,parameterDescription]`). Parallel branches are **flattened into the build's stage list with no parent link**; the app groups them by overlapping time. The parent reports SUCCESS even when a branch failed | **implemented** (P11-08) |
 | `{buildURL}execution/node/{id}/wfapi/log` | GET | US-JX-04 step log (`text`, `hasMore`). `text` is **absent** when the log is empty | **implemented** (P11-08) |
 | `lastSuccessfulBuild[number,url,result,timestamp],lastFailedBuild[…]` (part of the job detail tree) | GET | US-JX-05 | **implemented** (P11-09) |
-| `{jobURL}api/json?tree=allBuilds[…]{start,end}` | GET | US-JX-06 paging | planned |
+| `{jobURL}api/json?tree=allBuilds[…,actions[parameters[name,value],causes[userId]]]{start,end}` | GET | US-JX-06 paging. `builds` is capped at 100 and `allBuilds` isn't. Past the end returns `[]` | **implemented** (P11-10) |
 | `{buildURL}consoleText` | GET | US-JX-07 full-log download and earlier lines | planned |
 | `{buildURL}timestamps/?time=HH:mm:ss&appendLog` | GET | US-JX-07 timestamps (Timestamper plugin; a 404 hides the toggle) | planned |
 | `{buildURL}testReport/api/json?tree=suites[cases[…,errorDetails,errorStackTrace,age]{0,200}]` | GET | US-JX-08 | planned |

@@ -5,6 +5,7 @@ import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
+import 'package:job_trigger/domain/jenkins/history_filter.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/parameter_definition.dart';
 import 'package:job_trigger/domain/jenkins/parameter_file.dart';
@@ -19,8 +20,10 @@ class _HistoryRepository extends FakeJenkinsRepository {
 
   @override
   Future<Result<List<JenkinsBuild>, AppFailure>> fetchJobHistory(
-    String jobUrl,
-  ) async {
+    String jobUrl, {
+    int start = 0,
+    int count = historyPageSize,
+  }) async {
     requested.add(jobUrl);
     return const Ok([
       JenkinsBuild(number: 9, url: 'u9', timestamp: 0, result: 'SUCCESS'),

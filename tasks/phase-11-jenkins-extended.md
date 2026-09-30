@@ -244,9 +244,25 @@ Each task names the `AUD-##` ids it closes.
       "Last stable" was dropped: on a phone it duplicates "last success"
       in nearly every job. The details-tree unit test now checks sections,
       not one exact string. Tests: 3 unit and widget, plus 1 fixture.
-- [ ] P11-10 **US-JX-06 history paging and filters, plus search context.**
+- [x] P11-10 **US-JX-06 history paging and filters, plus search context.**
       `allBuilds{n,m}` paging, result and "started by me" filters, folder
       path on search results, and a refreshable empty state (AUD-33).
+      **Done 2026-09-30.**
+      - **History paging:** `fetchJobHistory(start, count)` over
+        `allBuilds`. `JobHistoryPagesNotifier` auto-loads near the end; a
+        failed page keeps the loaded builds and stops paging.
+      - **Filters:** `JobHistoryFilterNotifier` plus the pure
+        `filterHistory` (result, and "started by me" via the cause
+        `userId` matched to the server username). When a filter hides
+        every loaded build, the screen offers "Load more" rather than
+        looping automatically.
+      - **Search (AUD-33):** search tiles show the folder path via
+        `folderPathOf`, and the empty state is refreshable.
+      - **UX fix found by a widget test:** "Started by me" moved first,
+        since it was off-screen in the chip row.
+      - **Kept as-is:** `JobHistoryNotifier` is still the Run picker's
+        first-page source.
+      - **Tests:** 10 unit and widget tests, plus 2 fixture tests.
 - [ ] P11-11 **US-JX-07 console rewrite.** Incremental sanitize and split
       with a memory cap (AUD-12), keep the log and back off on poll errors
       (AUD-13), handle CRLF and chunk-split escapes (AUD-34), search with

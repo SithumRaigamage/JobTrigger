@@ -32,6 +32,15 @@ their screen under `presentation/features/<feature>/`.
   (AUD-01). Its `build()` also deletes the legacy `login_saved_password`
   key that builds before AUD-01 wrote.
 
+## Feature: history — paging (P11-10)
+
+- `JobHistoryPagesNotifier(jobUrl)` (`AsyncNotifier<HistoryPages>`) loads
+  the first page, and `loadMore()` appends the next `historyPageSize`. A
+  short page means the end; a failed page keeps what's loaded.
+- `JobHistoryFilterNotifier(jobUrl)` (`Notifier<HistoryFilter>`) holds
+  the result filter and "started by me". The screen applies the pure
+  `filterHistory` to the loaded builds.
+
 ## Feature: job_detail — parameters (P11-04)
 
 - `ParameterEditsNotifier` (`Notifier<Map<String, String>>`, family by a

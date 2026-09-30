@@ -44,6 +44,14 @@ abstract class JenkinsBuildDto with _$JenkinsBuildDto {
       includeToJson: false,
     )
     UpstreamCause? upstreamCause,
+    // US-JX-06 "started by me": `userId` of each UserIdCause.
+    @Default(<String>[])
+    @JsonKey(
+      name: 'actions',
+      fromJson: _startedByUserIdsFromJson,
+      includeToJson: false,
+    )
+    List<String> startedByUserIds,
     // US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
     // `items` (each `{msg, author: {fullName}}`) is requested/parsed;
     // `kind` isn't rendered anywhere so it's left off the tree query.
@@ -89,6 +97,17 @@ abstract class BuildArtifactDto with _$BuildArtifactDto {
 
   factory BuildArtifactDto.fromJson(Map<String, dynamic> json) =>
       _$BuildArtifactDtoFromJson(json);
+}
+
+List<String> _startedByUserIdsFromJson(dynamic rawActions) {
+  if (rawActions is! List) return const [];
+  return [
+    for (final action in rawActions)
+      if (action is Map<String, dynamic> && action['causes'] is List)
+        for (final cause in action['causes'] as List)
+          if (cause is Map<String, dynamic> && cause['userId'] is String)
+            cause['userId'] as String,
+  ];
 }
 
 List<String> _causesFromJson(dynamic rawActions) {
@@ -164,6 +183,7 @@ List<ScmChange> _changesFromJson(dynamic rawChangeSet) {
 
 extension JenkinsBuildDtoX on JenkinsBuildDto {
   JenkinsBuild toDomain() => JenkinsBuild(
+    startedByUserIds: startedByUserIds,
     number: number,
     url: url,
     result: result,
