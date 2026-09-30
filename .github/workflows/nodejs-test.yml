@@ -37,6 +37,13 @@ jobs:
           cd JobTrigger-Backend
           npm ci
 
+      # AUD-07: fail on any high or critical advisory, dev dependencies
+      # included (a compromised test tool runs in CI with its secrets).
+      - name: Audit dependencies
+        run: |
+          cd JobTrigger-Backend
+          npm audit --audit-level=high
+
       - name: Run tests with coverage
         env:
           CI: true

@@ -43,7 +43,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-04 | High | Security (backend) | NoSQL operator injection in `/api/auth/login` and `/signup` | open |
 | AUD-05 | High | Security (backend) | No rate limiting or lockout on login | open |
 | AUD-06 | High | Security (backend) | 500 responses leak internal `err.message` | open |
-| AUD-07 | High | Security (backend) | Vulnerable dependencies (`path-to-regexp` ReDoS, `mongoose`, `qs`) | open |
+| AUD-07 | High | Security (backend) | Vulnerable dependencies (`path-to-regexp` ReDoS, `mongoose`, `qs`) | fixed (P12-20) |
 | AUD-08 | High | UX / Safety | Trigger and Cancel fire with no confirmation, violating the Must criteria of US-JOB-02/03/05 | fixed (P11-04) |
 | AUD-09 | High | Bug | Global history uses duplicate `ValueKey`s when job names repeat across folders | fixed (P12-05) |
 | AUD-10 | High | Bug | Folder breadcrumb shows stale or other-server contents after refresh or server switch | fixed (P11-05) |
@@ -167,6 +167,12 @@ are cross-referenced instead of being fixed twice.
   (moderate, DoS), and one low.
 - **Fix:** Run `npm audit fix`, re-run the tests, and add `npm audit
   --audit-level=high` to `nodejs-test.yml`.
+- **Fixed (P12-20, 2026-09-30):** `npm audit fix` plus `mocha` 10 → 12 (a
+  dev dependency; its `serialize-javascript` high advisory had no
+  non-major fix). The full audit, dev dependencies included, went from 11
+  findings (7 high) to 0, and the 58 mocha tests pass unchanged. CI now
+  runs `npm audit --audit-level=high` after `npm ci`. Mocha 12 needs Node
+  ^20.19 or >=22.12, which CI's 20.x matrix satisfies.
 
 ### AUD-08 — Trigger and Cancel have no confirmation step
 

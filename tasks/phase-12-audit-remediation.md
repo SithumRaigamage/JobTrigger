@@ -82,8 +82,10 @@ These change `JobTrigger-Backend/`. Per `CLAUDE.md` §7 and `NFR-SEC-05`,
 **each needs explicit approval** before work starts, even though this phase
 file lists them.
 
-- [ ] P12-20 **AUD-07.** `npm audit fix`, and an
+- [x] P12-20 **AUD-07.** `npm audit fix`, and an
       `npm audit --audit-level=high` gate in `nodejs-test.yml`.
+      *Done 2026-09-30:* 11 findings to 0 (`mocha` 12 for the dev-only
+      high), tests unchanged and passing, with the CI gate added.
 - [ ] P12-21 **AUD-17.** Node 22 LTS or later in the Dockerfile and CI;
       container runs as `USER node`, with `NODE_ENV=production` and a
       `HEALTHCHECK`.
