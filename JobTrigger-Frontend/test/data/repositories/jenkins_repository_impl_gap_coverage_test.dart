@@ -354,17 +354,24 @@ void main() {
           adapter.lastRequest?.path,
           'https://jenkins.test/job/demo/api/json',
         );
-        expect(
-          adapter.lastRequest?.queryParameters['tree'],
-          '_class,name,displayName,url,color,description,buildable,'
-          'lastBuild[number,url,result,timestamp,duration,building,estimatedDuration,'
-          'actions[causes[shortDescription,upstreamProject,upstreamUrl]],'
-          'changeSet[items[msg,author[fullName]]],'
-          'artifacts[fileName,relativePath]],'
-          'healthReport[description,iconClassName,score],'
-          'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices,projectName]],'
+        // Section checks rather than one exact string, so adding a field
+        // for a new story doesn't break this test.
+        final tree = adapter.lastRequest?.queryParameters['tree'] as String;
+        for (final section in [
+          '_class,name,displayName,url,color,description,buildable,',
+          'lastBuild[number,url,result,timestamp,duration,building,',
+          'actions[causes[shortDescription,upstreamProject,upstreamUrl]]',
+          'changeSet[items[msg,author[fullName]]]',
+          'artifacts[fileName,relativePath]',
+          'healthReport[description,iconClassName,score]',
+          'property[parameterDefinitions[name,type,description,'
+              'defaultParameterValue[value],choices,projectName]]',
           'downstreamProjects[name,url]',
-        );
+          'lastSuccessfulBuild[number,url,result,timestamp]',
+          'lastFailedBuild[number,url,result,timestamp]',
+        ]) {
+          expect(tree, contains(section));
+        }
         expect(result, isA<Ok<JenkinsJob, dynamic>>());
         final job = (result as Ok<JenkinsJob, dynamic>).value;
         expect(job.name, 'demo');

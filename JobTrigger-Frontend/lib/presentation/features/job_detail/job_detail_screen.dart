@@ -11,6 +11,7 @@ import '../../../domain/jenkins/parameter_values.dart';
 import '../../../domain/jenkins/pending_input.dart';
 import '../../../domain/jenkins/pipeline_stage.dart';
 import '../../../domain/jenkins/queue_item.dart';
+import '../../../domain/jenkins/relative_time.dart';
 import '../../../domain/jenkins/scm_change.dart';
 import '../../../domain/jenkins/test_report.dart';
 import '../../../domain/jenkins/upstream_cause.dart';
@@ -584,6 +585,7 @@ class _LastBuildCard extends StatelessWidget {
                   ),
               ],
             ),
+            _BuildLinks(job: job),
             if (lastBuild.causes.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text(
@@ -649,6 +651,51 @@ class _LastBuildCard extends StatelessWidget {
               ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// US-JX-05: one-tap links to the last successful and last failed build,
+/// shown only when they aren't simply the last build again.
+class _BuildLinks extends StatelessWidget {
+  const _BuildLinks({required this.job});
+
+  final JenkinsJob job;
+
+  @override
+  Widget build(BuildContext context) {
+    final lastNumber = job.lastBuild?.number;
+    final links = [
+      if (job.lastSuccessfulBuild case final build?
+          when build.number != lastNumber)
+        (build: build, label: 'Last success', icon: Icons.check_circle),
+      if (job.lastFailedBuild case final build? when build.number != lastNumber)
+        (build: build, label: 'Last failure', icon: Icons.cancel),
+    ];
+    if (links.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          for (final link in links)
+            ActionChip(
+              visualDensity: VisualDensity.compact,
+              avatar: Icon(
+                link.icon,
+                size: 16,
+                color: AppColors.forBuildResult(link.build.result),
+              ),
+              label: Text(
+                '${link.label} #${link.build.number} · '
+                '${relativeTime(fromJenkinsTimestamp(link.build.timestamp))}',
+              ),
+              onPressed: () =>
+                  context.push(AppRoutes.buildLog, extra: link.build),
+            ),
         ],
       ),
     );

@@ -35,6 +35,12 @@ JenkinsJob _rewriteJob(JenkinsJob job, Uri activeUri) => job.copyWith(
   lastBuild: job.lastBuild == null
       ? null
       : _rewriteBuild(job.lastBuild!, activeUri),
+  lastSuccessfulBuild: job.lastSuccessfulBuild == null
+      ? null
+      : _rewriteBuild(job.lastSuccessfulBuild!, activeUri),
+  lastFailedBuild: job.lastFailedBuild == null
+      ? null
+      : _rewriteBuild(job.lastFailedBuild!, activeUri),
   builds: job.builds.map((build) => _rewriteBuild(build, activeUri)).toList(),
   downstreamProjects: job.downstreamProjects
       .map(

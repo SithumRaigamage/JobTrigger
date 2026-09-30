@@ -15,6 +15,8 @@ class JenkinsJob {
     this.buildable,
     this.jobs,
     this.lastBuild,
+    this.lastSuccessfulBuild,
+    this.lastFailedBuild,
     this.healthReport = const [],
     this.property = const [],
     this.builds = const [],
@@ -47,6 +49,10 @@ class JenkinsJob {
   final bool? buildable;
   final List<JenkinsJob>? jobs; // nested folders — null for a leaf job
   final JenkinsBuild? lastBuild;
+
+  /// US-JX-05. Only fetched by the job detail query; null elsewhere.
+  final JenkinsBuild? lastSuccessfulBuild;
+  final JenkinsBuild? lastFailedBuild;
   final List<HealthReport> healthReport;
   final List<JobProperty> property;
   final List<JenkinsBuild> builds;
@@ -98,6 +104,8 @@ class JenkinsJob {
     String? url,
     List<JenkinsJob>? jobs,
     JenkinsBuild? lastBuild,
+    JenkinsBuild? lastSuccessfulBuild,
+    JenkinsBuild? lastFailedBuild,
     List<JenkinsBuild>? builds,
     List<DownstreamProject>? downstreamProjects,
   }) => JenkinsJob(
@@ -110,6 +118,8 @@ class JenkinsJob {
     buildable: buildable,
     jobs: jobs ?? this.jobs,
     lastBuild: lastBuild ?? this.lastBuild,
+    lastSuccessfulBuild: lastSuccessfulBuild ?? this.lastSuccessfulBuild,
+    lastFailedBuild: lastFailedBuild ?? this.lastFailedBuild,
     healthReport: healthReport,
     property: property,
     builds: builds ?? this.builds,

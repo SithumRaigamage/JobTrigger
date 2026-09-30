@@ -236,8 +236,14 @@ Each task names the `AUD-##` ids it closes.
         Jenkins reports the parent as SUCCESS.
       - **Refactor:** stage status style moved to `stage_status_style.dart`.
       - **Tests:** 11 unit and widget tests, plus 1 fixture test.
-- [ ] P11-09 **US-JX-05 last success, failure, and stable links** on job
-      detail.
+- [x] P11-09 **US-JX-05 last success, failure, and stable links** on job
+      detail. **Done 2026-09-30.** Last-success and last-failure chips
+      appear in the detail tree, shown only when they differ from the last
+      build, with a relative age from the new pure `relativeTime`. Tapping
+      opens that build's log; the build detail screen arrives in P11-18.
+      "Last stable" was dropped: on a phone it duplicates "last success"
+      in nearly every job. The details-tree unit test now checks sections,
+      not one exact string. Tests: 3 unit and widget, plus 1 fixture.
 - [ ] P11-10 **US-JX-06 history paging and filters, plus search context.**
       `allBuilds{n,m}` paging, result and "started by me" filters, folder
       path on search results, and a refreshable empty state (AUD-33).

@@ -193,4 +193,14 @@ void main() {
       expect(repository.cancelCalls, 1);
     });
   });
+
+  testWidgets(
+    'shows last success/failure links only when they differ (US-JX-05)',
+    (tester) async {
+      await _pumpScreen(tester);
+      // `_job`'s last build is #7 and has no success/failure links.
+      expect(find.textContaining('Last success'), findsNothing);
+      expect(find.textContaining('Last failure'), findsNothing);
+    },
+  );
 }

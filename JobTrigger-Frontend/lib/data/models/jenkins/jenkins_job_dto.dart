@@ -31,6 +31,9 @@ abstract class JenkinsJobDto with _$JenkinsJobDto {
     String? color,
     List<JenkinsJobDto>? jobs, // nested folders — see the null-vs-[] note above
     JenkinsBuildDto? lastBuild,
+    // US-JX-05; only requested by the job detail query.
+    JenkinsBuildDto? lastSuccessfulBuild,
+    JenkinsBuildDto? lastFailedBuild,
     @Default([]) List<HealthReportDto>? healthReport,
     @Default([]) List<JobPropertyDto>? property, // holds parameterDefinitions
     @Default([]) List<JenkinsBuildDto>? builds,
@@ -65,6 +68,8 @@ extension JenkinsJobDtoX on JenkinsJobDto {
     color: color,
     jobs: jobs?.map((dto) => dto.toDomain()).toList(),
     lastBuild: lastBuild?.toDomain(),
+    lastSuccessfulBuild: lastSuccessfulBuild?.toDomain(),
+    lastFailedBuild: lastFailedBuild?.toDomain(),
     healthReport: (healthReport ?? const [])
         .map((dto) => dto.toDomain())
         .toList(),

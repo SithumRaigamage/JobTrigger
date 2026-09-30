@@ -50,4 +50,19 @@ void main() {
     expect(result, isA<Err<String?, AppFailure>>());
     expect((result as Err).error, isA<PermissionFailure>());
   });
+
+  test('job detail carries last success/failure links (US-JX-05)', () async {
+    final repository = jenkins.adminRepository();
+    final failing = expectOk(
+      await repository.fetchJobDetail(jenkins.jobUrl('pipeline-stages')),
+    );
+    expect(failing.lastSuccessfulBuild, isNull);
+    expect(failing.lastFailedBuild, isNotNull);
+    expect(failing.lastFailedBuild!.url, startsWith(jenkins.url));
+
+    final passing = expectOk(
+      await repository.fetchJobDetail(jenkins.jobUrl('freestyle-simple')),
+    );
+    expect(passing.lastSuccessfulBuild?.result, 'SUCCESS');
+  });
 }

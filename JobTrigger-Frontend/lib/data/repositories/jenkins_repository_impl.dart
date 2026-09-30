@@ -63,7 +63,10 @@ const _detailsTree =
     'artifacts[fileName,relativePath]],'
     'healthReport[description,iconClassName,score],'
     'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices,projectName]],'
-    'downstreamProjects[name,url]';
+    'downstreamProjects[name,url],'
+    // US-JX-05: quick links to the last good and last broken build.
+    'lastSuccessfulBuild[number,url,result,timestamp],'
+    'lastFailedBuild[number,url,result,timestamp]';
 
 /// US-PIPE-06 — counts plus enough of each case to identify a failing one.
 const _testReportTree =

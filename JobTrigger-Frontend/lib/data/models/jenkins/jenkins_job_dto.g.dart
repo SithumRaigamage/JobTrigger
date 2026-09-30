@@ -21,6 +21,16 @@ _JenkinsJobDto _$JenkinsJobDtoFromJson(Map<String, dynamic> json) =>
       lastBuild: json['lastBuild'] == null
           ? null
           : JenkinsBuildDto.fromJson(json['lastBuild'] as Map<String, dynamic>),
+      lastSuccessfulBuild: json['lastSuccessfulBuild'] == null
+          ? null
+          : JenkinsBuildDto.fromJson(
+              json['lastSuccessfulBuild'] as Map<String, dynamic>,
+            ),
+      lastFailedBuild: json['lastFailedBuild'] == null
+          ? null
+          : JenkinsBuildDto.fromJson(
+              json['lastFailedBuild'] as Map<String, dynamic>,
+            ),
       healthReport:
           (json['healthReport'] as List<dynamic>?)
               ?.map((e) => HealthReportDto.fromJson(e as Map<String, dynamic>))
@@ -56,6 +66,8 @@ Map<String, dynamic> _$JenkinsJobDtoToJson(_JenkinsJobDto instance) =>
       'color': instance.color,
       'jobs': instance.jobs,
       'lastBuild': instance.lastBuild,
+      'lastSuccessfulBuild': instance.lastSuccessfulBuild,
+      'lastFailedBuild': instance.lastFailedBuild,
       'healthReport': instance.healthReport,
       'property': instance.property,
       'builds': instance.builds,
