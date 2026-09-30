@@ -39,7 +39,7 @@ are cross-referenced instead of being fixed twice.
 |---|---|---|---|---|
 | AUD-01 | Critical | Security | Login password persisted in plaintext `shared_preferences` | fixed (P12-01) |
 | AUD-02 | Critical | Release | Release Android build has no `INTERNET` permission | fixed (P12-02) |
-| AUD-03 | Critical | Security (backend) | Jenkins passwords and tokens, GitHub PATs, SonarQube tokens stored unencrypted in MongoDB | open |
+| AUD-03 | Critical | Security (backend) | Jenkins passwords and tokens, GitHub PATs, SonarQube tokens stored unencrypted in MongoDB | fixed (P12-26) |
 | AUD-04 | High | Security (backend) | NoSQL operator injection in `/api/auth/login` and `/signup` | fixed (P12-22) |
 | AUD-05 | High | Security (backend) | No rate limiting or lockout on login | fixed (P12-24) |
 | AUD-06 | High | Security (backend) | 500 responses leak internal `err.message` | fixed (P12-23) |
@@ -129,6 +129,18 @@ are cross-referenced instead of being fixed twice.
   the key in `docs/deployment.md`. Longer term, move to a KMS.
 
 ## High
+
+- **Fixed (P12-26, 2026-09-30):** `security/secretCipher.js` (AES-256-GCM,
+  a random 96-bit IV, the field name as associated data, and
+  `enc:v1:<keyId>:…` for rotation), applied through a mongoose plugin to
+  Jenkins `password` and `paramToken` and to the GitHub and SonarQube
+  `token`. The API still returns plaintext, and all existing tests pass
+  unchanged. Legacy plaintext rows stay readable until
+  `scripts/encrypt-credentials.js` (idempotent, `--dry-run`, and also
+  rotates) encrypts them. The server won't start without a valid
+  `CREDENTIALS_ENCRYPTION_KEY`. 8 tests cover the cipher, at-rest storage,
+  and the backfill. Setup and rotation are in `deployment.md` and
+  `database-migrations.md`.
 
 ### AUD-04 — NoSQL operator injection in auth (backend track)
 

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const encryptedFields = require('./plugins/encryptedFields');
 
 const githubCredentialSchema = new mongoose.Schema({
   userId: {
@@ -27,5 +28,7 @@ const githubCredentialSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// AUD-03: secrets are encrypted at rest.
+githubCredentialSchema.plugin(encryptedFields, { fields: ['token'] });
 
 module.exports = mongoose.model('GitHubCredential', githubCredentialSchema);

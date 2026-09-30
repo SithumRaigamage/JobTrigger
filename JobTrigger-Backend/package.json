@@ -7,7 +7,8 @@
     "dev": "node --watch server.js",
     "migrate": "node scripts/migrate.js",
     "test": "mocha --file test/setup.js --recursive --exit --timeout 20000",
-    "test:coverage": "c8 --reporter=lcov --reporter=text npm test"
+    "test:coverage": "c8 --reporter=lcov --reporter=text npm test",
+    "encrypt-credentials": "node scripts/encrypt-credentials.js"
   },
   "keywords": [],
   "author": "",

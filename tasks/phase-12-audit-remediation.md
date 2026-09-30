@@ -119,11 +119,15 @@ file lists them.
       *Done 2026-09-30:* all existing tests pass unchanged except the
       nine ownership assertions, which moved from 401 to 404 as AUD-24
       requires. 15 new tests (5 behaviours × 3 routes); 92 passing.
-- [ ] P12-26 **AUD-03 (Critical).** AES-256-GCM field encryption for tool
+- [x] P12-26 **AUD-03 (Critical).** AES-256-GCM field encryption for tool
       secrets (key from `CREDENTIALS_ENCRYPTION_KEY`, with a key-id prefix
       for rotation), a migration script for existing rows, and docs in
       `deployment.md` and `database-migrations.md`. The API contract to the
       client is unchanged.
+      *Done 2026-09-30 (approved that day):* details in the audit entry.
+      100 mocha tests pass. **Deploy note:** every environment, including
+      local `.env` files, needs `CREDENTIALS_ENCRYPTION_KEY` before the
+      server will start, then one `npm run encrypt-credentials` run.
 - [ ] P12-27 **AUD-26 session hardening.** `tokenVersion` on `User`
       (logout-all and password-change revocation), and a shorter access
       token with a refresh endpoint. **Contract change:** needs a matching

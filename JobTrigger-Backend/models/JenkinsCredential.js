@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const encryptedFields = require('./plugins/encryptedFields');
 
 const jenkinsCredentialSchema = new mongoose.Schema({
   userId: {
@@ -35,5 +36,7 @@ const jenkinsCredentialSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// AUD-03: secrets are encrypted at rest.
+jenkinsCredentialSchema.plugin(encryptedFields, { fields: ['password', 'paramToken'] });
 
 module.exports = mongoose.model('JenkinsCredential', jenkinsCredentialSchema);

@@ -4,7 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 require('dotenv').config();
 
-const { corsOrigins, missingConfig } = require('./config/env');
+const { corsOrigins, invalidConfig, missingConfig } = require('./config/env');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 // AUD-04: defence in depth. Query filters built from request data treat
@@ -58,6 +58,11 @@ async function startServer() {
   const missing = missingConfig();
   if (missing.length > 0) {
     console.error(`Missing required configuration: ${missing.join(', ')}`);
+    process.exit(1);
+  }
+  const invalid = invalidConfig();
+  if (invalid) {
+    console.error(`Invalid configuration: ${invalid}`);
     process.exit(1);
   }
   try {

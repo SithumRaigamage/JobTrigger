@@ -2,7 +2,9 @@
  * AUD-25: configuration read once at startup.
  */
 
-const REQUIRED = ['JWT_SECRET', 'MONGODB_URI'];
+const { loadKeys } = require('../security/secretCipher');
+
+const REQUIRED = ['JWT_SECRET', 'MONGODB_URI', 'CREDENTIALS_ENCRYPTION_KEY'];
 
 /** Names of required variables that are missing or blank in [env]. */
 function missingConfig(env = process.env) {
@@ -21,4 +23,18 @@ function corsOrigins(env = process.env) {
     .filter(Boolean);
 }
 
-module.exports = { missingConfig, corsOrigins };
+/**
+ * A problem with configuration that is present but unusable (AUD-03: the
+ * encryption keys), or null.
+ */
+function invalidConfig(env = process.env) {
+  if (!env.CREDENTIALS_ENCRYPTION_KEY) return null; // Reported as missing.
+  try {
+    loadKeys(env);
+    return null;
+  } catch (err) {
+    return err.message;
+  }
+}
+
+module.exports = { missingConfig, invalidConfig, corsOrigins };

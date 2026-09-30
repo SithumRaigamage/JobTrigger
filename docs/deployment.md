@@ -104,6 +104,28 @@ for distribution, and a lost upload key can be reset through Play Console.
 For CI, write `key.properties` and the keystore from GitHub secrets in the
 job, never in the repo (recommendation #2 below).
 
+## Backend secrets at rest (P12-26, AUD-03)
+
+Tool credentials are stored AES-256-GCM encrypted. Each environment needs:
+
+- `CREDENTIALS_ENCRYPTION_KEY`: base64 of 32 random bytes, in the secret
+  manager next to `JWT_SECRET`. The server refuses to start without a
+  valid one.
+- `CREDENTIALS_ENCRYPTION_KEY_ID` (optional, default `k1`): stored with
+  every value, which is what makes rotation possible.
+
+**First deploy:** set the key, deploy, then run
+`npm run encrypt-credentials` (see `database-migrations.md`). Rows stay
+readable during the gap.
+
+**Rotation:** generate a new key and give it a new id, e.g. `k2`. Move the
+old pair into `CREDENTIALS_ENCRYPTION_PREVIOUS_KEYS=k1:<old base64>`,
+deploy, run `npm run encrypt-credentials` to re-encrypt, and drop the old
+key once the run reports 0.
+
+Losing the key makes every stored credential unreadable (users would
+re-enter them), so back it up like the database.
+
 ## Recommendation
 
 Don't build the full auto-deploy pipeline yet — the project is pre-artwork

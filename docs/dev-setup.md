@@ -122,6 +122,12 @@ PORT=5001
 # JWT secret for auth tokens
 JWT_SECRET=supersecretjwtkey_123456
 
+# Required (AUD-03): encrypts stored Jenkins/GitHub/SonarQube secrets.
+# Base64 of 32 random bytes; generate with:
+#   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+# Keep it stable: rows encrypted with it can't be read without it.
+CREDENTIALS_ENCRYPTION_KEY=<generated value>
+
 # Optional: browser origins allowed by CORS, comma-separated. Leave unset
 # for the mobile app, which sends no Origin and needs no CORS.
 # CORS_ORIGINS=https://admin.example.com
@@ -135,7 +141,8 @@ JWT_SECRET=supersecretjwtkey_123456
 # TRUST_PROXY=1
 ```
 
-`JWT_SECRET` and `MONGODB_URI` are required: without either, the server
+`JWT_SECRET`, `MONGODB_URI`, and `CREDENTIALS_ENCRYPTION_KEY` are
+required: without any of them, the server
 prints `Missing required configuration: …` and exits instead of starting
 (AUD-25).
 

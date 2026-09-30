@@ -76,10 +76,13 @@ describe('Headers, CORS, and config (AUD-25)', function() {
   });
 
   it('names missing or blank required config', function() {
-    expect(missingConfig({ JWT_SECRET: 's', MONGODB_URI: 'm' })).to.deep.equal([]);
+    expect(
+      missingConfig({ JWT_SECRET: 's', MONGODB_URI: 'm', CREDENTIALS_ENCRYPTION_KEY: 'k' }),
+    ).to.deep.equal([]);
     expect(missingConfig({ JWT_SECRET: '  ' })).to.deep.equal([
       'JWT_SECRET',
       'MONGODB_URI',
+      'CREDENTIALS_ENCRYPTION_KEY',
     ]);
   });
 });

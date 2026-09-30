@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const encryptedFields = require('./plugins/encryptedFields');
 
 const sonarQubeCredentialSchema = new mongoose.Schema({
   userId: {
@@ -32,5 +33,7 @@ const sonarQubeCredentialSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// AUD-03: secrets are encrypted at rest.
+sonarQubeCredentialSchema.plugin(encryptedFields, { fields: ['token'] });
 
 module.exports = mongoose.model('SonarQubeCredential', sonarQubeCredentialSchema);
