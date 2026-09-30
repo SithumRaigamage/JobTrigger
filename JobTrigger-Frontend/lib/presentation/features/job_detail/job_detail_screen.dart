@@ -28,6 +28,7 @@ import 'build_status_polling_notifier.dart';
 import 'cancel_build_notifier.dart';
 import 'input_submit_notifier.dart';
 import 'job_detail_notifier.dart';
+import 'job_enabled_notifier.dart';
 import 'parameter_edits_notifier.dart';
 import 'parameter_files_notifier.dart';
 import 'parameter_form.dart';
@@ -96,6 +97,21 @@ class JobDetailScreen extends ConsumerWidget {
             tooltip: 'History',
             onPressed: () => context.push(AppRoutes.jobHistory, extra: job),
           ),
+          if (loadedJob != null && loadedJob.buildable != null)
+            PopupMenuButton<bool>(
+              tooltip: 'Job options',
+              onSelected: (enable) =>
+                  _confirmAndSetEnabled(context, ref, loadedJob, enable),
+              itemBuilder: (context) => [
+                // US-JX-13.
+                PopupMenuItem(
+                  value: !loadedJob.buildable!,
+                  child: Text(
+                    loadedJob.buildable! ? 'Disable job' : 'Enable job',
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
       // Trigger/Cancel are pinned outside the scrollable body (not the
@@ -178,6 +194,29 @@ class JobDetailScreen extends ConsumerWidget {
     await ref
         .read(triggerBuildNotifierProvider(job.url).notifier)
         .trigger(job: job, parameters: values, files: files);
+  }
+
+  /// US-JX-13: a state-changing admin action, so it asks first.
+  Future<void> _confirmAndSetEnabled(
+    BuildContext context,
+    WidgetRef ref,
+    JenkinsJob job,
+    bool enable,
+  ) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: enable ? 'Enable ${job.label}?' : 'Disable ${job.label}?',
+      message: enable
+          ? 'It can be built and triggered again.'
+          : 'No new builds will start — manual, scheduled, or triggered — '
+                "until it's enabled again. Running builds carry on.",
+      confirmLabel: enable ? 'Enable' : 'Disable',
+      destructive: !enable,
+    );
+    if (!confirmed) return;
+    await ref
+        .read(jobEnabledNotifierProvider(job.url).notifier)
+        .setEnabled(enabled: enable, label: job.label);
   }
 
   /// AUD-08 / US-JOB-05.
@@ -279,9 +318,17 @@ class _ActionBar extends StatelessWidget {
               ],
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: isTriggering ? null : onTrigger,
+                  onPressed: isTriggering || job.buildable == false
+                      ? null
+                      : onTrigger,
                   icon: const Icon(Icons.play_arrow),
-                  label: Text(isTriggering ? 'Triggering…' : 'Trigger Build'),
+                  label: Text(
+                    job.buildable == false
+                        ? 'Disabled'
+                        : isTriggering
+                        ? 'Triggering…'
+                        : 'Trigger Build',
+                  ),
                 ),
               ),
             ],
@@ -341,6 +388,10 @@ class _JobDetailBody extends ConsumerWidget {
             buildUrl: job.lastBuild!.url,
             input: pendingInput,
           ),
+          const SizedBox(height: 16),
+        ],
+        if (job.buildable == false) ...[
+          const _DisabledBanner(),
           const SizedBox(height: 16),
         ],
         if (job.description != null && job.description!.isNotEmpty) ...[
@@ -1088,6 +1139,34 @@ class _ChangesListState extends State<_ChangesList> {
             child: Text(_expanded ? 'Show less' : 'Show $overflow more'),
           ),
       ],
+    );
+  }
+}
+
+/// US-JX-13: why Trigger is off.
+class _DisabledBanner extends StatelessWidget {
+  const _DisabledBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.block, semanticLabel: 'Disabled'),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'This job is disabled. Enable it from the menu to build it.',
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

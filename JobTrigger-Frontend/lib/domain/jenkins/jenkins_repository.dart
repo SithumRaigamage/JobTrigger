@@ -115,6 +115,14 @@ abstract class JenkinsRepository {
     String? paramToken,
   });
 
+  /// US-JX-13: `POST {jobUrl}enable` or `disable` (302 = done, verified).
+  /// Jenkins refuses a multibranch branch job with 403 even for an admin,
+  /// because its branch source manages it.
+  Future<Result<void, AppFailure>> setJobEnabled(
+    String jobUrl, {
+    required bool enabled,
+  });
+
   /// POSTs `{buildNumber}/stop` — [buildUrl] is the build's absolute URL
   /// (e.g. `.../job/x/20/`).
   Future<Result<void, AppFailure>> cancelBuild(String buildUrl);

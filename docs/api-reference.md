@@ -87,7 +87,7 @@ against the fixture Jenkins (P11-02, `NFR-TEST-02`).
 | `{baseURL}/queue/cancelItem?id={id}` | POST | US-JX-09. **204** means cancelled; **422** means no permission (not 403); **404** means an unknown id; **500** "not cancellable" means the item already left the queue (maybe started). The app re-reads the queue instead of claiming success | **implemented** (P11-13) |
 | `{baseURL}/computer/api/json?tree=computer[…]` | GET | US-JX-12 nodes and executors | planned |
 | `{baseURL}/computer/{name}/toggleOffline?offlineMessage=…` | POST | US-JX-12 (`(built-in)` for the controller) | planned |
-| `{jobURL}enable` · `{jobURL}disable` | POST | US-JX-13 | planned |
+| `{jobURL}enable` · `{jobURL}disable` | POST | US-JX-13. Returns **302** when done. A multibranch branch job returns **403 even for an admin**. Triggering a disabled job returns **409**, mapped to `JobDisabledFailure` | **implemented** (P11-17) |
 | `{buildURL}toggleLogKeep` | POST | US-JX-14 keep forever | planned |
 | `{buildURL}submitDescription` (form `description`) | POST | US-JX-14 | planned |
 | `{buildURL}replay/run` (form `mainScript` + Stapler `json`) | POST | US-JX-16, verification-gated | planned |

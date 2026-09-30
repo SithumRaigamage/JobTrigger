@@ -366,8 +366,18 @@ their approvals don't block the rest.
         and timed out on a loaded machine; now they take about 4 s.
       - **Tests:** 2 unit tests, plus 1 fixture test that toggles
         quiet-down for real.
-- [ ] P11-17 **US-JX-13 enable or disable a job:** `buildable` badge,
+- [x] P11-17 **US-JX-13 enable or disable a job:** `buildable` badge,
       trigger disabled with a reason, and confirmation.
+      **Done 2026-09-30.**
+      - **Data:** `setJobEnabled` (302 means done), plus a new
+        `JobDisabledFailure` for a trigger's 409.
+      - **Job detail:** a "Job options" menu with a confirmed
+        Disable/Enable, a disabled banner, and Trigger showing "Disabled".
+      - **Home:** a "Disabled" badge with icon plus text.
+      - **Real-server finding:** a multibranch branch job returns 403 even
+        for admin, and the copy says so. My probe also briefly disabled the
+        `nested` fixture folder; it was re-enabled straight away.
+      - **Tests:** 4 unit and widget tests, plus 2 fixture tests.
 - [ ] P11-18 **US-JX-14 build detail screen:** keep-forever toggle and
       plain-text description editing.
 - [ ] P11-19 **US-JX-15 build trends:** a pure stats function and a

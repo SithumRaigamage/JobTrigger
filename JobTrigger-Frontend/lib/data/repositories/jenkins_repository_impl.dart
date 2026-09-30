@@ -340,7 +340,27 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
     );
     final location = response.headers.value('location');
     return location == null ? null : rewriteUrl(location, _baseUrl);
-  });
+  }, recover: _disabledJob);
+
+  /// A trigger of a disabled job is a 409 (verified), not a server error.
+  static Result<String?, AppFailure>? _disabledJob(DioException exception) =>
+      exception.response?.statusCode == 409
+      ? const Err(JobDisabledFailure())
+      : null;
+
+  @override
+  Future<Result<void, AppFailure>> setJobEnabled(
+    String jobUrl, {
+    required bool enabled,
+  }) => guardRequest(
+    () => _dio.post<void>(
+      '${_withSlash(jobUrl)}${enabled ? 'enable' : 'disable'}',
+      options: Options(
+        followRedirects: false,
+        validateStatus: _acceptRedirects,
+      ),
+    ),
+  );
 
   @override
   Future<Result<void, AppFailure>> cancelBuild(String buildUrl) => guardRequest(

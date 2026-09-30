@@ -61,6 +61,8 @@ sealed class AppFailure {
       'Your credentials were rejected. Please check them and try again.',
     PermissionFailure() =>
       "You don't have permission to do this on this server.",
+    JobDisabledFailure() =>
+      "This job is disabled, so it can't be built. Enable it first.",
     NotFoundFailure() => "That couldn't be found — it may have been removed.",
     ServerFailure(:final statusCode) =>
       'Something went wrong on the server (HTTP $statusCode).',
@@ -88,6 +90,12 @@ final class AuthFailure extends AppFailure {
 /// 400 "You need to have … permission" page for input steps).
 final class PermissionFailure extends AppFailure {
   const PermissionFailure();
+}
+
+/// Jenkins refused to build a disabled job (HTTP 409 on trigger, verified).
+/// The job may have been disabled since the screen loaded (US-JX-13).
+final class JobDisabledFailure extends AppFailure {
+  const JobDisabledFailure();
 }
 
 final class NotFoundFailure extends AppFailure {

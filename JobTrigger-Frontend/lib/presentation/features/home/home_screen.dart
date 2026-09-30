@@ -523,6 +523,14 @@ class _JobTile extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
+                    if (job.buildable == false) ...[
+                      // US-JX-13: icon + text, never color alone.
+                      const Icon(Icons.block, size: 12),
+                      Text(
+                        ' Disabled ',
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ],
                     if (job.lastBuild != null)
                       Container(
                         padding: const EdgeInsets.symmetric(
