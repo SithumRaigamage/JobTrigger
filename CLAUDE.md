@@ -49,6 +49,8 @@ creating) its task entry first, and update the task's status when done.
 | App version info | `package_info_plus` | Added in Phase 6 (P6-01) — the profile screen's app version footer needs the real installed version/build number, not a hardcoded string. |
 | File picking | `file_picker` | Added in Phase 11 (P11-06, approved 2026-09-29) — Jenkins file parameters (US-JX-02) need the user to choose a local file for a multipart trigger. Paths only; the app keeps no copy. |
 | Temp files | `path_provider` | Added in Phase 11 (P11-11, approved 2026-09-29) — "Save full log" streams `consoleText` to a temp file to share, then deletes it; also backs artifact streaming (P12-08) and the offline tree cache (P11-23). |
+| Local notifications | `flutter_local_notifications` | Added in Phase 11 (P11-24, approved 2026-09-29) — "notify me when this build finishes" (US-JX-10). Local only; no push server or FCM/APNs account involved. |
+| Background work | `workmanager` | Added in Phase 11 (P11-24, approved 2026-09-29) — a best-effort periodic check of watched builds while the app is closed (US-JX-10). Registered only while at least one watch exists. |
 | External links | `url_launcher` | Added in Phase 6 (P6-02) — the app info screen opens privacy policy/terms/licenses URLs and a `mailto:` support link, matching `AppInfoView.swift`'s `openURL` usage exactly. |
 
 Do not introduce a second state-management library, a second HTTP client, or

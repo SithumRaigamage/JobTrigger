@@ -3,6 +3,10 @@
          template declares INTERNET only for debug/profile (tooling), so a
          release build without this line can't open any socket (AUD-02). -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- US-JX-10: build-finished notifications (Android 13+ runtime
+         permission) and re-scheduling the periodic watch check after reboot. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <application
         android:label="JobTrigger"
         android:name="${applicationName}"

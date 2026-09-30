@@ -139,6 +139,23 @@ their screen under `presentation/features/<feature>/`.
   network calls beyond what auth already fetched.
 - `AppInfoNotifier` (`AsyncNotifier<AppInfo>`) — GET `/api/appinfo`, cached.
 
+## Feature: notifications — build watches (P11-24)
+
+- `BuildWatchNotifier` (`Notifier<List<BuildWatch>>`, keepAlive, US-JX-10)
+  holds the builds and jobs the user asked to be notified about, persisted
+  by `BuildWatchStore` (`shared_preferences`: job URLs, labels, numbers,
+  nothing secret). `watchBuild`/`watchJob` ask `NotificationService` for
+  permission first and return a `WatchResult` the bell menu turns into
+  copy. While watches exist it checks every 30 s and keeps the background
+  task registered through `BackgroundWatchScheduler` (`workmanager`, every
+  15 min at the OS's discretion); with none, both stop.
+- `runWatchCheck` is the single pass shared by the in-app timer and the
+  background isolate: a server whose credentials are gone drops its
+  watches, an unreachable one keeps them, and `decideWatch` (pure domain
+  logic) says whether to notify and whether to keep each watch.
+- `notificationTapsProvider` (`Stream<String>`, keepAlive) emits tapped
+  notifications' job URLs; `main.dart` opens job detail for each.
+
 ## Rules of thumb
 
 - If two screens need the same server-derived state, don't duplicate the

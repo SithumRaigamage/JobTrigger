@@ -69,7 +69,7 @@ final class ActiveServerNotifierProvider
 }
 
 String _$activeServerNotifierHash() =>
-    r'98ec198176feb6e4e8cf2e458d17dc6cd4e3c991';
+    r'bddcb5766c94ce7ffc9c7a947b7d8320a033f8fc';
 
 /// Currently active Jenkins server. Ported from `ActiveServerManager.swift`,
 /// but persists an id (not just a URL string) per `docs/state-management.md`.

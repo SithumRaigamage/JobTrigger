@@ -97,7 +97,7 @@ final class FolderContentsNotifierProvider
 }
 
 String _$folderContentsNotifierHash() =>
-    r'de2eed4bc27934bf10161e209e61f2276ac07225';
+    r'd08e379aa71b9fb833e5cd33ba08fb9996be4f4e';
 
 /// One folder's direct children, fetched on demand (P11-05) — [folderUrl]
 /// is [rootFolderKey] for the server root. Home browses with this instead

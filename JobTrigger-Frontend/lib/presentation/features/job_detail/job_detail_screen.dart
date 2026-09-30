@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/jenkins/build_progress.dart';
+import '../../../domain/jenkins/build_watch.dart';
+import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/parameter_values.dart';
 import '../../../domain/jenkins/pending_input.dart';
@@ -18,6 +20,7 @@ import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../home/pinned_jobs_notifier.dart';
+import '../notifications/build_watch_notifier.dart';
 import 'build_status_polling_notifier.dart';
 import 'cancel_build_notifier.dart';
 import 'input_submit_notifier.dart';
@@ -70,6 +73,7 @@ class JobDetailScreen extends ConsumerWidget {
       appBar: GlassAppBar(
         title: Text(job.label),
         actions: [
+          if (loadedJob != null) _WatchMenu(job: loadedJob),
           // US-JX-11: pin to the top of Home.
           IconButton(
             icon: Icon(
@@ -789,5 +793,98 @@ class _DisabledBanner extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// US-JX-10: the bell. Notify when the running build finishes, or for every
+/// build of this job. The first watch explains what to expect before the
+/// OS permission prompt.
+class _WatchMenu extends ConsumerWidget {
+  const _WatchMenu({required this.job});
+
+  final JenkinsJob job;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final watches = ref.watch(buildWatchNotifierProvider);
+    final running = job.lastBuild?.building == true ? job.lastBuild : null;
+    BuildWatch? find(int? number) => watches
+        .where((w) => w.jobUrl == job.url && w.buildNumber == number)
+        .firstOrNull;
+    final jobWatch = find(null);
+    final buildWatch = running == null ? null : find(running.number);
+    final active = jobWatch != null || buildWatch != null;
+
+    return PopupMenuButton<VoidCallback>(
+      tooltip: 'Notifications',
+      icon: Icon(
+        active ? Icons.notifications_active : Icons.notifications_none,
+      ),
+      onSelected: (action) => action(),
+      itemBuilder: (context) => [
+        if (running != null)
+          PopupMenuItem(
+            value: buildWatch != null
+                ? () => _unwatch(ref, buildWatch)
+                : () => _watch(context, ref, build: running),
+            child: Text(
+              buildWatch != null
+                  ? 'Stop notifying for #${running.number}'
+                  : 'Notify when #${running.number} finishes',
+            ),
+          ),
+        PopupMenuItem(
+          value: jobWatch != null
+              ? () => _unwatch(ref, jobWatch)
+              : () => _watch(context, ref),
+          child: Text(
+            jobWatch != null
+                ? 'Stop notifying for this job'
+                : 'Notify for every build',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _unwatch(WidgetRef ref, BuildWatch watch) =>
+      ref.read(buildWatchNotifierProvider.notifier).unwatch(watch);
+
+  Future<void> _watch(
+    BuildContext context,
+    WidgetRef ref, {
+    JenkinsBuild? build,
+  }) async {
+    final notifier = ref.read(buildWatchNotifierProvider.notifier);
+    if (ref.read(buildWatchNotifierProvider).isEmpty) {
+      final proceed = await showConfirmationDialog(
+        context,
+        title: 'Build notifications',
+        message:
+            "You'll get a notification when the build finishes. While the "
+            'app is open that takes up to 30 seconds; while it is closed, '
+            'your phone decides when to check (often every 15 minutes or '
+            'more). Your phone will ask for permission next.',
+        confirmLabel: 'Continue',
+      );
+      if (!proceed) return;
+    }
+    final result = build == null
+        ? await notifier.watchJob(job)
+        : await notifier.watchBuild(job, build);
+    if (!context.mounted) return;
+    final message = switch (result) {
+      WatchResult.added =>
+        build == null
+            ? "You'll be notified when builds of ${job.label} finish."
+            : "You'll be notified when #${build.number} finishes.",
+      WatchResult.permissionDenied =>
+        'Notifications are off for JobTrigger. Turn them on in your '
+            "phone's settings.",
+      WatchResult.noServer => 'Choose a Jenkins server first.',
+    };
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

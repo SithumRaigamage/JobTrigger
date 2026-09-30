@@ -60,3 +60,29 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: JobTrigger-Frontend/coverage/lcov.info
           flags: frontend
+
+  # AUD-40: tests, analyze, and the macOS target never run Gradle, so an
+  # Android-only build break (plugin compileSdk, manifest merge, desugaring)
+  # went unnoticed. A debug build is enough to run those checks.
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: 'stable'
+
+      - name: Build debug APK
+        run: |
+          cd JobTrigger-Frontend
+          flutter pub get
+          flutter build apk --debug

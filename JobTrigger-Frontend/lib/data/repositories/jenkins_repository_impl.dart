@@ -8,6 +8,7 @@ import '../../core/error/app_failure.dart';
 import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../core/network/jenkins_client_factory.dart';
+import '../../domain/credential/jenkins_server.dart';
 import '../../domain/jenkins/branch_kind.dart';
 import '../../domain/jenkins/history_filter.dart';
 import '../../domain/jenkins/jenkins_build.dart';
@@ -724,6 +725,18 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
     return null;
   }
 }
+
+/// A repository bound to a specific saved [server] rather than the active
+/// one, for work that spans servers, like build watches (US-JX-10) that
+/// may point at any saved server, including from the background task.
+JenkinsRepository jenkinsRepositoryForServer(JenkinsServer server) =>
+    JenkinsRepositoryImpl(
+      buildJenkinsDio(
+        baseUrl: server.jenkinsURL,
+        username: server.username,
+        password: server.secret,
+      ),
+    );
 
 @riverpod
 JenkinsRepository jenkinsRepository(Ref ref) =>

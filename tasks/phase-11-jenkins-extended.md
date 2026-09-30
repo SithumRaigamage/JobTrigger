@@ -469,10 +469,30 @@ their approvals don't block the rest.
         can't load offline, so they're unreachable, and the banner says
         builds can't be started.
       - **Tests:** 7.
-- [ ] P11-24 **US-JX-10 build notifications:** a watch list, in-process
+- [x] P11-24 **US-JX-10 build notifications:** a watch list, in-process
       polling, and a best-effort periodic background check, with a
       permission rationale. Notifications open job detail. **New
       dependencies: `flutter_local_notifications`, `workmanager`.**
+      *Done 2026-09-30:* a bell menu on job detail ("Notify when #N
+      finishes" / "Notify for every build"), a rationale dialog before the
+      first OS prompt, and a Notifications list in Settings. The app checks
+      every 30 s while open; `workmanager` runs the same `runWatchCheck`
+      every 15 min (best effort) while closed, and only while a watch
+      exists. Watches for servers whose credentials are gone are dropped
+      silently. Native setup: Android `POST_NOTIFICATIONS` and
+      `RECEIVE_BOOT_COMPLETED` plus core library desugaring; iOS
+      notification-center delegate, the workmanager plugin registrant,
+      `BGTaskSchedulerPermittedIdentifiers` (`jobtrigger.buildWatch`), and
+      `UIBackgroundModes` fetch/processing. A stray CocoaPods integration
+      (left by a transient old non-SwiftPM plugin version, and pinning the
+      pods to iOS 13) was removed; every plugin is a Swift package. Tests:
+      domain decisions, the store, the runner (drop/keep/notify, one lookup
+      per server), the notifier, and the bell menu. Not yet verified on a
+      device: background delivery timing is up to the OS. Compile-checking
+      the native setup found the Android build already broken (AUD-40:
+      `flutter_secure_storage` 11 needs compileSdk 37); fixed, and CI now
+      builds a debug APK. Both `flutter build apk --debug` and
+      `flutter build ios --simulator --debug` pass.
 - [ ] P11-25 **US-JX-21 biometric app lock:** lock on cold start and after a
       resume timeout, a privacy overlay in the app switcher, and optional
       re-prompts for sensitive actions. **New dependency: `local_auth`.**

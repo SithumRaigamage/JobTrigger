@@ -75,9 +75,10 @@ are cross-referenced instead of being fixed twice.
 | AUD-37 | High | Bug | A duplicate parameterized trigger (Jenkins `303`, merged into the queued build) is reported as a failure | fixed (P11-04) |
 | AUD-38 | High | Bug | Triggering a job with a Run parameter from the untouched form fails (empty value → Jenkins `500`) | fixed (P11-06) |
 | AUD-39 | High | Bug | Cancelling a *pipeline* build reports failure (Jenkins answers the stop with a 302) | fixed (P11-13) |
+| AUD-40 | High | Release | Android build fails: `flutter_secure_storage` 11 needs compileSdk 37, the app compiled against 36 | fixed (P11-24) |
 | AUD-36 | Low | Hygiene | Untracked leftovers in the workspace (1.2 GB build output, coverage, stray tool dirs) | fixed (local cleanup 2026-09-29) |
 
-**Counts:** 3 Critical, 16 High, 11 Medium, 9 Low (39 total). AUD-37 and AUD-38 were found on 2026-09-29 during P11-04's real-server verification, and AUD-39 on 2026-09-30 during P11-13's.
+**Counts:** 3 Critical, 17 High, 11 Medium, 9 Low (40 total). AUD-37 and AUD-38 were found on 2026-09-29 during P11-04's real-server verification, AUD-39 on 2026-09-30 during P11-13's, and AUD-40 on 2026-09-30 while compile-checking P11-24's native setup.
 
 ---
 
@@ -424,6 +425,23 @@ are cross-referenced instead of being fixed twice.
 - **Fix (P11-13):** a shared `_acceptRedirects` status check for Jenkins
   POSTs (stop, trigger, scan), with a regression test.
 
+### AUD-40 — The Android build fails at the AAR metadata check
+
+- **Where:** `android/app/build.gradle.kts`
+- **What:** `flutter build apk` failed in `:app:checkDebugAarMetadata`:
+  `flutter_secure_storage` 11.0.0 declares `compileSdk = 37` and requires
+  apps that use it to compile against 37, but the app used
+  `flutter.compileSdkVersion` (36). Every Android build, debug or release,
+  was blocked. It went unnoticed because work since then was verified with
+  `flutter test`, the macOS target, and the fixture, none of which run
+  Gradle.
+- **Fix (P11-24):** `compileSdk = 37` explicitly (platform 37 is installed;
+  AGP 9.0.1 builds it cleanly). `targetSdk` is unchanged, so runtime
+  behaviour doesn't change. Revert to `flutter.compileSdkVersion` once
+  Flutter's default reaches 37. A `flutter build apk --debug` step in CI
+  would have caught this, so `flutter-ci.yml` now has a `build-android`
+  job.
+
 ## Low
 
 - **AUD-28 — Logout leaves per-user prefs:** `active_server_id`,
@@ -465,6 +483,13 @@ are cross-referenced instead of being fixed twice.
   `RunnerTests` stubs are referenced by the Xcode projects.
 
 ## Out of scope / verified OK
+
+- **Dependency hygiene — `workmanager` 0.10.10 writes a marker file.**
+  `Workmanager.executeTask` writes `wm_execute_task_marker` (the text
+  "executeTask called <timestamp>") to the system temp directory on every
+  background run, apparently debugging code left in the release. It holds no
+  app data and sits in the app's own sandbox, so it's not a leak. Re-check on
+  the next `workmanager` upgrade (found 2026-09-30, P11-24).
 
 - Jenkins CSRF crumb plus session cookie handling (`jenkins_client_factory.dart`)
   was reviewed and is correct, including the single-retry on 403.

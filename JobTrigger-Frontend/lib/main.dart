@@ -8,6 +8,10 @@ import 'presentation/common_widgets/toast_view.dart';
 import 'presentation/features/tool_selection/active_tool_notifier.dart';
 import 'presentation/features/tool_selection/ci_tool.dart';
 import 'presentation/navigation/app_router.dart';
+import 'presentation/navigation/app_routes.dart';
+import 'core/platform/notification_service.dart';
+import 'domain/jenkins/jenkins_job.dart';
+import 'presentation/features/notifications/build_watch_notifier.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -19,6 +23,20 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    // US-JX-10: resume watching at launch (and the in-app timer), and
+    // open the job when a build notification is tapped.
+    ref
+      ..watch(buildWatchNotifierProvider)
+      ..listen(notificationTapsProvider, (_, next) {
+        if (next case AsyncData(:final value)) {
+          final segments = Uri.tryParse(value)?.pathSegments ?? const [];
+          final name = segments.where((s) => s.isNotEmpty).lastOrNull ?? 'Job';
+          router.push(
+            AppRoutes.jobDetail,
+            extra: JenkinsJob(name: name, url: value),
+          );
+        }
+      });
     final themeMode = ref.watch(themeNotifierProvider);
     // primary/onPrimary re-tint from the active CI/CD tool's brand color
     // once one is selected; null (pre-selection — Login/Signup/

@@ -22,6 +22,7 @@ import '../../navigation/main_scaffold.dart';
 import '../tool_selection/active_tool_notifier.dart';
 import '../tool_selection/ci_tool.dart';
 import 'active_github_credential_notifier.dart';
+import '../notifications/build_watch_notifier.dart';
 import 'active_server_notifier.dart';
 import 'active_sonarqube_credential_notifier.dart';
 import 'credentials_notifier.dart';
@@ -173,6 +174,8 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
             ],
+            // US-JX-10.
+            const SliverToBoxAdapter(child: _WatchesSection()),
             SliverToBoxAdapter(
               child: SizedBox(height: glassNavBarClearance(context) + 12),
             ),
@@ -778,6 +781,57 @@ class _ActiveServerSubtitle extends ConsumerWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// US-JX-10: what the user will be notified about, with a way to stop.
+class _WatchesSection extends ConsumerWidget {
+  const _WatchesSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final watches = ref.watch(buildWatchNotifierProvider);
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('NOTIFICATIONS', style: textTheme.labelMedium),
+          const SizedBox(height: 4),
+          if (watches.isEmpty)
+            Text(
+              'Tap the bell on a job to be notified when builds finish.',
+              style: textTheme.bodySmall,
+            )
+          else
+            for (final watch in watches)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.notifications_active_outlined),
+                title: Text(watch.jobLabel),
+                subtitle: Text(
+                  watch.isJobWatch
+                      ? 'Every build'
+                      : 'Build #${watch.buildNumber}',
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: 'Stop notifying',
+                  onPressed: () => ref
+                      .read(buildWatchNotifierProvider.notifier)
+                      .unwatch(watch),
+                ),
+              ),
+          const SizedBox(height: 4),
+          Text(
+            'While the app is closed, checks run when your phone allows — '
+            'usually every 15 minutes or more.',
+            style: textTheme.labelSmall,
+          ),
+        ],
+      ),
     );
   }
 }

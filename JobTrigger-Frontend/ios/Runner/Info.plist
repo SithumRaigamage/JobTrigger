@@ -80,5 +80,16 @@
 			</array>
 		</dict>
 	</array>
+	<!-- US-JX-10: background build-watch check (workmanager). The id must
+	     match buildWatchTaskName in background_watch.dart. -->
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>jobtrigger.buildWatch</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
 </dict>
 </plist>

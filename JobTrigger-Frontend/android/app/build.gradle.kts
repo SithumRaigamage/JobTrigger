@@ -6,12 +6,16 @@ plugins {
 
 android {
     namespace = "com.sraig.jobtrigger"
-    compileSdk = flutter.compileSdkVersion
+    // Not flutter.compileSdkVersion (36): flutter_secure_storage 11 requires
+    // compiling against 37, or checkDebugAarMetadata fails (AUD-40).
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // flutter_local_notifications uses java.time APIs below API 26.
+        isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
@@ -43,4 +47,8 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
