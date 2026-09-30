@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -96,8 +99,18 @@ class HomeScreen extends ConsumerWidget {
             PopupMenuButton<String>(
               tooltip: 'Server',
               icon: const Icon(Icons.more_vert),
-              onSelected: (route) => context.push(route),
+              onSelected: (route) => route == _openLinkAction
+                  ? _promptForLink(context)
+                  : context.push(route),
               itemBuilder: (context) => const [
+                // US-JX-19: paste a Jenkins URL from chat or email.
+                PopupMenuItem(
+                  value: _openLinkAction,
+                  child: ListTile(
+                    leading: Icon(Icons.link),
+                    title: Text('Open Jenkins link…'),
+                  ),
+                ),
                 PopupMenuItem(
                   value: AppRoutes.queue,
                   child: ListTile(
@@ -783,5 +796,75 @@ class _ViewPickerTitle extends ConsumerWidget {
     if (chosen != null) {
       await ref.read(selectedViewNotifierProvider.notifier).select(chosen);
     }
+  }
+}
+
+const _openLinkAction = 'open-link';
+
+/// US-JX-19: asks for a Jenkins URL, offering the clipboard's when it
+/// holds one, then opens it through the same path as a deep link.
+Future<void> _promptForLink(BuildContext context) async {
+  final clipboard = (await Clipboard.getData(
+    Clipboard.kTextPlain,
+  ))?.text?.trim();
+  final suggestion =
+      clipboard != null && clipboard.startsWith(RegExp('https?://'))
+      ? clipboard
+      : '';
+  if (!context.mounted) return;
+  final link = await showDialog<String>(
+    context: context,
+    builder: (context) => _OpenLinkDialog(initial: suggestion),
+  );
+  if (link == null || link.isEmpty || !context.mounted) return;
+  unawaited(
+    context.push(
+      Uri(path: AppRoutes.openLink, queryParameters: {'url': link}).toString(),
+    ),
+  );
+}
+
+class _OpenLinkDialog extends StatefulWidget {
+  const _OpenLinkDialog({required this.initial});
+
+  final String initial;
+
+  @override
+  State<_OpenLinkDialog> createState() => _OpenLinkDialogState();
+}
+
+class _OpenLinkDialogState extends State<_OpenLinkDialog> {
+  late final _controller = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Open Jenkins link'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        keyboardType: TextInputType.url,
+        autocorrect: false,
+        decoration: const InputDecoration(
+          hintText: 'https://jenkins.example.com/job/…',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+          child: const Text('Open'),
+        ),
+      ],
+    );
   }
 }

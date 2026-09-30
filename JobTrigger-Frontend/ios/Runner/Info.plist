@@ -66,5 +66,19 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- US-JX-19: jobtrigger://app/open?url=<Jenkins URL> -->
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.sraig.jobtrigger</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>jobtrigger</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

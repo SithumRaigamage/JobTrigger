@@ -430,9 +430,27 @@ their approvals don't block the rest.
         the breadcrumb.
       - **Fixture:** now seeds a "Pipelines" list view.
       - **Tests:** 3 unit and widget tests, plus 1 fixture test.
-- [ ] P11-22 **US-JX-19 deep links:** the `jobtrigger://` scheme, an
+- [x] P11-22 **US-JX-19 deep links:** the `jobtrigger://` scheme, an
       Android share intent, iOS paste-to-open, a pure URL→route parser, and
       server matching with a confirmation to switch.
+      **Done 2026-09-30.**
+      - **Parser:** the pure `resolveJenkinsLink` matches host, port, and
+        context path (longest wins), rejects credentials in URLs, skips
+        `/view/…`, and resolves job, build, and console targets.
+        Multibranch names stay correctly double-encoded.
+      - **Entry points:** `jobtrigger://app/open?url=…` is registered on
+        Android (intent-filter plus `flutter_deeplinking_enabled`) and iOS
+        (`CFBundleURLTypes` plus `FlutterDeepLinkingEnabled`), and routes
+        to `OpenLinkScreen`. Home's Server menu has "Open Jenkins link…",
+        a paste dialog that suggests the clipboard when it holds a URL.
+      - **Server switch:** switching to a different saved server asks
+        first.
+      - **Deviations:**
+        - Android "share into app" needs a share-intent plugin outside the
+          approved stack, so it's in `backlog.md`; paste covers the same
+          need.
+        - A link opened while signed out lands on login and is dropped.
+      - **Tests:** 12.
 - [ ] P11-23 **US-JX-20 offline job tree:** a per-server cache in app
       documents (backup-excluded), an offline banner, POSTs disabled
       offline, and cleared on logout or server delete. **New dependency:

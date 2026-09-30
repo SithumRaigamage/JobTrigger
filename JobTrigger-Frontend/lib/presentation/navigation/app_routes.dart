@@ -15,6 +15,9 @@ abstract class AppRoutes {
   static const jobHistory = '/home/job/history';
   static const queue = '/home/queue';
   static const nodes = '/home/nodes';
+
+  /// US-JX-19: `jobtrigger://app/open?url=<Jenkins URL>` lands here.
+  static const openLink = '/open';
   static const globalHistory = '/history';
   static const githubWorkflows = '/github/repos/workflows';
   // Add/edit server is a modal bottom sheet (ServerEditBottomSheet), not a
