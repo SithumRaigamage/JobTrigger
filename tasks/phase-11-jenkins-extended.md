@@ -451,10 +451,24 @@ their approvals don't block the rest.
           need.
         - A link opened while signed out lands on login and is dropped.
       - **Tests:** 12.
-- [ ] P11-23 **US-JX-20 offline job tree:** a per-server cache in app
+- [x] P11-23 **US-JX-20 offline job tree:** a per-server cache in app
       documents (backup-excluded), an offline banner, POSTs disabled
       offline, and cleared on logout or server delete. **New dependency:
       `path_provider` (direct).**
+      **Done 2026-09-30.**
+      - **Store:** `JobTreeCache` keeps per-server, per-folder JSON (names,
+        URLs, colors, last-build numbers; no secrets) in the platform
+        *cache* directory, which is backup-excluded on iOS and Android by
+        design and purgeable.
+      - **Fallback:** `FolderContentsNotifier` saves on success (best
+        effort) and serves the snapshot on `NetworkFailure`.
+        `OfflineSnapshotNotifier` drives Home's "Offline — showing data
+        from HH:MM" banner. With no snapshot it's still an error.
+      - **Clearing:** on logout and on server delete.
+      - **Deviation:** POST actions aren't separately disabled. Job detail
+        can't load offline, so they're unreachable, and the banner says
+        builds can't be started.
+      - **Tests:** 7.
 - [ ] P11-24 **US-JX-10 build notifications:** a watch list, in-process
       polling, and a best-effort periodic background check, with a
       permission rationale. Notifications open job detail. **New

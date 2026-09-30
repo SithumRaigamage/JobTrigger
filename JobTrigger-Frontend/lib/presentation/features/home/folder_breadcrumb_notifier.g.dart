@@ -63,7 +63,7 @@ final class FolderBreadcrumbNotifierProvider
 }
 
 String _$folderBreadcrumbNotifierHash() =>
-    r'9cafbbb9e6f4df528e544e0605866bc754b6c93c';
+    r'71b42889e3213de5dc5c3d584366b48e56b97c1d';
 
 /// Navigation stack for folder drill-down — pure local UI state, no
 /// repository calls (`docs/state-management.md`). `navigateInto`/

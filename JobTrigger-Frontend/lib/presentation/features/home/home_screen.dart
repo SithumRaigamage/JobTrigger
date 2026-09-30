@@ -21,6 +21,7 @@ import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../settings/active_server_notifier.dart';
 import 'folder_breadcrumb_notifier.dart';
+import 'folder_contents_notifier.dart';
 import 'job_search_notifier.dart';
 import 'multibranch_notifiers.dart';
 import 'pinned_jobs_notifier.dart';
@@ -135,6 +136,7 @@ class HomeScreen extends ConsumerWidget {
               SizedBox(
                 height: MediaQuery.paddingOf(context).top + kToolbarHeight,
               ),
+              const _OfflineBanner(),
               const _QuietDownBanner(),
               const _SearchField(),
               const _BreadcrumbHeader(),
@@ -865,6 +867,45 @@ class _OpenLinkDialogState extends State<_OpenLinkDialog> {
           child: const Text('Open'),
         ),
       ],
+    );
+  }
+}
+
+/// US-JX-20: Home is showing the last saved listing because the server
+/// can't be reached. Anything that changes Jenkins needs the connection
+/// back; job detail says so itself when opened.
+class _OfflineBanner extends ConsumerWidget {
+  const _OfflineBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final savedAt = ref.watch(offlineSnapshotNotifierProvider);
+    if (savedAt == null) return const SizedBox.shrink();
+    final local = savedAt.toLocal();
+    String two(int value) => value.toString().padLeft(2, '0');
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.cloud_off, semanticLabel: 'Offline'),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Offline — showing data from ${two(local.hour)}:'
+                '${two(local.minute)}. Builds can\'t be started or changed '
+                'until you\'re back online.',
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

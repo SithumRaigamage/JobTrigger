@@ -79,6 +79,11 @@ their screen under `presentation/features/<feature>/`.
   folder URL, with `''` for the root; P11-05) fetches **one level** via
   `fetchFolder`. Home browses with this, so there's no depth limit and no
   whole-tree download on load (AUD-19/20).
+- **Offline (US-JX-20):** a successful `FolderContentsNotifier` listing
+  is saved to `JobTreeCache` (platform cache dir, per server and folder).
+  On `NetworkFailure` the saved listing is served, and
+  `OfflineSnapshotNotifier` (keepAlive, `DateTime?`) holds its save time
+  for Home's banner. The cache is cleared on logout and server delete.
 - `JobTreeNotifier` (`AsyncNotifier<List<JenkinsJob>>`) is the 6-level
   recursive crawl. It's used only for cross-folder search and the global
   history timeline, and is first fetched when one of those is opened.

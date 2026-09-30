@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/network/session_signal.dart';
 import '../../../core/storage/secure_storage_service.dart';
+import '../../../data/cache/job_tree_cache.dart';
 import '../../../data/models/auth/user_dto.dart';
 import '../../../domain/auth/auth_state.dart';
 import '../../../domain/auth/user.dart';
@@ -64,6 +65,13 @@ class AuthNotifier extends _$AuthNotifier {
     final secureStorage = ref.read(secureStorageProvider);
     await secureStorage.clear();
     await _clearCachedUser();
+    // US-JX-20: job names and URLs can be sensitive; don't leave them for
+    // the next person to sign in on this device.
+    try {
+      await ref.read(jobTreeCacheProvider).clearAll();
+    } on Object {
+      // Best effort: the OS may already have purged the cache directory.
+    }
     state = const AsyncData(Unauthenticated());
   }
 

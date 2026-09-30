@@ -19,6 +19,10 @@ part of 'folder_contents_notifier.dart';
 /// Pull-to-refresh calls [refresh] for an immediate re-fetch. Rebuilt
 /// automatically when the active server changes, via
 /// `jenkinsRepositoryProvider`.
+///
+/// US-JX-20: every successful listing is saved to [JobTreeCache]; on a
+/// `NetworkFailure` the last saved listing is served instead, and
+/// [OfflineSnapshotNotifier] records how old it is for Home's banner.
 
 @ProviderFor(FolderContentsNotifier)
 final folderContentsNotifierProvider = FolderContentsNotifierFamily._();
@@ -34,6 +38,10 @@ final folderContentsNotifierProvider = FolderContentsNotifierFamily._();
 /// Pull-to-refresh calls [refresh] for an immediate re-fetch. Rebuilt
 /// automatically when the active server changes, via
 /// `jenkinsRepositoryProvider`.
+///
+/// US-JX-20: every successful listing is saved to [JobTreeCache]; on a
+/// `NetworkFailure` the last saved listing is served instead, and
+/// [OfflineSnapshotNotifier] records how old it is for Home's banner.
 final class FolderContentsNotifierProvider
     extends $AsyncNotifierProvider<FolderContentsNotifier, List<JenkinsJob>> {
   /// One folder's direct children, fetched on demand (P11-05) — [folderUrl]
@@ -47,6 +55,10 @@ final class FolderContentsNotifierProvider
   /// Pull-to-refresh calls [refresh] for an immediate re-fetch. Rebuilt
   /// automatically when the active server changes, via
   /// `jenkinsRepositoryProvider`.
+  ///
+  /// US-JX-20: every successful listing is saved to [JobTreeCache]; on a
+  /// `NetworkFailure` the last saved listing is served instead, and
+  /// [OfflineSnapshotNotifier] records how old it is for Home's banner.
   FolderContentsNotifierProvider._({
     required FolderContentsNotifierFamily super.from,
     required String super.argument,
@@ -85,7 +97,7 @@ final class FolderContentsNotifierProvider
 }
 
 String _$folderContentsNotifierHash() =>
-    r'b47deb5006c9403a1dd08e47c5703d4a14bf9674';
+    r'de2eed4bc27934bf10161e209e61f2276ac07225';
 
 /// One folder's direct children, fetched on demand (P11-05) — [folderUrl]
 /// is [rootFolderKey] for the server root. Home browses with this instead
@@ -98,6 +110,10 @@ String _$folderContentsNotifierHash() =>
 /// Pull-to-refresh calls [refresh] for an immediate re-fetch. Rebuilt
 /// automatically when the active server changes, via
 /// `jenkinsRepositoryProvider`.
+///
+/// US-JX-20: every successful listing is saved to [JobTreeCache]; on a
+/// `NetworkFailure` the last saved listing is served instead, and
+/// [OfflineSnapshotNotifier] records how old it is for Home's banner.
 
 final class FolderContentsNotifierFamily extends $Family
     with
@@ -128,6 +144,10 @@ final class FolderContentsNotifierFamily extends $Family
   /// Pull-to-refresh calls [refresh] for an immediate re-fetch. Rebuilt
   /// automatically when the active server changes, via
   /// `jenkinsRepositoryProvider`.
+  ///
+  /// US-JX-20: every successful listing is saved to [JobTreeCache]; on a
+  /// `NetworkFailure` the last saved listing is served instead, and
+  /// [OfflineSnapshotNotifier] records how old it is for Home's banner.
 
   FolderContentsNotifierProvider call(String folderUrl) =>
       FolderContentsNotifierProvider._(argument: folderUrl, from: this);
@@ -147,6 +167,10 @@ final class FolderContentsNotifierFamily extends $Family
 /// Pull-to-refresh calls [refresh] for an immediate re-fetch. Rebuilt
 /// automatically when the active server changes, via
 /// `jenkinsRepositoryProvider`.
+///
+/// US-JX-20: every successful listing is saved to [JobTreeCache]; on a
+/// `NetworkFailure` the last saved listing is served instead, and
+/// [OfflineSnapshotNotifier] records how old it is for Home's banner.
 
 abstract class _$FolderContentsNotifier
     extends $AsyncNotifier<List<JenkinsJob>> {
@@ -168,5 +192,68 @@ abstract class _$FolderContentsNotifier
               Object?
             >;
     element.handleCreate(ref, () => build(_$args));
+  }
+}
+
+/// US-JX-20: when Home is showing cached data, the time it was saved;
+/// null when live.
+
+@ProviderFor(OfflineSnapshotNotifier)
+final offlineSnapshotNotifierProvider = OfflineSnapshotNotifierProvider._();
+
+/// US-JX-20: when Home is showing cached data, the time it was saved;
+/// null when live.
+final class OfflineSnapshotNotifierProvider
+    extends $NotifierProvider<OfflineSnapshotNotifier, DateTime?> {
+  /// US-JX-20: when Home is showing cached data, the time it was saved;
+  /// null when live.
+  OfflineSnapshotNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'offlineSnapshotNotifierProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$offlineSnapshotNotifierHash();
+
+  @$internal
+  @override
+  OfflineSnapshotNotifier create() => OfflineSnapshotNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DateTime? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DateTime?>(value),
+    );
+  }
+}
+
+String _$offlineSnapshotNotifierHash() =>
+    r'8b67b6a6f719cd9520497115d756679df2102edc';
+
+/// US-JX-20: when Home is showing cached data, the time it was saved;
+/// null when live.
+
+abstract class _$OfflineSnapshotNotifier extends $Notifier<DateTime?> {
+  DateTime? build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<DateTime?, DateTime?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<DateTime?, DateTime?>,
+              DateTime?,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
   }
 }

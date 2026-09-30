@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/error/app_failure.dart';
 import '../../../core/error/result.dart';
+import '../../../data/cache/job_tree_cache.dart';
 import '../../../data/repositories/credentials_repository_impl.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import 'credentials_notifier.dart';
@@ -81,6 +82,12 @@ class ActiveServerNotifier extends _$ActiveServerNotifier {
     if (result case Err()) return result;
 
     await ref.read(credentialsNotifierProvider.notifier).refresh();
+    // US-JX-20: drop that server's offline listings with it.
+    try {
+      await ref.read(jobTreeCacheProvider).clearServer(server.id);
+    } on Object {
+      // Best effort: the OS may already have purged the cache directory.
+    }
     if (!wasActive) return const Ok(null);
 
     final remaining = await ref.read(credentialsNotifierProvider.future);
