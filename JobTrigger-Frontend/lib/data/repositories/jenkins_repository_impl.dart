@@ -18,6 +18,7 @@ import '../../domain/jenkins/parameter_file.dart';
 import '../../domain/jenkins/pending_input.dart';
 import '../../domain/jenkins/pipeline_stage.dart';
 import '../../domain/jenkins/queue_entry.dart';
+import '../../domain/jenkins/server_status.dart';
 import '../../domain/jenkins/queue_item.dart';
 import '../../domain/jenkins/test_report.dart';
 import '../models/jenkins/jenkins_build_dto.dart';
@@ -121,6 +122,19 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
         final serverInfo = JenkinsServerInfoDto.fromJson(response.data!);
         final jobs = serverInfo.jobs.map((dto) => dto.toDomain()).toList();
         return rewriteJobTreeUrls(jobs, _baseUrl);
+      });
+
+  @override
+  Future<Result<ServerStatus, AppFailure>> fetchServerStatus() =>
+      guardRequest(() async {
+        final response = await _dio.get<Map<String, dynamic>>(
+          '/api/json',
+          queryParameters: {'tree': 'quietingDown'},
+        );
+        return ServerStatus(
+          version: response.headers.value('X-Jenkins'),
+          quietingDown: response.data?['quietingDown'] == true,
+        );
       });
 
   @override

@@ -9,6 +9,9 @@ import '../../../core/theme/theme_notifier.dart';
 import '../../../domain/credential/github_credential.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import '../../../domain/credential/token_hygiene.dart';
+import '../home/server_status_provider.dart';
+import '../../../domain/jenkins/server_status.dart';
+import '../../../core/config/app_config.dart';
 import '../../../domain/credential/sonarqube_credential.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
@@ -423,7 +426,9 @@ class _ServerTile extends ConsumerWidget {
                   : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             title: Text(server.serverName),
-            subtitle: looksLikeJenkinsApiToken(server.secret)
+            subtitle: isActive
+                ? _ActiveServerSubtitle(server: server)
+                : looksLikeJenkinsApiToken(server.secret)
                 ? Text(server.jenkinsURL)
                 : Text.rich(
                     TextSpan(
@@ -739,5 +744,40 @@ class _SonarQubeCredentialTile extends ConsumerWidget {
             message: describeError(error),
           );
     }
+  }
+}
+
+/// US-JX-18 + US-JX-22 for the active server: its URL, Jenkins version
+/// (with an upgrade hint when old), and the password advisory.
+class _ActiveServerSubtitle extends ConsumerWidget {
+  const _ActiveServerSubtitle({required this.server});
+
+  final JenkinsServer server;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final version = ref.watch(
+      serverStatusProvider.select((status) => status.value?.version),
+    );
+    final notes = [
+      if (version != null)
+        isOutdatedJenkins(version, AppConfig.recommendedJenkinsBaseline)
+            ? 'Jenkins $version · consider upgrading'
+            : 'Jenkins $version',
+      if (!looksLikeJenkinsApiToken(server.secret)) 'Uses a password',
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(server.jenkinsURL),
+        if (notes.isNotEmpty)
+          Text(
+            notes.join(' · '),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Theme.of(context).colorScheme.tertiary,
+            ),
+          ),
+      ],
+    );
   }
 }

@@ -20,6 +20,7 @@ import 'folder_breadcrumb_notifier.dart';
 import 'job_search_notifier.dart';
 import 'multibranch_notifiers.dart';
 import 'pinned_jobs_notifier.dart';
+import 'server_status_provider.dart';
 import 'visible_jobs_provider.dart';
 
 /// Ported from `HomeView.swift`. Doesn't port the swipe-to-trigger-build
@@ -100,6 +101,7 @@ class HomeScreen extends ConsumerWidget {
               SizedBox(
                 height: MediaQuery.paddingOf(context).top + kToolbarHeight,
               ),
+              const _QuietDownBanner(),
               const _SearchField(),
               const _BreadcrumbHeader(),
               Expanded(
@@ -649,6 +651,44 @@ class _PinnedTile extends ConsumerWidget {
                 ref.read(pinnedJobsNotifierProvider.notifier).unpin(pin.url),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// US-JX-18: Jenkins is preparing for shutdown. Triggers still succeed, but
+/// the builds just wait, so say so before someone wonders why.
+class _QuietDownBanner extends ConsumerWidget {
+  const _QuietDownBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final quieting = ref.watch(
+      serverStatusProvider.select((status) => status.value?.quietingDown),
+    );
+    if (quieting != true) return const SizedBox.shrink();
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colorScheme.errorContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.power_settings_new, color: colorScheme.onErrorContainer),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Jenkins is preparing for shutdown — new builds are queued '
+                "but won't start.",
+                style: TextStyle(color: colorScheme.onErrorContainer),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

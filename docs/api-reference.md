@@ -92,7 +92,7 @@ against the fixture Jenkins (P11-02, `NFR-TEST-02`).
 | `{buildURL}submitDescription` (form `description`) | POST | US-JX-14 | planned |
 | `{buildURL}replay/run` (form `mainScript` + Stapler `json`) | POST | US-JX-16, verification-gated | planned |
 | `{baseURL}/api/json?tree=views[name,url],primaryView[name]` · `{viewURL}api/json` | GET | US-JX-17 views | planned |
-| `{baseURL}/api/json?tree=quietingDown,mode` + `X-Jenkins` header | GET | US-JX-18 server status | planned |
+| `{baseURL}/api/json?tree=quietingDown` + the `X-Jenkins` response header | GET | US-JX-18 server status. During quiet-down a trigger still returns **201** (queued, won't start) | **implemented** (P11-16) |
 | `{jobURL}buildWithParameters` as `multipart/form-data` (file part named after the parameter, other parameters as text parts) | POST | US-JX-02 file parameters | **implemented** (P11-06) |
 
 Every POST above goes through the shared Jenkins client, so it gets the CSRF

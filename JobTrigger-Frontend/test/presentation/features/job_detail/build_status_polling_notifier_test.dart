@@ -60,38 +60,38 @@ class _CountingRepository extends FakeJenkinsRepository {
 }
 
 void main() {
-  // Real timers, not fake_async — keeps the test dependency-free at the
-  // cost of a few real seconds of wall-clock time.
+  // The widget tester's fake clock: `tester.pump(6s)` advances time
+  // instantly and deterministically. These used real timers before, which
+  // took 30s and timed out on a loaded machine. Each test disposes its
+  // container in the body, cancelling the re-armed poll timer before the
+  // pending-timer check.
 
-  test(
-    'polls again after ~5s while the build is still building',
-    () async {
-      final repo = _CountingRepository()..building = true;
-      final container = ProviderContainer(
-        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
-      );
-      addTearDown(container.dispose);
+  testWidgets('polls again after ~5s while the build is still building', (
+    tester,
+  ) async {
+    final repo = _CountingRepository()..building = true;
+    final container = ProviderContainer(
+      overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+    );
 
-      await container.read(jobDetailNotifierProvider(_jobUrl).future);
-      expect(repo.fetchJobDetailCallCount, 1);
+    await container.read(jobDetailNotifierProvider(_jobUrl).future);
+    expect(repo.fetchJobDetailCallCount, 1);
 
-      container.listen(buildStatusPollingNotifierProvider(_jobUrl), (_, _) {});
+    container.listen(buildStatusPollingNotifierProvider(_jobUrl), (_, _) {});
 
-      await Future<void>.delayed(const Duration(seconds: 6));
+    await tester.pump(const Duration(seconds: 6));
 
-      expect(repo.fetchJobDetailCallCount, greaterThanOrEqualTo(2));
-    },
-    timeout: const Timeout(Duration(seconds: 15)),
-  );
+    expect(repo.fetchJobDetailCallCount, greaterThanOrEqualTo(2));
+    container.dispose();
+  });
 
-  test(
+  testWidgets(
     'also invalidates PipelineStagesNotifier for the current build on the same tick (US-PIPE-04)',
-    () async {
+    (tester) async {
       final repo = _CountingRepository()..building = true;
       final container = ProviderContainer(
         overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
       );
-      addTearDown(container.dispose);
 
       await container.read(jobDetailNotifierProvider(_jobUrl).future);
       // Keep PipelineStagesNotifier alive too -- same autoDispose
@@ -102,21 +102,20 @@ void main() {
       container.listen(buildStatusPollingNotifierProvider(_jobUrl), (_, _) {});
       container.listen(pipelineStagesNotifierProvider(_buildUrl), (_, _) {});
 
-      await Future<void>.delayed(const Duration(seconds: 6));
+      await tester.pump(const Duration(seconds: 6));
 
       expect(repo.fetchPipelineStagesCallCount, greaterThanOrEqualTo(2));
+      container.dispose();
     },
-    timeout: const Timeout(Duration(seconds: 15)),
   );
 
-  test(
+  testWidgets(
     'also invalidates PendingInputNotifier for the current build on the same tick (US-PIPE-05)',
-    () async {
+    (tester) async {
       final repo = _CountingRepository()..building = true;
       final container = ProviderContainer(
         overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
       );
-      addTearDown(container.dispose);
 
       await container.read(jobDetailNotifierProvider(_jobUrl).future);
       await container.read(pendingInputNotifierProvider(_buildUrl).future);
@@ -125,16 +124,16 @@ void main() {
       container.listen(buildStatusPollingNotifierProvider(_jobUrl), (_, _) {});
       container.listen(pendingInputNotifierProvider(_buildUrl), (_, _) {});
 
-      await Future<void>.delayed(const Duration(seconds: 6));
+      await tester.pump(const Duration(seconds: 6));
 
       expect(repo.fetchPendingInputCallCount, greaterThanOrEqualTo(2));
+      container.dispose();
     },
-    timeout: const Timeout(Duration(seconds: 15)),
   );
 
-  test(
+  testWidgets(
     'cancels its timer on dispose -- no further fetches after the container is gone',
-    () async {
+    (tester) async {
       final repo = _CountingRepository()..building = true;
       final container = ProviderContainer(
         overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
@@ -149,30 +148,27 @@ void main() {
       // Wait past the 5s poll interval -- if the timer wasn't cancelled, this
       // would fire another fetch (and likely also throw, since it'd be
       // reading through a disposed container).
-      await Future<void>.delayed(const Duration(seconds: 6));
+      await tester.pump(const Duration(seconds: 6));
 
       expect(repo.fetchJobDetailCallCount, 1);
     },
-    timeout: const Timeout(Duration(seconds: 15)),
   );
 
-  test(
-    'does not schedule a timer at all once the build has finished',
-    () async {
-      final repo = _CountingRepository()..building = false;
-      final container = ProviderContainer(
-        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
-      );
-      addTearDown(container.dispose);
+  testWidgets('does not schedule a timer at all once the build has finished', (
+    tester,
+  ) async {
+    final repo = _CountingRepository()..building = false;
+    final container = ProviderContainer(
+      overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+    );
 
-      await container.read(jobDetailNotifierProvider(_jobUrl).future);
-      container.listen(buildStatusPollingNotifierProvider(_jobUrl), (_, _) {});
-      expect(repo.fetchJobDetailCallCount, 1);
+    await container.read(jobDetailNotifierProvider(_jobUrl).future);
+    container.listen(buildStatusPollingNotifierProvider(_jobUrl), (_, _) {});
+    expect(repo.fetchJobDetailCallCount, 1);
 
-      await Future<void>.delayed(const Duration(seconds: 6));
+    await tester.pump(const Duration(seconds: 6));
 
-      expect(repo.fetchJobDetailCallCount, 1);
-    },
-    timeout: const Timeout(Duration(seconds: 15)),
-  );
+    expect(repo.fetchJobDetailCallCount, 1);
+    container.dispose();
+  });
 }

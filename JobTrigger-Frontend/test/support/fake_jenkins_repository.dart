@@ -13,6 +13,7 @@ import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
 import 'package:job_trigger/domain/jenkins/queue_entry.dart';
 import 'package:job_trigger/domain/jenkins/queue_item.dart';
+import 'package:job_trigger/domain/jenkins/server_status.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
 
 /// Base for test fakes of [JenkinsRepository]: every method throws
@@ -23,6 +24,10 @@ class FakeJenkinsRepository implements JenkinsRepository {
   @override
   Future<Result<List<JenkinsJob>, AppFailure>> fetchJobTree() =>
       throw UnimplementedError('fetchJobTree');
+
+  @override
+  Future<Result<ServerStatus, AppFailure>> fetchServerStatus() =>
+      throw UnimplementedError('fetchServerStatus');
 
   @override
   Future<Result<List<JenkinsJob>, AppFailure>> fetchFolder(String? folderUrl) =>

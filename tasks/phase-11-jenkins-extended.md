@@ -351,8 +351,21 @@ their approvals don't block the rest.
         tile pins it, with a snackbar, and a pin mark shows on the tile.
       - **Job detail:** a pin toggle in the app bar.
       - **Tests:** 4.
-- [ ] P11-16 **US-JX-18 server status:** version from the `X-Jenkins`
+- [x] P11-16 **US-JX-18 server status:** version from the `X-Jenkins`
       header, a quiet-down banner, and an outdated-version note.
+      **Done 2026-09-30.**
+      - **Status:** `serverStatusProvider` is additive; a failure yields an
+        empty status and never blocks.
+      - **Home:** a quiet-down banner. Verified: triggers during quiet-down
+        still return 201, but builds just wait.
+      - **Settings:** the active server row shows "Jenkins 2.568.3", plus
+        "consider upgrading" when older than
+        `AppConfig.recommendedJenkinsBaseline`.
+      - **Test hardening:** the 5 `BuildStatusPollingNotifier` tests moved
+        to the widget tester's fake clock. They took 30 s of real timers
+        and timed out on a loaded machine; now they take about 4 s.
+      - **Tests:** 2 unit tests, plus 1 fixture test that toggles
+        quiet-down for real.
 - [ ] P11-17 **US-JX-13 enable or disable a job:** `buildable` badge,
       trigger disabled with a reason, and confirmation.
 - [ ] P11-18 **US-JX-14 build detail screen:** keep-forever toggle and

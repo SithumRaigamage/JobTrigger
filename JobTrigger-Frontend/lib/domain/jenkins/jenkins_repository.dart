@@ -11,10 +11,15 @@ import 'parameter_file.dart';
 import 'pending_input.dart';
 import 'pipeline_stage.dart';
 import 'queue_entry.dart';
+import 'server_status.dart';
 import 'queue_item.dart';
 import 'test_report.dart';
 
 abstract class JenkinsRepository {
+  /// US-JX-18: the server's version (`X-Jenkins` header) and quiet-down
+  /// state.
+  Future<Result<ServerStatus, AppFailure>> fetchServerStatus();
+
   /// The recursive crawl, 6 levels deep (`jobTreeCrawlDepth`) — used for
   /// cross-folder search and the global history timeline, not for browsing.
   Future<Result<List<JenkinsJob>, AppFailure>> fetchJobTree();
