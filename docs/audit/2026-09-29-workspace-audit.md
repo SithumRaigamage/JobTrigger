@@ -53,7 +53,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-14 | High | Security / UX | Jenkins URL unvalidated; Basic Auth sent over `http://` silently; cleartext failures shown as generic errors | open |
 | AUD-15 | High | Release | Android release build signed with the debug key | fixed (P12-10) |
 | AUD-16 | High | DevOps | CI does not run on the active `flutter-migration` branch | fixed (P12-03) |
-| AUD-17 | High | DevOps / Security | Node 20 (EOL) in Dockerfile and CI; container runs as root | open |
+| AUD-17 | High | DevOps / Security | Node 20 (EOL) in Dockerfile and CI; container runs as root | fixed (P12-21) |
 | AUD-18 | Medium | Bug | Edited build-parameter values silently reset when the form scrolls off-screen | fixed (P11-04) |
 | AUD-19 | Medium | Bug | Folders at the tree depth limit render as jobs (5 levels fetched, docs say 6) | fixed (P11-05) |
 | AUD-20 | Medium | Performance | Home fetches the whole recursive tree (all levels, with `lastBuild`) on every load | fixed (P11-05) |
@@ -294,6 +294,13 @@ are cross-referenced instead of being fixed twice.
   `HEALTHCHECK`, and `NODE_ENV=production`.
 
 ## Medium
+
+- **Fixed (P12-21, 2026-09-30):** `node:22-alpine`, `NODE_ENV=production`,
+  `USER node` (the app only reads `/app`, so root keeps owning it), and a
+  `HEALTHCHECK` on a new `GET /healthz`, which is 503 until MongoDB is
+  connected (the old `/` route answers 200 even with the database down).
+  CI runs Node 22.x. Verified by building the image: user `node`, Node
+  v22.23, and no `.env` in the image. `/healthz` has 2 mocha tests.
 
 ### AUD-13 — Log poll error discards the displayed log
 

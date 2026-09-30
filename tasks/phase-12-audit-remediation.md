@@ -86,9 +86,10 @@ file lists them.
       `npm audit --audit-level=high` gate in `nodejs-test.yml`.
       *Done 2026-09-30:* 11 findings to 0 (`mocha` 12 for the dev-only
       high), tests unchanged and passing, with the CI gate added.
-- [ ] P12-21 **AUD-17.** Node 22 LTS or later in the Dockerfile and CI;
+- [x] P12-21 **AUD-17.** Node 22 LTS or later in the Dockerfile and CI;
       container runs as `USER node`, with `NODE_ENV=production` and a
-      `HEALTHCHECK`.
+      `HEALTHCHECK`. *Done 2026-09-30:* the health check uses a new
+      DB-aware `GET /healthz`. Verified on a local image build.
 - [ ] P12-22 **AUD-04** plus the validation part of AUD-26. Reject
       non-string auth fields, `mongoose.set('sanitizeFilter', true)`,
       server-side email format check, and a minimum password length of 8

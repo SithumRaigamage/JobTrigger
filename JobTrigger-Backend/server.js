@@ -20,6 +20,13 @@ app.get('/', (req, res) => {
   res.json({ message: 'JobTrigger Backend API is running' });
 });
 
+// AUD-17: the container HEALTHCHECK. Unhealthy while MongoDB isn't
+// connected, so an orchestrator can restart or hold traffic.
+app.get('/healthz', (req, res) => {
+  const up = mongoose.connection.readyState === 1;
+  res.status(up ? 200 : 503).json({ status: up ? 'ok' : 'unavailable' });
+});
+
 // Database Connection (start server after DB connection)
 async function startServer() {
   try {

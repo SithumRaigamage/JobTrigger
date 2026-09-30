@@ -23,6 +23,7 @@ Base URL from `core/config/app_config.dart`, e.g. `https://api.jobtrigger.app`
 | `/api/sonarqube-credentials/:id` | DELETE | `x-auth-token` | — | `{ message }` | |
 | `/api/sonarqube-credentials/switch/:id` | POST | `x-auth-token` | — | `SonarQubeCredential` | Backend flips `isDefault`; client also updates `ActiveSonarQubeCredentialNotifier` locally for instant UI feedback |
 | `/api/appinfo` | GET | Public | — | `AppInfo` | Cache with a short TTL; not worth polling |
+| `/healthz` | GET | Public | — | `{status: "ok"}` or 503 `{status: "unavailable"}` | Container health check (AUD-17); the app doesn't call it |
 
 `BackendApiClient` interceptor: attach a plain `x-auth-token: <token>`
 header from secure storage on every request except signup/login/appinfo;

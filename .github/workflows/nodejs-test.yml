@@ -13,8 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # mongodb-memory-server v11 requires Node >=20.19.0.
-        node-version: [20.x]
+        # The Dockerfile's LTS line (AUD-17). mongodb-memory-server v11 needs
+        # Node >=20.19.0, and mocha 12 needs ^20.19.0 or >=22.12.0.
+        node-version: [22.x]
     # `secrets.*` can't be referenced directly in a step's `if:` condition --
     # route each through `env:` first, which `if:` can read.
     env:
