@@ -326,9 +326,18 @@ Each task names the `AUD-##` ids it closes.
 Ordered by value to effort. Items with new dependencies are grouped late so
 their approvals don't block the rest.
 
-- [ ] P11-14 **US-JX-22 API token hygiene:** a token-shape heuristic warning
+- [x] P11-14 **US-JX-22 API token hygiene:** a token-shape heuristic warning
       in the server form, a "Uses password" advisory in Settings, and a
       "Create a token" link.
+      **Done 2026-09-30.**
+      - **Heuristic:** `looksLikeJenkinsApiToken` matches legacy 32-hex
+        and current `11`+32-hex, confirmed against the fixture's real
+        34-character tokens.
+      - **Form:** a live, non-blocking advisory, a "Create an API token"
+        link to `{url}/me/configure`, and the field relabelled "API token
+        or password" with autocorrect and suggestions off.
+      - **Settings:** a "Uses a password" note on the server row.
+      - **Tests:** 5.
 - [ ] P11-15 **US-JX-11 pinned jobs:** per-server pins in
       `shared_preferences`, a Pinned section on Home, and stale-pin
       handling.

@@ -8,6 +8,7 @@ import '../../../core/theme/reduce_transparency_notifier.dart';
 import '../../../core/theme/theme_notifier.dart';
 import '../../../domain/credential/github_credential.dart';
 import '../../../domain/credential/jenkins_server.dart';
+import '../../../domain/credential/token_hygiene.dart';
 import '../../../domain/credential/sonarqube_credential.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
@@ -422,7 +423,21 @@ class _ServerTile extends ConsumerWidget {
                   : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             title: Text(server.serverName),
-            subtitle: Text(server.jenkinsURL),
+            subtitle: looksLikeJenkinsApiToken(server.secret)
+                ? Text(server.jenkinsURL)
+                : Text.rich(
+                    TextSpan(
+                      text: server.jenkinsURL,
+                      children: [
+                        TextSpan(
+                          text: ' · Uses a password',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.tertiary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
             trailing: IconButton(
               icon: const Icon(Icons.edit),
               tooltip: 'Edit',
