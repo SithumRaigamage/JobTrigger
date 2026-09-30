@@ -85,8 +85,8 @@ against the fixture Jenkins (P11-02, `NFR-TEST-02`).
 | `{buildURL}testReport/api/json?tree=…,suites[cases[className,name,status,errorDetails,errorStackTrace,age,duration]{0,200}]` | GET | US-JX-08, capped at 200 cases per suite | **implemented** (P11-12) |
 | `{baseURL}/queue/api/json?tree=items[id,why,inQueueSince,stuck,blocked,task[name,url,color]]` | GET | US-JX-09 server queue (task URL rewritten) | **implemented** (P11-13) |
 | `{baseURL}/queue/cancelItem?id={id}` | POST | US-JX-09. **204** means cancelled; **422** means no permission (not 403); **404** means an unknown id; **500** "not cancellable" means the item already left the queue (maybe started). The app re-reads the queue instead of claiming success | **implemented** (P11-13) |
-| `{baseURL}/computer/api/json?tree=computer[…]` | GET | US-JX-12 nodes and executors | planned |
-| `{baseURL}/computer/{name}/toggleOffline?offlineMessage=…` | POST | US-JX-12 (`(built-in)` for the controller) | planned |
+| `{baseURL}/computer/api/json?tree=computer[_class,displayName,offline,temporarilyOffline,offlineCauseReason,numExecutors,executors[…],oneOffExecutors[…],monitorData[*]]` | GET | US-JX-12. `monitorData[*]`, because the tree can't address the dotted monitor keys | **implemented** (P11-20) |
+| `{baseURL}/computer/{name}/toggleOffline?offlineMessage=…` | POST | US-JX-12 (`(built-in)` for the controller). Returns **302**; toggles; viewer gets 403 | **implemented** (P11-20) |
 | `{jobURL}enable` · `{jobURL}disable` | POST | US-JX-13. Returns **302** when done. A multibranch branch job returns **403 even for an admin**. Triggering a disabled job returns **409**, mapped to `JobDisabledFailure` | **implemented** (P11-17) |
 | `{buildURL}toggleLogKeep` | POST | US-JX-14 keep forever. Returns **302**. It toggles, so the app re-reads `keepLog` afterwards | **implemented** (P11-18) |
 | `{buildURL}submitDescription` (form `description`) | POST | US-JX-14. Returns **302**. Stored as raw HTML and shown only as plain text (`htmlToPlainText`) | **implemented** (P11-18) |

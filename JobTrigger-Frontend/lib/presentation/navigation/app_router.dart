@@ -20,6 +20,7 @@ import '../features/history/global_history_screen.dart';
 import '../features/history/job_history_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/job_detail/job_detail_screen.dart';
+import '../features/nodes/nodes_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/queue/queue_screen.dart';
 import '../features/settings/settings_screen.dart';
@@ -184,6 +185,11 @@ GoRouter appRouter(Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) =>
             JobHistoryScreen(job: state.extra! as JenkinsJob),
+      ),
+      GoRoute(
+        path: AppRoutes.nodes,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const NodesScreen(),
       ),
       GoRoute(
         path: AppRoutes.queue,

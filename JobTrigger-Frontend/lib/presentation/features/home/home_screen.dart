@@ -87,11 +87,28 @@ class HomeScreen extends ConsumerWidget {
           actions: [
             if (breadcrumb.isNotEmpty && breadcrumb.last.isScannable)
               _ScanActions(project: breadcrumb.last),
-            // US-JX-09: why aren't builds starting?
-            IconButton(
-              icon: const Icon(Icons.pending_actions),
-              tooltip: 'Build queue',
-              onPressed: () => context.push(AppRoutes.queue),
+            // US-JX-09 / US-JX-12: why aren't builds starting? In one menu,
+            // so the title keeps its room on a phone.
+            PopupMenuButton<String>(
+              tooltip: 'Server',
+              icon: const Icon(Icons.more_vert),
+              onSelected: (route) => context.push(route),
+              itemBuilder: (context) => const [
+                PopupMenuItem(
+                  value: AppRoutes.queue,
+                  child: ListTile(
+                    leading: Icon(Icons.pending_actions),
+                    title: Text('Build queue'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: AppRoutes.nodes,
+                  child: ListTile(
+                    leading: Icon(Icons.dns_outlined),
+                    title: Text('Nodes'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -6,6 +6,7 @@ import 'branch_kind.dart';
 import 'history_filter.dart';
 import 'jenkins_build.dart';
 import 'jenkins_job.dart';
+import 'jenkins_node.dart';
 import 'log_chunk.dart';
 import 'parameter_file.dart';
 import 'pending_input.dart';
@@ -142,6 +143,17 @@ abstract class JenkinsRepository {
   /// POSTs `{buildNumber}/stop` — [buildUrl] is the build's absolute URL
   /// (e.g. `.../job/x/20/`).
   Future<Result<void, AppFailure>> cancelBuild(String buildUrl);
+
+  /// US-JX-12: every node with its executors and health.
+  Future<Result<List<JenkinsNode>, AppFailure>> fetchNodes();
+
+  /// US-JX-12: `POST /computer/{name}/toggleOffline?offlineMessage=` (302).
+  /// It toggles, so callers re-read the node. 403 without
+  /// `Computer/Disconnect`.
+  Future<Result<void, AppFailure>> toggleNodeOffline(
+    JenkinsNode node, {
+    String message = '',
+  });
 
   /// US-JX-09: everything waiting in the server's build queue.
   Future<Result<List<QueueEntry>, AppFailure>> fetchQueue();

@@ -405,8 +405,20 @@ their approvals don't block the rest.
         shape, not only a color), and a semantics label for screen
         readers. It shows "Not enough builds" below 5.
       - **Tests:** 6.
-- [ ] P11-20 **US-JX-12 nodes and executors:** list, drill-down, and
+- [x] P11-20 **US-JX-12 nodes and executors:** list, drill-down, and
       temporarily-offline toggle with a reason, with permission handling.
+      **Done 2026-09-30.**
+      - **Screen:** `NodesScreen` shows online/offline/marked-offline (icon
+        plus text), busy/total executors, a low-disk warning from Jenkins'
+        own threshold, and running builds with progress, linking to build
+        detail.
+      - **Toggle:** a confirmed toggle with an optional reason. After a
+        403 the switches are hidden for the session.
+      - **Home:** queue and nodes moved into a "Server" overflow menu, so
+        the title keeps its room on a phone.
+      - **Real-server finding:** the tree syntax can't address dotted
+        monitor keys.
+      - **Tests:** 6 unit and widget tests, plus 2 fixture tests.
 - [ ] P11-21 **US-JX-17 views:** view picker, view-scoped Home, and
       persisted per server.
 - [ ] P11-22 **US-JX-19 deep links:** the `jobtrigger://` scheme, an

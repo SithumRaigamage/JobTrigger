@@ -12,6 +12,7 @@ import '../../domain/jenkins/branch_kind.dart';
 import '../../domain/jenkins/history_filter.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
+import '../../domain/jenkins/jenkins_node.dart';
 import '../../domain/jenkins/jenkins_repository.dart';
 import '../../domain/jenkins/log_chunk.dart';
 import '../../domain/jenkins/parameter_file.dart';
@@ -414,6 +415,78 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
   Future<Result<void, AppFailure>> cancelBuild(String buildUrl) => guardRequest(
     () => _dio.post<void>(
       '${_withSlash(buildUrl)}stop',
+      options: Options(
+        followRedirects: false,
+        validateStatus: _acceptRedirects,
+      ),
+    ),
+  );
+
+  @override
+  Future<Result<List<JenkinsNode>, AppFailure>>
+  fetchNodes() => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/computer/api/json',
+      queryParameters: {
+        // `monitorData[*]`: the tree syntax can't address the dotted
+        // monitor keys individually (verified: they come back empty).
+        'tree':
+            'computer[_class,displayName,offline,temporarilyOffline,'
+            'offlineCauseReason,numExecutors,'
+            'executors[progress,currentExecutable[url,fullDisplayName]],'
+            'oneOffExecutors[progress,currentExecutable[url,fullDisplayName]],'
+            'monitorData[*]]',
+      },
+    );
+    final computers = (response.data?['computer'] as List<dynamic>? ?? const [])
+        .cast<Map<String, dynamic>>();
+    return [for (final computer in computers) _nodeFrom(computer)];
+  });
+
+  JenkinsNode _nodeFrom(Map<String, dynamic> json) {
+    List<RunningExecutable> running(String key) => [
+      for (final executor
+          in (json[key] as List<dynamic>? ?? const [])
+              .cast<Map<String, dynamic>>())
+        if (executor['currentExecutable'] case final Map<String, dynamic> run)
+          RunningExecutable(
+            name: run['fullDisplayName'] as String? ?? '?',
+            url: rewriteUrl(run['url'] as String? ?? '', _baseUrl),
+            progress: switch (executor['progress']) {
+              final num value when value >= 0 => value.toInt(),
+              _ => null,
+            },
+          ),
+    ];
+    final disk =
+        (json['monitorData']
+            as Map<String, dynamic>?)?['hudson.node_monitors.DiskSpaceMonitor'];
+    final reason = json['offlineCauseReason'] as String?;
+    return JenkinsNode(
+      displayName: json['displayName'] as String? ?? '?',
+      isBuiltIn: (json['_class'] as String? ?? '').endsWith('MasterComputer'),
+      offline: json['offline'] == true,
+      temporarilyOffline: json['temporarilyOffline'] == true,
+      offlineReason: (reason == null || reason.isEmpty) ? null : reason,
+      numExecutors: (json['numExecutors'] as num?)?.toInt() ?? 0,
+      running: [...running('executors'), ...running('oneOffExecutors')],
+      diskFreeBytes: disk is Map<String, dynamic>
+          ? (disk['size'] as num?)?.toInt()
+          : null,
+      diskWarningBytes: disk is Map<String, dynamic>
+          ? (disk['warningThreshold'] as num?)?.toInt()
+          : null,
+    );
+  }
+
+  @override
+  Future<Result<void, AppFailure>> toggleNodeOffline(
+    JenkinsNode node, {
+    String message = '',
+  }) => guardRequest(
+    () => _dio.post<void>(
+      '/computer/${node.urlName}/toggleOffline',
+      queryParameters: {'offlineMessage': message},
       options: Options(
         followRedirects: false,
         validateStatus: _acceptRedirects,

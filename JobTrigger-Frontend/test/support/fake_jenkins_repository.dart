@@ -6,6 +6,7 @@ import 'package:job_trigger/domain/jenkins/branch_kind.dart';
 import 'package:job_trigger/domain/jenkins/history_filter.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
+import 'package:job_trigger/domain/jenkins/jenkins_node.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/parameter_file.dart';
@@ -108,6 +109,16 @@ class FakeJenkinsRepository implements JenkinsRepository {
   @override
   Future<Result<void, AppFailure>> cancelBuild(String buildUrl) =>
       throw UnimplementedError('cancelBuild');
+
+  @override
+  Future<Result<List<JenkinsNode>, AppFailure>> fetchNodes() =>
+      throw UnimplementedError('fetchNodes');
+
+  @override
+  Future<Result<void, AppFailure>> toggleNodeOffline(
+    JenkinsNode node, {
+    String message = '',
+  }) => throw UnimplementedError('toggleNodeOffline');
 
   @override
   Future<Result<List<QueueEntry>, AppFailure>> fetchQueue() =>
