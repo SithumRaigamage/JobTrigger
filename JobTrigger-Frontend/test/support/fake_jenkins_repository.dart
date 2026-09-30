@@ -47,6 +47,23 @@ class FakeJenkinsRepository implements JenkinsRepository {
   }) => throw UnimplementedError('streamBuildLog');
 
   @override
+  Future<Result<int, AppFailure>> fetchLogSize(String buildUrl) =>
+      throw UnimplementedError('fetchLogSize');
+
+  @override
+  Future<Result<List<String>?, AppFailure>> fetchTimestamps(
+    String buildUrl, {
+    required int startLine,
+    int? endLine,
+  }) => throw UnimplementedError('fetchTimestamps');
+
+  @override
+  Future<Result<void, AppFailure>> downloadConsoleText(
+    String buildUrl,
+    String savePath,
+  ) => throw UnimplementedError('downloadConsoleText');
+
+  @override
   Future<Result<List<JenkinsBuild>, AppFailure>> fetchJobHistory(
     String jobUrl, {
     int start = 0,

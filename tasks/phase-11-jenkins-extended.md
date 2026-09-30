@@ -263,12 +263,38 @@ Each task names the `AUD-##` ids it closes.
       - **Kept as-is:** `JobHistoryNotifier` is still the Run picker's
         first-page source.
       - **Tests:** 10 unit and widget tests, plus 2 fixture tests.
-- [ ] P11-11 **US-JX-07 console rewrite.** Incremental sanitize and split
+- [x] P11-11 **US-JX-07 console rewrite.** Incremental sanitize and split
       with a memory cap (AUD-12), keep the log and back off on poll errors
       (AUD-13), handle CRLF and chunk-split escapes (AUD-34), search with
       highlight and counter, jump to first error, ANSI color rendering, a
       Timestamper toggle, wrap and font-size preferences, and full-log
       download as a `.log` file.
+      **Done 2026-09-30.**
+      - **Decoder:** a pure incremental `ConsoleDecoder` handles ANSI SGR
+        (16, 256, and truecolor), console notes, OSC, CRLF, bare `\r`,
+        and escapes split across chunks. 50k lines decode in one pass.
+      - **Notifier:** `BuildLogNotifier` sizes the log with a HEAD and
+        opens huge logs at the last 1 MiB. It caps memory at 20,000 lines
+        and keeps the log with backoff (1→15 s) on poll errors.
+      - **Viewer:** `ConsoleLogViewer` renders colors, search highlights,
+        a timestamp gutter, and wrap/no-wrap. Jumps use a measured line
+        height: an estimate from font size overshot a 2,000-line jump by
+        17 lines.
+      - **Screen:** search with a counter and previous/next, jump to first
+        error, a persisted wrap/font/timestamps menu, copy/share, and "Save
+        full log", which streams, shares, and deletes the file.
+      - **Real-server findings:**
+        1. Pipelines embed Timestamper times as a `[ISO] ` prefix in the
+           raw log. They're lifted off the text and shown on demand.
+        2. An offset past the end returns the whole 14.7 MB log, so HEAD
+           is used for sizing.
+        3. A job without Timestamper returns 200 with an empty body, not
+           404.
+      - **Deviation:** "Load earlier lines" became "Save full log", since
+        paging backwards through progressive text isn't supported.
+      - **Dependency:** `path_provider` (approved) added.
+      - **Tests:** 30 unit and widget tests, plus 4 fixture tests. P11-03
+        can now be re-run on a device.
 - [ ] P11-12 **US-JX-08 test failure details:** `errorDetails`,
       `errorStackTrace`, and `age`, with regressions badged, capped at 200.
 - [ ] P11-13 **US-JX-09 server-wide queue:** list, stuck flag, cancel with

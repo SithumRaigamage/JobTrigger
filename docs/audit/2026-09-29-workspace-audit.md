@@ -48,8 +48,8 @@ are cross-referenced instead of being fixed twice.
 | AUD-09 | High | Bug | Global history uses duplicate `ValueKey`s when job names repeat across folders | fixed (P12-05) |
 | AUD-10 | High | Bug | Folder breadcrumb shows stale or other-server contents after refresh or server switch | fixed (P11-05) |
 | AUD-11 | High | Bug / Architecture | Non-`DioException` errors escape the data layer and bypass `AppFailure` | fixed (P12-04) |
-| AUD-12 | High | Performance | Console log re-sanitizes and re-splits the whole log every second (O(n²)) | open |
-| AUD-13 | Medium | Bug | A transient log-poll error discards the displayed log | open |
+| AUD-12 | High | Performance | Console log re-sanitizes and re-splits the whole log every second (O(n²)) | fixed (P11-11) |
+| AUD-13 | Medium | Bug | A transient log-poll error discards the displayed log | fixed (P11-11) |
 | AUD-14 | High | Security / UX | Jenkins URL unvalidated; Basic Auth sent over `http://` silently; cleartext failures shown as generic errors | open |
 | AUD-15 | High | Release | Android release build signed with the debug key | open |
 | AUD-16 | High | DevOps | CI does not run on the active `flutter-migration` branch | fixed (P12-03) |
@@ -70,7 +70,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-31 | Low | Code quality (backend) | Three copy-pasted credential controllers | open |
 | AUD-32 | Low | Code quality | Trailing-slash URL normalisation duplicated 11× in `JenkinsRepositoryImpl` | fixed (P12-04) |
 | AUD-33 | Low | UX | Search results lack folder context; empty state can't pull to refresh | fixed (P11-10) |
-| AUD-34 | Low | Bug | Log sanitizer leaves `\r` from CRLF; escape sequences split across chunks leak | open (→ P11-11) |
+| AUD-34 | Low | Bug | Log sanitizer leaves `\r` from CRLF; escape sequences split across chunks leak | fixed (P11-11) |
 | AUD-35 | Low | Docs | `CLAUDE.md` §1 still says "JWT bearer"; the backend actually uses `x-auth-token` | open |
 | AUD-37 | High | Bug | A duplicate parameterized trigger (Jenkins `303`, merged into the queued build) is reported as a failure | fixed (P11-04) |
 | AUD-38 | High | Bug | Triggering a job with a Run parameter from the untouched form fails (empty value → Jenkins `500`) | fixed (P11-06) |

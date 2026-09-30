@@ -49,6 +49,30 @@ abstract class JenkinsRepository {
     int start = 0,
   });
 
+  /// US-JX-07: the log's current size in bytes (`X-Text-Size` from a HEAD
+  /// of the progressive-text endpoint, with no body), so a long log can be
+  /// opened at its tail. Verified: asking for an offset past the end does
+  /// *not* work as a probe, because Jenkins then returns the whole log.
+  Future<Result<int, AppFailure>> fetchLogSize(String buildUrl);
+
+  /// US-JX-07: per-line timestamps from the Timestamper plugin
+  /// (`{buildUrl}timestamps/?time=HH:mm:ss&startLine=…`), one entry per
+  /// console line (empty where none was recorded). A negative [startLine]
+  /// counts back from the end. Returns null when the plugin isn't installed
+  /// (404); a build without timestamps returns an empty list.
+  Future<Result<List<String>?, AppFailure>> fetchTimestamps(
+    String buildUrl, {
+    required int startLine,
+    int? endLine,
+  });
+
+  /// US-JX-07: streams the full `{buildUrl}consoleText` to [savePath],
+  /// never holding it in memory.
+  Future<Result<void, AppFailure>> downloadConsoleText(
+    String buildUrl,
+    String savePath,
+  );
+
   /// Last 20 builds for one job (per-job history, P5-16) — a separate
   /// fetch from [fetchJobDetail], per `JenkinsAPIService.fetchBuildHistory`
   /// (Swift).

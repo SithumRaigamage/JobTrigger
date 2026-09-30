@@ -8,33 +8,39 @@ part of 'build_log_notifier.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Accumulates a build's console log via Jenkins' Progressive Text API,
-/// family-keyed by the build's absolute URL. Polls ~1s between reads
-/// (`docs/api-reference.md#polling-intervals`) — deliberately faster than
-/// the old Swift app's fixed 3s (`BuildLogViewModel.setupTimer`); the docs
-/// explicitly call for ~1s for this rewrite. Stops on its own once
-/// `X-More-Data` is false. Timer always cancelled in `ref.onDispose`, same
-/// leak discipline as `BuildStatusPollingNotifier` (P5-06).
+/// Streams a build's console via Jenkins' progressive-text API, family-keyed
+/// by the build's absolute URL (US-LOG-01, rewritten for US-JX-07).
+///
+/// Each chunk is decoded exactly once by a [ConsoleDecoder], which carries
+/// partial lines, escapes, and style across chunks. That replaces
+/// re-sanitizing and re-splitting the whole log every second (AUD-12). A
+/// failed poll keeps what's on screen and retries with backoff (AUD-13).
+/// Timers are cancelled in `ref.onDispose`, the same leak discipline as
+/// `BuildStatusPollingNotifier` (P5-06).
 
 @ProviderFor(BuildLogNotifier)
 final buildLogNotifierProvider = BuildLogNotifierFamily._();
 
-/// Accumulates a build's console log via Jenkins' Progressive Text API,
-/// family-keyed by the build's absolute URL. Polls ~1s between reads
-/// (`docs/api-reference.md#polling-intervals`) — deliberately faster than
-/// the old Swift app's fixed 3s (`BuildLogViewModel.setupTimer`); the docs
-/// explicitly call for ~1s for this rewrite. Stops on its own once
-/// `X-More-Data` is false. Timer always cancelled in `ref.onDispose`, same
-/// leak discipline as `BuildStatusPollingNotifier` (P5-06).
+/// Streams a build's console via Jenkins' progressive-text API, family-keyed
+/// by the build's absolute URL (US-LOG-01, rewritten for US-JX-07).
+///
+/// Each chunk is decoded exactly once by a [ConsoleDecoder], which carries
+/// partial lines, escapes, and style across chunks. That replaces
+/// re-sanitizing and re-splitting the whole log every second (AUD-12). A
+/// failed poll keeps what's on screen and retries with backoff (AUD-13).
+/// Timers are cancelled in `ref.onDispose`, the same leak discipline as
+/// `BuildStatusPollingNotifier` (P5-06).
 final class BuildLogNotifierProvider
-    extends $AsyncNotifierProvider<BuildLogNotifier, String> {
-  /// Accumulates a build's console log via Jenkins' Progressive Text API,
-  /// family-keyed by the build's absolute URL. Polls ~1s between reads
-  /// (`docs/api-reference.md#polling-intervals`) — deliberately faster than
-  /// the old Swift app's fixed 3s (`BuildLogViewModel.setupTimer`); the docs
-  /// explicitly call for ~1s for this rewrite. Stops on its own once
-  /// `X-More-Data` is false. Timer always cancelled in `ref.onDispose`, same
-  /// leak discipline as `BuildStatusPollingNotifier` (P5-06).
+    extends $AsyncNotifierProvider<BuildLogNotifier, ConsoleState> {
+  /// Streams a build's console via Jenkins' progressive-text API, family-keyed
+  /// by the build's absolute URL (US-LOG-01, rewritten for US-JX-07).
+  ///
+  /// Each chunk is decoded exactly once by a [ConsoleDecoder], which carries
+  /// partial lines, escapes, and style across chunks. That replaces
+  /// re-sanitizing and re-splitting the whole log every second (AUD-12). A
+  /// failed poll keeps what's on screen and retries with backoff (AUD-13).
+  /// Timers are cancelled in `ref.onDispose`, the same leak discipline as
+  /// `BuildStatusPollingNotifier` (P5-06).
   BuildLogNotifierProvider._({
     required BuildLogNotifierFamily super.from,
     required String super.argument,
@@ -71,23 +77,25 @@ final class BuildLogNotifierProvider
   }
 }
 
-String _$buildLogNotifierHash() => r'a7eb053b8571e312a4c5e09893c261cda922f059';
+String _$buildLogNotifierHash() => r'c830381b59935c6e5e61603775c8a820309b2e76';
 
-/// Accumulates a build's console log via Jenkins' Progressive Text API,
-/// family-keyed by the build's absolute URL. Polls ~1s between reads
-/// (`docs/api-reference.md#polling-intervals`) — deliberately faster than
-/// the old Swift app's fixed 3s (`BuildLogViewModel.setupTimer`); the docs
-/// explicitly call for ~1s for this rewrite. Stops on its own once
-/// `X-More-Data` is false. Timer always cancelled in `ref.onDispose`, same
-/// leak discipline as `BuildStatusPollingNotifier` (P5-06).
+/// Streams a build's console via Jenkins' progressive-text API, family-keyed
+/// by the build's absolute URL (US-LOG-01, rewritten for US-JX-07).
+///
+/// Each chunk is decoded exactly once by a [ConsoleDecoder], which carries
+/// partial lines, escapes, and style across chunks. That replaces
+/// re-sanitizing and re-splitting the whole log every second (AUD-12). A
+/// failed poll keeps what's on screen and retries with backoff (AUD-13).
+/// Timers are cancelled in `ref.onDispose`, the same leak discipline as
+/// `BuildStatusPollingNotifier` (P5-06).
 
 final class BuildLogNotifierFamily extends $Family
     with
         $ClassFamilyOverride<
           BuildLogNotifier,
-          AsyncValue<String>,
-          String,
-          FutureOr<String>,
+          AsyncValue<ConsoleState>,
+          ConsoleState,
+          FutureOr<ConsoleState>,
           String
         > {
   BuildLogNotifierFamily._()
@@ -99,13 +107,15 @@ final class BuildLogNotifierFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// Accumulates a build's console log via Jenkins' Progressive Text API,
-  /// family-keyed by the build's absolute URL. Polls ~1s between reads
-  /// (`docs/api-reference.md#polling-intervals`) — deliberately faster than
-  /// the old Swift app's fixed 3s (`BuildLogViewModel.setupTimer`); the docs
-  /// explicitly call for ~1s for this rewrite. Stops on its own once
-  /// `X-More-Data` is false. Timer always cancelled in `ref.onDispose`, same
-  /// leak discipline as `BuildStatusPollingNotifier` (P5-06).
+  /// Streams a build's console via Jenkins' progressive-text API, family-keyed
+  /// by the build's absolute URL (US-LOG-01, rewritten for US-JX-07).
+  ///
+  /// Each chunk is decoded exactly once by a [ConsoleDecoder], which carries
+  /// partial lines, escapes, and style across chunks. That replaces
+  /// re-sanitizing and re-splitting the whole log every second (AUD-12). A
+  /// failed poll keeps what's on screen and retries with backoff (AUD-13).
+  /// Timers are cancelled in `ref.onDispose`, the same leak discipline as
+  /// `BuildStatusPollingNotifier` (P5-06).
 
   BuildLogNotifierProvider call(String buildUrl) =>
       BuildLogNotifierProvider._(argument: buildUrl, from: this);
@@ -114,28 +124,30 @@ final class BuildLogNotifierFamily extends $Family
   String toString() => r'buildLogNotifierProvider';
 }
 
-/// Accumulates a build's console log via Jenkins' Progressive Text API,
-/// family-keyed by the build's absolute URL. Polls ~1s between reads
-/// (`docs/api-reference.md#polling-intervals`) — deliberately faster than
-/// the old Swift app's fixed 3s (`BuildLogViewModel.setupTimer`); the docs
-/// explicitly call for ~1s for this rewrite. Stops on its own once
-/// `X-More-Data` is false. Timer always cancelled in `ref.onDispose`, same
-/// leak discipline as `BuildStatusPollingNotifier` (P5-06).
+/// Streams a build's console via Jenkins' progressive-text API, family-keyed
+/// by the build's absolute URL (US-LOG-01, rewritten for US-JX-07).
+///
+/// Each chunk is decoded exactly once by a [ConsoleDecoder], which carries
+/// partial lines, escapes, and style across chunks. That replaces
+/// re-sanitizing and re-splitting the whole log every second (AUD-12). A
+/// failed poll keeps what's on screen and retries with backoff (AUD-13).
+/// Timers are cancelled in `ref.onDispose`, the same leak discipline as
+/// `BuildStatusPollingNotifier` (P5-06).
 
-abstract class _$BuildLogNotifier extends $AsyncNotifier<String> {
+abstract class _$BuildLogNotifier extends $AsyncNotifier<ConsoleState> {
   late final _$args = ref.$arg as String;
   String get buildUrl => _$args;
 
-  FutureOr<String> build(String buildUrl);
+  FutureOr<ConsoleState> build(String buildUrl);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<String>, String>;
+    final ref = this.ref as $Ref<AsyncValue<ConsoleState>, ConsoleState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<String>, String>,
-              AsyncValue<String>,
+              AnyNotifier<AsyncValue<ConsoleState>, ConsoleState>,
+              AsyncValue<ConsoleState>,
               Object?,
               Object?
             >;

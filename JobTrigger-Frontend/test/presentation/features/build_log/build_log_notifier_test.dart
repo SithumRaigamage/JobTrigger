@@ -1,116 +1,154 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/presentation/features/build_log/build_log_notifier.dart';
+
 import '../../../support/fake_jenkins_repository.dart';
 
 const _buildUrl = 'https://jenkins.test/job/demo/1/';
 
-/// Serves pre-scripted chunks by call order, recording the `start` offset
-/// each call was made with -- lets tests assert the notifier actually
-/// advances the offset it was told to use, not just that text accumulates.
+/// Serves scripted results by call order and records each `start`.
 class _ScriptedRepository extends FakeJenkinsRepository {
-  _ScriptedRepository(this._chunks);
+  _ScriptedRepository(this._results, {this.size = 100});
 
-  final List<LogChunk> _chunks;
-  final List<int> requestedOffsets = [];
-  int _callIndex = 0;
+  final List<Result<LogChunk, AppFailure>> _results;
+  final int size;
+  final starts = <int>[];
+  int _call = 0;
+
+  @override
+  Future<Result<int, AppFailure>> fetchLogSize(String buildUrl) async =>
+      Ok(size);
 
   @override
   Future<Result<LogChunk, AppFailure>> streamBuildLog(
     String buildUrl, {
     int start = 0,
   }) async {
-    requestedOffsets.add(start);
-    final chunk = _chunks[_callIndex];
-    _callIndex = (_callIndex + 1).clamp(0, _chunks.length - 1);
-    return Ok(chunk);
+    starts.add(start);
+    final result = _results[_call];
+    if (_call < _results.length - 1) _call++;
+    return result;
   }
 }
 
+Ok<LogChunk, AppFailure> _chunk(String text, int next, {bool more = false}) =>
+    Ok(LogChunk(text: text, nextOffset: next, hasMoreData: more));
+
+ProviderContainer _container(_ScriptedRepository repository) {
+  final container = ProviderContainer(
+    overrides: [jenkinsRepositoryProvider.overrideWithValue(repository)],
+  );
+  addTearDown(container.dispose);
+  container.listen(buildLogNotifierProvider(_buildUrl), (_, _) {});
+  return container;
+}
+
+List<String> _texts(ConsoleState state) => [
+  for (final line in state.visibleLines) line.text,
+];
+
 void main() {
-  test(
-    'the first read starts at offset 0 and stops immediately if hasMoreData is false',
-    () async {
-      final repo = _ScriptedRepository([
-        const LogChunk(
-          text: 'build started\n',
-          nextOffset: 14,
-          hasMoreData: false,
-        ),
-      ]);
-      final container = ProviderContainer(
-        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
-      );
-      addTearDown(container.dispose);
+  test('a small log is read from offset 0 and stops when complete', () async {
+    final repository = _ScriptedRepository([_chunk('one\ntwo\n', 8)]);
+    final container = _container(repository);
 
-      final text = await container.read(
-        buildLogNotifierProvider(_buildUrl).future,
-      );
+    final state = await container.read(
+      buildLogNotifierProvider(_buildUrl).future,
+    );
 
-      expect(repo.requestedOffsets, [0]);
-      expect(text, 'build started\n');
-    },
-  );
+    expect(repository.starts, [0]);
+    expect(_texts(state), ['one', 'two']);
+    expect(state.streaming, isFalse);
+    expect(state.isPartial, isFalse);
+  });
 
-  test(
-    'accumulates text and advances the offset across multiple reads',
-    () async {
-      final repo = _ScriptedRepository([
-        const LogChunk(text: 'line 1\n', nextOffset: 7, hasMoreData: true),
-        const LogChunk(text: 'line 2\n', nextOffset: 14, hasMoreData: true),
-        const LogChunk(text: 'line 3\n', nextOffset: 21, hasMoreData: false),
-      ]);
-      final container = ProviderContainer(
-        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
-      );
-      addTearDown(container.dispose);
+  test('a huge log opens at its tail and drops the leading fragment', () async {
+    const size = initialTailBytes * 5;
+    final repository = _ScriptedRepository([
+      _chunk('ment of a cut line\nfirst whole line\nlast\n', size),
+    ], size: size);
+    final container = _container(repository);
 
-      // Without an active listener, this @riverpod provider auto-disposes
-      // once .future resolves -- cancelling the scheduled timer before it
-      // ever fires. Keep it alive for the duration of the test.
-      container.listen(buildLogNotifierProvider(_buildUrl), (_, _) {});
-      await container.read(buildLogNotifierProvider(_buildUrl).future);
+    final state = await container.read(
+      buildLogNotifierProvider(_buildUrl).future,
+    );
 
-      // Wait past the ~1s poll interval twice, to let both remaining chunks
-      // arrive.
-      await Future<void>.delayed(const Duration(milliseconds: 1200));
-      await Future<void>.delayed(const Duration(milliseconds: 1200));
+    expect(repository.starts, [size - initialTailBytes]);
+    expect(_texts(state), ['first whole line', 'last']);
+    expect(state.startsMidLog, isTrue);
+  });
 
-      expect(repo.requestedOffsets, [0, 7, 14]);
-      expect(
-        container.read(buildLogNotifierProvider(_buildUrl)).value,
-        'line 1\nline 2\nline 3\n',
-      );
-    },
-    timeout: const Timeout(Duration(seconds: 10)),
-  );
+  testWidgets('streams chunks, carrying a line split across them', (
+    tester,
+  ) async {
+    final repository = _ScriptedRepository([
+      _chunk('compil', 6, more: true),
+      _chunk('ing\ndone\n', 15),
+    ]);
+    final container = _container(repository);
+    await tester.pump();
 
-  test(
-    'stops polling once hasMoreData is false -- no further reads happen',
-    () async {
-      final repo = _ScriptedRepository([
-        const LogChunk(text: 'line 1\n', nextOffset: 7, hasMoreData: true),
-        const LogChunk(text: 'line 2\n', nextOffset: 14, hasMoreData: false),
-      ]);
-      final container = ProviderContainer(
-        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
-      );
-      addTearDown(container.dispose);
+    var state = container.read(buildLogNotifierProvider(_buildUrl)).value!;
+    expect(state.lines, isEmpty);
+    expect(state.pendingLine?.text, 'compil');
 
-      container.listen(buildLogNotifierProvider(_buildUrl), (_, _) {});
-      await container.read(buildLogNotifierProvider(_buildUrl).future);
-      await Future<void>.delayed(const Duration(milliseconds: 1200));
-      expect(repo.requestedOffsets, [0, 7]);
+    await tester.pump(const Duration(seconds: 1));
+    state = container.read(buildLogNotifierProvider(_buildUrl)).value!;
+    expect(repository.starts, [0, 6]);
+    expect(_texts(state), ['compiling', 'done']);
+    expect(state.streaming, isFalse);
+  });
 
-      // Wait well past another poll interval -- call count must not grow,
-      // since the second chunk said hasMoreData: false.
-      await Future<void>.delayed(const Duration(milliseconds: 1500));
-      expect(repo.requestedOffsets, [0, 7]);
-    },
-    timeout: const Timeout(Duration(seconds: 10)),
-  );
+  testWidgets('a failed poll keeps the log and retries with backoff (AUD-13)', (
+    tester,
+  ) async {
+    final repository = _ScriptedRepository([
+      _chunk('kept\n', 5, more: true),
+      const Err(NetworkFailure()),
+      const Err(NetworkFailure()),
+      _chunk('back\n', 10),
+    ]);
+    final container = _container(repository);
+    await tester.pump();
+
+    await tester.pump(const Duration(seconds: 1)); // first failure
+    var state = container.read(buildLogNotifierProvider(_buildUrl)).value!;
+    expect(state.reconnecting, isTrue);
+    expect(_texts(state), ['kept'], reason: 'the log stays on screen');
+
+    await tester.pump(const Duration(seconds: 1)); // retry after 1s: fails
+    expect(repository.starts, [0, 5, 5]);
+    await tester.pump(const Duration(seconds: 1));
+    expect(repository.starts, hasLength(3), reason: 'backoff doubled to 2s');
+    await tester.pump(const Duration(seconds: 1));
+
+    state = container.read(buildLogNotifierProvider(_buildUrl)).value!;
+    expect(repository.starts, [0, 5, 5, 5]);
+    expect(state.reconnecting, isFalse);
+    expect(_texts(state), ['kept', 'back']);
+  });
+
+  test('keeps at most maxConsoleLines, counting what was dropped', () async {
+    final text = StringBuffer();
+    for (var i = 0; i < maxConsoleLines + 250; i++) {
+      text.writeln('line $i');
+    }
+    final repository = _ScriptedRepository([
+      _chunk(text.toString(), text.length),
+    ]);
+    final container = _container(repository);
+
+    final state = await container.read(
+      buildLogNotifierProvider(_buildUrl).future,
+    );
+
+    expect(state.lines, hasLength(maxConsoleLines));
+    expect(state.droppedLines, 250);
+    expect(state.lines.first.text, 'line 250');
+    expect(state.isPartial, isTrue);
+  });
 }

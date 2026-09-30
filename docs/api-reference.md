@@ -79,8 +79,9 @@ against the fixture Jenkins (P11-02, `NFR-TEST-02`).
 | `{buildURL}execution/node/{id}/wfapi/log` | GET | US-JX-04 step log (`text`, `hasMore`). `text` is **absent** when the log is empty | **implemented** (P11-08) |
 | `lastSuccessfulBuild[number,url,result,timestamp],lastFailedBuild[…]` (part of the job detail tree) | GET | US-JX-05 | **implemented** (P11-09) |
 | `{jobURL}api/json?tree=allBuilds[…,actions[parameters[name,value],causes[userId]]]{start,end}` | GET | US-JX-06 paging. `builds` is capped at 100 and `allBuilds` isn't. Past the end returns `[]` | **implemented** (P11-10) |
-| `{buildURL}consoleText` | GET | US-JX-07 full-log download and earlier lines | planned |
-| `{buildURL}timestamps/?time=HH:mm:ss&appendLog` | GET | US-JX-07 timestamps (Timestamper plugin; a 404 hides the toggle) | planned |
+| `{buildURL}consoleText` | GET | US-JX-07 "Save full log", streamed to a temp file (`dio.download`), shared, then deleted | **implemented** (P11-11) |
+| `{buildURL}logText/progressiveText` | **HEAD** | US-JX-07 log size (`X-Text-Size`, no body), so a huge log opens at its tail. An offset past the end is **not** a probe, because Jenkins returns the whole log | **implemented** (P11-11) |
+| `{buildURL}timestamps/?time=HH:mm:ss&startLine=-N` | GET | US-JX-07 timestamps for freestyle jobs, one per console line; a negative `startLine` counts from the end. Pipelines instead **embed** `[ISO-8601Z] ` at the start of each raw log line, which the decoder lifts off. A job without Timestamper returns 200 with an empty body; 404 means the plugin is missing | **implemented** (P11-11) |
 | `{buildURL}testReport/api/json?tree=suites[cases[…,errorDetails,errorStackTrace,age]{0,200}]` | GET | US-JX-08 | planned |
 | `{baseURL}/queue/api/json?tree=items[…]` | GET | US-JX-09 server queue | planned |
 | `{baseURL}/queue/cancelItem?id={id}` | POST | US-JX-09 cancel queued item | planned |

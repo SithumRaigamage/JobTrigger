@@ -201,6 +201,52 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
   });
 
   @override
+  Future<Result<int, AppFailure>> fetchLogSize(String buildUrl) =>
+      guardRequest(() async {
+        final response = await _dio.head<void>(
+          '${_withSlash(buildUrl)}logText/progressiveText',
+          queryParameters: {'start': 0},
+        );
+        return int.parse(response.headers.value('X-Text-Size') ?? '0');
+      });
+
+  @override
+  Future<Result<List<String>?, AppFailure>> fetchTimestamps(
+    String buildUrl, {
+    required int startLine,
+    int? endLine,
+  }) => guardRequest(() async {
+    final response = await _dio.get<String>(
+      '${_withSlash(buildUrl)}timestamps/',
+      queryParameters: {
+        'time': 'HH:mm:ss',
+        'startLine': startLine,
+        'endLine': ?endLine,
+      },
+      options: Options(responseType: ResponseType.plain),
+    );
+    final body = response.data ?? '';
+    if (body.isEmpty) return const <String>[];
+    final lines = body.split('\n');
+    // The body ends with a newline; that's not an extra empty line.
+    if (lines.last.isEmpty) lines.removeLast();
+    return lines;
+  }, recover: _notFoundAsNull);
+
+  @override
+  Future<Result<void, AppFailure>> downloadConsoleText(
+    String buildUrl,
+    String savePath,
+  ) => guardRequest(
+    () => _dio.download(
+      '${_withSlash(buildUrl)}consoleText',
+      savePath,
+      // A full log can be tens of MB; don't apply the 15s API timeout.
+      options: Options(receiveTimeout: const Duration(minutes: 5)),
+    ),
+  );
+
+  @override
   Future<Result<List<JenkinsBuild>, AppFailure>> fetchJobHistory(
     String jobUrl, {
     int start = 0,
