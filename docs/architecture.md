@@ -40,7 +40,8 @@ graph LR
   shapes exactly, including Jenkins' inconsistent polymorphic fields),
   repository implementations that call data sources and map DTO → domain
   entity, and the URL-rewriting logic described in §5.
-- **Data sources**: two `Dio` instances — `BackendApiClient` (JWT bearer,
+- **Data sources**: two `Dio` instances — `BackendApiClient` (JWT in an
+  `x-auth-token` header,
   base URL from config) and a per-server `JenkinsApiClient` (Basic Auth,
   base URL = active credential's `jenkinsURL`, constructed by
   `JenkinsClientFactory` when the active server changes).

@@ -14,7 +14,8 @@ feature-first Clean Architecture with Riverpod**.
 
 The Node.js/Express + MongoDB backend is **kept, not rewritten** — it only
 stores user accounts and Jenkins server credentials. Flutter talks to:
-1. `JobTrigger-Backend` for auth + credential storage (JWT bearer).
+1. `JobTrigger-Backend` for auth + credential storage (JWT sent as an
+   `x-auth-token` header, not `Authorization: Bearer`).
 2. Jenkins servers directly over REST + HTTP Basic Auth (no backend proxy).
 
 Do not conflate these two APIs — they have different auth schemes and error

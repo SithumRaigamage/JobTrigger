@@ -3,7 +3,7 @@
 Two distinct APIs, two distinct `Dio` clients, two distinct auth schemes.
 Never share an interceptor or base URL between them.
 
-## 1. Backend API (`JobTrigger-Backend`, JWT bearer)
+## 1. Backend API (`JobTrigger-Backend`, JWT in `x-auth-token`)
 
 Base URL from `core/config/app_config.dart`, e.g. `https://api.jobtrigger.app`
 (configurable per build flavor — dev/staging/prod).

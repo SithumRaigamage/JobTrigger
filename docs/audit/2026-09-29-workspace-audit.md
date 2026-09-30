@@ -71,7 +71,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-32 | Low | Code quality | Trailing-slash URL normalisation duplicated 11× in `JenkinsRepositoryImpl` | fixed (P12-04) |
 | AUD-33 | Low | UX | Search results lack folder context; empty state can't pull to refresh | fixed (P11-10) |
 | AUD-34 | Low | Bug | Log sanitizer leaves `\r` from CRLF; escape sequences split across chunks leak | fixed (P11-11) |
-| AUD-35 | Low | Docs | `CLAUDE.md` §1 still says "JWT bearer"; the backend actually uses `x-auth-token` | open |
+| AUD-35 | Low | Docs | `CLAUDE.md` §1 still says "JWT bearer"; the backend actually uses `x-auth-token` | fixed (P12-11) |
 | AUD-37 | High | Bug | A duplicate parameterized trigger (Jenkins `303`, merged into the queued build) is reported as a failure | fixed (P11-04) |
 | AUD-38 | High | Bug | Triggering a job with a Run parameter from the untouched form fails (empty value → Jenkins `500`) | fixed (P11-06) |
 | AUD-39 | High | Bug | Cancelling a *pipeline* build reports failure (Jenkins answers the stop with a 302) | fixed (P11-13) |
@@ -476,7 +476,8 @@ are cross-referenced instead of being fixed twice.
   P11-11.
 - **AUD-35 — Doc drift:** `CLAUDE.md` §1 says the backend uses "JWT bearer",
   but it actually reads `x-auth-token` (see `backend_api_client.dart` doc
-  comment). Fix: correct `CLAUDE.md` §1.
+  comment). Fix: correct `CLAUDE.md` §1. **Fixed (P12-11):** also in
+  `api-reference.md` §1 and `architecture.md` §2.
 - **AUD-36 — Workspace leftovers:** 1.2 GB `JobTrigger-Frontend/build/`,
   `coverage/` in both packages, a stray `.DS_Store`, an unrelated
   `.github/modernize/java-upgrade/` tool directory (there is no Java in this
