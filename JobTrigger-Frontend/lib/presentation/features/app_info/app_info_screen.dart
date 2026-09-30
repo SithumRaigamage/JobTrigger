@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import '../../../core/error/error_message.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/external_link.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import 'app_info_notifier.dart';
 
 /// Ported from `AppInfoView.swift` — see `docs/state-management.md`'s
-/// `AppInfoNotifier` entry. Links open externally via `url_launcher`,
-/// matching the old app's `openURL` environment action exactly.
+/// `AppInfoNotifier` entry. Links open externally (`openExternalLink`),
+/// matching the old app's `openURL` environment action, plus a toast when
+/// nothing can open them (AUD-22).
 class AppInfoScreen extends ConsumerWidget {
   const AppInfoScreen({super.key});
 
@@ -58,19 +58,19 @@ class AppInfoScreen extends ConsumerWidget {
                       ListTile(
                         leading: const Icon(Icons.shield_outlined),
                         title: const Text('Privacy Policy'),
-                        onTap: () => _open(info.privacyPolicyUrl!),
+                        onTap: () => _open(ref, info.privacyPolicyUrl!),
                       ),
                     if (info.termsOfServiceUrl != null)
                       ListTile(
                         leading: const Icon(Icons.description_outlined),
                         title: const Text('Terms of Service'),
-                        onTap: () => _open(info.termsOfServiceUrl!),
+                        onTap: () => _open(ref, info.termsOfServiceUrl!),
                       ),
                     if (info.openSourceLicensesUrl != null)
                       ListTile(
                         leading: const Icon(Icons.account_balance_outlined),
                         title: const Text('Open Source Licenses'),
-                        onTap: () => _open(info.openSourceLicensesUrl!),
+                        onTap: () => _open(ref, info.openSourceLicensesUrl!),
                       ),
                     if (info.supportEmail != null)
                       ListTile(
@@ -80,7 +80,7 @@ class AppInfoScreen extends ConsumerWidget {
                           'For feedback or issues, please contact our '
                           'support team.',
                         ),
-                        onTap: () => _open('mailto:${info.supportEmail}'),
+                        onTap: () => _open(ref, 'mailto:${info.supportEmail}'),
                       ),
                   ],
                 ),
@@ -100,11 +100,9 @@ class AppInfoScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _open(String urlString) async {
+  Future<void> _open(WidgetRef ref, String urlString) async {
     final uri = Uri.tryParse(urlString);
     if (uri == null) return;
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    await openExternalLink(ref, uri);
   }
 }

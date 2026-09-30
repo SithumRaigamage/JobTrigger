@@ -58,7 +58,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-19 | Medium | Bug | Folders at the tree depth limit render as jobs (5 levels fetched, docs say 6) | fixed (P11-05) |
 | AUD-20 | Medium | Performance | Home fetches the whole recursive tree (all levels, with `lastBuild`) on every load | fixed (P11-05) |
 | AUD-21 | Medium | Bug / Performance | Artifact download buffers the whole file in memory with a 15s timeout | open |
-| AUD-22 | Medium | Bug | App Info links do nothing on Android 11+ (`canLaunchUrl` without `<queries>`) | open |
+| AUD-22 | Medium | Bug | App Info links do nothing on Android 11+ (`canLaunchUrl` without `<queries>`) | fixed (P12-07) |
 | AUD-23 | Medium | Bug (backend) | Credential `PUT` skips validators and never updates `updatedAt` | open |
 | AUD-24 | Medium | Security (backend) | Ownership failures return 401 (enables id probing); `isDefault` switch not atomic | open |
 | AUD-25 | Medium | Security (backend) | Wide-open CORS, no security headers, no fail-fast on missing `JWT_SECRET` | open |
@@ -342,6 +342,11 @@ are cross-referenced instead of being fixed twice.
   so the tap does nothing.
 - **Fix:** Add `<queries>` intents for `VIEW https` and `SENDTO mailto`, and
   show a toast if launching still fails.
+- **Fixed (P12-07, 2026-09-30):** `<queries>` for `VIEW https`, `VIEW http`
+  (a LAN Jenkins' token page), and `SENDTO mailto`. Every external link
+  now goes through `openExternalLink`. It tries `launchUrl` directly
+  (a `canLaunchUrl` pre-check was part of the bug) and shows "Couldn't
+  open link" when nothing handled it.
 
 ### AUD-23 — Credential updates skip validation (backend track)
 

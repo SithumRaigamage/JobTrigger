@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import '../../../domain/credential/token_hygiene.dart';
+import '../../common_widgets/external_link.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/toast_controller.dart';
 import 'server_form_notifier.dart';
@@ -304,13 +304,13 @@ class _TestConnectionStatus extends StatelessWidget {
 
 /// US-JX-22: a non-blocking nudge towards a revocable API token when the
 /// secret looks like an account password.
-class _PasswordAdvisory extends StatelessWidget {
+class _PasswordAdvisory extends ConsumerWidget {
   const _PasswordAdvisory({required this.jenkinsUrl});
 
   final String jenkinsUrl;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final url = Uri.tryParse(jenkinsUrl.trim());
     final canLink = url != null && url.hasScheme && url.host.isNotEmpty;
@@ -336,9 +336,9 @@ class _PasswordAdvisory extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       visualDensity: VisualDensity.compact,
                     ),
-                    onPressed: () => launchUrl(
+                    onPressed: () => openExternalLink(
+                      ref,
                       jenkinsTokenPageUrl(jenkinsUrl.trim()),
-                      mode: LaunchMode.externalApplication,
                     ),
                     child: const Text('Create an API token'),
                   ),
