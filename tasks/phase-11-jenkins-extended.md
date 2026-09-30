@@ -515,9 +515,14 @@ their approvals don't block the rest.
 - [ ] P11-26 **US-JX-23 home-screen widget:** an app-written snapshot of
       pinned jobs (no secrets), an iOS WidgetKit extension, an Android
       AppWidget, and deep-link taps. **New dependency: `home_widget`.**
-- [ ] P11-27 **US-JX-16 replay with an edited script.** Verification-gated:
+- [x] P11-27 **US-JX-16 replay with an edited script.** Verification-gated:
       prove the form contract on the fixture first. If it can't be driven
       without scraping HTML, close as won't-do and record why in the story.
+      *Closed as won't-do 2026-09-30:* submitting is scriptable (302,
+      "Replayed #N"), but the original script exists only in the
+      `replay/` page's HTML textarea, with no JSON source. Reasons and
+      evidence are recorded in the story and in `api-reference.md`. No code
+      shipped.
 
 ## Close-out
 

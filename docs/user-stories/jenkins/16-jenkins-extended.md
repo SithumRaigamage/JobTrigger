@@ -675,6 +675,20 @@ So that I can spot a degrading pipeline
 
 ### US-JX-16 — Replay with an edited pipeline script
 
+> **Status: won't-do (closed by its verification gate, P11-27,
+> 2026-09-30).** Verified on the fixture Jenkins (2.568.3): submitting is
+> scriptable (`POST {build}replay/run` with `_.mainScript` and the Stapler
+> `json` body returns 302 and the run logs "Replayed #N"). But the build's
+> original script, which the "Load script" scenario needs, is only
+> available as the `_.mainScript` `<textarea>` in the `replay/` HTML page:
+> `replay/api/json`, `api/xml`, and the build's `actions` expose nothing.
+> The app would have to scrape HTML, which breaks across Jenkins versions
+> and themes, so the gate's won't-do branch applies. A secondary problem:
+> the 302 points at the job, not the new build, so "taken to the new build"
+> could only guess at `lastBuild`. Replay with the *same* parameters
+> (US-PIPE-08) is unaffected. Revisit if Jenkins adds a JSON endpoint for
+> the replay script.
+
 **Priority:** Could
 **Source:** new — report item D#19
 **Dependencies:** US-PIPE-08, US-JX-14
