@@ -893,7 +893,11 @@ class _FailingTestTile extends StatelessWidget {
     final trace = test.stackTrace;
     return ExpansionTile(
       tilePadding: EdgeInsets.zero,
-      leading: const Icon(Icons.cancel, color: AppColors.buildFailure, size: 20),
+      leading: const Icon(
+        Icons.cancel,
+        color: AppColors.buildFailure,
+        size: 20,
+      ),
       title: Text(test.name),
       subtitle: Text(
         [if (test.isNewFailure) 'New failure', ?test.className].join(' · '),
