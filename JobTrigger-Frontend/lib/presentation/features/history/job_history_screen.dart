@@ -11,6 +11,7 @@ import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../settings/active_server_notifier.dart';
+import 'build_trends_card.dart';
 import 'history_tile.dart';
 import 'job_history_pages_notifier.dart';
 import 'replay_sheet.dart';
@@ -85,7 +86,18 @@ class _HistoryList extends ConsumerWidget {
           // Filter row, the builds, then one footer row.
           itemCount: builds.length + 2,
           itemBuilder: (context, index) {
-            if (index == 0) return _FilterRow(jobUrl: job.url);
+            if (index == 0) {
+              return Column(
+                children: [
+                  // US-JX-15, over everything loaded (not the filter).
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                    child: BuildTrendsCard(builds: pages.builds),
+                  ),
+                  _FilterRow(jobUrl: job.url),
+                ],
+              );
+            }
             if (index == builds.length + 1) {
               return _Footer(
                 pages: pages,

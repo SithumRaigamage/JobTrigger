@@ -394,8 +394,17 @@ their approvals don't block the rest.
         its controller during the close animation. It now owns the
         controller.
       - **Tests:** 7 unit and widget tests, plus 1 fixture test.
-- [ ] P11-19 **US-JX-15 build trends:** a pure stats function and a
+- [x] P11-19 **US-JX-15 build trends:** a pure stats function and a
       `CustomPaint` sparkline (no new dependency).
+      **Done 2026-09-30.**
+      - **Stats:** a pure `buildTrends` gives success rate, average, and
+        nearest-rank p90 over the newest 20 or 50 finished builds. Running
+        builds are skipped and UNSTABLE doesn't count as success.
+      - **Card:** `BuildTrendsCard` at the top of job history, with a
+        20/50 window, a duration sparkline where failures are marked ✕ (a
+        shape, not only a color), and a semantics label for screen
+        readers. It shows "Not enough builds" below 5.
+      - **Tests:** 6.
 - [ ] P11-20 **US-JX-12 nodes and executors:** list, drill-down, and
       temporarily-offline toggle with a reason, with permission handling.
 - [ ] P11-21 **US-JX-17 views:** view picker, view-scoped Home, and
