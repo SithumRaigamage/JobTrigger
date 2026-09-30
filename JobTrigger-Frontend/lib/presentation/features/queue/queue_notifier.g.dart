@@ -42,7 +42,7 @@ final class QueueNotifierProvider
   QueueNotifier create() => QueueNotifier();
 }
 
-String _$queueNotifierHash() => r'5f7b29531d0f9a3f8892ad9a19d04c65690ea723';
+String _$queueNotifierHash() => r'5cb6d0b2d50c88579c9db720a0dbdfa035717c80';
 
 /// US-JX-09: the server-wide build queue, refreshed every [_refreshEvery]
 /// while the queue screen is open. The timer is cancelled on dispose; a

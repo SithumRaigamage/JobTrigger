@@ -22,6 +22,7 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
+import '../home/pinned_jobs_notifier.dart';
 import 'artifact_download_notifier.dart';
 import 'build_status_polling_notifier.dart';
 import 'cancel_build_notifier.dart';
@@ -75,6 +76,21 @@ class JobDetailScreen extends ConsumerWidget {
       appBar: GlassAppBar(
         title: Text(job.label),
         actions: [
+          // US-JX-11: pin to the top of Home.
+          IconButton(
+            icon: Icon(
+              ref.watch(
+                    pinnedJobsNotifierProvider.select(
+                      (pins) => pins.any((pin) => pin.url == job.url),
+                    ),
+                  )
+                  ? Icons.push_pin
+                  : Icons.push_pin_outlined,
+            ),
+            tooltip: 'Pin to Home',
+            onPressed: () =>
+                ref.read(pinnedJobsNotifierProvider.notifier).toggle(job),
+          ),
           IconButton(
             icon: const Icon(Icons.history),
             tooltip: 'History',

@@ -19,6 +19,7 @@ import '../settings/active_server_notifier.dart';
 import 'folder_breadcrumb_notifier.dart';
 import 'job_search_notifier.dart';
 import 'multibranch_notifiers.dart';
+import 'pinned_jobs_notifier.dart';
 import 'visible_jobs_provider.dart';
 
 /// Ported from `HomeView.swift`. Doesn't port the swipe-to-trigger-build
@@ -105,6 +106,10 @@ class HomeScreen extends ConsumerWidget {
                 child: visibleJobs.when(
                   data: (jobs) => _JobListView(
                     jobs: jobs,
+                    // Pins sit above the root list only (US-JX-11).
+                    showPins:
+                        breadcrumb.isEmpty &&
+                        ref.watch(jobSearchNotifierProvider).isEmpty,
                     // Branch/PR/tag sections only when browsing (not
                     // searching) inside a multibranch project.
                     multibranch:
@@ -230,9 +235,14 @@ class _BreadcrumbHeader extends ConsumerWidget {
 }
 
 class _JobListView extends ConsumerWidget {
-  const _JobListView({required this.jobs, this.multibranch});
+  const _JobListView({
+    required this.jobs,
+    this.multibranch,
+    this.showPins = false,
+  });
 
   final List<JenkinsJob> jobs;
+  final bool showPins;
 
   /// The multibranch project being browsed, if any: its jobs are grouped
   /// into branch / pull request / tag sections (US-JX-03).
@@ -242,7 +252,9 @@ class _JobListView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final query = ref.watch(jobSearchNotifierProvider);
 
-    if (jobs.isEmpty) {
+    final hasPins =
+        showPins && ref.watch(pinnedJobsNotifierProvider).isNotEmpty;
+    if (jobs.isEmpty && !hasPins) {
       // Still pull-to-refreshable: an empty folder may just be stale
       // (AUD-33).
       return RefreshIndicator(
@@ -266,7 +278,13 @@ class _JobListView extends ConsumerWidget {
     final kinds = project == null
         ? null
         : ref.watch(branchKindsProvider(project.url)).value;
-    final items = kinds == null ? jobs : _grouped(jobs, kinds);
+    final pins = showPins
+        ? ref.watch(pinnedJobsNotifierProvider)
+        : const <PinnedJob>[];
+    final List<Object> items = [
+      if (pins.isNotEmpty) ...['Pinned', ...pins, 'All jobs'],
+      ...(kinds == null ? jobs : _grouped(jobs, kinds)),
+    ];
 
     return RefreshIndicator(
       onRefresh: () => refreshVisibleJobs(ref),
@@ -279,6 +297,10 @@ class _JobListView extends ConsumerWidget {
         ),
         itemCount: items.length,
         itemBuilder: (context, index) => switch (items[index]) {
+          final PinnedJob pin => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _PinnedTile(pin: pin),
+          ),
           final JenkinsJob job => Padding(
             padding: const EdgeInsets.only(bottom: 8),
             // Search spans every folder, so say where each result lives
@@ -411,6 +433,33 @@ class _JobTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final pinned = ref.watch(
+      pinnedJobsNotifierProvider.select(
+        (pins) => pins.any((pin) => pin.url == job.url),
+      ),
+    );
+    // Long-press pins or unpins a job (US-JX-11); folders aren't pinnable.
+    return GestureDetector(
+      onLongPress: job.isFolder ? null : () => _togglePin(context, ref),
+      child: _tile(context, ref, pinned),
+    );
+  }
+
+  Future<void> _togglePin(BuildContext context, WidgetRef ref) async {
+    final nowPinned = await ref
+        .read(pinnedJobsNotifierProvider.notifier)
+        .toggle(job);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          nowPinned ? 'Pinned ${job.label}' : 'Unpinned ${job.label}',
+        ),
+      ),
+    );
+  }
+
+  Widget _tile(BuildContext context, WidgetRef ref, bool pinned) {
     return GlassSurface.card(
       padding: const EdgeInsets.all(12),
       onTap: () {
@@ -521,12 +570,83 @@ class _JobTile extends ConsumerWidget {
               ],
             ),
           ),
+          if (pinned)
+            const Padding(
+              padding: EdgeInsets.only(right: 4),
+              child: Icon(Icons.push_pin, size: 16, semanticLabel: 'Pinned'),
+            ),
           Icon(
             Icons.chevron_right,
             size: 18,
             color: Theme.of(
               context,
             ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A pinned job with its live status, or "Not found" and a remove action
+/// when the job no longer exists (US-JX-11).
+class _PinnedTile extends ConsumerWidget {
+  const _PinnedTile({required this.pin});
+
+  final PinnedJob pin;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(pinnedJobStatusProvider(pin.url));
+    final textTheme = Theme.of(context).textTheme;
+    final job = status.value;
+    final missing = status.hasValue && job == null;
+    return GlassSurface.card(
+      padding: const EdgeInsets.all(12),
+      onTap: job == null
+          ? null
+          : () => context.push(AppRoutes.jobDetail, extra: job),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 44,
+            height: 44,
+            child: Center(
+              child: status.isLoading && !status.hasValue
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : missing
+                  ? const Icon(Icons.link_off, semanticLabel: 'Not found')
+                  : StatusIndicator(color: job?.color),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(pin.label, style: textTheme.bodyMedium),
+                Text(
+                  missing
+                      ? 'Not found — it may have been deleted or renamed'
+                      : status.hasError
+                      ? describeError(status.error!)
+                      : job?.lastBuild == null
+                      ? 'No builds'
+                      : '#${job!.lastBuild!.number}',
+                  style: textTheme.labelSmall,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.push_pin),
+            tooltip: 'Unpin ${pin.label}',
+            onPressed: () =>
+                ref.read(pinnedJobsNotifierProvider.notifier).unpin(pin.url),
           ),
         ],
       ),

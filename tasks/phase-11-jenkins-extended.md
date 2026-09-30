@@ -338,9 +338,19 @@ their approvals don't block the rest.
         or password" with autocorrect and suggestions off.
       - **Settings:** a "Uses a password" note on the server row.
       - **Tests:** 5.
-- [ ] P11-15 **US-JX-11 pinned jobs:** per-server pins in
+- [x] P11-15 **US-JX-11 pinned jobs:** per-server pins in
       `shared_preferences`, a Pinned section on Home, and stale-pin
       handling.
+      **Done 2026-09-30.**
+      - **State:** `PinnedJobsNotifier` stores URL and label per server
+        id, reloads on server switch, and drops corrupt entries.
+        `pinnedJobStatus(url)` provides live status, with a 404 meaning a
+        stale pin.
+      - **Home:** a "Pinned" section above "All jobs" at the root, with a
+        stale-pin "Not found" row and an unpin action. Long-pressing a job
+        tile pins it, with a snackbar, and a pin mark shows on the tile.
+      - **Job detail:** a pin toggle in the app bar.
+      - **Tests:** 4.
 - [ ] P11-16 **US-JX-18 server status:** version from the `X-Jenkins`
       header, a quiet-down banner, and an outdated-version note.
 - [ ] P11-17 **US-JX-13 enable or disable a job:** `buildable` badge,

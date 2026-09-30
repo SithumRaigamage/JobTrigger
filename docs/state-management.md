@@ -87,6 +87,10 @@ their screen under `presentation/features/<feature>/`.
   from current data (AUD-10). It watches the active server id, so a server
   switch resets it to the root.
 - `JobSearchNotifier` (`Notifier<String>`) holds the search query.
+- `PinnedJobsNotifier` (`Notifier<List<PinnedJob>>`, US-JX-11) holds
+  URL and label pins per active server id in `shared_preferences`, and
+  reloads when the server changes. `pinnedJobStatusProvider(url)` gives a
+  pin's live job, or null on 404, meaning a stale pin.
 - `branchKindsProvider(projectUrl)` (`FutureProvider`) classifies a
   multibranch project's jobs as branch, PR, or tag, and is watched only
   while Home is inside that project (US-JX-03).
