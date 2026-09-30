@@ -9,6 +9,7 @@ import '../../../data/cache/job_tree_cache.dart';
 import '../../../data/models/auth/user_dto.dart';
 import '../../../domain/auth/auth_state.dart';
 import '../../../domain/auth/user.dart';
+import '../../../core/platform/home_widget_bridge.dart';
 
 part 'auth_notifier.g.dart';
 
@@ -72,6 +73,8 @@ class AuthNotifier extends _$AuthNotifier {
     } on Object {
       // Best effort: the OS may already have purged the cache directory.
     }
+    // US-JX-23: nor on the home screen.
+    await ref.read(homeWidgetBridgeProvider).clear();
     state = const AsyncData(Unauthenticated());
   }
 

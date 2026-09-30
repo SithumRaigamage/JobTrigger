@@ -12,6 +12,7 @@ import 'presentation/navigation/app_routes.dart';
 import 'core/platform/notification_service.dart';
 import 'domain/jenkins/jenkins_job.dart';
 import 'presentation/features/app_lock/app_lock_gate.dart';
+import 'presentation/features/home_widget/home_widget_sync.dart';
 import 'presentation/features/notifications/build_watch_notifier.dart';
 
 void main() {
@@ -28,6 +29,8 @@ class MyApp extends ConsumerWidget {
     // open the job when a build notification is tapped.
     ref
       ..watch(buildWatchNotifierProvider)
+      // US-JX-23: keep the home-screen widget's snapshot current.
+      ..watch(homeWidgetSyncProvider)
       ..listen(notificationTapsProvider, (_, next) {
         if (next case AsyncData(:final value)) {
           final segments = Uri.tryParse(value)?.pathSegments ?? const [];

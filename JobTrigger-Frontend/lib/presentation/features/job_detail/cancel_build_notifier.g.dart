@@ -69,7 +69,7 @@ final class CancelBuildNotifierProvider
 }
 
 String _$cancelBuildNotifierHash() =>
-    r'bc1041e6dd7918a120186dfa8ec57327b97b7180';
+    r'692f5b400c9265fafbf745bf15ed021071728ec3';
 
 /// POST `{buildNumber}/stop` + optimistic local flip to `ABORTED`
 /// (`JobDetailNotifier.applyOptimisticCancel`), reconciled by the next poll

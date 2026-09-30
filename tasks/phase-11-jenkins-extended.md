@@ -512,9 +512,27 @@ their approvals don't block the rest.
       snapshot can race Flutter's frame, and `FLAG_SECURE` was not used
       because it would also block screenshots users take on purpose. Not
       yet verified on a device.
-- [ ] P11-26 **US-JX-23 home-screen widget:** an app-written snapshot of
+- [x] P11-26 **US-JX-23 home-screen widget:** an app-written snapshot of
       pinned jobs (no secrets), an iOS WidgetKit extension, an Android
       AppWidget, and deep-link taps. **New dependency: `home_widget`.**
+      *Done 2026-09-30:* the app writes a snapshot (label, deep link,
+      status and its text, last build number and time, updated-at) whenever
+      pinned statuses refresh, but only while signed in, and clears it on
+      logout. iOS: a `PinnedJobsWidget` WidgetKit extension target (small
+      shows 2 rows and opens the app, since a small widget is one tap
+      target; medium shows 4 rows, each linking to its job), embedded
+      before Flutter's Thin Binary phase to avoid the known build cycle, and
+      App Group entitlements on both targets. Android:
+      `PinnedJobsWidgetProvider` (2 rows when short, 4 when resized taller;
+      each row opens its job through `jobtrigger://app/open`), with
+      light/dark colors. Both debug builds pass, and the simulator app
+      embeds the extension with the App Group entitlement. **Manual step
+      before a device or release build:** the App Group
+      `group.Sraig.Lab-Trigger-frontend` must exist on team QRCA2Z2HYQ.
+      Xcode's automatic signing registers it when you open the project
+      signed in to that team. Not yet verified on a device.
+      Background-task refresh (US-JX-10) doesn't write the snapshot: the
+      widget updates whenever the app refreshes the pins.
 - [x] P11-27 **US-JX-16 replay with an edited script.** Verification-gated:
       prove the form contract on the fixture first. If it can't be driven
       without scraping HTML, close as won't-do and record why in the story.

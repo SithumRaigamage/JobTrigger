@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- US-JX-23 widget colors, AppColors' dark palette (secondary
+     lightened for contrast on the small widget text). -->
+<resources>
+    <color name="widget_background">#FF0F172A</color>
+    <color name="widget_text">#FFF1F5F9</color>
+    <color name="widget_secondary">#FFCBD5E1</color>
+    <color name="widget_accent">#FF4DA3FF</color>
+</resources>

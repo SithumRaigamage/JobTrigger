@@ -69,7 +69,7 @@ final class InputSubmitNotifierProvider
 }
 
 String _$inputSubmitNotifierHash() =>
-    r'be3c20746d5de94f0af43c10beced6bc482d57db';
+    r'907af8367482d7a7f926aefcc98daf0ee6604dc7';
 
 /// US-PIPE-05. Family-keyed by build URL. Approves/rejects a paused input
 /// step — see `JenkinsRepository.submitInput`'s doc comment for the

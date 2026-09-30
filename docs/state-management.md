@@ -173,6 +173,19 @@ their screen under `presentation/features/<feature>/`.
 - `BiometricService` (`core/platform`) wraps `local_auth` and maps its
   exceptions to `AuthOutcome`, so no plugin types reach the notifier.
 
+## Feature: home_widget (P11-26)
+
+- `homeWidgetSyncProvider` (keepAlive, US-JX-23, watched from `main.dart`)
+  does nothing until the user is signed in, because watching the pins
+  builds the active server, which must not rehydrate before login. Once
+  signed in, it watches `pinnedJobsNotifierProvider` and each pin's
+  `pinnedJobStatusProvider`. Watching them keeps them fetched while the
+  app runs, and every change rebuilds the snapshot (`buildWidgetSnapshot`,
+  domain: at most four jobs, status spelled out, deep links) and writes it
+  through `HomeWidgetBridge` (`core/platform`, which wraps `home_widget`). A cold
+  start with nothing loaded yet keeps the previous snapshot.
+  `AuthNotifier.logout` clears it.
+
 ## Rules of thumb
 
 - If two screens need the same server-derived state, don't duplicate the

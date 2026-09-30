@@ -57,7 +57,7 @@ final class JobEnabledNotifierProvider
 }
 
 String _$jobEnabledNotifierHash() =>
-    r'3d32e8bbd4ce6b2e77c5c8efd60fe1996479ffdf';
+    r'90934e1bcb67eb5aaf7b78f67678d1e2f991a891';
 
 /// US-JX-13: enables or disables a job, then refreshes its detail so the
 /// badge and Trigger button follow the server's real state.

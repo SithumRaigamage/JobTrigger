@@ -39,7 +39,7 @@ final class NodesNotifierProvider
   NodesNotifier create() => NodesNotifier();
 }
 
-String _$nodesNotifierHash() => r'349ce191f19f12713167c95555bdb665cd10b113';
+String _$nodesNotifierHash() => r'62f0bc60ee787321a7d1b3017ef4a9c0ce8399ad';
 
 /// US-JX-12: nodes and their executors, refreshed every [_refreshEvery]
 /// while the screen is open. The timer is cancelled on dispose.
