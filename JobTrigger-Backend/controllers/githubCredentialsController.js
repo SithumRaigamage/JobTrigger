@@ -1,16 +1,16 @@
 const mongoose = require('mongoose');
 const GitHubCredential = require('../models/GitHubCredential');
 
-exports.getCredentials = async (req, res) => {
+exports.getCredentials = async (req, res, next) => {
   try {
     const credentials = await GitHubCredential.find({ userId: req.user.id });
     res.json(credentials);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    next(err);
   }
 };
 
-exports.addCredential = async (req, res) => {
+exports.addCredential = async (req, res, next) => {
   try {
     const { label, token, defaultOwner, isDefault } = req.body;
 
@@ -31,13 +31,16 @@ exports.addCredential = async (req, res) => {
     res.status(201).json(credential);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(400).json({ message: 'Invalid credential data', error: err.message });
+      return res.status(400).json({
+        message: 'Invalid credential data',
+        fields: Object.keys(err.errors ?? {}),
+      });
     }
-    res.status(500).json({ message: 'Server error', error: err.message });
+    next(err);
   }
 };
 
-exports.updateCredential = async (req, res) => {
+exports.updateCredential = async (req, res, next) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: 'Invalid credential id' });
@@ -66,11 +69,11 @@ exports.updateCredential = async (req, res) => {
 
     res.json(credential);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    next(err);
   }
 };
 
-exports.deleteCredential = async (req, res) => {
+exports.deleteCredential = async (req, res, next) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: 'Invalid credential id' });
@@ -87,12 +90,12 @@ exports.deleteCredential = async (req, res) => {
     await GitHubCredential.findByIdAndDelete(req.params.id);
     res.json({ message: 'Credential removed' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    next(err);
   }
 };
 
 // Set a GitHub credential as the active/default one for the user
-exports.setActiveCredential = async (req, res) => {
+exports.setActiveCredential = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -109,6 +112,6 @@ exports.setActiveCredential = async (req, res) => {
     await credential.save();
     res.json(credential);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    next(err);
   }
 };

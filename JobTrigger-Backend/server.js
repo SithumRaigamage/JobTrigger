@@ -1,7 +1,11 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
 require('dotenv').config();
+
+const { corsOrigins, missingConfig } = require('./config/env');
+const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 // AUD-04: defence in depth. Query filters built from request data treat
 // `$`-operators as literal values, so `{"$gt": ""}` can't match every row
@@ -11,7 +15,11 @@ mongoose.set('sanitizeFilter', true);
 const app = express();
 
 // Middleware
-app.use(cors());
+// AUD-25: security headers, and CORS only for origins listed in
+// CORS_ORIGINS (none by default; the mobile app doesn't need CORS).
+app.use(helmet());
+const origins = corsOrigins();
+app.use(cors({ origin: origins.length > 0 ? origins : false }));
 app.use(express.json());
 
 // Routes
@@ -32,8 +40,19 @@ app.get('/healthz', (req, res) => {
   res.status(up ? 200 : 503).json({ status: up ? 'ok' : 'unavailable' });
 });
 
+// AUD-06: after every route. JSON 404s, and errors logged server-side
+// with a generic body to the client.
+app.use(notFound);
+app.use(errorHandler);
+
 // Database Connection (start server after DB connection)
 async function startServer() {
+  // AUD-25: refuse to start half-configured rather than fail per request.
+  const missing = missingConfig();
+  if (missing.length > 0) {
+    console.error(`Missing required configuration: ${missing.join(', ')}`);
+    process.exit(1);
+  }
   try {
     await mongoose.connect(process.env.MONGODB_URI, { dbName: 'jobtrigger' });
     console.log('Connected to MongoDB');

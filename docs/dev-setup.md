@@ -121,7 +121,15 @@ PORT=5001
 
 # JWT secret for auth tokens
 JWT_SECRET=supersecretjwtkey_123456
+
+# Optional: browser origins allowed by CORS, comma-separated. Leave unset
+# for the mobile app, which sends no Origin and needs no CORS.
+# CORS_ORIGINS=https://admin.example.com
 ```
+
+`JWT_SECRET` and `MONGODB_URI` are required: without either, the server
+prints `Missing required configuration: …` and exits instead of starting
+(AUD-25).
 
 > ⚠️ Never commit `.env` to git — credentials stay private
 

@@ -99,10 +99,12 @@ file lists them.
       apply only at signup, so older accounts can still log in. 7 new
       mocha tests (67 passing); the "at least 6" test moves to 8 with the
       policy.
-- [ ] P12-23 **AUD-06 and AUD-25.** A central error handler (log
+- [x] P12-23 **AUD-06 and AUD-25.** A central error handler (log
       server-side, return a generic body), a CORS allow-list from env,
       `helmet` (**new backend dependency**), and fail-fast on missing
-      `JWT_SECRET` or `MONGODB_URI`.
+      `JWT_SECRET` or `MONGODB_URI`. *Done 2026-09-30:* plus JSON 404s and
+      a 400 for malformed JSON. `CORS_ORIGINS` is documented in
+      `dev-setup.md`. 8 new mocha tests (75 passing).
 - [ ] P12-24 **AUD-05.** `express-rate-limit` (**new backend dependency**)
       on `/api/auth/*`, returning 429. The client shows specific copy for
       `ServerFailure(429)`.

@@ -26,7 +26,7 @@ function readCredentials(req, res) {
   return { email: email.trim().toLowerCase(), password };
 }
 
-exports.signup = async (req, res) => {
+exports.signup = async (req, res, next) => {
   try {
     const credentials = readCredentials(req, res);
     if (!credentials) return;
@@ -58,11 +58,11 @@ exports.signup = async (req, res) => {
 
     res.status(201).json({ token, user: { _id: user._id, email: user.email } });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    next(err);
   }
 };
 
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
   try {
     // Type checks only: accounts created under older rules must still be
     // able to sign in.
@@ -87,6 +87,6 @@ exports.login = async (req, res) => {
 
     res.json({ token, user: { _id: user._id, email: user.email } });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    next(err);
   }
 };

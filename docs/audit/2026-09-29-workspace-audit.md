@@ -42,7 +42,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-03 | Critical | Security (backend) | Jenkins passwords and tokens, GitHub PATs, SonarQube tokens stored unencrypted in MongoDB | open |
 | AUD-04 | High | Security (backend) | NoSQL operator injection in `/api/auth/login` and `/signup` | fixed (P12-22) |
 | AUD-05 | High | Security (backend) | No rate limiting or lockout on login | open |
-| AUD-06 | High | Security (backend) | 500 responses leak internal `err.message` | open |
+| AUD-06 | High | Security (backend) | 500 responses leak internal `err.message` | fixed (P12-23) |
 | AUD-07 | High | Security (backend) | Vulnerable dependencies (`path-to-regexp` ReDoS, `mongoose`, `qs`) | fixed (P12-20) |
 | AUD-08 | High | UX / Safety | Trigger and Cancel fire with no confirmation, violating the Must criteria of US-JOB-02/03/05 | fixed (P11-04) |
 | AUD-09 | High | Bug | Global history uses duplicate `ValueKey`s when job names repeat across folders | fixed (P12-05) |
@@ -61,7 +61,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-22 | Medium | Bug | App Info links do nothing on Android 11+ (`canLaunchUrl` without `<queries>`) | fixed (P12-07) |
 | AUD-23 | Medium | Bug (backend) | Credential `PUT` skips validators and never updates `updatedAt` | open |
 | AUD-24 | Medium | Security (backend) | Ownership failures return 401 (enables id probing); `isDefault` switch not atomic | open |
-| AUD-25 | Medium | Security (backend) | Wide-open CORS, no security headers, no fail-fast on missing `JWT_SECRET` | open |
+| AUD-25 | Medium | Security (backend) | Wide-open CORS, no security headers, no fail-fast on missing `JWT_SECRET` | fixed (P12-23) |
 | AUD-26 | Medium | Security (backend) | Weak password policy, no server-side email validation, 7-day JWT with no revocation | open |
 | AUD-27 | Medium | Security / UX | Password build parameters rendered in plaintext and pre-filled | fixed (P11-04) |
 | AUD-28 | Low | Privacy | Logout leaves per-user preferences behind on a shared device | fixed (P12-09) |
@@ -162,6 +162,12 @@ are cross-referenced instead of being fixed twice.
   internals, stack-derived text) reach the client.
 - **Fix:** Add a central error handler that logs server-side and returns a
   generic body. Keep the specific 400 validation messages.
+- **Fixed (P12-23, 2026-09-30):** `middleware/errorHandler.js`. Controllers
+  pass unexpected errors to `next(err)`, and the handler logs them and
+  returns `{"message": "Server error"}`. Malformed JSON returns 400,
+  unknown routes a JSON 404, and mongoose `ValidationError` a 400 listing
+  only the field names (controllers' own 400s keep their messages). Tests
+  check that an internal error's text never reaches the body.
 
 ### AUD-07 — Vulnerable backend dependencies (backend track)
 
@@ -406,6 +412,10 @@ are cross-referenced instead of being fixed twice.
 - **Fix:** Use an allow-list CORS origin from env (or disable it), add
   `helmet` (new dependency, needs approval), and validate required env at
   startup.
+- **Fixed (P12-23, 2026-09-30):** `helmet` (approved with the plan, on
+  2026-09-29). CORS is off unless `CORS_ORIGINS` lists origins. The server
+  exits with `Missing required configuration: …` when `JWT_SECRET` or
+  `MONGODB_URI` is missing or blank (verified: exit code 1).
 
 ### AUD-26 — Account security policy (backend track)
 
