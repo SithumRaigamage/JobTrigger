@@ -324,6 +324,30 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
   );
 
   @override
+  Future<Result<List<PipelineStep>?, AppFailure>> fetchStageSteps(
+    String buildUrl,
+    String stageId,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '${_withSlash(buildUrl)}execution/node/'
+      '${Uri.encodeComponent(stageId)}/wfapi/describe',
+    );
+    return PipelineStageDto.fromJson(response.data!).stepsToDomain();
+  }, recover: _notFoundAsNull);
+
+  @override
+  Future<Result<StepLog, AppFailure>> fetchStepLog(
+    String buildUrl,
+    String stepId,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '${_withSlash(buildUrl)}execution/node/'
+      '${Uri.encodeComponent(stepId)}/wfapi/log',
+    );
+    return StepLogDto.fromJson(response.data!).toDomain();
+  });
+
+  @override
   Future<Result<PendingInput?, AppFailure>> fetchPendingInput(
     String buildUrl,
   ) => guardRequest(

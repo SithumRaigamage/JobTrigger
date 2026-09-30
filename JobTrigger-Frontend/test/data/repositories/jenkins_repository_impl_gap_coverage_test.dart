@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/jenkins/branch_kind.dart';
+import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
@@ -263,6 +264,70 @@ void main() {
       expect(adapter.lastRequest?.queryParameters, {'delay': 0});
       expect(result, isA<Ok<void, dynamic>>());
     });
+  });
+
+  group('stage steps and logs (US-JX-04)', () {
+    test('fetchStageSteps reads stageFlowNodes', () async {
+      final adapter = _JsonResponseAdapter(200, {
+        'id': '26',
+        'name': 'Integration',
+        'status': 'FAILED',
+        'stageFlowNodes': [
+          {
+            'id': '30',
+            'name': 'Error signal',
+            'status': 'FAILED',
+            'parameterDescription': 'integration suite failed',
+          },
+        ],
+      });
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+
+      final result = await JenkinsRepositoryImpl(
+        dio,
+      ).fetchStageSteps('https://jenkins.test/job/p/5', '26');
+
+      expect(
+        adapter.lastRequest?.path,
+        'https://jenkins.test/job/p/5/execution/node/26/wfapi/describe',
+      );
+      final steps = (result as Ok<List<PipelineStep>?, dynamic>).value!;
+      expect(steps.single.name, 'Error signal');
+      expect(steps.single.isFailed, isTrue);
+      expect(steps.single.description, 'integration suite failed');
+    });
+
+    test('fetchStageSteps is Ok(null) on 404 (no Pipeline REST API)', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = _JsonResponseAdapter(404, const {});
+
+      final result = await JenkinsRepositoryImpl(
+        dio,
+      ).fetchStageSteps('https://jenkins.test/job/p/5', '26');
+
+      expect((result as Ok<List<PipelineStep>?, dynamic>).value, isNull);
+    });
+
+    test(
+      'fetchStepLog tolerates the missing text key of an empty log',
+      () async {
+        final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+          ..httpClientAdapter = _JsonResponseAdapter(200, {
+            'nodeId': '30',
+            'length': 0,
+            'hasMore': false,
+          });
+
+        final result = await JenkinsRepositoryImpl(
+          dio,
+        ).fetchStepLog('https://jenkins.test/job/p/5', '30');
+
+        final log = (result as Ok<StepLog, dynamic>).value;
+        expect(log.text, isEmpty);
+        expect(log.hasMore, isFalse);
+      },
+    );
   });
 
   group('JenkinsRepositoryImpl.fetchJobDetail', () {

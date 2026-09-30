@@ -30,6 +30,8 @@ import 'parameter_form.dart';
 import 'pending_input_notifier.dart';
 import 'pipeline_stages_notifier.dart';
 import 'queue_status_notifier.dart';
+import 'stage_detail_sheet.dart';
+import 'stage_status_style.dart';
 import 'test_report_notifier.dart';
 import 'trigger_build_notifier.dart';
 
@@ -599,7 +601,11 @@ class _LastBuildCard extends StatelessWidget {
             ],
             if (pipelineStages != null && pipelineStages!.isNotEmpty) ...[
               const SizedBox(height: 8),
-              _StageChipRow(stages: pipelineStages!, onTap: onViewLog),
+              _StageChipRow(
+                buildUrl: lastBuild.url,
+                stages: pipelineStages!,
+                onViewLog: onViewLog,
+              ),
             ],
             if (testReport != null) ...[
               const SizedBox(height: 8),
@@ -687,66 +693,65 @@ class _UpstreamLink extends StatelessWidget {
   }
 }
 
-/// US-PIPE-04: a horizontally scrollable stage chip row. Tapping any chip
-/// opens the full console log (reuses `onViewLog`) rather than scrolling
-/// to that stage's exact log position — Jenkins' per-node log endpoint is
-/// a genuinely different mechanism from the progressive-text log already
-/// used everywhere else in this app, scoped out of this pass; flagged as
-/// a real, deliberate gap rather than attempted half-done.
+/// US-PIPE-04 / US-JX-04: one chip per stage, with parallel branches
+/// folded into their parent (`groupParallelStages`). Tapping a chip opens
+/// that stage's steps and logs.
 class _StageChipRow extends StatelessWidget {
-  const _StageChipRow({required this.stages, required this.onTap});
+  const _StageChipRow({
+    required this.buildUrl,
+    required this.stages,
+    required this.onViewLog,
+  });
 
+  final String buildUrl;
   final List<PipelineStage> stages;
-  final VoidCallback? onTap;
+  final VoidCallback? onViewLog;
 
   @override
   Widget build(BuildContext context) {
+    final nodes = groupParallelStages(stages);
     return SizedBox(
       height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: stages.length,
+        itemCount: nodes.length,
         separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final stage = stages[index];
+          final node = nodes[index];
           return ActionChip(
             avatar: Icon(
-              _iconForStageStatus(stage.status),
+              iconForStageStatus(node.status),
               size: 16,
-              color: _colorForStageStatus(stage.status),
+              color: colorForStageStatus(node.status),
             ),
             // Status is conveyed by icon shape + this label text, not
             // color alone (NFR-A11Y-03).
-            label: Text(stage.name),
-            onPressed: onTap,
+            label: Text(
+              node.branches.isEmpty
+                  ? node.stage.name
+                  : '${node.stage.name} ⫽${node.branches.length}',
+            ),
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              showDragHandle: true,
+              builder: (sheetContext) => StageDetailSheet(
+                buildUrl: buildUrl,
+                node: node,
+                onViewFullLog: onViewLog == null
+                    ? null
+                    : () {
+                        Navigator.of(sheetContext).pop();
+                        onViewLog!();
+                      },
+              ),
+            ),
           );
         },
       ),
     );
   }
 }
-
-/// Jenkins' pipeline stage `status` uses a different vocabulary than a
-/// build's classic `result` field (`FAILED` here vs `FAILURE` on
-/// `AppColors.forBuildResult`, plus pipeline-only states), so this can't
-/// reuse that mapping directly.
-Color _colorForStageStatus(String status) => switch (status.toUpperCase()) {
-  'SUCCESS' => AppColors.buildSuccess,
-  'FAILED' => AppColors.buildFailure,
-  'UNSTABLE' => AppColors.buildUnstable,
-  'IN_PROGRESS' => Colors.blue,
-  'PAUSED_PENDING_INPUT' => Colors.amber,
-  _ => AppColors.buildAborted, // NOT_EXECUTED, ABORTED, unrecognized.
-};
-
-IconData _iconForStageStatus(String status) => switch (status.toUpperCase()) {
-  'SUCCESS' => Icons.check_circle,
-  'FAILED' => Icons.cancel,
-  'IN_PROGRESS' => Icons.autorenew,
-  'PAUSED_PENDING_INPUT' => Icons.pause_circle,
-  'NOT_EXECUTED' => Icons.circle_outlined,
-  _ => Icons.circle,
-};
 
 /// US-PIPE-06: a compact pass/fail/skip summary; tapping it when there are
 /// failures shows the failing test names (a summary list, not full

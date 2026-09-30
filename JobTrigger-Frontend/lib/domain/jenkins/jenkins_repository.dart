@@ -113,6 +113,20 @@ abstract class JenkinsRepository {
     String buildUrl,
   );
 
+  /// `GET {buildUrl}execution/node/{stageId}/wfapi/describe` (US-JX-04): the
+  /// steps inside one stage. `Ok(null)` on 404, meaning no Pipeline REST
+  /// API, so the caller falls back to the full console.
+  Future<Result<List<PipelineStep>?, AppFailure>> fetchStageSteps(
+    String buildUrl,
+    String stageId,
+  );
+
+  /// `GET {buildUrl}execution/node/{stepId}/wfapi/log` (US-JX-04).
+  Future<Result<StepLog, AppFailure>> fetchStepLog(
+    String buildUrl,
+    String stepId,
+  );
+
   /// `GET {buildUrl}wfapi/pendingInputActions` (US-PIPE-05). Returns
   /// `Ok(null)` (not an [Err]) when nothing is paused — a normal state —
   /// or the first pending action when one or more exist (Jenkins can in

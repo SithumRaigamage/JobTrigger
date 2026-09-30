@@ -83,6 +83,18 @@ class FakeJenkinsRepository implements JenkinsRepository {
   ) => throw UnimplementedError('fetchPipelineStages');
 
   @override
+  Future<Result<List<PipelineStep>?, AppFailure>> fetchStageSteps(
+    String buildUrl,
+    String stageId,
+  ) => throw UnimplementedError('fetchStageSteps');
+
+  @override
+  Future<Result<StepLog, AppFailure>> fetchStepLog(
+    String buildUrl,
+    String stepId,
+  ) => throw UnimplementedError('fetchStepLog');
+
+  @override
   Future<Result<PendingInput?, AppFailure>> fetchPendingInput(
     String buildUrl,
   ) => throw UnimplementedError('fetchPendingInput');

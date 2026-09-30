@@ -221,9 +221,21 @@ Each task names the `AUD-##` ids it closes.
         indexing JSON API; X-More-Data signals a running scan.
       - **Not verifiable locally:** PR grouping needs a hosted SCM
         (GitHub/GitLab) branch source. It's covered by unit tests only.
-- [ ] P11-08 **US-JX-04 stage logs and parallel branches.** Stage sheet →
+- [x] P11-08 **US-JX-04 stage logs and parallel branches.** Stage sheet →
       steps → step log (live while running), auto-expand of the failed step,
       and fallback to the full console on 404.
+      **Done 2026-09-30.**
+      - **Stage sheet:** `StageDetailSheet` with steps as expansion tiles.
+        The first failed step opens with its log, and the stage's
+        `error.message` is shown.
+      - **Live updates:** `stageSteps` and `stepLog` providers refresh
+        every 2 s only while their stage or step is running.
+      - **Parallel stages:** `groupParallelStages` groups by overlapping
+        time, since the API flattens branches with no parent link
+        (verified). `StageNode.status` shows the worst branch, because
+        Jenkins reports the parent as SUCCESS.
+      - **Refactor:** stage status style moved to `stage_status_style.dart`.
+      - **Tests:** 11 unit and widget tests, plus 1 fixture test.
 - [ ] P11-09 **US-JX-05 last success, failure, and stable links** on job
       detail.
 - [ ] P11-10 **US-JX-06 history paging and filters, plus search context.**

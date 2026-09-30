@@ -75,8 +75,8 @@ against the fixture Jenkins (P11-02, `NFR-TEST-02`).
 | `{multibranchURL}api/json?tree=views[name,jobs[name]]` | GET | US-JX-03 branch/PR/tag grouping. Verified view names: `default` (branches), `tags`; `change-requests` for PRs | **implemented** (P11-07) |
 | `{multibranchURL}build?delay=0` | POST | US-JX-03 scan repository now. Returns **302** back to the project, which counts as success | **implemented** (P11-07) |
 | `{multibranchURL}indexing/logText/progressiveText` | GET | US-JX-03 scan status and log. There's **no** `indexing/api/json` (404). `X-More-Data` means a scan is running, the same contract as a build log | **implemented** (P11-07) |
-| `{buildURL}execution/node/{id}/wfapi/describe` | GET | US-JX-04 stage steps | planned |
-| `{buildURL}execution/node/{id}/wfapi/log` | GET | US-JX-04 step log (`text`, `hasMore`) | planned |
+| `{buildURL}execution/node/{id}/wfapi/describe` | GET | US-JX-04 stage steps (`stageFlowNodes[id,name,status,parameterDescription]`). Parallel branches are **flattened into the build's stage list with no parent link**; the app groups them by overlapping time. The parent reports SUCCESS even when a branch failed | **implemented** (P11-08) |
+| `{buildURL}execution/node/{id}/wfapi/log` | GET | US-JX-04 step log (`text`, `hasMore`). `text` is **absent** when the log is empty | **implemented** (P11-08) |
 | `{jobURL}api/json?tree=lastSuccessfulBuild[…],lastFailedBuild[…],lastStableBuild[…]` | GET | US-JX-05 | planned |
 | `{jobURL}api/json?tree=allBuilds[…]{start,end}` | GET | US-JX-06 paging | planned |
 | `{buildURL}consoleText` | GET | US-JX-07 full-log download and earlier lines | planned |
