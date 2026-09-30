@@ -70,7 +70,7 @@ class GlobalHistoryScreen extends ConsumerWidget {
                     jenkinsBuild: entry.build,
                     jobName: entry.jobName,
                     onTap: () =>
-                        context.push(AppRoutes.buildLog, extra: entry.build),
+                        context.push(AppRoutes.buildDetail, extra: entry.build),
                   );
                 },
               ),

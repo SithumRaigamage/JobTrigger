@@ -88,8 +88,8 @@ against the fixture Jenkins (P11-02, `NFR-TEST-02`).
 | `{baseURL}/computer/api/json?tree=computer[…]` | GET | US-JX-12 nodes and executors | planned |
 | `{baseURL}/computer/{name}/toggleOffline?offlineMessage=…` | POST | US-JX-12 (`(built-in)` for the controller) | planned |
 | `{jobURL}enable` · `{jobURL}disable` | POST | US-JX-13. Returns **302** when done. A multibranch branch job returns **403 even for an admin**. Triggering a disabled job returns **409**, mapped to `JobDisabledFailure` | **implemented** (P11-17) |
-| `{buildURL}toggleLogKeep` | POST | US-JX-14 keep forever | planned |
-| `{buildURL}submitDescription` (form `description`) | POST | US-JX-14 | planned |
+| `{buildURL}toggleLogKeep` | POST | US-JX-14 keep forever. Returns **302**. It toggles, so the app re-reads `keepLog` afterwards | **implemented** (P11-18) |
+| `{buildURL}submitDescription` (form `description`) | POST | US-JX-14. Returns **302**. Stored as raw HTML and shown only as plain text (`htmlToPlainText`) | **implemented** (P11-18) |
 | `{buildURL}replay/run` (form `mainScript` + Stapler `json`) | POST | US-JX-16, verification-gated | planned |
 | `{baseURL}/api/json?tree=views[name,url],primaryView[name]` · `{viewURL}api/json` | GET | US-JX-17 views | planned |
 | `{baseURL}/api/json?tree=quietingDown` + the `X-Jenkins` response header | GET | US-JX-18 server status. During quiet-down a trigger still returns **201** (queued, won't start) | **implemented** (P11-16) |

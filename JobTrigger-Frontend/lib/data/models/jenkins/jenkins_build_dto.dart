@@ -52,6 +52,9 @@ abstract class JenkinsBuildDto with _$JenkinsBuildDto {
       includeToJson: false,
     )
     List<String> startedByUserIds,
+    // US-JX-14; only requested by the build detail query.
+    String? description,
+    bool? keepLog,
     // US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
     // `items` (each `{msg, author: {fullName}}`) is requested/parsed;
     // `kind` isn't rendered anywhere so it's left off the tree query.
@@ -184,6 +187,8 @@ List<ScmChange> _changesFromJson(dynamic rawChangeSet) {
 extension JenkinsBuildDtoX on JenkinsBuildDto {
   JenkinsBuild toDomain() => JenkinsBuild(
     startedByUserIds: startedByUserIds,
+    description: description,
+    keepLog: keepLog,
     number: number,
     url: url,
     result: result,

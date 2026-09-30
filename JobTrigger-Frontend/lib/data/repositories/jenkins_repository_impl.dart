@@ -71,6 +71,15 @@ const _detailsTree =
     'lastSuccessfulBuild[number,url,result,timestamp],'
     'lastFailedBuild[number,url,result,timestamp]';
 
+/// US-JX-14: everything the build detail screen shows about one build.
+const _buildDetailTree =
+    'number,url,result,timestamp,duration,building,estimatedDuration,'
+    'displayName,description,keepLog,'
+    'actions[causes[shortDescription,upstreamProject,upstreamUrl,userId],'
+    'parameters[name,value]],'
+    'changeSet[items[msg,author[fullName]]],'
+    'artifacts[fileName,relativePath]';
+
 /// US-PIPE-06 / US-JX-08: counts, plus each case's identity and failure
 /// details. Capped at 200 cases per suite to bound the payload.
 const _testReportTree =
@@ -347,6 +356,45 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
       exception.response?.statusCode == 409
       ? const Err(JobDisabledFailure())
       : null;
+
+  @override
+  Future<Result<JenkinsBuild, AppFailure>> fetchBuildDetail(String buildUrl) =>
+      guardRequest(() async {
+        final response = await _dio.get<Map<String, dynamic>>(
+          '${_withSlash(buildUrl)}api/json',
+          queryParameters: {'tree': _buildDetailTree},
+        );
+        final build = JenkinsBuildDto.fromJson(response.data!).toDomain();
+        return rewriteBuildUrls([build], _baseUrl).single;
+      });
+
+  @override
+  Future<Result<void, AppFailure>> toggleKeepLog(String buildUrl) =>
+      guardRequest(
+        () => _dio.post<void>(
+          '${_withSlash(buildUrl)}toggleLogKeep',
+          options: Options(
+            followRedirects: false,
+            validateStatus: _acceptRedirects,
+          ),
+        ),
+      );
+
+  @override
+  Future<Result<void, AppFailure>> setBuildDescription(
+    String buildUrl,
+    String description,
+  ) => guardRequest(
+    () => _dio.post<void>(
+      '${_withSlash(buildUrl)}submitDescription',
+      data: {'description': description},
+      options: Options(
+        contentType: Headers.formUrlEncodedContentType,
+        followRedirects: false,
+        validateStatus: _acceptRedirects,
+      ),
+    ),
+  );
 
   @override
   Future<Result<void, AppFailure>> setJobEnabled(

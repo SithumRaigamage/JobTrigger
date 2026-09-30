@@ -378,8 +378,22 @@ their approvals don't block the rest.
         for admin, and the copy says so. My probe also briefly disabled the
         `nested` fixture folder; it was re-enabled straight away.
       - **Tests:** 4 unit and widget tests, plus 2 fixture tests.
-- [ ] P11-18 **US-JX-14 build detail screen:** keep-forever toggle and
+- [x] P11-18 **US-JX-14 build detail screen:** keep-forever toggle and
       plain-text description editing.
+      **Done 2026-09-30.**
+      - **Screen:** `BuildDetailScreen` shows result, age and duration,
+        causes, upstream, parameters, changes, stages, tests, and
+        artifacts. History tiles and the last success/failure chips now
+        open it, with the log one tap away.
+      - **Refactor:** shared sections moved to `build_sections.dart`
+        (`job_detail_screen.dart` went from 1,172 to 793 lines).
+      - **Edits:** keep forever (confirmed, then re-read) and description
+        edits. Descriptions are raw HTML server-side, so `htmlToPlainText`
+        ensures markup is never rendered.
+      - **Bug caught by a widget test:** the description dialog disposed
+        its controller during the close animation. It now owns the
+        controller.
+      - **Tests:** 7 unit and widget tests, plus 1 fixture test.
 - [ ] P11-19 **US-JX-15 build trends:** a pure stats function and a
       `CustomPaint` sparkline (no new dependency).
 - [ ] P11-20 **US-JX-12 nodes and executors:** list, drill-down, and

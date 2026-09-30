@@ -12,6 +12,7 @@ import '../features/auth/auth_notifier.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/signup_screen.dart';
 import '../common_widgets/glass_surface.dart';
+import '../features/build_detail/build_detail_screen.dart';
 import '../features/build_log/build_log_screen.dart';
 import '../features/github/github_repo_screen.dart';
 import '../features/github/github_workflow_list_screen.dart';
@@ -171,6 +172,12 @@ GoRouter appRouter(Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) =>
             BuildLogScreen(jenkinsBuild: state.extra! as JenkinsBuild),
+      ),
+      GoRoute(
+        path: AppRoutes.buildDetail,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            BuildDetailScreen(jenkinsBuild: state.extra! as JenkinsBuild),
       ),
       GoRoute(
         path: AppRoutes.jobHistory,

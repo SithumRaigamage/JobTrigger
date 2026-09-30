@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
-import 'package:job_trigger/presentation/features/job_detail/job_detail_screen.dart';
+import 'package:job_trigger/presentation/features/job_detail/build_sections.dart';
 
 void main() {
   testWidgets('lists failures, new ones first, with expandable details', (

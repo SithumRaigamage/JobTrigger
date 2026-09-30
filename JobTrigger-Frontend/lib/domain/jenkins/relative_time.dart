@@ -14,3 +14,14 @@ String relativeTime(DateTime then, {DateTime? now}) {
 /// A Jenkins epoch-milliseconds timestamp as a [DateTime].
 DateTime fromJenkinsTimestamp(num millis) =>
     DateTime.fromMillisecondsSinceEpoch(millis.toInt());
+
+/// A build duration from Jenkins' milliseconds, e.g. `4m 12s` or `1h 3m`.
+String formatBuildDuration(num millis) {
+  final total = Duration(milliseconds: millis.toInt());
+  if (total.inSeconds < 1) return '<1s';
+  if (total.inMinutes < 1) return '${total.inSeconds}s';
+  if (total.inHours < 1) {
+    return '${total.inMinutes}m ${total.inSeconds.remainder(60)}s';
+  }
+  return '${total.inHours}h ${total.inMinutes.remainder(60)}m';
+}

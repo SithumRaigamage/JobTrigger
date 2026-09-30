@@ -98,7 +98,7 @@ class _HistoryList extends ConsumerWidget {
             return HistoryTile(
               key: ValueKey(build.url),
               jenkinsBuild: build,
-              onTap: () => context.push(AppRoutes.buildLog, extra: build),
+              onTap: () => context.push(AppRoutes.buildDetail, extra: build),
               onReplay: () => _replay(context, build),
             );
           },

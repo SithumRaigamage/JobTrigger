@@ -123,6 +123,22 @@ abstract class JenkinsRepository {
     required bool enabled,
   });
 
+  /// US-JX-14: one build in full (result, causes, changes, artifacts,
+  /// parameters, description, keep-forever flag), for the build detail
+  /// screen.
+  Future<Result<JenkinsBuild, AppFailure>> fetchBuildDetail(String buildUrl);
+
+  /// US-JX-14: `POST {buildUrl}toggleLogKeep` (302). It *toggles*, so
+  /// callers re-read `keepLog` afterwards rather than assuming.
+  Future<Result<void, AppFailure>> toggleKeepLog(String buildUrl);
+
+  /// US-JX-14: `POST {buildUrl}submitDescription` with form field
+  /// `description` (302). An empty string clears it.
+  Future<Result<void, AppFailure>> setBuildDescription(
+    String buildUrl,
+    String description,
+  );
+
   /// POSTs `{buildNumber}/stop` — [buildUrl] is the build's absolute URL
   /// (e.g. `.../job/x/20/`).
   Future<Result<void, AppFailure>> cancelBuild(String buildUrl);

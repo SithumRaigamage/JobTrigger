@@ -86,6 +86,20 @@ class FakeJenkinsRepository implements JenkinsRepository {
   }) => throw UnimplementedError('triggerBuild');
 
   @override
+  Future<Result<JenkinsBuild, AppFailure>> fetchBuildDetail(String buildUrl) =>
+      throw UnimplementedError('fetchBuildDetail');
+
+  @override
+  Future<Result<void, AppFailure>> toggleKeepLog(String buildUrl) =>
+      throw UnimplementedError('toggleKeepLog');
+
+  @override
+  Future<Result<void, AppFailure>> setBuildDescription(
+    String buildUrl,
+    String description,
+  ) => throw UnimplementedError('setBuildDescription');
+
+  @override
   Future<Result<void, AppFailure>> setJobEnabled(
     String jobUrl, {
     required bool enabled,

@@ -23,6 +23,8 @@ _JenkinsBuildDto _$JenkinsBuildDtoFromJson(Map<String, dynamic> json) =>
       startedByUserIds: json['actions'] == null
           ? const <String>[]
           : _startedByUserIdsFromJson(json['actions']),
+      description: json['description'] as String?,
+      keepLog: json['keepLog'] as bool?,
       changes: json['changeSet'] == null
           ? const <ScmChange>[]
           : _changesFromJson(json['changeSet']),
@@ -46,6 +48,8 @@ Map<String, dynamic> _$JenkinsBuildDtoToJson(_JenkinsBuildDto instance) =>
       'estimatedDuration': instance.estimatedDuration,
       'building': instance.building,
       'displayName': instance.displayName,
+      'description': instance.description,
+      'keepLog': instance.keepLog,
       'artifacts': instance.artifacts,
     };
 

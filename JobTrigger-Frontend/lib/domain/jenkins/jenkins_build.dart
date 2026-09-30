@@ -20,6 +20,8 @@ class JenkinsBuild {
     this.upstreamCause,
     this.parameterValues = const {},
     this.startedByUserIds = const [],
+    this.description,
+    this.keepLog,
   });
 
   final int number;
@@ -27,6 +29,14 @@ class JenkinsBuild {
   /// Jenkins user ids that started this build (`UserIdCause.userId`), for
   /// history's "started by me" filter (US-JX-06). Only fetched by history.
   final List<String> startedByUserIds;
+
+  /// US-JX-14. Jenkins stores this as raw HTML; show it only through
+  /// `htmlToPlainText`, never rendered as markup. Only fetched by the build
+  /// detail query.
+  final String? description;
+
+  /// US-JX-14 "keep this build forever". Null when not fetched.
+  final bool? keepLog;
 
   final String url;
   final String?
@@ -87,6 +97,8 @@ class JenkinsBuild {
     UpstreamCause? upstreamCause,
     Map<String, String>? parameterValues,
     List<String>? startedByUserIds,
+    String? description,
+    bool? keepLog,
   }) => JenkinsBuild(
     number: number ?? this.number,
     url: url ?? this.url,
@@ -102,5 +114,7 @@ class JenkinsBuild {
     upstreamCause: upstreamCause ?? this.upstreamCause,
     parameterValues: parameterValues ?? this.parameterValues,
     startedByUserIds: startedByUserIds ?? this.startedByUserIds,
+    description: description ?? this.description,
+    keepLog: keepLog ?? this.keepLog,
   );
 }
