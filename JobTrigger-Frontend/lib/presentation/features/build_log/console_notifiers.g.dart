@@ -282,91 +282,6 @@ abstract class _$ConsoleSearchNotifier extends $Notifier<ConsoleSearch> {
   }
 }
 
-/// Where to write a temp file. A provider so tests can substitute it.
-
-@ProviderFor(consoleTempDirectory)
-final consoleTempDirectoryProvider = ConsoleTempDirectoryProvider._();
-
-/// Where to write a temp file. A provider so tests can substitute it.
-
-final class ConsoleTempDirectoryProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<Directory>,
-          Directory,
-          FutureOr<Directory>
-        >
-    with $FutureModifier<Directory>, $FutureProvider<Directory> {
-  /// Where to write a temp file. A provider so tests can substitute it.
-  ConsoleTempDirectoryProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'consoleTempDirectoryProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$consoleTempDirectoryHash();
-
-  @$internal
-  @override
-  $FutureProviderElement<Directory> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<Directory> create(Ref ref) {
-    return consoleTempDirectory(ref);
-  }
-}
-
-String _$consoleTempDirectoryHash() =>
-    r'd863002965b35583abe32076746985ffce0f6911';
-
-@ProviderFor(logFileSharer)
-final logFileSharerProvider = LogFileSharerProvider._();
-
-final class LogFileSharerProvider
-    extends $FunctionalProvider<LogFileSharer, LogFileSharer, LogFileSharer>
-    with $Provider<LogFileSharer> {
-  LogFileSharerProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'logFileSharerProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$logFileSharerHash();
-
-  @$internal
-  @override
-  $ProviderElement<LogFileSharer> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  LogFileSharer create(Ref ref) {
-    return logFileSharer(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(LogFileSharer value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<LogFileSharer>(value),
-    );
-  }
-}
-
-String _$logFileSharerHash() => r'0507056464fc4678ddd911783f0cfbb8dc7d49bd';
-
 /// US-JX-07 "Save full log": streams `consoleText` into a temp `.log` file,
 /// shares it, then deletes it. The log can hold secrets Jenkins didn't
 /// mask, so nothing is kept once it's been shared. State is loading while
@@ -422,7 +337,7 @@ final class FullLogExportNotifierProvider
 }
 
 String _$fullLogExportNotifierHash() =>
-    r'a0cac8436a2b7f951c78256d8893345f60d32cbd';
+    r'973d69215a94786fde52453999c9805c8eddaa04';
 
 /// US-JX-07 "Save full log": streams `consoleText` into a temp `.log` file,
 /// shares it, then deletes it. The log can hold secrets Jenkins didn't

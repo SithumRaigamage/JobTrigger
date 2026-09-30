@@ -25,7 +25,7 @@ check "where are we."
 | 9 — Testing, CI/CD hardening, dev tooling (epic HARDEN) | `phase-9-testing-cicd-hardening.md` | done | none — dev/QA/tooling work, promoted from a direct user request 2026-09-15 |
 | 10 — SonarQube integration (epic SQ) | `phase-10-sonarqube.md` | in-progress (Backend + SQ-CRED done, P10-00..06 of 16) | none — fourth CI tool, promoted from `backlog.md` |
 | 11 — Jenkins extended capabilities (epic JX) | `phase-11-jenkins-extended.md` | done 2026-09-30 (P11-01..28; P11-27 closed as won't-do by its verification gate). Only P11-03 is open, **blocked** on a physical Android device and tracked in `release-checklist.md` | P12-04 (shared repository guard); P11-01 fixture Jenkins for verification |
-| 12 — Audit remediation (epic AUDIT) | `phase-12-audit-remediation.md` | in-progress (P12-01..05, P12-07, P12-09, and P12-11 done; P12-06, P12-08, and P12-10 frontend and P12-20..27 backend open). Audit: 40 findings, 26 fixed and 14 open; tracker: `docs/audit/2026-09-29-workspace-audit.md` | none; backend-track items need per-item approval; P12-06 needs a product decision on LAN `http://` |
+| 12 — Audit remediation (epic AUDIT) | `phase-12-audit-remediation.md` | in-progress (P12-01..05 and P12-07..09, 11 done; P12-06 and P12-10 frontend and P12-20..27 backend open). Audit: 40 findings, 27 fixed and 13 open; tracker: `docs/audit/2026-09-29-workspace-audit.md` | none; backend-track items need per-item approval; P12-06 needs a product decision on LAN `http://` |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." A handful

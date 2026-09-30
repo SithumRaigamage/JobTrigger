@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/domain/jenkins/branch_kind.dart';
@@ -142,10 +140,18 @@ class FakeJenkinsRepository implements JenkinsRepository {
       throw UnimplementedError('fetchTestReport');
 
   @override
-  Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
+  Future<Result<int?, AppFailure>> fetchArtifactSize(
     String buildUrl,
     String relativePath,
-  ) => throw UnimplementedError('fetchArtifactBytes');
+  ) => throw UnimplementedError('fetchArtifactSize');
+
+  @override
+  Future<Result<void, AppFailure>> downloadArtifact(
+    String buildUrl,
+    String relativePath,
+    String savePath, {
+    void Function(int received, int? total)? onProgress,
+  }) => throw UnimplementedError('downloadArtifact');
 
   @override
   Future<Result<List<PipelineStage>?, AppFailure>> fetchPipelineStages(

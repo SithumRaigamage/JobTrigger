@@ -58,7 +58,7 @@ Jenkins credentials are not JWTs and don't rotate mid-session.
 | `{baseURL}/crumbIssuer/api/json` | GET | CSRF crumb (`NFR-SEC-06`) | Fetched lazily by the client interceptor on the first POST. A 404 means no crumb issuer |
 | `{queueItemURL}api/json` | GET | Track a triggered build's queue item (US-PIPE-01) | Queue-item URL comes from the trigger response's `Location` header |
 | `{buildURL}testReport/api/json` | GET | Test summary (US-PIPE-06) | A 404 means no report, which is a normal state |
-| `{buildURL}artifact/{relativePath}` | GET | Artifact bytes (US-PIPE-07) | Each path segment is percent-encoded |
+| `{buildURL}artifact/{relativePath}` | HEAD · GET | Artifact size (`Content-Length`, verified on the fixture), then the file streamed to a temp path (US-PIPE-07, AUD-21) | Each path segment is percent-encoded. Over 100 MB asks first. 2 min stall timeout, not the 15s API one |
 | `{buildURL}wfapi/describe` | GET | Pipeline stages (US-PIPE-04) | A 404 means not a pipeline |
 | `{buildURL}wfapi/pendingInputActions` | GET | Paused input step (US-PIPE-05) | A 404 or empty list means nothing is paused. Each input's parameters are `{name, type, description, definition: {defaultVal, choices}}`, which is **not** the job-parameter shape |
 | `{buildURL}input/{id}/proceedEmpty` · `proceed` · `abort` | POST | Approve or reject an input step | `proceed` takes the Stapler form field `json={"parameter":[{"name":…,"value":…}]}`, because plain `name=value` fields get a 400. Permission denied is a **400** HTML page ("You need to have Job/Build permissions…"), mapped to `AuthFailure`. An already-handled input returns 404. Verified in P11-02 |

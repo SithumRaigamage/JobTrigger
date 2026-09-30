@@ -120,6 +120,12 @@ their screen under `presentation/features/<feature>/`.
 - `CancelBuildNotifier` (`AsyncNotifier<void>`) — POST stop + optimistic
   local status flip.
 
+- `ArtifactDownloadNotifier(buildUrl, relativePath)`
+  (`AsyncNotifier<ArtifactProgress?>`): null when idle, loading while the
+  size is checked, and `ArtifactProgress` while streaming. `download`
+  returns the size instead of downloading when it's over 100 MB, so the
+  row can confirm first (AUD-21). The file is shared, then deleted.
+
 ## Feature: build_log
 
 - `BuildLogNotifier` (`AsyncNotifier<String>`, accumulating) — owns the

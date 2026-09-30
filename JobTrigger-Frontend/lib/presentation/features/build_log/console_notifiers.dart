@@ -2,9 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/error/result.dart';
@@ -12,6 +10,7 @@ import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/console_decoder.dart';
 import '../../common_widgets/toast_controller.dart';
 import 'build_log_notifier.dart';
+import '../../../core/platform/temp_files.dart';
 
 part 'console_notifiers.g.dart';
 
@@ -221,20 +220,6 @@ class ConsoleSearchNotifier extends _$ConsoleSearchNotifier {
   }
 }
 
-/// Where to write a temp file. A provider so tests can substitute it.
-@riverpod
-Future<Directory> consoleTempDirectory(Ref ref) => getTemporaryDirectory();
-
-/// Hands a saved log to the OS share sheet. A provider so tests can
-/// substitute it.
-typedef LogFileSharer = Future<void> Function(String path, String subject);
-
-@riverpod
-LogFileSharer logFileSharer(Ref ref) =>
-    (path, subject) => SharePlus.instance.share(
-      ShareParams(files: [XFile(path)], subject: subject),
-    );
-
 /// US-JX-07 "Save full log": streams `consoleText` into a temp `.log` file,
 /// shares it, then deletes it. The log can hold secrets Jenkins didn't
 /// mask, so nothing is kept once it's been shared. State is loading while
@@ -247,7 +232,7 @@ class FullLogExportNotifier extends _$FullLogExportNotifier {
   Future<void> export({required String fileName}) async {
     if (state.isLoading) return;
     state = const AsyncLoading();
-    final directory = await ref.read(consoleTempDirectoryProvider.future);
+    final directory = await ref.read(tempDirectoryProvider.future);
     final file = File('${directory.path}/$fileName');
     try {
       final result = await ref
@@ -255,7 +240,7 @@ class FullLogExportNotifier extends _$FullLogExportNotifier {
           .downloadConsoleText(buildUrl, file.path);
       switch (result) {
         case Ok():
-          await ref.read(logFileSharerProvider)(file.path, fileName);
+          await ref.read(fileSharerProvider)(file.path, fileName);
           if (ref.mounted) state = const AsyncData(null);
         case Err(:final error):
           if (!ref.mounted) return;

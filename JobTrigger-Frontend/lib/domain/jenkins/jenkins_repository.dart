@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
 import 'branch_kind.dart';
@@ -186,17 +184,27 @@ abstract class JenkinsRepository {
   /// hasn't finished), surfaced as a real 404 from Jenkins.
   Future<Result<TestReport?, AppFailure>> fetchTestReport(String buildUrl);
 
-  /// `GET {buildUrl}artifact/{relativePath}` (US-PIPE-07), authenticated
-  /// via the same client as every other Jenkins request — deliberately
-  /// not a bare external link, since that would either need embedding
-  /// Basic Auth credentials in a URL (unsafe) or hit an external browser
-  /// unauthenticated (401). The caller hands the returned bytes off via
-  /// the OS share sheet rather than this app managing on-device file
-  /// storage.
-  Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
+  /// `HEAD {buildUrl}artifact/{relativePath}`: the artifact's size in
+  /// bytes from `Content-Length`, or null when the server doesn't say
+  /// (AUD-21: warn before a large download).
+  Future<Result<int?, AppFailure>> fetchArtifactSize(
     String buildUrl,
     String relativePath,
   );
+
+  /// `GET {buildUrl}artifact/{relativePath}` (US-PIPE-07), streamed to
+  /// [savePath] and never held in memory (AUD-21), with [onProgress]
+  /// (`total` is null when unknown). Authenticated through the same client
+  /// as every other Jenkins request. That's deliberately not a bare
+  /// external link, which would need Basic Auth credentials in the URL
+  /// (unsafe) or reach an external browser unauthenticated (401). The
+  /// caller shares the file and deletes it; the app keeps no copy.
+  Future<Result<void, AppFailure>> downloadArtifact(
+    String buildUrl,
+    String relativePath,
+    String savePath, {
+    void Function(int received, int? total)? onProgress,
+  });
 
   /// `GET {buildUrl}wfapi/describe` (US-PIPE-04). Returns `Ok(null)` (not
   /// an [Err]) when the build isn't a pipeline job — a normal state

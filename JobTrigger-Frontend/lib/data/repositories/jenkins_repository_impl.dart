@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -593,23 +592,45 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
       );
 
   @override
-  Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
+  Future<Result<int?, AppFailure>> fetchArtifactSize(
     String buildUrl,
     String relativePath,
   ) => guardRequest(() async {
-    // Each path segment is percent-encoded separately so `/` in a
-    // subdirectory-relative path stays a path separator rather than
-    // being encoded away.
+    final response = await _dio.head<void>(
+      _artifactUrl(buildUrl, relativePath),
+    );
+    final length = response.headers.value(Headers.contentLengthHeader);
+    return length == null ? null : int.tryParse(length);
+  });
+
+  @override
+  Future<Result<void, AppFailure>> downloadArtifact(
+    String buildUrl,
+    String relativePath,
+    String savePath, {
+    void Function(int received, int? total)? onProgress,
+  }) => guardRequest(
+    () => _dio.download(
+      _artifactUrl(buildUrl, relativePath),
+      savePath,
+      // An APK or zip can be hundreds of MB: not the 15s API timeout. This
+      // bounds a stall between chunks, not the whole transfer.
+      options: Options(receiveTimeout: const Duration(minutes: 2)),
+      onReceiveProgress: onProgress == null
+          ? null
+          : (received, total) => onProgress(received, total < 0 ? null : total),
+    ),
+  );
+
+  /// Each path segment is percent-encoded separately so `/` in a
+  /// subdirectory-relative path stays a path separator.
+  String _artifactUrl(String buildUrl, String relativePath) {
     final encodedPath = relativePath
         .split('/')
         .map(Uri.encodeComponent)
         .join('/');
-    final response = await _dio.get<List<int>>(
-      '${_withSlash(buildUrl)}artifact/$encodedPath',
-      options: Options(responseType: ResponseType.bytes),
-    );
-    return Uint8List.fromList(response.data!);
-  });
+    return '${_withSlash(buildUrl)}artifact/$encodedPath';
+  }
 
   @override
   Future<Result<List<PipelineStage>?, AppFailure>> fetchPipelineStages(

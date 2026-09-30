@@ -7,6 +7,7 @@ import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/presentation/features/build_log/build_log_notifier.dart';
+import 'package:job_trigger/core/platform/temp_files.dart';
 import 'package:job_trigger/presentation/features/build_log/console_notifiers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -148,8 +149,8 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         jenkinsRepositoryProvider.overrideWithValue(repo),
-        consoleTempDirectoryProvider.overrideWith((ref) async => directory),
-        logFileSharerProvider.overrideWithValue((path, subject) async {
+        tempDirectoryProvider.overrideWith((ref) async => directory),
+        fileSharerProvider.overrideWithValue((path, subject) async {
           expect(File(path).readAsStringSync(), 'full log\n');
           shared.add(path);
         }),

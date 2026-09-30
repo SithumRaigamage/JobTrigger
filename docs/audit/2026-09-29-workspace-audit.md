@@ -57,7 +57,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-18 | Medium | Bug | Edited build-parameter values silently reset when the form scrolls off-screen | fixed (P11-04) |
 | AUD-19 | Medium | Bug | Folders at the tree depth limit render as jobs (5 levels fetched, docs say 6) | fixed (P11-05) |
 | AUD-20 | Medium | Performance | Home fetches the whole recursive tree (all levels, with `lastBuild`) on every load | fixed (P11-05) |
-| AUD-21 | Medium | Bug / Performance | Artifact download buffers the whole file in memory with a 15s timeout | open |
+| AUD-21 | Medium | Bug / Performance | Artifact download buffers the whole file in memory with a 15s timeout | fixed (P12-08) |
 | AUD-22 | Medium | Bug | App Info links do nothing on Android 11+ (`canLaunchUrl` without `<queries>`) | fixed (P12-07) |
 | AUD-23 | Medium | Bug (backend) | Credential `PUT` skips validators and never updates `updatedAt` | open |
 | AUD-24 | Medium | Security (backend) | Ownership failures return 401 (enables id probing); `isDefault` switch not atomic | open |
@@ -333,6 +333,14 @@ are cross-referenced instead of being fixed twice.
   progress, and a size warning above a threshold; share with
   `XFile(path)`. (Needs `path_provider` as a direct dependency; it's
   already transitive.)
+- **Fixed (P12-08, 2026-09-30):** `fetchArtifactBytes` is replaced by
+  `fetchArtifactSize` (`HEAD`, `Content-Length`, verified on the fixture)
+  and `downloadArtifact` (`dio.download` to a per-download temp folder,
+  with a 2-minute stall timeout and progress). Above 100 MB the user
+  confirms first; an unknown size doesn't block. The row shows determinate
+  progress, and the file is deleted once it's shared. The temp-directory
+  and share providers moved to `core/platform/temp_files.dart`, shared
+  with the full-log export.
 
 ### AUD-22 — App Info links silently no-op on Android 11+
 

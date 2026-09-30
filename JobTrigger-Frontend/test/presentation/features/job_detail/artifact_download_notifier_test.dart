@@ -1,12 +1,15 @@
-import 'package:flutter/services.dart';
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
+import 'package:job_trigger/core/platform/temp_files.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/jenkins/build_artifact.dart';
 import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
 import 'package:job_trigger/presentation/features/job_detail/artifact_download_notifier.dart';
+
 import '../../../support/fake_jenkins_repository.dart';
 
 const _buildUrl = 'https://jenkins.test/job/demo/1/';
@@ -15,135 +18,133 @@ const _artifact = BuildArtifact(
   relativePath: 'build/outputs/app.apk',
 );
 
-/// `share_plus`'s `MethodChannelShare` (the implementation used on every
-/// desktop/mobile platform, including macOS -- see
-/// `share_plus_macos.dart`'s doc comment) talks over this channel. There's
-/// no real OS share sheet in a unit test, so it's mocked here to a
-/// successful response, matching how the task brief treats
-/// `HapticFeedback`: a real side effect that must not be allowed to break
-/// the test, not something asserted on directly.
-const _shareChannel = MethodChannel('dev.fluttercommunity.plus/share');
-
 class _FakeRepository extends FakeJenkinsRepository {
-  _FakeRepository(this.result);
+  _FakeRepository({this.size = const Ok(1024), this.download = const Ok(null)});
 
-  final Result<Uint8List, AppFailure> result;
-  int fetchArtifactBytesCallCount = 0;
+  final Result<int?, AppFailure> size;
+  final Result<void, AppFailure> download;
+  int downloads = 0;
 
   @override
-  Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
+  Future<Result<int?, AppFailure>> fetchArtifactSize(
     String buildUrl,
     String relativePath,
-  ) async {
-    fetchArtifactBytesCallCount++;
-    return result;
+  ) async => size;
+
+  @override
+  Future<Result<void, AppFailure>> downloadArtifact(
+    String buildUrl,
+    String relativePath,
+    String savePath, {
+    void Function(int received, int? total)? onProgress,
+  }) async {
+    downloads++;
+    if (download is Ok) {
+      File(savePath).writeAsBytesSync([1, 2, 3]);
+      onProgress?.call(3, 3);
+    }
+    return download;
   }
 }
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  late Directory directory;
+  late List<String> shared;
+  late bool fileExistedWhenShared;
 
   setUp(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-          _shareChannel,
-          (call) async => 'dev.fluttercommunity.plus/share/success',
-        );
+    directory = Directory.systemTemp.createTempSync('jt-artifacts');
+    shared = [];
+    fileExistedWhenShared = false;
   });
+  tearDown(() => directory.deleteSync(recursive: true));
 
-  tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(_shareChannel, null);
-  });
-
-  test(
-    'a successful download resolves to AsyncData and hands the file to the share sheet',
-    () async {
-      final bytes = Uint8List.fromList([1, 2, 3]);
-      final repo = _FakeRepository(Ok(bytes));
-      final container = ProviderContainer(
-        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
-      );
-      addTearDown(container.dispose);
-      // ArtifactDownloadNotifier is itself autoDispose -- keep it alive so
-      // its async `download()` call (temp-file I/O, then the share sheet)
-      // can't be torn down mid-flight.
-      container.listen(
-        artifactDownloadNotifierProvider(_buildUrl, _artifact.relativePath),
-        (_, _) {},
-      );
-
-      await container
-          .read(
-            artifactDownloadNotifierProvider(
-              _buildUrl,
-              _artifact.relativePath,
-            ).notifier,
-          )
-          .download(_artifact);
-
-      final state = container.read(
-        artifactDownloadNotifierProvider(_buildUrl, _artifact.relativePath),
-      );
-      expect(state.hasError, isFalse);
-      expect(repo.fetchArtifactBytesCallCount, 1);
-    },
+  final provider = artifactDownloadNotifierProvider(
+    _buildUrl,
+    _artifact.relativePath,
   );
 
+  ProviderContainer container(_FakeRepository repo) {
+    final c = ProviderContainer(
+      overrides: [
+        jenkinsRepositoryProvider.overrideWithValue(repo),
+        tempDirectoryProvider.overrideWith((ref) async => directory),
+        fileSharerProvider.overrideWithValue((path, subject) async {
+          fileExistedWhenShared = File(path).existsSync();
+          shared.add(subject);
+        }),
+      ],
+    );
+    addTearDown(c.dispose);
+    // autoDispose: keep it alive through the async download.
+    c
+      ..listen(provider, (_, _) {})
+      ..listen(currentToastProvider, (_, _) {});
+    return c;
+  }
+
+  test('streams to a temp file, shares it, then deletes it (AUD-21)', () async {
+    final repo = _FakeRepository();
+    final c = container(repo);
+
+    final largeSize = await c.read(provider.notifier).download(_artifact);
+
+    expect(largeSize, isNull);
+    expect(repo.downloads, 1);
+    expect(shared, ['app.apk']);
+    expect(fileExistedWhenShared, isTrue);
+    expect(directory.listSync(), isEmpty); // Nothing kept.
+    expect(c.read(provider).value, isNull); // Idle again.
+  });
+
+  test('a large artifact waits for confirmation', () async {
+    const bytes = ArtifactDownloadNotifier.largeBytes + 1;
+    final repo = _FakeRepository(size: const Ok(bytes));
+    final c = container(repo);
+    final notifier = c.read(provider.notifier);
+
+    expect(await notifier.download(_artifact), bytes);
+    expect(repo.downloads, 0);
+    expect(c.read(provider).value, isNull);
+
+    expect(await notifier.download(_artifact, allowLarge: true), isNull);
+    expect(repo.downloads, 1);
+  });
+
+  test('an unknown or unreadable size still downloads', () async {
+    final repo = _FakeRepository(size: const Err(ServerFailure(405)));
+    final c = container(repo);
+    await c.read(provider.notifier).download(_artifact);
+    expect(repo.downloads, 1);
+  });
+
   test(
-    'a repository failure surfaces as AsyncError and shows an error toast',
+    'a failed download is an error with a toast, and leaves no file',
     () async {
-      final repo = _FakeRepository(const Err(NetworkFailure()));
-      final container = ProviderContainer(
-        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
-      );
-      addTearDown(container.dispose);
-      container.listen(
-        artifactDownloadNotifierProvider(_buildUrl, _artifact.relativePath),
-        (_, _) {},
-      );
+      final repo = _FakeRepository(download: const Err(NetworkFailure()));
+      final c = container(repo);
 
-      await container
-          .read(
-            artifactDownloadNotifierProvider(
-              _buildUrl,
-              _artifact.relativePath,
-            ).notifier,
-          )
-          .download(_artifact);
+      await c.read(provider.notifier).download(_artifact);
 
-      final state = container.read(
-        artifactDownloadNotifierProvider(_buildUrl, _artifact.relativePath),
-      );
-      expect(state.hasError, isTrue);
-      expect(state.error, isA<NetworkFailure>());
-      expect(container.read(currentToastProvider)?.type, ToastType.error);
+      expect(c.read(provider).error, isA<NetworkFailure>());
+      expect(c.read(currentToastProvider)?.type, ToastType.error);
+      expect(shared, isEmpty);
+      expect(directory.listSync(), isEmpty);
     },
   );
 
   test('the same path in another build has its own state (AUD-29)', () async {
-    const otherBuild = 'https://jenkins.test/job/demo/2/';
-    final repo = _FakeRepository(const Err(NetworkFailure()));
-    final container = ProviderContainer(
-      overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
-    final first = artifactDownloadNotifierProvider(
-      _buildUrl,
+    final repo = _FakeRepository(download: const Err(NetworkFailure()));
+    final c = container(repo);
+    final other = artifactDownloadNotifierProvider(
+      'https://jenkins.test/job/demo/2/',
       _artifact.relativePath,
     );
-    final second = artifactDownloadNotifierProvider(
-      otherBuild,
-      _artifact.relativePath,
-    );
-    container
-      ..listen(first, (_, _) {})
-      ..listen(second, (_, _) {})
-      ..listen(currentToastProvider, (_, _) {});
+    c.listen(other, (_, _) {});
 
-    await container.read(first.notifier).download(_artifact);
+    await c.read(provider.notifier).download(_artifact);
 
-    expect(container.read(first).hasError, isTrue);
-    expect(container.read(second).hasError, isFalse);
+    expect(c.read(provider).hasError, isTrue);
+    expect(c.read(other).hasError, isFalse);
   });
 }

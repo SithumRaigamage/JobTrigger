@@ -11,10 +11,12 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../domain/jenkins/build_artifact.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
+import '../../../domain/jenkins/parameter_file.dart';
 import '../../../domain/jenkins/pipeline_stage.dart';
 import '../../../domain/jenkins/scm_change.dart';
 import '../../../domain/jenkins/test_report.dart';
 import '../../../domain/jenkins/upstream_cause.dart';
+import '../../common_widgets/confirmation_dialog.dart';
 import '../../navigation/app_routes.dart';
 import 'artifact_download_notifier.dart';
 import 'stage_detail_sheet.dart';
@@ -301,11 +303,11 @@ class _ArtifactRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDownloading = ref
-        .watch(
-          artifactDownloadNotifierProvider(buildUrl, artifact.relativePath),
-        )
-        .isLoading;
+    final download = ref.watch(
+      artifactDownloadNotifierProvider(buildUrl, artifact.relativePath),
+    );
+    final progress = download.value;
+    final isDownloading = download.isLoading || progress != null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -322,12 +324,17 @@ class _ArtifactRow extends ConsumerWidget {
             ),
           ),
           if (isDownloading)
-            const Padding(
-              padding: EdgeInsets.all(8),
+            Padding(
+              padding: const EdgeInsets.all(8),
               child: SizedBox(
                 width: 16,
                 height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                // Determinate once the size is known (AUD-21).
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  value: progress?.fraction,
+                  semanticsLabel: 'Downloading ${artifact.fileName}',
+                ),
               ),
             )
           else
@@ -335,18 +342,31 @@ class _ArtifactRow extends ConsumerWidget {
               icon: const Icon(Icons.ios_share, size: 18),
               tooltip: 'Share ${artifact.fileName}',
               visualDensity: VisualDensity.compact,
-              onPressed: () => ref
-                  .read(
-                    artifactDownloadNotifierProvider(
-                      buildUrl,
-                      artifact.relativePath,
-                    ).notifier,
-                  )
-                  .download(artifact),
+              onPressed: () => _download(context, ref),
             ),
         ],
       ),
     );
+  }
+
+  Future<void> _download(BuildContext context, WidgetRef ref) async {
+    final notifier = ref.read(
+      artifactDownloadNotifierProvider(
+        buildUrl,
+        artifact.relativePath,
+      ).notifier,
+    );
+    final largeSize = await notifier.download(artifact);
+    if (largeSize == null || !context.mounted) return;
+    final proceed = await showConfirmationDialog(
+      context,
+      title: 'Large file',
+      message:
+          '${artifact.fileName} is ${formatFileSize(largeSize)}. Download '
+          'it on this connection?',
+      confirmLabel: 'Download',
+    );
+    if (proceed) await notifier.download(artifact, allowLarge: true);
   }
 }
 

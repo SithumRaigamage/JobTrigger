@@ -51,10 +51,13 @@ AUD-08 (P11-04), AUD-10 (P11-05), AUD-12 (P11-11), AUD-13 (P11-11), AUD-18
       often plain HTTP. `LinkLauncher` (`core/platform`, overridable) and
       `openExternalLink` are used by App Info and the server sheet's "Create
       an API token" link. Covered by 3 widget tests.
-- [ ] P12-08 **AUD-21.** Stream artifacts to a temp file with a per-request
+- [x] P12-08 **AUD-21.** Stream artifacts to a temp file with a per-request
       timeout, progress, and a size warning; share via `XFile`. **Needs
       `path_provider` as a direct dependency** (shared approval with
-      P11-23).
+      P11-23). *Done 2026-09-30:* `HEAD` for the size, then `dio.download`
+      with progress; confirmation above 100 MB; the temp file is deleted
+      after sharing. Details are in the audit entry. 11 tests (6
+      repository, 5 notifier).
 - [x] P12-09 **AUD-28, AUD-29, AUD-30.** Clear user-scoped prefs on logout,
       key artifact state by build and path, and replace hardcoded colors
       with `AppColors` tokens. *Done 2026-09-30:* `clearUserScopedPrefs`
