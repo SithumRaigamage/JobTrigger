@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/credentials_repository_impl.dart';
+import 'package:job_trigger/domain/auth/auth_validation.dart';
 import 'package:job_trigger/domain/credential/credentials_repository.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
@@ -18,6 +19,8 @@ class _FakeCredentialsRepository implements CredentialsRepository {
   Result<JenkinsServer, AppFailure>? updateResult;
   String? lastUpdatedId;
 
+  String? lastAddedUrl;
+
   @override
   Future<Result<List<JenkinsServer>, AppFailure>> fetchAll() async =>
       Ok(List.of(_servers));
@@ -31,6 +34,7 @@ class _FakeCredentialsRepository implements CredentialsRepository {
     String? paramToken,
     bool isDefault = false,
   }) async {
+    lastAddedUrl = jenkinsURL;
     final result = addResult!;
     if (result case Ok(:final value)) _servers.add(value);
     return result;
@@ -175,4 +179,54 @@ void main() {
       );
     },
   );
+
+  group('Jenkins URL (AUD-14)', () {
+    test('an unusable URL never reaches the backend', () async {
+      final repo = _FakeCredentialsRepository([]); // addResult unset: throws.
+      final container = ProviderContainer(
+        overrides: [credentialsRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(container.dispose);
+      container.listen(serverFormNotifierProvider, (_, _) {});
+
+      await container
+          .read(serverFormNotifierProvider.notifier)
+          .save(
+            serverName: 'Server a',
+            jenkinsURL: 'ci.example.com',
+            username: 'user',
+            secret: 'pass',
+            isDefault: false,
+          );
+
+      expect(
+        container.read(serverFormNotifierProvider).error,
+        isA<FormValidationError>(),
+      );
+      expect(repo.lastAddedUrl, isNull);
+    });
+
+    test('the saved URL is trimmed, without trailing slashes', () async {
+      final repo = _FakeCredentialsRepository([])..addResult = Ok(_server('a'));
+      final container = ProviderContainer(
+        overrides: [credentialsRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(container.dispose);
+      container
+        ..listen(serverFormNotifierProvider, (_, _) {})
+        ..listen(credentialsNotifierProvider, (_, _) {});
+
+      await container
+          .read(serverFormNotifierProvider.notifier)
+          .save(
+            serverName: 'Server a',
+            jenkinsURL: ' https://a.test/jenkins/ ',
+            username: 'user',
+            secret: 'pass',
+            isDefault: false,
+          );
+
+      expect(repo.lastAddedUrl, 'https://a.test/jenkins');
+    });
+  });
 }

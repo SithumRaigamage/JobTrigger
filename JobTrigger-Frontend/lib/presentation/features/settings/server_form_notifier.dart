@@ -2,6 +2,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
 import '../../../data/repositories/credentials_repository_impl.dart';
+import '../../../domain/auth/auth_validation.dart';
+import '../../../domain/credential/jenkins_url.dart';
 import 'active_server_notifier.dart';
 import 'credentials_notifier.dart';
 
@@ -27,6 +29,13 @@ class ServerFormNotifier extends _$ServerFormNotifier {
     String? paramToken,
     required bool isDefault,
   }) async {
+    // AUD-14: refuse an unusable URL before it reaches the backend.
+    final urlProblem = jenkinsUrlProblem(jenkinsURL);
+    if (urlProblem != null) {
+      state = AsyncError(FormValidationError(urlProblem), StackTrace.current);
+      return;
+    }
+    jenkinsURL = normalizeJenkinsUrl(jenkinsURL);
     state = const AsyncLoading();
     final repository = ref.read(credentialsRepositoryProvider);
     final result = id == null

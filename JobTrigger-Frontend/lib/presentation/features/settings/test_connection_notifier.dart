@@ -2,6 +2,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
 import '../../../core/network/jenkins_client_factory.dart';
+import '../../../domain/auth/auth_validation.dart';
+import '../../../domain/credential/jenkins_url.dart';
 
 part 'test_connection_notifier.g.dart';
 
@@ -20,9 +22,14 @@ class TestConnectionNotifier extends _$TestConnectionNotifier {
     required String username,
     required String password,
   }) async {
+    final urlProblem = jenkinsUrlProblem(jenkinsURL); // AUD-14
+    if (urlProblem != null) {
+      state = AsyncError(FormValidationError(urlProblem), StackTrace.current);
+      return;
+    }
     state = const AsyncLoading();
     final result = await testJenkinsConnection(
-      jenkinsURL: jenkinsURL,
+      jenkinsURL: normalizeJenkinsUrl(jenkinsURL),
       username: username,
       password: password,
     );

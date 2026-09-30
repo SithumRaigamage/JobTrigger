@@ -40,11 +40,16 @@ AUD-08 (P11-04), AUD-10 (P11-05), AUD-12 (P11-11), AUD-13 (P11-11), AUD-18
       HTML 200 body, a malformed JSON shape, and a malformed server URL.
 - [x] P12-05 **AUD-09.** Key history rows by build URL. Add a test for
       colliding job names.
-- [ ] P12-06 **AUD-14.** Jenkins URL validation (scheme and host,
+- [x] P12-06 **AUD-14.** Jenkins URL validation (scheme and host,
       normalised), an inline `http://` warning, and a specific message for
       platform cleartext blocks. **Product decision needed:** allow LAN
       `http://` in release builds (Android network security config and iOS
       `NSAllowsLocalNetworking`) or HTTPS-only.
+      *Done 2026-10-01 (decision 2026-09-30: allow `http://` with a
+      warning):* validation, normalisation, and the inline warning. No
+      platform config was needed: `dart:io` isn't subject to App Transport
+      Security or Android's cleartext policy (see the audit entry's
+      correction). 9 new tests.
 - [x] P12-07 **AUD-22.** Add Android `<queries>` for `https` and `mailto`,
       and show a toast when a link can't be opened.
       *Done 2026-09-30:* also `http`, since a LAN Jenkins' token page is

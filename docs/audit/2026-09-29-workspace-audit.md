@@ -50,7 +50,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-11 | High | Bug / Architecture | Non-`DioException` errors escape the data layer and bypass `AppFailure` | fixed (P12-04) |
 | AUD-12 | High | Performance | Console log re-sanitizes and re-splits the whole log every second (O(n²)) | fixed (P11-11) |
 | AUD-13 | Medium | Bug | A transient log-poll error discards the displayed log | fixed (P11-11) |
-| AUD-14 | High | Security / UX | Jenkins URL unvalidated; Basic Auth sent over `http://` silently; cleartext failures shown as generic errors | open |
+| AUD-14 | High | Security / UX | Jenkins URL unvalidated; Basic Auth sent over `http://` silently; cleartext failures shown as generic errors | fixed (P12-06) |
 | AUD-15 | High | Release | Android release build signed with the debug key | fixed (P12-10) |
 | AUD-16 | High | DevOps | CI does not run on the active `flutter-migration` branch | fixed (P12-03) |
 | AUD-17 | High | DevOps / Security | Node 20 (EOL) in Dockerfile and CI; container runs as root | fixed (P12-21) |
@@ -291,6 +291,22 @@ are cross-referenced instead of being fixed twice.
   `http://`. Map platform cleartext errors to a specific failure message.
   Decide (product decision) whether to allow LAN `http://` in release
   through `network_security_config` / `NSAllowsLocalNetworking`.
+- **Fixed (P12-06, 2026-10-01; decision 2026-09-30: allow `http://` with
+  a warning):** `domain/credential/jenkins_url.dart` requires an
+  `http`/`https` scheme and a host, with no query or fragment, and saves
+  the URL trimmed and without trailing slashes. The server sheet shows
+  the problem inline as the user types, and both save and "Test
+  connection" refuse an unusable URL before any request. `http://` shows
+  an explicit "Not encrypted" warning.
+- **Correction to "What":** release builds do *not* block `http://` for
+  this app. Dio uses `dart:io`, which the Flutter engine only restricts
+  when an embedder passes `--disallow-insecure-connections`, and neither
+  the Android nor the iOS embedder does (checked in the engine source:
+  `shell/common/switches.cc` and the embedders). App Transport Security and
+  Android's cleartext policy govern the platform HTTP stacks, not
+  `dart:io`. So no network-security config or ATS exception was added,
+  since it would change nothing, and there's no "cleartext blocked" error
+  to map. The inline warning is the mitigation.
 
 ### AUD-15 — Release signed with the debug key
 

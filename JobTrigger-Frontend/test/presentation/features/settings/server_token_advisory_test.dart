@@ -43,4 +43,28 @@ void main() {
 
     expect(find.textContaining('This looks like a password'), findsNothing);
   });
+
+  group('Jenkins URL field (AUD-14)', () {
+    Finder urlField() => find.widgetWithText(TextField, 'Jenkins URL');
+
+    testWidgets('http:// shows the cleartext warning; https:// does not', (
+      tester,
+    ) async {
+      await _pump(tester);
+      await tester.enterText(urlField(), 'http://192.168.1.20:8080');
+      await tester.pump();
+      expect(find.textContaining('Not encrypted'), findsOneWidget);
+
+      await tester.enterText(urlField(), 'https://ci.test');
+      await tester.pump();
+      expect(find.textContaining('Not encrypted'), findsNothing);
+    });
+
+    testWidgets('an unusable URL says why, inline', (tester) async {
+      await _pump(tester);
+      await tester.enterText(urlField(), 'ci.test');
+      await tester.pump();
+      expect(find.textContaining('must start with https://'), findsOneWidget);
+    });
+  });
 }
