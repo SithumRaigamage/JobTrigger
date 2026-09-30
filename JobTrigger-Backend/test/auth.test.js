@@ -1,10 +1,9 @@
-const request = require('supertest');
+const { api } = require('./support/api');
 const { expect } = require('chai');
-const { app } = require('../server');
 
 describe('Auth API', function() {
   it('should signup a new user', async function() {
-    const res = await request(app)
+    const res = await api()
       .post('/api/auth/signup')
       .send({ email: 'test@example.com', password: 'password' });
 
@@ -15,7 +14,7 @@ describe('Auth API', function() {
   });
 
   it('should login existing user', async function() {
-    const res = await request(app)
+    const res = await api()
       .post('/api/auth/login')
       .send({ email: 'test@example.com', password: 'password' });
 

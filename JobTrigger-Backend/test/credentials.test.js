@@ -1,13 +1,12 @@
-const request = require('supertest');
+const { api } = require('./support/api');
 const { expect } = require('chai');
-const { app } = require('../server');
 
 describe('Credentials API', function() {
   let token;
 
   before(async function() {
     // Create a user and retrieve token
-    const signupRes = await request(app)
+    const signupRes = await api()
       .post('/api/auth/signup')
       .send({ email: 'creduser@example.com', password: 'password' });
 
@@ -24,7 +23,7 @@ describe('Credentials API', function() {
       isDefault: true
     };
 
-    const res = await request(app)
+    const res = await api()
       .post('/api/credentials')
       .set('x-auth-token', token)
       .send(credential);
@@ -35,7 +34,7 @@ describe('Credentials API', function() {
   });
 
   it('should retrieve credentials for authenticated user', async function() {
-    const res = await request(app)
+    const res = await api()
       .get('/api/credentials')
       .set('x-auth-token', token);
 
@@ -45,13 +44,13 @@ describe('Credentials API', function() {
   });
 
   it('should update a credential', async function() {
-    const addRes = await request(app)
+    const addRes = await api()
       .post('/api/credentials')
       .set('x-auth-token', token)
       .send({ serverName: 'Original', jenkinsURL: 'http://original', username: 'u', password: 'p', isDefault: false });
     const id = addRes.body._id;
 
-    const updateRes = await request(app)
+    const updateRes = await api()
       .put(`/api/credentials/${id}`)
       .set('x-auth-token', token)
       .send({ serverName: 'Renamed', jenkinsURL: 'http://renamed', username: 'u', password: 'p', isDefault: false });
@@ -61,13 +60,13 @@ describe('Credentials API', function() {
   });
 
   it('should delete a credential', async function() {
-    const addRes = await request(app)
+    const addRes = await api()
       .post('/api/credentials')
       .set('x-auth-token', token)
       .send({ serverName: 'Temp', jenkinsURL: 'http://temp', username: 'u', password: 'p', isDefault: false });
     const id = addRes.body._id;
 
-    const deleteRes = await request(app)
+    const deleteRes = await api()
       .delete(`/api/credentials/${id}`)
       .set('x-auth-token', token);
 
@@ -75,23 +74,23 @@ describe('Credentials API', function() {
   });
 
   it('should switch the active credential', async function() {
-    const first = await request(app)
+    const first = await api()
       .post('/api/credentials')
       .set('x-auth-token', token)
       .send({ serverName: 'First', jenkinsURL: 'http://first', username: 'u', password: 'p', isDefault: true });
-    const second = await request(app)
+    const second = await api()
       .post('/api/credentials')
       .set('x-auth-token', token)
       .send({ serverName: 'Second', jenkinsURL: 'http://second', username: 'u', password: 'p', isDefault: false });
 
-    const switchRes = await request(app)
+    const switchRes = await api()
       .post(`/api/credentials/switch/${second.body._id}`)
       .set('x-auth-token', token);
 
     expect(switchRes.status).to.equal(200);
     expect(switchRes.body.isDefault).to.equal(true);
 
-    const firstAfter = await request(app)
+    const firstAfter = await api()
       .get('/api/credentials')
       .set('x-auth-token', token)
       .then(res => res.body.find(c => c._id === first.body._id));

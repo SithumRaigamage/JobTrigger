@@ -34,4 +34,10 @@ const signupLimiter = authLimiter({
   limit: fromEnv('SIGNUP_RATE_LIMIT', 5),
 });
 
-module.exports = { authLimiter, loginLimiter, signupLimiter };
+// A client refreshes about every 15 minutes; this only stops hammering.
+const refreshLimiter = authLimiter({
+  windowMs: 15 * MINUTE,
+  limit: fromEnv('REFRESH_RATE_LIMIT', 30),
+});
+
+module.exports = { authLimiter, loginLimiter, refreshLimiter, signupLimiter };

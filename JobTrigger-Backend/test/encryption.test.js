@@ -1,8 +1,7 @@
 const crypto = require('crypto');
 const mongoose = require('mongoose');
-const request = require('supertest');
+const { api } = require('./support/api');
 const { expect } = require('chai');
-const { app } = require('../server');
 const {
   encrypt,
   decrypt,
@@ -62,14 +61,14 @@ describe('Credentials at rest (AUD-03)', function() {
   let token;
 
   before(async function() {
-    const res = await request(app)
+    const res = await api()
       .post('/api/auth/signup')
       .send({ email: 'atrest@example.com', password: 'password' });
     token = res.body.token;
   });
 
   it('stores secrets encrypted but returns them as plaintext', async function() {
-    const created = await request(app)
+    const created = await api()
       .post('/api/credentials')
       .set('x-auth-token', token)
       .send({ serverName: 'S', jenkinsURL: 'http://s', username: 'u', password: 'jenkins-token', paramToken: 'trigger' });
@@ -83,16 +82,16 @@ describe('Credentials at rest (AUD-03)', function() {
     expect(raw.paramToken).to.match(/^enc:v1:/);
     expect(JSON.stringify(raw)).to.not.include('jenkins-token');
 
-    const list = await request(app).get('/api/credentials').set('x-auth-token', token);
+    const list = await api().get('/api/credentials').set('x-auth-token', token);
     expect(list.body.find((c) => c._id === created.body._id).password).to.equal('jenkins-token');
   });
 
   it('encrypts an updated secret too', async function() {
-    const created = await request(app)
+    const created = await api()
       .post('/api/github-credentials')
       .set('x-auth-token', token)
       .send({ label: 'G', token: 'ghp_first' });
-    await request(app)
+    await api()
       .put(`/api/github-credentials/${created.body._id}`)
       .set('x-auth-token', token)
       .send({ token: 'ghp_second' });

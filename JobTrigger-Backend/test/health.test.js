@@ -1,11 +1,10 @@
-const request = require('supertest');
+const { api } = require('./support/api');
 const { expect } = require('chai');
 const mongoose = require('mongoose');
-const { app } = require('../server');
 
 describe('Health check (AUD-17)', function() {
   it('is 200 while MongoDB is connected', async function() {
-    const res = await request(app).get('/healthz');
+    const res = await api().get('/healthz');
     expect(res.status).to.equal(200);
     expect(res.body).to.deep.equal({ status: 'ok' });
   });
@@ -22,7 +21,7 @@ describe('Health check (AUD-17)', function() {
       get: () => 0,
     });
     try {
-      const res = await request(app).get('/healthz');
+      const res = await api().get('/healthz');
       expect(res.status).to.equal(503);
       expect(res.body).to.deep.equal({ status: 'unavailable' });
     } finally {

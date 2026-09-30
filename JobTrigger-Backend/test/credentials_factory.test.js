@@ -1,6 +1,5 @@
-const request = require('supertest');
+const { api } = require('./support/api');
 const { expect } = require('chai');
-const { app } = require('../server');
 
 // AUD-23, AUD-24, AUD-31: behaviour of the shared credential controller,
 // exercised through each of the three routes it now backs.
@@ -25,7 +24,7 @@ const routes = [
 let counter = 0;
 async function signup() {
   counter += 1;
-  const res = await request(app)
+  const res = await api()
     .post('/api/auth/signup')
     .send({ email: `factory${counter}@example.com`, password: 'password' });
   return res.body.token;
@@ -35,7 +34,7 @@ for (const { path, body, required } of routes) {
   describe(`Credential controller for ${path}`, function() {
     let token;
     const create = (extra = {}) =>
-      request(app).post(path).set('x-auth-token', token).send({ ...body, ...extra });
+      api().post(path).set('x-auth-token', token).send({ ...body, ...extra });
 
     beforeEach(async function() {
       token = await signup();
@@ -43,7 +42,7 @@ for (const { path, body, required } of routes) {
 
     it('rejects blanking a required field on update (AUD-23)', async function() {
       const created = await create();
-      const res = await request(app)
+      const res = await api()
         .put(`${path}/${created.body._id}`)
         .set('x-auth-token', token)
         .send({ [required]: '' });
@@ -54,7 +53,7 @@ for (const { path, body, required } of routes) {
     it('keeps fields the update leaves out, and refreshes updatedAt', async function() {
       const created = await create();
       await new Promise((resolve) => setTimeout(resolve, 5));
-      const res = await request(app)
+      const res = await api()
         .put(`${path}/${created.body._id}`)
         .set('x-auth-token', token)
         .send({ isDefault: false });
@@ -65,7 +64,7 @@ for (const { path, body, required } of routes) {
 
     it('rejects an operator object as a field value', async function() {
       const created = await create();
-      const res = await request(app)
+      const res = await api()
         .put(`${path}/${created.body._id}`)
         .set('x-auth-token', token)
         .send({ [required]: { $gt: '' } });
@@ -75,11 +74,11 @@ for (const { path, body, required } of routes) {
     it('keeps exactly one default when switching by update (AUD-24)', async function() {
       const first = await create({ isDefault: true });
       const second = await create();
-      await request(app)
+      await api()
         .put(`${path}/${second.body._id}`)
         .set('x-auth-token', token)
         .send({ isDefault: true });
-      const all = await request(app).get(path).set('x-auth-token', token);
+      const all = await api().get(path).set('x-auth-token', token);
       const defaults = all.body.filter((c) => c.isDefault).map((c) => c._id);
       expect(defaults).to.deep.equal([second.body._id]);
       expect(first.body._id).to.not.equal(second.body._id);
@@ -87,9 +86,9 @@ for (const { path, body, required } of routes) {
 
     it('answers 404 for an unknown id on every route', async function() {
       const unknown = '0123456789abcdef01234567';
-      const put = await request(app).put(`${path}/${unknown}`).set('x-auth-token', token).send({});
-      const del = await request(app).delete(`${path}/${unknown}`).set('x-auth-token', token);
-      const sw = await request(app).post(`${path}/switch/${unknown}`).set('x-auth-token', token);
+      const put = await api().put(`${path}/${unknown}`).set('x-auth-token', token).send({});
+      const del = await api().delete(`${path}/${unknown}`).set('x-auth-token', token);
+      const sw = await api().post(`${path}/switch/${unknown}`).set('x-auth-token', token);
       expect([put.status, del.status, sw.status]).to.deep.equal([404, 404, 404]);
     });
   });

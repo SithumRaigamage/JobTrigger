@@ -1,7 +1,7 @@
 const request = require('supertest');
+const { api } = require('./support/api');
 const { expect } = require('chai');
 const express = require('express');
-const { app } = require('../server');
 const { missingConfig, corsOrigins } = require('../config/env');
 const { errorHandler, notFound } = require('../middleware/errorHandler');
 const AppInfo = require('../models/AppInfo');
@@ -15,7 +15,7 @@ describe('Error handling (AUD-06)', function() {
     const logged = console.error;
     console.error = () => {}; // Expected server-side log; keep output clean.
     try {
-      const res = await request(app).get('/api/appinfo');
+      const res = await api().get('/api/appinfo');
       expect(res.status).to.equal(500);
       expect(res.body).to.deep.equal({ message: 'Server error' });
       expect(JSON.stringify(res.body)).to.not.match(/E11000|appinfos/);
@@ -26,7 +26,7 @@ describe('Error handling (AUD-06)', function() {
   });
 
   it('answers malformed JSON with a 400', async function() {
-    const res = await request(app)
+    const res = await api()
       .post('/api/auth/login')
       .set('Content-Type', 'application/json')
       .send('{"email": ');
@@ -35,7 +35,7 @@ describe('Error handling (AUD-06)', function() {
   });
 
   it('answers unknown routes with a JSON 404', async function() {
-    const res = await request(app).get('/api/nope');
+    const res = await api().get('/api/nope');
     expect(res.status).to.equal(404);
     expect(res.body).to.deep.equal({ message: 'Not found' });
   });
@@ -58,13 +58,13 @@ describe('Error handling (AUD-06)', function() {
 
 describe('Headers, CORS, and config (AUD-25)', function() {
   it('sends security headers', async function() {
-    const res = await request(app).get('/');
+    const res = await api().get('/');
     expect(res.headers['x-content-type-options']).to.equal('nosniff');
     expect(res.headers['x-powered-by']).to.be.undefined;
   });
 
   it('allows no browser origins unless configured', async function() {
-    const res = await request(app).get('/').set('Origin', 'https://evil.example');
+    const res = await api().get('/').set('Origin', 'https://evil.example');
     expect(res.headers['access-control-allow-origin']).to.be.undefined;
   });
 

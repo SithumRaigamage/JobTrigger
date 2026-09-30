@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 // Set before the server (and so the limiters) load.
 process.env.LOGIN_RATE_LIMIT = '10000';
 process.env.SIGNUP_RATE_LIMIT = '10000';
+process.env.REFRESH_RATE_LIMIT = '10000';
 // AUD-03: a throwaway key per run; secrets are encrypted at rest.
 process.env.CREDENTIALS_ENCRYPTION_KEY = require('crypto').randomBytes(32).toString('base64');
 
@@ -22,6 +23,7 @@ before(async function() {
 
   // Start the server which will connect mongoose to the in-memory mongo
   serverInstance = await serverModule.startServer();
+  require('./support/api').useServer(serverInstance);
 });
 
 after(async function() {

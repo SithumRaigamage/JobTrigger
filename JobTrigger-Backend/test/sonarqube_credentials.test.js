@@ -1,12 +1,11 @@
-const request = require('supertest');
+const { api } = require('./support/api');
 const { expect } = require('chai');
-const { app } = require('../server');
 
 describe('SonarQube Credentials API', function() {
   let token;
 
   before(async function() {
-    const signupRes = await request(app)
+    const signupRes = await api()
       .post('/api/auth/signup')
       .send({ email: 'sqcreduser@example.com', password: 'password' });
 
@@ -22,7 +21,7 @@ describe('SonarQube Credentials API', function() {
       isDefault: true
     };
 
-    const res = await request(app)
+    const res = await api()
       .post('/api/sonarqube-credentials')
       .set('x-auth-token', token)
       .send(credential);
@@ -34,7 +33,7 @@ describe('SonarQube Credentials API', function() {
   });
 
   it('should retrieve credentials for authenticated user', async function() {
-    const res = await request(app)
+    const res = await api()
       .get('/api/sonarqube-credentials')
       .set('x-auth-token', token);
 
@@ -44,13 +43,13 @@ describe('SonarQube Credentials API', function() {
   });
 
   it('should update a credential', async function() {
-    const addRes = await request(app)
+    const addRes = await api()
       .post('/api/sonarqube-credentials')
       .set('x-auth-token', token)
       .send({ label: 'Work', baseUrl: 'https://sonar.example.com', token: 'squ_original', isDefault: false });
     const id = addRes.body._id;
 
-    const updateRes = await request(app)
+    const updateRes = await api()
       .put(`/api/sonarqube-credentials/${id}`)
       .set('x-auth-token', token)
       .send({ label: 'Work Org', baseUrl: 'https://sonar.example.com', token: 'squ_rotated', isDefault: false });
@@ -60,13 +59,13 @@ describe('SonarQube Credentials API', function() {
   });
 
   it('should delete a credential', async function() {
-    const addRes = await request(app)
+    const addRes = await api()
       .post('/api/sonarqube-credentials')
       .set('x-auth-token', token)
       .send({ label: 'Temp', baseUrl: 'https://sonarcloud.io', token: 'squ_temp', isDefault: false });
     const id = addRes.body._id;
 
-    const deleteRes = await request(app)
+    const deleteRes = await api()
       .delete(`/api/sonarqube-credentials/${id}`)
       .set('x-auth-token', token);
 
@@ -74,23 +73,23 @@ describe('SonarQube Credentials API', function() {
   });
 
   it('should switch the active credential', async function() {
-    const first = await request(app)
+    const first = await api()
       .post('/api/sonarqube-credentials')
       .set('x-auth-token', token)
       .send({ label: 'First', baseUrl: 'https://sonarcloud.io', token: 'squ_first', isDefault: true });
-    const second = await request(app)
+    const second = await api()
       .post('/api/sonarqube-credentials')
       .set('x-auth-token', token)
       .send({ label: 'Second', baseUrl: 'https://sonarcloud.io', token: 'squ_second', isDefault: false });
 
-    const switchRes = await request(app)
+    const switchRes = await api()
       .post(`/api/sonarqube-credentials/switch/${second.body._id}`)
       .set('x-auth-token', token);
 
     expect(switchRes.status).to.equal(200);
     expect(switchRes.body.isDefault).to.equal(true);
 
-    const firstAfter = await request(app)
+    const firstAfter = await api()
       .get('/api/sonarqube-credentials')
       .set('x-auth-token', token)
       .then(res => res.body.find(c => c._id === first.body._id));
@@ -100,10 +99,10 @@ describe('SonarQube Credentials API', function() {
 
 describe('SonarQube Credentials ownership and defaults', function() {
   it("should prevent one user from updating another user's credential", async function() {
-    const a = await request(app).post('/api/auth/signup').send({ email: 'sqa@example.com', password: 'password' });
+    const a = await api().post('/api/auth/signup').send({ email: 'sqa@example.com', password: 'password' });
     const tokenA = a.body.token;
 
-    const credRes = await request(app)
+    const credRes = await api()
       .post('/api/sonarqube-credentials')
       .set('x-auth-token', tokenA)
       .send({ label: 'A SonarQube', baseUrl: 'https://sonarcloud.io', token: 'squ_a', isDefault: false });
@@ -111,17 +110,17 @@ describe('SonarQube Credentials ownership and defaults', function() {
     expect(credRes.status).to.equal(201);
     const credId = credRes.body._id;
 
-    const b = await request(app).post('/api/auth/signup').send({ email: 'sqb@example.com', password: 'password' });
+    const b = await api().post('/api/auth/signup').send({ email: 'sqb@example.com', password: 'password' });
     const tokenB = b.body.token;
 
-    const updateRes = await request(app)
+    const updateRes = await api()
       .put(`/api/sonarqube-credentials/${credId}`)
       .set('x-auth-token', tokenB)
       .send({ label: 'B Hacked', baseUrl: 'https://sonarcloud.io', token: 'squ_b', isDefault: false });
 
     expect(updateRes.status).to.equal(404); // AUD-24: indistinguishable from missing.
 
-    const deleteRes = await request(app)
+    const deleteRes = await api()
       .delete(`/api/sonarqube-credentials/${credId}`)
       .set('x-auth-token', tokenB);
 
@@ -129,19 +128,19 @@ describe('SonarQube Credentials ownership and defaults', function() {
   });
 
   it("should prevent one user from switching another user's credential active", async function() {
-    const a = await request(app).post('/api/auth/signup').send({ email: 'sqswitcha@example.com', password: 'password' });
+    const a = await api().post('/api/auth/signup').send({ email: 'sqswitcha@example.com', password: 'password' });
     const tokenA = a.body.token;
 
-    const credRes = await request(app)
+    const credRes = await api()
       .post('/api/sonarqube-credentials')
       .set('x-auth-token', tokenA)
       .send({ label: 'A SonarQube', baseUrl: 'https://sonarcloud.io', token: 'squ_a', isDefault: false });
     const credId = credRes.body._id;
 
-    const b = await request(app).post('/api/auth/signup').send({ email: 'sqswitchb@example.com', password: 'password' });
+    const b = await api().post('/api/auth/signup').send({ email: 'sqswitchb@example.com', password: 'password' });
     const tokenB = b.body.token;
 
-    const switchRes = await request(app)
+    const switchRes = await api()
       .post(`/api/sonarqube-credentials/switch/${credId}`)
       .set('x-auth-token', tokenB);
 
@@ -149,22 +148,22 @@ describe('SonarQube Credentials ownership and defaults', function() {
   });
 
   it('should ensure only one default credential per user when adding', async function() {
-    const u = await request(app).post('/api/auth/signup').send({ email: 'sqdef@example.com', password: 'password' });
+    const u = await api().post('/api/auth/signup').send({ email: 'sqdef@example.com', password: 'password' });
     const token = u.body.token;
 
-    const c1 = await request(app)
+    const c1 = await api()
       .post('/api/sonarqube-credentials')
       .set('x-auth-token', token)
       .send({ label: 'S1', baseUrl: 'https://sonarcloud.io', token: 'squ_s1', isDefault: true });
     expect(c1.status).to.equal(201);
 
-    const c2 = await request(app)
+    const c2 = await api()
       .post('/api/sonarqube-credentials')
       .set('x-auth-token', token)
       .send({ label: 'S2', baseUrl: 'https://sonarcloud.io', token: 'squ_s2', isDefault: true });
     expect(c2.status).to.equal(201);
 
-    const all = await request(app).get('/api/sonarqube-credentials').set('x-auth-token', token);
+    const all = await api().get('/api/sonarqube-credentials').set('x-auth-token', token);
     expect(all.status).to.equal(200);
     const defaults = all.body.filter(c => c.isDefault);
     expect(defaults.length).to.equal(1);

@@ -1,12 +1,11 @@
-const request = require('supertest');
+const { api } = require('./support/api');
 const { expect } = require('chai');
-const { app } = require('../server');
 const AppInfo = require('../models/AppInfo');
 
 describe('AppInfo API', function() {
   it('should return 404 when no AppInfo exists, then return seeded info', async function() {
     // Ensure none exists
-    const getEmpty = await request(app).get('/api/appinfo');
+    const getEmpty = await api().get('/api/appinfo');
     expect(getEmpty.status).to.equal(404);
 
     // Create AppInfo directly via model
@@ -19,7 +18,7 @@ describe('AppInfo API', function() {
       openSourceLicensesUrl: 'https://l'
     });
 
-    const getSeeded = await request(app).get('/api/appinfo');
+    const getSeeded = await api().get('/api/appinfo');
     expect(getSeeded.status).to.equal(200);
     expect(getSeeded.body.appVersion).to.equal('9.9.9');
   });

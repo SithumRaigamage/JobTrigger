@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { issueTokens, verifyToken, isCurrent } = require('../security/tokens');
 
 // AUD-26: kept in step with the client's AuthValidation
 // (JobTrigger-Frontend/lib/domain/auth/auth_validation.dart).
@@ -53,10 +53,8 @@ exports.signup = async (req, res, next) => {
     user = new User({ email, password });
     await user.save();
 
-    // Create JWT
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    res.status(201).json({ token, user: { _id: user._id, email: user.email } });
+    // A 15-minute access token and a refresh token (AUD-26).
+    res.status(201).json({ ...issueTokens(user), user: { _id: user._id, email: user.email } });
   } catch (err) {
     next(err);
   }
@@ -82,10 +80,37 @@ exports.login = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Create JWT
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    // A 15-minute access token and a refresh token (AUD-26).
+    res.json({ ...issueTokens(user), user: { _id: user._id, email: user.email } });
+  } catch (err) {
+    next(err);
+  }
+};
 
-    res.json({ token, user: { _id: user._id, email: user.email } });
+/**
+ * AUD-26: trades a refresh token for a new pair. The old refresh token
+ * keeps working until it expires (they aren't stored), but the pair it
+ * returns carries the current tokenVersion, and a logout-everywhere
+ * revokes both.
+ */
+exports.refresh = async (req, res, next) => {
+  try {
+    const payload = verifyToken(req.body?.refreshToken, 'refresh');
+    const user = payload && (await User.findById(payload.id));
+    if (!user || !isCurrent(payload, user)) {
+      return res.status(401).json({ message: 'Session expired' });
+    }
+    res.json({ ...issueTokens(user), user: { _id: user._id, email: user.email } });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/** AUD-26: revokes every access and refresh token the user holds. */
+exports.logoutAll = async (req, res, next) => {
+  try {
+    await User.updateOne({ _id: req.user.id }, { $inc: { tokenVersion: 1 } });
+    res.json({ message: 'Signed out everywhere' });
   } catch (err) {
     next(err);
   }

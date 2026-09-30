@@ -4,17 +4,26 @@ const express = require('express');
 const { authLimiter } = require('../middleware/rateLimit');
 
 // A small app with tiny limits, so the suites' generous limits (setup.js)
-// don't hide the behaviour.
+// don't hide the behaviour. Listening once for the whole test, like
+// test/support/api.js, rather than a throwaway server per request.
+const servers = [];
+
 function probe(options) {
   const app = express();
   app.post('/attempt', authLimiter({ windowMs: 60000, ...options }), (req, res) => {
     const ok = req.query.ok === '1';
     res.status(ok ? 200 : 400).json({ ok });
   });
-  return app;
+  const server = app.listen(0);
+  servers.push(server);
+  return server;
 }
 
 describe('Auth rate limiting (AUD-05)', function() {
+  afterEach(function() {
+    while (servers.length) servers.pop().close();
+  });
+
   it('answers 429 with a JSON message once the limit is reached', async function() {
     const app = probe({ limit: 2 });
     await request(app).post('/attempt');

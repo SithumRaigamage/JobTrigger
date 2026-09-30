@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { verifyToken, isCurrent } = require('../security/tokens');
 
 module.exports = async (req, res, next) => {
   // Get token from header
@@ -10,21 +10,20 @@ module.exports = async (req, res, next) => {
     return res.status(401).json({ message: 'No token, authorization denied' });
   }
 
-  // Verify token
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // A token stays valid until it expires even if the user it names has
-    // since been deleted -- confirm the user still exists rather than
-    // trusting the token payload alone.
-    const user = await User.findById(decoded.id);
-    if (!user) {
-      return res.status(401).json({ message: 'Token is not valid' });
-    }
-
-    req.user = decoded;
-    next();
-  } catch (err) {
-    res.status(401).json({ message: 'Token is not valid' });
+  // An access token only: a refresh token is refused here (AUD-26).
+  const decoded = verifyToken(token, 'access');
+  if (!decoded) {
+    return res.status(401).json({ message: 'Token is not valid' });
   }
+
+  // A token stays valid until it expires even if the user it names has
+  // since been deleted, or has signed out everywhere since it was issued
+  // (tokenVersion, AUD-26) -- confirm both rather than trusting the payload.
+  const user = await User.findById(decoded.id);
+  if (!user || !isCurrent(decoded, user)) {
+    return res.status(401).json({ message: 'Token is not valid' });
+  }
+
+  req.user = { id: decoded.id };
+  next();
 };
