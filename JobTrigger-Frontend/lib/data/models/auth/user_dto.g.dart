@@ -18,7 +18,12 @@ _AuthResponseDto _$AuthResponseDtoFromJson(Map<String, dynamic> json) =>
     _AuthResponseDto(
       token: json['token'] as String,
       user: UserDto.fromJson(json['user'] as Map<String, dynamic>),
+      refreshToken: json['refreshToken'] as String?,
     );
 
 Map<String, dynamic> _$AuthResponseDtoToJson(_AuthResponseDto instance) =>
-    <String, dynamic>{'token': instance.token, 'user': instance.user};
+    <String, dynamic>{
+      'token': instance.token,
+      'user': instance.user,
+      'refreshToken': instance.refreshToken,
+    };

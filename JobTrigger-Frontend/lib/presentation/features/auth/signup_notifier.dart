@@ -53,7 +53,11 @@ class SignupNotifier extends _$SignupNotifier {
       case Ok(:final value):
         await ref
             .read(authNotifierProvider.notifier)
-            .setSession(value.user, value.token);
+            .setSession(
+              value.user,
+              value.token,
+              refreshToken: value.refreshToken,
+            );
         state = const AsyncData(null);
       case Err(:final error):
         state = AsyncError(error, StackTrace.current);

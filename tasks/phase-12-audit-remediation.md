@@ -128,8 +128,11 @@ file lists them.
       100 mocha tests pass. **Deploy note:** every environment, including
       local `.env` files, needs `CREDENTIALS_ENCRYPTION_KEY` before the
       server will start, then one `npm run encrypt-credentials` run.
-- [ ] P12-27 **AUD-26 session hardening.** `tokenVersion` on `User`
+- [x] P12-27 **AUD-26 session hardening.** `tokenVersion` on `User`
       (logout-all and password-change revocation), and a shorter access
       token with a refresh endpoint. **Contract change:** needs a matching
       client task in the backend client and `AuthNotifier`, planned
       together.
+      *Done 2026-10-01 (approved 2026-09-30):* backend and client landed
+      together. Details are in the audit entry. Also fixed AUD-41, the
+      backend suite's intermittent failures (0 in 60 runs now).

@@ -3,12 +3,15 @@ import 'dart:convert';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/error/app_failure.dart';
+import '../../../core/error/result.dart';
 import '../../../core/network/session_signal.dart';
 import '../../../core/platform/home_widget_bridge.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import '../../../data/cache/job_tree_cache.dart';
 import '../../../data/cache/user_scoped_prefs.dart';
 import '../../../data/models/auth/user_dto.dart';
+import '../../../data/repositories/auth_repository_impl.dart';
 import '../../../domain/auth/auth_state.dart';
 import '../../../domain/auth/user.dart';
 import '../notifications/build_watch_notifier.dart';
@@ -57,11 +60,28 @@ class AuthNotifier extends _$AuthNotifier {
 
   /// Called by `LoginNotifier`/`SignupNotifier` on a successful auth call —
   /// see `docs/state-management.md`'s "Feature: auth" section.
-  Future<void> setSession(User user, String token) async {
+  Future<void> setSession(
+    User user,
+    String token, {
+    String? refreshToken,
+  }) async {
     final secureStorage = ref.read(secureStorageProvider);
     await secureStorage.saveToken(token);
+    if (refreshToken != null) {
+      await secureStorage.saveRefreshToken(refreshToken);
+    }
     await _writeCachedUser(user);
     state = AsyncData(Authenticated(user));
+  }
+
+  /// AUD-26: revokes every session on every device, then signs out here.
+  /// Returns the failure when the server couldn't be told (still signed
+  /// in, so the user can retry), or null.
+  Future<AppFailure?> logoutEverywhere() async {
+    final result = await ref.read(authRepositoryProvider).logoutEverywhere();
+    if (result case Err(:final error)) return error;
+    await logout();
+    return null;
   }
 
   Future<void> logout() async {

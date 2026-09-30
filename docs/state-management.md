@@ -32,6 +32,13 @@ their screen under `presentation/features/<feature>/`.
   (AUD-01). Its `build()` also deletes the legacy `login_saved_password`
   key that builds before AUD-01 wrote.
 
+- **Sessions (AUD-26):** `setSession(user, token, refreshToken:)` keeps
+  both tokens in secure storage. The backend `Dio` interceptor renews an
+  expired access token itself, so no notifier sees that 401. Only a failed
+  refresh fires `SessionSignal`. `logoutEverywhere()` returns the
+  `AppFailure` when the server couldn't be reached, leaving the user
+  signed in to retry.
+
 ## Feature: history — paging (P11-10)
 
 - `JobHistoryPagesNotifier(jobUrl)` (`AsyncNotifier<HistoryPages>`) loads

@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/platform/package_info_provider.dart';
 import '../../../domain/auth/auth_state.dart';
+import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
+import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../auth/auth_notifier.dart';
@@ -141,9 +143,43 @@ class ProfileScreen extends ConsumerWidget {
                 child: const Text('Log Out'),
               ),
             ),
+            // AUD-26: revoke every session, e.g. after losing a phone.
+            Center(
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+                onPressed: () => _logoutEverywhere(context, ref),
+                child: const Text('Log out of all devices'),
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _logoutEverywhere(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Log out of all devices?',
+      message:
+          'Every device signed in to this account, including this one, '
+          'will need to log in again.',
+      confirmLabel: 'Log out everywhere',
+      destructive: true,
+    );
+    if (!confirmed || !context.mounted) return;
+    // Read before the await: a successful logout leaves this screen.
+    final toast = ref.read(toastControllerProvider);
+    final failure = await ref
+        .read(authNotifierProvider.notifier)
+        .logoutEverywhere();
+    if (failure == null) return;
+    toast.show(
+      type: ToastType.error,
+      title: "Couldn't log out everywhere",
+      message: failure.message,
     );
   }
 

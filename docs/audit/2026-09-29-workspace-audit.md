@@ -62,7 +62,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-23 | Medium | Bug (backend) | Credential `PUT` skips validators and never updates `updatedAt` | fixed (P12-25) |
 | AUD-24 | Medium | Security (backend) | Ownership failures return 401 (enables id probing); `isDefault` switch not atomic | fixed (P12-25) |
 | AUD-25 | Medium | Security (backend) | Wide-open CORS, no security headers, no fail-fast on missing `JWT_SECRET` | fixed (P12-23) |
-| AUD-26 | Medium | Security (backend) | Weak password policy, no server-side email validation, 7-day JWT with no revocation | open |
+| AUD-26 | Medium | Security (backend) | Weak password policy, no server-side email validation, 7-day JWT with no revocation | fixed (P12-22, P12-27) |
 | AUD-27 | Medium | Security / UX | Password build parameters rendered in plaintext and pre-filled | fixed (P11-04) |
 | AUD-28 | Low | Privacy | Logout leaves per-user preferences behind on a shared device | fixed (P12-09) |
 | AUD-29 | Low | Bug | Artifact download state keyed by relative path only, shared across builds | fixed (P12-09) |
@@ -76,9 +76,10 @@ are cross-referenced instead of being fixed twice.
 | AUD-38 | High | Bug | Triggering a job with a Run parameter from the untouched form fails (empty value → Jenkins `500`) | fixed (P11-06) |
 | AUD-39 | High | Bug | Cancelling a *pipeline* build reports failure (Jenkins answers the stop with a 302) | fixed (P11-13) |
 | AUD-40 | High | Release | Android build fails: `flutter_secure_storage` 11 needs compileSdk 37, the app compiled against 36 | fixed (P11-24) |
+| AUD-41 | Medium | Testing | Backend suite failed intermittently (~1 run in 10): supertest's per-request throwaway servers | fixed (P12-27) |
 | AUD-36 | Low | Hygiene | Untracked leftovers in the workspace (1.2 GB build output, coverage, stray tool dirs) | fixed (local cleanup 2026-09-29) |
 
-**Counts:** 3 Critical, 17 High, 11 Medium, 9 Low (40 total). AUD-37 and AUD-38 were found on 2026-09-29 during P11-04's real-server verification, AUD-39 on 2026-09-30 during P11-13's, and AUD-40 on 2026-09-30 while compile-checking P11-24's native setup.
+**Counts:** 3 Critical, 17 High, 12 Medium, 9 Low (41 total). AUD-37 and AUD-38 were found on 2026-09-29 during P11-04's real-server verification, AUD-39 on 2026-09-30 during P11-13's, AUD-40 on 2026-09-30 while compile-checking P11-24's native setup, and AUD-41 on 2026-10-01 while writing P12-27's tests.
 
 ---
 
@@ -463,6 +464,17 @@ are cross-referenced instead of being fixed twice.
   format check, all at signup only so existing accounts can still sign in.
   The client's `AuthValidation` uses the same pattern and minimum. The
   session half (`tokenVersion`, refresh) is P12-27.
+- **Fixed (P12-27, 2026-10-01):** a 15-minute access token and a 30-day
+  refresh token, both carrying `User.tokenVersion` and a `typ` claim, so
+  neither can stand in for the other. `POST /api/auth/logout-all` bumps
+  the version, revoking every token on every device ("Log out of all
+  devices" in Profile). The client's backend interceptor refreshes once
+  on a 401 (concurrent 401s share one refresh) and replays the request;
+  if the refresh fails it signs out as before. Pre-change tokens stay
+  valid until they expire, so the deploy doesn't sign anyone out. There's
+  no password-change endpoint yet; when one is added it must bump
+  `tokenVersion`. Backend: 6 session tests. Client: 5 interceptor tests
+  and 4 notifier and repository tests.
 
 ### AUD-27 — Password build parameters shown in plaintext
 
@@ -525,6 +537,19 @@ are cross-referenced instead of being fixed twice.
   Flutter's default reaches 37. A `flutter build apk --debug` step in CI
   would have caught this, so `flutter-ci.yml` now has a `build-android`
   job.
+
+### AUD-41 — The backend test suite failed at random
+
+- **Where:** every mocha suite's `request(app)`.
+- **What:** supertest starts and closes a throwaway HTTP server for each
+  `request(app)` call. On macOS the rapid port reuse occasionally put a
+  request on a dying connection, so a random test failed with "socket hang
+  up", a 401 on a valid token, or a raw HTTP 400 on a bodyless GET.
+  Measured at 1 failing run in 40 before 2026-09-30's backend work, and
+  about 1 in 10 as the suite grew. Turning off keep-alive didn't help.
+- **Fix (P12-27):** `test/support/api.js`. Every suite now sends requests
+  to the one server `test/setup.js` starts, and the rate-limit probe
+  listens once per test. Result: 0 failing runs in 60.
 
 ## Low
 

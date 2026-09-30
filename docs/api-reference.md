@@ -5,13 +5,20 @@ Never share an interceptor or base URL between them.
 
 ## 1. Backend API (`JobTrigger-Backend`, JWT in `x-auth-token`)
 
+Since AUD-26, `token` is a **15-minute** access token and `refreshToken` a
+30-day refresh token (both JWTs carrying the user's `tokenVersion`). Both
+live only in secure storage. Tokens issued before this change stay valid
+until they expire.
+
 Base URL from `core/config/app_config.dart`, e.g. `https://api.jobtrigger.app`
 (configurable per build flavor — dev/staging/prod).
 
 | Endpoint | Method | Auth | Request body | Response | Notes |
 |---|---|---|---|---|---|
-| `/api/auth/signup` | POST | Public | `{ email, password }` (strings) | `{ user, token }` | Server enforces the email pattern, a password of 8+ characters, and at most 72 bytes; non-strings get 400 (AUD-04/26). The client checks the same rules first |
-| `/api/auth/login` | POST | Public | `{ email, password }` (strings) | `{ user, token }` | Non-strings get 400; the email is trimmed and lower-cased. On success, store the token in secure storage immediately. **429** after 10 failed attempts per IP in 15 min (signup: 5 per hour), with a `RateLimit` header; the client shows "Too many attempts…" (AUD-05) |
+| `/api/auth/signup` | POST | Public | `{ email, password }` (strings) | `{ user, token, refreshToken }` | Server enforces the email pattern, a password of 8+ characters, and at most 72 bytes; non-strings get 400 (AUD-04/26). The client checks the same rules first |
+| `/api/auth/login` | POST | Public | `{ email, password }` (strings) | `{ user, token, refreshToken }` | Non-strings get 400; the email is trimmed and lower-cased. On success, store the token in secure storage immediately. **429** after 10 failed attempts per IP in 15 min (signup: 5 per hour), with a `RateLimit` header; the client shows "Too many attempts…" (AUD-05) |
+| `/api/auth/refresh` | POST | Public | `{ refreshToken }` | `{ token, refreshToken, user }` | AUD-26. Called by the backend interceptor on a 401, once per burst of 401s, and the request is replayed. **401** when the refresh token is expired, revoked, or not a refresh token, and the client then signs out. 30 per IP per 15 min |
+| `/api/auth/logout-all` | POST | Token | — | `{ message }` | AUD-26. Bumps `User.tokenVersion`, revoking every access and refresh token on every device, including the caller's |
 | `/api/credentials` | GET | `x-auth-token` | — | `Credential[]` | |
 | `/api/credentials` | POST | `x-auth-token` | `Credential` (minus id) | `Credential` | |
 | `/api/credentials/:id` | PUT | `x-auth-token` | Partial `Credential` | `Credential` | |

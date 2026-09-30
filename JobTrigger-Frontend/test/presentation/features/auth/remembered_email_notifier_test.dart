@@ -27,11 +27,16 @@ class _FakeAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) => throw UnimplementedError();
+
+  @override
+  Future<Result<void, AppFailure>> logoutEverywhere() =>
+      throw UnimplementedError();
 }
 
 const _success = Ok<AuthSession, AppFailure>((
   user: User(id: 'u1', email: 'a@b.com'),
   token: 'jwt-abc',
+  refreshToken: null,
 ));
 
 void main() {

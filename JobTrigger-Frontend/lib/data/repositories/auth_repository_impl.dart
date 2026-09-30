@@ -37,8 +37,16 @@ class AuthRepositoryImpl implements AuthRepository {
       data: {'email': email, 'password': password},
     );
     final dto = AuthResponseDto.fromJson(response.data!);
-    return (user: dto.user.toDomain(), token: dto.token);
+    return (
+      user: dto.user.toDomain(),
+      token: dto.token,
+      refreshToken: dto.refreshToken,
+    );
   });
+
+  @override
+  Future<Result<void, AppFailure>> logoutEverywhere() =>
+      guardRequest(() => _dio.post<void>('/api/auth/logout-all'));
 }
 
 @riverpod

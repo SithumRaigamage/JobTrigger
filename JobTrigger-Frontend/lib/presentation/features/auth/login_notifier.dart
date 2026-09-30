@@ -46,7 +46,11 @@ class LoginNotifier extends _$LoginNotifier {
       case Ok(:final value):
         await ref
             .read(authNotifierProvider.notifier)
-            .setSession(value.user, value.token);
+            .setSession(
+              value.user,
+              value.token,
+              refreshToken: value.refreshToken,
+            );
         final rememberedEmail = ref.read(
           rememberedEmailNotifierProvider.notifier,
         );
