@@ -31,7 +31,9 @@ only tracks what's left and why.
 - [ ] Internal TestFlight + Play internal testing track release (source:
       `phase-6-polish-release.md` P6-11). Needs an Apple Developer account
       + App Store Connect access + code-signing certificates, and a Google
-      Play Console account + signing key. Also blocked on the icon/splash
+      Play Console account + signing key. The Android upload-key setup is
+      in `docs/deployment.md`, "Android release signing" (P12-10); the
+      build side is ready, and only the key itself is missing. Also blocked on the icon/splash
       item above, and on revisiting the crash-reporting decision
       (`backlog.md`) before real users are involved.
 - [ ] Dogfood window — track crash-free rate and Jenkins-server edge cases

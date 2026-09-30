@@ -1,8 +1,23 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// AUD-15: the release key comes from android/key.properties (git-ignored,
+// see docs/deployment.md). Without that file, release builds fall back to
+// the debug key with a warning: fine for a local check, never for a store.
+val releaseKeyFile = rootProject.file("key.properties")
+val releaseKey = Properties().apply {
+    if (releaseKeyFile.exists()) FileInputStream(releaseKeyFile).use { load(it) }
+}
+
+fun releaseKeyValue(name: String): String =
+    releaseKey.getProperty(name)?.takeIf { it.isNotBlank() }
+        ?: throw GradleException("android/key.properties is missing '$name'")
 
 android {
     namespace = "com.sraig.jobtrigger"
@@ -30,11 +45,29 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (releaseKeyFile.exists()) {
+            create("release") {
+                storeFile = rootProject.file(releaseKeyValue("storeFile"))
+                storePassword = releaseKeyValue("storePassword")
+                keyAlias = releaseKeyValue("keyAlias")
+                keyPassword = releaseKeyValue("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (releaseKeyFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                logger.warn(
+                    "WARNING: android/key.properties not found, so release " +
+                        "builds are signed with the DEBUG key. Such a build " +
+                        "can't go to the Play Store. See docs/deployment.md.",
+                )
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }

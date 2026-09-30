@@ -51,7 +51,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-12 | High | Performance | Console log re-sanitizes and re-splits the whole log every second (O(n²)) | fixed (P11-11) |
 | AUD-13 | Medium | Bug | A transient log-poll error discards the displayed log | fixed (P11-11) |
 | AUD-14 | High | Security / UX | Jenkins URL unvalidated; Basic Auth sent over `http://` silently; cleartext failures shown as generic errors | open |
-| AUD-15 | High | Release | Android release build signed with the debug key | open |
+| AUD-15 | High | Release | Android release build signed with the debug key | fixed (P12-10) |
 | AUD-16 | High | DevOps | CI does not run on the active `flutter-migration` branch | fixed (P12-03) |
 | AUD-17 | High | DevOps / Security | Node 20 (EOL) in Dockerfile and CI; container runs as root | open |
 | AUD-18 | Medium | Bug | Edited build-parameter values silently reset when the form scrolls off-screen | fixed (P11-04) |
@@ -262,6 +262,12 @@ are cross-referenced instead of being fixed twice.
 - **Fix:** Read a keystore from `key.properties` (git-ignored), falling back
   to debug only when that file is absent, with a loud Gradle warning. Link
   from `release-checklist.md`.
+- **Fixed (P12-10, 2026-09-30):** done as described, and all three paths
+  were verified. Without the file, the build succeeds debug-signed with a
+  Gradle warning. With an incomplete file, it fails fast naming the
+  missing field. With a complete file, `apksigner` showed the
+  configured certificate (tested with a throwaway key, since deleted).
+  Setup is in `docs/deployment.md`, linked from `release-checklist.md`.
 
 ### AUD-16 — CI doesn't run on the active branch
 

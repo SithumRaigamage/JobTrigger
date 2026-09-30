@@ -45,9 +45,9 @@ internal testing" and "Dogfood window" items.
 `.github/workflows/cd.yml` exists and is invokable from the Actions tab
 (`workflow_dispatch` only — it never runs automatically on push/PR, per the
 "don't build the deploy pipeline yet" reasoning below, which still holds).
-It builds `flutter build apk --release` (debug-signed, since
-`android/app/build.gradle`'s release build type has no real signing config
-yet) and `flutter build ipa --release --no-codesign`, uploading both as
+It builds `flutter build apk --release` (debug-signed, because CI has no
+`key.properties`; see "Android release signing" below) and
+`flutter build ipa --release --no-codesign`, uploading both as
 workflow artifacts — nothing is pushed to a store or a registry. A second
 job does `docker build` against a new `JobTrigger-Backend/Dockerfile`
 (no `push`), verifying the backend still containerizes; no registry is
@@ -57,6 +57,52 @@ This satisfies recommendation #1 below, already done. `.github/workflows/flutter
 itself (the one that actually gates PRs) is deliberately left as
 analyze/test-only — build verification lives in the separate,
 manually-triggered `cd.yml` instead, so PR CI stays fast.
+
+## Android release signing (P12-10, AUD-15)
+
+`android/app/build.gradle.kts` signs release builds with the key described
+in `JobTrigger-Frontend/android/key.properties`. That file, and every
+`*.jks`/`*.keystore`, is git-ignored (`android/.gitignore`). Never commit
+them.
+
+1. Create the upload key once and keep it somewhere backed up (outside the
+   repo):
+
+   ```bash
+   keytool -genkeypair -v -keystore ~/keys/jobtrigger-upload.jks \
+     -alias upload -keyalg RSA -keysize 2048 -validity 10000
+   ```
+
+2. Create `JobTrigger-Frontend/android/key.properties`:
+
+   ```properties
+   storeFile=/Users/you/keys/jobtrigger-upload.jks
+   storePassword=…
+   keyAlias=upload
+   keyPassword=…
+   ```
+
+   `storeFile` may be absolute, or relative to `android/`.
+
+3. `flutter build appbundle --release` (for Play) or `flutter build apk
+   --release`. To check which key signed an APK:
+   `apksigner verify --print-certs build/app/outputs/flutter-apk/app-release.apk`.
+
+Behaviour, verified 2026-09-30:
+
+- **No `key.properties`:** the release build still succeeds, signed with
+  the **debug** key, and Gradle logs `WARNING: android/key.properties not
+  found…`. `flutter build` hides Gradle warnings; `./gradlew :app:help`
+  shows it. A debug-signed build can't be uploaded to Play.
+- **Incomplete `key.properties`:** the build fails immediately with
+  `android/key.properties is missing '<field>'` rather than a cryptic
+  signing error.
+- **Complete:** the release APK carries the upload key's certificate.
+
+With Play App Signing, this key is only the *upload* key: Google re-signs
+for distribution, and a lost upload key can be reset through Play Console.
+For CI, write `key.properties` and the keystore from GitHub secrets in the
+job, never in the repo (recommendation #2 below).
 
 ## Recommendation
 

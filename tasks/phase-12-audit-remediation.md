@@ -67,9 +67,11 @@ AUD-08 (P11-04), AUD-10 (P11-05), AUD-12 (P11-11), AUD-13 (P11-11), AUD-18
       relativePath)`. The `buildRunning`, `buildPaused`, and `folder`
       tokens are contrast-checked. The `buildUnstable` contrast is noted
       in the audit as a design follow-up.
-- [ ] P12-10 **AUD-15.** Release signing read from a git-ignored
+- [x] P12-10 **AUD-15.** Release signing read from a git-ignored
       `key.properties`, falling back to debug with a Gradle warning.
-      Document it in `docs/deployment.md`.
+      Document it in `docs/deployment.md`. *Done 2026-09-30:* plus a
+      fail-fast on an incomplete file. All three paths were verified
+      (details in the audit entry).
 - [x] P12-11 **AUD-35.** Correct `CLAUDE.md` §1's backend auth description
       (`x-auth-token`, not bearer). *Done 2026-09-30,* along with the same
       drift in `api-reference.md` §1 and `architecture.md` §2.
