@@ -302,7 +302,9 @@ class _ArtifactRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDownloading = ref
-        .watch(artifactDownloadNotifierProvider(artifact.relativePath))
+        .watch(
+          artifactDownloadNotifierProvider(buildUrl, artifact.relativePath),
+        )
         .isLoading;
 
     return Padding(
@@ -336,10 +338,11 @@ class _ArtifactRow extends ConsumerWidget {
               onPressed: () => ref
                   .read(
                     artifactDownloadNotifierProvider(
+                      buildUrl,
                       artifact.relativePath,
                     ).notifier,
                   )
-                  .download(buildUrl: buildUrl, artifact: artifact),
+                  .download(artifact),
             ),
         ],
       ),

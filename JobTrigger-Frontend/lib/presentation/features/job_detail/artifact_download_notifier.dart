@@ -23,12 +23,11 @@ part 'artifact_download_notifier.g.dart';
 @riverpod
 class ArtifactDownloadNotifier extends _$ArtifactDownloadNotifier {
   @override
-  FutureOr<void> build(String relativePath) {}
+  // Keyed by build *and* path: the same relative path in two builds (or
+  // jobs) is a different file with its own download state (AUD-29).
+  FutureOr<void> build(String buildUrl, String relativePath) {}
 
-  Future<void> download({
-    required String buildUrl,
-    required BuildArtifact artifact,
-  }) async {
+  Future<void> download(BuildArtifact artifact) async {
     state = const AsyncLoading();
 
     final result = await ref

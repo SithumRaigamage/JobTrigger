@@ -43,7 +43,7 @@ final class ArtifactDownloadNotifierProvider
   /// existing "Share log" action, just with bytes instead of text.
   ArtifactDownloadNotifierProvider._({
     required ArtifactDownloadNotifierFamily super.from,
-    required String super.argument,
+    required (String, String) super.argument,
   }) : super(
          retry: null,
          name: r'artifactDownloadNotifierProvider',
@@ -59,7 +59,7 @@ final class ArtifactDownloadNotifierProvider
   String toString() {
     return r'artifactDownloadNotifierProvider'
         ''
-        '($argument)';
+        '$argument';
   }
 
   @$internal
@@ -79,7 +79,7 @@ final class ArtifactDownloadNotifierProvider
 }
 
 String _$artifactDownloadNotifierHash() =>
-    r'0ae2cc1503c2849eff439603113888ef31e2f195';
+    r'861d583fa6e021f2d4c67feeae5c5a7d76b64137';
 
 /// US-PIPE-07. Family-keyed by the artifact's `relativePath` (unique
 /// within one build) so each artifact row has its own independent
@@ -98,7 +98,7 @@ final class ArtifactDownloadNotifierFamily extends $Family
           AsyncValue<void>,
           void,
           FutureOr<void>,
-          String
+          (String, String)
         > {
   ArtifactDownloadNotifierFamily._()
     : super(
@@ -119,8 +119,11 @@ final class ArtifactDownloadNotifierFamily extends $Family
   /// hands off via the OS share sheet — same pattern as `BuildLogScreen`'s
   /// existing "Share log" action, just with bytes instead of text.
 
-  ArtifactDownloadNotifierProvider call(String relativePath) =>
-      ArtifactDownloadNotifierProvider._(argument: relativePath, from: this);
+  ArtifactDownloadNotifierProvider call(String buildUrl, String relativePath) =>
+      ArtifactDownloadNotifierProvider._(
+        argument: (buildUrl, relativePath),
+        from: this,
+      );
 
   @override
   String toString() => r'artifactDownloadNotifierProvider';
@@ -137,10 +140,11 @@ final class ArtifactDownloadNotifierFamily extends $Family
 /// existing "Share log" action, just with bytes instead of text.
 
 abstract class _$ArtifactDownloadNotifier extends $AsyncNotifier<void> {
-  late final _$args = ref.$arg as String;
-  String get relativePath => _$args;
+  late final _$args = ref.$arg as (String, String);
+  String get buildUrl => _$args.$1;
+  String get relativePath => _$args.$2;
 
-  FutureOr<void> build(String relativePath);
+  FutureOr<void> build(String buildUrl, String relativePath);
   @$mustCallSuper
   @override
   void runBuild() {
@@ -153,6 +157,6 @@ abstract class _$ArtifactDownloadNotifier extends $AsyncNotifier<void> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
   }
 }

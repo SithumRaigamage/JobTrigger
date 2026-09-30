@@ -4,12 +4,14 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/network/session_signal.dart';
+import '../../../core/platform/home_widget_bridge.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import '../../../data/cache/job_tree_cache.dart';
+import '../../../data/cache/user_scoped_prefs.dart';
 import '../../../data/models/auth/user_dto.dart';
 import '../../../domain/auth/auth_state.dart';
 import '../../../domain/auth/user.dart';
-import '../../../core/platform/home_widget_bridge.dart';
+import '../notifications/build_watch_notifier.dart';
 
 part 'auth_notifier.g.dart';
 
@@ -75,6 +77,11 @@ class AuthNotifier extends _$AuthNotifier {
     }
     // US-JX-23: nor on the home screen.
     await ref.read(homeWidgetBridgeProvider).clear();
+    // AUD-28: nor the active credentials, pins, views, or build watches.
+    await clearUserScopedPrefs();
+    // Reloads the (now empty) watches, which also cancels the background
+    // check.
+    ref.invalidate(buildWatchNotifierProvider);
     state = const AsyncData(Unauthenticated());
   }
 

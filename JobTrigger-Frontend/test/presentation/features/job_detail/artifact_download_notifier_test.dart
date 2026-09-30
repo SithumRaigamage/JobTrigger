@@ -69,18 +69,21 @@ void main() {
       // its async `download()` call (temp-file I/O, then the share sheet)
       // can't be torn down mid-flight.
       container.listen(
-        artifactDownloadNotifierProvider(_artifact.relativePath),
+        artifactDownloadNotifierProvider(_buildUrl, _artifact.relativePath),
         (_, _) {},
       );
 
       await container
           .read(
-            artifactDownloadNotifierProvider(_artifact.relativePath).notifier,
+            artifactDownloadNotifierProvider(
+              _buildUrl,
+              _artifact.relativePath,
+            ).notifier,
           )
-          .download(buildUrl: _buildUrl, artifact: _artifact);
+          .download(_artifact);
 
       final state = container.read(
-        artifactDownloadNotifierProvider(_artifact.relativePath),
+        artifactDownloadNotifierProvider(_buildUrl, _artifact.relativePath),
       );
       expect(state.hasError, isFalse);
       expect(repo.fetchArtifactBytesCallCount, 1);
@@ -96,22 +99,51 @@ void main() {
       );
       addTearDown(container.dispose);
       container.listen(
-        artifactDownloadNotifierProvider(_artifact.relativePath),
+        artifactDownloadNotifierProvider(_buildUrl, _artifact.relativePath),
         (_, _) {},
       );
 
       await container
           .read(
-            artifactDownloadNotifierProvider(_artifact.relativePath).notifier,
+            artifactDownloadNotifierProvider(
+              _buildUrl,
+              _artifact.relativePath,
+            ).notifier,
           )
-          .download(buildUrl: _buildUrl, artifact: _artifact);
+          .download(_artifact);
 
       final state = container.read(
-        artifactDownloadNotifierProvider(_artifact.relativePath),
+        artifactDownloadNotifierProvider(_buildUrl, _artifact.relativePath),
       );
       expect(state.hasError, isTrue);
       expect(state.error, isA<NetworkFailure>());
       expect(container.read(currentToastProvider)?.type, ToastType.error);
     },
   );
+
+  test('the same path in another build has its own state (AUD-29)', () async {
+    const otherBuild = 'https://jenkins.test/job/demo/2/';
+    final repo = _FakeRepository(const Err(NetworkFailure()));
+    final container = ProviderContainer(
+      overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+    );
+    addTearDown(container.dispose);
+    final first = artifactDownloadNotifierProvider(
+      _buildUrl,
+      _artifact.relativePath,
+    );
+    final second = artifactDownloadNotifierProvider(
+      otherBuild,
+      _artifact.relativePath,
+    );
+    container
+      ..listen(first, (_, _) {})
+      ..listen(second, (_, _) {})
+      ..listen(currentToastProvider, (_, _) {});
+
+    await container.read(first.notifier).download(_artifact);
+
+    expect(container.read(first).hasError, isTrue);
+    expect(container.read(second).hasError, isFalse);
+  });
 }

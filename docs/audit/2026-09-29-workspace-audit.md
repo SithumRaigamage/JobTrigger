@@ -64,9 +64,9 @@ are cross-referenced instead of being fixed twice.
 | AUD-25 | Medium | Security (backend) | Wide-open CORS, no security headers, no fail-fast on missing `JWT_SECRET` | open |
 | AUD-26 | Medium | Security (backend) | Weak password policy, no server-side email validation, 7-day JWT with no revocation | open |
 | AUD-27 | Medium | Security / UX | Password build parameters rendered in plaintext and pre-filled | fixed (P11-04) |
-| AUD-28 | Low | Privacy | Logout leaves per-user preferences behind on a shared device | open |
-| AUD-29 | Low | Bug | Artifact download state keyed by relative path only, shared across builds | open |
-| AUD-30 | Low | UI / A11y | Hardcoded colors bypass `AppColors` tokens (dark-mode contrast) | open |
+| AUD-28 | Low | Privacy | Logout leaves per-user preferences behind on a shared device | fixed (P12-09) |
+| AUD-29 | Low | Bug | Artifact download state keyed by relative path only, shared across builds | fixed (P12-09) |
+| AUD-30 | Low | UI / A11y | Hardcoded colors bypass `AppColors` tokens (dark-mode contrast) | fixed (P12-09) |
 | AUD-31 | Low | Code quality (backend) | Three copy-pasted credential controllers | open |
 | AUD-32 | Low | Code quality | Trailing-slash URL normalisation duplicated 11× in `JenkinsRepositoryImpl` | fixed (P12-04) |
 | AUD-33 | Low | UX | Search results lack folder context; empty state can't pull to refresh | fixed (P11-10) |
@@ -452,15 +452,26 @@ are cross-referenced instead of being fixed twice.
 - **AUD-28 — Logout leaves per-user prefs:** `active_server_id`,
   `active_github_credential_id`, `active_sonarqube_credential_id`, theme,
   and "remembered email" survive logout. Fix: clear user-scoped keys in
-  `AuthNotifier.logout()`.
+  `AuthNotifier.logout()`. **Fixed (P12-09):** `clearUserScopedPrefs`
+  also removes pins, saved views, and build watches (and the background
+  check stops). The theme and other device preferences stay, and so does
+  the remembered email, deliberately: "Remember me" is an explicit opt-in
+  meant to survive signing out.
 - **AUD-29 — Artifact state key collision:**
   `artifactDownloadNotifierProvider(artifact.relativePath)` is shared across
-  builds and jobs. Fix: key by `'$buildUrl|$relativePath'`.
+  builds and jobs. Fix: key by `'$buildUrl|$relativePath'`. **Fixed
+  (P12-09):** the family takes `(buildUrl, relativePath)`, and there is a
+  regression test.
 - **AUD-30 — Hardcoded colors:** `Colors.blue` and `Colors.amber`
   (`job_detail_screen.dart:645-646`) and `Colors.orange` (`home_screen.dart`,
   folder tile) bypass `AppColors`, so dark-mode contrast is unchecked
   (NFR-A11Y-01). Fix: add `AppColors.buildRunning`, `buildPaused`, and
-  `folder` tokens.
+  `folder` tokens. **Fixed (P12-09):** those tokens, in shades measured at
+  3:1 or better for icons (WCAG 1.4.11) on both light and dark surfaces;
+  plain amber and orange measure 1.6 to 2.2:1 on light. **Follow-up:** the
+  ported `buildUnstable` (`Colors.orange`) is also 2.06:1 on light, but
+  it's a SwiftUI-parity color used across many screens, so changing it is
+  left for a design decision rather than done silently.
 - **AUD-31 — Duplicated backend controllers:** `credentialsController`,
   `githubCredentialsController`, and `sonarqubeCredentialsController` are
   copy-pastes. Fix: a `makeCredentialController(Model, fields)` factory,

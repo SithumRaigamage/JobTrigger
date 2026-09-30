@@ -55,9 +55,15 @@ AUD-08 (P11-04), AUD-10 (P11-05), AUD-12 (P11-11), AUD-13 (P11-11), AUD-18
       timeout, progress, and a size warning; share via `XFile`. **Needs
       `path_provider` as a direct dependency** (shared approval with
       P11-23).
-- [ ] P12-09 **AUD-28, AUD-29, AUD-30.** Clear user-scoped prefs on logout,
+- [x] P12-09 **AUD-28, AUD-29, AUD-30.** Clear user-scoped prefs on logout,
       key artifact state by build and path, and replace hardcoded colors
-      with `AppColors` tokens.
+      with `AppColors` tokens. *Done 2026-09-30:* `clearUserScopedPrefs`
+      (`data/cache`) runs on logout. It keeps device preferences and the
+      opt-in remembered email, and invalidates build watches, which stops
+      the background check. `artifactDownloadNotifierProvider(buildUrl,
+      relativePath)`. The `buildRunning`, `buildPaused`, and `folder`
+      tokens are contrast-checked. The `buildUnstable` contrast is noted
+      in the audit as a design follow-up.
 - [ ] P12-10 **AUD-15.** Release signing read from a git-ignored
       `key.properties`, falling back to debug with a Gradle warning.
       Document it in `docs/deployment.md`.

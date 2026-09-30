@@ -10,8 +10,8 @@ Color colorForStageStatus(String status) => switch (status.toUpperCase()) {
   'SUCCESS' => AppColors.buildSuccess,
   'FAILED' => AppColors.buildFailure,
   'UNSTABLE' => AppColors.buildUnstable,
-  'IN_PROGRESS' => Colors.blue,
-  'PAUSED_PENDING_INPUT' => Colors.amber,
+  'IN_PROGRESS' => AppColors.buildRunning,
+  'PAUSED_PENDING_INPUT' => AppColors.buildPaused,
   _ => AppColors.buildAborted, // NOT_EXECUTED, ABORTED, unrecognized.
 };
 
