@@ -14,6 +14,13 @@ mongoose.set('sanitizeFilter', true);
 
 const app = express();
 
+// AUD-05: behind a load balancer or reverse proxy, the rate limiter must
+// see the client's IP, not the proxy's. TRUST_PROXY is the number of
+// proxy hops (e.g. 1). Unset means direct connections.
+if (process.env.TRUST_PROXY) {
+  app.set('trust proxy', Number(process.env.TRUST_PROXY) || process.env.TRUST_PROXY);
+}
+
 // Middleware
 // AUD-25: security headers, and CORS only for origins listed in
 // CORS_ORIGINS (none by default; the mobile app doesn't need CORS).

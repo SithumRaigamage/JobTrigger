@@ -41,7 +41,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-02 | Critical | Release | Release Android build has no `INTERNET` permission | fixed (P12-02) |
 | AUD-03 | Critical | Security (backend) | Jenkins passwords and tokens, GitHub PATs, SonarQube tokens stored unencrypted in MongoDB | open |
 | AUD-04 | High | Security (backend) | NoSQL operator injection in `/api/auth/login` and `/signup` | fixed (P12-22) |
-| AUD-05 | High | Security (backend) | No rate limiting or lockout on login | open |
+| AUD-05 | High | Security (backend) | No rate limiting or lockout on login | fixed (P12-24) |
 | AUD-06 | High | Security (backend) | 500 responses leak internal `err.message` | fixed (P12-23) |
 | AUD-07 | High | Security (backend) | Vulnerable dependencies (`path-to-regexp` ReDoS, `mongoose`, `qs`) | fixed (P12-20) |
 | AUD-08 | High | UX / Safety | Trigger and Cancel fire with no confirmation, violating the Must criteria of US-JOB-02/03/05 | fixed (P11-04) |
@@ -154,6 +154,15 @@ are cross-referenced instead of being fixed twice.
   on `/api/auth/*`: for example, 10 attempts per 15 minutes per IP plus a
   per-email key. Return 429 and handle it client-side as a
   `ServerFailure(429)` with clear copy.
+
+- **Fixed (P12-24, 2026-09-30):** `express-rate-limit` (approved with the
+  plan). Login allows 10 *failed* attempts per IP per 15 minutes
+  (successful logins don't count, so a real user isn't locked out by
+  guessing from the same IP); signup allows 5 per IP per hour. Both return
+  429 with a JSON message and a `RateLimit` header, and both are
+  configurable (`LOGIN_RATE_LIMIT`, `SIGNUP_RATE_LIMIT`, and `TRUST_PROXY`
+  behind a proxy). The client maps `ServerFailure(429)` to "Too many
+  attempts…".
 
 ### AUD-06 — Internal error messages leak to clients (backend track)
 

@@ -64,6 +64,9 @@ sealed class AppFailure {
     JobDisabledFailure() =>
       "This job is disabled, so it can't be built. Enable it first.",
     NotFoundFailure() => "That couldn't be found — it may have been removed.",
+    // The backend throttles login and signup (AUD-05).
+    ServerFailure(statusCode: 429) =>
+      'Too many attempts. Please wait a few minutes and try again.',
     ServerFailure(:final statusCode) =>
       'Something went wrong on the server (HTTP $statusCode).',
     RateLimitFailure() =>

@@ -1,5 +1,12 @@
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
+
+// The suites sign up and log in far more often than a real client. The
+// limiter itself is tested with its own small limits (rate_limit.test.js).
+// Set before the server (and so the limiters) load.
+process.env.LOGIN_RATE_LIMIT = '10000';
+process.env.SIGNUP_RATE_LIMIT = '10000';
+
 const serverModule = require('../server');
 
 let mongoServer;

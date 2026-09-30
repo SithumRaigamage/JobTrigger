@@ -11,7 +11,7 @@ Base URL from `core/config/app_config.dart`, e.g. `https://api.jobtrigger.app`
 | Endpoint | Method | Auth | Request body | Response | Notes |
 |---|---|---|---|---|---|
 | `/api/auth/signup` | POST | Public | `{ email, password }` (strings) | `{ user, token }` | Server enforces the email pattern, a password of 8+ characters, and at most 72 bytes; non-strings get 400 (AUD-04/26). The client checks the same rules first |
-| `/api/auth/login` | POST | Public | `{ email, password }` (strings) | `{ user, token }` | Non-strings get 400; the email is trimmed and lower-cased. On success, store the token in secure storage immediately |
+| `/api/auth/login` | POST | Public | `{ email, password }` (strings) | `{ user, token }` | Non-strings get 400; the email is trimmed and lower-cased. On success, store the token in secure storage immediately. **429** after 10 failed attempts per IP in 15 min (signup: 5 per hour), with a `RateLimit` header; the client shows "Too many attempts…" (AUD-05) |
 | `/api/credentials` | GET | `x-auth-token` | — | `Credential[]` | |
 | `/api/credentials` | POST | `x-auth-token` | `Credential` (minus id) | `Credential` | |
 | `/api/credentials/:id` | PUT | `x-auth-token` | Partial `Credential` | `Credential` | |

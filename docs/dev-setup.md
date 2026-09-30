@@ -125,6 +125,14 @@ JWT_SECRET=supersecretjwtkey_123456
 # Optional: browser origins allowed by CORS, comma-separated. Leave unset
 # for the mobile app, which sends no Origin and needs no CORS.
 # CORS_ORIGINS=https://admin.example.com
+
+# Optional (AUD-05): failed logins per IP per 15 min (default 10), and
+# signups per IP per hour (default 5). Behind a reverse proxy or load
+# balancer, TRUST_PROXY is the number of proxy hops (e.g. 1), so limits
+# apply to the client's IP rather than the proxy's.
+# LOGIN_RATE_LIMIT=10
+# SIGNUP_RATE_LIMIT=5
+# TRUST_PROXY=1
 ```
 
 `JWT_SECRET` and `MONGODB_URI` are required: without either, the server

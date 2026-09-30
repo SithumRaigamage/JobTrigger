@@ -105,9 +105,12 @@ file lists them.
       `JWT_SECRET` or `MONGODB_URI`. *Done 2026-09-30:* plus JSON 404s and
       a 400 for malformed JSON. `CORS_ORIGINS` is documented in
       `dev-setup.md`. 8 new mocha tests (75 passing).
-- [ ] P12-24 **AUD-05.** `express-rate-limit` (**new backend dependency**)
+- [x] P12-24 **AUD-05.** `express-rate-limit` (**new backend dependency**)
       on `/api/auth/*`, returning 429. The client shows specific copy for
-      `ServerFailure(429)`.
+      `ServerFailure(429)`. *Done 2026-09-30:* the login limiter counts
+      failures only. Limits and `TRUST_PROXY` come from env (documented
+      in `dev-setup.md`). 2 mocha tests with a small probe limiter, and 2
+      client tests.
 - [ ] P12-25 **AUD-23, AUD-24, AUD-31.** A credential-controller factory
       shared by the Jenkins, GitHub, and SonarQube controllers:
       `{ timestamps: true }`, `runValidators`, `{ _id, userId }`-scoped

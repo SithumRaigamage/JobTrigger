@@ -148,4 +148,17 @@ void main() {
       },
     );
   });
+
+  group('AppFailure.message', () {
+    test('a backend 429 asks the user to wait (AUD-05)', () {
+      expect(
+        const ServerFailure(429).message,
+        'Too many attempts. Please wait a few minutes and try again.',
+      );
+    });
+
+    test('other server errors keep the status code', () {
+      expect(const ServerFailure(502).message, contains('HTTP 502'));
+    });
+  });
 }
