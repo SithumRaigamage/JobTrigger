@@ -11,6 +11,7 @@ import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/parameter_file.dart';
 import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
+import 'package:job_trigger/domain/jenkins/queue_entry.dart';
 import 'package:job_trigger/domain/jenkins/queue_item.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
 
@@ -82,6 +83,14 @@ class FakeJenkinsRepository implements JenkinsRepository {
   @override
   Future<Result<void, AppFailure>> cancelBuild(String buildUrl) =>
       throw UnimplementedError('cancelBuild');
+
+  @override
+  Future<Result<List<QueueEntry>, AppFailure>> fetchQueue() =>
+      throw UnimplementedError('fetchQueue');
+
+  @override
+  Future<Result<void, AppFailure>> cancelQueueItem(int id) =>
+      throw UnimplementedError('cancelQueueItem');
 
   @override
   Future<Result<QueueItem, AppFailure>> fetchQueueItem(String queueItemUrl) =>

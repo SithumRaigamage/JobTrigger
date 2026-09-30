@@ -17,6 +17,7 @@ import '../../domain/jenkins/log_chunk.dart';
 import '../../domain/jenkins/parameter_file.dart';
 import '../../domain/jenkins/pending_input.dart';
 import '../../domain/jenkins/pipeline_stage.dart';
+import '../../domain/jenkins/queue_entry.dart';
 import '../../domain/jenkins/queue_item.dart';
 import '../../domain/jenkins/test_report.dart';
 import '../models/jenkins/jenkins_build_dto.dart';
@@ -97,6 +98,12 @@ String _withSlash(String url) => url.endsWith('/') ? url : '$url/';
 Result<T?, AppFailure>? _notFoundAsNull<T>(DioException exception) =>
     exception.response?.statusCode == 404 ? const Ok(null) : null;
 
+/// Jenkins often answers a successful POST with a redirect back to the page
+/// it would show in a browser: a pipeline `stop` (302, AUD-39), a scan
+/// (302), a duplicate trigger (303, AUD-37). Dart doesn't follow redirects
+/// for POST, so without this Dio reported each success as a failure.
+bool _acceptRedirects(int? status) => status != null && status < 400;
+
 class JenkinsRepositoryImpl implements JenkinsRepository {
   JenkinsRepositoryImpl(this._dio);
 
@@ -167,7 +174,7 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
           // scan; Dart doesn't follow redirects for POST.
           options: Options(
             followRedirects: false,
-            validateStatus: (status) => status != null && status < 400,
+            validateStatus: _acceptRedirects,
           ),
         ),
       );
@@ -314,7 +321,7 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
         // but Dart doesn't follow redirects for POST, so without this Dio
         // reported it as a failure. Verified on the fixture Jenkins.
         followRedirects: false,
-        validateStatus: (status) => status != null && status < 400,
+        validateStatus: _acceptRedirects,
       ),
     );
     final location = response.headers.value('location');
@@ -322,8 +329,61 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
   });
 
   @override
-  Future<Result<void, AppFailure>> cancelBuild(String buildUrl) =>
-      guardRequest(() => _dio.post<void>('${_withSlash(buildUrl)}stop'));
+  Future<Result<void, AppFailure>> cancelBuild(String buildUrl) => guardRequest(
+    () => _dio.post<void>(
+      '${_withSlash(buildUrl)}stop',
+      options: Options(
+        followRedirects: false,
+        validateStatus: _acceptRedirects,
+      ),
+    ),
+  );
+
+  @override
+  Future<Result<List<QueueEntry>, AppFailure>> fetchQueue() =>
+      guardRequest(() async {
+        final response = await _dio.get<Map<String, dynamic>>(
+          '/queue/api/json',
+          queryParameters: {
+            'tree':
+                'items[id,why,inQueueSince,stuck,blocked,'
+                'task[name,url,color]]',
+          },
+        );
+        final items = (response.data?['items'] as List<dynamic>? ?? const [])
+            .cast<Map<String, dynamic>>();
+        return [
+          for (final item in items)
+            if (item['task'] case final Map<String, dynamic> task)
+              QueueEntry(
+                id: (item['id'] as num).toInt(),
+                taskName: task['name'] as String? ?? '?',
+                taskUrl: rewriteUrl(task['url'] as String? ?? '', _baseUrl),
+                taskColor: task['color'] as String?,
+                why: item['why'] as String?,
+                inQueueSince: switch (item['inQueueSince']) {
+                  final num millis => DateTime.fromMillisecondsSinceEpoch(
+                    millis.toInt(),
+                  ),
+                  _ => null,
+                },
+                stuck: item['stuck'] == true,
+                blocked: item['blocked'] == true,
+              ),
+        ];
+      });
+
+  @override
+  Future<Result<void, AppFailure>> cancelQueueItem(int id) => guardRequest(
+    () => _dio.post<void>('/queue/cancelItem', queryParameters: {'id': id}),
+    // Jenkins' answer for "not allowed to cancel" is a 422 (verified).
+    // Everything else maps normally: an unknown id is a 404, and an item
+    // that already left the queue is a bare 500 ("not cancellable"), which
+    // `QueueNotifier` disambiguates by re-reading the queue.
+    recover: (exception) => exception.response?.statusCode == 422
+        ? const Err(PermissionFailure())
+        : null,
+  );
 
   @override
   Future<Result<QueueItem, AppFailure>> fetchQueueItem(String queueItemUrl) =>

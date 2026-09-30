@@ -85,6 +85,12 @@ class HomeScreen extends ConsumerWidget {
           actions: [
             if (breadcrumb.isNotEmpty && breadcrumb.last.isScannable)
               _ScanActions(project: breadcrumb.last),
+            // US-JX-09: why aren't builds starting?
+            IconButton(
+              icon: const Icon(Icons.pending_actions),
+              tooltip: 'Build queue',
+              onPressed: () => context.push(AppRoutes.queue),
+            ),
           ],
         ),
         body: ResponsiveCenter(

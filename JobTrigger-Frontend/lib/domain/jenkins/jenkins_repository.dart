@@ -10,6 +10,7 @@ import 'log_chunk.dart';
 import 'parameter_file.dart';
 import 'pending_input.dart';
 import 'pipeline_stage.dart';
+import 'queue_entry.dart';
 import 'queue_item.dart';
 import 'test_report.dart';
 
@@ -112,6 +113,19 @@ abstract class JenkinsRepository {
   /// POSTs `{buildNumber}/stop` — [buildUrl] is the build's absolute URL
   /// (e.g. `.../job/x/20/`).
   Future<Result<void, AppFailure>> cancelBuild(String buildUrl);
+
+  /// US-JX-09: everything waiting in the server's build queue.
+  Future<Result<List<QueueEntry>, AppFailure>> fetchQueue();
+
+  /// US-JX-09: `POST /queue/cancelItem?id=` (204). Verified on the fixture:
+  /// - a user without permission gets a 422 from Jenkins, not a 403, which
+  ///   is mapped to [PermissionFailure];
+  /// - an unknown id is a 404 ([NotFoundFailure]);
+  /// - an item that already left the queue (it started, or was cancelled)
+  ///   is a bare 500 ([ServerFailure]).
+  /// Neither of the last two means "cancelled", because the build may have
+  /// started. `QueueNotifier` re-reads the queue to tell the user which.
+  Future<Result<void, AppFailure>> cancelQueueItem(int id);
 
   /// `GET {queueItemUrl}api/json` (US-PIPE-01) — [queueItemUrl] is the
   /// already-rewritten URL returned by [triggerBuild]. Jenkins' queue is

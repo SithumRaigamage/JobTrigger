@@ -48,7 +48,7 @@ Jenkins credentials are not JWTs and don't rotate mid-session.
 | `{jobURL}api/json?tree={detailsTree}` | GET | Job detail: params, health, recent builds | `detailsTree` includes `property[parameterDefinitions[*]],healthReport[*],lastBuild[*],builds[number,url,result,timestamp,duration,building]` |
 | `{jobURL}build` | POST | Trigger build, no params | |
 | `{jobURL}buildWithParameters` | POST | Trigger build with params | Body: `application/x-www-form-urlencoded`, all values stringified. **A blank password parameter is omitted**, because an explicit `''` overrides the stored secret (US-JX-01). A duplicate of an already-queued identical build returns **303** with that queue item as `Location`, which counts as success (AUD-37). An empty Run parameter returns **500** (AUD-38) |
-| `{jobURL}{buildNumber}/stop` | POST | Cancel a running build | Optimistically flip local state to `ABORTED` before the next poll confirms it |
+| `{jobURL}{buildNumber}/stop` | POST | Cancel a running build | Optimistically flip local state to `ABORTED` before the next poll confirms it. A pipeline answers **302** (success), freestyle 200 (AUD-39) |
 | `{buildURL}logText/progressiveText?start={offset}` | GET | Incremental console log | Read `X-Text-Size` (next offset) and `X-More-Data` (bool) response headers; stop polling when `X-More-Data` is absent/false |
 
 ### Epic PIPE endpoints (implemented, Phase 7)
@@ -83,8 +83,8 @@ against the fixture Jenkins (P11-02, `NFR-TEST-02`).
 | `{buildURL}logText/progressiveText` | **HEAD** | US-JX-07 log size (`X-Text-Size`, no body), so a huge log opens at its tail. An offset past the end is **not** a probe, because Jenkins returns the whole log | **implemented** (P11-11) |
 | `{buildURL}timestamps/?time=HH:mm:ss&startLine=-N` | GET | US-JX-07 timestamps for freestyle jobs, one per console line; a negative `startLine` counts from the end. Pipelines instead **embed** `[ISO-8601Z] ` at the start of each raw log line, which the decoder lifts off. A job without Timestamper returns 200 with an empty body; 404 means the plugin is missing | **implemented** (P11-11) |
 | `{buildURL}testReport/api/json?tree=…,suites[cases[className,name,status,errorDetails,errorStackTrace,age,duration]{0,200}]` | GET | US-JX-08, capped at 200 cases per suite | **implemented** (P11-12) |
-| `{baseURL}/queue/api/json?tree=items[…]` | GET | US-JX-09 server queue | planned |
-| `{baseURL}/queue/cancelItem?id={id}` | POST | US-JX-09 cancel queued item | planned |
+| `{baseURL}/queue/api/json?tree=items[id,why,inQueueSince,stuck,blocked,task[name,url,color]]` | GET | US-JX-09 server queue (task URL rewritten) | **implemented** (P11-13) |
+| `{baseURL}/queue/cancelItem?id={id}` | POST | US-JX-09. **204** means cancelled; **422** means no permission (not 403); **404** means an unknown id; **500** "not cancellable" means the item already left the queue (maybe started). The app re-reads the queue instead of claiming success | **implemented** (P11-13) |
 | `{baseURL}/computer/api/json?tree=computer[…]` | GET | US-JX-12 nodes and executors | planned |
 | `{baseURL}/computer/{name}/toggleOffline?offlineMessage=…` | POST | US-JX-12 (`(built-in)` for the controller) | planned |
 | `{jobURL}enable` · `{jobURL}disable` | POST | US-JX-13 | planned |

@@ -12,6 +12,7 @@ abstract class AppRoutes {
   static const jobDetail = '/home/job';
   static const buildLog = '/home/job/build-log';
   static const jobHistory = '/home/job/history';
+  static const queue = '/home/queue';
   static const globalHistory = '/history';
   static const githubWorkflows = '/github/repos/workflows';
   // Add/edit server is a modal bottom sheet (ServerEditBottomSheet), not a

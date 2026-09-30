@@ -74,9 +74,10 @@ are cross-referenced instead of being fixed twice.
 | AUD-35 | Low | Docs | `CLAUDE.md` §1 still says "JWT bearer"; the backend actually uses `x-auth-token` | open |
 | AUD-37 | High | Bug | A duplicate parameterized trigger (Jenkins `303`, merged into the queued build) is reported as a failure | fixed (P11-04) |
 | AUD-38 | High | Bug | Triggering a job with a Run parameter from the untouched form fails (empty value → Jenkins `500`) | fixed (P11-06) |
+| AUD-39 | High | Bug | Cancelling a *pipeline* build reports failure (Jenkins answers the stop with a 302) | fixed (P11-13) |
 | AUD-36 | Low | Hygiene | Untracked leftovers in the workspace (1.2 GB build output, coverage, stray tool dirs) | fixed (local cleanup 2026-09-29) |
 
-**Counts:** 3 Critical, 15 High, 11 Medium, 9 Low (38 total). AUD-37 and AUD-38 were found on 2026-09-29 during P11-04's real-server verification.
+**Counts:** 3 Critical, 16 High, 11 Medium, 9 Low (39 total). AUD-37 and AUD-38 were found on 2026-09-29 during P11-04's real-server verification, and AUD-39 on 2026-09-30 during P11-13's.
 
 ---
 
@@ -410,6 +411,18 @@ are cross-referenced instead of being fixed twice.
   picker lists the project's recent builds. This is better than the planned
   "disable Trigger until chosen", which would have blocked the most common
   case.
+
+### AUD-39 — Cancelling a pipeline build reports failure
+
+- **Where:** `JenkinsRepositoryImpl.cancelBuild`
+- **What:** `POST {build}/stop` on a pipeline (`WorkflowRun`) answers
+  `302 Found` back to the build page, verified on the fixture Jenkins.
+  Dart doesn't follow redirects for POST, and Dio accepted only 2xx, so
+  every pipeline cancel showed "Cancel failed (HTTP 302)" although the
+  build had stopped. Freestyle builds, which the original manual test
+  covered, return 200, which is why this was missed.
+- **Fix (P11-13):** a shared `_acceptRedirects` status check for Jenkins
+  POSTs (stop, trigger, scan), with a regression test.
 
 ## Low
 

@@ -304,8 +304,22 @@ Each task names the `AUD-##` ids it closes.
         expandable message, a selectable and copyable stack trace, and
         "N more not shown" past the cap.
       - **Tests:** 2 unit and widget tests, plus 1 fixture test.
-- [ ] P11-13 **US-JX-09 server-wide queue:** list, stuck flag, cancel with
+- [x] P11-13 **US-JX-09 server-wide queue:** list, stuck flag, cancel with
       confirmation, and 5s refresh while visible.
+      **Done 2026-09-30.**
+      - **Screen:** `QueueScreen`, from Home's queue icon. Each item shows
+        why it's waiting, how long, and a "Stuck" warning (icon plus text).
+        Cancel asks first (it may be someone else's build).
+      - **State:** `QueueNotifier` refreshes every 5 s, removes a cancelled
+        item optimistically, and restores it on failure.
+      - **Real-server findings:** cancel returns 204 when done, 422 without
+        permission, 404 for an unknown id, and a bare 500 once the item has
+        left the queue. The app re-reads the queue rather than claiming
+        "removed" for a build that may have started.
+      - **Found AUD-39:** a pipeline `stop` returns 302, so every pipeline
+        cancel was reported as failed. Fixed with a shared
+        `_acceptRedirects`.
+      - **Tests:** 9 unit tests, plus 1 fixture test.
 
 ## Part D — New capabilities
 
