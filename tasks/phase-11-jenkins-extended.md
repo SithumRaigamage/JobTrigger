@@ -170,7 +170,7 @@ Each task names the `AUD-##` ids it closes.
       - **Verified on the fixture:** lazy browsing reaches the 7-level
         `deep-job`; multibranch is a folder, with `feature%2Flogin` shown as
         `feature/login`; the crawl stops at level 6.
-- [ ] P11-06 **US-JX-02 all parameter types.** **Must also close
+- [x] P11-06 **US-JX-02 all parameter types.** **Must also close
       AUD-38:** an empty Run parameter is a Jenkins 500, so Run needs a
       real picker and Trigger stays disabled until a build is chosen. Also
       decide Credentials: an empty value was accepted (201) on the fixture,
@@ -179,6 +179,29 @@ Each task names the `AUD-##` ids it closes.
       guard; **new dependency `file_picker`**), and unknown plugin types
       with a labelled fallback. Validation keeps Trigger disabled until the
       inputs are valid.
+      **Done 2026-09-30.**
+      - **Omitted when blank:** Run, Credentials, File, and Password
+        (`isOmittedWhenBlank`). Verified: an omitted Run uses the latest
+        build (AUD-38 fixed), and an omitted Credentials is accepted.
+        Omission replaced "disable Trigger until valid".
+      - **Inputs:**
+        - Run: a picker of the project's recent builds via
+          `jobUrlFromFullName`, falling back to free text.
+        - Text: multi-line.
+        - Credentials: an ID field.
+        - File: `ParameterFilesNotifier` plus a `file_picker` provider,
+          50 MB refused before upload, multipart `buildWithParameters`.
+        - Unknown plugin types: a labelled fallback, or a dropdown when
+          they declare choices.
+        - Replay and input steps: file re-picked on replay; unavailable
+          for input steps.
+      - **Test cleanup:** 1,081 lines of redundant fake stubs removed,
+        since the base class covers them.
+      - **Fixture harness fixes:** tests run `--concurrency=1` (parallel
+        suites read each other's builds), `params-all` cleans its uploaded
+        file, and readiness ignores stale logs.
+      - **Tests:** 20 new unit and widget tests, plus 5 fixture tests. The
+        full fixture suite (22) passes.
 - [ ] P11-07 **US-JX-03 multibranch and organization folders.** Class-based
       icons, `displayName` everywhere, Branches/PRs/Tags grouping from
       `views`, "Scan now" with indexing progress and scan log, and 403 shown

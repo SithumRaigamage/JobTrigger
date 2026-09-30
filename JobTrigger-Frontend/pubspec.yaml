@@ -54,6 +54,7 @@ dependencies:
   simple_icons: ^16.23.0
   dio_cookie_manager: ^3.5.0
   cookie_jar: ^4.0.9
+  file_picker: ^13.1.0
 
 dev_dependencies:
   flutter_test:

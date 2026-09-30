@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,12 +9,11 @@ import 'package:job_trigger/domain/credential/credentials_repository.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
+import 'package:job_trigger/domain/jenkins/parameter_file.dart';
 import 'package:job_trigger/domain/jenkins/job_property.dart';
-import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/parameter_definition.dart';
 import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
-import 'package:job_trigger/domain/jenkins/queue_item.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/presentation/features/job_detail/job_detail_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -64,6 +61,7 @@ class _RecordingRepository extends FakeJenkinsRepository {
     String jobUrl, {
     required bool isParameterized,
     Map<String, String> parameters = const {},
+    Map<String, ParameterFile> files = const {},
     String? paramToken,
   }) async {
     triggerCalls++;
@@ -90,39 +88,6 @@ class _RecordingRepository extends FakeJenkinsRepository {
   Future<Result<PendingInput?, AppFailure>> fetchPendingInput(
     String buildUrl,
   ) async => const Ok(null);
-
-  @override
-  Future<Result<List<JenkinsJob>, AppFailure>> fetchJobTree() =>
-      throw UnimplementedError();
-
-  @override
-  Future<Result<List<JenkinsBuild>, AppFailure>> fetchJobHistory(
-    String jobUrl,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Result<LogChunk, AppFailure>> streamBuildLog(
-    String buildUrl, {
-    int start = 0,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<Result<QueueItem, AppFailure>> fetchQueueItem(String queueItemUrl) =>
-      throw UnimplementedError();
-
-  @override
-  Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
-    String buildUrl,
-    String relativePath,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Result<void, AppFailure>> submitInput({
-    required String buildUrl,
-    required String inputId,
-    required bool proceed,
-    Map<String, String> parameters = const {},
-  }) => throw UnimplementedError();
 }
 
 class _NoServersRepository implements CredentialsRepository {

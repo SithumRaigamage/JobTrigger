@@ -241,7 +241,7 @@ void main() {
           'changeSet[items[msg,author[fullName]]],'
           'artifacts[fileName,relativePath]],'
           'healthReport[description,iconClassName,score],'
-          'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices]],'
+          'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices,projectName]],'
           'downstreamProjects[name,url]',
         );
         expect(result, isA<Ok<JenkinsJob, dynamic>>());

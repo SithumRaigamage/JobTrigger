@@ -6,6 +6,7 @@ import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
+import 'package:job_trigger/domain/jenkins/parameter_file.dart';
 import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
 import 'package:job_trigger/domain/jenkins/queue_item.dart';
@@ -44,6 +45,7 @@ class FakeJenkinsRepository implements JenkinsRepository {
     String jobUrl, {
     required bool isParameterized,
     Map<String, String> parameters = const {},
+    Map<String, ParameterFile> files = const {},
     String? paramToken,
   }) => throw UnimplementedError('triggerBuild');
 

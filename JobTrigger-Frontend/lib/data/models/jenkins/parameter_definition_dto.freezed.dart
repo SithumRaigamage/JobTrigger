@@ -16,7 +16,8 @@ T _$identity<T>(T value) => value;
 mixin _$ParameterDefinitionDto {
 
  String get name; String get type;// StringParameterDefinition | ChoiceParameterDefinition | BooleanParameterDefinition
- String? get description; List<String>? get choices;@JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) dynamic get defaultValue;
+ String? get description; List<String>? get choices;@JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) dynamic get defaultValue;// RunParameterDefinition only (US-JX-02).
+ String? get projectName;
 /// Create a copy of ParameterDefinitionDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +30,16 @@ $ParameterDefinitionDtoCopyWith<ParameterDefinitionDto> get copyWith => _$Parame
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ParameterDefinitionDto&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other.choices, choices)&&const DeepCollectionEquality().equals(other.defaultValue, defaultValue));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ParameterDefinitionDto&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other.choices, choices)&&const DeepCollectionEquality().equals(other.defaultValue, defaultValue)&&(identical(other.projectName, projectName) || other.projectName == projectName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,type,description,const DeepCollectionEquality().hash(choices),const DeepCollectionEquality().hash(defaultValue));
+int get hashCode => Object.hash(runtimeType,name,type,description,const DeepCollectionEquality().hash(choices),const DeepCollectionEquality().hash(defaultValue),projectName);
 
 @override
 String toString() {
-  return 'ParameterDefinitionDto(name: $name, type: $type, description: $description, choices: $choices, defaultValue: $defaultValue)';
+  return 'ParameterDefinitionDto(name: $name, type: $type, description: $description, choices: $choices, defaultValue: $defaultValue, projectName: $projectName)';
 }
 
 
@@ -49,7 +50,7 @@ abstract mixin class $ParameterDefinitionDtoCopyWith<$Res>  {
   factory $ParameterDefinitionDtoCopyWith(ParameterDefinitionDto value, $Res Function(ParameterDefinitionDto) _then) = _$ParameterDefinitionDtoCopyWithImpl;
 @useResult
 $Res call({
- String name, String type, String? description, List<String>? choices,@JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) dynamic defaultValue
+ String name, String type, String? description, List<String>? choices,@JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) dynamic defaultValue, String? projectName
 });
 
 
@@ -66,14 +67,15 @@ class _$ParameterDefinitionDtoCopyWithImpl<$Res>
 
 /// Create a copy of ParameterDefinitionDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? type = null,Object? description = freezed,Object? choices = freezed,Object? defaultValue = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? type = null,Object? description = freezed,Object? choices = freezed,Object? defaultValue = freezed,Object? projectName = freezed,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,choices: freezed == choices ? _self.choices : choices // ignore: cast_nullable_to_non_nullable
 as List<String>?,defaultValue: freezed == defaultValue ? _self.defaultValue : defaultValue // ignore: cast_nullable_to_non_nullable
-as dynamic,
+as dynamic,projectName: freezed == projectName ? _self.projectName : projectName // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -158,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String type,  String? description,  List<String>? choices, @JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson)  dynamic defaultValue)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String type,  String? description,  List<String>? choices, @JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson)  dynamic defaultValue,  String? projectName)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ParameterDefinitionDto() when $default != null:
-return $default(_that.name,_that.type,_that.description,_that.choices,_that.defaultValue);case _:
+return $default(_that.name,_that.type,_that.description,_that.choices,_that.defaultValue,_that.projectName);case _:
   return orElse();
 
 }
@@ -179,10 +181,10 @@ return $default(_that.name,_that.type,_that.description,_that.choices,_that.defa
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String type,  String? description,  List<String>? choices, @JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson)  dynamic defaultValue)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String type,  String? description,  List<String>? choices, @JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson)  dynamic defaultValue,  String? projectName)  $default,) {final _that = this;
 switch (_that) {
 case _ParameterDefinitionDto():
-return $default(_that.name,_that.type,_that.description,_that.choices,_that.defaultValue);case _:
+return $default(_that.name,_that.type,_that.description,_that.choices,_that.defaultValue,_that.projectName);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +201,10 @@ return $default(_that.name,_that.type,_that.description,_that.choices,_that.defa
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String type,  String? description,  List<String>? choices, @JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson)  dynamic defaultValue)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String type,  String? description,  List<String>? choices, @JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson)  dynamic defaultValue,  String? projectName)?  $default,) {final _that = this;
 switch (_that) {
 case _ParameterDefinitionDto() when $default != null:
-return $default(_that.name,_that.type,_that.description,_that.choices,_that.defaultValue);case _:
+return $default(_that.name,_that.type,_that.description,_that.choices,_that.defaultValue,_that.projectName);case _:
   return null;
 
 }
@@ -214,7 +216,7 @@ return $default(_that.name,_that.type,_that.description,_that.choices,_that.defa
 @JsonSerializable()
 
 class _ParameterDefinitionDto implements ParameterDefinitionDto {
-  const _ParameterDefinitionDto({required this.name, required this.type, this.description, final  List<String>? choices, @JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) this.defaultValue}): _choices = choices;
+  const _ParameterDefinitionDto({required this.name, required this.type, this.description, final  List<String>? choices, @JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) this.defaultValue, this.projectName}): _choices = choices;
   factory _ParameterDefinitionDto.fromJson(Map<String, dynamic> json) => _$ParameterDefinitionDtoFromJson(json);
 
 @override final  String name;
@@ -231,6 +233,8 @@ class _ParameterDefinitionDto implements ParameterDefinitionDto {
 }
 
 @override@JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) final  dynamic defaultValue;
+// RunParameterDefinition only (US-JX-02).
+@override final  String? projectName;
 
 /// Create a copy of ParameterDefinitionDto
 /// with the given fields replaced by the non-null parameter values.
@@ -245,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ParameterDefinitionDto&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other._choices, _choices)&&const DeepCollectionEquality().equals(other.defaultValue, defaultValue));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ParameterDefinitionDto&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other._choices, _choices)&&const DeepCollectionEquality().equals(other.defaultValue, defaultValue)&&(identical(other.projectName, projectName) || other.projectName == projectName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,type,description,const DeepCollectionEquality().hash(_choices),const DeepCollectionEquality().hash(defaultValue));
+int get hashCode => Object.hash(runtimeType,name,type,description,const DeepCollectionEquality().hash(_choices),const DeepCollectionEquality().hash(defaultValue),projectName);
 
 @override
 String toString() {
-  return 'ParameterDefinitionDto(name: $name, type: $type, description: $description, choices: $choices, defaultValue: $defaultValue)';
+  return 'ParameterDefinitionDto(name: $name, type: $type, description: $description, choices: $choices, defaultValue: $defaultValue, projectName: $projectName)';
 }
 
 
@@ -265,7 +269,7 @@ abstract mixin class _$ParameterDefinitionDtoCopyWith<$Res> implements $Paramete
   factory _$ParameterDefinitionDtoCopyWith(_ParameterDefinitionDto value, $Res Function(_ParameterDefinitionDto) _then) = __$ParameterDefinitionDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String type, String? description, List<String>? choices,@JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) dynamic defaultValue
+ String name, String type, String? description, List<String>? choices,@JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) dynamic defaultValue, String? projectName
 });
 
 
@@ -282,14 +286,15 @@ class __$ParameterDefinitionDtoCopyWithImpl<$Res>
 
 /// Create a copy of ParameterDefinitionDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? type = null,Object? description = freezed,Object? choices = freezed,Object? defaultValue = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? type = null,Object? description = freezed,Object? choices = freezed,Object? defaultValue = freezed,Object? projectName = freezed,}) {
   return _then(_ParameterDefinitionDto(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,choices: freezed == choices ? _self._choices : choices // ignore: cast_nullable_to_non_nullable
 as List<String>?,defaultValue: freezed == defaultValue ? _self.defaultValue : defaultValue // ignore: cast_nullable_to_non_nullable
-as dynamic,
+as dynamic,projectName: freezed == projectName ? _self.projectName : projectName // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

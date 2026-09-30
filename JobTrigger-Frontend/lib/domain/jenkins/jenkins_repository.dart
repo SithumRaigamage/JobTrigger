@@ -5,6 +5,7 @@ import '../../core/error/result.dart';
 import 'jenkins_build.dart';
 import 'jenkins_job.dart';
 import 'log_chunk.dart';
+import 'parameter_file.dart';
 import 'pending_input.dart';
 import 'pipeline_stage.dart';
 import 'queue_item.dart';
@@ -49,10 +50,15 @@ abstract class JenkinsRepository {
   /// — triggering still succeeded either way; a missing/unparseable
   /// `Location` only means this specific build can't be tracked through
   /// the queue, not that the request failed.
+  ///
+  /// With [files] (US-JX-02 file parameters) the body is
+  /// `multipart/form-data`: each file is a part named after its parameter,
+  /// alongside [parameters] as text parts. Verified on the fixture Jenkins.
   Future<Result<String?, AppFailure>> triggerBuild(
     String jobUrl, {
     required bool isParameterized,
     Map<String, String> parameters = const {},
+    Map<String, ParameterFile> files = const {},
     String? paramToken,
   });
 

@@ -34,7 +34,9 @@ wait_ready() {
     # "fully up" in the log, not just /login answering: Jenkins serves the
     # login page while still initializing, and anything queued before init
     # completes is discarded.
-    if docker logs jobtrigger-jenkins-fixture 2>&1 | grep -q 'Jenkins is fully up and running' &&
+    # Only logs since this start: a restarted container still carries the
+    # previous run's "fully up" line.
+    if docker logs --since "$STARTED_AT" jobtrigger-jenkins-fixture 2>&1 | grep -q 'Jenkins is fully up and running' &&
       [[ "$(curl -s -o /dev/null -w '%{http_code}' "$URL/login")" == "200" ]] &&
       docker exec jobtrigger-jenkins-fixture test -f /var/jenkins_home/fixture-tokens.properties; then
       echo " ready."
@@ -74,6 +76,7 @@ seed_builds() {
 case "${1:-}" in
   up)
     load_creds
+    STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     docker compose up --build -d
     wait_ready
     store_tokens
@@ -94,7 +97,9 @@ case "${1:-}" in
   test)
     load_creds
     cd ../../JobTrigger-Frontend
-    flutter test --tags fixture --run-skipped "${@:2}"
+    # One file at a time: every fixture test drives the same Jenkins, and
+    # parallel suites triggering the same job read each other's builds.
+    flutter test --tags fixture --run-skipped --concurrency=1 "${@:2}"
     ;;
   down)
     load_creds

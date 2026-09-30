@@ -31,16 +31,13 @@ void main() {
       await jenkins.adminRepository().fetchJobDetail(jenkins.jobUrl(job)),
     );
     final definitions = detail.parameterDefinitions;
-    // What the app sends when the user leaves every field untouched --
-    // except BASE_BUILD: an empty Run parameter is a Jenkins 500 (AUD-38,
-    // fixed by P11-06), and the file parameter, which can't be sent as
-    // form text. A unique BRANCH stops Jenkins merging this build into an
-    // identical queued one (AUD-37).
+    // What the app sends when the user leaves every field untouched. A
+    // unique BRANCH stops Jenkins merging this build into an identical
+    // queued one (AUD-37).
     final values = effectiveParameterValues(definitions, {
-      'BASE_BUILD': 'freestyle-simple#1',
       'BRANCH': 'p11-04-${DateTime.now().microsecondsSinceEpoch}',
     });
-    return triggerParameters(definitions, values)..remove('config.json');
+    return triggerParameters(definitions, values);
   }
 
   test('Jenkins never returns the stored password default', () async {

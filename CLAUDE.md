@@ -47,6 +47,7 @@ creating) its task entry first, and update the task's status when done.
 | Testing | `flutter_test`, `mocktail`, `riverpod_test` | Unit tests for repositories/notifiers are mandatory for Phase 2+ |
 | Share sheet | `share_plus` | Added in Phase 5 (P5-12) — the build-log copy/share action, explicitly named by that task's own text. Not a substitution of anything on this list, narrowly scoped to one feature. |
 | App version info | `package_info_plus` | Added in Phase 6 (P6-01) — the profile screen's app version footer needs the real installed version/build number, not a hardcoded string. |
+| File picking | `file_picker` | Added in Phase 11 (P11-06, approved 2026-09-29) — Jenkins file parameters (US-JX-02) need the user to choose a local file for a multipart trigger. Paths only; the app keeps no copy. |
 | External links | `url_launcher` | Added in Phase 6 (P6-02) — the app info screen opens privacy policy/terms/licenses URLs and a `mailto:` support link, matching `AppInfoView.swift`'s `openURL` usage exactly. |
 
 Do not introduce a second state-management library, a second HTTP client, or

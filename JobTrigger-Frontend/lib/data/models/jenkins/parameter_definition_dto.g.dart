@@ -16,6 +16,7 @@ _ParameterDefinitionDto _$ParameterDefinitionDtoFromJson(
       ?.map((e) => e as String)
       .toList(),
   defaultValue: _defaultValueFromJson(json['defaultParameterValue']),
+  projectName: json['projectName'] as String?,
 );
 
 Map<String, dynamic> _$ParameterDefinitionDtoToJson(
@@ -26,4 +27,5 @@ Map<String, dynamic> _$ParameterDefinitionDtoToJson(
   'description': instance.description,
   'choices': instance.choices,
   'defaultParameterValue': instance.defaultValue,
+  'projectName': instance.projectName,
 };

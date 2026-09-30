@@ -7,6 +7,7 @@ import '../../../domain/jenkins/parameter_definition.dart';
 import '../../../domain/jenkins/parameter_values.dart';
 import '../../../domain/jenkins/reconcile_replay_parameters.dart';
 import '../job_detail/parameter_edits_notifier.dart';
+import '../job_detail/parameter_files_notifier.dart';
 import '../job_detail/parameter_form.dart';
 import '../job_detail/trigger_build_notifier.dart';
 
@@ -79,6 +80,13 @@ class _ReplaySheetState extends ConsumerState<ReplaySheet> {
                   onChanged: ref
                       .read(parameterEditsNotifierProvider(_formKey).notifier)
                       .setValue,
+                  // Jenkins can't return a past build's uploaded file, so a
+                  // file parameter is re-chosen (or left out) on replay.
+                  files: ref.watch(parameterFilesNotifierProvider(_formKey)),
+                  onPickFile: (name) => pickParameterFile(ref, _formKey, name),
+                  onRemoveFile: ref
+                      .read(parameterFilesNotifierProvider(_formKey).notifier)
+                      .remove,
                 ),
               ],
               const SizedBox(height: 16),
@@ -104,6 +112,7 @@ class _ReplaySheetState extends ConsumerState<ReplaySheet> {
             _reconciled,
             ref.read(parameterEditsNotifierProvider(_formKey)),
           ),
+          files: ref.read(parameterFilesNotifierProvider(_formKey)),
         );
     if (mounted) navigator.pop();
   }

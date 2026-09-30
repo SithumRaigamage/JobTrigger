@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
+import 'package:job_trigger/domain/jenkins/parameter_file.dart';
 
 /// P5-18: verifies `triggerBuild`'s request construction for the
 /// parameterized case (endpoint choice, form-encoded body, `?token=`)
@@ -233,4 +235,42 @@ void main() {
 
     expect((result as Err<String?, AppFailure>).error, isA<AuthFailure>());
   });
+
+  test(
+    'file parameters go as a multipart part named after the parameter',
+    () async {
+      final directory = Directory.systemTemp.createTempSync('jt-upload');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final local = File('${directory.path}/cfg.json')..writeAsStringSync('{}');
+      final adapter = _RecordingAdapter();
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+
+      await JenkinsRepositoryImpl(dio).triggerBuild(
+        'https://jenkins.test/job/demo',
+        isParameterized: true,
+        parameters: {'BRANCH': 'main'},
+        files: {
+          'config.json': ParameterFile(
+            fileName: 'cfg.json',
+            path: local.path,
+            sizeBytes: 2,
+          ),
+        },
+      );
+
+      expect(
+        adapter.lastRequest?.path,
+        'https://jenkins.test/job/demo/buildWithParameters',
+      );
+      final form = adapter.lastRequest?.data as FormData;
+      expect(Map.fromEntries(form.fields), {'BRANCH': 'main'});
+      expect(form.files.single.key, 'config.json');
+      expect(form.files.single.value.filename, 'cfg.json');
+      expect(
+        adapter.lastRequest?.contentType,
+        startsWith('multipart/form-data'),
+      );
+    },
+  );
 }

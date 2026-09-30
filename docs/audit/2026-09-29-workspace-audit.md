@@ -73,7 +73,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-34 | Low | Bug | Log sanitizer leaves `\r` from CRLF; escape sequences split across chunks leak | open (→ P11-11) |
 | AUD-35 | Low | Docs | `CLAUDE.md` §1 still says "JWT bearer"; the backend actually uses `x-auth-token` | open |
 | AUD-37 | High | Bug | A duplicate parameterized trigger (Jenkins `303`, merged into the queued build) is reported as a failure | fixed (P11-04) |
-| AUD-38 | High | Bug | Triggering a job with a Run parameter from the untouched form fails (empty value → Jenkins `500`) | open (→ P11-06) |
+| AUD-38 | High | Bug | Triggering a job with a Run parameter from the untouched form fails (empty value → Jenkins `500`) | fixed (P11-06) |
 | AUD-36 | Low | Hygiene | Untracked leftovers in the workspace (1.2 GB build output, coverage, stray tool dirs) | fixed (local cleanup 2026-09-29) |
 
 **Counts:** 3 Critical, 15 High, 11 Medium, 9 Low (38 total). AUD-37 and AUD-38 were found on 2026-09-29 during P11-04's real-server verification.
@@ -405,8 +405,11 @@ are cross-referenced instead of being fixed twice.
 - **What:** `buildWithParameters` with `BASE_BUILD=` (empty) returns HTTP
   500, verified on the fixture Jenkins. Triggering any job that declares a
   Run parameter, without typing a valid `job#number`, fails.
-- **Fix:** P11-06 (US-JX-02) adds a build picker for Run parameters and
-  keeps Trigger disabled until one is chosen.
+- **Fix (P11-06):** a blank Run parameter is **omitted**, and Jenkins then
+  uses its default, the latest build (verified on the fixture). An optional
+  picker lists the project's recent builds. This is better than the planned
+  "disable Trigger until chosen", which would have blocked the most common
+  case.
 
 ## Low
 

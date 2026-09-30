@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/domain/jenkins/parameter_definition.dart';
+import 'package:job_trigger/domain/jenkins/parameter_file.dart';
 import 'package:job_trigger/domain/jenkins/parameter_values.dart';
 
 const _branch = ParameterDefinition(
@@ -102,6 +103,77 @@ void main() {
       );
       expect(rows[0].display, 'line one …');
       expect(rows[1].display, '(empty)');
+    });
+  });
+
+  group('US-JX-02 types', () {
+    const run = ParameterDefinition(
+      name: 'BASE_BUILD',
+      type: runParameterType,
+      projectName: 'freestyle-simple',
+    );
+    const creds = ParameterDefinition(
+      name: 'DEPLOY_CREDS',
+      type: credentialsParameterType,
+    );
+    const file = ParameterDefinition(
+      name: 'config.json',
+      type: fileParameterType,
+    );
+    const picked = ParameterFile(
+      fileName: 'config.json',
+      path: '/tmp/config.json',
+      sizeBytes: 1536,
+    );
+
+    test(
+      'blank run/credentials are omitted so Jenkins uses its default (AUD-38)',
+      () {
+        final body = triggerParameters(
+          [run, creds, _branch],
+          {'BASE_BUILD': '', 'DEPLOY_CREDS': '', 'BRANCH': 'main'},
+        );
+        expect(body, {'BRANCH': 'main'});
+      },
+    );
+
+    test('a chosen run value is sent as job#number', () {
+      expect(triggerParameters([run], {'BASE_BUILD': 'freestyle-simple#9'}), {
+        'BASE_BUILD': 'freestyle-simple#9',
+      });
+    });
+
+    test('file parameters never go in the text body, only as files', () {
+      expect(triggerParameters([file], {'config.json': 'x'}), isEmpty);
+      expect(triggerFiles([file], {'config.json': picked}), {
+        'config.json': picked,
+      });
+      // A file for a parameter the job no longer declares is dropped.
+      expect(triggerFiles(const [], {'config.json': picked}), isEmpty);
+    });
+
+    test('summary shows server default, chosen run, and file name/size', () {
+      final rows = parameterSummary(
+        [run, file],
+        {'BASE_BUILD': ''},
+        files: {'config.json': picked},
+      );
+      expect(rows[0].display, 'server default');
+      expect(rows[1].display, 'config.json (1.5 KB)');
+      expect(parameterSummary([file], const {}).single.display, 'no file');
+    });
+
+    test('jobUrlFromFullName nests folders and encodes segments', () {
+      expect(
+        jobUrlFromFullName('https://ci.test/', 'team/api service'),
+        'https://ci.test/job/team/job/api%20service/',
+      );
+    });
+
+    test('formatFileSize', () {
+      expect(formatFileSize(512), '512 B');
+      expect(formatFileSize(1536), '1.5 KB');
+      expect(formatFileSize(60000000), '57.2 MB');
     });
   });
 }

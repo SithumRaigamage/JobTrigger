@@ -92,7 +92,7 @@ against the fixture Jenkins (P11-02, `NFR-TEST-02`).
 | `{buildURL}replay/run` (form `mainScript` + Stapler `json`) | POST | US-JX-16, verification-gated | planned |
 | `{baseURL}/api/json?tree=views[name,url],primaryView[name]` · `{viewURL}api/json` | GET | US-JX-17 views | planned |
 | `{baseURL}/api/json?tree=quietingDown,mode` + `X-Jenkins` header | GET | US-JX-18 server status | planned |
-| `{jobURL}buildWithParameters` as `multipart/form-data` | POST | US-JX-02 file parameters | planned |
+| `{jobURL}buildWithParameters` as `multipart/form-data` (file part named after the parameter, other parameters as text parts) | POST | US-JX-02 file parameters | **implemented** (P11-06) |
 
 Every POST above goes through the shared Jenkins client, so it gets the CSRF
 crumb and session cookie automatically. A 403 on an admin-flavoured action

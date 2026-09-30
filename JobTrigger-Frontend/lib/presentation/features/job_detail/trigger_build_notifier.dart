@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
+import '../../../domain/jenkins/parameter_file.dart';
 import '../../../domain/jenkins/parameter_values.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../settings/active_server_notifier.dart';
@@ -29,6 +30,7 @@ class TriggerBuildNotifier extends _$TriggerBuildNotifier {
   Future<void> trigger({
     required JenkinsJob job,
     Map<String, String> parameters = const {},
+    Map<String, ParameterFile> files = const {},
   }) async {
     state = const AsyncLoading();
     final paramToken = ref.read(activeServerNotifierProvider)?.paramToken;
@@ -42,6 +44,7 @@ class TriggerBuildNotifier extends _$TriggerBuildNotifier {
           // (US-JX-01) -- applied here so every trigger path (job detail,
           // replay) gets it.
           parameters: triggerParameters(job.parameterDefinitions, parameters),
+          files: triggerFiles(job.parameterDefinitions, files),
           paramToken: paramToken,
         );
 

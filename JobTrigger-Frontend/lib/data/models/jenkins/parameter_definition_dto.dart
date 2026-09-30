@@ -23,6 +23,8 @@ abstract class ParameterDefinitionDto with _$ParameterDefinitionDto {
     List<String>? choices,
     @JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson)
     dynamic defaultValue,
+    // RunParameterDefinition only (US-JX-02).
+    String? projectName,
   }) = _ParameterDefinitionDto;
 
   factory ParameterDefinitionDto.fromJson(Map<String, dynamic> json) =>
@@ -41,5 +43,6 @@ extension ParameterDefinitionDtoX on ParameterDefinitionDto {
     description: description,
     choices: choices,
     defaultValue: defaultValue,
+    projectName: projectName,
   );
 }

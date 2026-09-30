@@ -25,6 +25,7 @@ import 'cancel_build_notifier.dart';
 import 'input_submit_notifier.dart';
 import 'job_detail_notifier.dart';
 import 'parameter_edits_notifier.dart';
+import 'parameter_files_notifier.dart';
 import 'parameter_form.dart';
 import 'pending_input_notifier.dart';
 import 'pipeline_stages_notifier.dart';
@@ -52,6 +53,7 @@ class JobDetailScreen extends ConsumerWidget {
     // again at tap time, never captured here -- a closure built from this
     // frame's value could miss an edit made just before the tap.
     ref.watch(parameterEditsNotifierProvider(jobUrl));
+    ref.watch(parameterFilesNotifierProvider(jobUrl));
 
     final jobAsync = ref.watch(jobDetailNotifierProvider(jobUrl));
     final isTriggering = ref
@@ -138,7 +140,12 @@ class JobDetailScreen extends ConsumerWidget {
       job.parameterDefinitions,
       ref.read(parameterEditsNotifierProvider(job.url)),
     );
-    final summary = parameterSummary(job.parameterDefinitions, values);
+    final files = ref.read(parameterFilesNotifierProvider(job.url));
+    final summary = parameterSummary(
+      job.parameterDefinitions,
+      values,
+      files: files,
+    );
     final confirmed = await showConfirmationDialog(
       context,
       title: 'Trigger build?',
@@ -149,7 +156,7 @@ class JobDetailScreen extends ConsumerWidget {
     if (!confirmed) return;
     await ref
         .read(triggerBuildNotifierProvider(job.url).notifier)
-        .trigger(job: job, parameters: values);
+        .trigger(job: job, parameters: values, files: files);
   }
 
   /// AUD-08 / US-JOB-05.
@@ -354,6 +361,11 @@ class _JobDetailBody extends ConsumerWidget {
             onChanged: ref
                 .read(parameterEditsNotifierProvider(formKey).notifier)
                 .setValue,
+            files: ref.watch(parameterFilesNotifierProvider(formKey)),
+            onPickFile: (name) => pickParameterFile(ref, formKey, name),
+            onRemoveFile: ref
+                .read(parameterFilesNotifierProvider(formKey).notifier)
+                .remove,
           ),
         ],
       ],

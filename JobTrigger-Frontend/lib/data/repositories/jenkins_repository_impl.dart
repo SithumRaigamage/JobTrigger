@@ -12,6 +12,7 @@ import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../../domain/jenkins/jenkins_repository.dart';
 import '../../domain/jenkins/log_chunk.dart';
+import '../../domain/jenkins/parameter_file.dart';
 import '../../domain/jenkins/pending_input.dart';
 import '../../domain/jenkins/pipeline_stage.dart';
 import '../../domain/jenkins/queue_item.dart';
@@ -60,7 +61,7 @@ const _detailsTree =
     'changeSet[items[msg,author[fullName]]],'
     'artifacts[fileName,relativePath]],'
     'healthReport[description,iconClassName,score],'
-    'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices]],'
+    'property[parameterDefinitions[name,type,description,defaultParameterValue[value],choices,projectName]],'
     'downstreamProjects[name,url]';
 
 /// US-PIPE-06 — counts plus enough of each case to identify a failing one.
@@ -179,20 +180,39 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
     String jobUrl, {
     required bool isParameterized,
     Map<String, String> parameters = const {},
+    Map<String, ParameterFile> files = const {},
     String? paramToken,
   }) => guardRequest(() async {
-    final hasParams = parameters.isNotEmpty;
+    final hasParams = parameters.isNotEmpty || files.isNotEmpty;
     final action = (isParameterized || hasParams)
         ? 'buildWithParameters'
         : 'build';
+    final Object? body;
+    final String? contentType;
+    if (files.isNotEmpty) {
+      body = FormData.fromMap({
+        ...parameters,
+        for (final MapEntry(key: name, value: file) in files.entries)
+          name: await MultipartFile.fromFile(
+            file.path,
+            filename: file.fileName,
+          ),
+      });
+      contentType = null; // Dio sets the multipart boundary itself.
+    } else {
+      body = parameters.isEmpty ? null : parameters;
+      contentType = parameters.isEmpty
+          ? null
+          : Headers.formUrlEncodedContentType;
+    }
     final response = await _dio.post<void>(
       '${_withSlash(jobUrl)}$action',
-      data: hasParams ? parameters : null,
+      data: body,
       queryParameters: (paramToken != null && paramToken.isNotEmpty)
           ? {'token': paramToken}
           : null,
       options: Options(
-        contentType: hasParams ? Headers.formUrlEncodedContentType : null,
+        contentType: contentType,
         // AUD-37: when an identical parameterized build is already queued,
         // Jenkins merges the request into it and answers `303 See Other`
         // with that queue item as `Location`. That's an accepted trigger,

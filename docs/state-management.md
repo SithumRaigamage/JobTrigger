@@ -43,6 +43,9 @@ their screen under `presentation/features/<feature>/`.
   never resets typed values, and a field rebuilt after scrolling keeps
   them (AUD-18). Screens read the edits **at tap time** when confirming,
   not from a closure captured at build.
+- `ParameterFilesNotifier` (family by the same form key) holds the files
+  chosen for file parameters. `pick()` calls the `parameterFilePicker`
+  provider (so it can be faked in tests) and refuses anything over 50 MB.
 - `TriggerBuildNotifier.trigger` sends
   `triggerParameters(definitions, values)`. That omits blank password
   parameters so Jenkins applies its stored default (US-JX-01), and every

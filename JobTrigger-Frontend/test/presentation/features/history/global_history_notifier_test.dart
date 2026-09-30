@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
@@ -7,11 +5,6 @@ import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
-import 'package:job_trigger/domain/jenkins/log_chunk.dart';
-import 'package:job_trigger/domain/jenkins/pending_input.dart';
-import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
-import 'package:job_trigger/domain/jenkins/queue_item.dart';
-import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/presentation/features/history/global_history_notifier.dart';
 import 'package:job_trigger/presentation/features/home/job_tree_notifier.dart';
 import '../../../support/fake_jenkins_repository.dart';
@@ -27,65 +20,6 @@ class _FakeJenkinsRepository extends FakeJenkinsRepository {
     fetchJobTreeCallCount++;
     return fetchJobTreeResult;
   }
-
-  @override
-  Future<Result<JenkinsJob, AppFailure>> fetchJobDetail(String jobUrl) =>
-      throw UnimplementedError();
-
-  @override
-  Future<Result<LogChunk, AppFailure>> streamBuildLog(
-    String buildUrl, {
-    int start = 0,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<Result<List<JenkinsBuild>, AppFailure>> fetchJobHistory(
-    String jobUrl,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Result<String?, AppFailure>> triggerBuild(
-    String jobUrl, {
-    required bool isParameterized,
-    Map<String, String> parameters = const {},
-    String? paramToken,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<Result<void, AppFailure>> cancelBuild(String buildUrl) =>
-      throw UnimplementedError();
-
-  @override
-  Future<Result<QueueItem, AppFailure>> fetchQueueItem(String queueItemUrl) =>
-      throw UnimplementedError();
-
-  @override
-  Future<Result<TestReport?, AppFailure>> fetchTestReport(String buildUrl) =>
-      throw UnimplementedError();
-
-  @override
-  Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
-    String buildUrl,
-    String relativePath,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Result<List<PipelineStage>?, AppFailure>> fetchPipelineStages(
-    String buildUrl,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Result<PendingInput?, AppFailure>> fetchPendingInput(
-    String buildUrl,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Result<void, AppFailure>> submitInput({
-    required String buildUrl,
-    required String inputId,
-    required bool proceed,
-    Map<String, String> parameters = const {},
-  }) => throw UnimplementedError();
 }
 
 JenkinsJob _jobWithBuild(String name, int buildNumber, double timestamp) =>
