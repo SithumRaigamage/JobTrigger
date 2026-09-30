@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifier.dart';
@@ -45,6 +46,9 @@ ProviderContainer _container() {
 }
 
 void main() {
+  // The selected view (US-JX-17) is read from shared_preferences.
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+
   test('initial state is an empty breadcrumb', () {
     expect(_container().read(folderBreadcrumbNotifierProvider), isEmpty);
   });

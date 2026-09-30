@@ -7,6 +7,7 @@ import 'package:job_trigger/domain/jenkins/history_filter.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_node.dart';
+import 'package:job_trigger/domain/jenkins/jenkins_view.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
 import 'package:job_trigger/domain/jenkins/log_chunk.dart';
 import 'package:job_trigger/domain/jenkins/parameter_file.dart';
@@ -25,6 +26,10 @@ class FakeJenkinsRepository implements JenkinsRepository {
   @override
   Future<Result<List<JenkinsJob>, AppFailure>> fetchJobTree() =>
       throw UnimplementedError('fetchJobTree');
+
+  @override
+  Future<Result<List<JenkinsView>, AppFailure>> fetchViews() =>
+      throw UnimplementedError('fetchViews');
 
   @override
   Future<Result<ServerStatus, AppFailure>> fetchServerStatus() =>

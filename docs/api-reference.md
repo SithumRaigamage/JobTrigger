@@ -91,7 +91,7 @@ against the fixture Jenkins (P11-02, `NFR-TEST-02`).
 | `{buildURL}toggleLogKeep` | POST | US-JX-14 keep forever. Returns **302**. It toggles, so the app re-reads `keepLog` afterwards | **implemented** (P11-18) |
 | `{buildURL}submitDescription` (form `description`) | POST | US-JX-14. Returns **302**. Stored as raw HTML and shown only as plain text (`htmlToPlainText`) | **implemented** (P11-18) |
 | `{buildURL}replay/run` (form `mainScript` + Stapler `json`) | POST | US-JX-16, verification-gated | planned |
-| `{baseURL}/api/json?tree=views[name,url],primaryView[name]` · `{viewURL}api/json` | GET | US-JX-17 views | planned |
+| `{baseURL}/api/json?tree=views[name,url],primaryView[name]` · `{viewURL}api/json?tree=jobs[…]` | GET | US-JX-17 views. The primary view's URL is the server root. A view's jobs use the same one-level shape as a folder | **implemented** (P11-21) |
 | `{baseURL}/api/json?tree=quietingDown` + the `X-Jenkins` response header | GET | US-JX-18 server status. During quiet-down a trigger still returns **201** (queued, won't start) | **implemented** (P11-16) |
 | `{jobURL}buildWithParameters` as `multipart/form-data` (file part named after the parameter, other parameters as text parts) | POST | US-JX-02 file parameters | **implemented** (P11-06) |
 

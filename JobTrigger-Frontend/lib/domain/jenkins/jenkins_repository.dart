@@ -7,6 +7,7 @@ import 'history_filter.dart';
 import 'jenkins_build.dart';
 import 'jenkins_job.dart';
 import 'jenkins_node.dart';
+import 'jenkins_view.dart';
 import 'log_chunk.dart';
 import 'parameter_file.dart';
 import 'pending_input.dart';
@@ -17,6 +18,11 @@ import 'queue_item.dart';
 import 'test_report.dart';
 
 abstract class JenkinsRepository {
+  /// US-JX-17: the server's views, primary first. A view's jobs load
+  /// through [fetchFolder] with the view URL, which has the same `jobs`
+  /// shape.
+  Future<Result<List<JenkinsView>, AppFailure>> fetchViews();
+
   /// US-JX-18: the server's version (`X-Jenkins` header) and quiet-down
   /// state.
   Future<Result<ServerStatus, AppFailure>> fetchServerStatus();

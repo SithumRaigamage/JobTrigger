@@ -151,6 +151,18 @@ jobs:
         publishers { downstream('downstream-freestyle') }
       }
 
+      // US-JX-17: a list view besides the default "all", so the view
+      // switcher has something to switch to.
+      listView('Pipelines') {
+        description('Every pipeline-* job')
+        jobs { regex('pipeline-.*') }
+        columns {
+          status()
+          name()
+          lastSuccess()
+        }
+      }
+
       // US-JX-13: a disabled job (color `disabled`, buildable false).
       job('disabled-job') {
         disabled()

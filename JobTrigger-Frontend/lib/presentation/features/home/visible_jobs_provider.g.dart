@@ -85,4 +85,4 @@ final class VisibleJobsProvider
   }
 }
 
-String _$visibleJobsHash() => r'61b6dddc2414c0e5336a8d50156fc1ad3f773dca';
+String _$visibleJobsHash() => r'3016f83dbd30b4e88f5d24ac4a9a18745a1d133a';

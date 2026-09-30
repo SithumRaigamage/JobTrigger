@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../settings/active_server_notifier.dart';
+import 'views_notifier.dart';
 
 part 'folder_breadcrumb_notifier.g.dart';
 
@@ -54,7 +55,10 @@ class FolderRef {
 class FolderBreadcrumbNotifier extends _$FolderBreadcrumbNotifier {
   @override
   List<FolderRef> build() {
-    ref.watch(activeServerNotifierProvider.select((server) => server?.id));
+    ref
+      ..watch(activeServerNotifierProvider.select((server) => server?.id))
+      // Folders belong to the view they were entered from (US-JX-17).
+      ..watch(selectedViewNotifierProvider);
     return const [];
   }
 

@@ -7,6 +7,7 @@ import '../../../domain/jenkins/branch_kind.dart';
 import '../../../domain/jenkins/history_filter.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
+import '../../../domain/jenkins/jenkins_view.dart';
 import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
@@ -21,6 +22,7 @@ import 'job_search_notifier.dart';
 import 'multibranch_notifiers.dart';
 import 'pinned_jobs_notifier.dart';
 import 'server_status_provider.dart';
+import 'views_notifier.dart';
 import 'visible_jobs_provider.dart';
 
 /// Ported from `HomeView.swift`. Doesn't port the swipe-to-trigger-build
@@ -83,7 +85,9 @@ class HomeScreen extends ConsumerWidget {
             tooltip: 'Tool Selection',
             onPressed: () => context.go(AppRoutes.toolSelection),
           ),
-          title: Text(breadcrumb.isEmpty ? 'Jobs' : breadcrumb.last.label),
+          title: breadcrumb.isEmpty
+              ? const _ViewPickerTitle()
+              : Text(breadcrumb.last.label),
           actions: [
             if (breadcrumb.isNotEmpty && breadcrumb.last.isScannable)
               _ScanActions(project: breadcrumb.last),
@@ -716,5 +720,68 @@ class _QuietDownBanner extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// US-JX-17: at Home's root the title is the current view, tappable to
+/// switch when the server has more than one.
+class _ViewPickerTitle extends ConsumerWidget {
+  const _ViewPickerTitle();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final views = ref.watch(jenkinsViewsProvider).value ?? const [];
+    final selectedUrl = ref.watch(selectedViewNotifierProvider);
+    final current = views
+        .where(
+          (view) =>
+              selectedUrl == null ? view.isPrimary : view.url == selectedUrl,
+        )
+        .firstOrNull;
+    final title = current?.label ?? 'Jobs';
+    if (views.length < 2) return Text(title);
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => _pick(context, ref, views, current),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(child: Text(title, overflow: TextOverflow.ellipsis)),
+          const Icon(Icons.arrow_drop_down),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pick(
+    BuildContext context,
+    WidgetRef ref,
+    List<JenkinsView> views,
+    JenkinsView? current,
+  ) async {
+    final chosen = await showModalBottomSheet<JenkinsView>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            for (final view in views)
+              ListTile(
+                leading: Icon(
+                  view.url == current?.url
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                ),
+                title: Text(view.label),
+                onTap: () => Navigator.of(context).pop(view),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (chosen != null) {
+      await ref.read(selectedViewNotifierProvider.notifier).select(chosen);
+    }
   }
 }

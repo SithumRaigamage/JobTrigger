@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
@@ -104,6 +105,9 @@ Future<List<String>> _labels(ProviderContainer container) async {
 }
 
 void main() {
+  // The selected view (US-JX-17) is read from shared_preferences.
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+
   test(
     'Home root is one lazy level, never the recursive crawl (AUD-20)',
     () async {

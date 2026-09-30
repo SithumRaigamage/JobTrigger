@@ -7,6 +7,7 @@ import 'folder_breadcrumb_notifier.dart';
 import 'folder_contents_notifier.dart';
 import 'job_search_notifier.dart';
 import 'job_tree_notifier.dart';
+import 'views_notifier.dart';
 
 part 'visible_jobs_provider.g.dart';
 
@@ -25,10 +26,13 @@ AsyncValue<List<JenkinsJob>> visibleJobs(Ref ref) {
   final query = ref.watch(jobSearchNotifierProvider);
   if (query.isEmpty) {
     final breadcrumb = ref.watch(folderBreadcrumbNotifierProvider);
+    // The root is the selected view's listing (US-JX-17), or the server
+    // root for the primary view.
+    final root = ref.watch(selectedViewNotifierProvider) ?? rootFolderKey;
     // Watch the root and every folder on the path, not just the last one:
     // it keeps ancestors cached so "Back" is instant, and releases them
     // when the path (or Home) goes away. No timers involved.
-    final path = [rootFolderKey, for (final folder in breadcrumb) folder.url];
+    final path = [root, for (final folder in breadcrumb) folder.url];
     final levels = [
       for (final folderKey in path)
         ref.watch(folderContentsNotifierProvider(folderKey)),
@@ -58,6 +62,7 @@ Future<void> refreshVisibleJobs(WidgetRef ref) async {
     return ref.read(jobTreeNotifierProvider.notifier).refresh();
   }
   final breadcrumb = ref.read(folderBreadcrumbNotifierProvider);
-  final folderKey = breadcrumb.isEmpty ? rootFolderKey : breadcrumb.last.url;
+  final root = ref.read(selectedViewNotifierProvider) ?? rootFolderKey;
+  final folderKey = breadcrumb.isEmpty ? root : breadcrumb.last.url;
   return ref.read(folderContentsNotifierProvider(folderKey).notifier).refresh();
 }

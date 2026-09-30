@@ -13,6 +13,7 @@ import '../../domain/jenkins/history_filter.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../../domain/jenkins/jenkins_node.dart';
+import '../../domain/jenkins/jenkins_view.dart';
 import '../../domain/jenkins/jenkins_repository.dart';
 import '../../domain/jenkins/log_chunk.dart';
 import '../../domain/jenkins/parameter_file.dart';
@@ -132,6 +133,32 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
         final serverInfo = JenkinsServerInfoDto.fromJson(response.data!);
         final jobs = serverInfo.jobs.map((dto) => dto.toDomain()).toList();
         return rewriteJobTreeUrls(jobs, _baseUrl);
+      });
+
+  @override
+  Future<Result<List<JenkinsView>, AppFailure>> fetchViews() =>
+      guardRequest(() async {
+        final response = await _dio.get<Map<String, dynamic>>(
+          '/api/json',
+          queryParameters: {'tree': 'views[name,url],primaryView[name]'},
+        );
+        final primary =
+            (response.data?['primaryView'] as Map<String, dynamic>?)?['name'];
+        final views = [
+          for (final view
+              in (response.data?['views'] as List<dynamic>? ?? const [])
+                  .cast<Map<String, dynamic>>())
+            JenkinsView(
+              name: view['name'] as String? ?? '?',
+              url: rewriteUrl(view['url'] as String? ?? '', _baseUrl),
+              isPrimary: view['name'] == primary,
+            ),
+        ];
+        // Primary first, then Jenkins' order.
+        return [
+          ...views.where((view) => view.isPrimary),
+          ...views.where((view) => !view.isPrimary),
+        ];
       });
 
   @override

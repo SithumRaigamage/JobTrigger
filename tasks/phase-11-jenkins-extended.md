@@ -419,8 +419,17 @@ their approvals don't block the rest.
       - **Real-server finding:** the tree syntax can't address dotted
         monitor keys.
       - **Tests:** 6 unit and widget tests, plus 2 fixture tests.
-- [ ] P11-21 **US-JX-17 views:** view picker, view-scoped Home, and
+- [x] P11-21 **US-JX-17 views:** view picker, view-scoped Home, and
       persisted per server.
+      **Done 2026-09-30.**
+      - **Picker:** Home's root title becomes a picker ("All jobs" or the
+        named views) when there's more than one view.
+      - **State:** `SelectedViewNotifier` persists the view URL per server.
+        The root listing reuses `fetchFolder` on the view URL, so folders
+        and search inside a view need nothing new. Switching views resets
+        the breadcrumb.
+      - **Fixture:** now seeds a "Pipelines" list view.
+      - **Tests:** 3 unit and widget tests, plus 1 fixture test.
 - [ ] P11-22 **US-JX-19 deep links:** the `jobtrigger://` scheme, an
       Android share intent, iOS paste-to-open, a pure URL→route parser, and
       server matching with a confirmation to switch.
