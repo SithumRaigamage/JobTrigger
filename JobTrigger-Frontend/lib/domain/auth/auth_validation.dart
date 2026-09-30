@@ -10,17 +10,23 @@ class FormValidationError implements Exception {
   String toString() => message;
 }
 
-/// Field-validation rules ported 1:1 from `LoginViewModel.swift` /
-/// `SignupViewModel.swift` — same substring-based email check and 6-char
-/// password minimum as the backend itself enforces
-/// (`JobTrigger-Backend/controllers/authController.js`).
+/// Field-validation rules, kept in step with what the backend enforces
+/// (`JobTrigger-Backend/controllers/authController.js`, AUD-26): the same
+/// email pattern and an 8-character password minimum. Originally ported
+/// from `LoginViewModel.swift`/`SignupViewModel.swift` (a substring email
+/// check and 6 characters).
 class AuthValidation {
   const AuthValidation._();
 
-  static bool isValidEmail(String email) =>
-      email.contains('@') && email.contains('.');
+  /// Something, `@`, something, `.`, something, with no spaces.
+  static final _email = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 
-  static bool isValidPassword(String password) => password.length >= 6;
+  static const minPasswordLength = 8;
+
+  static bool isValidEmail(String email) => _email.hasMatch(email.trim());
+
+  static bool isValidPassword(String password) =>
+      password.length >= minPasswordLength;
 
   static bool passwordsMatch(String password, String confirmPassword) =>
       password == confirmPassword || confirmPassword.isEmpty;

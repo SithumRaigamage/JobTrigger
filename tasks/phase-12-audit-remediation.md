@@ -90,11 +90,15 @@ file lists them.
       container runs as `USER node`, with `NODE_ENV=production` and a
       `HEALTHCHECK`. *Done 2026-09-30:* the health check uses a new
       DB-aware `GET /healthz`. Verified on a local image build.
-- [ ] P12-22 **AUD-04** plus the validation part of AUD-26. Reject
+- [x] P12-22 **AUD-04** plus the validation part of AUD-26. Reject
       non-string auth fields, `mongoose.set('sanitizeFilter', true)`,
       server-side email format check, and a minimum password length of 8
       (the client validation in `auth_validation.dart` is updated to
-      match).
+      match). *Done 2026-09-30:* also a 72-byte maximum (bcrypt), and
+      emails trimmed and lower-cased before lookup. Format and length rules
+      apply only at signup, so older accounts can still log in. 7 new
+      mocha tests (67 passing); the "at least 6" test moves to 8 with the
+      policy.
 - [ ] P12-23 **AUD-06 and AUD-25.** A central error handler (log
       server-side, return a generic body), a CORS allow-list from env,
       `helmet` (**new backend dependency**), and fail-fast on missing

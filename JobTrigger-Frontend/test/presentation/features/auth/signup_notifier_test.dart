@@ -57,7 +57,7 @@ void main() {
     expect(repo.signupCallCount, 0);
   });
 
-  test('rejects a password shorter than 6 characters', () async {
+  test('rejects a password shorter than 8 characters', () async {
     final repo = _FakeAuthRepository();
     final container = ProviderContainer(
       overrides: [authRepositoryProvider.overrideWithValue(repo)],

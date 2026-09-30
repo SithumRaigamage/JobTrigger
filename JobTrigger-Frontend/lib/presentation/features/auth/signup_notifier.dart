@@ -28,7 +28,10 @@ class SignupNotifier extends _$SignupNotifier {
     }
     if (!AuthValidation.isValidPassword(password)) {
       state = AsyncError(
-        const FormValidationError('Password must be at least 6 characters.'),
+        const FormValidationError(
+          'Password must be at least '
+          '${AuthValidation.minPasswordLength} characters.',
+        ),
         StackTrace.current,
       );
       return;

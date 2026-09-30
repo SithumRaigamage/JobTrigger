@@ -3,6 +3,11 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
+// AUD-04: defence in depth. Query filters built from request data treat
+// `$`-operators as literal values, so `{"$gt": ""}` can't match every row
+// even if a handler forgets a type check.
+mongoose.set('sanitizeFilter', true);
+
 const app = express();
 
 // Middleware

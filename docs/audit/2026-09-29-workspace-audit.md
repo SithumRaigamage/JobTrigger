@@ -40,7 +40,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-01 | Critical | Security | Login password persisted in plaintext `shared_preferences` | fixed (P12-01) |
 | AUD-02 | Critical | Release | Release Android build has no `INTERNET` permission | fixed (P12-02) |
 | AUD-03 | Critical | Security (backend) | Jenkins passwords and tokens, GitHub PATs, SonarQube tokens stored unencrypted in MongoDB | open |
-| AUD-04 | High | Security (backend) | NoSQL operator injection in `/api/auth/login` and `/signup` | open |
+| AUD-04 | High | Security (backend) | NoSQL operator injection in `/api/auth/login` and `/signup` | fixed (P12-22) |
 | AUD-05 | High | Security (backend) | No rate limiting or lockout on login | open |
 | AUD-06 | High | Security (backend) | 500 responses leak internal `err.message` | open |
 | AUD-07 | High | Security (backend) | Vulnerable dependencies (`path-to-regexp` ReDoS, `mongoose`, `qs`) | fixed (P12-20) |
@@ -140,6 +140,11 @@ are cross-referenced instead of being fixed twice.
   non-string throws or passes oddly.
 - **Fix:** Reject any non-string `email` or `password` with 400. Enable
   `mongoose.set('sanitizeFilter', true)` globally. Validate email format.
+- **Fixed (P12-22, 2026-09-30):** `readCredentials` returns 400 for any
+  non-string or empty field before a query runs, and
+  `sanitizeFilter` is on globally. The code's own filters use no
+  `$`-operators; `$set` in updates is unaffected. Mocha tests cover
+  operator objects as email and as password, and arrays and numbers.
 
 ### AUD-05 — No rate limiting on login (backend track)
 
@@ -411,6 +416,11 @@ are cross-referenced instead of being fixed twice.
   (optional), validate email, add a `tokenVersion` on `User` checked in
   `auth.js`, and shorten access-token life with a refresh flow. The client
   change follows the refresh contract.
+- **Partly fixed (P12-22, 2026-09-30):** an 8-character minimum and a
+  72-byte maximum (bcrypt truncates beyond that), plus a server-side email
+  format check, all at signup only so existing accounts can still sign in.
+  The client's `AuthValidation` uses the same pattern and minimum. The
+  session half (`tokenVersion`, refresh) is P12-27.
 
 ### AUD-27 — Password build parameters shown in plaintext
 

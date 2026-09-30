@@ -18,15 +18,22 @@ void main() {
     test('rejects an empty string', () {
       expect(AuthValidation.isValidEmail(''), isFalse);
     });
+
+    test('matches the backend: no spaces, text on each side (AUD-26)', () {
+      expect(AuthValidation.isValidEmail('a b@c.com'), isFalse);
+      expect(AuthValidation.isValidEmail('@b.com'), isFalse);
+      expect(AuthValidation.isValidEmail('a@.com'), isFalse);
+      expect(AuthValidation.isValidEmail(' a@b.com '), isTrue); // Trimmed.
+    });
   });
 
   group('AuthValidation.isValidPassword', () {
-    test('accepts a 6-character password', () {
-      expect(AuthValidation.isValidPassword('abcdef'), isTrue);
+    test('accepts an 8-character password (AUD-26)', () {
+      expect(AuthValidation.isValidPassword('abcdefgh'), isTrue);
     });
 
-    test('rejects a 5-character password', () {
-      expect(AuthValidation.isValidPassword('abcde'), isFalse);
+    test('rejects a 7-character password', () {
+      expect(AuthValidation.isValidPassword('abcdefg'), isFalse);
     });
 
     test('rejects an empty password', () {
