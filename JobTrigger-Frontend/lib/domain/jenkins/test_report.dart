@@ -16,5 +16,32 @@ class TestReport {
 
   /// `ClassName.testName` for each failed/regressed case — a summary list,
   /// not full stack traces/output (those stay in the console log, US-LOG-01).
-  final List<String> failingTests;
+  final List<FailingTest> failingTests;
+}
+
+/// One failing test case with why it failed (US-JX-08).
+class FailingTest {
+  const FailingTest({
+    required this.name,
+    this.className,
+    this.errorDetails,
+    this.stackTrace,
+    this.durationSeconds,
+    this.isNewFailure = false,
+  });
+
+  final String name;
+  final String? className;
+
+  /// The assertion or exception message.
+  final String? errorDetails;
+  final String? stackTrace;
+  final double? durationSeconds;
+
+  /// Failing for the first time: Jenkins' `REGRESSION` status (it passed
+  /// last build) or `age == 1`.
+  final bool isNewFailure;
+
+  /// `ClassName.testName`, how the summary lists it.
+  String get displayName => className == null ? name : '$className.$name';
 }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../domain/jenkins/build_artifact.dart';
 import '../../../domain/jenkins/build_progress.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
@@ -831,24 +833,116 @@ class _TestReportChip extends StatelessWidget {
   void _showFailingTests(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
-      builder: (context) => SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          shrinkWrap: true,
-          children: [
-            Text(
-              'Failing tests',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            for (final test in report.failingTests)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Text(test),
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => FailingTestsSheet(report: report),
+    );
+  }
+}
+
+/// US-JX-08: every failing test, expandable to its message and a
+/// copyable stack trace. New failures (a regression, or failing for the
+/// first time) are badged and listed first.
+class FailingTestsSheet extends StatelessWidget {
+  const FailingTestsSheet({super.key, required this.report});
+
+  final TestReport report;
+
+  @override
+  Widget build(BuildContext context) {
+    final tests = [...report.failingTests]
+      ..sort((a, b) => (b.isNewFailure ? 1 : 0) - (a.isNewFailure ? 1 : 0));
+    final hidden = report.failCount - tests.length;
+    final textTheme = Theme.of(context).textTheme;
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.6,
+      maxChildSize: 0.95,
+      builder: (context, controller) => ListView(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        children: [
+          Text(
+            '${report.failCount} failing test${report.failCount == 1 ? '' : 's'}',
+            style: textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          for (final test in tests) _FailingTestTile(test: test),
+          if (hidden > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Text(
+                '$hidden more not shown — see the full test report in Jenkins.',
+                style: textTheme.bodySmall,
               ),
-          ],
-        ),
+            ),
+        ],
       ),
+    );
+  }
+}
+
+class _FailingTestTile extends StatelessWidget {
+  const _FailingTestTile({required this.test});
+
+  final FailingTest test;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final trace = test.stackTrace;
+    return ExpansionTile(
+      tilePadding: EdgeInsets.zero,
+      leading: const Icon(Icons.cancel, color: AppColors.buildFailure, size: 20),
+      title: Text(test.name),
+      subtitle: Text(
+        [if (test.isNewFailure) 'New failure', ?test.className].join(' · '),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      children: [
+        if (test.errorDetails case final details? when details.isNotEmpty)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: SelectableText(details, style: textTheme.bodyMedium),
+            ),
+          ),
+        if (trace != null && trace.isNotEmpty) ...[
+          Container(
+            constraints: const BoxConstraints(maxHeight: 220),
+            width: double.infinity,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: SingleChildScrollView(
+              child: SelectableText(
+                trace,
+                style: AppTypography.buildLog.copyWith(color: Colors.white),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              icon: const Icon(Icons.copy, size: 16),
+              label: const Text('Copy stack trace'),
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: trace));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Stack trace copied')),
+                  );
+                }
+              },
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
+      ],
     );
   }
 }

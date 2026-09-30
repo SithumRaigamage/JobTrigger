@@ -82,7 +82,7 @@ against the fixture Jenkins (P11-02, `NFR-TEST-02`).
 | `{buildURL}consoleText` | GET | US-JX-07 "Save full log", streamed to a temp file (`dio.download`), shared, then deleted | **implemented** (P11-11) |
 | `{buildURL}logText/progressiveText` | **HEAD** | US-JX-07 log size (`X-Text-Size`, no body), so a huge log opens at its tail. An offset past the end is **not** a probe, because Jenkins returns the whole log | **implemented** (P11-11) |
 | `{buildURL}timestamps/?time=HH:mm:ss&startLine=-N` | GET | US-JX-07 timestamps for freestyle jobs, one per console line; a negative `startLine` counts from the end. Pipelines instead **embed** `[ISO-8601Z] ` at the start of each raw log line, which the decoder lifts off. A job without Timestamper returns 200 with an empty body; 404 means the plugin is missing | **implemented** (P11-11) |
-| `{buildURL}testReport/api/json?tree=suites[cases[…,errorDetails,errorStackTrace,age]{0,200}]` | GET | US-JX-08 | planned |
+| `{buildURL}testReport/api/json?tree=…,suites[cases[className,name,status,errorDetails,errorStackTrace,age,duration]{0,200}]` | GET | US-JX-08, capped at 200 cases per suite | **implemented** (P11-12) |
 | `{baseURL}/queue/api/json?tree=items[…]` | GET | US-JX-09 server queue | planned |
 | `{baseURL}/queue/cancelItem?id={id}` | POST | US-JX-09 cancel queued item | planned |
 | `{baseURL}/computer/api/json?tree=computer[…]` | GET | US-JX-12 nodes and executors | planned |

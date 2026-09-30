@@ -12,7 +12,7 @@ _TestReportDto _$TestReportDtoFromJson(Map<String, dynamic> json) =>
       failCount: (json['failCount'] as num?)?.toInt() ?? 0,
       skipCount: (json['skipCount'] as num?)?.toInt() ?? 0,
       failingTests: json['suites'] == null
-          ? const <String>[]
+          ? const <FailingTest>[]
           : _failingTestsFromJson(json['suites']),
     );
 

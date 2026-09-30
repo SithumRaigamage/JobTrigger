@@ -295,8 +295,15 @@ Each task names the `AUD-##` ids it closes.
       - **Dependency:** `path_provider` (approved) added.
       - **Tests:** 30 unit and widget tests, plus 4 fixture tests. P11-03
         can now be re-run on a device.
-- [ ] P11-12 **US-JX-08 test failure details:** `errorDetails`,
+- [x] P11-12 **US-JX-08 test failure details:** `errorDetails`,
       `errorStackTrace`, and `age`, with regressions badged, capped at 200.
+      **Done 2026-09-30.**
+      - **Model:** `FailingTest` replaces the name-only list, and
+        `isNewFailure` covers REGRESSION or `age == 1`.
+      - **UI:** `FailingTestsSheet` lists new failures first, with
+        expandable message, a selectable and copyable stack trace, and
+        "N more not shown" past the cap.
+      - **Tests:** 2 unit and widget tests, plus 1 fixture test.
 - [ ] P11-13 **US-JX-09 server-wide queue:** list, stuck flag, cancel with
       confirmation, and 5s refresh while visible.
 

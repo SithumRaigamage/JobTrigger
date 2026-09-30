@@ -63,7 +63,9 @@ void main() {
       final report = (result as Ok<TestReport?, dynamic>).value;
       expect(report!.passCount, 10);
       expect(report.failCount, 1);
-      expect(report.failingTests, ['com.example.X.y']);
+      expect(report.failingTests.map((t) => t.displayName), [
+        'com.example.X.y',
+      ]);
       expect(
         adapter.lastRequest?.path,
         'https://jenkins.test/job/demo/12/testReport/api/json',

@@ -119,7 +119,7 @@ final class ConsoleTimestampsNotifierProvider
 }
 
 String _$consoleTimestampsNotifierHash() =>
-    r'46441cc80cbb368eb2336eb61044e36ecb74502e';
+    r'15236a6fa6b6a5afab2316d3fd0c52ee9f1ad581';
 
 /// Fetches timestamps for exactly the lines on screen (a negative
 /// `startLine` counts back from the end, verified on the fixture), only

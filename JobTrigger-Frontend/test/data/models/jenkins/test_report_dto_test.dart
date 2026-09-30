@@ -50,7 +50,7 @@ void main() {
           ],
         });
 
-        expect(dto.failingTests, [
+        expect(dto.failingTests.map((t) => t.displayName), [
           'com.example.AuthTest.testLogin',
           'com.example.JobTest.testTrigger',
         ]);
@@ -68,7 +68,7 @@ void main() {
         ],
       });
 
-      expect(dto.failingTests, ['testSomething']);
+      expect(dto.failingTests.map((t) => t.displayName), ['testSomething']);
     });
 
     test(
@@ -101,7 +101,55 @@ void main() {
       expect(domain.passCount, 1);
       expect(domain.failCount, 1);
       expect(domain.skipCount, 1);
-      expect(domain.failingTests, ['com.example.X.y']);
+      expect(domain.failingTests.map((t) => t.displayName), [
+        'com.example.X.y',
+      ]);
     });
   });
+
+  test(
+    'parses failure details, and flags regressions and age-1 failures (US-JX-08)',
+    () {
+      final failing = TestReportDto.fromJson({
+        'failCount': 3,
+        'suites': [
+          {
+            'cases': [
+              {
+                'className': 'com.x.A',
+                'name': 'old',
+                'status': 'FAILED',
+                'age': 7,
+                'duration': 0.25,
+                'errorDetails': 'expected:<2> but was:<3>',
+                'errorStackTrace':
+                    'java.lang.AssertionError\n\tat A.old(A.java:9)',
+              },
+              {
+                'className': 'com.x.A',
+                'name': 'regressed',
+                'status': 'REGRESSION',
+                'age': 1,
+              },
+              {
+                'className': 'com.x.A',
+                'name': 'fresh',
+                'status': 'FAILED',
+                'age': 1,
+              },
+              {'className': 'com.x.A', 'name': 'ok', 'status': 'PASSED'},
+            ],
+          },
+        ],
+      }).toDomain().failingTests;
+
+      expect(failing.map((t) => t.name), ['old', 'regressed', 'fresh']);
+      expect(failing[0].errorDetails, 'expected:<2> but was:<3>');
+      expect(failing[0].stackTrace, contains('A.java:9'));
+      expect(failing[0].durationSeconds, 0.25);
+      expect(failing[0].isNewFailure, isFalse);
+      expect(failing[1].isNewFailure, isTrue);
+      expect(failing[2].isNewFailure, isTrue);
+    },
+  );
 }

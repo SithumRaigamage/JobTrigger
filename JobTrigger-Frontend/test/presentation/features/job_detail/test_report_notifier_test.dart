@@ -32,7 +32,9 @@ void main() {
           passCount: 10,
           failCount: 1,
           skipCount: 0,
-          failingTests: ['com.example.FooTest.testBar'],
+          failingTests: [
+            FailingTest(name: 'testBar', className: 'com.example.FooTest'),
+          ],
         ),
       ),
     );
@@ -47,7 +49,9 @@ void main() {
 
     expect(report?.passCount, 10);
     expect(report?.failCount, 1);
-    expect(report?.failingTests, ['com.example.FooTest.testBar']);
+    expect(report?.failingTests.map((t) => t.displayName), [
+      'com.example.FooTest.testBar',
+    ]);
     expect(repo.fetchTestReportCallCount, 1);
   });
 

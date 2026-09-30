@@ -69,9 +69,12 @@ const _detailsTree =
     'lastSuccessfulBuild[number,url,result,timestamp],'
     'lastFailedBuild[number,url,result,timestamp]';
 
-/// US-PIPE-06 — counts plus enough of each case to identify a failing one.
+/// US-PIPE-06 / US-JX-08: counts, plus each case's identity and failure
+/// details. Capped at 200 cases per suite to bound the payload.
 const _testReportTree =
-    'passCount,failCount,skipCount,suites[cases[className,name,status]]';
+    'passCount,failCount,skipCount,'
+    'suites[cases[className,name,status,errorDetails,errorStackTrace,age,'
+    'duration]{0,200}]';
 
 /// One page of history — ported from `JenkinsAPIService.fetchBuildHistory`'s
 /// `historyTree` (Swift), plus `actions[parameters[name,value]]` (US-PIPE-08
