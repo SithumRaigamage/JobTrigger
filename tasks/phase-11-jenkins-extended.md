@@ -544,8 +544,16 @@ their approvals don't block the rest.
 
 ## Close-out
 
-- [ ] P11-28 Final documentation sync: `architecture.md` (lazy tree,
+- [x] P11-28 Final documentation sync: `architecture.md` (lazy tree,
       background task, and widget data flow), `state-management.md` (every
       new notifier), `data-models.md` (every new DTO and entity), and the
       traceability and status notes in `docs/user-stories/README.md`. Then
       mark this phase done in `tasks/README.md`.
+      *Done 2026-09-30:* `architecture.md` §6 lists the current `AppFailure`
+      variants and the redirect-as-success rule; the new §8 covers the lazy
+      tree and offline cache, and §9 background work and the platform
+      wrappers, with data-flow diagrams. `data-models.md` has a Phase 11
+      entity table (these entities are parsed in the repository, with no
+      DTOs). The notifier sections were added to `state-management.md` with
+      each task. Phase 11 is marked done in `tasks/README.md`, with P11-03
+      still blocked on a device.

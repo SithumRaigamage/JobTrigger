@@ -124,9 +124,17 @@ rather than writing its own `try`/`catch`:
 
 Do all parsing and URL rewriting *inside* the guarded closure, so those
 failures are covered too. The sealed `AppFailure` variants are
-`NetworkFailure`, `AuthFailure`, `NotFoundFailure`,
+`NetworkFailure`, `AuthFailure` (401), `PermissionFailure` (403, plus
+Jenkins' 400 input-permission page and 422 queue cancel),
+`NotFoundFailure`, `JobDisabledFailure` (409 on trigger),
 `ServerFailure(statusCode)`, `RateLimitFailure` (GitHub),
 `UnexpectedResponseFailure`, and `UnknownFailure`.
+
+Jenkins POSTs that answer with a redirect (stop a pipeline, trigger a
+duplicate, scan, enable or disable, keep, describe, and toggle offline)
+count as success through a shared `_acceptRedirects` status check. Dart
+doesn't follow redirects for POST, so without it each of these would
+report a false failure (AUD-37, AUD-39).
 
 ## 7. Background polling lifecycle
 
@@ -135,3 +143,74 @@ Both real-time status polling (job detail) and log streaming (build log) use
 start a timer from `initState`/`build()` in a widget — the notifier owns the
 lifecycle so navigating away always cleans it up, matching the "gotcha"
 called out in the original migration notes.
+
+## 8. Lazy job tree and offline browsing (Phase 11)
+
+Home no longer downloads the whole tree. `FolderContentsNotifier(url)`
+fetches **one level** per folder, so folders of any depth load only when
+opened (P11-05, AUD-19/20). The recursive crawl (`JobTreeNotifier`) is
+kept only for cross-folder search and the global history timeline, and
+starts only when one of those opens.
+
+```mermaid
+graph LR
+    Home --> V["visibleJobsProvider"]
+    V --> F["FolderContentsNotifier(url)"]
+    F -->|Ok| C["JobTreeCache<br/>(cache dir, per server + folder)"]
+    F -->|NetworkFailure| C
+    C -->|saved listing + time| Banner["Offline banner"]
+```
+
+Each successful listing is saved to `JobTreeCache`. On a
+`NetworkFailure`, the saved listing is served with an "offline since"
+banner (US-JX-20). Job names can be sensitive, so the cache is cleared on
+logout and when a server is deleted.
+
+## 9. Background work and platform integrations (Phase 11)
+
+These features reach outside the Flutter tree. Each sits behind a thin
+`core/platform` wrapper, so notifiers and tests never touch a plugin
+directly:
+
+| Wrapper | Plugin | Used by |
+|---|---|---|
+| `NotificationService` | `flutter_local_notifications` | `BuildWatchNotifier` (US-JX-10) |
+| `BackgroundWatchScheduler` + `buildWatchDispatcher` | `workmanager` | Build watches while the app is closed |
+| `BiometricService` | `local_auth` | `AppLockNotifier` (US-JX-21) |
+| `HomeWidgetBridge` | `home_widget` | `homeWidgetSyncProvider` (US-JX-23) |
+
+```mermaid
+graph TB
+    subgraph App process
+      BW["BuildWatchNotifier<br/>30 s timer"] --> R["runWatchCheck"]
+      HS["homeWidgetSyncProvider"] --> HB["HomeWidgetBridge"]
+    end
+    subgraph Background isolate
+      WM["workmanager, ~15 min"] --> D["buildWatchDispatcher"] --> R
+    end
+    R --> Store["BuildWatchStore<br/>(shared_preferences)"]
+    R --> N["NotificationService"]
+    N -->|tap: job URL| Router["go_router → job detail"]
+    HB --> Native["iOS App Group / Android prefs"]
+    Native --> Widget["WidgetKit / AppWidget"]
+    Widget -->|jobtrigger://app/open| Router
+```
+
+- **One code path.** `runWatchCheck` is shared by the in-app timer and
+  the background isolate. The background isolate builds its own
+  `ProviderContainer`, reads the JWT from secure storage, and resolves
+  each server's credentials through the same repository. If a server's
+  credentials are gone, its watches are dropped; if they can't be reached,
+  the watches are kept.
+- **Nothing secret leaves secure storage.** Watches, lock settings, and
+  the widget snapshot hold only job names, URLs, numbers, and settings.
+  The widgets and the background task never receive credentials in
+  plain storage.
+- **The app lock gates the UI only.** `AppLockGate` wraps
+  `MaterialApp.builder`, so it covers every route, dialog, and toast.
+  Secrets stay in secure storage whether the app is locked or not.
+- **Native targets.** The iOS widget is a separate WidgetKit extension
+  target (`ios/PinnedJobsWidget`) sharing the
+  `group.Sraig.Lab-Trigger-frontend` App Group with the app. Android's
+  is `PinnedJobsWidgetProvider`. Every plugin is a Swift package, so the
+  iOS project has no CocoaPods integration.
