@@ -37,7 +37,7 @@ is green on the commit that closes it, not just a local run.
 - [x] P13-07 **AUD-48 (client + backend).** Delete account (cascade) and
       change password (bumps `tokenVersion`). Password *reset* needs an
       email provider — a product decision — and stays open as US-AUTH-08.
-- [ ] P13-08 **AUD-49.** Build-watch checks never overlap and merge by key,
+- [x] P13-08 **AUD-49.** Build-watch checks never overlap and merge by key,
       so a watch added or removed mid-check isn't lost or resurrected.
 - [ ] P13-09 **AUD-50.** Artifact file names are reduced to a safe basename.
 - [ ] P13-10 **AUD-51.** Routes that need an `extra` redirect to Home when

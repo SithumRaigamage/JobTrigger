@@ -33,6 +33,20 @@ class BuildWatchNotifier extends _$BuildWatchNotifier {
   static const _checkEvery = Duration(seconds: 30);
   Timer? _timer;
 
+  /// AUD-49: a pass can outlast the 30s tick (two unreachable servers are
+  /// enough), and overlapping passes notified the same build twice.
+  bool _checking = false;
+
+  /// AUD-49: store writes from this notifier, one at a time, so an add or
+  /// remove can't land between a pass's final load and its save.
+  Future<void> _writes = Future.value();
+
+  Future<T> _serially<T>(Future<T> Function() write) {
+    final result = _writes.then((_) => write());
+    _writes = result.then<void>((_) {}, onError: (_) {});
+    return result;
+  }
+
   @override
   List<BuildWatch> build() {
     ref.onDispose(() => _timer?.cancel());
@@ -79,32 +93,57 @@ class BuildWatchNotifier extends _$BuildWatchNotifier {
         .requestPermission();
     if (!granted) return WatchResult.permissionDenied;
     final watch = create(serverId);
-    state = [
-      for (final existing in state)
-        if (existing.key != watch.key) existing,
-      watch,
-    ];
-    await ref.read(buildWatchStoreProvider).save(state);
-    await _afterChange();
+    await _edit(
+      (watches) => [
+        for (final existing in watches)
+          if (existing.key != watch.key) existing,
+        watch,
+      ],
+    );
     return WatchResult.added;
   }
 
-  Future<void> unwatch(BuildWatch watch) async {
-    state = [
-      for (final existing in state)
+  Future<void> unwatch(BuildWatch watch) => _edit(
+    (watches) => [
+      for (final existing in watches)
         if (existing.key != watch.key) existing,
-    ];
-    await ref.read(buildWatchStoreProvider).save(state);
+    ],
+  );
+
+  /// Applies [change] to what's stored now (the background task may have
+  /// written since), not to this notifier's possibly older copy.
+  Future<void> _edit(
+    List<BuildWatch> Function(List<BuildWatch> watches) change,
+  ) async {
+    final store = ref.read(buildWatchStoreProvider);
+    final updated = await _serially(() async {
+      final next = change(await store.load());
+      await store.save(next);
+      return next;
+    });
+    if (!ref.mounted) return;
+    state = updated;
     await _afterChange();
   }
 
-  /// One pass now: notify for anything finished, drop what's done.
+  /// One pass now: notify for anything finished, drop what's done. A tick
+  /// that arrives while a pass is running is skipped (AUD-49).
   Future<void> check() async {
-    final remaining = await runWatchCheck(
-      store: ref.read(buildWatchStoreProvider),
-      repositoryFor: _repositoryFor,
-      notify: ref.read(notificationServiceProvider).show,
-    );
+    if (_checking) return;
+    _checking = true;
+    final List<BuildWatch> remaining;
+    try {
+      // Only the final merge waits its turn: an add during the network
+      // part of a pass is saved at once, and the merge keeps it.
+      remaining = await runWatchCheck(
+        store: ref.read(buildWatchStoreProvider),
+        repositoryFor: _repositoryFor,
+        notify: ref.read(notificationServiceProvider).show,
+        serialize: _serially,
+      );
+    } finally {
+      _checking = false;
+    }
     if (!ref.mounted) return;
     state = remaining;
     await _afterChange();
