@@ -92,6 +92,51 @@ void main() {
     );
   });
 
+  group('a known source server (AUD-45)', () {
+    // Two saved accounts on one Jenkins: host matching alone can't tell
+    // them apart.
+    final twins = [
+      _server('alice', 'https://ci.example.com'),
+      _server('bob', 'https://ci.example.com'),
+    ];
+
+    test('wins when it matches the link', () {
+      final target =
+          resolveJenkinsLink(
+                'https://ci.example.com/job/a/',
+                twins,
+                preferServerId: 'bob',
+              )
+              as JenkinsLinkTarget;
+      expect(target.server.id, 'bob');
+    });
+
+    test('is ignored when it does not match the link', () {
+      final target =
+          resolveJenkinsLink(
+                'https://ci.example.com/job/a/',
+                _servers,
+                preferServerId: 'local',
+              )
+              as JenkinsLinkTarget;
+      expect(target.server.id, 'root');
+    });
+  });
+
+  test('jobTriggerLinkFor carries the source server when known', () {
+    final link = jobTriggerLinkFor(
+      'https://ci.example.com/job/a/',
+      serverId: 's1',
+    );
+    expect(link.queryParameters, {
+      'url': 'https://ci.example.com/job/a/',
+      'server': 's1',
+    });
+    expect(jobTriggerLinkFor('https://ci.example.com/job/a/').queryParameters, {
+      'url': 'https://ci.example.com/job/a/',
+    });
+  });
+
   test('jobTriggerLinkFor round-trips the Jenkins URL', () {
     final link = jobTriggerLinkFor('https://ci.example.com/job/a/1/');
     expect(link.scheme, 'jobtrigger');

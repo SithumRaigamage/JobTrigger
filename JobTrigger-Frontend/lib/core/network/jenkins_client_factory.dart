@@ -9,6 +9,7 @@ import '../../presentation/features/settings/active_server_notifier.dart';
 import '../error/app_failure.dart';
 import '../error/guard.dart';
 import '../error/result.dart';
+import 'host_pinning.dart';
 
 part 'jenkins_client_factory.g.dart';
 
@@ -55,6 +56,9 @@ Dio buildJenkinsDio({
   // reversed, `CookieManager` would load from the jar before the crumb
   // fetch ever populates it, and the outer POST would go out with no
   // cookie at all.
+  // AUD-45: first, so a request to another host is refused before
+  // anything (crumb fetch, cookies) runs for it.
+  dio.interceptors.add(hostPinningInterceptor());
   dio.interceptors.add(_crumbInterceptor(dio));
   dio.interceptors.add(CookieManager(CookieJar()));
 

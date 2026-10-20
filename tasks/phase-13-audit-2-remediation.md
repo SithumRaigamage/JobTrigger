@@ -27,7 +27,7 @@ is green on the commit that closes it, not just a local run.
 
 ## Security and correctness
 
-- [ ] P13-04 **AUD-45.** Notification taps carry the watch's server and go
+- [x] P13-04 **AUD-45.** Notification taps carry the watch's server and go
       through the open-link confirm-and-switch flow; the Jenkins client
       refuses requests to any host but its own.
 - [ ] P13-05 **AUD-46.** Editing the active Jenkins server, GitHub

@@ -21,9 +21,13 @@ import '../settings/credentials_notifier.dart';
 /// new host, and a URL carrying credentials is refused. If the link belongs
 /// to a saved server that isn't active, the user confirms the switch.
 class OpenLinkScreen extends ConsumerStatefulWidget {
-  const OpenLinkScreen({super.key, required this.link});
+  const OpenLinkScreen({super.key, required this.link, this.serverId});
 
   final String link;
+
+  /// The saved server the link came from, when known (a build
+  /// notification, AUD-45). Preferred when it matches the link.
+  final String? serverId;
 
   @override
   ConsumerState<OpenLinkScreen> createState() => _OpenLinkScreenState();
@@ -45,7 +49,11 @@ class _OpenLinkScreenState extends ConsumerState<OpenLinkScreen> {
     } on Object {
       return _fail("Couldn't load your saved servers. Try again.");
     }
-    final resolved = resolveJenkinsLink(widget.link, servers);
+    final resolved = resolveJenkinsLink(
+      widget.link,
+      servers,
+      preferServerId: widget.serverId,
+    );
     if (!mounted) return;
     if (resolved is! JenkinsLinkTarget) {
       return _fail(switch (resolved as JenkinsLinkProblem) {

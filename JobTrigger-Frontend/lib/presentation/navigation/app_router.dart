@@ -190,8 +190,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.openLink,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) =>
-            OpenLinkScreen(link: state.uri.queryParameters['url'] ?? ''),
+        builder: (context, state) => OpenLinkScreen(
+          link: state.uri.queryParameters['url'] ?? '',
+          serverId: state.uri.queryParameters['server'],
+        ),
       ),
       GoRoute(
         path: AppRoutes.nodes,

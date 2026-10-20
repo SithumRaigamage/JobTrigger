@@ -464,6 +464,12 @@ So that I don't have to keep the app open
 - Scenario: Tap opens the build
   When I tap the notification
   Then the app opens that job's detail screen
+- Scenario: Tap for a build on a server that isn't active (AUD-45)
+  Given the notification is for a build on server B while server A is active
+  When I tap it
+  Then the app asks to switch to B first (as for any Jenkins link,
+  US-JX-19), and no request carrying A's credentials is ever sent to B's
+  host
 - Scenario: Watched jobs
   Given I mark a job as "Watch"
   Then every new build of it notifies on completion until I unwatch it

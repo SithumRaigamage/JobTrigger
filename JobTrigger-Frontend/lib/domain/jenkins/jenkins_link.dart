@@ -48,7 +48,21 @@ enum JenkinsLinkProblem {
 /// job, build, and console it names. `/view/…` segments are skipped, since
 /// a job's URL is the same in any view. Returns either a
 /// [JenkinsLinkTarget] or a [JenkinsLinkProblem].
-Object resolveJenkinsLink(String link, List<JenkinsServer> servers) {
+///
+/// [preferServerId] is the saved server the link came from, when the app
+/// knows it (a build notification, AUD-45): if that server matches the
+/// link it wins, so two saved servers on one host can't be confused.
+/// Otherwise every saved server is considered.
+Object resolveJenkinsLink(
+  String link,
+  List<JenkinsServer> servers, {
+  String? preferServerId,
+}) {
+  final preferred = servers.where((s) => s.id == preferServerId).toList();
+  if (preferred.isNotEmpty) {
+    final resolved = resolveJenkinsLink(link, preferred);
+    if (resolved is JenkinsLinkTarget) return resolved;
+  }
   final uri = Uri.tryParse(link.trim());
   if (uri == null || !(uri.scheme == 'http' || uri.scheme == 'https')) {
     return JenkinsLinkProblem.invalid;
@@ -116,10 +130,11 @@ Object resolveJenkinsLink(String link, List<JenkinsServer> servers) {
   );
 }
 
-/// The in-app deep link for [jenkinsUrl]: `jobtrigger://app/open?url=…`.
-Uri jobTriggerLinkFor(String jenkinsUrl) => Uri(
+/// The in-app deep link for [jenkinsUrl]: `jobtrigger://app/open?url=…`,
+/// plus `&server=<id>` when the saved server is known (AUD-45).
+Uri jobTriggerLinkFor(String jenkinsUrl, {String? serverId}) => Uri(
   scheme: 'jobtrigger',
   host: 'app',
   path: '/open',
-  queryParameters: {'url': jenkinsUrl},
+  queryParameters: {'url': jenkinsUrl, 'server': ?serverId},
 );

@@ -5,6 +5,7 @@ import '../../presentation/features/settings/active_sonarqube_credential_notifie
 import '../error/app_failure.dart';
 import '../error/guard.dart';
 import '../error/result.dart';
+import 'host_pinning.dart';
 
 part 'sonarqube_client_factory.g.dart';
 
@@ -24,6 +25,8 @@ Dio buildSonarQubeDio({required String baseUrl, required String token}) {
   );
 
   dio.options.headers['Authorization'] = 'Bearer $token';
+  // AUD-45: the token only ever goes to the credential's own server.
+  dio.interceptors.add(hostPinningInterceptor());
 
   return dio;
 }
