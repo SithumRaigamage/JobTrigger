@@ -54,7 +54,7 @@ is green on the commit that closes it, not just a local run.
 - [x] P13-16 **AUD-57.** iOS debug build (no codesign) in push CI.
 - [x] P13-17 **AUD-58 (backend).** The seed script refuses non-local
       databases unless explicitly forced.
-- [ ] P13-18 **AUD-59.** Pipeline controls: workflow `permissions`, pinned
+- [x] P13-18 **AUD-59.** Pipeline controls: workflow `permissions`, pinned
       actions, secret scan, pub SCA, generated-code drift check, image scan.
 - [ ] P13-19 **AUD-61.** Reconcile status documents.
 - [ ] P13-20 **AUD-62.** Accessibility guideline tests on the main screens;

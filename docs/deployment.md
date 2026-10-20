@@ -66,6 +66,30 @@ itself (the one that actually gates PRs) is deliberately left as
 analyze/test-only — build verification lives in the separate,
 manually-triggered `cd.yml` instead, so PR CI stays fast.
 
+## Pipeline security controls (P13-18, AUD-59)
+
+| Control | Where | Blocking |
+|---|---|---|
+| npm advisories (high+) | `nodejs-test.yml` | yes |
+| pub + npm advisories (OSV) | `security.yml` `dependencies` | yes |
+| Secrets in git history (gitleaks) | `security.yml` `secrets` | yes; reviewed exceptions in `.gitleaksignore` |
+| Backend image (Trivy, high+, fixable) | `security.yml` `backend-image` | yes |
+| Generated code matches its sources | `flutter-ci.yml` | yes |
+| Android and iOS builds compile | `flutter-ci.yml` | yes |
+| SonarCloud | `nodejs-test.yml` | informational; skipped until `sonar.projectKey`/`sonar.organization` and `SONAR_TOKEN` are set |
+
+Every workflow runs with `permissions: contents: read`, every action is
+pinned to a commit SHA (Dependabot's `github-actions` entry keeps them
+current), and the scanners are release binaries checked against their
+published checksums. `security.yml` also runs weekly, since new advisories
+arrive for code that hasn't changed.
+
+**Owner action:** require the `analyze-and-test`, `build-android`,
+`build-ios`, `test` (Node), `secrets`, `dependencies`, and `backend-image`
+checks through branch protection on `develop` and `flutter-migration`.
+Until then a red check doesn't stop a merge, which is how AUD-42 went
+unnoticed for 19 pushes.
+
 ## Android release signing (P12-10, AUD-15)
 
 `android/app/build.gradle.kts` signs release builds with the key described

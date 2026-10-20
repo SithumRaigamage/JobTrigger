@@ -45,13 +45,14 @@ A finding is `fixed` once its commit is on the branch and CI is green on it.
 | AUD-56 | P13-15 | fixed |
 | AUD-57 | P13-16 | fixed |
 | AUD-58 | P13-17 | fixed |
-| AUD-59 | P13-18 | open |
+| AUD-59 | P13-18 | fixed |
 | AUD-60 | — | fixed (index only, 2026-10-20; no commit) |
 | AUD-61 | P13-19 | open |
 | AUD-62 | P13-20 | open |
 | AUD-63 | P13-21 | open |
 | AUD-64 | P13-22 | open |
 | AUD-65 | P13-07 | fixed (found during P13-07) |
+| AUD-66 | P13-18 | open — owner action: revoke the token in that Jenkins (found during P13-18) |
 | §13 indexes | P13-23 | open |
 | §11 layering | P13-24 | open |
 | §14 pin status | P13-25 | open |
@@ -725,6 +726,27 @@ repository test even asserted `ServerFailure` for that case.
 repository for a backend 400 that carries a `message`. Those messages are
 user copy by construction: the central error handler never puts internals
 in a 400 (AUD-06). Jenkins 400s (HTML) are unaffected.
+
+### AUD-66 — A Jenkins API token is in the public repository's history
+
+**Category:** SECURITY / SECRETS · **Severity:** Medium (High if that Jenkins is reachable from outside) · **Priority:** P1 · **Confidence:** CONFIRMED (found 2026-10-20 by the gitleaks scan added in P13-18)
+**Location:** commit `e6b70af6` (2026-02-21), `Lab-Trigger-frontend/Lab-Trigger-frontend/Resources/jenkins_credentials.json` line 6; also commit `e32c78ae`, `docs/api-spec.md` line 44 (an `Authorization` header in a curl example)
+
+**Threat actor:** anyone; the repository is public. **Affected asset:** a
+Jenkins account ("Sithum") on the instance the token belongs to, listed as
+`http://localhost:8080`.
+
+The SwiftUI-era seed file held a real-looking Jenkins API token (the
+34-character Jenkins format). The file was later deleted from the tree, but
+git history keeps it, and the repository is public. The value is redacted
+here and in CI logs.
+
+**Fix (owner action):** revoke that API token in Jenkins (User → Security →
+API Token), and any token behind the `docs/api-spec.md` example header. Once
+revoked, the history is harmless. Rewriting public history (`git filter-repo`
+plus a force-push) wouldn't remove copies already cloned or cached, so it
+isn't proposed. The three historical fingerprints are listed with reasons in
+`.gitleaksignore`, so the new secret scan blocks only *new* leaks.
 
 ---
 
