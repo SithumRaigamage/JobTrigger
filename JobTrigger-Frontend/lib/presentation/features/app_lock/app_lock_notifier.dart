@@ -13,6 +13,19 @@ const _enabledKey = 'app_lock_enabled';
 const _timeoutKey = 'app_lock_timeout_seconds';
 const _sensitiveKey = 'app_lock_sensitive';
 
+/// Whether the app lock is on, read straight from storage: for code that
+/// runs without the provider tree, like the background build check
+/// (AUD-54).
+Future<bool> readAppLockEnabled() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload(); // Another isolate may have changed it.
+    return prefs.getBool(_enabledKey) ?? false;
+  } on Object {
+    return true; // Unknown: err on the side of hiding.
+  }
+}
+
 /// What the lock gate shows.
 class AppLockState {
   const AppLockState({

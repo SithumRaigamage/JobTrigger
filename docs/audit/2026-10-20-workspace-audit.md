@@ -40,7 +40,7 @@ A finding is `fixed` once its commit is on the branch and CI is green on it.
 | AUD-51 | P13-10 | fixed |
 | AUD-52 | P13-11 | fixed |
 | AUD-53 | P13-12 | fixed |
-| AUD-54 | P13-13 | open |
+| AUD-54 | P13-13 | fixed |
 | AUD-55 | P13-14 | open |
 | AUD-56 | P13-15 | open |
 | AUD-57 | P13-16 | open |

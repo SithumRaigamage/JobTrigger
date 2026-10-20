@@ -23,6 +23,9 @@ class NotificationService {
     channelDescription: 'When a watched Jenkins build finishes',
     importance: Importance.high,
     priority: Priority.high,
+    // AUD-54: on a secure lock screen Android shows "Contents hidden"
+    // rather than the job and result.
+    visibility: NotificationVisibility.private,
   );
 
   /// Payloads of tapped notifications, for the app to open: an in-app

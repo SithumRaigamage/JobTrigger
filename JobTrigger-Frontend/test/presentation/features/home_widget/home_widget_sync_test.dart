@@ -13,6 +13,9 @@ import 'package:job_trigger/presentation/features/home/pinned_jobs_notifier.dart
 import 'package:job_trigger/presentation/features/home_widget/home_widget_sync.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:job_trigger/core/platform/biometric_service.dart';
+
+import '../../../support/fake_biometric_service.dart';
 import '../../../support/fake_home_widget_bridge.dart';
 import '../../../support/fake_jenkins_repository.dart';
 
@@ -41,6 +44,7 @@ void main() {
   Future<ProviderContainer> container() async {
     final c = ProviderContainer(
       overrides: [
+        biometricServiceProvider.overrideWithValue(FakeBiometricService()),
         homeWidgetBridgeProvider.overrideWithValue(bridge),
         pinnedJobsNotifierProvider.overrideWith(_Pins.new),
         jenkinsRepositoryProvider.overrideWithValue(_Repo()),
@@ -66,13 +70,31 @@ void main() {
           .read(authNotifierProvider.notifier)
           .setSession(const User(id: 'u1', email: 'a@b.com'), 'jwt');
       await c.read(pinnedJobStatusProvider('https://ci/job/api/').future);
-      await Future<void>.delayed(Duration.zero);
+      await pumpEventQueue();
 
       final job = bridge.written.last.jobs.single;
       expect(job.label, 'api');
       expect(job.status, WidgetJobStatus.failure);
     },
   );
+
+  // AUD-54: the lock is for someone else holding the phone; the home
+  // screen shouldn't name the jobs either.
+  test('with the app lock on, the widget shows no job names', () async {
+    SharedPreferences.setMockInitialValues({'app_lock_enabled': true});
+    final c = await container();
+    await c
+        .read(authNotifierProvider.notifier)
+        .setSession(const User(id: 'u1', email: 'a@b.com'), 'jwt');
+    await c.read(pinnedJobStatusProvider('https://ci/job/api/').future);
+    await pumpEventQueue();
+
+    expect(bridge.written, isNotEmpty);
+    for (final snapshot in bridge.written) {
+      expect(snapshot.jobs.single.label, 'Pinned job 1');
+    }
+    expect(bridge.written.last.jobs.single.status, WidgetJobStatus.failure);
+  });
 
   test('logout clears the widget snapshot', () async {
     final c = await container();

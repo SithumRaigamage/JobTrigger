@@ -923,6 +923,14 @@ So that someone holding my unlocked phone can't trigger deploys
   Then I authenticate first, and a cancelled or failed prompt leaves the
   setting as it was; making the lock stricter needs no prompt
 
+- Scenario: Outside the app while locked (AUD-54, default decided
+  2026-10-20; revisit if users want names back)
+  Given the app lock is on
+  Then the home-screen widget shows "Pinned job 1", "Pinned job 2", … with
+  each status, build notifications read "A watched build finished — Open
+  JobTrigger to see which", and on Android every build notification is
+  `private` on a secure lock screen ("Contents hidden")
+
 **Security & Privacy Notes**
 - The biometric result gates the UI only. Secrets stay in secure storage
   either way.

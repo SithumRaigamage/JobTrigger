@@ -46,7 +46,7 @@ is green on the commit that closes it, not just a local run.
       `http://` warning as Jenkins URLs.
 - [x] P13-12 **AUD-53.** Turning off the app lock or the sensitive-action
       re-prompt requires authenticating first.
-- [ ] P13-13 **AUD-54.** With the app lock on, the home-screen widget and
+- [x] P13-13 **AUD-54.** With the app lock on, the home-screen widget and
       build notifications don't show job names.
 - [ ] P13-14 **AUD-55 (backend).** Constant-work login for unknown emails;
       per-email failed-login limit.

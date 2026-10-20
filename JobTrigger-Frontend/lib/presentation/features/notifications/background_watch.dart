@@ -11,6 +11,7 @@ import '../../../data/cache/build_watch_store.dart';
 import '../../../data/repositories/credentials_repository_impl.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_repository.dart';
+import '../app_lock/app_lock_notifier.dart';
 import 'watch_runner.dart';
 
 /// Unique name of the periodic background check (US-JX-10).
@@ -26,10 +27,15 @@ void buildWatchDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     final container = ProviderContainer();
     try {
+      // AUD-54: no job names while the app lock is on.
+      final hideNames = await readAppLockEnabled();
+      final notifications = NotificationService();
       await runWatchCheck(
         store: BuildWatchStore(),
         repositoryFor: (serverId) => _repositoryFor(container, serverId),
-        notify: NotificationService().show,
+        notify: (notification) => notifications.show(
+          hideNames ? notification.redacted() : notification,
+        ),
       );
     } on Object {
       // Best effort by design: never fail the OS task, retry next period.

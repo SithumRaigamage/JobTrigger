@@ -59,13 +59,20 @@ class WidgetSnapshot {
 /// failed, or the job is gone).
 typedef PinnedStatus = ({String label, String url, JenkinsJob? job});
 
+/// [hideNames] (AUD-54): the app lock is on, so the home screen shows
+/// "Pinned job 1" and so on with each status, not the job names.
 WidgetSnapshot buildWidgetSnapshot(
   List<PinnedStatus> pins, {
   required DateTime now,
+  bool hideNames = false,
 }) => WidgetSnapshot(
   jobs: [
-    for (final pin in pins.take(WidgetSnapshot.maxJobs))
-      _widgetJob(pin.label, pin.url, pin.job),
+    for (final (i, pin) in pins.take(WidgetSnapshot.maxJobs).indexed)
+      _widgetJob(
+        hideNames ? 'Pinned job ${i + 1}' : pin.label,
+        pin.url,
+        pin.job,
+      ),
   ],
   updatedAt: now,
 );

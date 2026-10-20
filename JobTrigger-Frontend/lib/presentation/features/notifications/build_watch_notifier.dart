@@ -9,6 +9,7 @@ import '../../../domain/jenkins/build_watch.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/jenkins_repository.dart';
+import '../app_lock/app_lock_notifier.dart';
 import '../settings/active_server_notifier.dart';
 import '../settings/credentials_notifier.dart';
 import 'background_watch.dart';
@@ -138,7 +139,16 @@ class BuildWatchNotifier extends _$BuildWatchNotifier {
       remaining = await runWatchCheck(
         store: ref.read(buildWatchStoreProvider),
         repositoryFor: _repositoryFor,
-        notify: ref.read(notificationServiceProvider).show,
+        // AUD-54: no job names while the app lock is on. Read from storage,
+        // like the background task, since a pass at launch can run before
+        // the lock notifier has loaded its settings.
+        notify: (notification) async => ref
+            .read(notificationServiceProvider)
+            .show(
+              await readAppLockEnabled()
+                  ? notification.redacted()
+                  : notification,
+            ),
         serialize: _serially,
       );
     } finally {

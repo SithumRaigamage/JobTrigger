@@ -75,6 +75,17 @@ class BuildNotification {
   /// when the tap arrives (AUD-45).
   final String serverId;
 
+  /// AUD-54: the same notification without the job, its number, or its
+  /// result, for while the app lock is on (a lock screen or a shared
+  /// glance shouldn't name what's being built).
+  BuildNotification redacted() => BuildNotification(
+    title: 'A watched build finished',
+    body: 'Open JobTrigger to see which.',
+    jobUrl: jobUrl,
+    serverId: serverId,
+    id: id,
+  );
+
   /// What a tap opens: the in-app link, so it goes through the same
   /// server matching and switch confirmation as any other Jenkins link.
   String get payload =>
