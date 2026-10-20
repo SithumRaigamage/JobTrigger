@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const { requireLocalDatabase } = require('./localOnly');
 
 const colors = {
   reset: '\x1b[0m',
@@ -22,6 +23,8 @@ const log = {
 };
 
 async function cleanupTestDatabase() {
+  // AUD-58: local development databases only.
+  requireLocalDatabase(process.env.MONGODB_URI);
   try {
     log.header('🗑️ Cleanup "test" Database');
 

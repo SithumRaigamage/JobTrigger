@@ -95,6 +95,12 @@ flutter run -d "iPhone Air"
 
 ---
 
+> **Seeding (AUD-58):** `setup-dev.sh`'s seed step refuses a non-local
+> database. To seed your *own* development cluster, run
+> `node scripts/setup-migrations.js --allow-remote` in `JobTrigger-Backend`.
+> Never seed a shared, staging, or production cluster: the seeded account's
+> password is published in this repository.
+
 ## ✅ Verify Connection
 
 Test your connection string:

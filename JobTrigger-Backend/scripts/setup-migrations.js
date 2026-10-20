@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const { requireLocalDatabase } = require('./localOnly');
 
 // Models
 const User = require('../models/User');
@@ -28,6 +29,8 @@ const log = {
 };
 
 async function runMigrations() {
+  // AUD-58: local development databases only.
+  requireLocalDatabase(process.env.MONGODB_URI);
   try {
     log.header('🚀 JobTrigger Database Setup - Full Migration');
 

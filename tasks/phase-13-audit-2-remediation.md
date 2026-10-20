@@ -52,7 +52,7 @@ is green on the commit that closes it, not just a local run.
       per-email failed-login limit.
 - [x] P13-15 **AUD-56.** iOS privacy manifests for the app and the widget.
 - [x] P13-16 **AUD-57.** iOS debug build (no codesign) in push CI.
-- [ ] P13-17 **AUD-58 (backend).** The seed script refuses non-local
+- [x] P13-17 **AUD-58 (backend).** The seed script refuses non-local
       databases unless explicitly forced.
 - [ ] P13-18 **AUD-59.** Pipeline controls: workflow `permissions`, pinned
       actions, secret scan, pub SCA, generated-code drift check, image scan.
