@@ -44,7 +44,7 @@ is green on the commit that closes it, not just a local run.
       opened without one; the router has an error screen.
 - [x] P13-11 **AUD-52.** SonarQube base URLs get the same validation and
       `http://` warning as Jenkins URLs.
-- [ ] P13-12 **AUD-53.** Turning off the app lock or the sensitive-action
+- [x] P13-12 **AUD-53.** Turning off the app lock or the sensitive-action
       re-prompt requires authenticating first.
 - [ ] P13-13 **AUD-54.** With the app lock on, the home-screen widget and
       build notifications don't show job names.

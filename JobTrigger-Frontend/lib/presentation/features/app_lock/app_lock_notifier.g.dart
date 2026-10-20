@@ -53,7 +53,7 @@ final class AppLockNotifierProvider
   }
 }
 
-String _$appLockNotifierHash() => r'e7226738d56a8cd87386097afdfadbe88cfbe3b6';
+String _$appLockNotifierHash() => r'a89e1dbef6f2681250083dfc55e2e30191072967';
 
 /// US-JX-21: the biometric app lock. Locks on a cold start and on resume
 /// after [AppLockSettings.timeout] in the background; optionally re-prompts

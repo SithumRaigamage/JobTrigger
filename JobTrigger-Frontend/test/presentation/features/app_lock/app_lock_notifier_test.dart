@@ -131,6 +131,69 @@ void main() {
     expect(biometrics.reasons, ['Confirm to trigger api']);
   });
 
+  group('weakening the lock authenticates first (AUD-53)', () {
+    test('turning it off', () async {
+      final c = await container({'app_lock_enabled': true});
+      biometrics
+        ..reasons.clear()
+        ..outcome = AuthOutcome.failed;
+      expect(await notifierOf(c).setEnabled(false), LockChange.cancelled);
+      expect(c.read(appLockNotifierProvider).settings.enabled, isTrue);
+
+      biometrics.outcome = AuthOutcome.success;
+      expect(await notifierOf(c).setEnabled(false), LockChange.changed);
+      expect(c.read(appLockNotifierProvider).settings.enabled, isFalse);
+      expect(biometrics.reasons, ['Turn off app lock', 'Turn off app lock']);
+    });
+
+    test('turning the action re-prompt off, but not on', () async {
+      final c = await container({
+        'app_lock_enabled': true,
+        'app_lock_sensitive': true,
+      });
+      biometrics
+        ..reasons.clear()
+        ..outcome = AuthOutcome.failed;
+      final notifier = notifierOf(c);
+      expect(
+        await notifier.setRequireForSensitive(false),
+        LockChange.cancelled,
+      );
+      expect(
+        c.read(appLockNotifierProvider).settings.requireForSensitive,
+        isTrue,
+      );
+
+      biometrics.outcome = AuthOutcome.success;
+      await notifier.setRequireForSensitive(false);
+      biometrics.reasons.clear();
+      await notifier.setRequireForSensitive(true);
+      expect(biometrics.reasons, isEmpty);
+    });
+
+    test('a longer timeout, but not a shorter one', () async {
+      final c = await container({
+        'app_lock_enabled': true,
+        'app_lock_timeout_seconds': 60,
+      });
+      biometrics
+        ..reasons.clear()
+        ..outcome = AuthOutcome.failed;
+      final notifier = notifierOf(c);
+      expect(
+        await notifier.setTimeout(const Duration(minutes: 15)),
+        LockChange.cancelled,
+      );
+      expect(
+        c.read(appLockNotifierProvider).settings.timeout,
+        const Duration(minutes: 1),
+      );
+
+      expect(await notifier.setTimeout(Duration.zero), LockChange.changed);
+      expect(biometrics.reasons, hasLength(1));
+    });
+  });
+
   test('an unoffered stored timeout falls back to 5 minutes', () async {
     final c = await container({'app_lock_timeout_seconds': 42});
     expect(

@@ -917,6 +917,12 @@ So that someone holding my unlocked phone can't trigger deploys
   Then trigger, cancel, input approval, replay, node toggle, and job disable
   each re-prompt
 
+- Scenario: Weakening the lock (AUD-53)
+  When I turn the lock off, turn "Require for actions" off, or choose a
+  longer lock timeout
+  Then I authenticate first, and a cancelled or failed prompt leaves the
+  setting as it was; making the lock stricter needs no prompt
+
 **Security & Privacy Notes**
 - The biometric result gates the UI only. Secrets stay in secure storage
   either way.
