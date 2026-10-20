@@ -4,7 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 require('dotenv').config();
 
-const { corsOrigins, invalidConfig, missingConfig } = require('./config/env');
+const { corsOrigins, invalidConfig, missingConfig, trustProxyHops } = require('./config/env');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 // AUD-04: defence in depth. Query filters built from request data treat
@@ -16,9 +16,11 @@ const app = express();
 
 // AUD-05: behind a load balancer or reverse proxy, the rate limiter must
 // see the client's IP, not the proxy's. TRUST_PROXY is the number of
-// proxy hops (e.g. 1). Unset means direct connections.
-if (process.env.TRUST_PROXY) {
-  app.set('trust proxy', Number(process.env.TRUST_PROXY) || process.env.TRUST_PROXY);
+// proxy hops (e.g. 1). Unset means direct connections. Anything else is
+// refused at startup (AUD-44, see invalidConfig).
+const proxyHops = trustProxyHops();
+if (proxyHops) {
+  app.set('trust proxy', proxyHops);
 }
 
 // Middleware

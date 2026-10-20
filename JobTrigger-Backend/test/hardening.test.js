@@ -2,7 +2,7 @@ const request = require('supertest');
 const { api } = require('./support/api');
 const { expect } = require('chai');
 const express = require('express');
-const { missingConfig, corsOrigins } = require('../config/env');
+const { missingConfig, corsOrigins, invalidConfig, trustProxyHops } = require('../config/env');
 const { errorHandler, notFound } = require('../middleware/errorHandler');
 const AppInfo = require('../models/AppInfo');
 
@@ -73,6 +73,19 @@ describe('Headers, CORS, and config (AUD-25)', function() {
     expect(
       corsOrigins({ CORS_ORIGINS: ' https://a.example , ,https://b.example ' }),
     ).to.deep.equal(['https://a.example', 'https://b.example']);
+  });
+
+  // AUD-44: only a hop count. `true` or a subnet would let a client pick
+  // the IP the rate limiter sees via X-Forwarded-For.
+  it('accepts only a positive hop count for TRUST_PROXY', function() {
+    expect(trustProxyHops({})).to.equal(null);
+    expect(trustProxyHops({ TRUST_PROXY: ' 1 ' })).to.equal(1);
+    expect(trustProxyHops({ TRUST_PROXY: '2' })).to.equal(2);
+    for (const value of ['true', '0', '-1', 'abc', '10.0.0.0/8', 'loopback', '1.5']) {
+      expect(trustProxyHops({ TRUST_PROXY: value }), value).to.equal(undefined);
+      expect(invalidConfig({ TRUST_PROXY: value }), value).to.match(/TRUST_PROXY/);
+    }
+    expect(invalidConfig({ TRUST_PROXY: '1' })).to.equal(null);
   });
 
   it('names missing or blank required config', function() {

@@ -135,7 +135,8 @@ CREDENTIALS_ENCRYPTION_KEY=<generated value>
 # Optional (AUD-05): failed logins per IP per 15 min (default 10), and
 # signups per IP per hour (default 5). Behind a reverse proxy or load
 # balancer, TRUST_PROXY is the number of proxy hops (e.g. 1), so limits
-# apply to the client's IP rather than the proxy's.
+# apply to the client's IP rather than the proxy's. Only a whole number
+# (1-99) is accepted; anything else stops the server at startup (AUD-44).
 # LOGIN_RATE_LIMIT=10
 # SIGNUP_RATE_LIMIT=5
 # TRUST_PROXY=1

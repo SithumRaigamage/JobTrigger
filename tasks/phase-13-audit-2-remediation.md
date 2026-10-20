@@ -22,7 +22,7 @@ is green on the commit that closes it, not just a local run.
 - [x] P13-02 **AUD-43.** Release builds refuse to start without an `https`
       `BACKEND_BASE_URL`; `cd.yml` and `docs/deployment.md` pass
       `--dart-define-from-file=config/prod.json`.
-- [ ] P13-03 **AUD-44 (backend).** `npm audit fix`; `TRUST_PROXY` accepts
+- [x] P13-03 **AUD-44 (backend).** `npm audit fix`; `TRUST_PROXY` accepts
       only a positive hop count, otherwise the server refuses to start.
 
 ## Security and correctness
