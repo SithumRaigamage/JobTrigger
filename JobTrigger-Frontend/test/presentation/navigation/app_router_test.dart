@@ -252,4 +252,49 @@ void main() {
       expect(find.text('.github/workflows/ci.yml'), findsOneWidget);
     },
   );
+
+  // AUD-51: any app or web page can fire these through jobtrigger://app/…
+  // with no in-app `extra`; they used to throw in the route builder.
+  testWidgets('an extra-only route opened from outside lands on Home', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    container.listen(authNotifierProvider, (_, _) {});
+    await container
+        .read(authNotifierProvider.notifier)
+        .setSession(const User(id: 'u1', email: 'a@b.com'), 'jwt-abc');
+    final router = container.read(appRouterProvider);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    for (final path in [
+      AppRoutes.jobDetail,
+      AppRoutes.jobHistory,
+      AppRoutes.buildLog,
+      AppRoutes.buildDetail,
+      AppRoutes.githubWorkflows,
+    ]) {
+      router.go(path, extra: path == AppRoutes.buildLog ? 'not a build' : null);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: path);
+      expect(
+        router.routerDelegate.currentConfiguration.uri.path,
+        AppRoutes.home,
+        reason: path,
+      );
+    }
+
+    router.go('/no/such/place');
+    await tester.pumpAndSettle();
+    expect(
+      find.text("This link doesn't lead anywhere in JobTrigger."),
+      findsOneWidget,
+    );
+  });
 }

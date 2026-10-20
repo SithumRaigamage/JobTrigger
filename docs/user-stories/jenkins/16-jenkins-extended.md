@@ -821,6 +821,12 @@ So that I land on the job or build screen directly
   Then the URL is matched against configured servers by host and path
   prefix, the matching server is activated after confirmation if it isn't
   active, and the job or build opens
+- Scenario: Any other in-app path from outside (AUD-51)
+  Given a link opens `jobtrigger://app/<anything but /open>`
+  Then a screen that needs in-app context (job, build, log, history,
+  workflows) opens Home instead, and an unknown path shows "This link
+  doesn't lead anywhere in JobTrigger" with a way back; the app never
+  shows an error screen
 - Scenario: Unknown server
   Given no configured server matches
   Then "No saved server matches this link" is shown, with "Add server"
