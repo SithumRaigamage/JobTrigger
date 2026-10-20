@@ -26,15 +26,17 @@ jobs:
           cd JobTrigger-Frontend
           flutter pub get
 
+      # AUD-43: release builds refuse to start without their config, so
+      # every build here passes the prod config explicitly.
       - name: Build Android APK (release, debug-signed)
         run: |
           cd JobTrigger-Frontend
-          flutter build apk --release
+          flutter build apk --release --dart-define-from-file=config/prod.json
 
       - name: Build iOS (release, unsigned)
         run: |
           cd JobTrigger-Frontend
-          flutter build ipa --release --no-codesign
+          flutter build ipa --release --no-codesign --dart-define-from-file=config/prod.json
 
       - name: Upload Android build artifact
         uses: actions/upload-artifact@v4

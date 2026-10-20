@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/config/app_config.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_notifier.dart';
@@ -16,6 +17,9 @@ import 'presentation/features/home_widget/home_widget_sync.dart';
 import 'presentation/features/notifications/build_watch_notifier.dart';
 
 void main() {
+  // AUD-43: a release build without its config fails here, at launch,
+  // rather than at the first backend call.
+  AppConfig.fromEnvironment();
   runApp(const ProviderScope(child: MyApp()));
 }
 

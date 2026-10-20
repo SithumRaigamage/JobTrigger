@@ -38,6 +38,13 @@ jobs:
           grep -q 'android.permission.INTERNET' \
             JobTrigger-Frontend/android/app/src/main/AndroidManifest.xml
 
+      # AUD-43: a release build without --dart-define-from-file refuses to
+      # start, so every release build in cd.yml must pass a config.
+      - name: Verify release builds pass a config
+        run: |
+          ! grep -E 'flutter build (apk|appbundle|ipa) --release' .github/workflows/cd.yml \
+            | grep -v -- '--dart-define-from-file='
+
       - name: Verify formatting
         run: |
           cd JobTrigger-Frontend
