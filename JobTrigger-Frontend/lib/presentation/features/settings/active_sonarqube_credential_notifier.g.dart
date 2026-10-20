@@ -64,7 +64,7 @@ final class ActiveSonarQubeCredentialNotifierProvider
 }
 
 String _$activeSonarQubeCredentialNotifierHash() =>
-    r'86426e446386f3cc6052baaf87549dc2dddb6055';
+    r'1e7f9b9e5576d63ffd343a876ab3fecd4a034cbe';
 
 /// Currently active SonarQube credential. Mirrors
 /// `ActiveGitHubCredentialNotifier`'s shape exactly (`US-SQ-CRED-03`) —

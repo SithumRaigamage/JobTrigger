@@ -62,7 +62,7 @@ final class ActiveGitHubCredentialNotifierProvider
 }
 
 String _$activeGitHubCredentialNotifierHash() =>
-    r'3db22ce42858e8c56bf5d4b48cce6d0da752f2a6';
+    r'f3a1848ed8b94a4021d92e689e73121a988e7170';
 
 /// Currently active GitHub credential. Mirrors `ActiveServerNotifier`'s
 /// shape exactly (`US-GH-CRED-03`) — entirely independent state, its own

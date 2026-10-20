@@ -57,17 +57,17 @@ final class NotificationServiceProvider
 String _$notificationServiceHash() =>
     r'585c1e42ea844e71a2b76b80b165adfe2c5c8529';
 
-/// Tapped notifications' job URLs, starting the plugin on first use.
+/// Tapped notifications' payloads, starting the plugin on first use.
 
 @ProviderFor(notificationTaps)
 final notificationTapsProvider = NotificationTapsProvider._();
 
-/// Tapped notifications' job URLs, starting the plugin on first use.
+/// Tapped notifications' payloads, starting the plugin on first use.
 
 final class NotificationTapsProvider
     extends $FunctionalProvider<AsyncValue<String>, String, Stream<String>>
     with $FutureModifier<String>, $StreamProvider<String> {
-  /// Tapped notifications' job URLs, starting the plugin on first use.
+  /// Tapped notifications' payloads, starting the plugin on first use.
   NotificationTapsProvider._()
     : super(
         from: null,
