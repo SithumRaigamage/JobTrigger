@@ -56,7 +56,7 @@ is green on the commit that closes it, not just a local run.
       databases unless explicitly forced.
 - [x] P13-18 **AUD-59.** Pipeline controls: workflow `permissions`, pinned
       actions, secret scan, pub SCA, generated-code drift check, image scan.
-- [ ] P13-19 **AUD-61.** Reconcile status documents.
+- [x] P13-19 **AUD-61.** Reconcile status documents.
 - [ ] P13-20 **AUD-62.** Accessibility guideline tests on the main screens;
       a light-mode unstable color that meets 3:1.
 - [ ] P13-21 **AUD-63 (backend).** One undecryptable credential no longer

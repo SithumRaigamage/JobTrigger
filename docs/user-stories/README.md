@@ -44,7 +44,7 @@ to the same file, just at a new path.
 | `jenkins/` | [06-build-logs.md](jenkins/06-build-logs.md) | LOG | Streaming console log, copy/share |
 | `jenkins/` | [07-build-history.md](jenkins/07-build-history.md) | HIST | Global and per-job build history |
 | `jenkins/` | [11-build-insights-pipeline.md](jenkins/11-build-insights-pipeline.md) | PIPE | New-scope Jenkins capabilities beyond the original SwiftUI app — queue status, build cause, SCM changelog, pipeline stage view, input-step approval, test results, artifacts, replay, upstream/downstream navigation |
-| `github-actions/` | [12-github-actions.md](github-actions/12-github-actions.md) | GH | A second real CI tool (promoted out of `BACKLOG-01`, **implemented**): credential management, repository/workflow browsing, run triggering/status/cancel, job logs, history |
+| `github-actions/` | [12-github-actions.md](github-actions/12-github-actions.md) | GH | A second real CI tool (promoted out of `BACKLOG-01`, **in progress** — credentials and repository/workflow browsing are built; runs, logs, and history are not; status of record: `tasks/README.md`): credential management, repository/workflow browsing, run triggering/status/cancel, job logs, history |
 | `gitlab/` | [13-gitlab-ci.md](gitlab/13-gitlab-ci.md) | GL | A third real CI tool (docs-only, **not promoted/implemented**): credential management, project/pipeline browsing, run triggering/status/cancel/retry, live job trace, history |
 | `sonarqube/` | [14-sonarqube.md](sonarqube/14-sonarqube.md) | SQ | A code-quality server, not a build-trigger tool (**promoted, in progress** — `tasks/phase-10-sonarqube.md`): credential management, project browsing, quality gate/measures/issues |
 | `circleci/` | [15-circleci.md](circleci/15-circleci.md) | CC | A fourth real CI tool (docs-only, **not promoted/implemented**): credential management, project/pipeline/workflow browsing, run triggering/status/cancel/rerun, per-step job output, history |
@@ -180,7 +180,7 @@ new-scope-by-audit either — it's `shared/10-out-of-scope-backlog.md`'s
 `BACKLOG-01` (originally deferred with the reasoning "v1 scope is
 Jenkins-only... each additional CI tool is its own integration surface and
 a separate initiative"), explicitly promoted into active scope by the user
-on 2026-09-14, and since implemented (`tasks/phase-8-github-actions.md`).
+on 2026-09-14, and partly implemented since (`tasks/phase-8-github-actions.md`).
 It doesn't appear in the traceability table above (that table stays scoped
 to the original 13 Jenkins parity rows) for the same structural reason PIPE
 doesn't: GH is a second tool's worth of stories, not a checklist item.

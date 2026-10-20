@@ -11,6 +11,13 @@ are cross-referenced instead of being fixed twice.
 
 ## Baseline at audit time
 
+> **Later note (2026-10-20):** this table is the state on 2026-09-29. From
+> P11-24 (2026-09-30) Flutter CI failed on every push, including every
+> Phase 12 fix, until P13-01 — see AUD-42 in
+> [`2026-10-20-workspace-audit.md`](2026-10-20-workspace-audit.md). The
+> "fixed" statuses below were verified locally; the second audit
+> re-checked them in code.
+
 | Check | Result |
 |---|---|
 | `flutter analyze` | Clean, no issues |
