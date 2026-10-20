@@ -34,7 +34,7 @@ is green on the commit that closes it, not just a local run.
       credential, or SonarQube credential takes effect immediately.
 - [x] P13-06 **AUD-47 (client + backend).** Only a 401 from `/refresh`
       ends a session; the refresh limiter is keyed by user, not IP.
-- [ ] P13-07 **AUD-48 (client + backend).** Delete account (cascade) and
+- [x] P13-07 **AUD-48 (client + backend).** Delete account (cascade) and
       change password (bumps `tokenVersion`). Password *reset* needs an
       email provider — a product decision — and stays open as US-AUTH-08.
 - [ ] P13-08 **AUD-49.** Build-watch checks never overlap and merge by key,

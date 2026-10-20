@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/error/error_message.dart';
 import '../../../core/platform/package_info_provider.dart';
 import '../../../domain/auth/auth_state.dart';
 import '../../common_widgets/confirmation_dialog.dart';
@@ -17,12 +18,11 @@ import '../settings/credentials_notifier.dart';
 import '../settings/github_credentials_notifier.dart';
 import '../tool_selection/active_tool_notifier.dart';
 import '../tool_selection/ci_tool.dart';
+import 'account_dialogs.dart';
 
-/// Ported from `ProfileView.swift`. Deliberately skips the old app's
-/// "Change Password" / "Security Settings" rows — both were unimplemented
-/// "coming soon" placeholders with no backend support (no password-change
-/// route exists in `JobTrigger-Backend`), so there's no real feature there
-/// to preserve; flagged rather than silently ported as dead UI.
+/// Ported from `ProfileView.swift`. The old app's "Change Password" row was
+/// a "coming soon" placeholder; it's real since AUD-48, alongside account
+/// deletion (App Store 5.1.1(v), Google Play's data-deletion policy).
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -122,6 +122,26 @@ class ProfileScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+            GlassSurface.card(
+              child: Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('ACCOUNT', style: TextStyle(fontSize: 12)),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.password),
+                    title: const Text('Change password'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _changePassword(context, ref),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -153,9 +173,56 @@ class ProfileScreen extends ConsumerWidget {
                 child: const Text('Log out of all devices'),
               ),
             ),
+            // AUD-48: permanent, so it's last and asks for the password.
+            Center(
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+                onPressed: () => _deleteAccount(context, ref),
+                child: const Text('Delete account'),
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _changePassword(BuildContext context, WidgetRef ref) async {
+    final toast = ref.read(toastControllerProvider);
+    final changed = await showChangePasswordDialog(
+      context,
+      onSubmit: (values) async {
+        final problem = await ref
+            .read(authNotifierProvider.notifier)
+            .changePassword(
+              currentPassword: values[0],
+              newPassword: values[1],
+              confirmPassword: values[2],
+            );
+        return problem == null ? null : describeError(problem);
+      },
+    );
+    if (!changed) return;
+    toast.show(
+      type: ToastType.success,
+      title: 'Password changed',
+      message: 'Other devices were signed out.',
+    );
+  }
+
+  /// A successful deletion signs out, which leaves this screen; the login
+  /// screen is where the user lands.
+  Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
+    await showDeleteAccountDialog(
+      context,
+      onSubmit: (values) async {
+        final problem = await ref
+            .read(authNotifierProvider.notifier)
+            .deleteAccount(values[0]);
+        return problem == null ? null : describeError(problem);
+      },
     );
   }
 

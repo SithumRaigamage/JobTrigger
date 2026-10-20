@@ -19,4 +19,14 @@ abstract class AuthRepository {
 
   /// AUD-26: revokes every session this account has, on every device.
   Future<Result<void, AppFailure>> logoutEverywhere();
+
+  /// AUD-48: changes the password, which revokes every session on every
+  /// device; returns a fresh session for this one.
+  Future<Result<AuthSession, AppFailure>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+
+  /// AUD-48: deletes the account and every credential stored for it.
+  Future<Result<void, AppFailure>> deleteAccount({required String password});
 }

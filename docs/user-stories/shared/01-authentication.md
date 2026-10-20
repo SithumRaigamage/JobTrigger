@@ -262,3 +262,77 @@ why I need to log in again
 
 **Non-Functional Notes**
 - NFR-SEC-03, NFR-TEST-02, NFR-PLAT-01
+
+---
+
+### US-AUTH-06 — Delete my account
+
+**Priority:** Must (App Store Review Guideline 5.1.1(v); Google Play
+data-deletion policy)
+**Source:** `docs/audit/2026-10-20-workspace-audit.md` AUD-48, P13-07
+**Dependencies:** US-AUTH-02, US-AUTH-04
+
+As a JobTrigger user
+I want to delete my account and everything stored with it
+So that my CI credentials don't outlive my use of the app
+
+**Acceptance Criteria**
+- Scenario: Delete
+  Given I'm signed in
+  When I choose Profile → Delete account and confirm with my password
+  Then the account and every saved Jenkins server, GitHub credential, and
+  SonarQube credential are deleted on the backend, every token stops
+  working, and this device is cleared exactly as on logout (US-AUTH-04)
+- Scenario: Wrong password
+  Then the dialog says "Current password is incorrect" and nothing is
+  deleted; wrong guesses count against the login rate limit
+- Scenario: Backend unreachable
+  Then nothing is deleted locally either, and the dialog shows the
+  `NetworkFailure` copy so I can retry
+
+**Security & Privacy Notes**
+- `DELETE /api/auth/account` re-checks the password, so a stolen access
+  token alone can't delete the account. Credentials are deleted before the
+  user, so an interrupted request never leaves orphaned secrets.
+
+---
+
+### US-AUTH-07 — Change my password
+
+**Priority:** Must
+**Source:** AUD-48, P13-07
+**Dependencies:** US-AUTH-02
+
+As a user who suspects my password leaked
+I want to change it
+So that whoever has it, and every device signed in with it, is locked out
+
+**Acceptance Criteria**
+- Scenario: Change
+  Given the right current password and a new one meeting US-AUTH-01's rules
+  When I submit Profile → Change password
+  Then the password changes, every other device is signed out (the
+  backend bumps `tokenVersion`), and this device stays signed in with the
+  new session it gets back
+- Scenario: Invalid input
+  Then an empty current password, a new password under 8 characters, or a
+  mismatched confirmation is reported inline before any request
+- Scenario: Wrong current password
+  Then "Current password is incorrect" is shown inline and nothing changes
+
+---
+
+### US-AUTH-08 — Reset a forgotten password (open)
+
+**Priority:** Should
+**Source:** AUD-48. **Not implemented:** it needs an email provider for the
+backend, a product decision outside the current architecture.
+
+As a user who forgot my password
+I want to reset it by email
+So that I don't lose my saved servers
+
+**Acceptance Criteria**
+- A single-use token valid for 15 minutes is emailed; the response is the
+  same whether or not the email exists (no enumeration); a successful
+  reset bumps `tokenVersion`.

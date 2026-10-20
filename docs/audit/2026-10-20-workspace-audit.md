@@ -34,7 +34,7 @@ A finding is `fixed` once its commit is on the branch and CI is green on it.
 | AUD-45 | P13-04 | fixed |
 | AUD-46 | P13-05 | fixed |
 | AUD-47 | P13-06 | fixed |
-| AUD-48 | P13-07 | open |
+| AUD-48 | P13-07 | fixed (delete account, change password); reset stays open as US-AUTH-08, pending an email provider |
 | AUD-49 | P13-08 | open |
 | AUD-50 | P13-09 | open |
 | AUD-51 | P13-10 | open |
@@ -51,6 +51,7 @@ A finding is `fixed` once its commit is on the branch and CI is green on it.
 | AUD-62 | P13-20 | open |
 | AUD-63 | P13-21 | open |
 | AUD-64 | P13-22 | open |
+| AUD-65 | P13-07 | fixed (found during P13-07) |
 | §13 indexes | P13-23 | open |
 | §11 layering | P13-24 | open |
 | §14 pin status | P13-25 | open |
@@ -708,6 +709,22 @@ loadable (the backfill script already scans it).
 | Placeholder production domains (`api.jobtrigger.app`, `support@jobtrigger.dev`) | `config/prod.json`, `setup-migrations.js` | **UNKNOWN** whether the team owns these domains. If not, a prod build would send account passwords to a third party. Verify ownership before any release. |
 | No notifier-level re-entrancy guard on trigger | `trigger_build_notifier.dart:31-41` | Modal confirmation protects the UI path today; add `if (state.isLoading) return;` as the other notifiers do. |
 | Log poll retries a deleted build forever (backoff capped at 15s) | `build_log_notifier.dart:137-159` | Stop and show "Build no longer exists" on `NotFoundFailure`. |
+
+### AUD-65 — Every backend 400 reads "Something went wrong on the server (HTTP 400)"
+
+**Category:** UX / BUG · **Severity:** Medium · **Priority:** P2 · **Confidence:** CONFIRMED (found 2026-10-20 while fixing AUD-48)
+**Location:** `lib/data/repositories/auth_repository_impl.dart`, `core/error/app_failure.dart`
+
+The backend answers a wrong login password with `400 {"message": "Invalid
+credentials"}` and a taken email with `400 {"message": "User already
+exists"}`. `AppFailure.fromDioException` maps any non-401/403/404 status to
+`ServerFailure(code)`, whose copy blames the server. A user mistyping their
+password saw "Something went wrong on the server (HTTP 400)". The existing
+repository test even asserted `ServerFailure` for that case.
+**Fix:** a `RejectedRequestFailure(serverMessage)` produced by the auth
+repository for a backend 400 that carries a `message`. Those messages are
+user copy by construction: the central error handler never puts internals
+in a 400 (AUD-06). Jenkins 400s (HTML) are unaffected.
 
 ---
 
