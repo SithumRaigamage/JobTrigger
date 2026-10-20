@@ -39,7 +39,7 @@ is green on the commit that closes it, not just a local run.
       email provider — a product decision — and stays open as US-AUTH-08.
 - [x] P13-08 **AUD-49.** Build-watch checks never overlap and merge by key,
       so a watch added or removed mid-check isn't lost or resurrected.
-- [ ] P13-09 **AUD-50.** Artifact file names are reduced to a safe basename.
+- [x] P13-09 **AUD-50.** Artifact file names are reduced to a safe basename.
 - [ ] P13-10 **AUD-51.** Routes that need an `extra` redirect to Home when
       opened without one; the router has an error screen.
 - [ ] P13-11 **AUD-52.** SonarQube base URLs get the same validation and

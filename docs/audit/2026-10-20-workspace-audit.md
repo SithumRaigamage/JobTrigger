@@ -36,7 +36,7 @@ A finding is `fixed` once its commit is on the branch and CI is green on it.
 | AUD-47 | P13-06 | fixed |
 | AUD-48 | P13-07 | fixed (delete account, change password); reset stays open as US-AUTH-08, pending an email provider |
 | AUD-49 | P13-08 | fixed |
-| AUD-50 | P13-09 | open |
+| AUD-50 | P13-09 | fixed |
 | AUD-51 | P13-10 | open |
 | AUD-52 | P13-11 | open |
 | AUD-53 | P13-12 | open |

@@ -72,7 +72,9 @@ class ArtifactDownloadNotifier extends _$ArtifactDownloadNotifier {
     // Its own folder, so two artifacts with the same file name can't
     // collide.
     final folder = await directory.createTemp('artifact_');
-    final path = '${folder.path}/${artifact.fileName}';
+    // The name comes from Jenkins: never let it leave the folder (AUD-50).
+    final path =
+        '${folder.path}/${safeFileName(artifact.fileName, fallback: 'artifact')}';
     try {
       final result = await repository.downloadArtifact(
         buildUrl,

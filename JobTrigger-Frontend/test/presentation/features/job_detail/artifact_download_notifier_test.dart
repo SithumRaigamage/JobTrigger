@@ -24,6 +24,7 @@ class _FakeRepository extends FakeJenkinsRepository {
   final Result<int?, AppFailure> size;
   final Result<void, AppFailure> download;
   int downloads = 0;
+  String? lastSavePath;
 
   @override
   Future<Result<int?, AppFailure>> fetchArtifactSize(
@@ -39,6 +40,7 @@ class _FakeRepository extends FakeJenkinsRepository {
     void Function(int received, int? total)? onProgress,
   }) async {
     downloads++;
+    lastSavePath = savePath;
     if (download is Ok) {
       File(savePath).writeAsBytesSync([1, 2, 3]);
       onProgress?.call(3, 3);
@@ -95,6 +97,30 @@ void main() {
     expect(fileExistedWhenShared, isTrue);
     expect(directory.listSync(), isEmpty); // Nothing kept.
     expect(c.read(provider).value, isNull); // Idle again.
+  });
+
+  // AUD-50: the file name comes from Jenkins.
+  test('a hostile artifact name stays inside the temp folder', () async {
+    final repo = _FakeRepository();
+    final c = container(repo);
+    const hostile = BuildArtifact(
+      fileName: '../../shared_prefs/FlutterSharedPreferences.xml',
+      relativePath: 'out/x.xml',
+    );
+
+    await c
+        .read(
+          artifactDownloadNotifierProvider(
+            _buildUrl,
+            hostile.relativePath,
+          ).notifier,
+        )
+        .download(hostile);
+
+    final saved = File(repo.lastSavePath!);
+    expect(saved.parent.parent.path, directory.path);
+    expect(saved.uri.pathSegments.last, 'FlutterSharedPreferences.xml');
+    expect(directory.listSync(), isEmpty); // And cleaned up.
   });
 
   test('a large artifact waits for confirmation', () async {
