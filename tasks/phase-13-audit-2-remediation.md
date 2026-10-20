@@ -16,7 +16,7 @@ is green on the commit that closes it, not just a local run.
 
 ## Gates and configuration
 
-- [ ] P13-01 **AUD-42.** Stop tests from reaching the real `workmanager`
+- [x] P13-01 **AUD-42.** Stop tests from reaching the real `workmanager`
       plugin (shared fake scheduler in the test harness), so Flutter CI is
       green on Linux.
 - [ ] P13-02 **AUD-43.** Release builds refuse to start without an `https`

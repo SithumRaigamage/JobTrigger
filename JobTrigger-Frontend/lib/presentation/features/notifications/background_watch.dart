@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -65,10 +67,21 @@ Future<JenkinsRepository?> _repositoryFor(
 /// Registers the periodic background check while there are watches, and
 /// cancels it when there are none. The OS decides when it actually runs
 /// (15 minutes at the earliest): best effort, and the UI says so.
+///
+/// Only Android and iOS schedule anything. On the desktop dev target there
+/// is nothing to schedule, and the Linux plugin shells out to `systemd`
+/// (`Process.run`), which is what left a pending timer in every widget test
+/// on CI (AUD-42). [isSupported] is the host OS, deliberately not
+/// `defaultTargetPlatform`, which tests set to Android.
 class BackgroundWatchScheduler {
+  BackgroundWatchScheduler({bool? isSupported})
+    : isSupported = isSupported ?? (Platform.isAndroid || Platform.isIOS);
+
+  final bool isSupported;
   bool _initialized = false;
 
   Future<void> sync({required bool hasWatches}) async {
+    if (!isSupported) return;
     try {
       if (!_initialized) {
         await Workmanager().initialize(buildWatchDispatcher);
@@ -86,8 +99,8 @@ class BackgroundWatchScheduler {
         await Workmanager().cancelByUniqueName(buildWatchTaskName);
       }
     } on Object {
-      // Unsupported platform (desktop dev target) or unavailable: the
-      // in-app check still runs while the app is open.
+      // Unavailable (e.g. background fetch disabled): the in-app check
+      // still runs while the app is open.
     }
   }
 }

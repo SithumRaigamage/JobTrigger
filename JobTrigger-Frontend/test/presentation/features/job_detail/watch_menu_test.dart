@@ -84,6 +84,9 @@ class _Notifications implements NotificationService {
 
 class _Scheduler implements BackgroundWatchScheduler {
   @override
+  bool get isSupported => true;
+
+  @override
   Future<void> sync({required bool hasWatches}) async {}
 }
 

@@ -21,6 +21,41 @@ per-item approval under `CLAUDE.md` §7 and NFR-SEC-05).
 `.env` and `.env.example` were not opened (`CLAUDE.md` §8). The
 git-ignore rules and the Docker build context were checked instead.
 
+## Remediation status
+
+Tasks are in [`tasks/phase-13-audit-2-remediation.md`](../../tasks/phase-13-audit-2-remediation.md).
+A finding is `fixed` once its commit is on the branch and CI is green on it.
+
+| Id | Task | Status |
+|---|---|---|
+| AUD-42 | P13-01 | fixed |
+| AUD-43 | P13-02 | open |
+| AUD-44 | P13-03 | open |
+| AUD-45 | P13-04 | open |
+| AUD-46 | P13-05 | open |
+| AUD-47 | P13-06 | open |
+| AUD-48 | P13-07 | open |
+| AUD-49 | P13-08 | open |
+| AUD-50 | P13-09 | open |
+| AUD-51 | P13-10 | open |
+| AUD-52 | P13-11 | open |
+| AUD-53 | P13-12 | open |
+| AUD-54 | P13-13 | open |
+| AUD-55 | P13-14 | open |
+| AUD-56 | P13-15 | open |
+| AUD-57 | P13-16 | open |
+| AUD-58 | P13-17 | open |
+| AUD-59 | P13-18 | open |
+| AUD-60 | — | fixed (index only, 2026-10-20; no commit) |
+| AUD-61 | P13-19 | open |
+| AUD-62 | P13-20 | open |
+| AUD-63 | P13-21 | open |
+| AUD-64 | P13-22 | open |
+| §13 indexes | P13-23 | open |
+| §11 layering | P13-24 | open |
+| §14 pin status | P13-25 | open |
+| §19 request ids | P13-26 | open |
+
 ---
 
 ## 1. Executive summary

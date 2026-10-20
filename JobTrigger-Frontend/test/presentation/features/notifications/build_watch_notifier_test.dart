@@ -46,6 +46,9 @@ class _Notifications implements NotificationService {
 }
 
 class _Scheduler implements BackgroundWatchScheduler {
+  @override
+  bool get isSupported => true;
+
   final synced = <bool>[];
 
   @override
