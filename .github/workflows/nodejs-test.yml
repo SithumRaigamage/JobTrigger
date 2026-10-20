@@ -2,21 +2,31 @@ name: Node.js CI - Tests
 
 on:
   push:
-    branches: [ develop, feature/** ]
+    # flutter-migration is where the rewrite lands day-to-day (AUD-16);
+    # without it here, nothing on that branch was ever analyzed or tested.
+    branches: [ develop, flutter-migration, feature/** ]
   pull_request:
     branches: [ develop, feature/** ]
 
 jobs:
   test:
-    # Use Ubuntu 20.04 because mongodb-memory-server requires libssl1.1
-    # which is available on 20.04 runners. This avoids libcrypto.so.1.1 errors.
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x]
+        # The Dockerfile's LTS line (AUD-17). mongodb-memory-server v11 needs
+        # Node >=20.19.0, and mocha 12 needs ^20.19.0 or >=22.12.0.
+        node-version: [22.x]
+    # `secrets.*` can't be referenced directly in a step's `if:` condition --
+    # route each through `env:` first, which `if:` can read.
+    env:
+      CODECOV_TOKEN_SET: ${{ secrets.CODECOV_TOKEN }}
+      SONAR_TOKEN_SET: ${{ secrets.SONAR_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # SonarCloud's analysis needs full history for accurate blame/new-code detection.
+          fetch-depth: 0
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -28,9 +38,30 @@ jobs:
           cd JobTrigger-Backend
           npm ci
 
-      - name: Run tests
+      # AUD-07: fail on any high or critical advisory, dev dependencies
+      # included (a compromised test tool runs in CI with its secrets).
+      - name: Audit dependencies
+        run: |
+          cd JobTrigger-Backend
+          npm audit --audit-level=high
+
+      - name: Run tests with coverage
         env:
           CI: true
         run: |
           cd JobTrigger-Backend
-          npm test
+          npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        if: ${{ env.CODECOV_TOKEN_SET != '' }}
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: JobTrigger-Backend/coverage/lcov.info
+          flags: backend
+
+      - name: SonarCloud scan
+        if: ${{ env.SONAR_TOKEN_SET != '' }}
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

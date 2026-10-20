@@ -28,7 +28,10 @@ class SignupNotifier extends _$SignupNotifier {
     }
     if (!AuthValidation.isValidPassword(password)) {
       state = AsyncError(
-        const FormValidationError('Password must be at least 6 characters.'),
+        const FormValidationError(
+          'Password must be at least '
+          '${AuthValidation.minPasswordLength} characters.',
+        ),
         StackTrace.current,
       );
       return;
@@ -50,7 +53,11 @@ class SignupNotifier extends _$SignupNotifier {
       case Ok(:final value):
         await ref
             .read(authNotifierProvider.notifier)
-            .setSession(value.user, value.token);
+            .setSession(
+              value.user,
+              value.token,
+              refreshToken: value.refreshToken,
+            );
         state = const AsyncData(null);
       case Err(:final error):
         state = AsyncError(error, StackTrace.current);

@@ -13,6 +13,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // AUD-26: bumped to revoke every token issued before (logout everywhere).
+  tokenVersion: {
+    type: Number,
+    default: 0
+  },
   createdAt: {
     type: Date,
     default: Date.now

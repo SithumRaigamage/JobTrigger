@@ -12,11 +12,18 @@ class SecureStorageService {
   final FlutterSecureStorage _storage;
 
   static const _tokenKey = 'auth_token';
+  static const _refreshTokenKey = 'auth_refresh_token';
 
   Future<void> saveToken(String token) =>
       _storage.write(key: _tokenKey, value: token);
 
   Future<String?> readToken() => _storage.read(key: _tokenKey);
+
+  /// AUD-26: the long-lived token that renews the 15-minute access token.
+  Future<void> saveRefreshToken(String token) =>
+      _storage.write(key: _refreshTokenKey, value: token);
+
+  Future<String?> readRefreshToken() => _storage.read(key: _refreshTokenKey);
 
   Future<void> clear() => _storage.deleteAll();
 }

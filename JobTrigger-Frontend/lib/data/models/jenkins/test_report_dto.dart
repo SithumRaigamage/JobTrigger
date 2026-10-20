@@ -19,22 +19,22 @@ abstract class TestReportDto with _$TestReportDto {
     // holding individual cases) -- flatten straight to the
     // `ClassName.testName` strings actually rendered, same reasoning as
     // `causes`/`changes` on `JenkinsBuildDto`.
-    @Default(<String>[])
+    @Default(<FailingTest>[])
     @JsonKey(
       name: 'suites',
       fromJson: _failingTestsFromJson,
       includeToJson: false,
     )
-    List<String> failingTests,
+    List<FailingTest> failingTests,
   }) = _TestReportDto;
 
   factory TestReportDto.fromJson(Map<String, dynamic> json) =>
       _$TestReportDtoFromJson(json);
 }
 
-List<String> _failingTestsFromJson(dynamic rawSuites) {
+List<FailingTest> _failingTestsFromJson(dynamic rawSuites) {
   if (rawSuites is! List) return const [];
-  final failing = <String>[];
+  final failing = <FailingTest>[];
   for (final suite in rawSuites) {
     if (suite is! Map<String, dynamic>) continue;
     final cases = suite['cases'];
@@ -48,7 +48,18 @@ List<String> _failingTestsFromJson(dynamic rawSuites) {
       final name = testCase['name'];
       if (name is! String) continue;
       final className = testCase['className'];
-      failing.add(className is String ? '$className.$name' : name);
+      final age = testCase['age'];
+      final duration = testCase['duration'];
+      failing.add(
+        FailingTest(
+          name: name,
+          className: className is String ? className : null,
+          errorDetails: testCase['errorDetails'] as String?,
+          stackTrace: testCase['errorStackTrace'] as String?,
+          durationSeconds: duration is num ? duration.toDouble() : null,
+          isNewFailure: status == 'REGRESSION' || age == 1,
+        ),
+      );
     }
   }
   return failing;

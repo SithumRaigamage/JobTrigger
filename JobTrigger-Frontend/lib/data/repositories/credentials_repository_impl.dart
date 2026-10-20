@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/error/app_failure.dart';
+import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../core/network/backend_api_client.dart';
 import '../../domain/credential/credentials_repository.dart';
@@ -16,8 +17,8 @@ class CredentialsRepositoryImpl implements CredentialsRepository {
   final Dio _dio;
 
   @override
-  Future<Result<List<JenkinsServer>, AppFailure>> fetchAll() async {
-    try {
+  Future<Result<List<JenkinsServer>, AppFailure>> fetchAll() => guardRequest(
+    () async {
       final response = await _dio.get<List<dynamic>>('/api/credentials');
       final servers = response.data!
           .map(
@@ -25,11 +26,9 @@ class CredentialsRepositoryImpl implements CredentialsRepository {
                 CredentialDto.fromJson(json as Map<String, dynamic>).toDomain(),
           )
           .toList();
-      return Ok(servers);
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+      return servers;
+    },
+  );
 
   @override
   Future<Result<JenkinsServer, AppFailure>> add({
@@ -39,24 +38,20 @@ class CredentialsRepositoryImpl implements CredentialsRepository {
     required String secret,
     String? paramToken,
     bool isDefault = false,
-  }) async {
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        '/api/credentials',
-        data: _body(
-          serverName: serverName,
-          jenkinsURL: jenkinsURL,
-          username: username,
-          secret: secret,
-          paramToken: paramToken,
-          isDefault: isDefault,
-        ),
-      );
-      return Ok(CredentialDto.fromJson(response.data!).toDomain());
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  }) => guardRequest(() async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/api/credentials',
+      data: _body(
+        serverName: serverName,
+        jenkinsURL: jenkinsURL,
+        username: username,
+        secret: secret,
+        paramToken: paramToken,
+        isDefault: isDefault,
+      ),
+    );
+    return CredentialDto.fromJson(response.data!).toDomain();
+  });
 
   @override
   Future<Result<JenkinsServer, AppFailure>> update(
@@ -67,46 +62,34 @@ class CredentialsRepositoryImpl implements CredentialsRepository {
     required String secret,
     String? paramToken,
     bool isDefault = false,
-  }) async {
-    try {
-      final response = await _dio.put<Map<String, dynamic>>(
-        '/api/credentials/$id',
-        data: _body(
-          serverName: serverName,
-          jenkinsURL: jenkinsURL,
-          username: username,
-          secret: secret,
-          paramToken: paramToken,
-          isDefault: isDefault,
-        ),
-      );
-      return Ok(CredentialDto.fromJson(response.data!).toDomain());
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  }) => guardRequest(() async {
+    final response = await _dio.put<Map<String, dynamic>>(
+      '/api/credentials/$id',
+      data: _body(
+        serverName: serverName,
+        jenkinsURL: jenkinsURL,
+        username: username,
+        secret: secret,
+        paramToken: paramToken,
+        isDefault: isDefault,
+      ),
+    );
+    return CredentialDto.fromJson(response.data!).toDomain();
+  });
 
   @override
-  Future<Result<void, AppFailure>> delete(String id) async {
-    try {
-      await _dio.delete<void>('/api/credentials/$id');
-      return const Ok(null);
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  Future<Result<void, AppFailure>> delete(String id) => guardRequest(() async {
+    await _dio.delete<void>('/api/credentials/$id');
+  });
 
   @override
-  Future<Result<JenkinsServer, AppFailure>> switchActive(String id) async {
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        '/api/credentials/switch/$id',
-      );
-      return Ok(CredentialDto.fromJson(response.data!).toDomain());
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  Future<Result<JenkinsServer, AppFailure>> switchActive(String id) =>
+      guardRequest(() async {
+        final response = await _dio.post<Map<String, dynamic>>(
+          '/api/credentials/switch/$id',
+        );
+        return CredentialDto.fromJson(response.data!).toDomain();
+      });
 
   Map<String, dynamic> _body({
     required String serverName,

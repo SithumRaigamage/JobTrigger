@@ -10,6 +10,7 @@ class ParameterDefinition {
     this.description,
     this.choices,
     this.defaultValue,
+    this.projectName,
   });
 
   final String name;
@@ -17,4 +18,8 @@ class ParameterDefinition {
   final String? description;
   final List<String>? choices;
   final dynamic defaultValue;
+
+  /// For a `RunParameterDefinition`: the full name of the job whose builds
+  /// are valid values (e.g. `team/api`).
+  final String? projectName;
 }

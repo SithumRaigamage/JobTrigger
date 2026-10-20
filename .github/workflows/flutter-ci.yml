@@ -2,13 +2,19 @@ name: Flutter CI - Analyze & Test
 
 on:
   push:
-    branches: [ develop, feature/** ]
+    # flutter-migration is where the rewrite lands day-to-day (AUD-16);
+    # without it here, nothing on that branch was ever analyzed or tested.
+    branches: [ develop, flutter-migration, feature/** ]
   pull_request:
     branches: [ develop, feature/** ]
 
 jobs:
   analyze-and-test:
     runs-on: ubuntu-latest
+    # `secrets.*` can't be referenced directly in a step's `if:` condition --
+    # route it through `env:` first, which `if:` can read.
+    env:
+      CODECOV_TOKEN_SET: ${{ secrets.CODECOV_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +30,14 @@ jobs:
           cd JobTrigger-Frontend
           flutter pub get
 
+      # AUD-02: debug/profile manifests always declare INTERNET (Flutter
+      # tooling), so no debug run or test can catch a release manifest
+      # that forgot it -- check the release (main) manifest directly.
+      - name: Verify release manifest declares INTERNET
+        run: |
+          grep -q 'android.permission.INTERNET' \
+            JobTrigger-Frontend/android/app/src/main/AndroidManifest.xml
+
       - name: Verify formatting
         run: |
           cd JobTrigger-Frontend
@@ -37,4 +51,38 @@ jobs:
       - name: Run tests
         run: |
           cd JobTrigger-Frontend
-          flutter test
+          flutter test --coverage
+
+      - name: Upload coverage to Codecov
+        if: ${{ env.CODECOV_TOKEN_SET != '' }}
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: JobTrigger-Frontend/coverage/lcov.info
+          flags: frontend
+
+  # AUD-40: tests, analyze, and the macOS target never run Gradle, so an
+  # Android-only build break (plugin compileSdk, manifest merge, desugaring)
+  # went unnoticed. A debug build is enough to run those checks.
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: 'stable'
+
+      - name: Build debug APK
+        run: |
+          cd JobTrigger-Frontend
+          flutter pub get
+          flutter build apk --debug

@@ -31,6 +31,8 @@ abstract class AuthResponseDto with _$AuthResponseDto {
   const factory AuthResponseDto({
     required String token,
     required UserDto user,
+    // AUD-26. Optional so an older backend without refresh still parses.
+    String? refreshToken,
   }) = _AuthResponseDto;
 
   factory AuthResponseDto.fromJson(Map<String, dynamic> json) =>

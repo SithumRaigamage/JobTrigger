@@ -1,0 +1,62 @@
+name: CD - Build Verification
+
+# Manual trigger only -- this workflow exists so build-verification is
+# available from the Actions tab, but it never runs on its own (no push/
+# pull_request trigger). No signing, no store upload, no image push: see
+# docs/deployment.md for why (pre-artwork, pre-store-accounts, no registry
+# configured yet).
+on:
+  workflow_dispatch:
+
+jobs:
+  flutter-build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: |
+          cd JobTrigger-Frontend
+          flutter pub get
+
+      - name: Build Android APK (release, debug-signed)
+        run: |
+          cd JobTrigger-Frontend
+          flutter build apk --release
+
+      - name: Build iOS (release, unsigned)
+        run: |
+          cd JobTrigger-Frontend
+          flutter build ipa --release --no-codesign
+
+      - name: Upload Android build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-apk
+          path: JobTrigger-Frontend/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
+
+      - name: Upload iOS build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-release-build
+          path: JobTrigger-Frontend/build/ios/archive/Runner.xcarchive
+          retention-days: 7
+
+  backend-docker-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend Docker image (no push)
+        run: |
+          cd JobTrigger-Backend
+          docker build -t jobtrigger-backend:ci .

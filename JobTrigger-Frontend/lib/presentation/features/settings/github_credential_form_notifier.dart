@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
 import '../../../data/repositories/github_credentials_repository_impl.dart';
+import 'active_github_credential_notifier.dart';
 import 'github_credentials_notifier.dart';
 
 part 'github_credential_form_notifier.g.dart';
@@ -40,8 +41,16 @@ class GitHubCredentialFormNotifier extends _$GitHubCredentialFormNotifier {
           );
 
     switch (result) {
-      case Ok():
+      case Ok(:final value):
         await ref.read(gitHubCredentialsNotifierProvider.notifier).refresh();
+        // Mirrors ServerFormNotifier.save()'s fix: saving with the default
+        // toggle on should mean "use this one now," not just flag it and
+        // hope a future rehydrate picks it up.
+        if (isDefault) {
+          await ref
+              .read(activeGitHubCredentialNotifierProvider.notifier)
+              .setActiveCredential(value);
+        }
         state = const AsyncData(null);
       case Err(:final error):
         state = AsyncError(error, StackTrace.current);

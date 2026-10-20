@@ -8,21 +8,27 @@ part of 'job_tree_notifier.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Fetches the full job tree from the active server — standard shape from
-/// `docs/architecture.md §4`. `refresh()` backs pull-to-refresh on
-/// `HomeScreen`.
+/// The recursive crawl of the active server (6 folder levels) — standard
+/// shape from `docs/architecture.md §4`. Since P11-05 it backs only
+/// cross-folder search and the global history timeline; Home browses
+/// lazily with `FolderContentsNotifier`. So it's first fetched when someone
+/// searches or opens global history, not on every Home load (AUD-20).
 
 @ProviderFor(JobTreeNotifier)
 final jobTreeNotifierProvider = JobTreeNotifierProvider._();
 
-/// Fetches the full job tree from the active server — standard shape from
-/// `docs/architecture.md §4`. `refresh()` backs pull-to-refresh on
-/// `HomeScreen`.
+/// The recursive crawl of the active server (6 folder levels) — standard
+/// shape from `docs/architecture.md §4`. Since P11-05 it backs only
+/// cross-folder search and the global history timeline; Home browses
+/// lazily with `FolderContentsNotifier`. So it's first fetched when someone
+/// searches or opens global history, not on every Home load (AUD-20).
 final class JobTreeNotifierProvider
     extends $AsyncNotifierProvider<JobTreeNotifier, List<JenkinsJob>> {
-  /// Fetches the full job tree from the active server — standard shape from
-  /// `docs/architecture.md §4`. `refresh()` backs pull-to-refresh on
-  /// `HomeScreen`.
+  /// The recursive crawl of the active server (6 folder levels) — standard
+  /// shape from `docs/architecture.md §4`. Since P11-05 it backs only
+  /// cross-folder search and the global history timeline; Home browses
+  /// lazily with `FolderContentsNotifier`. So it's first fetched when someone
+  /// searches or opens global history, not on every Home load (AUD-20).
   JobTreeNotifierProvider._()
     : super(
         from: null,
@@ -44,9 +50,11 @@ final class JobTreeNotifierProvider
 
 String _$jobTreeNotifierHash() => r'd366ad898da3471d24a16e9e4fabfc546a6cfe77';
 
-/// Fetches the full job tree from the active server — standard shape from
-/// `docs/architecture.md §4`. `refresh()` backs pull-to-refresh on
-/// `HomeScreen`.
+/// The recursive crawl of the active server (6 folder levels) — standard
+/// shape from `docs/architecture.md §4`. Since P11-05 it backs only
+/// cross-folder search and the global history timeline; Home browses
+/// lazily with `FolderContentsNotifier`. So it's first fetched when someone
+/// searches or opens global history, not on every Home load (AUD-20).
 
 abstract class _$JobTreeNotifier extends $AsyncNotifier<List<JenkinsJob>> {
   FutureOr<List<JenkinsJob>> build();

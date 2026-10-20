@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -13,14 +11,7 @@ import 'package:job_trigger/domain/credential/github_credential.dart';
 import 'package:job_trigger/domain/github/github_repo.dart';
 import 'package:job_trigger/domain/github/github_repository.dart';
 import 'package:job_trigger/domain/github/github_workflow.dart';
-import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
-import 'package:job_trigger/domain/jenkins/jenkins_repository.dart';
-import 'package:job_trigger/domain/jenkins/log_chunk.dart';
-import 'package:job_trigger/domain/jenkins/pending_input.dart';
-import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
-import 'package:job_trigger/domain/jenkins/queue_item.dart';
-import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/presentation/features/auth/auth_notifier.dart';
 import 'package:job_trigger/presentation/features/github/github_repo_screen.dart';
@@ -35,6 +26,7 @@ import 'package:job_trigger/presentation/navigation/app_router.dart';
 import 'package:job_trigger/presentation/navigation/app_routes.dart';
 import 'package:job_trigger/presentation/navigation/main_scaffold.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+import '../../support/fake_jenkins_repository.dart';
 
 const _fakeGitHubCredential = GitHubCredential(
   id: 'c1',
@@ -50,8 +42,7 @@ class _FakeGitHubRepository implements GitHubRepository {
   final List<GitHubWorkflow> _workflows;
 
   @override
-  Future<Result<List<GitHubRepo>, AppFailure>> fetchRepos() async =>
-      Ok(_repos);
+  Future<Result<List<GitHubRepo>, AppFailure>> fetchRepos() async => Ok(_repos);
 
   @override
   Future<Result<List<GitHubWorkflow>, AppFailure>> fetchWorkflows(
@@ -70,7 +61,7 @@ const _fakeServer = JenkinsServer(
 
 /// Reused fake from `home_screen_test.dart`'s pattern -- private to each
 /// file since it's not exported there.
-class _FakeJenkinsRepository implements JenkinsRepository {
+class _FakeJenkinsRepository extends FakeJenkinsRepository {
   _FakeJenkinsRepository(this._jobs);
 
   final List<JenkinsJob> _jobs;
@@ -79,64 +70,23 @@ class _FakeJenkinsRepository implements JenkinsRepository {
   Future<Result<List<JenkinsJob>, AppFailure>> fetchJobTree() async =>
       Ok(_jobs);
 
+  /// Home browses lazily (P11-05): the root, or one folder's own children.
   @override
-  Future<Result<JenkinsJob, AppFailure>> fetchJobDetail(String jobUrl) =>
-      throw UnimplementedError();
+  Future<Result<List<JenkinsJob>, AppFailure>> fetchFolder(
+    String? folderUrl,
+  ) async {
+    if (folderUrl == null) return Ok(_jobs);
+    List<JenkinsJob>? find(List<JenkinsJob> jobs) {
+      for (final job in jobs) {
+        if (job.url == folderUrl) return job.jobs ?? const [];
+        final nested = job.jobs == null ? null : find(job.jobs!);
+        if (nested != null) return nested;
+      }
+      return null;
+    }
 
-  @override
-  Future<Result<LogChunk, AppFailure>> streamBuildLog(
-    String buildUrl, {
-    int start = 0,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<Result<List<JenkinsBuild>, AppFailure>> fetchJobHistory(
-    String jobUrl,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Result<String?, AppFailure>> triggerBuild(
-    String jobUrl, {
-    required bool isParameterized,
-    Map<String, String> parameters = const {},
-    String? paramToken,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<Result<void, AppFailure>> cancelBuild(String buildUrl) =>
-      throw UnimplementedError();
-
-  @override
-  Future<Result<QueueItem, AppFailure>> fetchQueueItem(String queueItemUrl) =>
-      throw UnimplementedError();
-
-  @override
-  Future<Result<TestReport?, AppFailure>> fetchTestReport(String buildUrl) =>
-      throw UnimplementedError();
-
-  @override
-  Future<Result<Uint8List, AppFailure>> fetchArtifactBytes(
-    String buildUrl,
-    String relativePath,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Result<List<PipelineStage>?, AppFailure>> fetchPipelineStages(
-    String buildUrl,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Result<PendingInput?, AppFailure>> fetchPendingInput(
-    String buildUrl,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Result<void, AppFailure>> submitInput({
-    required String buildUrl,
-    required String inputId,
-    required bool proceed,
-    Map<String, String> parameters = const {},
-  }) => throw UnimplementedError();
+    return Ok(find(_jobs) ?? const []);
+  }
 }
 
 void main() {

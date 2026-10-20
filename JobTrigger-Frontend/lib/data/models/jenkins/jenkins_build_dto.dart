@@ -44,6 +44,17 @@ abstract class JenkinsBuildDto with _$JenkinsBuildDto {
       includeToJson: false,
     )
     UpstreamCause? upstreamCause,
+    // US-JX-06 "started by me": `userId` of each UserIdCause.
+    @Default(<String>[])
+    @JsonKey(
+      name: 'actions',
+      fromJson: _startedByUserIdsFromJson,
+      includeToJson: false,
+    )
+    List<String> startedByUserIds,
+    // US-JX-14; only requested by the build detail query.
+    String? description,
+    bool? keepLog,
     // US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
     // `items` (each `{msg, author: {fullName}}`) is requested/parsed;
     // `kind` isn't rendered anywhere so it's left off the tree query.
@@ -89,6 +100,17 @@ abstract class BuildArtifactDto with _$BuildArtifactDto {
 
   factory BuildArtifactDto.fromJson(Map<String, dynamic> json) =>
       _$BuildArtifactDtoFromJson(json);
+}
+
+List<String> _startedByUserIdsFromJson(dynamic rawActions) {
+  if (rawActions is! List) return const [];
+  return [
+    for (final action in rawActions)
+      if (action is Map<String, dynamic> && action['causes'] is List)
+        for (final cause in action['causes'] as List)
+          if (cause is Map<String, dynamic> && cause['userId'] is String)
+            cause['userId'] as String,
+  ];
 }
 
 List<String> _causesFromJson(dynamic rawActions) {
@@ -154,9 +176,7 @@ List<ScmChange> _changesFromJson(dynamic rawChangeSet) {
     if (item is! Map<String, dynamic>) continue;
     final message = item['msg'];
     final author = item['author'];
-    final fullName = author is Map<String, dynamic>
-        ? author['fullName']
-        : null;
+    final fullName = author is Map<String, dynamic> ? author['fullName'] : null;
     if (message is String && fullName is String) {
       changes.add(ScmChange(author: fullName, message: message));
     }
@@ -166,6 +186,9 @@ List<ScmChange> _changesFromJson(dynamic rawChangeSet) {
 
 extension JenkinsBuildDtoX on JenkinsBuildDto {
   JenkinsBuild toDomain() => JenkinsBuild(
+    startedByUserIds: startedByUserIds,
+    description: description,
+    keepLog: keepLog,
     number: number,
     url: url,
     result: result,
@@ -178,10 +201,8 @@ extension JenkinsBuildDtoX on JenkinsBuildDto {
     changes: changes,
     artifacts: artifacts
         .map(
-          (a) => BuildArtifact(
-            fileName: a.fileName,
-            relativePath: a.relativePath,
-          ),
+          (a) =>
+              BuildArtifact(fileName: a.fileName, relativePath: a.relativePath),
         )
         .toList(),
     upstreamCause: upstreamCause,

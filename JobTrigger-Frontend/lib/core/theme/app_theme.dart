@@ -45,20 +45,19 @@ class AppTheme {
         scaffoldBackgroundColor: AppColors.backgroundLight,
       );
 
-  static ThemeData dark({Color accentColor = AppColors.brandSeed}) =>
-      ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorScheme:
-            ColorScheme.fromSeed(
-              seedColor: accentColor,
-              brightness: Brightness.dark,
-            ).copyWith(
-              onPrimary: Colors.white,
-              surface: AppColors.backgroundDark,
-              onSurface: AppColors.onSurfaceDark,
-              outline: AppColors.outlineDark,
-            ),
-        scaffoldBackgroundColor: AppColors.backgroundDark,
-      );
+  static ThemeData dark({Color accentColor = AppColors.brandSeed}) => ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    colorScheme:
+        ColorScheme.fromSeed(
+          seedColor: accentColor,
+          brightness: Brightness.dark,
+        ).copyWith(
+          onPrimary: Colors.white,
+          surface: AppColors.backgroundDark,
+          onSurface: AppColors.onSurfaceDark,
+          outline: AppColors.outlineDark,
+        ),
+    scaffoldBackgroundColor: AppColors.backgroundDark,
+  );
 }

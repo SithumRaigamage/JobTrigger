@@ -57,13 +57,11 @@ class _ScriptedAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-Dio _dioWithAdapter(_ScriptedAdapter adapter) =>
-    buildJenkinsDio(
-        baseUrl: 'https://jenkins.test',
-        username: 'user',
-        password: 'pass',
-      )
-      ..httpClientAdapter = adapter;
+Dio _dioWithAdapter(_ScriptedAdapter adapter) => buildJenkinsDio(
+  baseUrl: 'https://jenkins.test',
+  username: 'user',
+  password: 'pass',
+)..httpClientAdapter = adapter;
 
 /// Skips `ActiveServerNotifier`'s real network-backed rehydration — this
 /// test drives active-server changes directly via `setActiveServer`.
@@ -133,29 +131,34 @@ void main() {
   );
 
   group('CSRF crumb interceptor (NFR-SEC-06)', () {
-    test('attaches a crumb header fetched from the crumb issuer on a POST', () async {
-      final adapter = _ScriptedAdapter((options, callNumber) {
-        if (options.path == '/crumbIssuer/api/json') {
-          return (200, {
-            'crumbRequestField': 'Jenkins-Crumb',
-            'crumb': 'abc123',
-          });
-        }
-        return (200, <String, dynamic>{});
-      });
-      final dio = _dioWithAdapter(adapter);
+    test(
+      'attaches a crumb header fetched from the crumb issuer on a POST',
+      () async {
+        final adapter = _ScriptedAdapter((options, callNumber) {
+          if (options.path == '/crumbIssuer/api/json') {
+            return (
+              200,
+              {'crumbRequestField': 'Jenkins-Crumb', 'crumb': 'abc123'},
+            );
+          }
+          return (200, <String, dynamic>{});
+        });
+        final dio = _dioWithAdapter(adapter);
 
-      await dio.post<void>('/job/x/build');
+        await dio.post<void>('/job/x/build');
 
-      final buildRequest = adapter.requests.firstWhere(
-        (r) => r.path == '/job/x/build',
-      );
-      expect(buildRequest.headers['Jenkins-Crumb'], 'abc123');
-      expect(
-        adapter.requests.where((r) => r.path == '/crumbIssuer/api/json').length,
-        1,
-      );
-    });
+        final buildRequest = adapter.requests.firstWhere(
+          (r) => r.path == '/job/x/build',
+        );
+        expect(buildRequest.headers['Jenkins-Crumb'], 'abc123');
+        expect(
+          adapter.requests
+              .where((r) => r.path == '/crumbIssuer/api/json')
+              .length,
+          1,
+        );
+      },
+    );
 
     test('does not fetch a crumb for GET requests', () async {
       final adapter = _ScriptedAdapter(
@@ -202,7 +205,10 @@ void main() {
         final adapter = _ScriptedAdapter((options, callNumber) {
           if (options.path == '/crumbIssuer/api/json') {
             final crumb = callNumber == 1 ? 'stale' : 'fresh';
-            return (200, {'crumbRequestField': 'Jenkins-Crumb', 'crumb': crumb});
+            return (
+              200,
+              {'crumbRequestField': 'Jenkins-Crumb', 'crumb': crumb},
+            );
           }
           if (options.path == '/job/x/build') {
             final attached = options.headers['Jenkins-Crumb'];
@@ -229,10 +235,10 @@ void main() {
       var buildCalls = 0;
       final adapter = _ScriptedAdapter((options, callNumber) {
         if (options.path == '/crumbIssuer/api/json') {
-          return (200, {
-            'crumbRequestField': 'Jenkins-Crumb',
-            'crumb': 'c$callNumber',
-          });
+          return (
+            200,
+            {'crumbRequestField': 'Jenkins-Crumb', 'crumb': 'c$callNumber'},
+          );
         }
         if (options.path == '/job/x/build') {
           buildCalls++;

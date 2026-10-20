@@ -121,7 +121,30 @@ PORT=5001
 
 # JWT secret for auth tokens
 JWT_SECRET=supersecretjwtkey_123456
+
+# Required (AUD-03): encrypts stored Jenkins/GitHub/SonarQube secrets.
+# Base64 of 32 random bytes; generate with:
+#   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+# Keep it stable: rows encrypted with it can't be read without it.
+CREDENTIALS_ENCRYPTION_KEY=<generated value>
+
+# Optional: browser origins allowed by CORS, comma-separated. Leave unset
+# for the mobile app, which sends no Origin and needs no CORS.
+# CORS_ORIGINS=https://admin.example.com
+
+# Optional (AUD-05): failed logins per IP per 15 min (default 10), and
+# signups per IP per hour (default 5). Behind a reverse proxy or load
+# balancer, TRUST_PROXY is the number of proxy hops (e.g. 1), so limits
+# apply to the client's IP rather than the proxy's.
+# LOGIN_RATE_LIMIT=10
+# SIGNUP_RATE_LIMIT=5
+# TRUST_PROXY=1
 ```
+
+`JWT_SECRET`, `MONGODB_URI`, and `CREDENTIALS_ENCRYPTION_KEY` are
+required: without any of them, the server
+prints `Missing required configuration: …` and exits instead of starting
+(AUD-25).
 
 > ⚠️ Never commit `.env` to git — credentials stay private
 

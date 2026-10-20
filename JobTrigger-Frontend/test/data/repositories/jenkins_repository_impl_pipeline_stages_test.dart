@@ -62,19 +62,22 @@ void main() {
       expect(stages!.single.name, 'Build');
     });
 
-    test('returns Ok(null) — not an Err — when Jenkins 404s (not a pipeline job)', () async {
-      final adapter = _FixedResponseAdapter(404);
-      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
-        ..httpClientAdapter = adapter;
-      final repo = JenkinsRepositoryImpl(dio);
+    test(
+      'returns Ok(null) — not an Err — when Jenkins 404s (not a pipeline job)',
+      () async {
+        final adapter = _FixedResponseAdapter(404);
+        final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+          ..httpClientAdapter = adapter;
+        final repo = JenkinsRepositoryImpl(dio);
 
-      final result = await repo.fetchPipelineStages(
-        'https://jenkins.test/job/demo/12',
-      );
+        final result = await repo.fetchPipelineStages(
+          'https://jenkins.test/job/demo/12',
+        );
 
-      expect(result, isA<Ok<List<PipelineStage>?, dynamic>>());
-      expect((result as Ok<List<PipelineStage>?, dynamic>).value, isNull);
-    });
+        expect(result, isA<Ok<List<PipelineStage>?, dynamic>>());
+        expect((result as Ok<List<PipelineStage>?, dynamic>).value, isNull);
+      },
+    );
 
     test('a non-404 failure still maps to Err', () async {
       final adapter = _FixedResponseAdapter(500);

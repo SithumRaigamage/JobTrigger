@@ -3,7 +3,7 @@ const AppInfo = require('../models/AppInfo');
 // @desc    Get application information
 // @route   GET /api/appinfo
 // @access  Public
-const getAppInfo = async (req, res) => {
+const getAppInfo = async (req, res, next) => {
   try {
     // We only ever expect one AppInfo document
     const info = await AppInfo.findOne();
@@ -12,7 +12,7 @@ const getAppInfo = async (req, res) => {
     }
     res.json(info);
   } catch (error) {
-    res.status(500).json({ message: 'Server error retrieving app info', error: error.message });
+    next(error); // AUD-06: logged server-side, generic body to the client.
   }
 };
 

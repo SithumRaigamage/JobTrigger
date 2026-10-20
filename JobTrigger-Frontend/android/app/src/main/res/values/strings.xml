@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_title">Pinned jobs</string>
+    <string name="widget_empty">Pin jobs in JobTrigger</string>
+    <string name="widget_updated">updated %1$s</string>
+    <string name="widget_description">Your pinned Jenkins jobs at a glance</string>
+</resources>

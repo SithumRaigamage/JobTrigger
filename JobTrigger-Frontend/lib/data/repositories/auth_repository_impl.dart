@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/error/app_failure.dart';
+import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../core/network/backend_api_client.dart';
 import '../../domain/auth/auth_repository.dart';
@@ -30,18 +31,22 @@ class AuthRepositoryImpl implements AuthRepository {
     String path, {
     required String email,
     required String password,
-  }) async {
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        path,
-        data: {'email': email, 'password': password},
-      );
-      final dto = AuthResponseDto.fromJson(response.data!);
-      return Ok((user: dto.user.toDomain(), token: dto.token));
-    } on DioException catch (exception) {
-      return Err(AppFailure.fromDioException(exception));
-    }
-  }
+  }) => guardRequest(() async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      path,
+      data: {'email': email, 'password': password},
+    );
+    final dto = AuthResponseDto.fromJson(response.data!);
+    return (
+      user: dto.user.toDomain(),
+      token: dto.token,
+      refreshToken: dto.refreshToken,
+    );
+  });
+
+  @override
+  Future<Result<void, AppFailure>> logoutEverywhere() =>
+      guardRequest(() => _dio.post<void>('/api/auth/logout-all'));
 }
 
 @riverpod

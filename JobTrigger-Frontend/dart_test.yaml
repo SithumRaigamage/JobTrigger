@@ -1,0 +1,7 @@
+tags:
+  # Real-server verification against the fixture Jenkins (P11-01,
+  # NFR-TEST-02). Skipped in normal `flutter test` and CI; run with
+  # `tools/jenkins-fixture/fixture.sh test` after `fixture.sh up`.
+  fixture:
+    skip: "Needs the fixture Jenkins — run tools/jenkins-fixture/fixture.sh up, then fixture.sh test"
+    timeout: 5m

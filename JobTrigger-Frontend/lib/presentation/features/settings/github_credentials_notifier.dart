@@ -16,7 +16,10 @@ class GitHubCredentialsNotifier extends _$GitHubCredentialsNotifier {
     final result = await ref
         .watch(gitHubCredentialsRepositoryProvider)
         .fetchAll();
-    return result.fold((credentials) => credentials, (failure) => throw failure);
+    return result.fold(
+      (credentials) => credentials,
+      (failure) => throw failure,
+    );
   }
 
   Future<void> refresh() async => ref.invalidateSelf();

@@ -20,6 +20,15 @@ class AppColors {
   static const buildAborted = Colors.grey;
   static const buildUnstable = Colors.orange;
 
+  /// Pipeline stage states with no classic build-result equivalent, and the
+  /// Home folder tile (AUD-30). Shades chosen for at least 3:1 icon
+  /// contrast (WCAG 1.4.11) on both the light (`#F8FAFC`) and dark
+  /// (`#0F172A`/`#1E293B`) surfaces; plain amber/orange fall below 2.3:1
+  /// on light.
+  static const buildRunning = Color(0xFF1976D2); // blue 700: 4.40 / 3.18
+  static const buildPaused = Color(0xFFE65100); // orange 900: 3.62 / 3.86
+  static const folder = Color(0xFFF4511E); // deep orange 600: 3.32 / 4.21
+
   static Color forBuildResult(String? result) => switch (result
       ?.toUpperCase()) {
     'SUCCESS' => buildSuccess,

@@ -113,7 +113,9 @@ class _GitHubCredentialEditBottomSheetState
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  _isEditing ? 'Edit GitHub Credential' : 'Add GitHub Credential',
+                  _isEditing
+                      ? 'Edit GitHub Credential'
+                      : 'Add GitHub Credential',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 16),

@@ -6,10 +6,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
+import '../../../domain/jenkins/parameter_file.dart';
+import '../../../domain/jenkins/parameter_values.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../settings/active_server_notifier.dart';
 import 'job_detail_notifier.dart';
 import 'queue_status_notifier.dart';
+import '../app_lock/app_lock_notifier.dart';
 
 part 'trigger_build_notifier.g.dart';
 
@@ -28,7 +31,13 @@ class TriggerBuildNotifier extends _$TriggerBuildNotifier {
   Future<void> trigger({
     required JenkinsJob job,
     Map<String, String> parameters = const {},
+    Map<String, ParameterFile> files = const {},
   }) async {
+    // US-JX-21: re-prompt when the user asked for it.
+    final allowed = await ref
+        .read(appLockNotifierProvider.notifier)
+        .confirmSensitive('Confirm to trigger ${job.label}');
+    if (!allowed || !ref.mounted) return;
     state = const AsyncLoading();
     final paramToken = ref.read(activeServerNotifierProvider)?.paramToken;
 
@@ -37,7 +46,11 @@ class TriggerBuildNotifier extends _$TriggerBuildNotifier {
         .triggerBuild(
           jobUrl,
           isParameterized: job.isParameterized,
-          parameters: parameters,
+          // Blank secrets are omitted so Jenkins keeps its stored default
+          // (US-JX-01) -- applied here so every trigger path (job detail,
+          // replay) gets it.
+          parameters: triggerParameters(job.parameterDefinitions, parameters),
+          files: triggerFiles(job.parameterDefinitions, files),
           paramToken: paramToken,
         );
 
@@ -60,7 +73,7 @@ class TriggerBuildNotifier extends _$TriggerBuildNotifier {
             .show(
               type: ToastType.success,
               title: 'Build Triggered',
-              message: 'A new build for ${job.name} has been requested.',
+              message: 'A new build for ${job.label} has been requested.',
             );
       case Err(:final error):
         state = AsyncError(error, StackTrace.current);

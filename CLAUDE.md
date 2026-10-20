@@ -14,7 +14,8 @@ feature-first Clean Architecture with Riverpod**.
 
 The Node.js/Express + MongoDB backend is **kept, not rewritten** — it only
 stores user accounts and Jenkins server credentials. Flutter talks to:
-1. `JobTrigger-Backend` for auth + credential storage (JWT bearer).
+1. `JobTrigger-Backend` for auth + credential storage (JWT sent as an
+   `x-auth-token` header, not `Authorization: Bearer`).
 2. Jenkins servers directly over REST + HTTP Basic Auth (no backend proxy).
 
 Do not conflate these two APIs — they have different auth schemes and error
@@ -47,6 +48,12 @@ creating) its task entry first, and update the task's status when done.
 | Testing | `flutter_test`, `mocktail`, `riverpod_test` | Unit tests for repositories/notifiers are mandatory for Phase 2+ |
 | Share sheet | `share_plus` | Added in Phase 5 (P5-12) — the build-log copy/share action, explicitly named by that task's own text. Not a substitution of anything on this list, narrowly scoped to one feature. |
 | App version info | `package_info_plus` | Added in Phase 6 (P6-01) — the profile screen's app version footer needs the real installed version/build number, not a hardcoded string. |
+| File picking | `file_picker` | Added in Phase 11 (P11-06, approved 2026-09-29) — Jenkins file parameters (US-JX-02) need the user to choose a local file for a multipart trigger. Paths only; the app keeps no copy. |
+| Temp files | `path_provider` | Added in Phase 11 (P11-11, approved 2026-09-29) — "Save full log" streams `consoleText` to a temp file to share, then deletes it; also backs artifact streaming (P12-08) and the offline tree cache (P11-23). |
+| Local notifications | `flutter_local_notifications` | Added in Phase 11 (P11-24, approved 2026-09-29) — "notify me when this build finishes" (US-JX-10). Local only; no push server or FCM/APNs account involved. |
+| Background work | `workmanager` | Added in Phase 11 (P11-24, approved 2026-09-29) — a best-effort periodic check of watched builds while the app is closed (US-JX-10). Registered only while at least one watch exists. |
+| Biometric auth | `local_auth` | Added in Phase 11 (P11-25, approved 2026-09-29) — the optional app lock (US-JX-21): Face ID / fingerprint with the device passcode as fallback. Gates the UI only; secrets stay in secure storage either way. |
+| Home-screen widget | `home_widget` | Added in Phase 11 (P11-26, approved 2026-09-29) — hands the pinned-jobs snapshot (US-JX-23) to the native widgets: an iOS WidgetKit extension (`ios/PinnedJobsWidget`, App Group `group.Sraig.Lab-Trigger-frontend`) and an Android `AppWidgetProvider`. The widgets never call Jenkins and hold no credentials. |
 | External links | `url_launcher` | Added in Phase 6 (P6-02) — the app info screen opens privacy policy/terms/licenses URLs and a `mailto:` support link, matching `AppInfoView.swift`'s `openURL` usage exactly. |
 
 Do not introduce a second state-management library, a second HTTP client, or

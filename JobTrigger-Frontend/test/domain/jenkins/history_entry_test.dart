@@ -68,11 +68,32 @@ void main() {
     ]);
   });
 
-  test('id combines job name and build number', () {
+  test('id is the build URL', () {
     final entry = HistoryEntry(
       jobName: 'backend',
       build: _build(number: 5, timestamp: 1000),
     );
-    expect(entry.id, 'backend-5');
+    expect(entry.id, 'https://jenkins.test/5/');
+  });
+
+  test('same-named jobs in different folders get distinct ids (AUD-09)', () {
+    JenkinsJob branch(String repo) => JenkinsJob(
+      name: 'main',
+      url: 'https://jenkins.test/job/$repo/job/main/',
+      lastBuild: JenkinsBuild(
+        number: 1,
+        url: 'https://jenkins.test/job/$repo/job/main/1/',
+        timestamp: 1000,
+      ),
+    );
+    final tree = [
+      _job('api', jobs: [branch('api')]),
+      _job('web', jobs: [branch('web')]),
+    ];
+
+    final ids = buildHistoryTimeline(tree).map((entry) => entry.id).toList();
+
+    expect(ids, hasLength(2));
+    expect(ids.toSet(), hasLength(2));
   });
 }

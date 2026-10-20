@@ -5,13 +5,19 @@ import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/credentials_repository_impl.dart';
 import 'package:job_trigger/data/repositories/github_credentials_repository_impl.dart';
+import 'package:job_trigger/data/repositories/sonarqube_credentials_repository_impl.dart';
 import 'package:job_trigger/domain/credential/credentials_repository.dart';
 import 'package:job_trigger/domain/credential/github_credential.dart';
 import 'package:job_trigger/domain/credential/github_credentials_repository.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
+import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
+import 'package:job_trigger/domain/credential/sonarqube_credentials_repository.dart';
+import 'package:job_trigger/core/platform/biometric_service.dart';
+import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
 import 'package:job_trigger/presentation/features/settings/settings_screen.dart';
 import 'package:job_trigger/presentation/features/tool_selection/active_tool_notifier.dart';
 import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
+import '../../../support/fake_biometric_service.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
 /// Minimal fakes — only `fetchAll` is exercised by this smoke test.
@@ -25,7 +31,8 @@ class _FakeCredentialsRepository implements CredentialsRepository {
       Ok(List.of(_servers));
 
   @override
-  Future<Result<void, AppFailure>> delete(String id) => throw UnimplementedError();
+  Future<Result<void, AppFailure>> delete(String id) =>
+      throw UnimplementedError();
 
   @override
   Future<Result<JenkinsServer, AppFailure>> add({
@@ -63,7 +70,8 @@ class _FakeGitHubCredentialsRepository implements GitHubCredentialsRepository {
       Ok(List.of(_credentials));
 
   @override
-  Future<Result<void, AppFailure>> delete(String id) => throw UnimplementedError();
+  Future<Result<void, AppFailure>> delete(String id) =>
+      throw UnimplementedError();
 
   @override
   Future<Result<GitHubCredential, AppFailure>> add({
@@ -87,6 +95,44 @@ class _FakeGitHubCredentialsRepository implements GitHubCredentialsRepository {
       throw UnimplementedError();
 }
 
+class _FakeSonarQubeCredentialsRepository
+    implements SonarQubeCredentialsRepository {
+  _FakeSonarQubeCredentialsRepository(this._credentials);
+
+  final List<SonarQubeCredential> _credentials;
+
+  @override
+  Future<Result<List<SonarQubeCredential>, AppFailure>> fetchAll() async =>
+      Ok(List.of(_credentials));
+
+  @override
+  Future<Result<void, AppFailure>> delete(String id) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Result<SonarQubeCredential, AppFailure>> add({
+    required String label,
+    required String baseUrl,
+    required String secret,
+    String? defaultOrganization,
+    bool isDefault = false,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Result<SonarQubeCredential, AppFailure>> update(
+    String id, {
+    required String label,
+    required String baseUrl,
+    required String secret,
+    String? defaultOrganization,
+    bool isDefault = false,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Result<SonarQubeCredential, AppFailure>> switchActive(String id) =>
+      throw UnimplementedError();
+}
+
 void main() {
   setUp(() {
     SharedPreferencesStorePlatform.instance =
@@ -104,6 +150,9 @@ void main() {
           ),
           gitHubCredentialsRepositoryProvider.overrideWithValue(
             _FakeGitHubCredentialsRepository(const []),
+          ),
+          sonarQubeCredentialsRepositoryProvider.overrideWithValue(
+            _FakeSonarQubeCredentialsRepository(const []),
           ),
         ],
       );
@@ -138,6 +187,9 @@ void main() {
           ),
           gitHubCredentialsRepositoryProvider.overrideWithValue(
             _FakeGitHubCredentialsRepository(const []),
+          ),
+          sonarQubeCredentialsRepositoryProvider.overrideWithValue(
+            _FakeSonarQubeCredentialsRepository(const []),
           ),
         ],
       );
@@ -189,6 +241,9 @@ void main() {
           gitHubCredentialsRepositoryProvider.overrideWithValue(
             _FakeGitHubCredentialsRepository(const []),
           ),
+          sonarQubeCredentialsRepositoryProvider.overrideWithValue(
+            _FakeSonarQubeCredentialsRepository(const []),
+          ),
         ],
       );
       addTearDown(container.dispose);
@@ -206,23 +261,61 @@ void main() {
     },
   );
 
+  testWidgets('renders a populated GitHub list when GitHub Actions is active, '
+      'without throwing', (tester) async {
+    const credential = GitHubCredential(
+      id: 'g1',
+      label: 'Personal',
+      secret: 'ghp_faketoken',
+      isDefault: true,
+    );
+    final container = ProviderContainer(
+      overrides: [
+        credentialsRepositoryProvider.overrideWithValue(
+          _FakeCredentialsRepository(const []),
+        ),
+        gitHubCredentialsRepositoryProvider.overrideWithValue(
+          _FakeGitHubCredentialsRepository(const [credential]),
+        ),
+        sonarQubeCredentialsRepositoryProvider.overrideWithValue(
+          _FakeSonarQubeCredentialsRepository(const []),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: SettingsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    container
+        .read(activeToolNotifierProvider.notifier)
+        .setActiveTool(CiTool.githubActions);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Personal'), findsOneWidget);
+  });
+
   testWidgets(
-    'renders a populated GitHub list when GitHub Actions is active, '
-    'without throwing',
+    'shows only the SonarQube section (with its empty state) when SonarQube '
+    'is the active tool -- mirrors the GitHub case, a third tool must not '
+    'leak into or be leaked into by the other two',
     (tester) async {
-      const credential = GitHubCredential(
-        id: 'g1',
-        label: 'Personal',
-        secret: 'ghp_faketoken',
-        isDefault: true,
-      );
       final container = ProviderContainer(
         overrides: [
           credentialsRepositoryProvider.overrideWithValue(
             _FakeCredentialsRepository(const []),
           ),
           gitHubCredentialsRepositoryProvider.overrideWithValue(
-            _FakeGitHubCredentialsRepository(const [credential]),
+            _FakeGitHubCredentialsRepository(const []),
+          ),
+          sonarQubeCredentialsRepositoryProvider.overrideWithValue(
+            _FakeSonarQubeCredentialsRepository(const []),
           ),
         ],
       );
@@ -238,11 +331,125 @@ void main() {
 
       container
           .read(activeToolNotifierProvider.notifier)
-          .setActiveTool(CiTool.githubActions);
+          .setActiveTool(CiTool.sonarqube);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('SONARQUBE'), findsOneWidget);
+      expect(find.text('No SonarQube Credentials Yet'), findsOneWidget);
+      expect(find.text('JENKINS SERVERS'), findsNothing);
+      expect(find.text('No Servers Yet'), findsNothing);
+      expect(find.text('GITHUB'), findsNothing);
+      expect(find.text('No GitHub Credentials Yet'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'renders a populated SonarQube list when SonarQube is active, without '
+    'throwing',
+    (tester) async {
+      const credential = SonarQubeCredential(
+        id: 'sq1',
+        label: 'Personal',
+        baseUrl: 'https://sonarcloud.io',
+        secret: 'squ_faketoken',
+        isDefault: true,
+      );
+      final container = ProviderContainer(
+        overrides: [
+          credentialsRepositoryProvider.overrideWithValue(
+            _FakeCredentialsRepository(const []),
+          ),
+          gitHubCredentialsRepositoryProvider.overrideWithValue(
+            _FakeGitHubCredentialsRepository(const []),
+          ),
+          sonarQubeCredentialsRepositoryProvider.overrideWithValue(
+            _FakeSonarQubeCredentialsRepository(const [credential]),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: SettingsScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      container
+          .read(activeToolNotifierProvider.notifier)
+          .setActiveTool(CiTool.sonarqube);
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
       expect(find.text('Personal'), findsOneWidget);
     },
   );
+
+  group('app lock (US-JX-21)', () {
+    Future<ProviderContainer> pumpSettings(
+      WidgetTester tester,
+      FakeBiometricService biometrics,
+    ) async {
+      final container = ProviderContainer(
+        overrides: [
+          credentialsRepositoryProvider.overrideWithValue(
+            _FakeCredentialsRepository(const []),
+          ),
+          gitHubCredentialsRepositoryProvider.overrideWithValue(
+            _FakeGitHubCredentialsRepository(const []),
+          ),
+          sonarQubeCredentialsRepositoryProvider.overrideWithValue(
+            _FakeSonarQubeCredentialsRepository(const []),
+          ),
+          biometricServiceProvider.overrideWithValue(biometrics),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(currentToastProvider, (_, _) {});
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: SettingsScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return container;
+    }
+
+    testWidgets('turning it on reveals the timeout and actions options', (
+      tester,
+    ) async {
+      await pumpSettings(tester, FakeBiometricService());
+      expect(find.text('Lock after leaving the app'), findsNothing);
+
+      await tester.tap(find.text('Require biometrics'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Lock after leaving the app'), findsOneWidget);
+      expect(find.text('After 5 minutes'), findsOneWidget);
+      expect(find.text('Require for actions'), findsOneWidget);
+    });
+
+    testWidgets('without device security it explains why it stays off', (
+      tester,
+    ) async {
+      final container = await pumpSettings(
+        tester,
+        FakeBiometricService(AuthOutcome.unavailable),
+      );
+
+      await tester.tap(find.text('Require biometrics'));
+      await tester.pump();
+
+      expect(
+        container.read(currentToastProvider)?.title,
+        "Can't turn on app lock",
+      );
+      expect(find.text('Lock after leaving the app'), findsNothing);
+      await tester.pump(const Duration(seconds: 4)); // Toast auto-dismiss.
+    });
+  });
 }

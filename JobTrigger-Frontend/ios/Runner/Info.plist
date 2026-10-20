@@ -66,5 +66,33 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- US-JX-19: jobtrigger://app/open?url=<Jenkins URL> -->
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.sraig.jobtrigger</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>jobtrigger</string>
+			</array>
+		</dict>
+	</array>
+	<!-- US-JX-21: the biometric app lock. -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>Face ID keeps JobTrigger locked so no one else can trigger builds from your phone.</string>
+	<!-- US-JX-10: background build-watch check (workmanager). The id must
+	     match buildWatchTaskName in background_watch.dart. -->
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>jobtrigger.buildWatch</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
 </dict>
 </plist>

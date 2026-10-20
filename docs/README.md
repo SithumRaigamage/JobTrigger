@@ -27,6 +27,10 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 
 - **[Integration Testing](./integration-testing.md)** — Real end-to-end tests on a live simulator, via `integration_test` (not Playwright — see why)
 
+## 🔒 Quality & Security
+
+- **[Workspace Audit — 2026-09-29](./audit/2026-09-29-workspace-audit.md)** — Security, bug, UX, performance, and release findings (`AUD-##`) with severity and remediation status
+
 ## 📦 Release
 
 - **[Deployment](./deployment.md)** — App Store / Play Store submission process, CI/CD tooling options, what's blocked on store accounts vs. code
@@ -58,6 +62,8 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 | Old → new models | [Data Models](./data-models.md) |
 | Migration timeline | [Migration Strategy](./migration-strategy.md) |
 | Database schema & migrations | [Database Migrations](./database-migrations.md) |
+| Known issues / audit findings | [Workspace Audit](./audit/2026-09-29-workspace-audit.md) |
+| User stories (all epics) | [User Stories](./user-stories/README.md) |
 | Store deployment & CI/CD | [Deployment](./deployment.md) |
 | Project rules | [CLAUDE.md](../CLAUDE.md) |
 | What's left to do | [Tasks](../tasks/README.md) |

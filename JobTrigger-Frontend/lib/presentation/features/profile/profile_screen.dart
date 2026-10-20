@@ -4,13 +4,19 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/platform/package_info_provider.dart';
 import '../../../domain/auth/auth_state.dart';
+import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
+import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../auth/auth_notifier.dart';
+import '../settings/active_github_credential_notifier.dart';
 import '../settings/active_server_notifier.dart';
 import '../settings/credentials_notifier.dart';
+import '../settings/github_credentials_notifier.dart';
+import '../tool_selection/active_tool_notifier.dart';
+import '../tool_selection/ci_tool.dart';
 
 /// Ported from `ProfileView.swift`. Deliberately skips the old app's
 /// "Change Password" / "Security Settings" rows — both were unimplemented
@@ -24,9 +30,7 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider).value;
     final email = authState is Authenticated ? authState.user.email : '';
-    final activeServer = ref.watch(activeServerNotifierProvider);
-    final serversCount =
-        ref.watch(credentialsNotifierProvider).value?.length ?? 0;
+    final activeTool = ref.watch(activeToolNotifierProvider);
     final packageInfoAsync = ref.watch(packageInfoProvider);
 
     return Scaffold(
@@ -80,28 +84,7 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.dns_outlined),
-                    title: const Text('Active Server'),
-                    trailing: Text(activeServer?.serverName ?? 'None'),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.link),
-                    title: const Text('Server URL'),
-                    trailing: SizedBox(
-                      width: 180,
-                      child: Text(
-                        activeServer?.jenkinsURL ?? '—',
-                        textAlign: TextAlign.right,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.folder_outlined),
-                    title: const Text('Saved Servers'),
-                    trailing: Text('$serversCount'),
-                  ),
+                  ..._sessionTiles(ref, activeTool),
                 ],
               ),
             ),
@@ -124,8 +107,7 @@ class ProfileScreen extends ConsumerWidget {
                     title: const Text('Version'),
                     trailing: Text(
                       packageInfoAsync.when(
-                        data: (info) =>
-                            '${info.version} (${info.buildNumber})',
+                        data: (info) => '${info.version} (${info.buildNumber})',
                         loading: () => '…',
                         error: (error, stackTrace) => '—',
                       ),
@@ -161,9 +143,103 @@ class ProfileScreen extends ConsumerWidget {
                 child: const Text('Log Out'),
               ),
             ),
+            // AUD-26: revoke every session, e.g. after losing a phone.
+            Center(
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+                onPressed: () => _logoutEverywhere(context, ref),
+                child: const Text('Log out of all devices'),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _logoutEverywhere(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Log out of all devices?',
+      message:
+          'Every device signed in to this account, including this one, '
+          'will need to log in again.',
+      confirmLabel: 'Log out everywhere',
+      destructive: true,
+    );
+    if (!confirmed || !context.mounted) return;
+    // Read before the await: a successful logout leaves this screen.
+    final toast = ref.read(toastControllerProvider);
+    final failure = await ref
+        .read(authNotifierProvider.notifier)
+        .logoutEverywhere();
+    if (failure == null) return;
+    toast.show(
+      type: ToastType.error,
+      title: "Couldn't log out everywhere",
+      message: failure.message,
+    );
+  }
+
+  /// "Current Session" tiles, specific to the active CI tool -- Jenkins and
+  /// GitHub Actions have their own independent active-credential state
+  /// (`NFR-SEC-03`) with different shapes (a server URL vs. an optional
+  /// default owner/org filter), so this can't be one tool-agnostic set of
+  /// tiles.
+  List<Widget> _sessionTiles(WidgetRef ref, CiTool? activeTool) {
+    if (activeTool == CiTool.githubActions) {
+      final activeCredential = ref.watch(
+        activeGitHubCredentialNotifierProvider,
+      );
+      final credentialsCount =
+          ref.watch(gitHubCredentialsNotifierProvider).value?.length ?? 0;
+      return [
+        ListTile(
+          leading: const Icon(Icons.vpn_key_outlined),
+          title: const Text('Active Credential'),
+          trailing: Text(activeCredential?.label ?? 'None'),
+        ),
+        ListTile(
+          leading: const Icon(Icons.business_outlined),
+          title: const Text('Default Owner'),
+          trailing: Text(activeCredential?.defaultOwner ?? '—'),
+        ),
+        ListTile(
+          leading: const Icon(Icons.folder_outlined),
+          title: const Text('Saved Credentials'),
+          trailing: Text('$credentialsCount'),
+        ),
+      ];
+    }
+
+    final activeServer = ref.watch(activeServerNotifierProvider);
+    final serversCount =
+        ref.watch(credentialsNotifierProvider).value?.length ?? 0;
+    return [
+      ListTile(
+        leading: const Icon(Icons.dns_outlined),
+        title: const Text('Active Server'),
+        trailing: Text(activeServer?.serverName ?? 'None'),
+      ),
+      ListTile(
+        leading: const Icon(Icons.link),
+        title: const Text('Server URL'),
+        trailing: SizedBox(
+          width: 180,
+          child: Text(
+            activeServer?.jenkinsURL ?? '—',
+            textAlign: TextAlign.right,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+      ListTile(
+        leading: const Icon(Icons.folder_outlined),
+        title: const Text('Saved Servers'),
+        trailing: Text('$serversCount'),
+      ),
+    ];
   }
 }

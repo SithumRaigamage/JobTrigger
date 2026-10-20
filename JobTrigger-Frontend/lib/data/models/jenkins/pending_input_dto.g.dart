@@ -15,11 +15,12 @@ _PendingInputDto _$PendingInputDtoFromJson(Map<String, dynamic> json) =>
       inputs:
           (json['inputs'] as List<dynamic>?)
               ?.map(
-                (e) =>
-                    ParameterDefinitionDto.fromJson(e as Map<String, dynamic>),
+                (e) => PendingInputParameterDto.fromJson(
+                  e as Map<String, dynamic>,
+                ),
               )
               .toList() ??
-          const <ParameterDefinitionDto>[],
+          const <PendingInputParameterDto>[],
     );
 
 Map<String, dynamic> _$PendingInputDtoToJson(_PendingInputDto instance) =>
@@ -30,3 +31,41 @@ Map<String, dynamic> _$PendingInputDtoToJson(_PendingInputDto instance) =>
       'abortText': instance.abortText,
       'inputs': instance.inputs,
     };
+
+_PendingInputParameterDto _$PendingInputParameterDtoFromJson(
+  Map<String, dynamic> json,
+) => _PendingInputParameterDto(
+  name: json['name'] as String,
+  type: json['type'] as String,
+  description: json['description'] as String?,
+  definition: json['definition'] == null
+      ? null
+      : PendingInputParameterDefinitionDto.fromJson(
+          json['definition'] as Map<String, dynamic>,
+        ),
+);
+
+Map<String, dynamic> _$PendingInputParameterDtoToJson(
+  _PendingInputParameterDto instance,
+) => <String, dynamic>{
+  'name': instance.name,
+  'type': instance.type,
+  'description': instance.description,
+  'definition': instance.definition,
+};
+
+_PendingInputParameterDefinitionDto
+_$PendingInputParameterDefinitionDtoFromJson(Map<String, dynamic> json) =>
+    _PendingInputParameterDefinitionDto(
+      defaultVal: json['defaultVal'],
+      choices: (json['choices'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+    );
+
+Map<String, dynamic> _$PendingInputParameterDefinitionDtoToJson(
+  _PendingInputParameterDefinitionDto instance,
+) => <String, dynamic>{
+  'defaultVal': instance.defaultVal,
+  'choices': instance.choices,
+};

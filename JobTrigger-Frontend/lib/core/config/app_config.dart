@@ -30,6 +30,12 @@ class AppConfig {
 
   final AppEnvironment environment;
   final String backendBaseUrl;
+
+  /// Jenkins versions older than this get an informational "consider
+  /// upgrading" note in Settings (US-JX-18). Roughly a year of LTS lines
+  /// back from the one the app is verified against (2.568.3). Bump it
+  /// alongside the fixture's pinned version.
+  static const recommendedJenkinsBaseline = '2.516.1';
 }
 
 @riverpod

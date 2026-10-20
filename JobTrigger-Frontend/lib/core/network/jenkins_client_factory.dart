@@ -7,6 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../presentation/features/settings/active_server_notifier.dart';
 import '../error/app_failure.dart';
+import '../error/guard.dart';
 import '../error/result.dart';
 
 part 'jenkins_client_factory.g.dart';
@@ -189,11 +190,11 @@ Future<Result<int, AppFailure>> testJenkinsConnection({
     password: password,
   );
   try {
-    final response = await dio.get<Map<String, dynamic>>('/api/json');
-    final jobs = response.data?['jobs'] as List<dynamic>?;
-    return Ok(jobs?.length ?? 0);
-  } on DioException catch (exception) {
-    return Err(AppFailure.fromDioException(exception));
+    return await guardRequest(() async {
+      final response = await dio.get<Map<String, dynamic>>('/api/json');
+      final jobs = response.data?['jobs'] as List<dynamic>?;
+      return jobs?.length ?? 0;
+    });
   } finally {
     dio.close();
   }

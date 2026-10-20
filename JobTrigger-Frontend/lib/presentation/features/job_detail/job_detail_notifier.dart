@@ -27,20 +27,11 @@ class JobDetailNotifier extends _$JobDetailNotifier {
     final current = state.value;
     if (current?.lastBuild == null) return;
     state = AsyncData(
-      JenkinsJob(
-        name: current!.name,
-        url: current.url,
-        description: current.description,
-        color: current.color,
-        jobs: current.jobs,
+      current!.copyWith(
         lastBuild: current.lastBuild!.copyWith(
           result: 'ABORTED',
           building: false,
         ),
-        healthReport: current.healthReport,
-        property: current.property,
-        builds: current.builds,
-        downstreamProjects: current.downstreamProjects,
       ),
     );
   }

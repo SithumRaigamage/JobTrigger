@@ -22,6 +22,10 @@ check "where are we."
 | Release | `release-checklist.md` | pending | Phase 6 |
 | 7 — Pipeline & build insights (epic PIPE) | `phase-7-pipeline-insights.md` | done | none — new scope, not required for parity |
 | 8 — GitHub Actions integration (epic GH) | `phase-8-github-actions.md` | in-progress (Backend + GH-CRED + GH-REPO done, P8-00..11 of 28) | none — second CI tool, promoted from `backlog.md` |
+| 9 — Testing, CI/CD hardening, dev tooling (epic HARDEN) | `phase-9-testing-cicd-hardening.md` | done | none — dev/QA/tooling work, promoted from a direct user request 2026-09-15 |
+| 10 — SonarQube integration (epic SQ) | `phase-10-sonarqube.md` | in-progress (Backend + SQ-CRED done, P10-00..06 of 16) | none — fourth CI tool, promoted from `backlog.md` |
+| 11 — Jenkins extended capabilities (epic JX) | `phase-11-jenkins-extended.md` | done 2026-09-30 (P11-01..28; P11-27 closed as won't-do by its verification gate). Only P11-03 is open, **blocked** on a physical Android device and tracked in `release-checklist.md` | P12-04 (shared repository guard); P11-01 fixture Jenkins for verification |
+| 12 — Audit remediation (epic AUDIT) | `phase-12-audit-remediation.md` | done 2026-10-01 (P12-01..11 frontend, P12-20..27 backend). Audit: 41 findings, all fixed; tracker: `docs/audit/2026-09-29-workspace-audit.md`. Open follow-up noted there: the SwiftUI-parity `buildUnstable` orange is below 3:1 on light | none; backend-track items need per-item approval; P12-06 needs a product decision on LAN `http://` |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." A handful

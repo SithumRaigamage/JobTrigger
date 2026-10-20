@@ -8,7 +8,12 @@ import 'session_signal.dart';
 
 part 'backend_api_client.g.dart';
 
-const _publicPaths = ['/auth/signup', '/auth/login', '/appinfo'];
+const _publicPaths = [
+  '/auth/signup',
+  '/auth/login',
+  '/auth/refresh',
+  '/appinfo',
+];
 
 /// Builds the backend `Dio` client: attaches an `x-auth-token: <token>`
 /// header from secure storage on every request except signup/login/appinfo,
@@ -49,6 +54,11 @@ Dio buildBackendDio({
     ),
   );
 
+  // Every 401 that arrives while a refresh is in flight waits for that one
+  // refresh rather than starting its own (the old refresh token would
+  // otherwise be spent several times over).
+  Future<String?>? refreshing;
+
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -61,10 +71,31 @@ Dio buildBackendDio({
         handler.next(options);
       },
       onError: (error, handler) async {
-        if (error.response?.statusCode == 401) {
-          await secureStorage.clear();
-          onUnauthorized?.call();
+        final options = error.requestOptions;
+        if (error.response?.statusCode != 401 ||
+            _publicPaths.any(options.path.contains)) {
+          return handler.next(error);
         }
+        // AUD-26: the 15-minute access token expired (or was revoked).
+        // Renew it once and replay the request; only if that fails is the
+        // session really over.
+        if (options.extra[_retriedKey] != true) {
+          final token = await (refreshing ??= _refresh(
+            dio,
+            secureStorage,
+          ).whenComplete(() => refreshing = null));
+          if (token != null) {
+            options.headers['x-auth-token'] = token;
+            options.extra[_retriedKey] = true;
+            try {
+              return handler.resolve(await dio.fetch<dynamic>(options));
+            } on DioException catch (retryError) {
+              return handler.next(retryError);
+            }
+          }
+        }
+        await secureStorage.clear();
+        onUnauthorized?.call();
         handler.next(error);
       },
     ),
@@ -77,6 +108,38 @@ Dio buildBackendDio({
   }
 
   return dio;
+}
+
+const _retriedKey = 'jobtrigger.retriedAfterRefresh';
+
+/// Trades the stored refresh token for a new pair and stores it. Returns
+/// the new access token, or null when there's no refresh token or the
+/// server refused it (revoked, expired, or an older backend without
+/// `/api/auth/refresh`).
+///
+/// Uses a bare client, sharing [dio]'s adapter, so a failing refresh can't
+/// loop back through the interceptor.
+Future<String?> _refresh(Dio dio, SecureStorageService secureStorage) async {
+  final refreshToken = await secureStorage.readRefreshToken();
+  if (refreshToken == null) return null;
+  final bare = Dio(dio.options.copyWith())
+    ..httpClientAdapter = dio.httpClientAdapter;
+  try {
+    final response = await bare.post<Map<String, dynamic>>(
+      '/api/auth/refresh',
+      data: {'refreshToken': refreshToken},
+    );
+    final token = response.data?['token'];
+    final nextRefresh = response.data?['refreshToken'];
+    if (token is! String) return null;
+    await secureStorage.saveToken(token);
+    if (nextRefresh is String) {
+      await secureStorage.saveRefreshToken(nextRefresh);
+    }
+    return token;
+  } on DioException {
+    return null;
+  }
 }
 
 @Riverpod(keepAlive: true)

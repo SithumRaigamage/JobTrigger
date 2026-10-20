@@ -53,34 +53,54 @@ void main() {
       },
     );
 
-    test('mixed: known, new, and removed parameters all reconcile correctly', () {
-      const definitions = [
-        ParameterDefinition(name: 'BRANCH', type: 'StringParameterDefinition'),
-        ParameterDefinition(
-          name: 'NEW_PARAM',
-          type: 'StringParameterDefinition',
-          defaultValue: 'current-default',
-        ),
-      ];
+    test(
+      'mixed: known, new, and removed parameters all reconcile correctly',
+      () {
+        const definitions = [
+          ParameterDefinition(
+            name: 'BRANCH',
+            type: 'StringParameterDefinition',
+          ),
+          ParameterDefinition(
+            name: 'NEW_PARAM',
+            type: 'StringParameterDefinition',
+            defaultValue: 'current-default',
+          ),
+        ];
 
-      final reconciled = reconcileReplayParameters(definitions, {
-        'BRANCH': 'release/1.2',
-        'REMOVED_PARAM': 'x',
-      });
+        final reconciled = reconcileReplayParameters(definitions, {
+          'BRANCH': 'release/1.2',
+          'REMOVED_PARAM': 'x',
+        });
 
-      expect(reconciled, hasLength(2));
-      expect(
-        reconciled.firstWhere((d) => d.name == 'BRANCH').defaultValue,
-        'release/1.2',
-      );
-      expect(
-        reconciled.firstWhere((d) => d.name == 'NEW_PARAM').defaultValue,
-        'current-default',
-      );
-    });
+        expect(reconciled, hasLength(2));
+        expect(
+          reconciled.firstWhere((d) => d.name == 'BRANCH').defaultValue,
+          'release/1.2',
+        );
+        expect(
+          reconciled.firstWhere((d) => d.name == 'NEW_PARAM').defaultValue,
+          'current-default',
+        );
+      },
+    );
 
     test('no parameters at all returns an empty list', () {
       expect(reconcileReplayParameters(const [], const {}), isEmpty);
     });
+  });
+
+  test('never replays a secret -- it stays blank for the server default', () {
+    final result = reconcileReplayParameters(
+      const [
+        ParameterDefinition(
+          name: 'DEPLOY_TOKEN',
+          type: 'PasswordParameterDefinition',
+        ),
+      ],
+      {'DEPLOY_TOKEN': 'historic-secret'},
+    );
+
+    expect(result.single.defaultValue, isNull);
   });
 }

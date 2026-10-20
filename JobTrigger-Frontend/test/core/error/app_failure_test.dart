@@ -51,12 +51,12 @@ void main() {
       expect(failure, isA<AuthFailure>());
     });
 
-    test('403 bad response maps to AuthFailure', () {
+    test('403 bad response maps to PermissionFailure, not AuthFailure', () {
       final failure = AppFailure.fromDioException(
         _exception(type: DioExceptionType.badResponse, statusCode: 403),
       );
 
-      expect(failure, isA<AuthFailure>());
+      expect(failure, isA<PermissionFailure>());
     });
 
     test('404 bad response maps to NotFoundFailure', () {
@@ -87,25 +87,22 @@ void main() {
   });
 
   group('AppFailure.fromGitHubException', () {
-    test(
-      'a 403 with X-RateLimit-Remaining: 0 maps to RateLimitFailure',
-      () {
-        final failure = AppFailure.fromGitHubException(
-          _exception(
-            type: DioExceptionType.badResponse,
-            statusCode: 403,
-            headers: {
-              'x-ratelimit-remaining': ['0'],
-            },
-          ),
-        );
+    test('a 403 with X-RateLimit-Remaining: 0 maps to RateLimitFailure', () {
+      final failure = AppFailure.fromGitHubException(
+        _exception(
+          type: DioExceptionType.badResponse,
+          statusCode: 403,
+          headers: {
+            'x-ratelimit-remaining': ['0'],
+          },
+        ),
+      );
 
-        expect(failure, isA<RateLimitFailure>());
-      },
-    );
+      expect(failure, isA<RateLimitFailure>());
+    });
 
     test(
-      'a 403 with a non-zero X-RateLimit-Remaining is a plain AuthFailure',
+      'a 403 with a non-zero X-RateLimit-Remaining is a plain PermissionFailure',
       () {
         final failure = AppFailure.fromGitHubException(
           _exception(
@@ -117,17 +114,20 @@ void main() {
           ),
         );
 
-        expect(failure, isA<AuthFailure>());
+        expect(failure, isA<PermissionFailure>());
       },
     );
 
-    test('a 403 with no rate-limit header at all is a plain AuthFailure', () {
-      final failure = AppFailure.fromGitHubException(
-        _exception(type: DioExceptionType.badResponse, statusCode: 403),
-      );
+    test(
+      'a 403 with no rate-limit header at all is a plain PermissionFailure',
+      () {
+        final failure = AppFailure.fromGitHubException(
+          _exception(type: DioExceptionType.badResponse, statusCode: 403),
+        );
 
-      expect(failure, isA<AuthFailure>());
-    });
+        expect(failure, isA<PermissionFailure>());
+      },
+    );
 
     test('delegates to fromDioException for everything else (401)', () {
       final failure = AppFailure.fromGitHubException(
@@ -147,5 +147,18 @@ void main() {
         expect(failure, isA<NetworkFailure>());
       },
     );
+  });
+
+  group('AppFailure.message', () {
+    test('a backend 429 asks the user to wait (AUD-05)', () {
+      expect(
+        const ServerFailure(429).message,
+        'Too many attempts. Please wait a few minutes and try again.',
+      );
+    });
+
+    test('other server errors keep the status code', () {
+      expect(const ServerFailure(502).message, contains('HTTP 502'));
+    });
   });
 }

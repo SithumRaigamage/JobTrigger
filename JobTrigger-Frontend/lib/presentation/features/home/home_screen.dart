@@ -1,9 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
+import '../../../domain/jenkins/branch_kind.dart';
+import '../../../domain/jenkins/history_filter.dart';
+import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
+import '../../../domain/jenkins/jenkins_view.dart';
+import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/no_active_server_view.dart';
@@ -12,10 +20,15 @@ import '../../common_widgets/status_indicator.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../settings/active_server_notifier.dart';
-import 'filtered_jobs_provider.dart';
 import 'folder_breadcrumb_notifier.dart';
+import 'folder_contents_notifier.dart';
 import 'job_search_notifier.dart';
-import 'job_tree_notifier.dart';
+import 'multibranch_notifiers.dart';
+import 'pinned_jobs_notifier.dart';
+import 'server_status_provider.dart';
+import 'views_notifier.dart';
+import 'visible_jobs_provider.dart';
+import '../../../core/theme/app_colors.dart';
 
 /// Ported from `HomeView.swift`. Doesn't port the swipe-to-trigger-build
 /// action or the backend connectivity check — triggering builds is Phase 5
@@ -60,7 +73,7 @@ class HomeScreen extends ConsumerWidget {
       );
     }
 
-    final jobTreeAsync = ref.watch(jobTreeNotifierProvider);
+    final visibleJobs = ref.watch(visibleJobsProvider);
     final breadcrumb = ref.watch(folderBreadcrumbNotifierProvider);
 
     return PopScope(
@@ -77,7 +90,46 @@ class HomeScreen extends ConsumerWidget {
             tooltip: 'Tool Selection',
             onPressed: () => context.go(AppRoutes.toolSelection),
           ),
-          title: Text(breadcrumb.isEmpty ? 'Jobs' : breadcrumb.last.name),
+          title: breadcrumb.isEmpty
+              ? const _ViewPickerTitle()
+              : Text(breadcrumb.last.label),
+          actions: [
+            if (breadcrumb.isNotEmpty && breadcrumb.last.isScannable)
+              _ScanActions(project: breadcrumb.last),
+            // US-JX-09 / US-JX-12: why aren't builds starting? In one menu,
+            // so the title keeps its room on a phone.
+            PopupMenuButton<String>(
+              tooltip: 'Server',
+              icon: const Icon(Icons.more_vert),
+              onSelected: (route) => route == _openLinkAction
+                  ? _promptForLink(context)
+                  : context.push(route),
+              itemBuilder: (context) => const [
+                // US-JX-19: paste a Jenkins URL from chat or email.
+                PopupMenuItem(
+                  value: _openLinkAction,
+                  child: ListTile(
+                    leading: Icon(Icons.link),
+                    title: Text('Open Jenkins link…'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: AppRoutes.queue,
+                  child: ListTile(
+                    leading: Icon(Icons.pending_actions),
+                    title: Text('Build queue'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: AppRoutes.nodes,
+                  child: ListTile(
+                    leading: Icon(Icons.dns_outlined),
+                    title: Text('Nodes'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
         body: ResponsiveCenter(
           child: Column(
@@ -85,19 +137,33 @@ class HomeScreen extends ConsumerWidget {
               SizedBox(
                 height: MediaQuery.paddingOf(context).top + kToolbarHeight,
               ),
+              const _OfflineBanner(),
+              const _QuietDownBanner(),
               const _SearchField(),
               const _BreadcrumbHeader(),
               Expanded(
-                child: jobTreeAsync.when(
-                  data: (_) => const _JobListView(),
+                child: visibleJobs.when(
+                  data: (jobs) => _JobListView(
+                    jobs: jobs,
+                    // Pins sit above the root list only (US-JX-11).
+                    showPins:
+                        breadcrumb.isEmpty &&
+                        ref.watch(jobSearchNotifierProvider).isEmpty,
+                    // Branch/PR/tag sections only when browsing (not
+                    // searching) inside a multibranch project.
+                    multibranch:
+                        breadcrumb.isNotEmpty &&
+                            breadcrumb.last.isMultibranch &&
+                            ref.watch(jobSearchNotifierProvider).isEmpty
+                        ? breadcrumb.last
+                        : null,
+                  ),
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
                   error: (error, stackTrace) => Center(
                     child: ConnectionErrorView(
                       message: describeError(error),
-                      onRetry: () => ref
-                          .read(jobTreeNotifierProvider.notifier)
-                          .refresh(),
+                      onRetry: () => refreshVisibleJobs(ref),
                     ),
                   ),
                 ),
@@ -185,7 +251,7 @@ class _BreadcrumbHeader extends ConsumerWidget {
                             for (final folder in breadcrumb) ...[
                               const TextSpan(text: ' / '),
                               TextSpan(
-                                text: folder.name,
+                                text: folder.label,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: Theme.of(context).colorScheme.primary,
@@ -208,19 +274,59 @@ class _BreadcrumbHeader extends ConsumerWidget {
 }
 
 class _JobListView extends ConsumerWidget {
-  const _JobListView();
+  const _JobListView({
+    required this.jobs,
+    this.multibranch,
+    this.showPins = false,
+  });
+
+  final List<JenkinsJob> jobs;
+  final bool showPins;
+
+  /// The multibranch project being browsed, if any: its jobs are grouped
+  /// into branch / pull request / tag sections (US-JX-03).
+  final FolderRef? multibranch;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final jobs = ref.watch(filteredJobsProvider);
     final query = ref.watch(jobSearchNotifierProvider);
 
-    if (jobs.isEmpty) {
-      return _EmptyState(query: query);
+    final hasPins =
+        showPins && ref.watch(pinnedJobsNotifierProvider).isNotEmpty;
+    if (jobs.isEmpty && !hasPins) {
+      // Still pull-to-refreshable: an empty folder may just be stale
+      // (AUD-33).
+      return RefreshIndicator(
+        onRefresh: () => refreshVisibleJobs(ref),
+        child: LayoutBuilder(
+          builder: (context, constraints) => ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              SizedBox(
+                height: constraints.maxHeight,
+                child: _EmptyState(query: query),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
+    final project = multibranch;
+    // Grouping is additive: until (or if) the views load, show a flat list.
+    final kinds = project == null
+        ? null
+        : ref.watch(branchKindsProvider(project.url)).value;
+    final pins = showPins
+        ? ref.watch(pinnedJobsNotifierProvider)
+        : const <PinnedJob>[];
+    final List<Object> items = [
+      if (pins.isNotEmpty) ...['Pinned', ...pins, 'All jobs'],
+      ...(kinds == null ? jobs : _grouped(jobs, kinds)),
+    ];
+
     return RefreshIndicator(
-      onRefresh: () => ref.read(jobTreeNotifierProvider.notifier).refresh(),
+      onRefresh: () => refreshVisibleJobs(ref),
       child: ListView.builder(
         padding: EdgeInsets.fromLTRB(
           16,
@@ -228,13 +334,102 @@ class _JobListView extends ConsumerWidget {
           16,
           16 + glassNavBarClearance(context),
         ),
-        itemCount: jobs.length,
-        itemBuilder: (context, index) => Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: _JobTile(job: jobs[index]),
-        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) => switch (items[index]) {
+          final PinnedJob pin => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _PinnedTile(pin: pin),
+          ),
+          final JenkinsJob job => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            // Search spans every folder, so say where each result lives
+            // (AUD-33).
+            child: _JobTile(job: job, showFolderPath: query.isNotEmpty),
+          ),
+          final String header => Padding(
+            padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
+            child: Text(header, style: Theme.of(context).textTheme.labelLarge),
+          ),
+          _ => const SizedBox.shrink(),
+        },
       ),
     );
+  }
+
+  /// Section header strings interleaved with their jobs, in
+  /// branches → pull requests → tags order, empty sections omitted.
+  static List<Object> _grouped(
+    List<JenkinsJob> jobs,
+    Map<String, BranchKind> kinds,
+  ) => [
+    for (final kind in BranchKind.values)
+      if (jobs.where((job) => (kinds[job.name] ?? BranchKind.branch) == kind)
+          case final section when section.isNotEmpty) ...[
+        kind.sectionTitle,
+        ...section,
+      ],
+  ];
+}
+
+/// US-JX-03: "Scan now" plus the scan log, for a multibranch project or
+/// organization folder. Scanning is a state-changing POST, so it asks first.
+class _ScanActions extends ConsumerWidget {
+  const _ScanActions({required this.project});
+
+  final FolderRef project;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scanning = ref.watch(multibranchScanNotifierProvider(project.url));
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (scanning)
+          const Padding(
+            padding: EdgeInsets.all(14),
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          )
+        else
+          IconButton(
+            icon: const Icon(Icons.sync),
+            tooltip: 'Scan now',
+            onPressed: () => _confirmAndScan(context, ref),
+          ),
+        IconButton(
+          icon: const Icon(Icons.receipt_long),
+          tooltip: 'Scan log',
+          onPressed: () => context.push(
+            AppRoutes.buildLog,
+            extra: JenkinsBuild(
+              number: 0,
+              url:
+                  '${project.url.endsWith('/') ? project.url : '${project.url}/'}indexing/',
+              timestamp: 0,
+              displayName: 'Scan log · ${project.label}',
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmAndScan(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Scan ${project.label}?',
+      message:
+          'Jenkins will re-scan the repository for branches, pull requests, '
+          'and tags, and may start builds for new ones.',
+      confirmLabel: 'Scan',
+    );
+    if (!confirmed) return;
+    await ref
+        .read(multibranchScanNotifierProvider(project.url).notifier)
+        .scan();
   }
 }
 
@@ -270,120 +465,448 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _JobTile extends ConsumerWidget {
-  const _JobTile({required this.job});
+  const _JobTile({required this.job, this.showFolderPath = false});
 
   final JenkinsJob job;
+  final bool showFolderPath;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final pinned = ref.watch(
+      pinnedJobsNotifierProvider.select(
+        (pins) => pins.any((pin) => pin.url == job.url),
+      ),
+    );
+    // Long-press pins or unpins a job (US-JX-11); folders aren't pinnable.
+    return GestureDetector(
+      onLongPress: job.isFolder ? null : () => _togglePin(context, ref),
+      child: _tile(context, ref, pinned),
+    );
+  }
+
+  Future<void> _togglePin(BuildContext context, WidgetRef ref) async {
+    final nowPinned = await ref
+        .read(pinnedJobsNotifierProvider.notifier)
+        .toggle(job);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          nowPinned ? 'Pinned ${job.label}' : 'Unpinned ${job.label}',
+        ),
+      ),
+    );
+  }
+
+  Widget _tile(BuildContext context, WidgetRef ref, bool pinned) {
     return GlassSurface.card(
       padding: const EdgeInsets.all(12),
       onTap: () {
         if (job.isFolder) {
-          ref
-              .read(folderBreadcrumbNotifierProvider.notifier)
-              .navigateInto(job);
+          ref.read(folderBreadcrumbNotifierProvider.notifier).navigateInto(job);
         } else {
           context.push(AppRoutes.jobDetail, extra: job);
         }
       },
       child: Row(
-            children: [
-              if (job.isFolder)
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
+        children: [
+          if (job.isFolder)
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.folder.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              // Distinct shapes, not just color (NFR-A11Y-03): a
+              // multibranch project and an organization folder aren't
+              // plain folders (US-JX-03).
+              child: Icon(
+                job.isMultibranch
+                    ? Icons.account_tree
+                    : job.isScannable
+                    ? Icons.corporate_fare
+                    : Icons.folder,
+                color: AppColors.folder,
+                size: 20,
+                semanticLabel: job.isMultibranch
+                    ? 'Multibranch project'
+                    : job.isScannable
+                    ? 'Organization folder'
+                    : 'Folder',
+              ),
+            )
+          else
+            SizedBox(
+              width: 44,
+              height: 44,
+              child: Center(child: StatusIndicator(color: job.color)),
+            ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(job.label, style: Theme.of(context).textTheme.bodyMedium),
+                if (showFolderPath && folderPathOf(job.url).isNotEmpty)
+                  Text(
+                    folderPathOf(job.url),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.folder,
-                    color: Colors.orange,
-                    size: 20,
-                  ),
-                )
-              else
-                SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: Center(child: StatusIndicator(color: job.color)),
-                ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 4),
+                Row(
                   children: [
-                    Text(
-                      job.name,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        if (job.lastBuild != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              '#${job.lastBuild!.number}',
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                            ),
-                          )
-                        else if (!job.isFolder)
-                          Text(
-                            'No builds',
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        if (job.description != null &&
-                            job.description!.isNotEmpty) ...[
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              job.description!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                    if (job.buildable == false) ...[
+                      // US-JX-13: icon + text, never color alone.
+                      const Icon(Icons.block, size: 12),
+                      Text(
+                        ' Disabled ',
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ],
+                    if (job.lastBuild != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '#${job.lastBuild!.number}',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
+                      )
+                    else if (!job.isFolder)
+                      Text(
+                        'No builds',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    if (job.description != null &&
+                        job.description!.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          job.description!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                size: 18,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              ),
-            ],
+              ],
+            ),
           ),
+          if (pinned)
+            const Padding(
+              padding: EdgeInsets.only(right: 4),
+              child: Icon(Icons.push_pin, size: 16, semanticLabel: 'Pinned'),
+            ),
+          Icon(
+            Icons.chevron_right,
+            size: 18,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A pinned job with its live status, or "Not found" and a remove action
+/// when the job no longer exists (US-JX-11).
+class _PinnedTile extends ConsumerWidget {
+  const _PinnedTile({required this.pin});
+
+  final PinnedJob pin;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(pinnedJobStatusProvider(pin.url));
+    final textTheme = Theme.of(context).textTheme;
+    final job = status.value;
+    final missing = status.hasValue && job == null;
+    return GlassSurface.card(
+      padding: const EdgeInsets.all(12),
+      onTap: job == null
+          ? null
+          : () => context.push(AppRoutes.jobDetail, extra: job),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 44,
+            height: 44,
+            child: Center(
+              child: status.isLoading && !status.hasValue
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : missing
+                  ? const Icon(Icons.link_off, semanticLabel: 'Not found')
+                  : StatusIndicator(color: job?.color),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(pin.label, style: textTheme.bodyMedium),
+                Text(
+                  missing
+                      ? 'Not found — it may have been deleted or renamed'
+                      : status.hasError
+                      ? describeError(status.error!)
+                      : job?.lastBuild == null
+                      ? 'No builds'
+                      : '#${job!.lastBuild!.number}',
+                  style: textTheme.labelSmall,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.push_pin),
+            tooltip: 'Unpin ${pin.label}',
+            onPressed: () =>
+                ref.read(pinnedJobsNotifierProvider.notifier).unpin(pin.url),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// US-JX-18: Jenkins is preparing for shutdown. Triggers still succeed, but
+/// the builds just wait, so say so before someone wonders why.
+class _QuietDownBanner extends ConsumerWidget {
+  const _QuietDownBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final quieting = ref.watch(
+      serverStatusProvider.select((status) => status.value?.quietingDown),
+    );
+    if (quieting != true) return const SizedBox.shrink();
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colorScheme.errorContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.power_settings_new, color: colorScheme.onErrorContainer),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Jenkins is preparing for shutdown — new builds are queued '
+                "but won't start.",
+                style: TextStyle(color: colorScheme.onErrorContainer),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// US-JX-17: at Home's root the title is the current view, tappable to
+/// switch when the server has more than one.
+class _ViewPickerTitle extends ConsumerWidget {
+  const _ViewPickerTitle();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final views = ref.watch(jenkinsViewsProvider).value ?? const [];
+    final selectedUrl = ref.watch(selectedViewNotifierProvider);
+    final current = views
+        .where(
+          (view) =>
+              selectedUrl == null ? view.isPrimary : view.url == selectedUrl,
+        )
+        .firstOrNull;
+    final title = current?.label ?? 'Jobs';
+    if (views.length < 2) return Text(title);
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => _pick(context, ref, views, current),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(child: Text(title, overflow: TextOverflow.ellipsis)),
+          const Icon(Icons.arrow_drop_down),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pick(
+    BuildContext context,
+    WidgetRef ref,
+    List<JenkinsView> views,
+    JenkinsView? current,
+  ) async {
+    final chosen = await showModalBottomSheet<JenkinsView>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            for (final view in views)
+              ListTile(
+                leading: Icon(
+                  view.url == current?.url
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                ),
+                title: Text(view.label),
+                onTap: () => Navigator.of(context).pop(view),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (chosen != null) {
+      await ref.read(selectedViewNotifierProvider.notifier).select(chosen);
+    }
+  }
+}
+
+const _openLinkAction = 'open-link';
+
+/// US-JX-19: asks for a Jenkins URL, offering the clipboard's when it
+/// holds one, then opens it through the same path as a deep link.
+Future<void> _promptForLink(BuildContext context) async {
+  final clipboard = (await Clipboard.getData(
+    Clipboard.kTextPlain,
+  ))?.text?.trim();
+  final suggestion =
+      clipboard != null && clipboard.startsWith(RegExp('https?://'))
+      ? clipboard
+      : '';
+  if (!context.mounted) return;
+  final link = await showDialog<String>(
+    context: context,
+    builder: (context) => _OpenLinkDialog(initial: suggestion),
+  );
+  if (link == null || link.isEmpty || !context.mounted) return;
+  unawaited(
+    context.push(
+      Uri(path: AppRoutes.openLink, queryParameters: {'url': link}).toString(),
+    ),
+  );
+}
+
+class _OpenLinkDialog extends StatefulWidget {
+  const _OpenLinkDialog({required this.initial});
+
+  final String initial;
+
+  @override
+  State<_OpenLinkDialog> createState() => _OpenLinkDialogState();
+}
+
+class _OpenLinkDialogState extends State<_OpenLinkDialog> {
+  late final _controller = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Open Jenkins link'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        keyboardType: TextInputType.url,
+        autocorrect: false,
+        decoration: const InputDecoration(
+          hintText: 'https://jenkins.example.com/job/…',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+          child: const Text('Open'),
+        ),
+      ],
+    );
+  }
+}
+
+/// US-JX-20: Home is showing the last saved listing because the server
+/// can't be reached. Anything that changes Jenkins needs the connection
+/// back; job detail says so itself when opened.
+class _OfflineBanner extends ConsumerWidget {
+  const _OfflineBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final savedAt = ref.watch(offlineSnapshotNotifierProvider);
+    if (savedAt == null) return const SizedBox.shrink();
+    final local = savedAt.toLocal();
+    String two(int value) => value.toString().padLeft(2, '0');
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.cloud_off, semanticLabel: 'Offline'),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Offline — showing data from ${two(local.hour)}:'
+                '${two(local.minute)}. Builds can\'t be started or changed '
+                'until you\'re back online.',
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

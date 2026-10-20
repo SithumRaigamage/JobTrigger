@@ -50,6 +50,25 @@ node scripts/migrate.js
 - ⚠️ Only runs on demand, not automated
 - ✅ Idempotent (won't duplicate existing records)
 
+### `scripts/encrypt-credentials.js` (AUD-03)
+
+Encrypts tool secrets (Jenkins `password` and `paramToken`, GitHub and
+SonarQube `token`) that were stored before encryption at rest, and
+re-encrypts ones written with an older key after a rotation. It's
+idempotent, so re-running it is safe.
+
+```bash
+cd JobTrigger-Backend
+npm run encrypt-credentials -- --dry-run   # how many rows would change
+npm run encrypt-credentials                # encrypt them
+```
+
+Run it once per environment after deploying the encryption release, with
+the same `CREDENTIALS_ENCRYPTION_*` settings as the server. Until it runs,
+the server still reads the old plaintext rows, so there's no downtime
+window. Back up the three credential collections first: rows encrypted
+with a key you then lose can't be recovered.
+
 ### `scripts/seedAppInfo.js`
 **Purpose:** Seed AppInfo collection with metadata
 

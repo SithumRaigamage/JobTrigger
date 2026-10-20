@@ -42,7 +42,7 @@ final class LoginNotifierProvider
   LoginNotifier create() => LoginNotifier();
 }
 
-String _$loginNotifierHash() => r'325e95ea2510b7c2569f7484b6953a78be41cd2b';
+String _$loginNotifierHash() => r'9b0d44ca980cc9170bbc4166ffef96ddd694df25';
 
 /// Form-submit state (loading/error) for the login screen — see
 /// `docs/state-management.md`'s "Feature: auth" section. Owns nothing about

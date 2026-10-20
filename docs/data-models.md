@@ -57,6 +57,37 @@ Domain `JenkinsServer` entity drops the raw `password` field name in favor
 of `secret` to make clear at call sites it's sensitive, and is never logged
 (add a custom `toString()` override that redacts it).
 
+## SonarQube Credential
+
+New — no SwiftUI equivalent, see epic SQ
+(`docs/user-stories/sonarqube/14-sonarqube.md`). Backend:
+`JobTrigger-Backend/models/SonarQubeCredential.js`.
+
+```dart
+@freezed
+class SonarQubeCredentialDto with _$SonarQubeCredentialDto {
+  const factory SonarQubeCredentialDto({
+    @JsonKey(name: '_id') required String id,
+    required String label,
+    required String baseUrl,
+    required String token,
+    String? defaultOrganization,
+    @Default(false) bool isDefault,
+    String? createdAt,
+    String? updatedAt,
+  }) = _SonarQubeCredentialDto;
+
+  factory SonarQubeCredentialDto.fromJson(Map<String, dynamic> json) =>
+      _$SonarQubeCredentialDtoFromJson(json);
+}
+```
+Domain `SonarQubeCredential` entity renames `token` to `secret`, same
+sensitive-field convention as `JenkinsServer`/`GitHubCredential`, and is
+never logged (redacted `toString()`). `baseUrl` defaults to
+`https://sonarcloud.io` but is editable for a self-hosted SonarQube Server
+instance — unlike `GitHubCredential`, which has no configurable base URL at
+all (GitHub Actions is cloud-only in this app's current scope).
+
 ## Jenkins Server Info / Job Tree
 
 Old: `JenkinsServerInfo.swift`
@@ -164,6 +195,32 @@ expect strings regardless of the declared parameter type.
 Straightforward 1:1 DTOs (`HealthReportDto { description, iconClassName,
 score }`, `JobPropertyDto { parameterDefinitions }`) — no special handling
 needed, included here only so the tree stays complete for `fromJson` codegen.
+
+## Phase 11 entities (Jenkins extended, no SwiftUI equivalent)
+
+These are small, flat shapes. `JenkinsRepositoryImpl` builds them straight
+from the `tree`-limited JSON inside its guarded closures (see
+`architecture.md` §6), so they have no separate `@freezed` DTO. A
+malformed field becomes `UnexpectedResponseFailure`, never a crash.
+
+| Entity (`lib/domain/…`) | Fields | Story |
+|---|---|---|
+| `jenkins/queue_entry.dart` `QueueEntry` | `id`, `taskName`, `taskUrl`, `why`, `inQueueSince`, `stuck`, `blocked`, `taskColor` | US-JX-09 queue |
+| `jenkins/server_status.dart` `ServerStatus` | `version` (from the `X-Jenkins` header), `quietingDown` | US-JX-18 |
+| `jenkins/jenkins_node.dart` `JenkinsNode` / `RunningExecutable` | `displayName`, `isBuiltIn`, `offline`, `temporarilyOffline`, `offlineReason`, `numExecutors`, `running`, disk free and warning bytes | US-JX-12 |
+| `jenkins/jenkins_view.dart` `JenkinsView` | `name`, `url`, `isPrimary` | US-JX-17 |
+| `jenkins/build_trends.dart` `BuildTrends` / `TrendPoint` | `sampleSize`, `successRate`, `averageMillis`, `points` (number, duration, failed); computed from the history already fetched | US-JX-15 |
+| `jenkins/history_filter.dart` `HistoryFilter` | `result` (`HistoryResultFilter`), `startedByMe` | US-JX-06 |
+| `jenkins/log_chunk.dart` `LogChunk` | `text`, `nextOffset`, `hasMoreData` (progressive-text headers) | US-JX-07 console |
+| `jenkins/parameter_file.dart` `ParameterFile` | `fileName`, `path`, `sizeBytes`; a picked local file, streamed as multipart and never copied | US-JX-02 |
+| `jenkins/branch_kind.dart` `BranchKind` | branch / PR / tag, with `sectionTitle` | US-JX-03 |
+| `jenkins/build_watch.dart` `BuildWatch` / `BuildNotification` | `serverId`, `jobUrl`, `jobLabel`, `buildNumber` (null means every build), `lastNotified`; JSON in `shared_preferences` | US-JX-10 |
+| `app_lock/app_lock_settings.dart` `AppLockSettings` | `enabled`, `timeout`, `requireForSensitive`; `shared_preferences` | US-JX-21 |
+| `widget/widget_snapshot.dart` `WidgetSnapshot` / `WidgetJob` | jobs (`label`, `link`, `status`, `statusText`, `buildNumber`, `buildTimestamp`), `updatedAt`; handed to the native widgets | US-JX-23 |
+
+Everything persisted outside secure storage here (watches, lock settings,
+and the widget snapshot) holds only names, URLs, numbers, and settings,
+never a credential (`CLAUDE.md` §7).
 
 ## App Info
 

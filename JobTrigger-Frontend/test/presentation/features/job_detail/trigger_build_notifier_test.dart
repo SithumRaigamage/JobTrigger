@@ -1,0 +1,236 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:job_trigger/core/error/app_failure.dart';
+import 'package:job_trigger/core/error/result.dart';
+import 'package:job_trigger/data/repositories/credentials_repository_impl.dart';
+import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
+import 'package:job_trigger/domain/credential/credentials_repository.dart';
+import 'package:job_trigger/domain/credential/jenkins_server.dart';
+import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
+import 'package:job_trigger/domain/jenkins/parameter_file.dart';
+import 'package:job_trigger/domain/jenkins/job_property.dart';
+import 'package:job_trigger/domain/jenkins/parameter_definition.dart';
+import 'package:job_trigger/core/platform/biometric_service.dart';
+import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
+import 'package:job_trigger/presentation/features/app_lock/app_lock_notifier.dart';
+import 'package:job_trigger/presentation/features/job_detail/job_detail_notifier.dart';
+import 'package:job_trigger/presentation/features/job_detail/trigger_build_notifier.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+import '../../../support/fake_biometric_service.dart';
+import '../../../support/fake_jenkins_repository.dart';
+
+const _jobUrl = 'https://jenkins.test/job/demo/';
+
+/// Fakes only what `TriggerBuildNotifier` and the `JobDetailNotifier` it
+/// refreshes actually call -- same "throw UnimplementedError for the rest"
+/// style as `build_status_polling_notifier_test.dart`'s `_CountingRepository`.
+class _FakeRepository extends FakeJenkinsRepository {
+  Result<String?, AppFailure>? triggerResult;
+  int fetchJobDetailCallCount = 0;
+  int triggerBuildCallCount = 0;
+  Map<String, String>? lastParameters;
+
+  @override
+  Future<Result<JenkinsJob, AppFailure>> fetchJobDetail(String jobUrl) async {
+    fetchJobDetailCallCount++;
+    return Ok(JenkinsJob(name: 'demo', url: jobUrl));
+  }
+
+  @override
+  Future<Result<String?, AppFailure>> triggerBuild(
+    String jobUrl, {
+    required bool isParameterized,
+    Map<String, String> parameters = const {},
+    Map<String, ParameterFile> files = const {},
+    String? paramToken,
+  }) async {
+    triggerBuildCallCount++;
+    lastParameters = parameters;
+    return triggerResult!;
+  }
+}
+
+/// `TriggerBuildNotifier` reads `activeServerNotifierProvider`, which kicks
+/// off `CredentialsNotifier` rehydration in the background -- fake it out so
+/// no real `Dio`/backend call happens during the test.
+class _FakeCredentialsRepository implements CredentialsRepository {
+  @override
+  Future<Result<List<JenkinsServer>, AppFailure>> fetchAll() async =>
+      const Ok([]);
+
+  // Nothing else is reached by these tests.
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError(invocation.memberName.toString());
+}
+
+const _job = JenkinsJob(name: 'demo', url: _jobUrl);
+
+void main() {
+  // HapticFeedback (called on both the success and failure path) talks over
+  // a platform channel, which needs a binding -- see
+  // `artifact_download_notifier_test.dart` for the same requirement with
+  // `share_plus`.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferencesStorePlatform.instance =
+        InMemorySharedPreferencesStore.empty();
+  });
+
+  test(
+    'a successful trigger refreshes JobDetailNotifier and shows a success toast',
+    () async {
+      final repo = _FakeRepository()..triggerResult = const Ok(null);
+      final container = ProviderContainer(
+        overrides: [
+          jenkinsRepositoryProvider.overrideWithValue(repo),
+          credentialsRepositoryProvider.overrideWithValue(
+            _FakeCredentialsRepository(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(jobDetailNotifierProvider(_jobUrl).future);
+      container.listen(jobDetailNotifierProvider(_jobUrl), (_, _) {});
+      // TriggerBuildNotifier is itself autoDispose -- keep it alive so its
+      // async `trigger()` call can't be torn down mid-flight.
+      container.listen(triggerBuildNotifierProvider(_jobUrl), (_, _) {});
+      expect(repo.fetchJobDetailCallCount, 1);
+
+      await container
+          .read(triggerBuildNotifierProvider(_jobUrl).notifier)
+          .trigger(job: _job);
+      // `refresh()` only invalidates -- the actual re-fetch is scheduled,
+      // not synchronous, so wait for it before checking the call count.
+      await container.read(jobDetailNotifierProvider(_jobUrl).future);
+
+      expect(
+        container.read(triggerBuildNotifierProvider(_jobUrl)).hasError,
+        isFalse,
+      );
+      expect(repo.triggerBuildCallCount, 1);
+      expect(repo.fetchJobDetailCallCount, 2);
+      expect(container.read(currentToastProvider)?.type, ToastType.success);
+    },
+  );
+
+  test(
+    'a repository failure surfaces as AsyncError and shows an error toast, without refreshing job detail',
+    () async {
+      final repo = _FakeRepository()
+        ..triggerResult = const Err(NetworkFailure());
+      final container = ProviderContainer(
+        overrides: [
+          jenkinsRepositoryProvider.overrideWithValue(repo),
+          credentialsRepositoryProvider.overrideWithValue(
+            _FakeCredentialsRepository(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(jobDetailNotifierProvider(_jobUrl).future);
+      container.listen(jobDetailNotifierProvider(_jobUrl), (_, _) {});
+      container.listen(triggerBuildNotifierProvider(_jobUrl), (_, _) {});
+      expect(repo.fetchJobDetailCallCount, 1);
+
+      await container
+          .read(triggerBuildNotifierProvider(_jobUrl).notifier)
+          .trigger(job: _job);
+
+      final state = container.read(triggerBuildNotifierProvider(_jobUrl));
+      expect(state.hasError, isTrue);
+      expect(state.error, isA<NetworkFailure>());
+      expect(repo.fetchJobDetailCallCount, 1);
+      expect(container.read(currentToastProvider)?.type, ToastType.error);
+    },
+  );
+
+  test(
+    'a blank password parameter is omitted, not sent empty (US-JX-01)',
+    () async {
+      final repo = _FakeRepository()..triggerResult = const Ok(null);
+      final container = ProviderContainer(
+        overrides: [
+          jenkinsRepositoryProvider.overrideWithValue(repo),
+          credentialsRepositoryProvider.overrideWithValue(
+            _FakeCredentialsRepository(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(jobDetailNotifierProvider(_jobUrl), (_, _) {});
+      container.listen(triggerBuildNotifierProvider(_jobUrl), (_, _) {});
+
+      const job = JenkinsJob(
+        name: 'demo',
+        url: _jobUrl,
+        property: [
+          JobProperty(
+            parameterDefinitions: [
+              ParameterDefinition(
+                name: 'BRANCH',
+                type: 'StringParameterDefinition',
+              ),
+              ParameterDefinition(
+                name: 'DEPLOY_TOKEN',
+                type: 'PasswordParameterDefinition',
+              ),
+            ],
+          ),
+        ],
+      );
+
+      await container
+          .read(triggerBuildNotifierProvider(_jobUrl).notifier)
+          .trigger(
+            job: job,
+            parameters: {'BRANCH': 'main', 'DEPLOY_TOKEN': ''},
+          );
+
+      expect(repo.lastParameters, {'BRANCH': 'main'});
+    },
+  );
+
+  test('with "Require for actions" on, a declined prompt triggers nothing '
+      '(US-JX-21)', () async {
+    // Also resets the cached instance an earlier test created.
+    SharedPreferences.setMockInitialValues({
+      'app_lock_enabled': true,
+      'app_lock_sensitive': true,
+    });
+    final repo = _FakeRepository()..triggerResult = const Ok(null);
+    final biometrics = FakeBiometricService();
+    final container = ProviderContainer(
+      overrides: [
+        jenkinsRepositoryProvider.overrideWithValue(repo),
+        credentialsRepositoryProvider.overrideWithValue(
+          _FakeCredentialsRepository(),
+        ),
+        biometricServiceProvider.overrideWithValue(biometrics),
+      ],
+    );
+    addTearDown(container.dispose);
+    container
+      ..listen(triggerBuildNotifierProvider(_jobUrl), (_, _) {})
+      ..read(appLockNotifierProvider);
+    await Future<void>.delayed(Duration.zero); // Lock settings load.
+    await Future<void>.delayed(Duration.zero); // Cold-start unlock.
+
+    biometrics.outcome = AuthOutcome.failed;
+    await container
+        .read(triggerBuildNotifierProvider(_jobUrl).notifier)
+        .trigger(job: _job);
+    expect(repo.triggerBuildCallCount, 0);
+    expect(biometrics.reasons.last, 'Confirm to trigger demo');
+
+    biometrics.outcome = AuthOutcome.success;
+    await container
+        .read(triggerBuildNotifierProvider(_jobUrl).notifier)
+        .trigger(job: _job);
+    expect(repo.triggerBuildCallCount, 1);
+  });
+}

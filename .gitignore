@@ -148,3 +148,6 @@ local.xcconfig
 
 
 node_modules
+# Fixture Jenkins generated credentials (tools/jenkins-fixture/fixture.sh)
+tools/jenkins-fixture/.fixture-credentials
+tools/jenkins-fixture/.fixture-credentials.tmp

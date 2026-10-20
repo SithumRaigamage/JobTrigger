@@ -19,7 +19,7 @@ mixin _$TestReportDto {
 // holding individual cases) -- flatten straight to the
 // `ClassName.testName` strings actually rendered, same reasoning as
 // `causes`/`changes` on `JenkinsBuildDto`.
-@JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) List<String> get failingTests;
+@JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) List<FailingTest> get failingTests;
 /// Create a copy of TestReportDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -52,7 +52,7 @@ abstract mixin class $TestReportDtoCopyWith<$Res>  {
   factory $TestReportDtoCopyWith(TestReportDto value, $Res Function(TestReportDto) _then) = _$TestReportDtoCopyWithImpl;
 @useResult
 $Res call({
- int passCount, int failCount, int skipCount,@JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) List<String> failingTests
+ int passCount, int failCount, int skipCount,@JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) List<FailingTest> failingTests
 });
 
 
@@ -75,7 +75,7 @@ passCount: null == passCount ? _self.passCount : passCount // ignore: cast_nulla
 as int,failCount: null == failCount ? _self.failCount : failCount // ignore: cast_nullable_to_non_nullable
 as int,skipCount: null == skipCount ? _self.skipCount : skipCount // ignore: cast_nullable_to_non_nullable
 as int,failingTests: null == failingTests ? _self.failingTests : failingTests // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<FailingTest>,
   ));
 }
 
@@ -160,7 +160,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int passCount,  int failCount,  int skipCount, @JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false)  List<String> failingTests)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int passCount,  int failCount,  int skipCount, @JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false)  List<FailingTest> failingTests)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TestReportDto() when $default != null:
 return $default(_that.passCount,_that.failCount,_that.skipCount,_that.failingTests);case _:
@@ -181,7 +181,7 @@ return $default(_that.passCount,_that.failCount,_that.skipCount,_that.failingTes
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int passCount,  int failCount,  int skipCount, @JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false)  List<String> failingTests)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int passCount,  int failCount,  int skipCount, @JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false)  List<FailingTest> failingTests)  $default,) {final _that = this;
 switch (_that) {
 case _TestReportDto():
 return $default(_that.passCount,_that.failCount,_that.skipCount,_that.failingTests);case _:
@@ -201,7 +201,7 @@ return $default(_that.passCount,_that.failCount,_that.skipCount,_that.failingTes
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int passCount,  int failCount,  int skipCount, @JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false)  List<String> failingTests)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int passCount,  int failCount,  int skipCount, @JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false)  List<FailingTest> failingTests)?  $default,) {final _that = this;
 switch (_that) {
 case _TestReportDto() when $default != null:
 return $default(_that.passCount,_that.failCount,_that.skipCount,_that.failingTests);case _:
@@ -216,7 +216,7 @@ return $default(_that.passCount,_that.failCount,_that.skipCount,_that.failingTes
 @JsonSerializable()
 
 class _TestReportDto implements TestReportDto {
-  const _TestReportDto({this.passCount = 0, this.failCount = 0, this.skipCount = 0, @JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) final  List<String> failingTests = const <String>[]}): _failingTests = failingTests;
+  const _TestReportDto({this.passCount = 0, this.failCount = 0, this.skipCount = 0, @JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) final  List<FailingTest> failingTests = const <FailingTest>[]}): _failingTests = failingTests;
   factory _TestReportDto.fromJson(Map<String, dynamic> json) => _$TestReportDtoFromJson(json);
 
 @override@JsonKey() final  int passCount;
@@ -226,12 +226,12 @@ class _TestReportDto implements TestReportDto {
 // holding individual cases) -- flatten straight to the
 // `ClassName.testName` strings actually rendered, same reasoning as
 // `causes`/`changes` on `JenkinsBuildDto`.
- final  List<String> _failingTests;
+ final  List<FailingTest> _failingTests;
 // `suites[].cases[]` is polymorphic-in-depth (nested test suites, each
 // holding individual cases) -- flatten straight to the
 // `ClassName.testName` strings actually rendered, same reasoning as
 // `causes`/`changes` on `JenkinsBuildDto`.
-@override@JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) List<String> get failingTests {
+@override@JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) List<FailingTest> get failingTests {
   if (_failingTests is EqualUnmodifiableListView) return _failingTests;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_failingTests);
@@ -271,7 +271,7 @@ abstract mixin class _$TestReportDtoCopyWith<$Res> implements $TestReportDtoCopy
   factory _$TestReportDtoCopyWith(_TestReportDto value, $Res Function(_TestReportDto) _then) = __$TestReportDtoCopyWithImpl;
 @override @useResult
 $Res call({
- int passCount, int failCount, int skipCount,@JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) List<String> failingTests
+ int passCount, int failCount, int skipCount,@JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) List<FailingTest> failingTests
 });
 
 
@@ -294,7 +294,7 @@ passCount: null == passCount ? _self.passCount : passCount // ignore: cast_nulla
 as int,failCount: null == failCount ? _self.failCount : failCount // ignore: cast_nullable_to_non_nullable
 as int,skipCount: null == skipCount ? _self.skipCount : skipCount // ignore: cast_nullable_to_non_nullable
 as int,failingTests: null == failingTests ? _self._failingTests : failingTests // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<FailingTest>,
   ));
 }
 

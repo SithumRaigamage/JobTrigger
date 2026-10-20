@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../domain/credential/jenkins_server.dart';
+import '../../../domain/credential/jenkins_url.dart';
+import '../../../domain/credential/token_hygiene.dart';
+import '../../common_widgets/external_link.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/toast_controller.dart';
 import 'server_form_notifier.dart';
@@ -153,12 +156,20 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
                   controller: _jenkinsURLController,
                   keyboardType: TextInputType.url,
                   autocorrect: false,
-                  decoration: const InputDecoration(
+                  // Re-check the URL (AUD-14) as the user types.
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
                     labelText: 'Jenkins URL',
-                    hintText: 'http://localhost:8080',
-                    border: OutlineInputBorder(),
+                    hintText: 'https://ci.example.com',
+                    border: const OutlineInputBorder(),
+                    errorText: _jenkinsURLController.text.trim().isEmpty
+                        ? null
+                        : jenkinsUrlProblem(_jenkinsURLController.text),
+                    errorMaxLines: 2,
                   ),
                 ),
+                if (isCleartextUrl(_jenkinsURLController.text))
+                  const _CleartextWarning(),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _usernameController,
@@ -172,8 +183,12 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
                 TextField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  // Re-check the token heuristic as the user types.
+                  onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: 'API token or password',
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -184,12 +199,14 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
                       tooltip: _obscurePassword
                           ? 'Show password'
                           : 'Hide password',
-                      onPressed: () => setState(
-                        () => _obscurePassword = !_obscurePassword,
-                      ),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
                 ),
+                if (_passwordController.text.isNotEmpty &&
+                    !looksLikeJenkinsApiToken(_passwordController.text))
+                  _PasswordAdvisory(jenkinsUrl: _jenkinsURLController.text),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _paramTokenController,
@@ -291,5 +308,82 @@ class _TestConnectionStatus extends StatelessWidget {
         style: const TextStyle(color: Colors.red),
       ),
     };
+  }
+}
+
+/// AUD-14: `http://` is allowed (LAN servers), but never silently.
+class _CleartextWarning extends StatelessWidget {
+  const _CleartextWarning();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.lock_open, size: 18, color: colorScheme.error),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Not encrypted: your username and password or token are sent '
+              'in plain text with every request. Use https:// unless this '
+              'server is only reachable on a network you trust.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// US-JX-22: a non-blocking nudge towards a revocable API token when the
+/// secret looks like an account password.
+class _PasswordAdvisory extends ConsumerWidget {
+  const _PasswordAdvisory({required this.jenkinsUrl});
+
+  final String jenkinsUrl;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final url = Uri.tryParse(jenkinsUrl.trim());
+    final canLink = url != null && url.hasScheme && url.host.isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 18, color: colorScheme.tertiary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'This looks like a password. Jenkins API tokens are safer — '
+                  'they can be revoked without changing your password.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                if (canLink)
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    onPressed: () => openExternalLink(
+                      ref,
+                      jenkinsTokenPageUrl(jenkinsUrl.trim()),
+                    ),
+                    child: const Text('Create an API token'),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

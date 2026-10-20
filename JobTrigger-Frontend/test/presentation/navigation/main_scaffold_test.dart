@@ -112,18 +112,12 @@ void main() {
     await tester.pumpWidget(_wrap(router));
     await tester.pumpAndSettle();
 
-    expect(
-      tester.widget<IndexedStack>(find.byType(IndexedStack)).index,
-      0,
-    );
+    expect(tester.widget<IndexedStack>(find.byType(IndexedStack)).index, 0);
 
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
 
-    expect(
-      tester.widget<IndexedStack>(find.byType(IndexedStack)).index,
-      1,
-    );
+    expect(tester.widget<IndexedStack>(find.byType(IndexedStack)).index, 1);
     expect(
       tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
       1,
@@ -186,10 +180,7 @@ void main() {
 
       await tester.tap(find.text('Profile'));
       await tester.pumpAndSettle();
-      expect(
-        tester.widget<IndexedStack>(find.byType(IndexedStack)).index,
-        3,
-      );
+      expect(tester.widget<IndexedStack>(find.byType(IndexedStack)).index, 3);
 
       final navigatorState = tester.state<NavigatorState>(
         find.byType(Navigator).first,
@@ -201,10 +192,7 @@ void main() {
       // back to Home rather than letting the shell's own route pop (which
       // would exit the app).
       expect(popped, isTrue);
-      expect(
-        tester.widget<IndexedStack>(find.byType(IndexedStack)).index,
-        0,
-      );
+      expect(tester.widget<IndexedStack>(find.byType(IndexedStack)).index, 0);
     },
   );
 

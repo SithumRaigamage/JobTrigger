@@ -68,7 +68,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           child: ResponsiveCenter(
             maxWidth: 440,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(24, kToolbarHeight + 24, 24, 24),
+              padding: const EdgeInsets.fromLTRB(
+                24,
+                kToolbarHeight + 24,
+                24,
+                24,
+              ),
               children: [
                 Icon(
                   Icons.person_add_alt_1,

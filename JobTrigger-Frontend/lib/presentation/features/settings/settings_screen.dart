@@ -8,6 +8,11 @@ import '../../../core/theme/reduce_transparency_notifier.dart';
 import '../../../core/theme/theme_notifier.dart';
 import '../../../domain/credential/github_credential.dart';
 import '../../../domain/credential/jenkins_server.dart';
+import '../../../domain/credential/token_hygiene.dart';
+import '../home/server_status_provider.dart';
+import '../../../domain/jenkins/server_status.dart';
+import '../../../core/config/app_config.dart';
+import '../../../domain/credential/sonarqube_credential.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
@@ -17,11 +22,17 @@ import '../../navigation/main_scaffold.dart';
 import '../tool_selection/active_tool_notifier.dart';
 import '../tool_selection/ci_tool.dart';
 import 'active_github_credential_notifier.dart';
+import '../app_lock/app_lock_notifier.dart';
+import '../notifications/build_watch_notifier.dart';
+import '../../../domain/app_lock/app_lock_settings.dart';
 import 'active_server_notifier.dart';
+import 'active_sonarqube_credential_notifier.dart';
 import 'credentials_notifier.dart';
 import 'github_credential_edit_bottom_sheet.dart';
 import 'github_credentials_notifier.dart';
 import 'server_edit_bottom_sheet.dart';
+import 'sonarqube_credential_edit_bottom_sheet.dart';
+import 'sonarqube_credentials_notifier.dart';
 
 /// Ported from `SettingsView.swift`'s server list — see
 /// `docs/state-management.md`'s "Feature: settings / server management".
@@ -49,16 +60,24 @@ class SettingsScreen extends ConsumerWidget {
     final activeGithubCredential = ref.watch(
       activeGitHubCredentialNotifierProvider,
     );
+    final sonarQubeCredentialsAsync = ref.watch(
+      sonarQubeCredentialsNotifierProvider,
+    );
+    final activeSonarQubeCredential = ref.watch(
+      activeSonarQubeCredentialNotifierProvider,
+    );
     // Settings is reached from the same tab regardless of which CI tool is
-    // active, but showing *both* credential sections unconditionally reads
-    // as "you're missing GitHub credentials" even to a user who selected
-    // Jenkins and has no reason to care about GitHub yet. Scope each
-    // section to the tool it's actually for; `null` (pre-selection) falls
-    // back to Jenkins, matching this app's other "Jenkins is the default"
-    // conventions (e.g. `CiTool.isAvailable`'s ordering).
+    // active, but showing *every* credential section unconditionally reads
+    // as "you're missing GitHub/SonarQube credentials" even to a user who
+    // selected Jenkins and has no reason to care about either yet. Scope
+    // each section to the tool it's actually for; `null` (pre-selection)
+    // falls back to Jenkins, matching this app's other "Jenkins is the
+    // default" conventions (e.g. `CiTool.isAvailable`'s ordering).
     final activeTool = ref.watch(activeToolNotifierProvider);
-    final showJenkinsSection = activeTool != CiTool.githubActions;
+    final showJenkinsSection =
+        activeTool != CiTool.githubActions && activeTool != CiTool.sonarqube;
     final showGitHubSection = activeTool == CiTool.githubActions;
+    final showSonarQubeSection = activeTool == CiTool.sonarqube;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -80,6 +99,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             const SliverToBoxAdapter(child: _AppearanceSection()),
+            const SliverToBoxAdapter(child: _SecuritySection()),
             if (showJenkinsSection) ...[
               const SliverToBoxAdapter(child: Divider(height: 1)),
               SliverToBoxAdapter(
@@ -131,6 +151,34 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
             ],
+            if (showSonarQubeSection) ...[
+              const SliverToBoxAdapter(child: Divider(height: 1)),
+              SliverToBoxAdapter(
+                child: _SectionHeader(
+                  title: 'SONARQUBE',
+                  onAdd: () => showSonarQubeCredentialEditBottomSheet(context),
+                ),
+              ),
+              ..._credentialSlivers<SonarQubeCredential>(
+                async: sonarQubeCredentialsAsync,
+                onRetry: () => ref
+                    .read(sonarQubeCredentialsNotifierProvider.notifier)
+                    .refresh(),
+                emptyStateBuilder: () => _EmptyState(
+                  icon: Icons.verified_outlined,
+                  title: 'No SonarQube Credentials Yet',
+                  message: 'Add a User Token to get started.',
+                  buttonLabel: 'Add SonarQube Credential',
+                  onAdd: () => showSonarQubeCredentialEditBottomSheet(context),
+                ),
+                tileBuilder: (context, credential) => _SonarQubeCredentialTile(
+                  credential: credential,
+                  isActive: credential.id == activeSonarQubeCredential?.id,
+                ),
+              ),
+            ],
+            // US-JX-10.
+            const SliverToBoxAdapter(child: _WatchesSection()),
             SliverToBoxAdapter(
               child: SizedBox(height: glassNavBarClearance(context) + 12),
             ),
@@ -322,14 +370,98 @@ class _AppearanceSection extends ConsumerWidget {
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Reduce transparency'),
-            subtitle: const Text(
-              'Use solid surfaces instead of frosted glass',
-            ),
+            subtitle: const Text('Use solid surfaces instead of frosted glass'),
             value: reduceTransparency,
             onChanged: (value) => ref
                 .read(reduceTransparencyNotifierProvider.notifier)
                 .setReduceTransparency(value),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// US-JX-21: the biometric app lock.
+class _SecuritySection extends ConsumerWidget {
+  const _SecuritySection();
+
+  static String _timeoutLabel(Duration timeout) => switch (timeout.inMinutes) {
+    0 => 'Immediately',
+    1 => 'After 1 minute',
+    final minutes => 'After $minutes minutes',
+  };
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(
+      appLockNotifierProvider.select((lock) => lock.settings),
+    );
+    final notifier = ref.read(appLockNotifierProvider.notifier);
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'SECURITY',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Require biometrics'),
+            subtitle: const Text(
+              'Face ID, fingerprint, or your device passcode to open the app',
+            ),
+            value: settings.enabled,
+            onChanged: (value) async {
+              final change = await notifier.setEnabled(value);
+              if (change == LockChange.noDeviceSecurity) {
+                ref
+                    .read(toastControllerProvider)
+                    .show(
+                      type: ToastType.warning,
+                      title: "Can't turn on app lock",
+                      message:
+                          'Set up a passcode, fingerprint, or face unlock on '
+                          'your phone first.',
+                    );
+              }
+            },
+          ),
+          if (settings.enabled) ...[
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Lock after leaving the app'),
+              trailing: DropdownButton<Duration>(
+                value: settings.timeout,
+                underline: const SizedBox.shrink(),
+                items: [
+                  for (final timeout in AppLockSettings.timeouts)
+                    DropdownMenuItem(
+                      value: timeout,
+                      child: Text(_timeoutLabel(timeout)),
+                    ),
+                ],
+                onChanged: (timeout) {
+                  if (timeout != null) notifier.setTimeout(timeout);
+                },
+              ),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Require for actions'),
+              subtitle: const Text(
+                'Trigger, cancel, approve, replay, node and job changes',
+              ),
+              value: settings.requireForSensitive,
+              onChanged: notifier.setRequireForSensitive,
+            ),
+          ],
         ],
       ),
     );
@@ -386,7 +518,23 @@ class _ServerTile extends ConsumerWidget {
                   : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             title: Text(server.serverName),
-            subtitle: Text(server.jenkinsURL),
+            subtitle: isActive
+                ? _ActiveServerSubtitle(server: server)
+                : looksLikeJenkinsApiToken(server.secret)
+                ? Text(server.jenkinsURL)
+                : Text.rich(
+                    TextSpan(
+                      text: server.jenkinsURL,
+                      children: [
+                        TextSpan(
+                          text: ' · Uses a password',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.tertiary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
             trailing: IconButton(
               icon: const Icon(Icons.edit),
               tooltip: 'Edit',
@@ -423,9 +571,9 @@ class _ServerTile extends ConsumerWidget {
   /// Confirms the switch actually happened — without this, nothing told
   /// the user their tap took effect beyond the radio icon silently moving.
   Future<void> _setActiveServer(WidgetRef ref, JenkinsServer server) async {
-    await ref.read(activeServerNotifierProvider.notifier).setActiveServer(
-      server,
-    );
+    await ref
+        .read(activeServerNotifierProvider.notifier)
+        .setActiveServer(server);
     ref
         .read(toastControllerProvider)
         .show(
@@ -572,5 +720,207 @@ class _GitHubCredentialTile extends ConsumerWidget {
             message: describeError(error),
           );
     }
+  }
+}
+
+/// Mirrors `_GitHubCredentialTile` exactly, for a `SonarQubeCredential`
+/// instead — deliberately not a shared generic widget, same reasoning as
+/// `_GitHubCredentialTile`'s own doc comment.
+class _SonarQubeCredentialTile extends ConsumerWidget {
+  const _SonarQubeCredentialTile({
+    required this.credential,
+    required this.isActive,
+  });
+
+  final SonarQubeCredential credential;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Dismissible(
+        key: ValueKey(credential.id),
+        direction: DismissDirection.endToStart,
+        confirmDismiss: (_) => _confirmDelete(context),
+        onDismissed: (_) => _deleteCredential(ref, credential),
+        background: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.errorContainer,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Icon(
+            Icons.delete,
+            color: Theme.of(context).colorScheme.onErrorContainer,
+          ),
+        ),
+        child: GlassSurface.card(
+          onTap: isActive ? null : () => _setActiveCredential(ref, credential),
+          child: ListTile(
+            leading: Icon(
+              isActive
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+              color: isActive
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            title: Text(credential.label),
+            subtitle: Text(credential.baseUrl),
+            trailing: IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Edit',
+              onPressed: () => showSonarQubeCredentialEditBottomSheet(
+                context,
+                existing: credential,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<bool> _confirmDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete SonarQube credential?'),
+        content: const Text('This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
+
+  Future<void> _setActiveCredential(
+    WidgetRef ref,
+    SonarQubeCredential credential,
+  ) async {
+    await ref
+        .read(activeSonarQubeCredentialNotifierProvider.notifier)
+        .setActiveCredential(credential);
+    ref
+        .read(toastControllerProvider)
+        .show(
+          type: ToastType.success,
+          title: 'Credential Switched',
+          message: 'Now using ${credential.label}.',
+        );
+  }
+
+  Future<void> _deleteCredential(
+    WidgetRef ref,
+    SonarQubeCredential credential,
+  ) async {
+    final result = await ref
+        .read(activeSonarQubeCredentialNotifierProvider.notifier)
+        .deleteCredential(credential);
+    if (result case Err(:final error)) {
+      ref
+          .read(toastControllerProvider)
+          .show(
+            type: ToastType.error,
+            title: 'Delete Failed',
+            message: describeError(error),
+          );
+    }
+  }
+}
+
+/// US-JX-18 + US-JX-22 for the active server: its URL, Jenkins version
+/// (with an upgrade hint when old), and the password advisory.
+class _ActiveServerSubtitle extends ConsumerWidget {
+  const _ActiveServerSubtitle({required this.server});
+
+  final JenkinsServer server;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final version = ref.watch(
+      serverStatusProvider.select((status) => status.value?.version),
+    );
+    final notes = [
+      if (version != null)
+        isOutdatedJenkins(version, AppConfig.recommendedJenkinsBaseline)
+            ? 'Jenkins $version · consider upgrading'
+            : 'Jenkins $version',
+      if (!looksLikeJenkinsApiToken(server.secret)) 'Uses a password',
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(server.jenkinsURL),
+        if (notes.isNotEmpty)
+          Text(
+            notes.join(' · '),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Theme.of(context).colorScheme.tertiary,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// US-JX-10: what the user will be notified about, with a way to stop.
+class _WatchesSection extends ConsumerWidget {
+  const _WatchesSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final watches = ref.watch(buildWatchNotifierProvider);
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('NOTIFICATIONS', style: textTheme.labelMedium),
+          const SizedBox(height: 4),
+          if (watches.isEmpty)
+            Text(
+              'Tap the bell on a job to be notified when builds finish.',
+              style: textTheme.bodySmall,
+            )
+          else
+            for (final watch in watches)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.notifications_active_outlined),
+                title: Text(watch.jobLabel),
+                subtitle: Text(
+                  watch.isJobWatch
+                      ? 'Every build'
+                      : 'Build #${watch.buildNumber}',
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: 'Stop notifying',
+                  onPressed: () => ref
+                      .read(buildWatchNotifierProvider.notifier)
+                      .unwatch(watch),
+                ),
+              ),
+          const SizedBox(height: 4),
+          Text(
+            'While the app is closed, checks run when your phone allows — '
+            'usually every 15 minutes or more.',
+            style: textTheme.labelSmall,
+          ),
+        ],
+      ),
+    );
   }
 }

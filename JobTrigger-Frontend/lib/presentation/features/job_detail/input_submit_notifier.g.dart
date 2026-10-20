@@ -10,7 +10,7 @@ part of 'input_submit_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 /// US-PIPE-05. Family-keyed by build URL. Approves/rejects a paused input
 /// step — see `JenkinsRepository.submitInput`'s doc comment for the
-/// (unverified) endpoint mechanics. Same success/error haptic + toast
+/// endpoint mechanics (verified in P11-02). Same success/error haptic + toast
 /// shape as `TriggerBuildNotifier`/`CancelBuildNotifier`, plus refreshing
 /// both `JobDetailNotifier` (the pipeline may have resumed/finished) and
 /// `PendingInputNotifier` (this input is resolved either way) on success.
@@ -20,7 +20,7 @@ final inputSubmitNotifierProvider = InputSubmitNotifierFamily._();
 
 /// US-PIPE-05. Family-keyed by build URL. Approves/rejects a paused input
 /// step — see `JenkinsRepository.submitInput`'s doc comment for the
-/// (unverified) endpoint mechanics. Same success/error haptic + toast
+/// endpoint mechanics (verified in P11-02). Same success/error haptic + toast
 /// shape as `TriggerBuildNotifier`/`CancelBuildNotifier`, plus refreshing
 /// both `JobDetailNotifier` (the pipeline may have resumed/finished) and
 /// `PendingInputNotifier` (this input is resolved either way) on success.
@@ -28,7 +28,7 @@ final class InputSubmitNotifierProvider
     extends $AsyncNotifierProvider<InputSubmitNotifier, void> {
   /// US-PIPE-05. Family-keyed by build URL. Approves/rejects a paused input
   /// step — see `JenkinsRepository.submitInput`'s doc comment for the
-  /// (unverified) endpoint mechanics. Same success/error haptic + toast
+  /// endpoint mechanics (verified in P11-02). Same success/error haptic + toast
   /// shape as `TriggerBuildNotifier`/`CancelBuildNotifier`, plus refreshing
   /// both `JobDetailNotifier` (the pipeline may have resumed/finished) and
   /// `PendingInputNotifier` (this input is resolved either way) on success.
@@ -69,11 +69,11 @@ final class InputSubmitNotifierProvider
 }
 
 String _$inputSubmitNotifierHash() =>
-    r'be3c20746d5de94f0af43c10beced6bc482d57db';
+    r'907af8367482d7a7f926aefcc98daf0ee6604dc7';
 
 /// US-PIPE-05. Family-keyed by build URL. Approves/rejects a paused input
 /// step — see `JenkinsRepository.submitInput`'s doc comment for the
-/// (unverified) endpoint mechanics. Same success/error haptic + toast
+/// endpoint mechanics (verified in P11-02). Same success/error haptic + toast
 /// shape as `TriggerBuildNotifier`/`CancelBuildNotifier`, plus refreshing
 /// both `JobDetailNotifier` (the pipeline may have resumed/finished) and
 /// `PendingInputNotifier` (this input is resolved either way) on success.
@@ -98,7 +98,7 @@ final class InputSubmitNotifierFamily extends $Family
 
   /// US-PIPE-05. Family-keyed by build URL. Approves/rejects a paused input
   /// step — see `JenkinsRepository.submitInput`'s doc comment for the
-  /// (unverified) endpoint mechanics. Same success/error haptic + toast
+  /// endpoint mechanics (verified in P11-02). Same success/error haptic + toast
   /// shape as `TriggerBuildNotifier`/`CancelBuildNotifier`, plus refreshing
   /// both `JobDetailNotifier` (the pipeline may have resumed/finished) and
   /// `PendingInputNotifier` (this input is resolved either way) on success.
@@ -112,7 +112,7 @@ final class InputSubmitNotifierFamily extends $Family
 
 /// US-PIPE-05. Family-keyed by build URL. Approves/rejects a paused input
 /// step — see `JenkinsRepository.submitInput`'s doc comment for the
-/// (unverified) endpoint mechanics. Same success/error haptic + toast
+/// endpoint mechanics (verified in P11-02). Same success/error haptic + toast
 /// shape as `TriggerBuildNotifier`/`CancelBuildNotifier`, plus refreshing
 /// both `JobDetailNotifier` (the pipeline may have resumed/finished) and
 /// `PendingInputNotifier` (this input is resolved either way) on success.
