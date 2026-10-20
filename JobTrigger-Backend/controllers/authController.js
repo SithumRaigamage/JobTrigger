@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const JenkinsCredential = require('../models/JenkinsCredential');
 const GitHubCredential = require('../models/GitHubCredential');
@@ -12,6 +13,11 @@ const MIN_PASSWORD_LENGTH = 8;
 const MAX_PASSWORD_BYTES = 72;
 const MAX_EMAIL_LENGTH = 254;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// AUD-55: compared against when the email has no account, so "no such
+// account" costs the same bcrypt work as "wrong password" and response
+// time doesn't reveal which emails are registered. Same cost as User's.
+const DUMMY_HASH = bcrypt.hashSync('no account has this password', 10);
 
 /**
  * AUD-04: `email` and `password` must be non-empty strings. Anything else
@@ -103,6 +109,7 @@ exports.login = async (req, res, next) => {
     // Find user
     const user = await User.findOne({ email });
     if (!user) {
+      await bcrypt.compare(password, DUMMY_HASH); // AUD-55: same work.
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 

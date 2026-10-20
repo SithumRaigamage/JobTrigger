@@ -47,6 +47,12 @@ So that I can securely store my Jenkins server credentials in the app
   silently cleared without warning
 
 **Security & Privacy Notes**
+- Accepted trade-off (AUD-55, 2026-10-20): signup answers "User already
+  exists", which confirms an email is registered. A generic answer only
+  helps with email verification behind it, which the backend doesn't have;
+  until it does, the 5-signups-per-hour-per-IP limit bounds the probing.
+  Login doesn't leak it: an unknown email gets the same message and the
+  same bcrypt work as a wrong password.
 - Password field is masked by default with an explicit show/hide toggle;
   never logged, never included in analytics/crash payloads (none are wired
   up today — see BACKLOG-07 — but the rule holds regardless).

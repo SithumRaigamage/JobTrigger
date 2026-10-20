@@ -1,7 +1,7 @@
 const request = require('supertest');
 const { expect } = require('chai');
 const express = require('express');
-const { authLimiter, refreshKey } = require('../middleware/rateLimit');
+const { authLimiter, loginEmailKey, refreshKey } = require('../middleware/rateLimit');
 const { issueTokens } = require('../security/tokens');
 
 // A small app with tiny limits, so the suites' generous limits (setup.js)
@@ -68,5 +68,15 @@ describe('Auth rate limiting (AUD-05)', function() {
     await request(app).post('/attempt').send({ refreshToken: 'garbage' });
     const res = await request(app).post('/attempt').send({});
     expect(res.status).to.equal(429);
+  });
+
+  // AUD-55: guessing one account's password from many addresses.
+  it('counts failed logins per account as well', async function() {
+    const app = probe({ limit: 1, skipSuccessfulRequests: true, keyGenerator: loginEmailKey });
+    await request(app).post('/attempt').send({ email: 'Victim@Example.com ' });
+    const again = await request(app).post('/attempt').send({ email: 'victim@example.com' });
+    expect(again.status).to.equal(429);
+    const other = await request(app).post('/attempt').send({ email: 'other@example.com' });
+    expect(other.status).to.equal(400);
   });
 });

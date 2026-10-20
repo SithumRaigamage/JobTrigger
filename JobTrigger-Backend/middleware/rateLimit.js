@@ -31,6 +31,27 @@ const loginLimiter = authLimiter({
   skipSuccessfulRequests: true,
 });
 
+/**
+ * AUD-55: failed logins are also counted per account, so guessing one
+ * account's password from many addresses (a botnet, rotating proxies) hits
+ * a limit too, not only guessing from one address. Keyed on the email as
+ * the login handler normalizes it; a body without a string email counts
+ * against the IP.
+ */
+function loginEmailKey(req) {
+  const email = req.body?.email;
+  return typeof email === 'string' && email.trim()
+    ? `email:${email.trim().toLowerCase()}`
+    : `ip:${ipKeyGenerator(req.ip)}`;
+}
+
+const loginEmailLimiter = authLimiter({
+  windowMs: 15 * MINUTE,
+  limit: fromEnv('LOGIN_EMAIL_RATE_LIMIT', 10),
+  skipSuccessfulRequests: true,
+  keyGenerator: loginEmailKey,
+});
+
 const signupLimiter = authLimiter({
   windowMs: 60 * MINUTE,
   limit: fromEnv('SIGNUP_RATE_LIMIT', 5),
@@ -54,4 +75,12 @@ const refreshLimiter = authLimiter({
   keyGenerator: refreshKey,
 });
 
-module.exports = { authLimiter, loginLimiter, refreshKey, refreshLimiter, signupLimiter };
+module.exports = {
+  authLimiter,
+  loginEmailKey,
+  loginEmailLimiter,
+  loginLimiter,
+  refreshKey,
+  refreshLimiter,
+  signupLimiter,
+};

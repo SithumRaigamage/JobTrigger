@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 // limiter itself is tested with its own small limits (rate_limit.test.js).
 // Set before the server (and so the limiters) load.
 process.env.LOGIN_RATE_LIMIT = '10000';
+process.env.LOGIN_EMAIL_RATE_LIMIT = '10000';
 process.env.SIGNUP_RATE_LIMIT = '10000';
 process.env.REFRESH_RATE_LIMIT = '10000';
 // AUD-03: a throwaway key per run; secrets are encrypted at rest.

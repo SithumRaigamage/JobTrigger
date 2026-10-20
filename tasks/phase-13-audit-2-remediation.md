@@ -48,7 +48,7 @@ is green on the commit that closes it, not just a local run.
       re-prompt requires authenticating first.
 - [x] P13-13 **AUD-54.** With the app lock on, the home-screen widget and
       build notifications don't show job names.
-- [ ] P13-14 **AUD-55 (backend).** Constant-work login for unknown emails;
+- [x] P13-14 **AUD-55 (backend).** Constant-work login for unknown emails;
       per-email failed-login limit.
 - [ ] P13-15 **AUD-56.** iOS privacy manifests for the app and the widget.
 - [ ] P13-16 **AUD-57.** iOS debug build (no codesign) in push CI.

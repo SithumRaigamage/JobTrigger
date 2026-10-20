@@ -138,6 +138,8 @@ CREDENTIALS_ENCRYPTION_KEY=<generated value>
 # apply to the client's IP rather than the proxy's. Only a whole number
 # (1-99) is accepted; anything else stops the server at startup (AUD-44).
 # LOGIN_RATE_LIMIT=10
+# Failed logins per account per 15 min, from any address (AUD-55).
+# LOGIN_EMAIL_RATE_LIMIT=10
 # SIGNUP_RATE_LIMIT=5
 # TRUST_PROXY=1
 ```
