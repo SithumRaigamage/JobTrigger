@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
+import 'package:job_trigger/domain/auth/auth_validation.dart';
 import 'package:job_trigger/data/repositories/sonarqube_credentials_repository_impl.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credentials_repository.dart';
@@ -18,6 +19,7 @@ class _FakeSonarQubeCredentialsRepository
   Result<SonarQubeCredential, AppFailure>? addResult;
   Result<SonarQubeCredential, AppFailure>? updateResult;
   String? lastUpdatedId;
+  String? lastAddedUrl;
 
   @override
   Future<Result<List<SonarQubeCredential>, AppFailure>> fetchAll() async =>
@@ -31,6 +33,7 @@ class _FakeSonarQubeCredentialsRepository
     String? defaultOrganization,
     bool isDefault = false,
   }) async {
+    lastAddedUrl = baseUrl;
     final result = addResult!;
     if (result case Ok(:final value)) _credentials.add(value);
     return result;
@@ -200,4 +203,55 @@ void main() {
       );
     },
   );
+
+  group('SonarQube URL (AUD-52)', () {
+    test('an unusable URL never reaches the backend', () async {
+      final repo = _FakeSonarQubeCredentialsRepository([]);
+      final container = ProviderContainer(
+        overrides: [
+          sonarQubeCredentialsRepositoryProvider.overrideWithValue(repo),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(sonarQubeCredentialFormNotifierProvider, (_, _) {});
+
+      await container
+          .read(sonarQubeCredentialFormNotifierProvider.notifier)
+          .save(
+            label: 'x',
+            baseUrl: 'sonar.example.com',
+            secret: 'squ_x',
+            isDefault: false,
+          );
+
+      expect(repo.lastAddedUrl, isNull);
+      expect(
+        container.read(sonarQubeCredentialFormNotifierProvider).error,
+        isA<FormValidationError>(),
+      );
+    });
+
+    test('the saved URL is trimmed, without trailing slashes', () async {
+      final repo = _FakeSonarQubeCredentialsRepository([])
+        ..addResult = Ok(_credential('a'));
+      final container = ProviderContainer(
+        overrides: [
+          sonarQubeCredentialsRepositoryProvider.overrideWithValue(repo),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(sonarQubeCredentialFormNotifierProvider, (_, _) {});
+
+      await container
+          .read(sonarQubeCredentialFormNotifierProvider.notifier)
+          .save(
+            label: 'x',
+            baseUrl: ' https://sonar.example.com// ',
+            secret: 'squ_x',
+            isDefault: false,
+          );
+
+      expect(repo.lastAddedUrl, 'https://sonar.example.com');
+    });
+  });
 }

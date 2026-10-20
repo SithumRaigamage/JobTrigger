@@ -2,6 +2,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
 import '../../../data/repositories/sonarqube_credentials_repository_impl.dart';
+import '../../../domain/auth/auth_validation.dart';
+import '../../../domain/credential/sonarqube_url.dart';
 import 'active_sonarqube_credential_notifier.dart';
 import 'sonarqube_credentials_notifier.dart';
 
@@ -29,6 +31,13 @@ class SonarQubeCredentialFormNotifier
     String? defaultOrganization,
     required bool isDefault,
   }) async {
+    // AUD-52: refuse an unusable URL before it reaches the backend.
+    final urlProblem = sonarQubeUrlProblem(baseUrl);
+    if (urlProblem != null) {
+      state = AsyncError(FormValidationError(urlProblem), StackTrace.current);
+      return;
+    }
+    baseUrl = normalizeServerUrl(baseUrl);
     state = const AsyncLoading();
     final repository = ref.read(sonarQubeCredentialsRepositoryProvider);
     final result = id == null

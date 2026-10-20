@@ -42,7 +42,7 @@ is green on the commit that closes it, not just a local run.
 - [x] P13-09 **AUD-50.** Artifact file names are reduced to a safe basename.
 - [x] P13-10 **AUD-51.** Routes that need an `extra` redirect to Home when
       opened without one; the router has an error screen.
-- [ ] P13-11 **AUD-52.** SonarQube base URLs get the same validation and
+- [x] P13-11 **AUD-52.** SonarQube base URLs get the same validation and
       `http://` warning as Jenkins URLs.
 - [ ] P13-12 **AUD-53.** Turning off the app lock or the sensitive-action
       re-prompt requires authenticating first.

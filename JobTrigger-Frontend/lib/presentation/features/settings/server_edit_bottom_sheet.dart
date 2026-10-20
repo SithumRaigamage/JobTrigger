@@ -5,6 +5,7 @@ import '../../../core/error/error_message.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import '../../../domain/credential/jenkins_url.dart';
 import '../../../domain/credential/token_hygiene.dart';
+import '../../common_widgets/cleartext_warning.dart';
 import '../../common_widgets/external_link.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/toast_controller.dart';
@@ -169,7 +170,10 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
                   ),
                 ),
                 if (isCleartextUrl(_jenkinsURLController.text))
-                  const _CleartextWarning(),
+                  const CleartextWarning(
+                    secretDescription:
+                        'your username and password or token are',
+                  ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _usernameController,
@@ -312,33 +316,6 @@ class _TestConnectionStatus extends StatelessWidget {
 }
 
 /// AUD-14: `http://` is allowed (LAN servers), but never silently.
-class _CleartextWarning extends StatelessWidget {
-  const _CleartextWarning();
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.lock_open, size: 18, color: colorScheme.error),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Not encrypted: your username and password or token are sent '
-              'in plain text with every request. Use https:// unless this '
-              'server is only reachable on a network you trust.',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// US-JX-22: a non-blocking nudge towards a revocable API token when the
 /// secret looks like an account password.
 class _PasswordAdvisory extends ConsumerWidget {

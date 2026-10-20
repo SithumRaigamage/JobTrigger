@@ -56,7 +56,7 @@ final class SonarQubeCredentialFormNotifierProvider
 }
 
 String _$sonarQubeCredentialFormNotifierHash() =>
-    r'1fe14cf87d5940be2f7b75bec8ba2ff9b36124b0';
+    r'6165212a07bc4e7124cd48a72c68d4e828e994b6';
 
 /// Add/edit form submit state — mirrors `GitHubCredentialFormNotifier`'s
 /// shape exactly, including setting a newly-saved `isDefault: true`

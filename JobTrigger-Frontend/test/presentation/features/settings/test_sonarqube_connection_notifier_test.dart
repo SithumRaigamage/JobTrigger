@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:job_trigger/domain/auth/auth_validation.dart';
 import 'package:job_trigger/presentation/features/settings/test_sonarqube_connection_notifier.dart';
 
 // `test()` itself calls `testSonarQubeConnection()` directly -- a top-level
@@ -31,6 +32,22 @@ void main() {
     expect(
       container.read(testSonarQubeConnectionNotifierProvider).value,
       isNull,
+    );
+  });
+
+  // AUD-52: no token is ever sent to an unusable URL.
+  test('an unusable URL fails before any request', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    container.listen(testSonarQubeConnectionNotifierProvider, (_, _) {});
+
+    await container
+        .read(testSonarQubeConnectionNotifierProvider.notifier)
+        .test(baseUrl: 'ftp://sonar.example.com', token: 'squ_x');
+
+    expect(
+      container.read(testSonarQubeConnectionNotifierProvider).error,
+      isA<FormValidationError>(),
     );
   });
 }

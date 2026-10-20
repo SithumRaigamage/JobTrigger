@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../domain/credential/sonarqube_credential.dart';
+import '../../../domain/credential/sonarqube_url.dart';
+import '../../common_widgets/cleartext_warning.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/toast_controller.dart';
 import 'sonarqube_credential_form_notifier.dart';
@@ -131,13 +133,22 @@ class _SonarQubeCredentialEditBottomSheetState
                 const SizedBox(height: 12),
                 TextField(
                   controller: _baseUrlController,
+                  keyboardType: TextInputType.url,
                   autocorrect: false,
-                  decoration: const InputDecoration(
+                  // Re-check the URL (AUD-52) as the user types.
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
                     labelText: 'Instance URL',
                     hintText: 'https://sonarcloud.io',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    errorText: _baseUrlController.text.trim().isEmpty
+                        ? null
+                        : sonarQubeUrlProblem(_baseUrlController.text),
+                    errorMaxLines: 2,
                   ),
                 ),
+                if (isCleartextUrl(_baseUrlController.text))
+                  const CleartextWarning(secretDescription: 'your token is'),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _tokenController,
