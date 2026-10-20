@@ -28,6 +28,10 @@ only tracks what's left and why.
       never shipped real artwork to port from. Needs real source artwork
       supplied by the team — not agent-generated — before store submission
       can proceed.
+- [ ] Before the first App Store Connect upload: re-check
+      `ios/Runner/PrivacyInfo.xcprivacy` (AUD-56) against the App Privacy
+      answers given in App Store Connect, and against any plugin added
+      since 2026-10-20 that uses a required-reason API.
 - [ ] Internal TestFlight + Play internal testing track release (source:
       `phase-6-polish-release.md` P6-11). Needs an Apple Developer account
       + App Store Connect access + code-signing certificates, and a Google

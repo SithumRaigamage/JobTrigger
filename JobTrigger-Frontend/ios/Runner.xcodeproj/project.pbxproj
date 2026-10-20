@@ -21,6 +21,8 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		DC444CF4B1E18AA83F6B6654 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1026CC7A50532004292F84DF /* SwiftUI.framework */; };
+		71E6AA1B332F1060E2196548 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3C9AC30B2B3342496EBC08D6 /* PrivacyInfo.xcprivacy */; };
+		6071CADEB2DB4DACC7A743BD /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 95C1709CEFF1F95E233A4822 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -90,6 +92,8 @@
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CD017E38AB16D91B042DBDE7 /* PinnedJobsWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = PinnedJobsWidget.entitlements; sourceTree = "<group>"; };
 		D4EE68578E3E3D4FE31452CF /* PinnedJobsWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PinnedJobsWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		3C9AC30B2B3342496EBC08D6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		95C1709CEFF1F95E233A4822 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +139,7 @@
 		3C29344002E8BFAE1DA6FFA7 /* PinnedJobsWidget */ = {
 			isa = PBXGroup;
 			children = (
+				95C1709CEFF1F95E233A4822 /* PrivacyInfo.xcprivacy */,
 				38FEFF2087EFB2D7C793C2EF /* PinnedJobsWidget.swift */,
 				71B9A6607352774C73A56F75 /* Info.plist */,
 				CD017E38AB16D91B042DBDE7 /* PinnedJobsWidget.entitlements */,
@@ -188,6 +193,7 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				3C9AC30B2B3342496EBC08D6 /* PrivacyInfo.xcprivacy */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
@@ -319,6 +325,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				71E6AA1B332F1060E2196548 /* PrivacyInfo.xcprivacy in Resources */,
 				97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */,
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
@@ -330,6 +337,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6071CADEB2DB4DACC7A743BD /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
