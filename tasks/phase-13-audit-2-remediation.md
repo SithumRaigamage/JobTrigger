@@ -30,7 +30,7 @@ is green on the commit that closes it, not just a local run.
 - [x] P13-04 **AUD-45.** Notification taps carry the watch's server and go
       through the open-link confirm-and-switch flow; the Jenkins client
       refuses requests to any host but its own.
-- [ ] P13-05 **AUD-46.** Editing the active Jenkins server, GitHub
+- [x] P13-05 **AUD-46.** Editing the active Jenkins server, GitHub
       credential, or SonarQube credential takes effect immediately.
 - [ ] P13-06 **AUD-47 (client + backend).** Only a 401 from `/refresh`
       ends a session; the refresh limiter is keyed by user, not IP.

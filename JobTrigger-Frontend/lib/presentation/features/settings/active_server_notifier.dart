@@ -26,6 +26,21 @@ class ActiveServerNotifier extends _$ActiveServerNotifier {
   @override
   JenkinsServer? build() {
     _rehydrate();
+    // AUD-46: the active entry is a snapshot (URL, username, secret).
+    // Whenever the saved list reloads — after an edit, from any screen —
+    // swap in the fresh copy with the same id, so an edited secret or URL
+    // takes effect at once instead of after a restart.
+    // Weak: observing must not keep the list alive or retrying on its own;
+    // the screens that show it own that.
+    // Registered after `_rehydrate` starts: its first read mounts the list
+    // synchronously, before this notifier has any state to compare.
+    ref.listen(credentialsNotifierProvider, (_, next) {
+      final current = state;
+      final fresh = next.value;
+      if (current == null || fresh == null) return;
+      final match = _findById(fresh, current.id);
+      if (match != null && match != current) state = match;
+    }, weak: true);
     return null;
   }
 

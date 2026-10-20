@@ -26,4 +26,28 @@ class JenkinsServer {
       'JenkinsServer(id: $id, serverName: $serverName, jenkinsURL: $jenkinsURL, '
       'username: $username, secret: ***, paramToken: '
       '${paramToken == null ? 'null' : '***'}, isDefault: $isDefault)';
+
+  /// Value equality, so a reload that changed nothing doesn't rebuild the
+  /// client built from this entry (AUD-46).
+  @override
+  bool operator ==(Object other) =>
+      other is JenkinsServer &&
+      other.id == id &&
+      other.serverName == serverName &&
+      other.jenkinsURL == jenkinsURL &&
+      other.username == username &&
+      other.secret == secret &&
+      other.paramToken == paramToken &&
+      other.isDefault == isDefault;
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    serverName,
+    jenkinsURL,
+    username,
+    secret,
+    paramToken,
+    isDefault,
+  );
 }

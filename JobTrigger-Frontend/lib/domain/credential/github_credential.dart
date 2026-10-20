@@ -21,4 +21,18 @@ class GitHubCredential {
   String toString() =>
       'GitHubCredential(id: $id, label: $label, secret: ***, '
       'defaultOwner: $defaultOwner, isDefault: $isDefault)';
+
+  /// Value equality, so a reload that changed nothing doesn't rebuild the
+  /// client built from this entry (AUD-46).
+  @override
+  bool operator ==(Object other) =>
+      other is GitHubCredential &&
+      other.id == id &&
+      other.label == label &&
+      other.secret == secret &&
+      other.defaultOwner == defaultOwner &&
+      other.isDefault == isDefault;
+
+  @override
+  int get hashCode => Object.hash(id, label, secret, defaultOwner, isDefault);
 }

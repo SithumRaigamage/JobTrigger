@@ -51,7 +51,12 @@ class _FakeCredentialsRepository implements CredentialsRepository {
     bool isDefault = false,
   }) async {
     lastUpdatedId = id;
-    return updateResult!;
+    final result = updateResult!;
+    if (result case Ok(:final value)) {
+      final index = _servers.indexWhere((server) => server.id == id);
+      if (index != -1) _servers[index] = value;
+    }
+    return result;
   }
 
   @override
@@ -150,6 +155,49 @@ void main() {
 
     expect(repo.lastUpdatedId, 'a');
     expect(container.read(serverFormNotifierProvider).hasError, isFalse);
+  });
+
+  // AUD-46: the active server is a snapshot; editing it without "set as
+  // default" left the old secret and URL in use until a restart.
+  test('editing the active server applies the new secret and URL', () async {
+    final repo = _FakeCredentialsRepository([_server('a')]);
+    final container = ProviderContainer(
+      overrides: [credentialsRepositoryProvider.overrideWithValue(repo)],
+    );
+    addTearDown(container.dispose);
+    container.listen(serverFormNotifierProvider, (_, _) {});
+    container.listen(activeServerNotifierProvider, (_, _) {});
+    // Settings shows the list while the user edits a server.
+    container.listen(credentialsNotifierProvider, (_, _) {});
+    await container.read(credentialsNotifierProvider.future);
+    await pumpEventQueue();
+    expect(container.read(activeServerNotifierProvider)?.secret, 'pass');
+
+    repo.updateResult = const Ok(
+      JenkinsServer(
+        id: 'a',
+        serverName: 'Server a',
+        jenkinsURL: 'https://a-new.test',
+        username: 'user',
+        secret: 'api-token',
+      ),
+    );
+    await container
+        .read(serverFormNotifierProvider.notifier)
+        .save(
+          id: 'a',
+          serverName: 'Server a',
+          jenkinsURL: 'https://a-new.test',
+          username: 'user',
+          secret: 'api-token',
+          isDefault: false,
+        );
+    await container.read(credentialsNotifierProvider.future);
+    await pumpEventQueue();
+
+    final active = container.read(activeServerNotifierProvider);
+    expect(active?.secret, 'api-token');
+    expect(active?.jenkinsURL, 'https://a-new.test');
   });
 
   test(

@@ -123,6 +123,10 @@ re-adding the server
   Then `PUT /api/credentials/:id` sends a partial update, the list reflects
   the change, and if I edited the active server, the Jenkins Dio client for
   that server is rebuilt with the new credentials immediately
+- Scenario: Editing the active server applies at once (AUD-46)
+  Given the server I edit is the active one
+  When I save a new secret or URL (with or without "Set as default")
+  Then the very next Jenkins request uses the new values, without a restart
 - Scenario: Password field starts empty, not pre-filled
   Given I open the edit form
   Then the password field is blank (never pre-populated with the existing

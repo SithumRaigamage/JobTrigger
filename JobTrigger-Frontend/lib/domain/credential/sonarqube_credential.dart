@@ -25,4 +25,20 @@ class SonarQubeCredential {
       'SonarQubeCredential(id: $id, label: $label, baseUrl: $baseUrl, '
       'secret: ***, defaultOrganization: $defaultOrganization, '
       'isDefault: $isDefault)';
+
+  /// Value equality, so a reload that changed nothing doesn't rebuild the
+  /// client built from this entry (AUD-46).
+  @override
+  bool operator ==(Object other) =>
+      other is SonarQubeCredential &&
+      other.id == id &&
+      other.label == label &&
+      other.baseUrl == baseUrl &&
+      other.secret == secret &&
+      other.defaultOrganization == defaultOrganization &&
+      other.isDefault == isDefault;
+
+  @override
+  int get hashCode =>
+      Object.hash(id, label, baseUrl, secret, defaultOrganization, isDefault);
 }
