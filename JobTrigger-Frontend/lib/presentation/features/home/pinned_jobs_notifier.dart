@@ -8,7 +8,7 @@ import '../../../core/error/app_failure.dart';
 import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
-import '../settings/active_server_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 
 part 'pinned_jobs_notifier.g.dart';
 

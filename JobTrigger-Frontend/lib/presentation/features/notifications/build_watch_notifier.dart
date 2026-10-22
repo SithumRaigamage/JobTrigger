@@ -10,8 +10,8 @@ import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/jenkins_repository.dart';
 import '../app_lock/app_lock_notifier.dart';
-import '../settings/active_server_notifier.dart';
-import '../settings/credentials_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
+import '../../../data/credentials/credentials_notifier.dart';
 import 'background_watch.dart';
 import 'watch_runner.dart';
 

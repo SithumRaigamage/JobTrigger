@@ -2,8 +2,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
 import '../../../data/repositories/github_credentials_repository_impl.dart';
-import 'active_github_credential_notifier.dart';
-import 'github_credentials_notifier.dart';
+import '../../../data/credentials/active_github_credential_notifier.dart';
+import '../../../data/credentials/github_credentials_notifier.dart';
 
 part 'github_credential_form_notifier.g.dart';
 

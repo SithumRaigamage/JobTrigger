@@ -10,7 +10,7 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
-import '../settings/active_server_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 import 'build_trends_card.dart';
 import 'history_tile.dart';
 import 'job_history_pages_notifier.dart';

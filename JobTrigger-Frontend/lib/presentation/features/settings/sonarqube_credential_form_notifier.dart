@@ -4,8 +4,8 @@ import '../../../core/error/result.dart';
 import '../../../data/repositories/sonarqube_credentials_repository_impl.dart';
 import '../../../domain/auth/auth_validation.dart';
 import '../../../domain/credential/sonarqube_url.dart';
-import 'active_sonarqube_credential_notifier.dart';
-import 'sonarqube_credentials_notifier.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../../data/credentials/sonarqube_credentials_notifier.dart';
 
 part 'sonarqube_credential_form_notifier.g.dart';
 

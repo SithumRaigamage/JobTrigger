@@ -5,7 +5,7 @@ import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/github_credentials_repository_impl.dart';
 import 'package:job_trigger/domain/credential/github_credential.dart';
 import 'package:job_trigger/domain/credential/github_credentials_repository.dart';
-import 'package:job_trigger/presentation/features/settings/active_github_credential_notifier.dart';
+import 'package:job_trigger/data/credentials/active_github_credential_notifier.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
 /// In-memory fake, mirrors `active_server_notifier_test.dart`'s

@@ -10,7 +10,7 @@ import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifie
 import 'package:job_trigger/presentation/features/home/folder_contents_notifier.dart';
 import 'package:job_trigger/presentation/features/home/job_search_notifier.dart';
 import 'package:job_trigger/presentation/features/home/visible_jobs_provider.dart';
-import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/active_server_notifier.dart';
 
 import '../../../support/fake_jenkins_repository.dart';
 

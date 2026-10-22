@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
-import '../../../core/network/jenkins_client_factory.dart';
+import '../../../data/datasources/jenkins_client_factory.dart';
 import '../../../domain/auth/auth_validation.dart';
 import '../../../domain/credential/jenkins_url.dart';
 

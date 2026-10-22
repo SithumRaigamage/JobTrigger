@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:job_trigger/core/network/sonarqube_client_factory.dart';
+import 'package:job_trigger/data/datasources/sonarqube_client_factory.dart';
 
 void main() {
   group('buildSonarQubeDio', () {

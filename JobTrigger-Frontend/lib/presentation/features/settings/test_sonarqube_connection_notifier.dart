@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
-import '../../../core/network/sonarqube_client_factory.dart';
+import '../../../data/datasources/sonarqube_client_factory.dart';
 import '../../../domain/auth/auth_validation.dart';
 import '../../../domain/credential/sonarqube_url.dart';
 

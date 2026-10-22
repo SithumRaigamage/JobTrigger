@@ -8,7 +8,7 @@ import '../../../core/error/result.dart';
 import '../../../data/cache/job_tree_cache.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
-import '../settings/active_server_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 
 part 'folder_contents_notifier.g.dart';
 

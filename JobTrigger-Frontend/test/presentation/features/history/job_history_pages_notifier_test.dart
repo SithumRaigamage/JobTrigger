@@ -10,7 +10,7 @@ import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/presentation/features/history/job_history_pages_notifier.dart';
 import 'package:job_trigger/presentation/features/history/job_history_screen.dart';
-import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/active_server_notifier.dart';
 
 import '../../../support/fake_jenkins_repository.dart';
 

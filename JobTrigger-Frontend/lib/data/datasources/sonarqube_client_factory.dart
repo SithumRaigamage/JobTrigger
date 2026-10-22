@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../presentation/features/settings/active_sonarqube_credential_notifier.dart';
-import '../error/app_failure.dart';
-import '../error/guard.dart';
-import '../error/result.dart';
-import 'host_pinning.dart';
+import '../credentials/active_sonarqube_credential_notifier.dart';
+import '../../core/error/app_failure.dart';
+import '../../core/error/guard.dart';
+import '../../core/error/result.dart';
+import '../../core/network/host_pinning.dart';
 
 part 'sonarqube_client_factory.g.dart';
 

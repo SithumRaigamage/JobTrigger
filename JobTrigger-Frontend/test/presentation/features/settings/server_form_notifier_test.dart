@@ -6,8 +6,8 @@ import 'package:job_trigger/data/repositories/credentials_repository_impl.dart';
 import 'package:job_trigger/domain/auth/auth_validation.dart';
 import 'package:job_trigger/domain/credential/credentials_repository.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
-import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
-import 'package:job_trigger/presentation/features/settings/credentials_notifier.dart';
+import 'package:job_trigger/data/credentials/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/credentials_notifier.dart';
 import 'package:job_trigger/presentation/features/settings/server_form_notifier.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 

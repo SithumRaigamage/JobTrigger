@@ -1,8 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/error/result.dart';
-import '../../../data/repositories/credentials_repository_impl.dart';
-import '../../../domain/credential/jenkins_server.dart';
+import '../../core/error/result.dart';
+import '../repositories/credentials_repository_impl.dart';
+import '../../domain/credential/jenkins_server.dart';
 
 part 'credentials_notifier.g.dart';
 

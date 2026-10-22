@@ -11,7 +11,7 @@ import 'package:job_trigger/domain/jenkins/parameter_definition.dart';
 import 'package:job_trigger/domain/jenkins/parameter_file.dart';
 import 'package:job_trigger/domain/jenkins/parameter_values.dart';
 import 'package:job_trigger/presentation/features/job_detail/parameter_form.dart';
-import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/active_server_notifier.dart';
 
 import '../../../support/fake_jenkins_repository.dart';
 

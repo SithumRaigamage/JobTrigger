@@ -1,10 +1,10 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/error/app_failure.dart';
-import '../../../core/error/result.dart';
-import '../../../data/repositories/sonarqube_credentials_repository_impl.dart';
-import '../../../domain/credential/sonarqube_credential.dart';
+import '../../core/error/app_failure.dart';
+import '../../core/error/result.dart';
+import '../repositories/sonarqube_credentials_repository_impl.dart';
+import '../../domain/credential/sonarqube_credential.dart';
 import 'sonarqube_credentials_notifier.dart';
 
 part 'active_sonarqube_credential_notifier.g.dart';

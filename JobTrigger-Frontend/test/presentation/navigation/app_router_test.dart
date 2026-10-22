@@ -18,8 +18,8 @@ import 'package:job_trigger/presentation/features/github/github_repo_screen.dart
 import 'package:job_trigger/presentation/features/github/github_workflow_list_screen.dart';
 import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifier.dart';
 import 'package:job_trigger/presentation/features/home/home_screen.dart';
-import 'package:job_trigger/presentation/features/settings/active_github_credential_notifier.dart';
-import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/active_github_credential_notifier.dart';
+import 'package:job_trigger/data/credentials/active_server_notifier.dart';
 import 'package:job_trigger/presentation/features/tool_selection/active_tool_notifier.dart';
 import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
 import 'package:job_trigger/presentation/navigation/app_router.dart';

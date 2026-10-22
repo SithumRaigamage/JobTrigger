@@ -1,11 +1,11 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/error/app_failure.dart';
-import '../../../core/error/result.dart';
-import '../../../data/cache/job_tree_cache.dart';
-import '../../../data/repositories/credentials_repository_impl.dart';
-import '../../../domain/credential/jenkins_server.dart';
+import '../../core/error/app_failure.dart';
+import '../../core/error/result.dart';
+import '../cache/job_tree_cache.dart';
+import '../repositories/credentials_repository_impl.dart';
+import '../../domain/credential/jenkins_server.dart';
 import 'credentials_notifier.dart';
 
 part 'active_server_notifier.g.dart';

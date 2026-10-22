@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../domain/jenkins/jenkins_job.dart';
-import '../settings/active_server_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 import 'views_notifier.dart';
 
 part 'folder_breadcrumb_notifier.g.dart';

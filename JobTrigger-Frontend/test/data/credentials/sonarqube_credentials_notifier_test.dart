@@ -5,7 +5,7 @@ import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/sonarqube_credentials_repository_impl.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credentials_repository.dart';
-import 'package:job_trigger/presentation/features/settings/sonarqube_credentials_notifier.dart';
+import 'package:job_trigger/data/credentials/sonarqube_credentials_notifier.dart';
 
 class _FakeSonarQubeCredentialsRepository
     implements SonarQubeCredentialsRepository {

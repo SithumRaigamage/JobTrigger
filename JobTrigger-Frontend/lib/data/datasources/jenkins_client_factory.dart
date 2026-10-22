@@ -5,11 +5,11 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../presentation/features/settings/active_server_notifier.dart';
-import '../error/app_failure.dart';
-import '../error/guard.dart';
-import '../error/result.dart';
-import 'host_pinning.dart';
+import '../credentials/active_server_notifier.dart';
+import '../../core/error/app_failure.dart';
+import '../../core/error/guard.dart';
+import '../../core/error/result.dart';
+import '../../core/network/host_pinning.dart';
 
 part 'jenkins_client_factory.g.dart';
 

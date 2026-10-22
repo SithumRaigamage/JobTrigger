@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../presentation/features/settings/active_github_credential_notifier.dart';
-import '../error/app_failure.dart';
-import '../error/guard.dart';
-import '../error/result.dart';
+import '../credentials/active_github_credential_notifier.dart';
+import '../../core/error/app_failure.dart';
+import '../../core/error/guard.dart';
+import '../../core/error/result.dart';
 
 part 'github_client_factory.g.dart';
 

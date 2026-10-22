@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/network/host_pinning.dart';
-import 'package:job_trigger/core/network/jenkins_client_factory.dart';
-import 'package:job_trigger/core/network/sonarqube_client_factory.dart';
+import 'package:job_trigger/data/datasources/jenkins_client_factory.dart';
+import 'package:job_trigger/data/datasources/sonarqube_client_factory.dart';
 
 class _RecordingAdapter implements HttpClientAdapter {
   final requests = <RequestOptions>[];

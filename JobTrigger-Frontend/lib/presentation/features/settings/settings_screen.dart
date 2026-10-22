@@ -21,18 +21,18 @@ import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../tool_selection/active_tool_notifier.dart';
 import '../tool_selection/ci_tool.dart';
-import 'active_github_credential_notifier.dart';
+import '../../../data/credentials/active_github_credential_notifier.dart';
 import '../app_lock/app_lock_notifier.dart';
 import '../notifications/build_watch_notifier.dart';
 import '../../../domain/app_lock/app_lock_settings.dart';
-import 'active_server_notifier.dart';
-import 'active_sonarqube_credential_notifier.dart';
-import 'credentials_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../../data/credentials/credentials_notifier.dart';
 import 'github_credential_edit_bottom_sheet.dart';
-import 'github_credentials_notifier.dart';
+import '../../../data/credentials/github_credentials_notifier.dart';
 import 'server_edit_bottom_sheet.dart';
 import 'sonarqube_credential_edit_bottom_sheet.dart';
-import 'sonarqube_credentials_notifier.dart';
+import '../../../data/credentials/sonarqube_credentials_notifier.dart';
 
 /// Ported from `SettingsView.swift`'s server list — see
 /// `docs/state-management.md`'s "Feature: settings / server management".

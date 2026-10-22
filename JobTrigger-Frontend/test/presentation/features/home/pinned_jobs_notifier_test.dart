@@ -9,7 +9,7 @@ import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/presentation/features/home/home_screen.dart';
 import 'package:job_trigger/presentation/features/home/pinned_jobs_notifier.dart';
-import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/active_server_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../support/fake_jenkins_repository.dart';

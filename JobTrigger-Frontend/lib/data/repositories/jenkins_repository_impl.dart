@@ -6,7 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../core/error/app_failure.dart';
 import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
-import '../../core/network/jenkins_client_factory.dart';
+import '../datasources/jenkins_client_factory.dart';
 import '../../domain/credential/jenkins_server.dart';
 import '../../domain/jenkins/branch_kind.dart';
 import '../../domain/jenkins/history_filter.dart';

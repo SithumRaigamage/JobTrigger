@@ -19,7 +19,7 @@ import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/status_indicator.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
-import '../settings/active_server_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 import 'folder_breadcrumb_notifier.dart';
 import 'folder_contents_notifier.dart';
 import 'job_search_notifier.dart';

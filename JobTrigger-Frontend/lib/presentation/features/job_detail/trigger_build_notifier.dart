@@ -9,7 +9,7 @@ import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/parameter_file.dart';
 import '../../../domain/jenkins/parameter_values.dart';
 import '../../common_widgets/toast_controller.dart';
-import '../settings/active_server_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 import 'job_detail_notifier.dart';
 import 'queue_status_notifier.dart';
 import '../app_lock/app_lock_notifier.dart';
