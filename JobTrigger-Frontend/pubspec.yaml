@@ -84,6 +84,14 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  config:
+    # Swift Package Manager is off for this project. Flutter's SPM integration
+    # migration requires an `ios/Runner.xcworkspace`, which only CocoaPods
+    # creates — and with SPM enabled Flutter never writes a Podfile, so a
+    # fresh clone has no workspace and `flutter build ios` fails with
+    # "Xcode workspace not found". CocoaPods is the manager this project has
+    # always built with, and it regenerates the workspace on every build.
+    enable-swift-package-manager: false
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
