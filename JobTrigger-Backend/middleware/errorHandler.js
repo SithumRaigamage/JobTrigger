@@ -1,3 +1,5 @@
+const { logger } = require('../lib/logger');
+
 /**
  * AUD-06: the one place an unexpected error becomes a response. Details go
  * to the server log; the client gets a generic body, never Mongo or
@@ -6,6 +8,11 @@
 
 // Unknown routes: JSON like every other response, not Express's HTML page.
 function notFound(req, res) {
+  logger.info('http.not_found', {
+    ...(req.requestId ? { requestId: req.requestId } : {}),
+    method: req.method,
+    path: req.logPath ?? req.path,
+  });
   res.status(404).json({ message: 'Not found' });
 }
 
@@ -30,8 +37,21 @@ function errorHandler(err, req, res, next) {
     return res.status(400).json({ message: 'Invalid value' });
   }
 
-  console.error(`${req.method} ${req.originalUrl} failed:`, err);
-  res.status(500).json({ message: 'Server error' });
+  // §19: the id ties this line to the request that caused it, and the
+  // client gets it back so a user can quote it in a bug report. The
+  // path is the route path, never the query string.
+  logger.error('http.error', {
+    ...(req.requestId ? { requestId: req.requestId } : {}),
+    method: req.method,
+    path: req.logPath ?? req.path,
+    error: err.name,
+    message: err.message,
+    stack: err.stack,
+  });
+  res.status(500).json({
+    message: 'Server error',
+    ...(req.requestId ? { requestId: req.requestId } : {}),
+  });
 }
 
 module.exports = { notFound, errorHandler };

@@ -17,7 +17,9 @@ describe('Error handling (AUD-06)', function() {
     try {
       const res = await api().get('/api/appinfo');
       expect(res.status).to.equal(500);
-      expect(res.body).to.deep.equal({ message: 'Server error' });
+      expect(res.body.message).to.equal('Server error');
+      // §19: the request id, so a user can quote it in a bug report.
+      expect(res.body.requestId).to.be.a('string');
       expect(JSON.stringify(res.body)).to.not.match(/E11000|appinfos/);
     } finally {
       AppInfo.findOne = original;

@@ -6,6 +6,9 @@ require('dotenv').config();
 
 const { corsOrigins, invalidConfig, missingConfig, trustProxyHops } = require('./config/env');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
+const requestId = require('./middleware/requestId');
+const requestLogger = require('./middleware/requestLogger');
+const { logger } = require('./lib/logger');
 
 // AUD-04: defence in depth. Query filters built from request data treat
 // `$`-operators as literal values, so `{"$gt": ""}` can't match every row
@@ -24,6 +27,11 @@ if (proxyHops) {
 }
 
 // Middleware
+// §19: the request id first, before anything that can fail, so every
+// response carries it and every later log line can be tied to it.
+app.use(requestId);
+app.use(requestLogger);
+
 // AUD-25: security headers, and CORS only for origins listed in
 // CORS_ORIGINS (none by default; the mobile app doesn't need CORS).
 app.use(helmet());
@@ -59,24 +67,24 @@ async function startServer() {
   // AUD-25: refuse to start half-configured rather than fail per request.
   const missing = missingConfig();
   if (missing.length > 0) {
-    console.error(`Missing required configuration: ${missing.join(', ')}`);
+    logger.error('config.missing', { missing });
     process.exit(1);
   }
   const invalid = invalidConfig();
   if (invalid) {
-    console.error(`Invalid configuration: ${invalid}`);
+    logger.error('config.invalid', { error: invalid });
     process.exit(1);
   }
   try {
     await mongoose.connect(process.env.MONGODB_URI, { dbName: 'jobtrigger' });
-    console.log('Connected to MongoDB');
+    logger.info('server.mongo_connected');
     const PORT = process.env.PORT || 5001;
     const server = app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      logger.info('server.listening', { port: Number(PORT) });
     });
     return server;
   } catch (err) {
-    console.error('Could not connect to MongoDB', err);
+    logger.error('server.mongo_connect_failed', { error: err.message });
     process.exit(1);
   }
 }
