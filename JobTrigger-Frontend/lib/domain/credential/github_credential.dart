@@ -46,12 +46,6 @@ class GitHubCredential {
       other.needsReentry == needsReentry;
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    label,
-    secret,
-    defaultOwner,
-    isDefault,
-    needsReentry,
-  );
+  int get hashCode =>
+      Object.hash(id, label, secret, defaultOwner, isDefault, needsReentry);
 }

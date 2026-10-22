@@ -413,58 +413,53 @@ void main() {
   });
 
   group('JenkinsRepositoryImpl.fetchJobStatus', () {
-    test(
-      'GETs {jobUrl}api/json with the lean tree, not the details tree '
-      '(§14 / P13-25)',
-      () async {
-        final adapter = _JsonResponseAdapter(200, {
-          'name': 'demo',
-          'url': 'http://internal-jenkins/job/demo/',
-          'color': 'blue',
-          'lastBuild': {
-            'number': 7,
-            'url': 'b',
-            'result': 'SUCCESS',
-            'timestamp': 0,
-          },
-        });
-        final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
-          ..httpClientAdapter = adapter;
-        final repo = JenkinsRepositoryImpl(dio);
+    test('GETs {jobUrl}api/json with the lean tree, not the details tree '
+        '(§14 / P13-25)', () async {
+      final adapter = _JsonResponseAdapter(200, {
+        'name': 'demo',
+        'url': 'http://internal-jenkins/job/demo/',
+        'color': 'blue',
+        'lastBuild': {
+          'number': 7,
+          'url': 'b',
+          'result': 'SUCCESS',
+          'timestamp': 0,
+        },
+      });
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+      final repo = JenkinsRepositoryImpl(dio);
 
-        final result = await repo.fetchJobStatus(
-          'https://jenkins.test/job/demo',
-        );
+      final result = await repo.fetchJobStatus('https://jenkins.test/job/demo');
 
-        expect(
-          adapter.lastRequest?.path,
-          'https://jenkins.test/job/demo/api/json',
-        );
-        final tree = adapter.lastRequest?.queryParameters['tree'] as String;
-        // The lean listing fields -- enough for the pinned tile's ball
-        // colour and last build number.
-        expect(tree, contains('_class,name,displayName,url,color,description'));
-        expect(tree, contains('lastBuild[number,url,result'));
-        // None of the heavy detail sections the pinned tile never reads.
-        for (final heavy in [
-          'changeSet',
-          'artifacts',
-          'healthReport',
-          'parameterDefinitions',
-          'downstreamProjects',
-          'lastSuccessfulBuild',
-          'lastFailedBuild',
-        ]) {
-          expect(tree, isNot(contains(heavy)), reason: 'tree: $tree');
-        }
-        expect(result, isA<Ok<JenkinsJob, dynamic>>());
-        final job = (result as Ok<JenkinsJob, dynamic>).value;
-        expect(job.color, 'blue');
-        expect(job.lastBuild?.number, 7);
-        // Rewritten to the active server's baseUrl, same as fetchJobDetail.
-        expect(job.url, 'https://jenkins.test/job/demo/');
-      },
-    );
+      expect(
+        adapter.lastRequest?.path,
+        'https://jenkins.test/job/demo/api/json',
+      );
+      final tree = adapter.lastRequest?.queryParameters['tree'] as String;
+      // The lean listing fields -- enough for the pinned tile's ball
+      // colour and last build number.
+      expect(tree, contains('_class,name,displayName,url,color,description'));
+      expect(tree, contains('lastBuild[number,url,result'));
+      // None of the heavy detail sections the pinned tile never reads.
+      for (final heavy in [
+        'changeSet',
+        'artifacts',
+        'healthReport',
+        'parameterDefinitions',
+        'downstreamProjects',
+        'lastSuccessfulBuild',
+        'lastFailedBuild',
+      ]) {
+        expect(tree, isNot(contains(heavy)), reason: 'tree: $tree');
+      }
+      expect(result, isA<Ok<JenkinsJob, dynamic>>());
+      final job = (result as Ok<JenkinsJob, dynamic>).value;
+      expect(job.color, 'blue');
+      expect(job.lastBuild?.number, 7);
+      // Rewritten to the active server's baseUrl, same as fetchJobDetail.
+      expect(job.url, 'https://jenkins.test/job/demo/');
+    });
 
     test('a non-2xx response maps to Err', () async {
       final adapter = _JsonResponseAdapter(404);

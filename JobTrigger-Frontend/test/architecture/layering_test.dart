@@ -17,29 +17,27 @@ void main() {
   /// package-relative path (`lib/...`) where possible.
   List<String> importsOf(File file) {
     final source = file.readAsStringSync();
-    final pattern = RegExp(
-      r'''(?:import|export|part)\s+['"]([^'"]+)['"]''',
-    );
+    final pattern = RegExp(r'''(?:import|export|part)\s+['"]([^'"]+)['"]''');
     // `flutter test` runs from the package root, so the paths below are
     // already package-relative (`lib/core/network/x.dart`).
     final from = file.path.replaceAll('\\', '/');
     final directory = from.substring(0, from.lastIndexOf('/'));
-    return pattern
-        .allMatches(source)
-        .map((match) => match.group(1)!)
-        .map((uri) {
-          if (uri.startsWith('package:job_trigger/')) {
-            return 'lib/${uri.substring('package:job_trigger/'.length)}';
-          }
-          if (uri.contains(':')) return uri; // flutter, dio, ...
-          return _normalize('$directory/$uri');
-        })
-        .toList();
+    return pattern.allMatches(source).map((match) => match.group(1)!).map((
+      uri,
+    ) {
+      if (uri.startsWith('package:job_trigger/')) {
+        return 'lib/${uri.substring('package:job_trigger/'.length)}';
+      }
+      if (uri.contains(':')) return uri; // flutter, dio, ...
+      return _normalize('$directory/$uri');
+    }).toList();
   }
 
-  List<File> dartFilesIn(String directory) => Directory(
-    directory,
-  ).listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.dart')).toList();
+  List<File> dartFilesIn(String directory) => Directory(directory)
+      .listSync(recursive: true)
+      .whereType<File>()
+      .where((f) => f.path.endsWith('.dart'))
+      .toList();
 
   group('layering', () {
     test('core never imports presentation', () {
@@ -82,7 +80,8 @@ void main() {
       final offenders = <String>[];
       for (final file in dartFilesIn('lib/domain')) {
         for (final uri in importsOf(file)) {
-          if (uri.startsWith('lib/presentation/') || uri.startsWith('lib/data/')) {
+          if (uri.startsWith('lib/presentation/') ||
+              uri.startsWith('lib/data/')) {
             offenders.add('${file.path}: $uri');
           }
         }

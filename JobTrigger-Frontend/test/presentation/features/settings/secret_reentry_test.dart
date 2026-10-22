@@ -97,8 +97,7 @@ class _FakeCredentialsRepository implements CredentialsRepository {
       throw UnimplementedError();
 }
 
-class _FakeGitHubCredentialsRepository
-    implements GitHubCredentialsRepository {
+class _FakeGitHubCredentialsRepository implements GitHubCredentialsRepository {
   _FakeGitHubCredentialsRepository(this._credentials);
 
   final List<GitHubCredential> _credentials;
@@ -246,25 +245,22 @@ void main() {
       expect(domain.needsReentry, isFalse);
     });
 
-    test(
-      'the flag and the secret can never disagree — a null secret always '
-      'means re-entry, whatever the server said',
-      () {
-        // A backend that sends `needsReentry: false` alongside a null
-        // secret is wrong, and the client must not take its word for it:
-        // a null secret IS the unreadable case.
-        final dto = CredentialDto.fromJson({
-          '_id': 'cred-1',
-          'serverName': 'Prod Jenkins',
-          'jenkinsURL': 'https://jenkins.example.com',
-          'username': 'admin',
-          'password': null,
-          'needsReentry': false,
-        });
+    test('the flag and the secret can never disagree — a null secret always '
+        'means re-entry, whatever the server said', () {
+      // A backend that sends `needsReentry: false` alongside a null
+      // secret is wrong, and the client must not take its word for it:
+      // a null secret IS the unreadable case.
+      final dto = CredentialDto.fromJson({
+        '_id': 'cred-1',
+        'serverName': 'Prod Jenkins',
+        'jenkinsURL': 'https://jenkins.example.com',
+        'username': 'admin',
+        'password': null,
+        'needsReentry': false,
+      });
 
-        expect(dto.toDomain().needsReentry, isTrue);
-      },
-    );
+      expect(dto.toDomain().needsReentry, isTrue);
+    });
 
     test('the GitHub and SonarQube DTOs carry the same contract', () {
       final github = GitHubCredentialDto.fromJson({
@@ -352,8 +348,10 @@ void main() {
       final dio = buildGitHubDio(token: null);
 
       expect(dio.options.headers.containsKey('Authorization'), isFalse);
-      expect(buildGitHubDio(token: 'ghp_x').options.headers['Authorization'],
-          'Bearer ghp_x');
+      expect(
+        buildGitHubDio(token: 'ghp_x').options.headers['Authorization'],
+        'Bearer ghp_x',
+      );
     });
 
     test('a null SonarQube token sends no Authorization header', () {
@@ -364,43 +362,47 @@ void main() {
 
       expect(dio.options.headers.containsKey('Authorization'), isFalse);
       expect(
-        buildSonarQubeDio(baseUrl: 'https://sonarcloud.io', token: 'squ_x')
-            .options
-            .headers['Authorization'],
+        buildSonarQubeDio(
+          baseUrl: 'https://sonarcloud.io',
+          token: 'squ_x',
+        ).options.headers['Authorization'],
         'Bearer squ_x',
       );
     });
   });
 
   group('save path', () {
-    test('a blank secret is refused when the stored one was unreadable', () async {
-      final repo = _FakeCredentialsRepository([_unreadableServer]);
-      final container = ProviderContainer(
-        overrides: [credentialsRepositoryProvider.overrideWithValue(repo)],
-      );
-      addTearDown(container.dispose);
-      container.listen(serverFormNotifierProvider, (_, _) {});
+    test(
+      'a blank secret is refused when the stored one was unreadable',
+      () async {
+        final repo = _FakeCredentialsRepository([_unreadableServer]);
+        final container = ProviderContainer(
+          overrides: [credentialsRepositoryProvider.overrideWithValue(repo)],
+        );
+        addTearDown(container.dispose);
+        container.listen(serverFormNotifierProvider, (_, _) {});
 
-      await container
-          .read(serverFormNotifierProvider.notifier)
-          .save(
-            id: 's1',
-            serverName: 'My Jenkins',
-            jenkinsURL: 'https://jenkins.test',
-            username: 'user',
-            secret: '',
-            isDefault: false,
-            needsReentry: true,
-          );
+        await container
+            .read(serverFormNotifierProvider.notifier)
+            .save(
+              id: 's1',
+              serverName: 'My Jenkins',
+              jenkinsURL: 'https://jenkins.test',
+              username: 'user',
+              secret: '',
+              isDefault: false,
+              needsReentry: true,
+            );
 
-      expect(
-        container.read(serverFormNotifierProvider).error,
-        isA<FormValidationError>(),
-      );
-      // The write never reached the backend — a blank would have
-      // overwritten the stored secret for good.
-      expect(repo.updateCalls, 0);
-    });
+        expect(
+          container.read(serverFormNotifierProvider).error,
+          isA<FormValidationError>(),
+        );
+        // The write never reached the backend — a blank would have
+        // overwritten the stored secret for good.
+        expect(repo.updateCalls, 0);
+      },
+    );
 
     test('a re-entered secret is accepted and saved', () async {
       final repo = _FakeCredentialsRepository([_unreadableServer]);
@@ -466,7 +468,9 @@ void main() {
     test('the GitHub form refuses to blank an unreadable token', () async {
       final repo = _FakeGitHubCredentialsRepository(const []);
       final container = ProviderContainer(
-        overrides: [gitHubCredentialsRepositoryProvider.overrideWithValue(repo)],
+        overrides: [
+          gitHubCredentialsRepositoryProvider.overrideWithValue(repo),
+        ],
       );
       addTearDown(container.dispose);
       container.listen(gitHubCredentialFormNotifierProvider, (_, _) {});
@@ -607,10 +611,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Secret needs re-entering'), findsOneWidget);
-      expect(
-        find.textContaining('could not be read'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('could not be read'), findsOneWidget);
     });
 
     testWidgets('the GitHub edit sheet asks for the token again', (

@@ -10,12 +10,7 @@ import 'package:flutter/material.dart';
 /// optional second line explaining what to do, used where there's room
 /// for it (the edit sheets) and left out where there isn't (the tiles).
 class SecretReentryNotice extends StatelessWidget {
-  const SecretReentryNotice({
-    super.key,
-    this.leading,
-    this.detail,
-    this.style,
-  });
+  const SecretReentryNotice({super.key, this.leading, this.detail, this.style});
 
   final String? leading;
   final String? detail;
