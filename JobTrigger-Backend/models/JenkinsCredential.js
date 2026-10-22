@@ -39,4 +39,11 @@ const jenkinsCredentialSchema = new mongoose.Schema({
 // AUD-03: secrets are encrypted at rest.
 jenkinsCredentialSchema.plugin(encryptedFields, { fields: ['password', 'paramToken'] });
 
+// AUD-13: every credential list filters by `userId`, and the "which one is
+// the default?" query filters by `userId` + `isDefault`. Without these
+// indexes every list is a collection scan, which grows with the number of
+// users rather than the number of credentials the caller asked for.
+jenkinsCredentialSchema.index({ userId: 1 });
+jenkinsCredentialSchema.index({ userId: 1, isDefault: 1 });
+
 module.exports = mongoose.model('JenkinsCredential', jenkinsCredentialSchema);

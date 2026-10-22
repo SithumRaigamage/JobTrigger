@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/error/app_failure.dart';
 import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/console_decoder.dart';
@@ -27,6 +28,7 @@ class ConsoleState {
     this.startsMidLog = false,
     this.streaming = false,
     this.reconnecting = false,
+    this.buildGone = false,
   });
 
   /// Completed, decoded lines, oldest first, capped at [maxConsoleLines].
@@ -47,6 +49,11 @@ class ConsoleState {
   /// The last poll failed. The log stays visible while polling retries
   /// with backoff (AUD-13).
   final bool reconnecting;
+
+  /// Jenkins no longer has this build (a 404 — it was deleted, or the log
+  /// was purged). Streaming has stopped for good; retrying can't fix it
+  /// (AUD-64/NEW-05).
+  final bool buildGone;
 
   /// Earlier output isn't shown, whether never loaded or dropped.
   bool get isPartial => startsMidLog || droppedLines > 0;
@@ -134,7 +141,29 @@ class BuildLogNotifier extends _$BuildLogNotifier {
       case Ok(:final value):
         _failures = 0;
         state = AsyncData(_apply(value, value.text));
-      case Err():
+      case Err(:final error):
+        // AUD-64/NEW-05: a build that no longer exists (Jenkins 404 — it
+        // was deleted, or its log was purged) is permanent. Retrying it
+        // forever with backoff would keep the "Connection lost — retrying…"
+        // banner up and burn requests for something that can never
+        // succeed. Stop the timer and say the build is gone instead.
+        if (error is NotFoundFailure) {
+          _timer?.cancel();
+          _timer = null;
+          final current = state.value;
+          state = AsyncData(
+            ConsoleState(
+              lines: current?.lines ?? const [],
+              pendingLine: current?.pendingLine,
+              droppedLines: current?.droppedLines ?? 0,
+              startsMidLog: current?.startsMidLog ?? false,
+              streaming: false,
+              reconnecting: false,
+              buildGone: true,
+            ),
+          );
+          return;
+        }
         // Keep the log; say we're reconnecting; back off 1, 2, 4, 8, 15s.
         _failures++;
         final current = state.value;

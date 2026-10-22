@@ -111,7 +111,11 @@ Dio buildBackendDio({
 
   if (debugLogging) {
     dio.interceptors.add(
-      LogInterceptor(requestBody: false, responseBody: false),
+      LogInterceptor(
+        requestBody: false,
+        responseBody: false,
+        requestHeader: false, // AUD-64/NEW-01: don't log x-auth-token in debug
+      ),
     );
   }
 

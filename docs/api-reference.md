@@ -44,6 +44,24 @@ matched the real backend and made every authenticated request 401 silently
 (discovered only once the Flutter client was exercised end-to-end against a
 real running backend, not just tested with mocked Dio adapters).
 
+### Request ids and unreadable secrets (AUD-63, §19)
+
+**`x-request-id`** — every response carries an `x-request-id` header. A
+client-supplied `x-request-id` is echoed back only when it matches
+`^[A-Za-z0-9._-]{1,64}$`; anything else is replaced with a generated UUID
+(the value is written to the server log, so an untrusted one is never
+reused verbatim). A **500** body is `{ message: "Server error", requestId }`
+— quote the `requestId` in a bug report; the message itself stays generic.
+
+**`needsReentry`** — every credential object in a response carries
+`needsReentry: true|false`. When the server cannot decrypt a stored secret
+(a key id dropped from the keyring, or a failed GCM tag), the credential is
+still returned: its secret field is `null` and `needsReentry` is `true`.
+One unreadable credential no longer fails the whole list, and no other
+credential is affected. The client should prompt for the secret again and
+`PUT` it back — a `PUT` that supplies a new secret clears the flag. Fields:
+`password` (Jenkins), `token` (GitHub), `token` (SonarQube).
+
 ## 2. Jenkins API (direct, per-server Basic Auth)
 
 Base URL = active `Credential.jenkinsURL`. A new `Dio` instance (via
