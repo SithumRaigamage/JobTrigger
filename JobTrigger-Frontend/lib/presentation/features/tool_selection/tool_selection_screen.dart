@@ -294,7 +294,9 @@ class _ComingSoonBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.grey,
+        // AUD-62: grey 700, so the white label reaches 4.5:1 (plain grey
+        // gave 2.7:1).
+        color: const Color(0xFF616161),
         borderRadius: BorderRadius.circular(20),
       ),
       child: const Text(

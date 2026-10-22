@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/error_message.dart';
 import '../../../domain/credential/sonarqube_credential.dart';
 import '../../../domain/credential/sonarqube_url.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../common_widgets/cleartext_warning.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/toast_controller.dart';
@@ -259,14 +260,17 @@ class _TestSonarQubeConnectionStatus extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (state) {
       AsyncData(value: null) => const SizedBox.shrink(),
-      AsyncData() => const Text(
+      AsyncData() => Text(
         'Connected',
-        style: TextStyle(color: Colors.green),
+        style: TextStyle(
+          color: AppColors.successText(Theme.of(context).brightness),
+        ),
       ),
       AsyncLoading() => const Text('Testing...'),
       AsyncError(:final error) => Text(
         'Failed: ${describeError(error)}',
-        style: const TextStyle(color: Colors.red),
+        // AUD-62: the theme's error color is made for text; red 500 wasn't.
+        style: TextStyle(color: Theme.of(context).colorScheme.error),
       ),
     };
   }

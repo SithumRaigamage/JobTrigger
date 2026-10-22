@@ -15,10 +15,20 @@ class AppColors {
   /// → color. `building`/unrecognized results fall back to `aborted`'s gray,
   /// matching the old app's `default: return .gray` (there was no distinct
   /// "in progress" color).
-  static const buildSuccess = Colors.green;
-  static const buildFailure = Colors.red;
-  static const buildAborted = Colors.grey;
-  static const buildUnstable = Colors.orange;
+  ///
+  /// AUD-62: the SwiftUI app used the plain 500 shades, and green, orange,
+  /// and grey were under WCAG 1.4.11's 3:1 for icons on the light surface
+  /// (2.66, 2.06, and 2.56). These are the nearest shades that reach 3:1 on
+  /// light and both dark surfaces (`#F8FAFC` / `#0F172A` / `#1E293B`); every
+  /// status also carries a text label (NFR-A11Y-03), so the hue stays a
+  /// second signal, not the only one. `test/core/theme/app_colors_test.dart`
+  /// measures them.
+  static const buildSuccess = Color(
+    0xFF43A047,
+  ); // green 600: 3.16 / 5.41 / 4.43
+  static const buildFailure = Colors.red; // red 500: 3.52 / 4.85 / 3.97
+  static const buildAborted = Color(0xFF757575); // grey 600: 4.40 / 3.87 / 3.17
+  static const buildUnstable = Color(0xFFE06C00); // orange: 3.18 / 5.37 / 4.40
 
   /// Pipeline stage states with no classic build-result equivalent, and the
   /// Home folder tile (AUD-30). Shades chosen for at least 3:1 icon
@@ -28,6 +38,13 @@ class AppColors {
   static const buildRunning = Color(0xFF1976D2); // blue 700: 4.40 / 3.18
   static const buildPaused = Color(0xFFE65100); // orange 900: 3.62 / 3.86
   static const folder = Color(0xFFF4511E); // deep orange 600: 3.32 / 4.21
+
+  /// AUD-62: success *text* ("Connected — 12 jobs found") needs 4.5:1
+  /// (WCAG 1.4.3), which no single green reaches on both themes.
+  static Color successText(Brightness brightness) =>
+      brightness == Brightness.dark
+      ? const Color(0xFF81C784) // green 300: 8.87 / 7.27 on dark
+      : const Color(0xFF2E7D32); // green 800: 4.90 on light
 
   static Color forBuildResult(String? result) => switch (result
       ?.toUpperCase()) {
@@ -44,11 +61,12 @@ class AppColors {
   /// not a build's `result` string. Note Jenkins' "blue" ball color means
   /// *success* (a historical quirk) — the old app deliberately remaps it to
   /// green so it reads as success to users, not literally blue.
-  static const jobColorBlue = Colors.green;
-  static const jobColorRed = Colors.red;
-  static const jobColorYellow = Colors.orange;
+  /// Same shades as the build results above (AUD-62).
+  static const jobColorBlue = buildSuccess;
+  static const jobColorRed = buildFailure;
+  static const jobColorYellow = buildUnstable;
   static const jobColorGray =
-      Colors.grey; // aborted, disabled, notbuilt, unrecognized
+      buildAborted; // aborted, disabled, notbuilt, unrecognized
 
   /// The `_anime` suffix (e.g. `blue_anime`) means the job is currently
   /// building — `StatusIndicator` pulses while true.

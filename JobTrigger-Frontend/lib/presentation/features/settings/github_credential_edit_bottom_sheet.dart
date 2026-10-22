@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../domain/credential/github_credential.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/toast_controller.dart';
 import 'github_credential_form_notifier.dart';
@@ -232,12 +233,15 @@ class _TestGitHubConnectionStatus extends StatelessWidget {
       AsyncData(value: null) => const SizedBox.shrink(),
       AsyncData(:final value?) => Text(
         'Connected — authenticated as $value',
-        style: const TextStyle(color: Colors.green),
+        style: TextStyle(
+          color: AppColors.successText(Theme.of(context).brightness),
+        ),
       ),
       AsyncLoading() => const Text('Testing...'),
       AsyncError(:final error) => Text(
         'Failed: ${describeError(error)}',
-        style: const TextStyle(color: Colors.red),
+        // AUD-62: the theme's error color is made for text; red 500 wasn't.
+        style: TextStyle(color: Theme.of(context).colorScheme.error),
       ),
     };
   }
