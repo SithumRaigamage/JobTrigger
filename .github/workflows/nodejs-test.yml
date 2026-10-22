@@ -23,7 +23,7 @@ jobs:
       SONAR_TOKEN_SET: ${{ secrets.SONAR_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # SonarCloud's analysis needs full history for accurate blame/new-code detection.
           fetch-depth: 0
