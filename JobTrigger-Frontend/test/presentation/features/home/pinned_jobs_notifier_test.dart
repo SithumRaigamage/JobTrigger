@@ -39,7 +39,7 @@ class _Repo extends FakeJenkinsRepository {
   ) async => const Ok([_api]);
 
   @override
-  Future<Result<JenkinsJob, AppFailure>> fetchJobDetail(String jobUrl) async =>
+  Future<Result<JenkinsJob, AppFailure>> fetchJobStatus(String jobUrl) async =>
       jobUrl == _api.url
       ? const Ok(
           JenkinsJob(

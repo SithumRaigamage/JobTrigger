@@ -53,6 +53,14 @@ abstract class JenkinsRepository {
   /// previously-fetched tree), not a relative path.
   Future<Result<JenkinsJob, AppFailure>> fetchJobDetail(String jobUrl);
 
+  /// §14 / P13-25: [pinnedJobStatusProvider] fetches every pin's full
+  /// `detailsTree` (parameters, change sets and artifacts) *only* so it can
+  /// show a ball colour in the Home tile. Use this instead — the same
+  /// `tree` (see `JenkinsRepositoryImpl._treeFields`) that every other
+  /// listing and folder-child request already walks, carrying `color` and
+  /// the last build number. The pinned tile reads no deeper fields.
+  Future<Result<JenkinsJob, AppFailure>> fetchJobStatus(String jobUrl);
+
   /// [buildUrl] is the build's already-rewritten absolute URL. [start] is
   /// the byte offset to resume from (0 for the first read).
   Future<Result<LogChunk, AppFailure>> streamBuildLog(

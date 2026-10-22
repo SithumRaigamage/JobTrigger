@@ -28,7 +28,7 @@ class _Pins extends PinnedJobsNotifier {
 
 class _Repo extends FakeJenkinsRepository {
   @override
-  Future<Result<JenkinsJob, AppFailure>> fetchJobDetail(String jobUrl) async =>
+  Future<Result<JenkinsJob, AppFailure>> fetchJobStatus(String jobUrl) async =>
       Ok(JenkinsJob(name: 'api', url: jobUrl, color: 'red'));
 }
 
