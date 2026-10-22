@@ -72,7 +72,7 @@ final class TriggerBuildNotifierProvider
 }
 
 String _$triggerBuildNotifierHash() =>
-    r'4599156c8bf930b2332148794c74de639de5c4fc';
+    r'5ef3dc5ced2b142645d5bbc395967bd315d416f5';
 
 /// Family-keyed by the job's URL. On success, refreshes `JobDetailNotifier`
 /// and shows a success toast — matching `JobDetailViewModel.triggerBuild`
