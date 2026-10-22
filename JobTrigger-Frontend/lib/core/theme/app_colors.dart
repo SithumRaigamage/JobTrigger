@@ -139,6 +139,21 @@ class AppColors {
   static const secondaryLight = Color(0xFF334155);
   static const outlineLight = Color(0xFFE2E8F0);
 
+  /// Muted *text* (taglines, secondary labels) that still clears WCAG AA's
+  /// 4.5:1 for body copy.
+  ///
+  /// AUD-62: M3's `onSurfaceVariant` slot is not usable as body text here —
+  /// `ColorScheme.fromSeed` derives it at ~67% alpha over the surface, which
+  /// measures 2.4:1 on the white cards the app draws on. These two shades
+  /// are the slate-600/slate-300 pair, at 7.4:1 on light and 9.9:1 on the
+  /// dark glass fill.
+  static const mutedTextLight = Color(0xFF475569); // slate 600
+  static const mutedTextDark = Color(0xFFCBD5E1); // slate 300
+
+  /// The muted-text shade for the current [brightness].
+  static Color mutedText(Brightness brightness) =>
+      brightness == Brightness.dark ? mutedTextDark : mutedTextLight;
+
   /// Dark-mode counterparts, pinned in `app_theme.dart` for the same reason
   /// as the light-mode set above: `AppTheme` now seeds its *entire*
   /// `ColorScheme` (including `surface`) from the active tool's accent
