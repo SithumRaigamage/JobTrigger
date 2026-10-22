@@ -1,9 +1,13 @@
 # Phase 13 — Second Audit Remediation (Epic AUDIT-2)
 
-Goal: close every finding in `docs/audit/2026-10-20-workspace-audit.md`
-(AUD-42 … AUD-64, plus the unnumbered §11/§13/§14/§16/§19 items). The audit
-document is the **tracker of record**: when a task lands, update the
-matching `AUD-##` status there in the same change.
+Goal: close every finding in the second workspace audit — `AUD-42` …
+`AUD-66`, plus the unnumbered §11/§13/§14/§16/§19 items. The findings
+were recorded in `docs/audit/2026-10-20-workspace-audit.md` and
+re-verified in `docs/audit/2026-10-22-workspace-audit.md`.
+
+The 2026-10-20 document is **deleted**: every finding in it is closed,
+and the 2026-10-22 document carries the status of record. This file is
+the tracker of record for the work.
 
 Approved 2026-10-20: the user asked for every finding to be fixed on one
 branch (`feature/audit-2026-10-20-remediation`), committed and pushed one
@@ -57,20 +61,31 @@ is green on the commit that closes it, not just a local run.
 - [x] P13-18 **AUD-59.** Pipeline controls: workflow `permissions`, pinned
       actions, secret scan, pub SCA, generated-code drift check, image scan.
 - [x] P13-19 **AUD-61.** Reconcile status documents.
-- [ ] P13-20 **AUD-62.** Accessibility guideline tests on the main screens;
+- [x] P13-20 **AUD-62.** Accessibility guideline tests on the main screens;
       a light-mode unstable color that meets 3:1.
-- [ ] P13-21 **AUD-63 (backend).** One undecryptable credential no longer
+- [x] P13-21 **AUD-63 (backend).** One undecryptable credential no longer
       fails the whole list.
-- [ ] P13-22 **AUD-64 + §16.** Hygiene: debug log headers off, remove
+- [x] P13-22 **AUD-64 + §16.** Hygiene: debug log headers off, archive
       `migrate.js`, backup exclusions, trigger re-entrancy guard, stop log
       polling a deleted build, bind local Mongo to `127.0.0.1`.
-- [ ] P13-23 **§13 (backend).** `userId` indexes on credential collections.
-- [ ] P13-24 **§11.** `core/network` no longer imports `presentation`.
-- [ ] P13-25 **§14.** Lean pinned-job status query.
-- [ ] P13-26 **§19 (backend).** Request ids and structured error logs.
+- [x] P13-23 **§13 (backend).** `userId` indexes on credential collections.
+- [x] P13-24 **§11.** `core/network` no longer imports `presentation`.
+- [x] P13-25 **§14.** Lean pinned-job status query.
+- [x] P13-26 **§19 (backend).** Request ids and structured error logs.
+- [x] P13-27 **AUD-66.** The repository carries no credential material: a
+      token-shaped value in the tree is a failing test, and the reviewed
+      fixtures live in `.secret-material-allowlist`.
 
 ## Not code (tracked, not done here)
 
+- **AUD-66, owner action: revoke the Jenkins API token.** A local Jenkins
+  API token from the SwiftUI era was committed to this repository's public
+  history, and a second one appeared in a curl example that has since been
+  deleted. The files are gone from the tree and the history is not
+  rewritten, so the token has to be revoked in the Jenkins itself — in
+  that Jenkins's user settings, not here. The repository-side guard
+  (P13-27) prevents a recurrence; it cannot un-leak what was published.
+  Until the token is revoked, treat it as live.
 - Branch protection on `develop` / `flutter-migration` (repository setting,
   owner action).
 - Domain ownership of `jobtrigger.app` / `jobtrigger.dev` (verify before

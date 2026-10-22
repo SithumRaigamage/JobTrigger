@@ -275,7 +275,7 @@ why I need to log in again
 
 **Priority:** Must (App Store Review Guideline 5.1.1(v); Google Play
 data-deletion policy)
-**Source:** `docs/audit/2026-10-20-workspace-audit.md` AUD-48, P13-07
+**Source:** `docs/audit/2026-10-22-workspace-audit.md` AUD-48, P13-07
 **Dependencies:** US-AUTH-02, US-AUTH-04
 
 As a JobTrigger user
