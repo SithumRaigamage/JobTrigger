@@ -9,6 +9,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../common_widgets/cleartext_warning.dart';
 import '../../common_widgets/external_link.dart';
 import '../../common_widgets/glass_surface.dart';
+import '../../common_widgets/secret_reentry_notice.dart';
 import '../../common_widgets/toast_controller.dart';
 import 'server_form_notifier.dart';
 import 'test_connection_notifier.dart';
@@ -91,6 +92,9 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
   bool _obscureParamToken = true;
 
   bool get _isEditing => widget.existing != null;
+
+  /// AUD-63: the backend could not decrypt the stored secret.
+  bool get _needsReentry => widget.existing?.needsReentry ?? false;
 
   @override
   void dispose() {
@@ -185,6 +189,15 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
                   ),
                 ),
                 const SizedBox(height: 12),
+                if (_needsReentry) ...[
+                  SecretReentryNotice(
+                    style: Theme.of(context).textTheme.bodySmall,
+                    detail:
+                        'The stored secret could not be read, so it has to be '
+                        'entered again before this server can be used.',
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 TextField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
@@ -290,6 +303,9 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
           secret: _passwordController.text,
           paramToken: paramToken.isEmpty ? null : paramToken,
           isDefault: _isDefault,
+          // AUD-63: the stored secret couldn't be decrypted, so there is
+          // nothing to fall back to — the user has to type it again.
+          needsReentry: _needsReentry,
         );
   }
 }

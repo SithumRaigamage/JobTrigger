@@ -7,6 +7,7 @@ import '../../../domain/credential/sonarqube_url.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../common_widgets/cleartext_warning.dart';
 import '../../common_widgets/glass_surface.dart';
+import '../../common_widgets/secret_reentry_notice.dart';
 import '../../common_widgets/toast_controller.dart';
 import 'sonarqube_credential_form_notifier.dart';
 import 'test_sonarqube_connection_notifier.dart';
@@ -72,6 +73,9 @@ class _SonarQubeCredentialEditBottomSheetState
   bool _obscureToken = true;
 
   bool get _isEditing => widget.existing != null;
+
+  /// AUD-63: the backend could not decrypt the stored token.
+  bool get _needsReentry => widget.existing?.needsReentry ?? false;
 
   @override
   void dispose() {
@@ -151,13 +155,27 @@ class _SonarQubeCredentialEditBottomSheetState
                 if (isCleartextUrl(_baseUrlController.text))
                   const CleartextWarning(secretDescription: 'your token is'),
                 const SizedBox(height: 12),
+                if (_needsReentry) ...[
+                  SecretReentryNotice(
+                    style: Theme.of(context).textTheme.bodySmall,
+                    detail:
+                        'The stored token could not be read, so it has to be '
+                        'entered again before this credential can be used.',
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 TextField(
                   controller: _tokenController,
                   obscureText: _obscureToken,
                   autocorrect: false,
                   decoration: InputDecoration(
                     labelText: 'User Token',
-                    hintText: _isEditing
+                    // AUD-63: "leave blank to keep the current token" is a
+                    // lie when the current token can't be read — there's
+                    // nothing to keep.
+                    hintText: _needsReentry
+                        ? 'Enter the token again'
+                        : _isEditing
                         ? 'Leave blank to keep the current token'
                         : 'squ_…',
                     border: const OutlineInputBorder(),
@@ -247,6 +265,9 @@ class _SonarQubeCredentialEditBottomSheetState
               ? null
               : defaultOrganization,
           isDefault: _isDefault,
+          // AUD-63: the stored token couldn't be decrypted, so a blank
+          // field is a refusal to save, not "keep the current token".
+          needsReentry: _needsReentry,
         );
   }
 }

@@ -15,7 +15,7 @@ part 'sonarqube_client_factory.g.dart';
 /// `api.github.com` base, only the token varies), SonarQube supports
 /// self-hosted instances, so the base URL is per-credential, matching
 /// `buildJenkinsDio`'s shape instead.
-Dio buildSonarQubeDio({required String baseUrl, required String token}) {
+Dio buildSonarQubeDio({required String baseUrl, required String? token}) {
   final dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
@@ -24,7 +24,13 @@ Dio buildSonarQubeDio({required String baseUrl, required String token}) {
     ),
   );
 
-  dio.options.headers['Authorization'] = 'Bearer $token';
+  // AUD-63: a credential whose token the backend could not decrypt has no
+  // usable token. Send the request unauthenticated rather than inventing
+  // one — SonarQube answers 401, which is the honest result for a
+  // credential the user still has to re-enter.
+  if (token != null) {
+    dio.options.headers['Authorization'] = 'Bearer $token';
+  }
   // AUD-45: the token only ever goes to the credential's own server.
   dio.interceptors.add(hostPinningInterceptor());
 

@@ -12,21 +12,16 @@
 const path = require('path');
 const mongoose = require('mongoose');
 const { encrypt, decrypt, isEncrypted, needsRotation, loadKeys } = require('../security/secretCipher');
-const JenkinsCredential = require('../models/JenkinsCredential');
-const GitHubCredential = require('../models/GitHubCredential');
-const SonarQubeCredential = require('../models/SonarQubeCredential');
-
-const TARGETS = [
-  [JenkinsCredential, ['password', 'paramToken']],
-  [GitHubCredential, ['token']],
-  [SonarQubeCredential, ['token']],
-];
+// The same list the startup key-id audit uses (AUD-63), so a new
+// credential model can't be left out of the backfill.
+const CREDENTIAL_TARGETS = require('../models/credentialTargets');
 
 /** Returns how many documents needed (or, unless [dryRun], got) changes. */
 async function encryptExistingCredentials({ dryRun = false, log = console.log } = {}) {
   let total = 0;
-  for (const [Model, fields] of TARGETS) {
+  for (const { Model, fields } of CREDENTIAL_TARGETS) {
     let changed = 0;
+    let unreadable = 0;
     // The raw collection: no getters or setters, so values are exactly as
     // stored.
     const projection = Object.fromEntries(fields.map((field) => [field, 1]));
@@ -38,14 +33,27 @@ async function encryptExistingCredentials({ dryRun = false, log = console.log } 
         if (!isEncrypted(value)) {
           $set[field] = encrypt(value, field);
         } else if (needsRotation(value)) {
-          $set[field] = encrypt(decrypt(value, field), field);
+          let plaintext;
+          try {
+            plaintext = decrypt(value, field);
+          } catch {
+            // AUD-63: a row the keyring can't read (a key id dropped too
+            // early) must not abort the backfill of every other row. It
+            // is counted and left alone; the startup audit names it.
+            unreadable += 1;
+            continue;
+          }
+          $set[field] = encrypt(plaintext, field);
         }
       }
       if (Object.keys($set).length === 0) continue;
       changed += 1;
       if (!dryRun) await Model.collection.updateOne({ _id: raw._id }, { $set });
     }
-    log(`${Model.modelName}: ${changed} document(s) ${dryRun ? 'to update' : 'updated'}`);
+    log(
+      `${Model.modelName}: ${changed} document(s) ${dryRun ? 'to update' : 'updated'}` +
+        (unreadable > 0 ? `, ${unreadable} secret(s) not readable` : ''),
+    );
     total += changed;
   }
   return total;

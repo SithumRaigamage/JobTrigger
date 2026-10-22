@@ -92,4 +92,19 @@ function decrypt(stored, field, ring = keyring()) {
 const needsRotation = (stored, ring = keyring()) =>
   isEncrypted(stored) && stored.slice(PREFIX.length).split(':')[0] !== ring.currentId;
 
-module.exports = { encrypt, decrypt, isEncrypted, needsRotation, loadKeys, resetKeys };
+/**
+ * The key ids the keyring can decrypt, and the one new writes use. AUD-63
+ * compares this against the key ids the database still holds at startup.
+ */
+function configuredKeyIds(ring = keyring()) {
+  return { currentId: ring.currentId, keyIds: [...ring.keys.keys()] };
+}
+
+/** The key id a stored value was encrypted with, or null. */
+function keyIdOf(stored) {
+  if (!isEncrypted(stored)) return null;
+  const id = stored.slice(PREFIX.length).split(':')[0];
+  return KEY_ID_PATTERN.test(id) ? id : null;
+}
+
+module.exports = { encrypt, decrypt, isEncrypted, needsRotation, loadKeys, resetKeys, configuredKeyIds, keyIdOf, PREFIX };

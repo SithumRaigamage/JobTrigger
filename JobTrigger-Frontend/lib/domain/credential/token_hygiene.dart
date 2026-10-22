@@ -2,8 +2,12 @@
 /// account password? Legacy tokens are 32 hex characters. Current ones
 /// are `11` followed by 32 hex characters, which the fixture's generated
 /// tokens confirm. A heuristic run locally: the secret goes nowhere else.
-bool looksLikeJenkinsApiToken(String secret) =>
-    RegExp(r'^(11)?[0-9a-f]{32}$').hasMatch(secret.trim());
+///
+/// A null [secret] (AUD-63: the backend could not decrypt it) is not a
+/// token — and not a password either, so the caller must not describe it
+/// as one.
+bool looksLikeJenkinsApiToken(String? secret) =>
+    secret != null && RegExp(r'^(11)?[0-9a-f]{32}$').hasMatch(secret.trim());
 
 /// Where a user creates a token: their own configure page, which redirects
 /// to the right place on every Jenkins version.

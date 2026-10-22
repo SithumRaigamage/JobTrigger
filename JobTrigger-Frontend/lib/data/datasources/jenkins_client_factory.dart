@@ -34,7 +34,7 @@ part 'jenkins_client_factory.g.dart';
 Dio buildJenkinsDio({
   required String baseUrl,
   required String username,
-  required String password,
+  required String? password,
 }) {
   final dio = Dio(
     BaseOptions(
@@ -44,8 +44,14 @@ Dio buildJenkinsDio({
     ),
   );
 
-  final basicAuth = base64Encode(utf8.encode('$username:$password'));
-  dio.options.headers['Authorization'] = 'Basic $basicAuth';
+  // AUD-63: a credential whose secret the backend could not decrypt has
+  // no usable password. Send the request unauthenticated rather than
+  // inventing one — Jenkins answers 401, which is the honest result for a
+  // credential the user still has to re-enter.
+  if (password != null) {
+    final basicAuth = base64Encode(utf8.encode('$username:$password'));
+    dio.options.headers['Authorization'] = 'Basic $basicAuth';
+  }
 
   // Order matters here. `_crumbInterceptor` must run first: it triggers a
   // nested crumb-fetch request whose response is what actually populates

@@ -12,9 +12,10 @@ _CredentialDto _$CredentialDtoFromJson(Map<String, dynamic> json) =>
       serverName: json['serverName'] as String,
       jenkinsURL: json['jenkinsURL'] as String,
       username: json['username'] as String,
-      password: json['password'] as String,
+      password: json['password'] as String?,
       paramToken: json['paramToken'] as String?,
       isDefault: json['isDefault'] as bool? ?? false,
+      needsReentry: json['needsReentry'] as bool? ?? false,
       createdAt: json['createdAt'] as String?,
       updatedAt: json['updatedAt'] as String?,
     );
@@ -28,6 +29,7 @@ Map<String, dynamic> _$CredentialDtoToJson(_CredentialDto instance) =>
       'password': instance.password,
       'paramToken': instance.paramToken,
       'isDefault': instance.isDefault,
+      'needsReentry': instance.needsReentry,
       'createdAt': instance.createdAt,
       'updatedAt': instance.updatedAt,
     };

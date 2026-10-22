@@ -11,9 +11,17 @@ abstract class GitHubCredentialDto with _$GitHubCredentialDto {
   const factory GitHubCredentialDto({
     @JsonKey(name: '_id') required String id,
     required String label,
-    required String token,
+
+    /// Null when the backend could not decrypt the stored token (AUD-63)
+    /// — the credential is still listed, but it can't be used until the
+    /// user types the token again.
+    String? token,
     String? defaultOwner,
     @Default(false) bool isDefault,
+
+    /// AUD-63: the backend flags a credential whose token it could not
+    /// decrypt. Always present in the response.
+    @Default(false) bool needsReentry,
     String? createdAt,
     String? updatedAt,
   }) = _GitHubCredentialDto;
@@ -29,5 +37,8 @@ extension GitHubCredentialDtoX on GitHubCredentialDto {
     secret: token,
     defaultOwner: defaultOwner,
     isDefault: isDefault,
+    // A null token *is* the unreadable case, so the flag can never
+    // disagree with the value it describes.
+    needsReentry: needsReentry || token == null,
   );
 }

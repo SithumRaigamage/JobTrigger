@@ -13,9 +13,17 @@ abstract class CredentialDto with _$CredentialDto {
     required String serverName,
     required String jenkinsURL,
     required String username,
-    required String password,
+
+    /// Null when the backend could not decrypt the stored secret
+    /// (AUD-63) — the credential is still listed, but it can't be used
+    /// until the user types the secret again.
+    String? password,
     String? paramToken,
     @Default(false) bool isDefault,
+
+    /// AUD-63: the backend flags a credential whose secret it could not
+    /// decrypt. Always present in the response.
+    @Default(false) bool needsReentry,
     String? createdAt,
     String? updatedAt,
   }) = _CredentialDto;
@@ -33,5 +41,8 @@ extension CredentialDtoX on CredentialDto {
     secret: password,
     paramToken: paramToken,
     isDefault: isDefault,
+    // A null secret *is* the unreadable case, so the flag can never
+    // disagree with the value it describes.
+    needsReentry: needsReentry || password == null,
   );
 }

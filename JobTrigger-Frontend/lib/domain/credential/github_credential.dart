@@ -8,13 +8,24 @@ class GitHubCredential {
     required this.secret,
     this.defaultOwner,
     this.isDefault = false,
+    this.needsReentry = false,
   });
 
   final String id;
   final String label;
-  final String secret; // GitHub Personal Access Token
+
+  /// The stored token, or null when the backend could not decrypt it
+  /// (AUD-63). A null token is not "no token" — it means the credential
+  /// is listed but unusable until the user types it again, so nothing may
+  /// be sent to GitHub in its place.
+  final String? secret; // GitHub Personal Access Token
   final String? defaultOwner;
   final bool isDefault;
+
+  /// AUD-63: the backend flags a credential whose token it could not
+  /// decrypt. The app still lists it (one unreadable secret must not
+  /// fail the whole list) and asks the user to re-enter the token.
+  final bool needsReentry;
 
   /// Redacted — `secret` must never end up in logs or crash reports.
   @override
@@ -31,8 +42,16 @@ class GitHubCredential {
       other.label == label &&
       other.secret == secret &&
       other.defaultOwner == defaultOwner &&
-      other.isDefault == isDefault;
+      other.isDefault == isDefault &&
+      other.needsReentry == needsReentry;
 
   @override
-  int get hashCode => Object.hash(id, label, secret, defaultOwner, isDefault);
+  int get hashCode => Object.hash(
+    id,
+    label,
+    secret,
+    defaultOwner,
+    isDefault,
+    needsReentry,
+  );
 }

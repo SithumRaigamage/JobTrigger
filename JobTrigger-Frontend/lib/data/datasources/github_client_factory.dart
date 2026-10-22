@@ -20,7 +20,7 @@ const gitHubApiBaseUrl = 'https://api.github.com';
 /// structurally simpler than `buildJenkinsDio`: no CSRF crumb interceptor
 /// (`NFR-SEC-06` is a Jenkins-only mechanism, GitHub's API doesn't use
 /// one), and the base URL is fixed rather than per-credential.
-Dio buildGitHubDio({required String token}) {
+Dio buildGitHubDio({required String? token}) {
   final dio = Dio(
     BaseOptions(
       baseUrl: gitHubApiBaseUrl,
@@ -30,7 +30,13 @@ Dio buildGitHubDio({required String token}) {
     ),
   );
 
-  dio.options.headers['Authorization'] = 'Bearer $token';
+  // AUD-63: a credential whose token the backend could not decrypt has no
+  // usable token. Send the request unauthenticated rather than inventing
+  // one — GitHub answers 401, which is the honest result for a credential
+  // the user still has to re-enter.
+  if (token != null) {
+    dio.options.headers['Authorization'] = 'Bearer $token';
+  }
 
   return dio;
 }

@@ -9,6 +9,8 @@ const { errorHandler, notFound } = require('./middleware/errorHandler');
 const requestId = require('./middleware/requestId');
 const requestLogger = require('./middleware/requestLogger');
 const { logger } = require('./lib/logger');
+const { auditKeyIds } = require('./security/keyIdAudit');
+const CREDENTIAL_TARGETS = require('./models/credentialTargets');
 
 // AUD-04: defence in depth. Query filters built from request data treat
 // `$`-operators as literal values, so `{"$gt": ""}` can't match every row
@@ -62,6 +64,22 @@ app.get('/healthz', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
+/**
+ * AUD-63: name the key ids the database still uses that the keyring
+ * can't decrypt. Loud, but not fatal: the server starts anyway, and the
+ * affected credentials are flagged one by one when they're read.
+ */
+async function auditCredentialKeyIds() {
+  try {
+    const { missing } = await auditKeyIds(CREDENTIAL_TARGETS);
+    if (missing.length > 0) {
+      logger.error('credential.key_ids_missing', { missing });
+    }
+  } catch (err) {
+    logger.error('credential.key_id_audit_failed', { error: err.message });
+  }
+}
+
 // Database Connection (start server after DB connection)
 async function startServer() {
   // AUD-25: refuse to start half-configured rather than fail per request.
@@ -78,6 +96,7 @@ async function startServer() {
   try {
     await mongoose.connect(process.env.MONGODB_URI, { dbName: 'jobtrigger' });
     logger.info('server.mongo_connected');
+    await auditCredentialKeyIds();
     const PORT = process.env.PORT || 5001;
     const server = app.listen(PORT, () => {
       logger.info('server.listening', { port: Number(PORT) });
@@ -96,4 +115,4 @@ if (require.main === module) {
   startServer();
 }
 
-module.exports = { app, startServer };
+module.exports = { app, startServer, auditCredentialKeyIds };
