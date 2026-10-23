@@ -4,7 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../core/error/app_failure.dart';
 import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
-import '../../core/network/github_client_factory.dart';
+import '../datasources/github_client_factory.dart';
 import '../../domain/github/github_repo.dart';
 import '../../domain/github/github_repository.dart';
 import '../../domain/github/github_workflow.dart';

@@ -29,7 +29,9 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 
 ## 🔒 Quality & Security
 
-- **[Workspace Audit — 2026-09-29](./audit/2026-09-29-workspace-audit.md)** — Security, bug, UX, performance, and release findings (`AUD-##`) with severity and remediation status
+- **[Workspace Audit — 2026-09-29](./audit/2026-09-29-workspace-audit.md)** — Security, bug, UX, performance, and release findings (`AUD-01`…`AUD-41`) with severity and remediation status
+- **[Workspace Audit — 2026-10-22](./audit/2026-10-22-workspace-audit.md)** — Second audit and its remediation verification (`AUD-42`…, `P13-01`…`P13-27`): all 27 tasks fixed, 0 open; the 2026-10-20 report it supersedes was deleted once every finding in it was closed
+- **[Pipeline security controls](./deployment.md#pipeline-security-controls-p13-18-aud-59)** — What CI checks, and which checks block
 
 ## 📦 Release
 
@@ -47,7 +49,7 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 
 ## 📋 Project Status
 
-- **[Tasks & Phases](../tasks/README.md)** — Current status, phase checklist, what's done
+- **[Tasks & Phases](../tasks/README.md)** — **The status of record** (AUD-61): phase checklist, what's done. Other documents link here rather than restating status
 
 ---
 

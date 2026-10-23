@@ -45,6 +45,19 @@ class _AuthRefreshListenable extends ChangeNotifier {
 
 const _authRoutes = {AppRoutes.login, AppRoutes.signup};
 
+/// AUD-51: drill-down routes that only work with an in-app `extra` object.
+/// Deep linking is on for the whole router (US-JX-19), so any app or web
+/// page can fire `jobtrigger://app/home/job`; without its `extra` the
+/// builder's cast threw and the user got Flutter's error screen. Such a
+/// visit goes to Home instead. Only `/open` is meant to come from outside.
+final Map<String, bool Function(Object? extra)> _extraRoutes = {
+  AppRoutes.jobDetail: (extra) => extra is JenkinsJob,
+  AppRoutes.jobHistory: (extra) => extra is JenkinsJob,
+  AppRoutes.buildLog: (extra) => extra is JenkinsBuild,
+  AppRoutes.buildDetail: (extra) => extra is JenkinsBuild,
+  AppRoutes.githubWorkflows: (extra) => extra is GitHubRepo,
+};
+
 /// Module-level (not inside `appRouter`) so identity is stable across
 /// provider rebuilds — required by `GlobalKey<NavigatorState>`. Used by
 /// drill-down detail routes (job detail, build log, job history, app info)
@@ -122,6 +135,39 @@ class _GitHubHistoryUnavailableScreen extends StatelessWidget {
   }
 }
 
+/// Shown for a path the app doesn't have, with a way back.
+class _UnknownRouteScreen extends StatelessWidget {
+  const _UnknownRouteScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: const GlassAppBar(title: Text('Not found')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.link_off, size: 40),
+              const SizedBox(height: 12),
+              const Text(
+                "This link doesn't lead anywhere in JobTrigger.",
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: () => context.go(AppRoutes.home),
+                child: const Text('Go to jobs'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
   final refreshListenable = _AuthRefreshListenable(ref);
@@ -140,8 +186,14 @@ GoRouter appRouter(Ref ref) {
 
       if (isAuthenticated && onAuthRoute) return AppRoutes.toolSelection;
       if (!isAuthenticated && !onAuthRoute) return AppRoutes.login;
+      final acceptsExtra = _extraRoutes[state.matchedLocation];
+      if (acceptsExtra != null && !acceptsExtra(state.extra)) {
+        return AppRoutes.home;
+      }
       return null;
     },
+    // AUD-51: an unknown path (say, from a stale or mistyped link).
+    errorBuilder: (context, state) => const _UnknownRouteScreen(),
     navigatorKey: _rootNavigatorKey,
     routes: [
       GoRoute(
@@ -190,8 +242,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.openLink,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) =>
-            OpenLinkScreen(link: state.uri.queryParameters['url'] ?? ''),
+        builder: (context, state) => OpenLinkScreen(
+          link: state.uri.queryParameters['url'] ?? '',
+          serverId: state.uri.queryParameters['server'],
+        ),
       ),
       GoRoute(
         path: AppRoutes.nodes,

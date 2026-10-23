@@ -1,0 +1,15 @@
+# Gitleaks findings reviewed and accepted (AUD-59 / AUD-66, 2026-10-20).
+# One fingerprint per line: <commit>:<file>:<rule>:<line>. Add a line here
+# only with a reason, and only for something that isn't a live secret or has
+# been revoked; never to make a real leak pass.
+
+# A made-up Jenkins API token: the fixture for "a real API token shows no
+# advisory" (US-JX-22). Not a credential.
+1936746eef726e720705ed88b09c04382612d12d:JobTrigger-Frontend/test/presentation/features/settings/server_token_advisory_test.dart:generic-api-key:41
+
+# AUD-66: history only (the files are gone from the tree). A local Jenkins
+# API token from the SwiftUI era, and a curl example's Authorization header.
+# Public history isn't rewritten; the token must be revoked in that Jenkins
+# instead (owner action, tracked in the audit).
+e6b70af69e16e81da7dff06471a2d85cf4374f8f:Lab-Trigger-frontend/Lab-Trigger-frontend/Resources/jenkins_credentials.json:generic-api-key:6
+e32c78ae40f923b18a66c09a0629d7b56b20c45b:docs/api-spec.md:curl-auth-header:44

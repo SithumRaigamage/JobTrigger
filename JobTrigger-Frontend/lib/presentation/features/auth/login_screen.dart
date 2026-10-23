@@ -419,6 +419,10 @@ class _LoginForm extends StatelessWidget {
             border: const OutlineInputBorder(),
             prefixIcon: const Icon(Icons.lock_outline),
             suffixIcon: IconButton(
+              // AUD-62: an icon-only button needs an accessible name --
+              // `labeledTapTargetGuideline` rejects a tappable node with no
+              // semantic label, and a screen reader has nothing to announce.
+              tooltip: 'Show or hide password',
               icon: Icon(
                 obscurePassword
                     ? Icons.visibility_outlined

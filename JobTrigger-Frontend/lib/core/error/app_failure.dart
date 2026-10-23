@@ -74,6 +74,7 @@ sealed class AppFailure {
     UnexpectedResponseFailure() =>
       "The server sent a response the app didn't understand. Check that "
           'the server URL is correct — not a login page or proxy.',
+    RejectedRequestFailure(:final serverMessage) => serverMessage,
     UnknownFailure() => 'Something unexpected happened. Please try again.',
   };
 }
@@ -126,6 +127,19 @@ final class UnexpectedResponseFailure extends AppFailure {
   const UnexpectedResponseFailure([this.debugMessage]);
 
   final String? debugMessage;
+}
+
+/// The JobTrigger backend refused the request with a 400 and its own
+/// user-facing explanation ("Invalid credentials", "User already exists",
+/// "Current password is incorrect"). Those messages are written for users
+/// in the backend's controllers, and the central error handler never puts
+/// internals in a 400 (AUD-06), so showing them is safe. Before AUD-65
+/// they became "Something went wrong on the server (HTTP 400)". Backend
+/// only: Jenkins' 400s are HTML pages and stay a [ServerFailure].
+final class RejectedRequestFailure extends AppFailure {
+  const RejectedRequestFailure(this.serverMessage);
+
+  final String serverMessage;
 }
 
 final class UnknownFailure extends AppFailure {

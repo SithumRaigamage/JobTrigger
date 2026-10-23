@@ -15,7 +15,7 @@ import 'package:job_trigger/domain/jenkins/test_report.dart';
 import 'package:job_trigger/presentation/features/job_detail/job_detail_screen.dart';
 import 'package:job_trigger/presentation/features/notifications/background_watch.dart';
 import 'package:job_trigger/presentation/features/notifications/build_watch_notifier.dart';
-import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/active_server_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../support/fake_jenkins_repository.dart';
@@ -83,6 +83,9 @@ class _Notifications implements NotificationService {
 }
 
 class _Scheduler implements BackgroundWatchScheduler {
+  @override
+  bool get isSupported => true;
+
   @override
   Future<void> sync({required bool hasWatches}) async {}
 }

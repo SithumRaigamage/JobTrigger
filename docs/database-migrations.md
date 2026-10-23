@@ -31,24 +31,19 @@ appinfos:
 
 ## 🔧 Migration Scripts
 
-### `scripts/migrate.js`
-**Purpose:** Migrate data from old SwiftUI app JSON to MongoDB
+### `docs/archive/migrate.js` (archived)
 
-**What it does:**
-1. Loads `users.json` and `jenkins_credentials.json` from Lab-Trigger-frontend Resources
-2. Creates User records in `users` collection
-3. Links JenkinsCredential records to users
+The one-shot import of the legacy SwiftUI app's `users.json` and
+`jenkins_credentials.json` into MongoDB. It was a developer-machine script:
+the source path was hardcoded to one author's checkout, and the source JSON
+held plaintext passwords.
 
-**When to run:**
-```bash
-cd JobTrigger-Backend
-node scripts/migrate.js
-```
-
-**Issues:**
-- ⚠️ Hardcoded path to old frontend resources
-- ⚠️ Only runs on demand, not automated
-- ✅ Idempotent (won't duplicate existing records)
+It is **archived, not runnable**. There is no npm script and no CI job for
+it; it is kept only so the original migration can be reconstructed if a
+legacy export ever needs importing again. See `docs/archive/README.md` for
+what it would need before it could run (a configurable source path, a
+password-hashing step, and a re-encryption pass against the current
+`CREDENTIALS_ENCRYPTION_KEY`).
 
 ### `scripts/encrypt-credentials.js` (AUD-03)
 
@@ -118,8 +113,9 @@ npm run dev
 # 2. In new terminal: seed app info
 node scripts/seedAppInfo.js
 
-# 3. Migrate old data (if migrating from Lab-Trigger-frontend)
-node scripts/migrate.js
+# 3. Migrate old data (if migrating from Lab-Trigger-frontend) — see archive
+#    script docs/archive/migrate.js for reconstruction steps; not runnable
+#    today.
 
 # 4. Verify
 curl http://localhost:5001/api/appinfo

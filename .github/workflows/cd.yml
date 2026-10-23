@@ -8,15 +8,18 @@ name: CD - Build Verification
 on:
   workflow_dispatch:
 
+# AUD-59: the token gets read access only; no job here writes to the repo.
+permissions:
+  contents: read
+
 jobs:
   flutter-build:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v7
-
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: '3.44.9'
           channel: 'stable'
@@ -26,25 +29,27 @@ jobs:
           cd JobTrigger-Frontend
           flutter pub get
 
+      # AUD-43: release builds refuse to start without their config, so
+      # every build here passes the prod config explicitly.
       - name: Build Android APK (release, debug-signed)
         run: |
           cd JobTrigger-Frontend
-          flutter build apk --release
+          flutter build apk --release --dart-define-from-file=config/prod.json
 
       - name: Build iOS (release, unsigned)
         run: |
           cd JobTrigger-Frontend
-          flutter build ipa --release --no-codesign
+          flutter build ipa --release --no-codesign --dart-define-from-file=config/prod.json
 
       - name: Upload Android build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: android-release-apk
           path: JobTrigger-Frontend/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 7
 
       - name: Upload iOS build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ios-release-build
           path: JobTrigger-Frontend/build/ios/archive/Runner.xcarchive
@@ -54,8 +59,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
-
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build backend Docker image (no push)
         run: |
           cd JobTrigger-Backend

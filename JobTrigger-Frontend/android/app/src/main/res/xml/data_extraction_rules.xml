@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AUD-64/NEW-03: app data must never be backed up to (or restored from) Google
+     Drive. `allowBackup="false"` covers backup; these rules additionally block
+     the "unencrypted file copied to new device" extraction path. Both
+     SharedPreferences (cached email, watch list, pinned job URLs) and the
+     flutter_secure_storage blobs live here — secure-storage blobs restored to a
+     new device without the key store chain must never land as readable data.
+     The widget's shared prefs live in a separate process, so no widget-specific
+     exemption is needed. -->
+<data-extraction-rules>
+    <device-config>
+        <files>
+            <!-- App-internal files are fine to restore (they're app-encrypted
+                 container content). Exclude only the user-data locations we
+                 treat as sensitive. -->
+            <exclude folder="shared_prefs" />
+            <exclude folder="flutter_secure_storage" />
+        </files>
+    </device-config>
+</data-extraction-rules>

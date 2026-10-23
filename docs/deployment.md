@@ -20,10 +20,18 @@ the "how," that one is the "what's left."
 
 ## The mechanical deploy process, Flutter-side
 
-- **Android**: `flutter build appbundle --release` → produces a `.aab` →
+Every release build passes the environment's config (AUD-43). Without it
+the app refuses to start rather than silently talking to the dev backend:
+
+```bash
+flutter build appbundle --release --dart-define-from-file=config/prod.json
+flutter build ipa --release --dart-define-from-file=config/prod.json
+```
+
+- **Android**: `flutter build appbundle --release` (with the flag above) → produces a `.aab` →
   upload to Play Console, start on the **internal testing** track, not
   production.
-- **iOS**: `flutter build ipa --release` → produces an `.ipa` → upload via
+- **iOS**: `flutter build ipa --release` (with the flag above) → produces an `.ipa` → upload via
   Xcode/Transporter to App Store Connect → starts in **TestFlight**, not
   the public store.
 
@@ -45,9 +53,9 @@ internal testing" and "Dogfood window" items.
 `.github/workflows/cd.yml` exists and is invokable from the Actions tab
 (`workflow_dispatch` only — it never runs automatically on push/PR, per the
 "don't build the deploy pipeline yet" reasoning below, which still holds).
-It builds `flutter build apk --release` (debug-signed, because CI has no
+It builds `flutter build apk --release --dart-define-from-file=config/prod.json` (debug-signed, because CI has no
 `key.properties`; see "Android release signing" below) and
-`flutter build ipa --release --no-codesign`, uploading both as
+`flutter build ipa --release --no-codesign` (same config flag), uploading both as
 workflow artifacts — nothing is pushed to a store or a registry. A second
 job does `docker build` against a new `JobTrigger-Backend/Dockerfile`
 (no `push`), verifying the backend still containerizes; no registry is
@@ -57,6 +65,30 @@ This satisfies recommendation #1 below, already done. `.github/workflows/flutter
 itself (the one that actually gates PRs) is deliberately left as
 analyze/test-only — build verification lives in the separate,
 manually-triggered `cd.yml` instead, so PR CI stays fast.
+
+## Pipeline security controls (P13-18, AUD-59)
+
+| Control | Where | Blocking |
+|---|---|---|
+| npm advisories (high+) | `nodejs-test.yml` | yes |
+| pub + npm advisories (OSV) | `security.yml` `dependencies` | yes |
+| Secrets in git history (gitleaks) | `security.yml` `secrets` | yes; reviewed exceptions in `.gitleaksignore` |
+| Backend image (Trivy, high+, fixable) | `security.yml` `backend-image` | yes |
+| Generated code matches its sources | `flutter-ci.yml` | yes |
+| Android and iOS builds compile | `flutter-ci.yml` | yes |
+| SonarCloud | `nodejs-test.yml` | informational; skipped until `sonar.projectKey`/`sonar.organization` and `SONAR_TOKEN` are set |
+
+Every workflow runs with `permissions: contents: read`, every action is
+pinned to a commit SHA (Dependabot's `github-actions` entry keeps them
+current), and the scanners are release binaries checked against their
+published checksums. `security.yml` also runs weekly, since new advisories
+arrive for code that hasn't changed.
+
+**Owner action:** require the `analyze-and-test`, `build-android`,
+`build-ios`, `test` (Node), `secrets`, `dependencies`, and `backend-image`
+checks through branch protection on `develop` and `flutter-migration`.
+Until then a red check doesn't stop a merge, which is how AUD-42 went
+unnoticed for 19 pushes.
 
 ## Android release signing (P12-10, AUD-15)
 
@@ -84,8 +116,8 @@ them.
 
    `storeFile` may be absolute, or relative to `android/`.
 
-3. `flutter build appbundle --release` (for Play) or `flutter build apk
-   --release`. To check which key signed an APK:
+3. `flutter build appbundle --release --dart-define-from-file=config/prod.json`
+   (for Play) or the same with `apk`. To check which key signed an APK:
    `apksigner verify --print-certs build/app/outputs/flutter-apk/app-release.apk`.
 
 Behaviour, verified 2026-09-30:

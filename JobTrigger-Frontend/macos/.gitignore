@@ -1,6 +1,9 @@
 # Flutter-related
 **/Flutter/ephemeral/
 **/Pods/
+# The app ships to iOS and Android only, so the macOS Podfile the tool
+# generates is never built and is not tracked (the iOS one is, in ios/Podfile).
+Podfile
 
 # Xcode-related
 **/dgph

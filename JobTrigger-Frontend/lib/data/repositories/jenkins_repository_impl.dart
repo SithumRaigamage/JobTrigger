@@ -6,7 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../core/error/app_failure.dart';
 import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
-import '../../core/network/jenkins_client_factory.dart';
+import '../datasources/jenkins_client_factory.dart';
 import '../../domain/credential/jenkins_server.dart';
 import '../../domain/jenkins/branch_kind.dart';
 import '../../domain/jenkins/history_filter.dart';
@@ -236,6 +236,21 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
         final response = await _dio.get<Map<String, dynamic>>(
           '${_withSlash(jobUrl)}api/json',
           queryParameters: {'tree': _detailsTree},
+        );
+        final job = JenkinsJobDto.fromJson(response.data!).toDomain();
+        return rewriteJobTreeUrls([job], _baseUrl).single;
+      });
+
+  @override
+  Future<Result<JenkinsJob, AppFailure>> fetchJobStatus(String jobUrl) =>
+      guardRequest(() async {
+        // §14 / P13-25: the pinned-job tile only needs the ball colour and
+        // the last build's number, so this asks for the lean listing tree
+        // instead of the full details tree (which drags in parameter
+        // definitions, change sets and artifacts).
+        final response = await _dio.get<Map<String, dynamic>>(
+          '${_withSlash(jobUrl)}api/json',
+          queryParameters: {'tree': _treeFields},
         );
         final job = JenkinsJobDto.fromJson(response.data!).toDomain();
         return rewriteJobTreeUrls([job], _baseUrl).single;

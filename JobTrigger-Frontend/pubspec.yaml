@@ -1,5 +1,5 @@
 name: job_trigger
-description: "A new Flutter project."
+description: "Trigger, monitor, and inspect Jenkins builds from a phone."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -40,8 +40,8 @@ dependencies:
   # (riverpod_generator >=4.0.6 wants analyzer ^13, freezed's latest stable
   # wants <11) so `flutter pub upgrade` will happily break codegen. Bump this
   # whole group together deliberately, re-resolving all five at once.
-  flutter_riverpod: 3.4.3
-  riverpod_annotation: 4.0.7
+  flutter_riverpod: 3.3.1
+  riverpod_annotation: 4.0.2
   dio: ^5.11.1
   go_router: ^17.5.0
   freezed_annotation: ^3.1.0
@@ -74,9 +74,9 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   build_runner: ^2.15.1
-  freezed: 4.0.1
-  json_serializable: 6.13.2
-  riverpod_generator: 4.0.9
+  freezed: 3.2.5
+  json_serializable: 6.13.0
+  riverpod_generator: 4.0.3
   shared_preferences_platform_interface: ^2.4.2
 
 # For information on the generic Dart part of this file, see the
@@ -84,6 +84,14 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  config:
+    # Swift Package Manager is off for this project. Flutter's SPM integration
+    # migration requires an `ios/Runner.xcworkspace`, which only CocoaPods
+    # creates — and with SPM enabled Flutter never writes a Podfile, so a
+    # fresh clone has no workspace and `flutter build ios` fails with
+    # "Xcode workspace not found". CocoaPods is the manager this project has
+    # always built with, and it regenerates the workspace on every build.
+    enable-swift-package-manager: false
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

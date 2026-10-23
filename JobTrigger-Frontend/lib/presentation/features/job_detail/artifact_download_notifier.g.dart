@@ -77,7 +77,7 @@ final class ArtifactDownloadNotifierProvider
 }
 
 String _$artifactDownloadNotifierHash() =>
-    r'f0caacfaad944e468991f152cea50c2d218df79a';
+    r'c854ba7f7adabea83fe6a9ff51842d060418a603';
 
 /// US-PIPE-07. State is null when idle, [ArtifactProgress] while
 /// downloading, and loading while the size is checked.

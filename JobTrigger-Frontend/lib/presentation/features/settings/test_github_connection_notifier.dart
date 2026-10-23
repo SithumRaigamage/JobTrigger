@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
-import '../../../core/network/github_client_factory.dart';
+import '../../../data/datasources/github_client_factory.dart';
 
 part 'test_github_connection_notifier.g.dart';
 

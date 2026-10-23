@@ -23,9 +23,14 @@ class NotificationService {
     channelDescription: 'When a watched Jenkins build finishes',
     importance: Importance.high,
     priority: Priority.high,
+    // AUD-54: on a secure lock screen Android shows "Contents hidden"
+    // rather than the job and result.
+    visibility: NotificationVisibility.private,
   );
 
-  /// Job URLs of tapped notifications, for the app to open.
+  /// Payloads of tapped notifications, for the app to open: an in-app
+  /// `jobtrigger://app/open?…` link, or a bare job URL from a notification
+  /// posted before AUD-45.
   Stream<String> get taps => _taps.stream;
 
   Future<void> initialize() async {
@@ -82,7 +87,7 @@ class NotificationService {
         android: _channel,
         iOS: DarwinNotificationDetails(),
       ),
-      payload: notification.jobUrl,
+      payload: notification.payload,
     );
   }
 }
@@ -90,7 +95,7 @@ class NotificationService {
 @Riverpod(keepAlive: true)
 NotificationService notificationService(Ref ref) => NotificationService();
 
-/// Tapped notifications' job URLs, starting the plugin on first use.
+/// Tapped notifications' payloads, starting the plugin on first use.
 @Riverpod(keepAlive: true)
 Stream<String> notificationTaps(Ref ref) async* {
   final service = ref.watch(notificationServiceProvider);

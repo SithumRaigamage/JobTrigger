@@ -8,7 +8,7 @@ import '../../../core/error/app_failure.dart';
 import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
-import '../settings/active_server_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 
 part 'pinned_jobs_notifier.g.dart';
 
@@ -94,9 +94,12 @@ class PinnedJobsNotifier extends _$PinnedJobsNotifier {
 
 /// A pinned job's live status: the job, or null when it no longer exists
 /// (404), so Home can offer to remove the stale pin.
+///
+/// §14 / P13-25: uses the lean status fetch, not the full job detail — the
+/// tile only shows the ball colour and the last build's number.
 @riverpod
 Future<JenkinsJob?> pinnedJobStatus(Ref ref, String url) async {
-  final result = await ref.watch(jenkinsRepositoryProvider).fetchJobDetail(url);
+  final result = await ref.watch(jenkinsRepositoryProvider).fetchJobStatus(url);
   return switch (result) {
     Ok(:final value) => value,
     Err(error: NotFoundFailure()) => null,

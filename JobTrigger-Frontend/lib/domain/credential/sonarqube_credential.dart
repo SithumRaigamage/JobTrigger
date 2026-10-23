@@ -10,14 +10,25 @@ class SonarQubeCredential {
     required this.secret,
     this.defaultOrganization,
     this.isDefault = false,
+    this.needsReentry = false,
   });
 
   final String id;
   final String label;
   final String baseUrl; // SonarCloud or a self-hosted SonarQube Server
-  final String secret; // SonarQube User Token
+
+  /// The stored token, or null when the backend could not decrypt it
+  /// (AUD-63). A null token is not "no token" — it means the credential
+  /// is listed but unusable until the user types it again, so nothing may
+  /// be sent to SonarQube in its place.
+  final String? secret; // SonarQube User Token
   final String? defaultOrganization;
   final bool isDefault;
+
+  /// AUD-63: the backend flags a credential whose token it could not
+  /// decrypt. The app still lists it (one unreadable secret must not
+  /// fail the whole list) and asks the user to re-enter the token.
+  final bool needsReentry;
 
   /// Redacted — `secret` must never end up in logs or crash reports.
   @override
@@ -25,4 +36,28 @@ class SonarQubeCredential {
       'SonarQubeCredential(id: $id, label: $label, baseUrl: $baseUrl, '
       'secret: ***, defaultOrganization: $defaultOrganization, '
       'isDefault: $isDefault)';
+
+  /// Value equality, so a reload that changed nothing doesn't rebuild the
+  /// client built from this entry (AUD-46).
+  @override
+  bool operator ==(Object other) =>
+      other is SonarQubeCredential &&
+      other.id == id &&
+      other.label == label &&
+      other.baseUrl == baseUrl &&
+      other.secret == secret &&
+      other.defaultOrganization == defaultOrganization &&
+      other.isDefault == isDefault &&
+      other.needsReentry == needsReentry;
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    label,
+    baseUrl,
+    secret,
+    defaultOrganization,
+    isDefault,
+    needsReentry,
+  );
 }

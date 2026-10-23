@@ -233,7 +233,9 @@ class FullLogExportNotifier extends _$FullLogExportNotifier {
     if (state.isLoading) return;
     state = const AsyncLoading();
     final directory = await ref.read(tempDirectoryProvider.future);
-    final file = File('${directory.path}/$fileName');
+    final file = File(
+      '${directory.path}/${safeFileName(fileName, fallback: 'build.log')}',
+    );
     try {
       final result = await ref
           .read(jenkinsRepositoryProvider)

@@ -8,6 +8,10 @@ on:
   pull_request:
     branches: [ develop, feature/** ]
 
+# AUD-59: the token gets read access only; no job here writes to the repo.
+permissions:
+  contents: read
+
 jobs:
   analyze-and-test:
     runs-on: ubuntu-latest
@@ -17,10 +21,9 @@ jobs:
       CODECOV_TOKEN_SET: ${{ secrets.CODECOV_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v7
-
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: '3.44.9'
           channel: 'stable'
@@ -38,6 +41,13 @@ jobs:
           grep -q 'android.permission.INTERNET' \
             JobTrigger-Frontend/android/app/src/main/AndroidManifest.xml
 
+      # AUD-43: a release build without --dart-define-from-file refuses to
+      # start, so every release build in cd.yml must pass a config.
+      - name: Verify release builds pass a config
+        run: |
+          ! grep -E 'flutter build (apk|appbundle|ipa) --release' .github/workflows/cd.yml \
+            | grep -v -- '--dart-define-from-file='
+
       - name: Verify formatting
         run: |
           cd JobTrigger-Frontend
@@ -48,6 +58,18 @@ jobs:
           cd JobTrigger-Frontend
           flutter analyze
 
+      # AUD-59: *.g.dart and *.freezed.dart are committed, so a change to a
+      # provider or model without re-running build_runner ships stale code.
+      - name: Verify generated code is up to date
+        run: |
+          cd JobTrigger-Frontend
+          dart run build_runner build --delete-conflicting-outputs
+          if [ -n "$(git status --porcelain -- lib test)" ]; then
+            git status --porcelain -- lib test
+            echo '::error::Generated code is stale: run build_runner and commit the result.'
+            exit 1
+          fi
+
       - name: Run tests
         run: |
           cd JobTrigger-Frontend
@@ -55,7 +77,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: ${{ env.CODECOV_TOKEN_SET != '' }}
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: JobTrigger-Frontend/coverage/lcov.info
@@ -67,16 +89,15 @@ jobs:
   build-android:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up Java
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: 'temurin'
           java-version: '17'
 
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: '3.44.9'
           channel: 'stable'
@@ -86,3 +107,29 @@ jobs:
           cd JobTrigger-Frontend
           flutter pub get
           flutter build apk --debug
+
+  # AUD-57: the same lesson as AUD-40, for iOS. The WidgetKit extension,
+  # App Group entitlements, BGTaskScheduler, Face ID, and the privacy
+  # manifests (AUD-56) are only checked by Xcode, which nothing else here
+  # runs. Unsigned: CI holds no Apple certificates.
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: '3.44.9'
+          channel: 'stable'
+
+      - name: Build iOS (debug, unsigned)
+        run: |
+          cd JobTrigger-Frontend
+          flutter pub get
+          flutter build ios --debug --no-codesign
+
+      - name: Verify both privacy manifests are bundled
+        run: |
+          app=JobTrigger-Frontend/build/ios/iphoneos/Runner.app
+          test -f "$app/PrivacyInfo.xcprivacy"
+          test -f "$app/PlugIns/PinnedJobsWidget.appex/PrivacyInfo.xcprivacy"

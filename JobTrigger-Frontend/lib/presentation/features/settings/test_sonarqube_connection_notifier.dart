@@ -1,7 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
-import '../../../core/network/sonarqube_client_factory.dart';
+import '../../../data/datasources/sonarqube_client_factory.dart';
+import '../../../domain/auth/auth_validation.dart';
+import '../../../domain/credential/sonarqube_url.dart';
 
 part 'test_sonarqube_connection_notifier.g.dart';
 
@@ -20,9 +22,15 @@ class TestSonarQubeConnectionNotifier
   FutureOr<bool?> build() => null;
 
   Future<void> test({required String baseUrl, required String token}) async {
+    // AUD-52: the token is never sent to an unusable URL.
+    final urlProblem = sonarQubeUrlProblem(baseUrl);
+    if (urlProblem != null) {
+      state = AsyncError(FormValidationError(urlProblem), StackTrace.current);
+      return;
+    }
     state = const AsyncLoading();
     final result = await testSonarQubeConnection(
-      baseUrl: baseUrl,
+      baseUrl: normalizeServerUrl(baseUrl),
       token: token,
     );
     state = switch (result) {

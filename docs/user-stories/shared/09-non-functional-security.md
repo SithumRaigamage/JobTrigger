@@ -73,6 +73,17 @@ without a crumb issuer endpoint (older/CSRF-disabled Jenkins) continue to
 POST without a crumb, unchanged from today.
 **Applies to:** US-JOB-02, US-JOB-03, US-JOB-05, US-PIPE-05, US-PIPE-08.
 
+### NFR-SEC-07 — Session continuity
+A session ends only on an explicit logout, "log out everywhere", or the
+backend refusing the refresh token (401 from `/api/auth/refresh`). A
+refresh that fails for any other reason — no network, a timeout, a 5xx, or
+a 429 from the refresh rate limit — keeps both tokens and surfaces the real
+cause (`NetworkFailure` / `ServerFailure`); the next request retries the
+refresh. This applies equally to the background build-watch check, which
+refreshes on almost every run. The refresh limit is counted per user, so
+users sharing one network address can't exhaust each other's (AUD-47).
+**Applies to:** US-AUTH-03, US-AUTH-05, US-JX-10.
+
 ## Testing (TEST)
 
 ### NFR-TEST-01 — Unit/widget coverage for repositories and notifiers

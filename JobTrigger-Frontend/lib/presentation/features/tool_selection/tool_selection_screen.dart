@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/gradient_backdrop.dart';
 import '../../common_widgets/responsive_center.dart';
@@ -68,7 +69,9 @@ class ToolSelectionScreen extends StatelessWidget {
                         'Select a CI/CD platform to get started',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                          color: AppColors.mutedText(
+                            Theme.of(context).brightness,
+                          ),
                         ),
                       ),
                     ],
@@ -126,8 +129,8 @@ class ToolSelectionScreen extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                color: colorScheme.onSurfaceVariant.withValues(
-                                  alpha: 0.8,
+                                color: AppColors.mutedText(
+                                  Theme.of(context).brightness,
                                 ),
                               ),
                         ),
@@ -168,47 +171,56 @@ class _ToolCardState extends ConsumerState<_ToolCard> {
   @override
   Widget build(BuildContext context) {
     final tool = widget.tool;
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    // AUD-62: the old card-wide `Opacity(0.6)` dimmed the *text* along with
+    // the art, which dropped the tool name/tagline to 3.1:1 and the "Soon"
+    // pill to 2.7:1. Availability is now carried by the badge, the border and
+    // the icon tint -- never by lowering text contrast.
+    final mutedText = AppColors.mutedText(theme.brightness);
 
-    return Opacity(
+    return AnimatedScale(
       key: Key('tool_card_${tool.name}'),
-      opacity: tool.isAvailable ? 1.0 : 0.6,
-      child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        // GlassSurface.card's own fill/border/shadow replace the ad hoc
-        // Material+Container decoration this used to be; the tool's
-        // accent-tinted border is layered on top via a second Container
-        // since GlassSurface doesn't know about per-instance accent colors.
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: tool.isAvailable
-                  ? tool.accentColor.withValues(alpha: 0.25)
-                  : Colors.grey.withValues(alpha: 0.1),
-              width: 1.5,
-            ),
+      scale: _pressed ? 0.97 : 1.0,
+      duration: const Duration(milliseconds: 120),
+      curve: Curves.easeOut,
+      // GlassSurface.card's own fill/border/shadow replace the ad hoc
+      // Material+Container decoration this used to be; the tool's
+      // accent-tinted border is layered on top via a second Container
+      // since GlassSurface doesn't know about per-instance accent colors.
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: tool.isAvailable
+                ? tool.accentColor.withValues(alpha: 0.25)
+                : Colors.grey.withValues(alpha: 0.1),
+            width: 1.5,
           ),
-          child: GlassSurface.card(
-            borderRadius: BorderRadius.circular(20),
-            onTap: tool.isAvailable ? () => _select(tool) : null,
-            onTapDown: (_) => _setPressed(true),
-            onTapUp: (_) => _setPressed(false),
-            onTapCancel: () => _setPressed(false),
-            child: Stack(
-              alignment: Alignment.topRight,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 20,
-                    horizontal: 12,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
+        ),
+        child: GlassSurface.card(
+          borderRadius: BorderRadius.circular(20),
+          onTap: tool.isAvailable ? () => _select(tool) : null,
+          onTapDown: (_) => _setPressed(true),
+          onTapUp: (_) => _setPressed(false),
+          onTapCancel: () => _setPressed(false),
+          child: Stack(
+            alignment: Alignment.topRight,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 12,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Opacity(
+                      // The icon is decoration next to the tool's name, so
+                      // fading it for the not-yet-available tools is safe --
+                      // the text below it stays at full contrast.
+                      opacity: tool.isAvailable ? 1.0 : 0.5,
+                      child: Container(
                         width: 64,
                         height: 64,
                         decoration: BoxDecoration(
@@ -221,64 +233,64 @@ class _ToolCardState extends ConsumerState<_ToolCard> {
                           color: tool.accentColor,
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      Text(
-                        tool.displayName,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: tool.isAvailable
-                              ? colorScheme.onSurface
-                              : colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      tool.displayName,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: tool.isAvailable
+                            ? colorScheme.onSurface
+                            : mutedText,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      tool.tagline,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: mutedText,
+                      ),
+                    ),
+                    if (tool.isAvailable) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: tool.accentColor.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'Recommended',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: tool.accentColor,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        tool.tagline,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      if (tool.isAvailable) ...[
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: tool.accentColor.withValues(alpha: 0.14),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            'Recommended',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: tool.accentColor,
-                            ),
-                          ),
-                        ),
-                      ],
                     ],
-                  ),
+                  ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: tool.isAvailable
-                      ? Icon(
-                          Icons.check_circle,
-                          size: 18,
-                          color: tool.accentColor,
-                        )
-                      : const _ComingSoonBadge(),
-                ),
-              ],
-            ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: tool.isAvailable
+                    ? Icon(
+                        Icons.check_circle,
+                        size: 18,
+                        color: tool.accentColor,
+                      )
+                    : const _ComingSoonBadge(),
+              ),
+            ],
           ),
         ),
       ),
@@ -294,7 +306,9 @@ class _ComingSoonBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.grey,
+        // AUD-62: grey 600 -- the white label reaches 6.2:1 on it (plain
+        // grey gave 2.7:1).
+        color: const Color(0xFF616161),
         borderRadius: BorderRadius.circular(20),
       ),
       child: const Text(

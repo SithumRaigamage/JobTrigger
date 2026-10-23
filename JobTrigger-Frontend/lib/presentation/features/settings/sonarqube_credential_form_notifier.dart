@@ -2,8 +2,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
 import '../../../data/repositories/sonarqube_credentials_repository_impl.dart';
-import 'active_sonarqube_credential_notifier.dart';
-import 'sonarqube_credentials_notifier.dart';
+import '../../../domain/auth/auth_validation.dart';
+import '../../../domain/credential/sonarqube_url.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../../data/credentials/sonarqube_credentials_notifier.dart';
 
 part 'sonarqube_credential_form_notifier.g.dart';
 
@@ -21,6 +23,8 @@ class SonarQubeCredentialFormNotifier
   FutureOr<void> build() {}
 
   /// [id] is null when adding a new credential, non-null when editing one.
+  /// [needsReentry] is true when the stored token could not be decrypted
+  /// (AUD-63) — see `SonarQubeCredential.needsReentry`.
   Future<void> save({
     String? id,
     required String label,
@@ -28,7 +32,28 @@ class SonarQubeCredentialFormNotifier
     required String secret,
     String? defaultOrganization,
     required bool isDefault,
+    bool needsReentry = false,
   }) async {
+    // AUD-63: the stored token couldn't be decrypted, so there is nothing
+    // to keep — the user has to type it again. Sending an empty token
+    // would overwrite the stored one with a blank and quietly break the
+    // credential for good.
+    if (needsReentry && secret.trim().isEmpty) {
+      state = AsyncError(
+        const FormValidationError(
+          'Enter the token again — it could not be read from the server.',
+        ),
+        StackTrace.current,
+      );
+      return;
+    }
+    // AUD-52: refuse an unusable URL before it reaches the backend.
+    final urlProblem = sonarQubeUrlProblem(baseUrl);
+    if (urlProblem != null) {
+      state = AsyncError(FormValidationError(urlProblem), StackTrace.current);
+      return;
+    }
+    baseUrl = normalizeServerUrl(baseUrl);
     state = const AsyncLoading();
     final repository = ref.read(sonarQubeCredentialsRepositoryProvider);
     final result = id == null

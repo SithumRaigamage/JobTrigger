@@ -6,7 +6,7 @@ import '../../../domain/jenkins/parameter_definition.dart';
 import '../../../domain/jenkins/parameter_file.dart';
 import '../../../domain/jenkins/parameter_values.dart';
 import '../history/job_history_notifier.dart';
-import '../settings/active_server_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 
 /// Renders one input per [ParameterDefinition], switching on its `type`
 /// (ported from `JobDetailView`, extended for US-JX-01).

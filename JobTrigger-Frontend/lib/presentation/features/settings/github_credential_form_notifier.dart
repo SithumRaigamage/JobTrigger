@@ -2,8 +2,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
 import '../../../data/repositories/github_credentials_repository_impl.dart';
-import 'active_github_credential_notifier.dart';
-import 'github_credentials_notifier.dart';
+import '../../../domain/auth/auth_validation.dart';
+import '../../../data/credentials/active_github_credential_notifier.dart';
+import '../../../data/credentials/github_credentials_notifier.dart';
 
 part 'github_credential_form_notifier.g.dart';
 
@@ -16,13 +17,29 @@ class GitHubCredentialFormNotifier extends _$GitHubCredentialFormNotifier {
   FutureOr<void> build() {}
 
   /// [id] is null when adding a new credential, non-null when editing one.
+  /// [needsReentry] is true when the stored token could not be decrypted
+  /// (AUD-63) — see `GitHubCredential.needsReentry`.
   Future<void> save({
     String? id,
     required String label,
     required String secret,
     String? defaultOwner,
     required bool isDefault,
+    bool needsReentry = false,
   }) async {
+    // AUD-63: the stored token couldn't be decrypted, so there is nothing
+    // to keep — the user has to type it again. Sending an empty token
+    // would overwrite the stored one with a blank and quietly break the
+    // credential for good.
+    if (needsReentry && secret.trim().isEmpty) {
+      state = AsyncError(
+        const FormValidationError(
+          'Enter the token again — it could not be read from the server.',
+        ),
+        StackTrace.current,
+      );
+      return;
+    }
     state = const AsyncLoading();
     final repository = ref.read(gitHubCredentialsRepositoryProvider);
     final result = id == null

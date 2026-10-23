@@ -13,6 +13,19 @@ const _enabledKey = 'app_lock_enabled';
 const _timeoutKey = 'app_lock_timeout_seconds';
 const _sensitiveKey = 'app_lock_sensitive';
 
+/// Whether the app lock is on, read straight from storage: for code that
+/// runs without the provider tree, like the background build check
+/// (AUD-54).
+Future<bool> readAppLockEnabled() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload(); // Another isolate may have changed it.
+    return prefs.getBool(_enabledKey) ?? false;
+  } on Object {
+    return true; // Unknown: err on the side of hiding.
+  }
+}
+
 /// What the lock gate shows.
 class AppLockState {
   const AppLockState({
@@ -151,24 +164,54 @@ class AppLockNotifier extends _$AppLockNotifier {
   }
 
   /// Turning the lock on authenticates once first, which also proves the
-  /// device has a passcode or biometrics set up.
+  /// device has a passcode or biometrics set up. Turning it off
+  /// authenticates too (AUD-53): the lock exists for someone else holding
+  /// the unlocked phone, who could otherwise switch it off in Settings.
   Future<LockChange> setEnabled(bool enabled) async {
-    if (enabled) {
-      final outcome = await _authenticate('Turn on app lock');
-      if (outcome == AuthOutcome.unavailable) {
-        return LockChange.noDeviceSecurity;
-      }
-      if (outcome != AuthOutcome.success) return LockChange.cancelled;
+    if (enabled == state.settings.enabled) return LockChange.changed;
+    final outcome = await _authenticate(
+      enabled ? 'Turn on app lock' : 'Turn off app lock',
+    );
+    if (outcome == AuthOutcome.unavailable) {
+      // Nothing to authenticate against. Turning on is impossible; turning
+      // off is allowed, since the lock can no longer be satisfied anyway
+      // (`unlock` turns it off for the same reason).
+      if (enabled) return LockChange.noDeviceSecurity;
+    } else if (outcome != AuthOutcome.success) {
+      return LockChange.cancelled;
     }
     await _save(state.settings.copyWith(enabled: enabled));
     return LockChange.changed;
   }
 
-  Future<void> setTimeout(Duration timeout) =>
-      _save(state.settings.copyWith(timeout: timeout));
+  /// A longer timeout weakens the lock, so it authenticates first (AUD-53);
+  /// a shorter one doesn't need to.
+  Future<LockChange> setTimeout(Duration timeout) => _weakening(
+    weakens: timeout > state.settings.timeout,
+    reason: 'Change when JobTrigger locks',
+    apply: (settings) => settings.copyWith(timeout: timeout),
+  );
 
-  Future<void> setRequireForSensitive(bool value) =>
-      _save(state.settings.copyWith(requireForSensitive: value));
+  /// Turning the re-prompt off weakens the lock, so it authenticates first
+  /// (AUD-53); turning it on doesn't need to.
+  Future<LockChange> setRequireForSensitive(bool value) => _weakening(
+    weakens: !value,
+    reason: 'Stop confirming actions',
+    apply: (settings) => settings.copyWith(requireForSensitive: value),
+  );
+
+  Future<LockChange> _weakening({
+    required bool weakens,
+    required String reason,
+    required AppLockSettings Function(AppLockSettings) apply,
+  }) async {
+    if (weakens && state.settings.enabled) {
+      final outcome = await _authenticate(reason);
+      if (outcome == AuthOutcome.failed) return LockChange.cancelled;
+    }
+    await _save(apply(state.settings));
+    return LockChange.changed;
+  }
 
   Future<AuthOutcome> _authenticate(String reason) async {
     _authenticating = true;

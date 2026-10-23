@@ -1,7 +1,8 @@
 const request = require('supertest');
 const { expect } = require('chai');
 const express = require('express');
-const { authLimiter } = require('../middleware/rateLimit');
+const { authLimiter, loginEmailKey, refreshKey } = require('../middleware/rateLimit');
+const { issueTokens } = require('../security/tokens');
 
 // A small app with tiny limits, so the suites' generous limits (setup.js)
 // don't hide the behaviour. Listening once for the whole test, like
@@ -10,6 +11,7 @@ const servers = [];
 
 function probe(options) {
   const app = express();
+  app.use(express.json());
   app.post('/attempt', authLimiter({ windowMs: 60000, ...options }), (req, res) => {
     const ok = req.query.ok === '1';
     res.status(ok ? 200 : 400).json({ ok });
@@ -43,5 +45,38 @@ describe('Auth rate limiting (AUD-05)', function() {
     await request(app).post('/attempt'); // One failure uses the quota.
     const res = await request(app).post('/attempt?ok=1');
     expect(res.status).to.equal(429);
+  });
+
+  // AUD-47: a whole office shares one IP; refreshes are counted per user.
+  it('counts refreshes per user, not per IP', async function() {
+    const app = probe({ limit: 1, keyGenerator: refreshKey });
+    const tokenFor = (id) =>
+      issueTokens({ _id: id, tokenVersion: 0 }).refreshToken;
+    const alice = tokenFor('64b000000000000000000001');
+    const bob = tokenFor('64b000000000000000000002');
+
+    expect((await request(app).post('/attempt?ok=1').send({ refreshToken: alice })).status)
+      .to.equal(200);
+    expect((await request(app).post('/attempt?ok=1').send({ refreshToken: bob })).status)
+      .to.equal(200);
+    expect((await request(app).post('/attempt?ok=1').send({ refreshToken: alice })).status)
+      .to.equal(429);
+  });
+
+  it('counts refreshes without a valid token against the IP', async function() {
+    const app = probe({ limit: 1, keyGenerator: refreshKey });
+    await request(app).post('/attempt').send({ refreshToken: 'garbage' });
+    const res = await request(app).post('/attempt').send({});
+    expect(res.status).to.equal(429);
+  });
+
+  // AUD-55: guessing one account's password from many addresses.
+  it('counts failed logins per account as well', async function() {
+    const app = probe({ limit: 1, skipSuccessfulRequests: true, keyGenerator: loginEmailKey });
+    await request(app).post('/attempt').send({ email: 'Victim@Example.com ' });
+    const again = await request(app).post('/attempt').send({ email: 'victim@example.com' });
+    expect(again.status).to.equal(429);
+    const other = await request(app).post('/attempt').send({ email: 'other@example.com' });
+    expect(other.status).to.equal(400);
   });
 });

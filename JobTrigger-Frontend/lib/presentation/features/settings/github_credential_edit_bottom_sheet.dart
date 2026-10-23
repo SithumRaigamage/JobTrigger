@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../domain/credential/github_credential.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../common_widgets/glass_surface.dart';
+import '../../common_widgets/secret_reentry_notice.dart';
 import '../../common_widgets/toast_controller.dart';
 import 'github_credential_form_notifier.dart';
 import 'test_github_connection_notifier.dart';
@@ -70,6 +72,9 @@ class _GitHubCredentialEditBottomSheetState
 
   bool get _isEditing => widget.existing != null;
 
+  /// AUD-63: the backend could not decrypt the stored token.
+  bool get _needsReentry => widget.existing?.needsReentry ?? false;
+
   @override
   void dispose() {
     _labelController.dispose();
@@ -128,13 +133,27 @@ class _GitHubCredentialEditBottomSheetState
                   ),
                 ),
                 const SizedBox(height: 12),
+                if (widget.existing?.needsReentry ?? false) ...[
+                  SecretReentryNotice(
+                    style: Theme.of(context).textTheme.bodySmall,
+                    detail:
+                        'The stored token could not be read, so it has to be '
+                        'entered again before this credential can be used.',
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 TextField(
                   controller: _tokenController,
                   obscureText: _obscureToken,
                   autocorrect: false,
                   decoration: InputDecoration(
                     labelText: 'Personal Access Token',
-                    hintText: _isEditing
+                    // AUD-63: "leave blank to keep the current token" is a
+                    // lie when the current token can't be read — there's
+                    // nothing to keep.
+                    hintText: _needsReentry
+                        ? 'Enter the token again'
+                        : _isEditing
                         ? 'Leave blank to keep the current token'
                         : 'ghp_… or github_pat_…',
                     border: const OutlineInputBorder(),
@@ -217,6 +236,9 @@ class _GitHubCredentialEditBottomSheetState
           secret: token,
           defaultOwner: defaultOwner.isEmpty ? null : defaultOwner,
           isDefault: _isDefault,
+          // AUD-63: the stored token couldn't be decrypted, so a blank
+          // field is a refusal to save, not "keep the current token".
+          needsReentry: _needsReentry,
         );
   }
 }
@@ -232,12 +254,15 @@ class _TestGitHubConnectionStatus extends StatelessWidget {
       AsyncData(value: null) => const SizedBox.shrink(),
       AsyncData(:final value?) => Text(
         'Connected — authenticated as $value',
-        style: const TextStyle(color: Colors.green),
+        style: TextStyle(
+          color: AppColors.successText(Theme.of(context).brightness),
+        ),
       ),
       AsyncLoading() => const Text('Testing...'),
       AsyncError(:final error) => Text(
         'Failed: ${describeError(error)}',
-        style: const TextStyle(color: Colors.red),
+        // AUD-62: the theme's error color is made for text; red 500 wasn't.
+        style: TextStyle(color: Theme.of(context).colorScheme.error),
       ),
     };
   }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/platform/notification_service.dart';
@@ -8,7 +10,8 @@ import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/presentation/features/notifications/background_watch.dart';
 import 'package:job_trigger/presentation/features/notifications/build_watch_notifier.dart';
-import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/credentials_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _Server extends ActiveServerNotifier {
@@ -20,6 +23,17 @@ class _Server extends ActiveServerNotifier {
     username: 'u',
     secret: 's',
   );
+}
+
+/// The saved-server list, held until [gate] completes: a pass that's slow
+/// on the network.
+class _SlowCredentials extends CredentialsNotifier {
+  _SlowCredentials(this.gate);
+
+  final Completer<List<JenkinsServer>> gate;
+
+  @override
+  Future<List<JenkinsServer>> build() => gate.future;
 }
 
 class _NoServer extends ActiveServerNotifier {
@@ -46,6 +60,9 @@ class _Notifications implements NotificationService {
 }
 
 class _Scheduler implements BackgroundWatchScheduler {
+  @override
+  bool get isSupported => true;
+
   final synced = <bool>[];
 
   @override
@@ -75,9 +92,14 @@ void main() {
   Future<ProviderContainer> container({
     bool granted = true,
     bool hasServer = true,
+    Completer<List<JenkinsServer>>? credentialsGate,
   }) async {
     final c = ProviderContainer(
       overrides: [
+        if (credentialsGate != null)
+          credentialsNotifierProvider.overrideWith(
+            () => _SlowCredentials(credentialsGate),
+          ),
         activeServerNotifierProvider.overrideWith(
           hasServer ? _Server.new : _NoServer.new,
         ),
@@ -162,5 +184,39 @@ void main() {
     ]);
     final c = await container();
     expect(c.read(buildWatchNotifierProvider).single.buildNumber, 3);
+  });
+
+  // AUD-49: a pass can outlast the 30s tick; overlapping passes notified
+  // the same build twice.
+  test('a check while one is running is skipped', () async {
+    final gate = Completer<List<JenkinsServer>>();
+    final c = await container(credentialsGate: gate);
+    final notifier = c.read(buildWatchNotifierProvider.notifier);
+    await notifier.watchBuild(_job, _job.lastBuild!);
+
+    final first = notifier.check();
+    var secondDone = false;
+    unawaited(notifier.check().then((_) => secondDone = true));
+    await Future<void>.delayed(Duration.zero);
+    expect(secondDone, isTrue, reason: 'the overlapping tick returns at once');
+
+    gate.complete(const []); // Server gone: the watch is dropped.
+    await first;
+    expect(c.read(buildWatchNotifierProvider), isEmpty);
+  });
+
+  test('a watch added during a running check is kept', () async {
+    final gate = Completer<List<JenkinsServer>>();
+    final c = await container(credentialsGate: gate);
+    final notifier = c.read(buildWatchNotifierProvider.notifier);
+    await notifier.watchJob(_job);
+
+    final pass = notifier.check();
+    await notifier.watchBuild(_job, _job.lastBuild!);
+    gate.completeError(Exception('offline')); // Keep everything.
+    await pass;
+
+    expect(c.read(buildWatchNotifierProvider), hasLength(2));
+    expect(await BuildWatchStore().load(), hasLength(2));
   });
 }

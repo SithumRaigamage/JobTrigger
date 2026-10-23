@@ -10,17 +10,33 @@ import '../../../domain/jenkins/jenkins_repository.dart';
 typedef RepositoryForServer =
     Future<JenkinsRepository?> Function(String serverId);
 
+/// Runs a store write in turn with the caller's other writes (see
+/// `BuildWatchNotifier`), so the pass's final load-and-save can't interleave
+/// with an add or remove.
+typedef SerializeWrite =
+    Future<List<BuildWatch>> Function(Future<List<BuildWatch>> Function());
+
 /// One pass over every watch: shared by the in-app timer and the background
 /// task, so both behave identically. Returns the watches that remain.
+///
+/// The network calls take a while (up to the client timeouts per watch),
+/// and the user may add or remove watches meanwhile, from this isolate or
+/// the other one. So the pass only records an outcome per watch [key], and
+/// at the end applies those outcomes to a *fresh* load of the store
+/// (AUD-49): a watch added during the pass survives, a watch removed during
+/// it stays removed, and only the watches this pass actually decided on
+/// change.
 Future<List<BuildWatch>> runWatchCheck({
   required BuildWatchStore store,
   required RepositoryForServer repositoryFor,
   required Future<void> Function(BuildNotification) notify,
+  SerializeWrite? serialize,
 }) async {
   final watches = await store.load();
   if (watches.isEmpty) return const [];
 
-  final remaining = <BuildWatch>[];
+  // Key -> what to store instead (null: drop). Unlisted keys: untouched.
+  final outcomes = <String, BuildWatch?>{};
   final repositories = <String, JenkinsRepository?>{};
   for (final watch in watches) {
     JenkinsRepository? repository;
@@ -29,21 +45,33 @@ Future<List<BuildWatch>> runWatchCheck({
           ? repositories[watch.serverId]
           : repositories[watch.serverId] = await repositoryFor(watch.serverId);
     } on Object {
-      remaining.add(watch); // Unreachable right now: try again later.
+      continue; // Unreachable right now: leave it for later.
+    }
+    if (repository == null) {
+      outcomes[watch.key] = null; // Credentials gone: drop.
       continue;
     }
-    if (repository == null) continue; // Credentials gone: drop.
 
     final history = await repository.fetchJobHistory(watch.jobUrl, count: 5);
-    switch (history) {
-      case Ok(value: final recent):
-        final outcome = decideWatch(watch, recent);
-        if (outcome.notify case final notification?) await notify(notification);
-        if (outcome.keep case final kept?) remaining.add(kept);
-      case Err():
-        remaining.add(watch); // Transient: keep it.
+    if (history case Ok(value: final recent)) {
+      final outcome = decideWatch(watch, recent);
+      if (outcome.notify case final notification?) await notify(notification);
+      outcomes[watch.key] = outcome.keep;
     }
+    // Err: transient, leave it untouched.
   }
-  await store.save(remaining);
-  return remaining;
+
+  Future<List<BuildWatch>> commit() async {
+    final merged = [
+      for (final current in await store.load())
+        if (!outcomes.containsKey(current.key))
+          current
+        else
+          ?outcomes[current.key],
+    ];
+    await store.save(merged);
+    return merged;
+  }
+
+  return serialize == null ? commit() : serialize(commit);
 }

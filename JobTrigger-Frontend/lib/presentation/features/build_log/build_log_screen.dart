@@ -148,6 +148,14 @@ class _BuildLogScreenState extends ConsumerState<BuildLogScreen> {
                   icon: Icons.wifi_off,
                   text: 'Connection lost — retrying…',
                 ),
+              // AUD-64/NEW-05: Jenkins no longer has this build. Streaming
+              // has stopped for good, so this is a terminal state, not a
+              // transient one.
+              if (log.buildGone)
+                const _Banner(
+                  icon: Icons.search_off,
+                  text: 'This build no longer exists on the server.',
+                ),
               Expanded(
                 child: ConsoleLogViewer(
                   key: _viewerKey,

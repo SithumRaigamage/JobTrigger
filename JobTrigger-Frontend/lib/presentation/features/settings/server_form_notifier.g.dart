@@ -49,7 +49,7 @@ final class ServerFormNotifierProvider
 }
 
 String _$serverFormNotifierHash() =>
-    r'4c927fadf6dbcadb478dadb5b66cfde5679f9115';
+    r'0eaa20710919717696e5945544c85f75b103baf1';
 
 /// Add/edit form submit state — see `docs/state-management.md`'s "Feature:
 /// settings / server management" section. Same shape as

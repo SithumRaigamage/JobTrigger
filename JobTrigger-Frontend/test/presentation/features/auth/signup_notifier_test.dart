@@ -33,6 +33,16 @@ class _FakeAuthRepository implements AuthRepository {
   @override
   Future<Result<void, AppFailure>> logoutEverywhere() =>
       throw UnimplementedError();
+
+  @override
+  Future<Result<AuthSession, AppFailure>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Result<void, AppFailure>> deleteAccount({required String password}) =>
+      throw UnimplementedError();
 }
 
 void main() {

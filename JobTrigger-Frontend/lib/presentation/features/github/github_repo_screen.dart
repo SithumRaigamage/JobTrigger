@@ -10,7 +10,7 @@ import '../../common_widgets/no_active_github_credential_view.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
-import '../settings/active_github_credential_notifier.dart';
+import '../../../data/credentials/active_github_credential_notifier.dart';
 import 'filtered_github_repos_provider.dart';
 import 'github_repo_search_notifier.dart';
 import 'github_repos_notifier.dart';

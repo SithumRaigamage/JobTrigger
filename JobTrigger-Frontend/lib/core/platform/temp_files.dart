@@ -6,6 +6,20 @@ import 'package:share_plus/share_plus.dart';
 
 part 'temp_files.g.dart';
 
+/// AUD-50: [name] reduced to a single, harmless path segment for writing
+/// inside a temp folder. Names come from Jenkins (`artifacts[].fileName`),
+/// so a hostile or compromised server, or a MITM on `http://`, could send
+/// `../../shared_prefs/x.xml`. Keeps the last segment after `/` or `\`,
+/// drops control characters, and falls back to [fallback] for nothing,
+/// `.`, or `..`.
+String safeFileName(String name, {String fallback = 'download'}) {
+  final last = name.split(RegExp(r'[/\\]')).last;
+  final cleaned = last.replaceAll(RegExp(r'[\x00-\x1f\x7f]'), '').trim();
+  return cleaned.isEmpty || cleaned == '.' || cleaned == '..'
+      ? fallback
+      : cleaned;
+}
+
 /// Where a file is written just long enough to share it (a full console
 /// log, an artifact). A provider so tests can substitute it.
 @riverpod

@@ -77,7 +77,7 @@ final class BuildLogNotifierProvider
   }
 }
 
-String _$buildLogNotifierHash() => r'c830381b59935c6e5e61603775c8a820309b2e76';
+String _$buildLogNotifierHash() => r'cd365346f057d45bed5764a2456d70fb7fd16ad4';
 
 /// Streams a build's console via Jenkins' progressive-text API, family-keyed
 /// by the build's absolute URL (US-LOG-01, rewritten for US-JX-07).

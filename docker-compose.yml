@@ -4,7 +4,10 @@ services:
     container_name: jobtrigger-mongo
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      # AUD-64: bind to the loopback interface only. Publishing on all
+      # interfaces exposed an unauthenticated MongoDB to every network
+      # the dev machine was attached to.
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongo_data:/data/db
     healthcheck:

@@ -1,4 +1,5 @@
 import 'jenkins_build.dart';
+import 'jenkins_link.dart';
 import 'relative_time.dart';
 
 /// Something the user asked to be told about (US-JX-10): one build
@@ -60,6 +61,7 @@ class BuildNotification {
     required this.title,
     required this.body,
     required this.jobUrl,
+    required this.serverId,
     required this.id,
   });
 
@@ -68,6 +70,26 @@ class BuildNotification {
 
   /// Where a tap should go.
   final String jobUrl;
+
+  /// The saved server [jobUrl] belongs to, which may not be the active one
+  /// when the tap arrives (AUD-45).
+  final String serverId;
+
+  /// AUD-54: the same notification without the job, its number, or its
+  /// result, for while the app lock is on (a lock screen or a shared
+  /// glance shouldn't name what's being built).
+  BuildNotification redacted() => BuildNotification(
+    title: 'A watched build finished',
+    body: 'Open JobTrigger to see which.',
+    jobUrl: jobUrl,
+    serverId: serverId,
+    id: id,
+  );
+
+  /// What a tap opens: the in-app link, so it goes through the same
+  /// server matching and switch confirmation as any other Jenkins link.
+  String get payload =>
+      jobTriggerLinkFor(jobUrl, serverId: serverId).toString();
 
   /// Stable per build, so the same build never notifies twice.
   final int id;
@@ -121,6 +143,7 @@ BuildNotification notificationFor(BuildWatch watch, JenkinsBuild build) {
         ? 'Tap to open'
         : 'Took ${formatBuildDuration(duration)}',
     jobUrl: watch.jobUrl,
+    serverId: watch.serverId,
     id: '${watch.jobUrl}#${build.number}'.hashCode & 0x7fffffff,
   );
 }

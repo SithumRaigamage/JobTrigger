@@ -10,7 +10,7 @@ import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_build.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/presentation/features/open_link/open_link_screen.dart';
-import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/active_server_notifier.dart';
 import 'package:job_trigger/presentation/navigation/app_routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

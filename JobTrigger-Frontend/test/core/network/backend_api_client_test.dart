@@ -39,9 +39,13 @@ class _FixedStatusAdapter implements HttpClientAdapter {
 /// A tiny backend: `/api/auth/refresh` trades `refresh-1` for a new pair
 /// (when [refreshWorks]); protected paths accept only the fresh token.
 class _RefreshingBackend implements HttpClientAdapter {
-  _RefreshingBackend({this.refreshWorks = true});
+  _RefreshingBackend({this.refreshWorks = true, this.refreshStatus});
 
   final bool refreshWorks;
+
+  /// When set, `/refresh` answers with this status (no token) instead,
+  /// or with a connection error for -1.
+  final int? refreshStatus;
   int refreshCalls = 0;
   final protectedTokens = <String?>[];
 
@@ -61,6 +65,15 @@ class _RefreshingBackend implements HttpClientAdapter {
     if (options.path.endsWith('/api/auth/refresh')) {
       refreshCalls++;
       await Future<void>.delayed(const Duration(milliseconds: 10));
+      if (refreshStatus case final status?) {
+        if (status == -1) {
+          throw DioException.connectionError(
+            requestOptions: options,
+            reason: 'offline',
+          );
+        }
+        return json({'message': 'unavailable'}, status);
+      }
       final sent = (options.data as Map)['refreshToken'];
       return refreshWorks && sent == 'refresh-1'
           ? json({'token': 'access-2', 'refreshToken': 'refresh-2'}, 200)
@@ -192,6 +205,30 @@ void main() {
       expect(await secureStorage.readRefreshToken(), isNull);
       expect(unauthorizedCalls, 1);
     });
+
+    // AUD-47: only the server refusing the refresh token ends the session.
+    for (final (label, status) in [
+      ('rate limited (429)', 429),
+      ('down (503)', 503),
+      ('unreachable', -1),
+    ]) {
+      test('a refresh that is $label keeps the session', () async {
+        final backend = _RefreshingBackend(refreshStatus: status);
+        await expectLater(
+          build(backend).get<void>('/api/credentials'),
+          throwsA(
+            isA<DioException>().having(
+              (e) => e.response?.statusCode,
+              'the refresh failure, not the 401',
+              status == -1 ? isNull : status,
+            ),
+          ),
+        );
+        expect(await secureStorage.readToken(), 'access-1');
+        expect(await secureStorage.readRefreshToken(), 'refresh-1');
+        expect(unauthorizedCalls, 0);
+      });
+    }
 
     test('without a refresh token it signs out as before', () async {
       FlutterSecureStorage.setMockInitialValues({});

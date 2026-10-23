@@ -88,4 +88,15 @@ void main() {
     expect(back.key, _build7.key);
     expect(back.buildNumber, 7);
   });
+
+  test('a redacted notification names nothing (AUD-54)', () {
+    final full = notificationFor(_build7, _b(7, 'FAILURE'));
+    final hidden = full.redacted();
+    expect(hidden.title, 'A watched build finished');
+    expect(hidden.body, isNot(contains(_build7.jobLabel)));
+    expect(hidden.title, isNot(contains(_build7.jobLabel)));
+    // Same build, same notification slot, same tap target.
+    expect(hidden.id, full.id);
+    expect(hidden.payload, full.payload);
+  });
 }

@@ -4,8 +4,8 @@ import '../../../core/error/result.dart';
 import '../../../data/repositories/credentials_repository_impl.dart';
 import '../../../domain/auth/auth_validation.dart';
 import '../../../domain/credential/jenkins_url.dart';
-import 'active_server_notifier.dart';
-import 'credentials_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
+import '../../../data/credentials/credentials_notifier.dart';
 
 part 'server_form_notifier.g.dart';
 
@@ -20,6 +20,8 @@ class ServerFormNotifier extends _$ServerFormNotifier {
   FutureOr<void> build() {}
 
   /// [id] is null when adding a new server, non-null when editing one.
+  /// [needsReentry] is true when the stored secret could not be decrypted
+  /// (AUD-63) — see `JenkinsServer.needsReentry`.
   Future<void> save({
     String? id,
     required String serverName,
@@ -28,7 +30,21 @@ class ServerFormNotifier extends _$ServerFormNotifier {
     required String secret,
     String? paramToken,
     required bool isDefault,
+    bool needsReentry = false,
   }) async {
+    // AUD-63: the stored secret couldn't be decrypted, so there is nothing
+    // to keep — the user has to type it again. Sending an empty secret
+    // would overwrite the stored one with a blank and quietly break the
+    // credential for good.
+    if (needsReentry && secret.trim().isEmpty) {
+      state = AsyncError(
+        const FormValidationError(
+          'Enter the secret again — it could not be read from the server.',
+        ),
+        StackTrace.current,
+      );
+      return;
+    }
     // AUD-14: refuse an unusable URL before it reaches the backend.
     final urlProblem = jenkinsUrlProblem(jenkinsURL);
     if (urlProblem != null) {

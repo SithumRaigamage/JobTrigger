@@ -68,7 +68,7 @@ void main() {
     expect(session.token, 'jwt-abc');
   });
 
-  test('login returns a failure on invalid credentials (400)', () async {
+  test("login shows the backend's own reason on a 400 (AUD-65)", () async {
     final dio = Dio(BaseOptions(baseUrl: 'https://example.test'))
       ..httpClientAdapter = _JsonAdapter(400, {
         'message': 'Invalid credentials',
@@ -78,9 +78,49 @@ void main() {
     final result = await repo.login(email: 'a@b.com', password: 'wrong');
 
     expect(result, isA<Err<AuthSession, AppFailure>>());
+    final error = (result as Err<AuthSession, AppFailure>).error;
+    expect(error, isA<RejectedRequestFailure>());
+    expect(error.message, 'Invalid credentials');
+  });
+
+  test('a 400 without a message is still a ServerFailure', () async {
+    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'))
+      ..httpClientAdapter = _JsonAdapter(400, {});
+    final result = await AuthRepositoryImpl(
+      dio,
+    ).login(email: 'a@b.com', password: 'wrong');
     expect(
       (result as Err<AuthSession, AppFailure>).error,
       isA<ServerFailure>(),
+    );
+  });
+
+  test('changePassword returns the new session', () async {
+    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'))
+      ..httpClientAdapter = _JsonAdapter(200, {
+        'token': 'access-2',
+        'refreshToken': 'refresh-2',
+        'user': {'_id': 'u1', 'email': 'a@b.com'},
+      });
+    final result = await AuthRepositoryImpl(
+      dio,
+    ).changePassword(currentPassword: 'old-pass', newPassword: 'new-pass');
+    final session = (result as Ok<AuthSession, AppFailure>).value;
+    expect(session.token, 'access-2');
+    expect(session.refreshToken, 'refresh-2');
+  });
+
+  test('deleteAccount surfaces a wrong password as its message', () async {
+    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'))
+      ..httpClientAdapter = _JsonAdapter(400, {
+        'message': 'Current password is incorrect',
+      });
+    final result = await AuthRepositoryImpl(
+      dio,
+    ).deleteAccount(password: 'nope');
+    expect(
+      (result as Err<void, AppFailure>).error.message,
+      'Current password is incorrect',
     );
   });
 

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -9,6 +11,7 @@ import '../../../data/cache/build_watch_store.dart';
 import '../../../data/repositories/credentials_repository_impl.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_repository.dart';
+import '../app_lock/app_lock_notifier.dart';
 import 'watch_runner.dart';
 
 /// Unique name of the periodic background check (US-JX-10).
@@ -24,10 +27,15 @@ void buildWatchDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     final container = ProviderContainer();
     try {
+      // AUD-54: no job names while the app lock is on.
+      final hideNames = await readAppLockEnabled();
+      final notifications = NotificationService();
       await runWatchCheck(
         store: BuildWatchStore(),
         repositoryFor: (serverId) => _repositoryFor(container, serverId),
-        notify: NotificationService().show,
+        notify: (notification) => notifications.show(
+          hideNames ? notification.redacted() : notification,
+        ),
       );
     } on Object {
       // Best effort by design: never fail the OS task, retry next period.
@@ -65,10 +73,21 @@ Future<JenkinsRepository?> _repositoryFor(
 /// Registers the periodic background check while there are watches, and
 /// cancels it when there are none. The OS decides when it actually runs
 /// (15 minutes at the earliest): best effort, and the UI says so.
+///
+/// Only Android and iOS schedule anything. On the desktop dev target there
+/// is nothing to schedule, and the Linux plugin shells out to `systemd`
+/// (`Process.run`), which is what left a pending timer in every widget test
+/// on CI (AUD-42). [isSupported] is the host OS, deliberately not
+/// `defaultTargetPlatform`, which tests set to Android.
 class BackgroundWatchScheduler {
+  BackgroundWatchScheduler({bool? isSupported})
+    : isSupported = isSupported ?? (Platform.isAndroid || Platform.isIOS);
+
+  final bool isSupported;
   bool _initialized = false;
 
   Future<void> sync({required bool hasWatches}) async {
+    if (!isSupported) return;
     try {
       if (!_initialized) {
         await Workmanager().initialize(buildWatchDispatcher);
@@ -86,8 +105,8 @@ class BackgroundWatchScheduler {
         await Workmanager().cancelByUniqueName(buildWatchTaskName);
       }
     } on Object {
-      // Unsupported platform (desktop dev target) or unavailable: the
-      // in-app check still runs while the app is open.
+      // Unavailable (e.g. background fetch disabled): the in-app check
+      // still runs while the app is open.
     }
   }
 }

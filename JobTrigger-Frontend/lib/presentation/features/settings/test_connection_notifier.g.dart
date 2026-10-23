@@ -49,7 +49,7 @@ final class TestConnectionNotifierProvider
 }
 
 String _$testConnectionNotifierHash() =>
-    r'd6ee1fc1bcdbba0be0b44801c438c25a90a5e647';
+    r'03286f983efbb630c1b171d833351d948a6d461e';
 
 /// "Test connection" (P3-08) state — separate from `ServerFormNotifier`
 /// since a user can test a candidate server's connection independently of

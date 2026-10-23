@@ -8,7 +8,12 @@
 - ✅ Checks MongoDB connection (Cloud or Docker)
 - ✅ Runs `JobTrigger-Backend/scripts/setup-migrations.js` — seeds AppInfo, a
   dev user (`developer@jobtrigger.app` / `SecurePassword123!`), and sample
-  Jenkins credentials (see [Database Migrations](./database-migrations.md))
+  Jenkins credentials (see [Database Migrations](./database-migrations.md)).
+  It only runs against a local MongoDB (`localhost`, `127.0.0.1`, or the
+  compose `mongo` service) and never with `NODE_ENV=production` (AUD-58).
+  For a personal Atlas cluster, run it yourself with
+  `node scripts/setup-migrations.js --allow-remote`; never against a shared
+  or staging database, since the dev password is published here.
 - ✅ Starts Node.js backend on `http://127.0.0.1:5001`
 - ✅ Keeps backend running in watch mode (auto-restart on file changes)
 
@@ -135,8 +140,11 @@ CREDENTIALS_ENCRYPTION_KEY=<generated value>
 # Optional (AUD-05): failed logins per IP per 15 min (default 10), and
 # signups per IP per hour (default 5). Behind a reverse proxy or load
 # balancer, TRUST_PROXY is the number of proxy hops (e.g. 1), so limits
-# apply to the client's IP rather than the proxy's.
+# apply to the client's IP rather than the proxy's. Only a whole number
+# (1-99) is accepted; anything else stops the server at startup (AUD-44).
 # LOGIN_RATE_LIMIT=10
+# Failed logins per account per 15 min, from any address (AUD-55).
+# LOGIN_EMAIL_RATE_LIMIT=10
 # SIGNUP_RATE_LIMIT=5
 # TRUST_PROXY=1
 ```

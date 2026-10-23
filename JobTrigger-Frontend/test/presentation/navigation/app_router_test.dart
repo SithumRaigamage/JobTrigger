@@ -18,8 +18,8 @@ import 'package:job_trigger/presentation/features/github/github_repo_screen.dart
 import 'package:job_trigger/presentation/features/github/github_workflow_list_screen.dart';
 import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifier.dart';
 import 'package:job_trigger/presentation/features/home/home_screen.dart';
-import 'package:job_trigger/presentation/features/settings/active_github_credential_notifier.dart';
-import 'package:job_trigger/presentation/features/settings/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/active_github_credential_notifier.dart';
+import 'package:job_trigger/data/credentials/active_server_notifier.dart';
 import 'package:job_trigger/presentation/features/tool_selection/active_tool_notifier.dart';
 import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
 import 'package:job_trigger/presentation/navigation/app_router.dart';
@@ -252,4 +252,49 @@ void main() {
       expect(find.text('.github/workflows/ci.yml'), findsOneWidget);
     },
   );
+
+  // AUD-51: any app or web page can fire these through jobtrigger://app/…
+  // with no in-app `extra`; they used to throw in the route builder.
+  testWidgets('an extra-only route opened from outside lands on Home', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    container.listen(authNotifierProvider, (_, _) {});
+    await container
+        .read(authNotifierProvider.notifier)
+        .setSession(const User(id: 'u1', email: 'a@b.com'), 'jwt-abc');
+    final router = container.read(appRouterProvider);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    for (final path in [
+      AppRoutes.jobDetail,
+      AppRoutes.jobHistory,
+      AppRoutes.buildLog,
+      AppRoutes.buildDetail,
+      AppRoutes.githubWorkflows,
+    ]) {
+      router.go(path, extra: path == AppRoutes.buildLog ? 'not a build' : null);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: path);
+      expect(
+        router.routerDelegate.currentConfiguration.uri.path,
+        AppRoutes.home,
+        reason: path,
+      );
+    }
+
+    router.go('/no/such/place');
+    await tester.pumpAndSettle();
+    expect(
+      find.text("This link doesn't lead anywhere in JobTrigger."),
+      findsOneWidget,
+    );
+  });
 }

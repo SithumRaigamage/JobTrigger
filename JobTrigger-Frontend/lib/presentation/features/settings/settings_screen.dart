@@ -15,24 +15,25 @@ import '../../../core/config/app_config.dart';
 import '../../../domain/credential/sonarqube_credential.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
+import '../../common_widgets/secret_reentry_notice.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../tool_selection/active_tool_notifier.dart';
 import '../tool_selection/ci_tool.dart';
-import 'active_github_credential_notifier.dart';
+import '../../../data/credentials/active_github_credential_notifier.dart';
 import '../app_lock/app_lock_notifier.dart';
 import '../notifications/build_watch_notifier.dart';
 import '../../../domain/app_lock/app_lock_settings.dart';
-import 'active_server_notifier.dart';
-import 'active_sonarqube_credential_notifier.dart';
-import 'credentials_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../../data/credentials/credentials_notifier.dart';
 import 'github_credential_edit_bottom_sheet.dart';
-import 'github_credentials_notifier.dart';
+import '../../../data/credentials/github_credentials_notifier.dart';
 import 'server_edit_bottom_sheet.dart';
 import 'sonarqube_credential_edit_bottom_sheet.dart';
-import 'sonarqube_credentials_notifier.dart';
+import '../../../data/credentials/sonarqube_credentials_notifier.dart';
 
 /// Ported from `SettingsView.swift`'s server list — see
 /// `docs/state-management.md`'s "Feature: settings / server management".
@@ -520,21 +521,7 @@ class _ServerTile extends ConsumerWidget {
             title: Text(server.serverName),
             subtitle: isActive
                 ? _ActiveServerSubtitle(server: server)
-                : looksLikeJenkinsApiToken(server.secret)
-                ? Text(server.jenkinsURL)
-                : Text.rich(
-                    TextSpan(
-                      text: server.jenkinsURL,
-                      children: [
-                        TextSpan(
-                          text: ' · Uses a password',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.tertiary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                : _inactiveServerSubtitle(context, server),
             trailing: IconButton(
               icon: const Icon(Icons.edit),
               tooltip: 'Edit',
@@ -543,6 +530,25 @@ class _ServerTile extends ConsumerWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// AUD-63: a credential whose secret the backend could not decrypt is
+  /// still listed, but it can't authenticate. Say so — "Uses a password"
+  /// would read like a working credential, and there's no password to use.
+  Widget _inactiveServerSubtitle(BuildContext context, JenkinsServer server) {
+    if (server.needsReentry) return const SecretReentryNotice();
+    if (looksLikeJenkinsApiToken(server.secret)) return Text(server.jenkinsURL);
+    return Text.rich(
+      TextSpan(
+        text: server.jenkinsURL,
+        children: [
+          TextSpan(
+            text: ' · Uses a password',
+            style: TextStyle(color: Theme.of(context).colorScheme.tertiary),
+          ),
+        ],
       ),
     );
   }
@@ -650,7 +656,11 @@ class _GitHubCredentialTile extends ConsumerWidget {
                   : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             title: Text(credential.label),
-            subtitle: credential.defaultOwner == null
+            // AUD-63: an unreadable secret takes precedence over the
+            // owner hint — the credential can't authenticate at all.
+            subtitle: credential.needsReentry
+                ? const SecretReentryNotice()
+                : credential.defaultOwner == null
                 ? null
                 : Text(credential.defaultOwner!),
             trailing: IconButton(
@@ -768,7 +778,10 @@ class _SonarQubeCredentialTile extends ConsumerWidget {
                   : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             title: Text(credential.label),
-            subtitle: Text(credential.baseUrl),
+            // AUD-63: an unreadable secret takes precedence over the URL.
+            subtitle: credential.needsReentry
+                ? const SecretReentryNotice()
+                : Text(credential.baseUrl),
             trailing: IconButton(
               icon: const Icon(Icons.edit),
               tooltip: 'Edit',
@@ -856,7 +869,11 @@ class _ActiveServerSubtitle extends ConsumerWidget {
         isOutdatedJenkins(version, AppConfig.recommendedJenkinsBaseline)
             ? 'Jenkins $version · consider upgrading'
             : 'Jenkins $version',
-      if (!looksLikeJenkinsApiToken(server.secret)) 'Uses a password',
+      // AUD-63: a null secret means the backend couldn't decrypt it, not
+      // that the credential uses a password — "Uses a password" would
+      // send the user looking for a password that isn't there.
+      if (!server.needsReentry && !looksLikeJenkinsApiToken(server.secret))
+        'Uses a password',
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -868,6 +885,12 @@ class _ActiveServerSubtitle extends ConsumerWidget {
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: Theme.of(context).colorScheme.tertiary,
             ),
+          ),
+        if (server.needsReentry)
+          const SecretReentryNotice(
+            detail:
+                'The secret could not be read from the server — edit this '
+                'server to enter it again.',
           ),
       ],
     );

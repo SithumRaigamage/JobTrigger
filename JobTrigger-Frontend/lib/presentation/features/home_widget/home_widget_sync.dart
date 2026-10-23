@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/platform/home_widget_bridge.dart';
 import '../../../domain/auth/auth_state.dart';
 import '../../../domain/widget/widget_snapshot.dart';
+import '../app_lock/app_lock_notifier.dart';
 import '../auth/auth_notifier.dart';
 import '../home/pinned_jobs_notifier.dart';
 
@@ -21,6 +22,14 @@ void homeWidgetSync(Ref ref) {
     authNotifierProvider.select((auth) => auth.value is Authenticated),
   );
   if (!signedIn) return;
+  // AUD-54: names stay off the home screen while the app lock is on. Wait
+  // for the lock settings, so a cold start can't write names first.
+  final lock = ref.watch(
+    appLockNotifierProvider.select(
+      (state) => (loaded: state.loaded, enabled: state.settings.enabled),
+    ),
+  );
+  if (!lock.loaded) return;
   final pins = ref.watch(pinnedJobsNotifierProvider);
   final statuses = [
     for (final pin in pins.take(WidgetSnapshot.maxJobs))
@@ -31,9 +40,13 @@ void homeWidgetSync(Ref ref) {
   if (pins.isNotEmpty && statuses.every((status) => !status.hasValue)) {
     return;
   }
-  final snapshot = buildWidgetSnapshot([
-    for (final (i, pin) in pins.take(WidgetSnapshot.maxJobs).indexed)
-      (label: pin.label, url: pin.url, job: statuses[i].value),
-  ], now: DateTime.now());
+  final snapshot = buildWidgetSnapshot(
+    [
+      for (final (i, pin) in pins.take(WidgetSnapshot.maxJobs).indexed)
+        (label: pin.label, url: pin.url, job: statuses[i].value),
+    ],
+    now: DateTime.now(),
+    hideNames: lock.enabled,
+  );
   ref.read(homeWidgetBridgeProvider).write(snapshot);
 }

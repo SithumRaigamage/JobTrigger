@@ -16,9 +16,11 @@ Base URL from `core/config/app_config.dart`, e.g. `https://api.jobtrigger.app`
 | Endpoint | Method | Auth | Request body | Response | Notes |
 |---|---|---|---|---|---|
 | `/api/auth/signup` | POST | Public | `{ email, password }` (strings) | `{ user, token, refreshToken }` | Server enforces the email pattern, a password of 8+ characters, and at most 72 bytes; non-strings get 400 (AUD-04/26). The client checks the same rules first |
-| `/api/auth/login` | POST | Public | `{ email, password }` (strings) | `{ user, token, refreshToken }` | Non-strings get 400; the email is trimmed and lower-cased. On success, store the token in secure storage immediately. **429** after 10 failed attempts per IP in 15 min (signup: 5 per hour), with a `RateLimit` header; the client shows "Too many attempts…" (AUD-05) |
-| `/api/auth/refresh` | POST | Public | `{ refreshToken }` | `{ token, refreshToken, user }` | AUD-26. Called by the backend interceptor on a 401, once per burst of 401s, and the request is replayed. **401** when the refresh token is expired, revoked, or not a refresh token, and the client then signs out. 30 per IP per 15 min |
+| `/api/auth/login` | POST | Public | `{ email, password }` (strings) | `{ user, token, refreshToken }` | Non-strings get 400; the email is trimmed and lower-cased. On success, store the token in secure storage immediately. **429** after 10 failed attempts per IP in 15 min, or 10 failed attempts on one account from anywhere (AUD-55); signup: 5 per hour per IP. With a `RateLimit` header; the client shows "Too many attempts…" (AUD-05). An unknown email costs the same bcrypt work as a wrong password |
+| `/api/auth/refresh` | POST | Public | `{ refreshToken }` | `{ token, refreshToken, user }` | AUD-26. Called by the backend interceptor on a 401, once per burst of 401s, and the request is replayed. **401** when the refresh token is expired, revoked, or not a refresh token, and the client then signs out. Any other failure (network, 5xx, **429**) keeps the session (NFR-SEC-07). 30 per **user** per 15 min, keyed on the token's subject; requests without a valid token count per IP (AUD-47) |
 | `/api/auth/logout-all` | POST | Token | — | `{ message }` | AUD-26. Bumps `User.tokenVersion`, revoking every access and refresh token on every device, including the caller's |
+| `/api/auth/password` | POST | Token | `{ currentPassword, newPassword }` | `{ token, refreshToken, user }` | AUD-48. Re-checks the current password (wrong: **400** "Current password is incorrect", counted by the login limiter). The new password follows signup's rules. Bumps `tokenVersion`, so every earlier token on every device is revoked; the returned pair keeps the caller signed in |
+| `/api/auth/account` | DELETE | Token | `{ password }` | `{ message }` | AUD-48. Re-checks the password (**400** when wrong), then deletes every Jenkins, GitHub, and SonarQube credential of the user and the user itself |
 | `/api/credentials` | GET | `x-auth-token` | — | `Credential[]` | |
 | `/api/credentials` | POST | `x-auth-token` | `Credential` (minus id) | `Credential` | |
 | `/api/credentials/:id` | PUT | `x-auth-token` | Partial `Credential` | `Credential` | |
@@ -41,6 +43,24 @@ on `401`, clear stored session and route to login (see `auth_notifier.dart`).
 matched the real backend and made every authenticated request 401 silently
 (discovered only once the Flutter client was exercised end-to-end against a
 real running backend, not just tested with mocked Dio adapters).
+
+### Request ids and unreadable secrets (AUD-63, §19)
+
+**`x-request-id`** — every response carries an `x-request-id` header. A
+client-supplied `x-request-id` is echoed back only when it matches
+`^[A-Za-z0-9._-]{1,64}$`; anything else is replaced with a generated UUID
+(the value is written to the server log, so an untrusted one is never
+reused verbatim). A **500** body is `{ message: "Server error", requestId }`
+— quote the `requestId` in a bug report; the message itself stays generic.
+
+**`needsReentry`** — every credential object in a response carries
+`needsReentry: true|false`. When the server cannot decrypt a stored secret
+(a key id dropped from the keyring, or a failed GCM tag), the credential is
+still returned: its secret field is `null` and `needsReentry` is `true`.
+One unreadable credential no longer fails the whole list, and no other
+credential is affected. The client should prompt for the secret again and
+`PUT` it back — a `PUT` that supplies a new secret clears the flag. Fields:
+`password` (Jenkins), `token` (GitHub), `token` (SonarQube).
 
 ## 2. Jenkins API (direct, per-server Basic Auth)
 

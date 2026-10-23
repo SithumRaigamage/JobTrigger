@@ -15,7 +15,12 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CredentialDto {
 
-@JsonKey(name: '_id') String get id; String get serverName; String get jenkinsURL; String get username; String get password; String? get paramToken; bool get isDefault; String? get createdAt; String? get updatedAt;
+@JsonKey(name: '_id') String get id; String get serverName; String get jenkinsURL; String get username;/// Null when the backend could not decrypt the stored secret
+/// (AUD-63) — the credential is still listed, but it can't be used
+/// until the user types the secret again.
+ String? get password; String? get paramToken; bool get isDefault;/// AUD-63: the backend flags a credential whose secret it could not
+/// decrypt. Always present in the response.
+ bool get needsReentry; String? get createdAt; String? get updatedAt;
 /// Create a copy of CredentialDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +33,16 @@ $CredentialDtoCopyWith<CredentialDto> get copyWith => _$CredentialDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.serverName, serverName) || other.serverName == serverName)&&(identical(other.jenkinsURL, jenkinsURL) || other.jenkinsURL == jenkinsURL)&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password)&&(identical(other.paramToken, paramToken) || other.paramToken == paramToken)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.serverName, serverName) || other.serverName == serverName)&&(identical(other.jenkinsURL, jenkinsURL) || other.jenkinsURL == jenkinsURL)&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password)&&(identical(other.paramToken, paramToken) || other.paramToken == paramToken)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.needsReentry, needsReentry) || other.needsReentry == needsReentry)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,serverName,jenkinsURL,username,password,paramToken,isDefault,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,serverName,jenkinsURL,username,password,paramToken,isDefault,needsReentry,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'CredentialDto(id: $id, serverName: $serverName, jenkinsURL: $jenkinsURL, username: $username, password: $password, paramToken: $paramToken, isDefault: $isDefault, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'CredentialDto(id: $id, serverName: $serverName, jenkinsURL: $jenkinsURL, username: $username, password: $password, paramToken: $paramToken, isDefault: $isDefault, needsReentry: $needsReentry, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +53,7 @@ abstract mixin class $CredentialDtoCopyWith<$Res>  {
   factory $CredentialDtoCopyWith(CredentialDto value, $Res Function(CredentialDto) _then) = _$CredentialDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: '_id') String id, String serverName, String jenkinsURL, String username, String password, String? paramToken, bool isDefault, String? createdAt, String? updatedAt
+@JsonKey(name: '_id') String id, String serverName, String jenkinsURL, String username, String? password, String? paramToken, bool isDefault, bool needsReentry, String? createdAt, String? updatedAt
 });
 
 
@@ -65,15 +70,16 @@ class _$CredentialDtoCopyWithImpl<$Res>
 
 /// Create a copy of CredentialDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? serverName = null,Object? jenkinsURL = null,Object? username = null,Object? password = null,Object? paramToken = freezed,Object? isDefault = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? serverName = null,Object? jenkinsURL = null,Object? username = null,Object? password = freezed,Object? paramToken = freezed,Object? isDefault = null,Object? needsReentry = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,serverName: null == serverName ? _self.serverName : serverName // ignore: cast_nullable_to_non_nullable
 as String,jenkinsURL: null == jenkinsURL ? _self.jenkinsURL : jenkinsURL // ignore: cast_nullable_to_non_nullable
 as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
-as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
-as String,paramToken: freezed == paramToken ? _self.paramToken : paramToken // ignore: cast_nullable_to_non_nullable
+as String,password: freezed == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
+as String?,paramToken: freezed == paramToken ? _self.paramToken : paramToken // ignore: cast_nullable_to_non_nullable
 as String?,isDefault: null == isDefault ? _self.isDefault : isDefault // ignore: cast_nullable_to_non_nullable
+as bool,needsReentry: null == needsReentry ? _self.needsReentry : needsReentry // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -161,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String serverName,  String jenkinsURL,  String username,  String password,  String? paramToken,  bool isDefault,  String? createdAt,  String? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String serverName,  String jenkinsURL,  String username,  String? password,  String? paramToken,  bool isDefault,  bool needsReentry,  String? createdAt,  String? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CredentialDto() when $default != null:
-return $default(_that.id,_that.serverName,_that.jenkinsURL,_that.username,_that.password,_that.paramToken,_that.isDefault,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.serverName,_that.jenkinsURL,_that.username,_that.password,_that.paramToken,_that.isDefault,_that.needsReentry,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -182,10 +188,10 @@ return $default(_that.id,_that.serverName,_that.jenkinsURL,_that.username,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String serverName,  String jenkinsURL,  String username,  String password,  String? paramToken,  bool isDefault,  String? createdAt,  String? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String serverName,  String jenkinsURL,  String username,  String? password,  String? paramToken,  bool isDefault,  bool needsReentry,  String? createdAt,  String? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _CredentialDto():
-return $default(_that.id,_that.serverName,_that.jenkinsURL,_that.username,_that.password,_that.paramToken,_that.isDefault,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.serverName,_that.jenkinsURL,_that.username,_that.password,_that.paramToken,_that.isDefault,_that.needsReentry,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +208,10 @@ return $default(_that.id,_that.serverName,_that.jenkinsURL,_that.username,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: '_id')  String id,  String serverName,  String jenkinsURL,  String username,  String password,  String? paramToken,  bool isDefault,  String? createdAt,  String? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: '_id')  String id,  String serverName,  String jenkinsURL,  String username,  String? password,  String? paramToken,  bool isDefault,  bool needsReentry,  String? createdAt,  String? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _CredentialDto() when $default != null:
-return $default(_that.id,_that.serverName,_that.jenkinsURL,_that.username,_that.password,_that.paramToken,_that.isDefault,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.serverName,_that.jenkinsURL,_that.username,_that.password,_that.paramToken,_that.isDefault,_that.needsReentry,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -217,16 +223,22 @@ return $default(_that.id,_that.serverName,_that.jenkinsURL,_that.username,_that.
 @JsonSerializable()
 
 class _CredentialDto implements CredentialDto {
-  const _CredentialDto({@JsonKey(name: '_id') required this.id, required this.serverName, required this.jenkinsURL, required this.username, required this.password, this.paramToken, this.isDefault = false, this.createdAt, this.updatedAt});
+  const _CredentialDto({@JsonKey(name: '_id') required this.id, required this.serverName, required this.jenkinsURL, required this.username, this.password, this.paramToken, this.isDefault = false, this.needsReentry = false, this.createdAt, this.updatedAt});
   factory _CredentialDto.fromJson(Map<String, dynamic> json) => _$CredentialDtoFromJson(json);
 
 @override@JsonKey(name: '_id') final  String id;
 @override final  String serverName;
 @override final  String jenkinsURL;
 @override final  String username;
-@override final  String password;
+/// Null when the backend could not decrypt the stored secret
+/// (AUD-63) — the credential is still listed, but it can't be used
+/// until the user types the secret again.
+@override final  String? password;
 @override final  String? paramToken;
 @override@JsonKey() final  bool isDefault;
+/// AUD-63: the backend flags a credential whose secret it could not
+/// decrypt. Always present in the response.
+@override@JsonKey() final  bool needsReentry;
 @override final  String? createdAt;
 @override final  String? updatedAt;
 
@@ -243,16 +255,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.serverName, serverName) || other.serverName == serverName)&&(identical(other.jenkinsURL, jenkinsURL) || other.jenkinsURL == jenkinsURL)&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password)&&(identical(other.paramToken, paramToken) || other.paramToken == paramToken)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.serverName, serverName) || other.serverName == serverName)&&(identical(other.jenkinsURL, jenkinsURL) || other.jenkinsURL == jenkinsURL)&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password)&&(identical(other.paramToken, paramToken) || other.paramToken == paramToken)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.needsReentry, needsReentry) || other.needsReentry == needsReentry)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,serverName,jenkinsURL,username,password,paramToken,isDefault,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,serverName,jenkinsURL,username,password,paramToken,isDefault,needsReentry,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'CredentialDto(id: $id, serverName: $serverName, jenkinsURL: $jenkinsURL, username: $username, password: $password, paramToken: $paramToken, isDefault: $isDefault, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'CredentialDto(id: $id, serverName: $serverName, jenkinsURL: $jenkinsURL, username: $username, password: $password, paramToken: $paramToken, isDefault: $isDefault, needsReentry: $needsReentry, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -263,7 +275,7 @@ abstract mixin class _$CredentialDtoCopyWith<$Res> implements $CredentialDtoCopy
   factory _$CredentialDtoCopyWith(_CredentialDto value, $Res Function(_CredentialDto) _then) = __$CredentialDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: '_id') String id, String serverName, String jenkinsURL, String username, String password, String? paramToken, bool isDefault, String? createdAt, String? updatedAt
+@JsonKey(name: '_id') String id, String serverName, String jenkinsURL, String username, String? password, String? paramToken, bool isDefault, bool needsReentry, String? createdAt, String? updatedAt
 });
 
 
@@ -280,15 +292,16 @@ class __$CredentialDtoCopyWithImpl<$Res>
 
 /// Create a copy of CredentialDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? serverName = null,Object? jenkinsURL = null,Object? username = null,Object? password = null,Object? paramToken = freezed,Object? isDefault = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? serverName = null,Object? jenkinsURL = null,Object? username = null,Object? password = freezed,Object? paramToken = freezed,Object? isDefault = null,Object? needsReentry = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_CredentialDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,serverName: null == serverName ? _self.serverName : serverName // ignore: cast_nullable_to_non_nullable
 as String,jenkinsURL: null == jenkinsURL ? _self.jenkinsURL : jenkinsURL // ignore: cast_nullable_to_non_nullable
 as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
-as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
-as String,paramToken: freezed == paramToken ? _self.paramToken : paramToken // ignore: cast_nullable_to_non_nullable
+as String,password: freezed == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
+as String?,paramToken: freezed == paramToken ? _self.paramToken : paramToken // ignore: cast_nullable_to_non_nullable
 as String?,isDefault: null == isDefault ? _self.isDefault : isDefault // ignore: cast_nullable_to_non_nullable
+as bool,needsReentry: null == needsReentry ? _self.needsReentry : needsReentry // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as String?,

@@ -28,6 +28,17 @@ import 'app_colors.dart';
 class AppTheme {
   const AppTheme._();
 
+  /// [onPrimary] is deliberately *not* pinned to white (it used to be).
+  /// M3 derives `primary`/`onPrimary` into a contrast-safe pair on its own:
+  /// a dark, saturated `primary` with white text in light mode, and a light
+  /// `primary` with dark text in dark mode. Forcing `onPrimary: Colors.white`
+  /// broke that pairing in dark mode, where `primary` is a pale tint — white
+  /// text on it measured 1.71:1 (WCAG AA needs 4.5:1), which failed
+  /// `textContrastGuideline` on the auth screens' primary buttons.
+  ///
+  /// The rule this restores: `primary` is a *surface* color, `onPrimary` is
+  /// its foreground. Anything that paints text or an icon on a `primary`
+  /// background must use `onPrimary`, never `Colors.white`.
   static ThemeData light({Color accentColor = AppColors.brandSeed}) =>
       ThemeData(
         useMaterial3: true,
@@ -37,7 +48,6 @@ class AppTheme {
               seedColor: accentColor,
               brightness: Brightness.light,
             ).copyWith(
-              onPrimary: Colors.white,
               surface: AppColors.surfaceLight,
               onSurface: AppColors.onSurfaceLight,
               outline: AppColors.outlineLight,
@@ -53,7 +63,6 @@ class AppTheme {
           seedColor: accentColor,
           brightness: Brightness.dark,
         ).copyWith(
-          onPrimary: Colors.white,
           surface: AppColors.backgroundDark,
           onSurface: AppColors.onSurfaceDark,
           outline: AppColors.outlineDark,

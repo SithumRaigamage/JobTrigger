@@ -13,6 +13,7 @@ import '../../../data/cache/user_scoped_prefs.dart';
 import '../../../data/models/auth/user_dto.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
 import '../../../domain/auth/auth_state.dart';
+import '../../../domain/auth/auth_validation.dart';
 import '../../../domain/auth/user.dart';
 import '../notifications/build_watch_notifier.dart';
 
@@ -79,6 +80,61 @@ class AuthNotifier extends _$AuthNotifier {
   /// in, so the user can retry), or null.
   Future<AppFailure?> logoutEverywhere() async {
     final result = await ref.read(authRepositoryProvider).logoutEverywhere();
+    if (result case Err(:final error)) return error;
+    await logout();
+    return null;
+  }
+
+  /// AUD-48: changes the password. The backend revokes every session, this
+  /// device's included, and returns a fresh one, which is stored here so
+  /// the user stays signed in. Returns why it didn't happen (a
+  /// [FormValidationError] or an [AppFailure]), or null.
+  Future<Object?> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    if (currentPassword.isEmpty) {
+      return const FormValidationError('Enter your current password.');
+    }
+    if (!AuthValidation.isValidPassword(newPassword)) {
+      return const FormValidationError(
+        'The new password needs at least '
+        '${AuthValidation.minPasswordLength} characters.',
+      );
+    }
+    if (newPassword != confirmPassword) {
+      return const FormValidationError("The new passwords don't match.");
+    }
+    final result = await ref
+        .read(authRepositoryProvider)
+        .changePassword(
+          currentPassword: currentPassword,
+          newPassword: newPassword,
+        );
+    switch (result) {
+      case Ok(:final value):
+        await setSession(
+          value.user,
+          value.token,
+          refreshToken: value.refreshToken,
+        );
+        return null;
+      case Err(:final error):
+        return error;
+    }
+  }
+
+  /// AUD-48: deletes the account and everything stored with it on the
+  /// backend, then clears this device as [logout] does. Returns why it
+  /// didn't happen, or null; nothing local changes on failure.
+  Future<Object?> deleteAccount(String password) async {
+    if (password.isEmpty) {
+      return const FormValidationError('Enter your password to confirm.');
+    }
+    final result = await ref
+        .read(authRepositoryProvider)
+        .deleteAccount(password: password);
     if (result case Err(:final error)) return error;
     await logout();
     return null;

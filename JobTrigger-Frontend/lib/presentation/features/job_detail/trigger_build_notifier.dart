@@ -9,7 +9,7 @@ import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/parameter_file.dart';
 import '../../../domain/jenkins/parameter_values.dart';
 import '../../common_widgets/toast_controller.dart';
-import '../settings/active_server_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 import 'job_detail_notifier.dart';
 import 'queue_status_notifier.dart';
 import '../app_lock/app_lock_notifier.dart';
@@ -33,6 +33,9 @@ class TriggerBuildNotifier extends _$TriggerBuildNotifier {
     Map<String, String> parameters = const {},
     Map<String, ParameterFile> files = const {},
   }) async {
+    // AUD-64/NEW-04: re-entrancy guard — don't trigger a second build while
+    // the first is in flight.
+    if (state.isLoading) return;
     // US-JX-21: re-prompt when the user asked for it.
     final allowed = await ref
         .read(appLockNotifierProvider.notifier)

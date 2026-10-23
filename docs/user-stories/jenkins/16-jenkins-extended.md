@@ -464,6 +464,12 @@ So that I don't have to keep the app open
 - Scenario: Tap opens the build
   When I tap the notification
   Then the app opens that job's detail screen
+- Scenario: Tap for a build on a server that isn't active (AUD-45)
+  Given the notification is for a build on server B while server A is active
+  When I tap it
+  Then the app asks to switch to B first (as for any Jenkins link,
+  US-JX-19), and no request carrying A's credentials is ever sent to B's
+  host
 - Scenario: Watched jobs
   Given I mark a job as "Watch"
   Then every new build of it notifies on completion until I unwatch it
@@ -815,6 +821,12 @@ So that I land on the job or build screen directly
   Then the URL is matched against configured servers by host and path
   prefix, the matching server is activated after confirmation if it isn't
   active, and the job or build opens
+- Scenario: Any other in-app path from outside (AUD-51)
+  Given a link opens `jobtrigger://app/<anything but /open>`
+  Then a screen that needs in-app context (job, build, log, history,
+  workflows) opens Home instead, and an unknown path shows "This link
+  doesn't lead anywhere in JobTrigger" with a way back; the app never
+  shows an error screen
 - Scenario: Unknown server
   Given no configured server matches
   Then "No saved server matches this link" is shown, with "Add server"
@@ -904,6 +916,20 @@ So that someone holding my unlocked phone can't trigger deploys
   Given "Require for trigger/approve" is on
   Then trigger, cancel, input approval, replay, node toggle, and job disable
   each re-prompt
+
+- Scenario: Weakening the lock (AUD-53)
+  When I turn the lock off, turn "Require for actions" off, or choose a
+  longer lock timeout
+  Then I authenticate first, and a cancelled or failed prompt leaves the
+  setting as it was; making the lock stricter needs no prompt
+
+- Scenario: Outside the app while locked (AUD-54, default decided
+  2026-10-20; revisit if users want names back)
+  Given the app lock is on
+  Then the home-screen widget shows "Pinned job 1", "Pinned job 2", … with
+  each status, build notifications read "A watched build finished — Open
+  JobTrigger to see which", and on Android every build notification is
+  `private` on a secure lock screen ("Contents hidden")
 
 **Security & Privacy Notes**
 - The biometric result gates the UI only. Secrets stay in secure storage

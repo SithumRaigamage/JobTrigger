@@ -24,10 +24,26 @@ function corsOrigins(env = process.env) {
 }
 
 /**
- * A problem with configuration that is present but unusable (AUD-03: the
- * encryption keys), or null.
+ * AUD-44: the number of reverse-proxy hops in front of the server, for
+ * Express's `trust proxy`, or null when unset (direct connections). Only a
+ * positive whole number is accepted: `true`, a subnet list, or a typo would
+ * make Express trust client-supplied `X-Forwarded-For` hops, letting a
+ * client choose the IP the login rate limiter keys on.
+ */
+function trustProxyHops(env = process.env) {
+  const raw = env.TRUST_PROXY?.trim();
+  if (!raw) return null;
+  return /^[1-9][0-9]?$/.test(raw) ? Number(raw) : undefined;
+}
+
+/**
+ * A problem with configuration that is present but unusable, or null:
+ * the encryption keys (AUD-03), or `TRUST_PROXY` (AUD-44).
  */
 function invalidConfig(env = process.env) {
+  if (trustProxyHops(env) === undefined) {
+    return 'TRUST_PROXY must be the number of proxy hops in front of the server (e.g. 1)';
+  }
   if (!env.CREDENTIALS_ENCRYPTION_KEY) return null; // Reported as missing.
   try {
     loadKeys(env);
@@ -37,4 +53,4 @@ function invalidConfig(env = process.env) {
   }
 }
 
-module.exports = { missingConfig, invalidConfig, corsOrigins };
+module.exports = { missingConfig, invalidConfig, corsOrigins, trustProxyHops };

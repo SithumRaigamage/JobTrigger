@@ -77,12 +77,18 @@ abstract class _$PinnedJobsNotifier extends $Notifier<List<PinnedJob>> {
 
 /// A pinned job's live status: the job, or null when it no longer exists
 /// (404), so Home can offer to remove the stale pin.
+///
+/// §14 / P13-25: uses the lean status fetch, not the full job detail — the
+/// tile only shows the ball colour and the last build's number.
 
 @ProviderFor(pinnedJobStatus)
 final pinnedJobStatusProvider = PinnedJobStatusFamily._();
 
 /// A pinned job's live status: the job, or null when it no longer exists
 /// (404), so Home can offer to remove the stale pin.
+///
+/// §14 / P13-25: uses the lean status fetch, not the full job detail — the
+/// tile only shows the ball colour and the last build's number.
 
 final class PinnedJobStatusProvider
     extends
@@ -94,6 +100,9 @@ final class PinnedJobStatusProvider
     with $FutureModifier<JenkinsJob?>, $FutureProvider<JenkinsJob?> {
   /// A pinned job's live status: the job, or null when it no longer exists
   /// (404), so Home can offer to remove the stale pin.
+  ///
+  /// §14 / P13-25: uses the lean status fetch, not the full job detail — the
+  /// tile only shows the ball colour and the last build's number.
   PinnedJobStatusProvider._({
     required PinnedJobStatusFamily super.from,
     required String super.argument,
@@ -138,10 +147,13 @@ final class PinnedJobStatusProvider
   }
 }
 
-String _$pinnedJobStatusHash() => r'506215841b9eead4be40ccf7b61a6a3ee0e43b17';
+String _$pinnedJobStatusHash() => r'1a4326c9e6fefea867da3843a7f314ca928336ae';
 
 /// A pinned job's live status: the job, or null when it no longer exists
 /// (404), so Home can offer to remove the stale pin.
+///
+/// §14 / P13-25: uses the lean status fetch, not the full job detail — the
+/// tile only shows the ball colour and the last build's number.
 
 final class PinnedJobStatusFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<JenkinsJob?>, String> {
@@ -156,6 +168,9 @@ final class PinnedJobStatusFamily extends $Family
 
   /// A pinned job's live status: the job, or null when it no longer exists
   /// (404), so Home can offer to remove the stale pin.
+  ///
+  /// §14 / P13-25: uses the lean status fetch, not the full job detail — the
+  /// tile only shows the ball colour and the last build's number.
 
   PinnedJobStatusProvider call(String url) =>
       PinnedJobStatusProvider._(argument: url, from: this);

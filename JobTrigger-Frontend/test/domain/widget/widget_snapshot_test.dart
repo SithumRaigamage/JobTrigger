@@ -85,4 +85,14 @@ void main() {
       'buildTimestamp',
     });
   });
+
+  test('hides job names while the app lock is on (AUD-54)', () {
+    final jobs = buildWidgetSnapshot(
+      [_pin(_job('red')), _pin(_job('blue'), label: 'web')],
+      now: now,
+      hideNames: true,
+    ).jobs;
+    expect(jobs.map((job) => job.label), ['Pinned job 1', 'Pinned job 2']);
+    expect(jobs.map((job) => job.statusText), ['Failed', 'Success']);
+  });
 }

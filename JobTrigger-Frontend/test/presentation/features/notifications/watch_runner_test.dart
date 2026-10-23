@@ -103,4 +103,41 @@ void main() {
     expect(repo.calls, 2);
     expect(shown, hasLength(2));
   });
+
+  group('changes during a pass (AUD-49)', () {
+    test('a watch added mid-pass survives', () async {
+      await store.save([_watch('api')]);
+      final remaining = await run((_) async {
+        // The user taps "Notify me" while this pass is on the network.
+        await store.save([...await store.load(), _watch('web')]);
+        return _Repo(const Ok([]));
+      });
+      expect(remaining.map((w) => w.jobLabel), ['api', 'web']);
+      expect((await store.load()).map((w) => w.jobLabel), ['api', 'web']);
+    });
+
+    test('a watch removed mid-pass stays removed', () async {
+      await store.save([_watch('api'), _watch('web')]);
+      final remaining = await run((_) async {
+        await store.save([_watch('web')]); // Unwatch "api".
+        return _Repo(const Ok([])); // Neither build finished: both "kept".
+      });
+      expect(remaining.map((w) => w.jobLabel), ['web']);
+    });
+
+    test('the final merge goes through the given serializer', () async {
+      await store.save([_watch('api')]);
+      var serialized = 0;
+      await runWatchCheck(
+        store: store,
+        repositoryFor: (_) async => _Repo(const Ok([_finished])),
+        notify: (_) async {},
+        serialize: (write) {
+          serialized++;
+          return write();
+        },
+      );
+      expect(serialized, 1);
+    });
+  });
 }

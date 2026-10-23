@@ -9,7 +9,7 @@ import '../../common_widgets/no_active_server_view.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
-import '../settings/active_server_notifier.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 import 'global_history_notifier.dart';
 import 'history_tile.dart';
 
