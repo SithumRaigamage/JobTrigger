@@ -19,3 +19,15 @@ IconData iconForStageStatus(String status) => switch (status.toUpperCase()) {
   'NOT_EXECUTED' => Icons.circle_outlined,
   _ => Icons.circle,
 };
+
+/// The stage's status in words, for screen readers and labels.
+String labelForStageStatus(String status) => switch (status.toUpperCase()) {
+  'SUCCESS' => 'Passed',
+  'FAILED' => 'Failed',
+  'UNSTABLE' => 'Unstable',
+  'IN_PROGRESS' => 'Running',
+  'PAUSED_PENDING_INPUT' => 'Waiting for input',
+  'NOT_EXECUTED' => 'Not run',
+  'ABORTED' => 'Aborted',
+  _ => 'Unknown',
+};

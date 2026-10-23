@@ -60,9 +60,11 @@ class UpstreamLink extends StatelessWidget {
   }
 }
 
-/// US-PIPE-04 / US-JX-04: one chip per stage, with parallel branches
-/// folded into their parent (`groupParallelStages`). Tapping a chip opens
-/// that stage's steps and logs.
+/// US-PIPE-04 / US-JX-04: the pipeline as one segment per stage — a bar in
+/// the stage's status colour with its name under it
+/// (`UI-UX/screens/11-job-detail`), parallel branches folded into their
+/// parent (`groupParallelStages`). Tapping a segment opens that stage's
+/// steps and logs. More than five stages scroll sideways.
 class StageChipRow extends StatelessWidget {
   const StageChipRow({
     super.key,
@@ -75,47 +77,111 @@ class StageChipRow extends StatelessWidget {
   final List<PipelineStage> stages;
   final VoidCallback? onViewLog;
 
+  static const _maxFitted = 5;
+
   @override
   Widget build(BuildContext context) {
     final nodes = groupParallelStages(stages);
+    final segments = [
+      for (final node in nodes)
+        _StageSegment(node: node, onTap: () => _open(context, node)),
+    ];
+    if (nodes.length <= _maxFitted) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final (i, segment) in segments.indexed) ...[
+            if (i > 0) const SizedBox(width: 6),
+            Expanded(child: segment),
+          ],
+        ],
+      );
+    }
     return SizedBox(
-      height: 40,
+      height: 44,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: nodes.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final node = nodes[index];
-          return ActionChip(
-            avatar: Icon(
-              iconForStageStatus(node.status),
-              size: 16,
-              color: colorForStageStatus(context, node.status),
-            ),
-            // Status is conveyed by icon shape + this label text, not
-            // color alone (NFR-A11Y-03).
-            label: Text(
-              node.branches.isEmpty
-                  ? node.stage.name
-                  : '${node.stage.name} ⫽${node.branches.length}',
-            ),
-            onPressed: () => showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              showDragHandle: true,
-              builder: (sheetContext) => StageDetailSheet(
-                buildUrl: buildUrl,
-                node: node,
-                onViewFullLog: onViewLog == null
-                    ? null
-                    : () {
-                        Navigator.of(sheetContext).pop();
-                        onViewLog!();
-                      },
+        itemCount: segments.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 6),
+        itemBuilder: (context, index) =>
+            SizedBox(width: 76, child: segments[index]),
+      ),
+    );
+  }
+
+  void _open(BuildContext context, StageNode node) =>
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        builder: (sheetContext) => StageDetailSheet(
+          buildUrl: buildUrl,
+          node: node,
+          onViewFullLog: onViewLog == null
+              ? null
+              : () {
+                  Navigator.of(sheetContext).pop();
+                  onViewLog!();
+                },
+        ),
+      );
+}
+
+class _StageSegment extends StatelessWidget {
+  const _StageSegment({required this.node, required this.onTap});
+
+  final StageNode node;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTokens.of(context);
+    final status = node.status.toUpperCase();
+    final notRun = status == 'NOT_EXECUTED';
+    final running = status == 'IN_PROGRESS';
+    final name = node.branches.isEmpty
+        ? node.stage.name
+        : '${node.stage.name} ⫽${node.branches.length}';
+    return Semantics(
+      button: true,
+      // Status in words, never colour alone (NFR-A11Y-03).
+      label: 'Stage ${node.stage.name}, ${labelForStageStatus(node.status)}',
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(6),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 6,
+                decoration: BoxDecoration(
+                  color: notRun
+                      ? t.raised
+                      : colorForStageStatus(context, status),
+                  borderRadius: BorderRadius.circular(3),
+                ),
               ),
-            ),
-          );
-        },
+              const SizedBox(height: 6),
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontSize: 11,
+                  fontWeight: running ? FontWeight.w600 : FontWeight.w500,
+                  color: running
+                      ? t.running.foreground
+                      : notRun
+                      ? t.textMuted
+                      : t.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

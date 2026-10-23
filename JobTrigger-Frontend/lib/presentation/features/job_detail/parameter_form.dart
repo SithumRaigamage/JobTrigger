@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_typography.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/parameter_definition.dart';
 import '../../../domain/jenkins/parameter_file.dart';
 import '../../../domain/jenkins/parameter_values.dart';
+import '../../common_widgets/labeled_field.dart';
 import '../history/job_history_notifier.dart';
 import '../../../data/credentials/active_server_notifier.dart';
 
@@ -41,18 +43,37 @@ class ParameterForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Dropdowns default to `titleMedium`; text fields use the body style.
+    final valueStyle = Theme.of(context).textTheme.bodyLarge;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final param in parameters) ...[
-          _fieldFor(param, values[param.name] ?? ''),
+          _fieldFor(param, values[param.name] ?? '', valueStyle),
           const SizedBox(height: 12),
         ],
       ],
     );
   }
 
-  Widget _fieldFor(ParameterDefinition param, String value) {
+  /// P14-12: the parameter's name above its field, as Jenkins spells it
+  /// (`UI-UX/screens/11-job-detail`) — and the field's accessible name. A
+  /// boolean is a switch row that carries its own name.
+  Widget _fieldFor(
+    ParameterDefinition param,
+    String value,
+    TextStyle? valueStyle,
+  ) {
+    final field = _bareFieldFor(param, value, valueStyle);
+    if (param.type == 'BooleanParameterDefinition') return field;
+    return LabeledField(label: param.name, monospaceLabel: true, child: field);
+  }
+
+  Widget _bareFieldFor(
+    ParameterDefinition param,
+    String value,
+    TextStyle? valueStyle,
+  ) {
     // Keyed by type+name so a field is never reused for a different
     // parameter when the list changes (e.g. after a job refresh).
     final key = ValueKey('${param.type}:${param.name}');
@@ -75,11 +96,7 @@ class ParameterForm extends StatelessWidget {
           minLines: 3,
           maxLines: 8,
           keyboardType: TextInputType.multiline,
-          decoration: InputDecoration(
-            labelText: param.name,
-            helperText: param.description,
-            alignLabelWithHint: true,
-          ),
+          decoration: InputDecoration(helperText: param.description),
           onChanged: report,
         );
       case runParameterType:
@@ -96,7 +113,6 @@ class ParameterForm extends StatelessWidget {
           autocorrect: false,
           enableSuggestions: false,
           decoration: InputDecoration(
-            labelText: param.name,
             helperText: [
               if (param.description case final description?
                   when description.isNotEmpty)
@@ -120,7 +136,7 @@ class ParameterForm extends StatelessWidget {
         return SwitchListTile(
           key: key,
           contentPadding: EdgeInsets.zero,
-          title: Text(param.name),
+          title: Text(param.name, style: AppTypography.mono(null)),
           subtitle: param.description == null ? null : Text(param.description!),
           value: value == 'true',
           onChanged: (checked) => report(checked.toString()),
@@ -129,14 +145,12 @@ class ParameterForm extends StatelessWidget {
         final choices = param.choices ?? const <String>[];
         return DropdownButtonFormField<String>(
           key: key,
+          style: valueStyle,
           // A value outside the declared choices (e.g. a replayed value the
           // job has since removed) would trip the dropdown's assertion;
           // show no selection instead.
           initialValue: choices.contains(value) ? value : null,
-          decoration: InputDecoration(
-            labelText: param.name,
-            helperText: param.description,
-          ),
+          decoration: InputDecoration(helperText: param.description),
           items: [
             for (final choice in choices)
               DropdownMenuItem(value: choice, child: Text(choice)),
@@ -150,7 +164,7 @@ class ParameterForm extends StatelessWidget {
         final choices = param.choices;
         if (!known && choices != null && choices.isNotEmpty) {
           // A plugin type that declares choices still gets a dropdown.
-          return _fieldFor(
+          return _bareFieldFor(
             ParameterDefinition(
               name: param.name,
               type: 'ChoiceParameterDefinition',
@@ -159,13 +173,13 @@ class ParameterForm extends StatelessWidget {
               defaultValue: param.defaultValue,
             ),
             value,
+            valueStyle,
           );
         }
         return TextFormField(
           key: key,
           initialValue: value,
           decoration: InputDecoration(
-            labelText: param.name,
             helperText: known ? param.description : _unsupportedNote(param),
           ),
           onChanged: report,
@@ -233,7 +247,6 @@ class _RunParameterField extends ConsumerWidget {
       key: ValueKey('run:${param.name}:${builds.length}'),
       initialValue: options.containsKey(value) ? value : '',
       decoration: InputDecoration(
-        labelText: param.name,
         helperText: param.description ?? 'Build of $projectName',
       ),
       items: [
@@ -250,8 +263,7 @@ class _RunParameterField extends ConsumerWidget {
 
   Widget _freeText() => TextFormField(
     initialValue: value,
-    decoration: InputDecoration(
-      labelText: param.name,
+    decoration: const InputDecoration(
       helperText: 'job#number · blank uses the latest build',
     ),
     onChanged: onChanged,
@@ -281,7 +293,6 @@ class _FileParameterField extends StatelessWidget {
     final chosen = file;
     return InputDecorator(
       decoration: InputDecoration(
-        labelText: param.name,
         helperText: onPick == null
             ? 'File upload isn\'t available here'
             : (param.description ?? 'Optional · up to 50 MB'),
@@ -348,7 +359,6 @@ class _SecretParameterFieldState extends State<_SecretParameterField> {
       enableSuggestions: false,
       keyboardType: TextInputType.visiblePassword,
       decoration: InputDecoration(
-        labelText: widget.param.name,
         helperText: [
           if (description != null && description.isNotEmpty) description,
           'Leave blank to use the server default',

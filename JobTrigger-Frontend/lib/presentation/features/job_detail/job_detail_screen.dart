@@ -17,7 +17,11 @@ import '../../../domain/jenkins/relative_time.dart';
 import '../../../domain/jenkins/test_report.dart';
 import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../common_widgets/glass_surface.dart';
+import '../../common_widgets/inline_alert.dart';
+import '../../common_widgets/section_label.dart';
+import '../../common_widgets/status_pill.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../home/pinned_jobs_notifier.dart';
@@ -69,84 +73,106 @@ class JobDetailScreen extends ConsumerWidget {
     final queueItem = ref.watch(queueStatusNotifierProvider(jobUrl));
     final loadedJob = jobAsync.value;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: GlassAppBar(
-        title: Text(job.label),
-        actions: [
-          if (loadedJob != null) _WatchMenu(job: loadedJob),
-          // US-JX-11: pin to the top of Home.
-          IconButton(
-            icon: Icon(
-              ref.watch(
-                    pinnedJobsNotifierProvider.select(
-                      (pins) => pins.any((pin) => pin.url == job.url),
-                    ),
-                  )
-                  ? Icons.push_pin
-                  : Icons.push_pin_outlined,
-            ),
-            tooltip: 'Pin to Home',
-            onPressed: () =>
-                ref.read(pinnedJobsNotifierProvider.notifier).toggle(job),
-          ),
-          IconButton(
-            icon: const Icon(Icons.history),
-            tooltip: 'History',
-            onPressed: () => context.push(AppRoutes.jobHistory, extra: job),
-          ),
-          if (loadedJob != null && loadedJob.buildable != null)
-            PopupMenuButton<bool>(
-              tooltip: 'Job options',
-              onSelected: (enable) =>
-                  _confirmAndSetEnabled(context, ref, loadedJob, enable),
-              itemBuilder: (context) => [
-                // US-JX-13.
-                PopupMenuItem(
-                  value: !loadedJob.buildable!,
-                  child: Text(
-                    loadedJob.buildable! ? 'Disable job' : 'Enable job',
-                  ),
-                ),
-              ],
-            ),
-        ],
+    final pinned = ref.watch(
+      pinnedJobsNotifierProvider.select(
+        (pins) => pins.any((pin) => pin.url == job.url),
       ),
-      // Trigger/Cancel are pinned outside the scrollable body (not the
-      // ListView's last items) so they're always reachable without
-      // scrolling, regardless of how much variable content (stages, test
-      // report, parameters, changes) a given job has above them.
-      body: Column(
-        children: [
-          Expanded(
-            child: ResponsiveCenter(
-              child: jobAsync.when(
-                data: (job) => _JobDetailBody(
-                  job: job,
-                  formKey: jobUrl,
-                  queueItem: queueItem,
-                  onViewLog: job.lastBuild == null
-                      ? null
-                      : () => context.push(
-                          AppRoutes.buildLog,
-                          extra: job.lastBuild,
+    );
+
+    return Scaffold(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            ResponsiveCenter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left_rounded, size: 28),
+                      tooltip: 'Back',
+                      onPressed: () => Navigator.of(context).maybePop(),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.schedule_outlined),
+                      tooltip: 'History',
+                      onPressed: () =>
+                          context.push(AppRoutes.jobHistory, extra: job),
+                    ),
+                    if (loadedJob != null) _WatchMenu(job: loadedJob),
+                    // US-JX-11: pin to the top of Home.
+                    IconButton(
+                      icon: Icon(
+                        pinned ? Icons.push_pin : Icons.push_pin_outlined,
+                        color: pinned
+                            ? AppTokens.of(context).running.foreground
+                            : null,
+                      ),
+                      tooltip: pinned ? 'Unpin from Home' : 'Pin to Home',
+                      onPressed: () => ref
+                          .read(pinnedJobsNotifierProvider.notifier)
+                          .toggle(job),
+                    ),
+                    if (loadedJob != null && loadedJob.buildable != null)
+                      PopupMenuButton<bool>(
+                        tooltip: 'Job options',
+                        icon: const Icon(Icons.more_vert_rounded),
+                        onSelected: (enable) => _confirmAndSetEnabled(
+                          context,
+                          ref,
+                          loadedJob,
+                          enable,
                         ),
+                        itemBuilder: (context) => [
+                          // US-JX-13.
+                          PopupMenuItem(
+                            value: !loadedJob.buildable!,
+                            child: Text(
+                              loadedJob.buildable!
+                                  ? 'Disable job'
+                                  : 'Enable job',
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
                 ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stackTrace) => Center(
-                  child: ConnectionErrorView(
-                    message: describeError(error),
-                    onRetry: () => ref
-                        .read(jobDetailNotifierProvider(jobUrl).notifier)
-                        .refresh(),
+              ),
+            ),
+            // Trigger/Cancel are pinned outside the scrollable body (not
+            // the list's last items) so they're always reachable without
+            // scrolling, however much a job shows above them.
+            Expanded(
+              child: ResponsiveCenter(
+                child: jobAsync.when(
+                  data: (job) => _JobDetailBody(
+                    job: job,
+                    formKey: jobUrl,
+                    queueItem: queueItem,
+                    onViewLog: job.lastBuild == null
+                        ? null
+                        : () => context.push(
+                            AppRoutes.buildLog,
+                            extra: job.lastBuild,
+                          ),
+                  ),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stackTrace) => Center(
+                    child: ConnectionErrorView(
+                      message: describeError(error),
+                      onRetry: () => ref
+                          .read(jobDetailNotifierProvider(jobUrl).notifier)
+                          .refresh(),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          if (loadedJob != null)
-            ResponsiveCenter(
-              child: _ActionBar(
+            if (loadedJob != null)
+              _ActionBar(
                 job: loadedJob,
                 isTriggering: isTriggering,
                 isCancelling: isCancelling,
@@ -157,8 +183,8 @@ class JobDetailScreen extends ConsumerWidget {
                     ? () => _confirmAndCancel(context, ref, loadedJob)
                     : null,
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -291,45 +317,54 @@ class _ActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppTokens.of(context);
+    final label = job.buildable == false
+        ? 'Disabled'
+        : isTriggering
+        ? 'Triggering…'
+        : job.parameterDefinitions.isEmpty
+        ? 'Trigger build'
+        : 'Build with parameters';
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-        ),
+        color: t.background,
+        border: Border(top: BorderSide(color: t.cardBorder)),
       ),
       child: SafeArea(
         top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          child: Row(
-            children: [
-              if (onCancel != null) ...[
-                Expanded(
-                  child: FilledButton.tonalIcon(
+        child: ResponsiveCenter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+            child: Row(
+              children: [
+                if (onCancel != null) ...[
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: t.failure.foreground,
+                      side: BorderSide(color: t.failure.dot),
+                      minimumSize: const Size(64, 52),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
                     onPressed: isCancelling ? null : onCancel,
-                    icon: const Icon(Icons.stop_circle),
-                    label: Text(isCancelling ? 'Cancelling…' : 'Cancel Build'),
+                    icon: const Icon(Icons.stop_rounded),
+                    label: Text(isCancelling ? 'Stopping…' : 'Stop'),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    onPressed: isTriggering || job.buildable == false
+                        ? null
+                        : onTrigger,
+                    icon: const Icon(Icons.play_arrow_rounded),
+                    label: Text(label),
                   ),
                 ),
-                const SizedBox(width: 12),
               ],
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: isTriggering || job.buildable == false
-                      ? null
-                      : onTrigger,
-                  icon: const Icon(Icons.play_arrow),
-                  label: Text(
-                    job.buildable == false
-                        ? 'Disabled'
-                        : isTriggering
-                        ? 'Triggering…'
-                        : 'Trigger Build',
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -369,14 +404,24 @@ class _JobDetailBody extends ConsumerWidget {
         ? null
         : ref.watch(pendingInputNotifierProvider(job.lastBuild!.url)).value;
 
+    final textTheme = Theme.of(context).textTheme;
+    final t = AppTokens.of(context);
+
     return ListView(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        MediaQuery.paddingOf(context).top + kToolbarHeight + 16,
-        16,
-        16,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
       children: [
+        Semantics(
+          header: true,
+          child: Text(job.label, style: textTheme.headlineMedium),
+        ),
+        if (job.description != null && job.description!.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(
+            job.description!,
+            style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
+          ),
+        ],
+        const SizedBox(height: 16),
         // Highest-visibility position in the layout, per the story's own
         // design note — this is the single most action-relevant thing a
         // user could open this screen to see.
@@ -386,15 +431,11 @@ class _JobDetailBody extends ConsumerWidget {
             buildUrl: job.lastBuild!.url,
             input: pendingInput,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
         ],
         if (job.buildable == false) ...[
           const _DisabledBanner(),
-          const SizedBox(height: 16),
-        ],
-        if (job.description != null && job.description!.isNotEmpty) ...[
-          Text(job.description!, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
         ],
         if (job.healthReport.isNotEmpty) ...[
           Wrap(
@@ -409,11 +450,11 @@ class _JobDetailBody extends ConsumerWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
         ],
         if (queueItem != null) ...[
           _QueuedCard(queueItem: queueItem!),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
         ],
         _LastBuildCard(
           job: job,
@@ -423,7 +464,7 @@ class _JobDetailBody extends ConsumerWidget {
         ),
         if (parameterDefinitions.isNotEmpty) ...[
           const SizedBox(height: 24),
-          Text('Parameters', style: Theme.of(context).textTheme.titleMedium),
+          const SectionLabel('Parameters'),
           const SizedBox(height: 12),
           ParameterForm(
             parameters: parameterDefinitions,
@@ -436,6 +477,30 @@ class _JobDetailBody extends ConsumerWidget {
             onRemoveFile: ref
                 .read(parameterFilesNotifierProvider(formKey).notifier)
                 .remove,
+          ),
+        ],
+        // Job-level, not build-level -- shown whether or not this job has
+        // ever built.
+        if (job.downstreamProjects.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          const SectionLabel('Downstream'),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final downstream in job.downstreamProjects)
+                ActionChip(
+                  label: Text(downstream.name),
+                  onPressed: () => context.push(
+                    AppRoutes.jobDetail,
+                    extra: JenkinsJob(
+                      name: downstream.name,
+                      url: downstream.url,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
       ],
@@ -476,8 +541,12 @@ class _PendingInputBannerState extends ConsumerState<_PendingInputBanner> {
         .watch(inputSubmitNotifierProvider(widget.buildUrl))
         .isLoading;
 
-    return Card(
-      color: Theme.of(context).colorScheme.tertiaryContainer,
+    final paused = AppTokens.of(context).paused;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: paused.background,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -486,16 +555,16 @@ class _PendingInputBannerState extends ConsumerState<_PendingInputBanner> {
             Row(
               children: [
                 Icon(
-                  Icons.pause_circle,
-                  color: Theme.of(context).colorScheme.onTertiaryContainer,
+                  Icons.pause_circle_outline_rounded,
+                  color: paused.foreground,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     widget.input.message ?? 'Waiting for your approval',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onTertiaryContainer,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleSmall?.copyWith(color: paused.foreground),
                   ),
                 ),
               ],
@@ -622,104 +691,101 @@ class _LastBuildCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lastBuild = job.lastBuild;
+    final textTheme = Theme.of(context).textTheme;
+    if (lastBuild == null) {
+      return GlassSurface.card(
+        padding: const EdgeInsets.all(16),
+        child: Text('No builds yet', style: textTheme.bodyMedium),
+      );
+    }
+    final duration = lastBuild.duration;
+    // While it builds, how long it has been running.
+    final elapsed = lastBuild.building
+        ? DateTime.now().millisecondsSinceEpoch - lastBuild.timestamp
+        : duration;
+    final line = [
+      '#${lastBuild.number}',
+      if (elapsed != null && elapsed > 0) formatBuildDuration(elapsed),
+    ].join(' · ');
     return GlassSurface.card(
-      padding: const EdgeInsets.all(16),
+      borderRadius: BorderRadius.circular(18),
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 14),
+      onTap: () => context.push(AppRoutes.buildDetail, extra: lastBuild),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (lastBuild == null)
-            const Text('No builds yet')
-          else ...[
-            Row(
+          Row(
+            children: [
+              StatusPill.forBuildResult(
+                lastBuild.building ? null : lastBuild.result,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  line,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.mono(textTheme.bodyMedium),
+                ),
+              ),
+              if (onViewLog != null)
+                TextButton.icon(
+                  onPressed: onViewLog,
+                  icon: const Icon(Icons.terminal_rounded, size: 18),
+                  label: const Text('Log'),
+                ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  lastBuild.building ? Icons.autorenew : Icons.circle,
-                  size: 16,
-                  color: AppTokens.of(
-                    context,
-                  ).status(AppColors.toneForBuildResult(lastBuild.result)).dot,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  lastBuild.building
-                      ? 'Building #${lastBuild.number}…'
-                      : '#${lastBuild.number} ${lastBuild.result ?? ''}',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const Spacer(),
-                if (onViewLog != null)
-                  TextButton(
-                    onPressed: onViewLog,
-                    child: const Text('View Log'),
+                if (pipelineStages != null && pipelineStages!.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  StageChipRow(
+                    buildUrl: lastBuild.url,
+                    stages: pipelineStages!,
+                    onViewLog: onViewLog,
                   ),
-              ],
-            ),
-            _BuildLinks(job: job),
-            if (lastBuild.causes.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                lastBuild.causes.join(', '),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-            if (lastBuild.upstreamCause != null) ...[
-              const SizedBox(height: 4),
-              UpstreamLink(cause: lastBuild.upstreamCause!),
-            ],
-            if (lastBuild.changes.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              ChangesList(changes: lastBuild.changes),
-            ],
-            if (pipelineStages != null && pipelineStages!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              StageChipRow(
-                buildUrl: lastBuild.url,
-                stages: pipelineStages!,
-                onViewLog: onViewLog,
-              ),
-            ],
-            if (testReport != null) ...[
-              const SizedBox(height: 8),
-              TestReportChip(report: testReport!),
-            ],
-            if (lastBuild.artifacts.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              ArtifactsList(
-                buildUrl: lastBuild.url,
-                artifacts: lastBuild.artifacts,
-              ),
-            ],
-            if (lastBuild.building) ...[
-              const SizedBox(height: 8),
-              LinearProgressIndicator(value: BuildProgress.ratioFor(lastBuild)),
-            ],
-          ],
-          // Job-level, not build-level -- shown regardless of whether
-          // this job has ever built (unlike everything else on this
-          // card, which lives inside the `lastBuild != null` branch
-          // above).
-          if (job.downstreamProjects.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text('Downstream', style: Theme.of(context).textTheme.labelMedium),
-            const SizedBox(height: 4),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final downstream in job.downstreamProjects)
-                  ActionChip(
-                    label: Text(downstream.name),
-                    onPressed: () => context.push(
-                      AppRoutes.jobDetail,
-                      extra: JenkinsJob(
-                        name: downstream.name,
-                        url: downstream.url,
-                      ),
+                ] else if (lastBuild.building) ...[
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: LinearProgressIndicator(
+                      minHeight: 6,
+                      value: BuildProgress.ratioFor(lastBuild),
+                      semanticsLabel: 'Build progress',
                     ),
                   ),
+                ],
+                _BuildLinks(job: job),
+                if (lastBuild.causes.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(lastBuild.causes.join(', '), style: textTheme.bodySmall),
+                ],
+                if (lastBuild.upstreamCause != null) ...[
+                  const SizedBox(height: 4),
+                  UpstreamLink(cause: lastBuild.upstreamCause!),
+                ],
+                if (lastBuild.changes.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  ChangesList(changes: lastBuild.changes),
+                ],
+                if (testReport != null) ...[
+                  const SizedBox(height: 8),
+                  TestReportChip(report: testReport!),
+                ],
+                if (lastBuild.artifacts.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  ArtifactsList(
+                    buildUrl: lastBuild.url,
+                    artifacts: lastBuild.artifacts,
+                  ),
+                ],
               ],
             ),
-          ],
+          ),
         ],
       ),
     );
@@ -778,27 +844,11 @@ class _DisabledBanner extends StatelessWidget {
   const _DisabledBanner();
 
   @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.block, semanticLabel: 'Disabled'),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'This job is disabled. Enable it from the menu to build it.',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => const InlineAlert(
+    tone: StatusTone.neutral,
+    icon: Icons.block_rounded,
+    message: 'This job is disabled. Enable it from the menu to build it.',
+  );
 }
 
 /// US-JX-10: the bell. Notify when the running build finishes, or for every
