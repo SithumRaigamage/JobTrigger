@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/platform/package_info_provider.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../domain/auth/auth_state.dart';
 import '../../common_widgets/confirmation_dialog.dart';
-import '../../common_widgets/glass_surface.dart';
+import '../../common_widgets/grouped_card.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
@@ -18,11 +20,16 @@ import '../../../data/credentials/credentials_notifier.dart';
 import '../../../data/credentials/github_credentials_notifier.dart';
 import '../tool_selection/active_tool_notifier.dart';
 import '../tool_selection/ci_tool.dart';
+import '../app_lock/app_lock_settings_section.dart';
 import 'account_dialogs.dart';
 
-/// Ported from `ProfileView.swift`. The old app's "Change Password" row was
-/// a "coming soon" placeholder; it's real since AUD-48, alongside account
+/// Ported from `ProfileView.swift`, laid out to the P14 design
+/// (`UI-UX/screens/10-profile`). The old app's "Change Password" row was a
+/// "coming soon" placeholder; it's real since AUD-48, alongside account
 /// deletion (App Store 5.1.1(v), Google Play's data-deletion policy).
+///
+/// Since P14-11 this is also where the app lock is set (it moved from
+/// Settings with the redesign) and where the CI tool is switched.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -32,162 +39,180 @@ class ProfileScreen extends ConsumerWidget {
     final email = authState is Authenticated ? authState.user.email : '';
     final activeTool = ref.watch(activeToolNotifierProvider);
     final packageInfoAsync = ref.watch(packageInfoProvider);
+    final textTheme = Theme.of(context).textTheme;
+    final t = AppTokens.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: GlassAppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          tooltip: 'Tool Selection',
-          onPressed: () => context.go(AppRoutes.toolSelection),
-        ),
-        title: const Text('Profile'),
-      ),
-      body: ResponsiveCenter(
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            MediaQuery.paddingOf(context).top + kToolbarHeight + 16,
-            16,
-            16 + glassNavBarClearance(context),
-          ),
-          children: [
-            Icon(
-              Icons.account_circle,
-              size: 80,
-              color: Theme.of(context).colorScheme.primary,
+      body: SafeArea(
+        bottom: false,
+        child: ResponsiveCenter(
+          child: ListView(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              24,
+              20,
+              16 + glassNavBarClearance(context),
             ),
-            const SizedBox(height: 12),
-            Text(
-              email,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            Text(
-              'Active User',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 20),
-            GlassSurface.card(
-              child: Column(
+            children: [
+              Row(
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: colorScheme.primary,
+                    child: ExcludeSemantics(
                       child: Text(
-                        'CURRENT SESSION',
-                        style: TextStyle(fontSize: 12),
+                        email.isEmpty ? '?' : email[0].toUpperCase(),
+                        style: textTheme.titleLarge?.copyWith(
+                          color: colorScheme.onPrimary,
+                        ),
                       ),
                     ),
                   ),
-                  ..._sessionTiles(ref, activeTool),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Semantics(
+                          header: true,
+                          child: Text(
+                            email,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.titleLarge,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          _sessionSummary(ref, activeTool),
+                          style: textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            GlassSurface.card(
-              child: Column(
+              const SizedBox(height: 20),
+              const GroupHeader(title: 'Workspace'),
+              GroupedCard(
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'APP INFORMATION',
-                        style: TextStyle(fontSize: 12),
-                      ),
+                  ListTile(
+                    leading: const Icon(Icons.swap_horiz_rounded),
+                    title: const Text('CI tool'),
+                    trailing: _Trailing(
+                      activeTool?.displayName ?? CiTool.jenkins.displayName,
                     ),
+                    onTap: () => context.go(AppRoutes.toolSelection),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.info_outline),
-                    title: const Text('Version'),
-                    trailing: Text(
-                      packageInfoAsync.when(
-                        data: (info) => '${info.version} (${info.buildNumber})',
-                        loading: () => '…',
-                        error: (error, stackTrace) => '—',
-                      ),
+                    leading: Icon(
+                      activeTool == CiTool.githubActions
+                          ? Icons.vpn_key_outlined
+                          : Icons.dns_outlined,
                     ),
+                    title: Text(
+                      activeTool == CiTool.githubActions
+                          ? 'Credential'
+                          : 'Server',
+                    ),
+                    trailing: _Trailing(_activeName(ref, activeTool)),
+                    onTap: () => context.go(AppRoutes.settings),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const AppLockSettingsSection(),
+              const SizedBox(height: 16),
+              const GroupHeader(title: 'Account'),
+              GroupedCard(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.key_outlined),
+                    title: const Text('Change password'),
+                    trailing: const _Chevron(),
+                    onTap: () => _changePassword(context, ref),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.description_outlined),
-                    title: const Text('App Information'),
-                    trailing: const Icon(Icons.chevron_right),
+                    leading: const Icon(Icons.info_outline_rounded),
+                    title: const Text('About JobTrigger'),
+                    trailing: const _Chevron(),
                     onTap: () => context.push(AppRoutes.appInfo),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            GlassSurface.card(
-              child: Column(
+              const SizedBox(height: 16),
+              GroupedCard(
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text('ACCOUNT', style: TextStyle(fontSize: 12)),
-                    ),
-                  ),
                   ListTile(
-                    leading: const Icon(Icons.password),
-                    title: const Text('Change password'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _changePassword(context, ref),
+                    leading: const Icon(Icons.logout_rounded),
+                    title: const Text('Log out'),
+                    onTap: () =>
+                        ref.read(authNotifierProvider.notifier).logout(),
+                  ),
+                  // AUD-26: revoke every session, e.g. after losing a phone.
+                  ListTile(
+                    leading: const Icon(Icons.devices_other_outlined),
+                    title: const Text('Log out of all devices'),
+                    onTap: () => _logoutEverywhere(context, ref),
+                  ),
+                  // AUD-48: permanent, so it's last and asks for the
+                  // password.
+                  ListTile(
+                    leading: Icon(
+                      Icons.delete_outline_rounded,
+                      color: t.failure.foreground,
+                    ),
+                    title: Text(
+                      'Delete account',
+                      style: TextStyle(color: t.failure.foreground),
+                    ),
+                    onTap: () => _deleteAccount(context, ref),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: FilledButton.tonal(
-                // Explicit colors instead of FilledButton.tonal's default
-                // (secondaryContainer/onSecondaryContainer) -- this
-                // ColorScheme.light() doesn't define secondaryContainer,
-                // so it fell back to a dark, near-black tone that read as
-                // a jarring "grey" block instead of a clear destructive
-                // action.
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.error.withValues(alpha: 0.1),
-                  foregroundColor: Theme.of(context).colorScheme.error,
+              const SizedBox(height: 16),
+              Text(
+                packageInfoAsync.when(
+                  data: (info) =>
+                      'Version ${info.version} (${info.buildNumber})',
+                  loading: () => '',
+                  error: (error, stackTrace) => '',
                 ),
-                onPressed: () =>
-                    ref.read(authNotifierProvider.notifier).logout(),
-                child: const Text('Log Out'),
+                textAlign: TextAlign.center,
+                style: AppTypography.mono(textTheme.bodySmall),
               ),
-            ),
-            // AUD-26: revoke every session, e.g. after losing a phone.
-            Center(
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.error,
-                ),
-                onPressed: () => _logoutEverywhere(context, ref),
-                child: const Text('Log out of all devices'),
-              ),
-            ),
-            // AUD-48: permanent, so it's last and asks for the password.
-            Center(
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.error,
-                ),
-                onPressed: () => _deleteAccount(context, ref),
-                child: const Text('Delete account'),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+
+  /// "Acme production · 2 servers" — what this account has set up for the
+  /// tool in use.
+  String _sessionSummary(WidgetRef ref, CiTool? activeTool) {
+    if (activeTool == CiTool.githubActions) {
+      final count = ref.watch(gitHubCredentialsNotifierProvider).value?.length;
+      return [
+        ?ref.watch(activeGitHubCredentialNotifierProvider)?.label,
+        // Only once known: "0" while the list loads would be wrong.
+        if (count != null)
+          count == 1 ? '1 GitHub credential' : '$count GitHub credentials',
+      ].join(' · ');
+    }
+    final count = ref.watch(credentialsNotifierProvider).value?.length;
+    return [
+      ?ref.watch(activeServerNotifierProvider)?.serverName,
+      if (count != null) count == 1 ? '1 server' : '$count servers',
+    ].join(' · ');
+  }
+
+  String _activeName(WidgetRef ref, CiTool? activeTool) =>
+      (activeTool == CiTool.githubActions
+          ? ref.watch(activeGitHubCredentialNotifierProvider)?.label
+          : ref.watch(activeServerNotifierProvider)?.serverName) ??
+      'None';
 
   Future<void> _changePassword(BuildContext context, WidgetRef ref) async {
     final toast = ref.read(toastControllerProvider);
@@ -249,64 +274,39 @@ class ProfileScreen extends ConsumerWidget {
       message: failure.message,
     );
   }
+}
 
-  /// "Current Session" tiles, specific to the active CI tool -- Jenkins and
-  /// GitHub Actions have their own independent active-credential state
-  /// (`NFR-SEC-03`) with different shapes (a server URL vs. an optional
-  /// default owner/org filter), so this can't be one tool-agnostic set of
-  /// tiles.
-  List<Widget> _sessionTiles(WidgetRef ref, CiTool? activeTool) {
-    if (activeTool == CiTool.githubActions) {
-      final activeCredential = ref.watch(
-        activeGitHubCredentialNotifierProvider,
-      );
-      final credentialsCount =
-          ref.watch(gitHubCredentialsNotifierProvider).value?.length ?? 0;
-      return [
-        ListTile(
-          leading: const Icon(Icons.vpn_key_outlined),
-          title: const Text('Active Credential'),
-          trailing: Text(activeCredential?.label ?? 'None'),
-        ),
-        ListTile(
-          leading: const Icon(Icons.business_outlined),
-          title: const Text('Default Owner'),
-          trailing: Text(activeCredential?.defaultOwner ?? '—'),
-        ),
-        ListTile(
-          leading: const Icon(Icons.folder_outlined),
-          title: const Text('Saved Credentials'),
-          trailing: Text('$credentialsCount'),
-        ),
-      ];
-    }
+/// A row's current value, with a chevron: it opens where that's changed.
+class _Trailing extends StatelessWidget {
+  const _Trailing(this.value);
 
-    final activeServer = ref.watch(activeServerNotifierProvider);
-    final serversCount =
-        ref.watch(credentialsNotifierProvider).value?.length ?? 0;
-    return [
-      ListTile(
-        leading: const Icon(Icons.dns_outlined),
-        title: const Text('Active Server'),
-        trailing: Text(activeServer?.serverName ?? 'None'),
-      ),
-      ListTile(
-        leading: const Icon(Icons.link),
-        title: const Text('Server URL'),
-        trailing: SizedBox(
-          width: 180,
-          child: Text(
-            activeServer?.jenkinsURL ?? '—',
-            textAlign: TextAlign.right,
-            overflow: TextOverflow.ellipsis,
-          ),
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 160),
+        child: Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodySmall,
         ),
       ),
-      ListTile(
-        leading: const Icon(Icons.folder_outlined),
-        title: const Text('Saved Servers'),
-        trailing: Text('$serversCount'),
-      ),
-    ];
-  }
+      const _Chevron(),
+    ],
+  );
+}
+
+class _Chevron extends StatelessWidget {
+  const _Chevron();
+
+  @override
+  Widget build(BuildContext context) => Icon(
+    Icons.chevron_right_rounded,
+    size: 20,
+    color: AppTokens.of(context).textMuted,
+  );
 }

@@ -53,7 +53,7 @@ CI run before it merges.
 - [x] P14-08 Home — GitHub repositories (design 07).
 - [x] P14-09 Global history (design 08).
 - [x] P14-10 Settings (design 09).
-- [ ] P14-11 Profile (design 10).
+- [x] P14-11 Profile (design 10).
 - [ ] P14-12 Job detail (design 11).
 - [ ] P14-13 Stage detail sheet (design 12).
 - [ ] P14-14 Job history (design 13).
