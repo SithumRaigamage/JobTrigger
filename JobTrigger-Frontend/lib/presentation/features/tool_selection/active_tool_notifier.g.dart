@@ -8,55 +8,58 @@ part of 'active_tool_notifier.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Which CI/CD tool's brand color tints `AppTheme`'s `primary`/`onPrimary`
-/// (see `core/theme/app_theme.dart` and `main.dart`). `null` means "no tool
-/// selected yet" — `Login`/`Signup`/`ToolSelectionScreen` render with the
-/// original blue-and-white theme in that state; the app only turns
-/// tool-colored once a card is actually tapped on `ToolSelectionScreen`.
+/// Which CI/CD tool the session is using: it picks what the Home and
+/// History tabs show and which credentials Settings and Profile manage.
+/// `null` means "no tool selected yet"; screens treat it as Jenkins.
 ///
 /// Deliberately in-memory only, *not* persisted: an authenticated user is
 /// always routed back through `ToolSelectionScreen` after a cold launch
-/// (see `app_router.dart`'s redirect), so there's nothing to restore — and
-/// persisting it previously meant a stale "jenkins" from an earlier session
-/// made the pre-selection screens start red instead of blue, which is
-/// exactly the bug this avoids.
+/// (see `app_router.dart`'s redirect), so there's nothing to restore.
+///
+/// Kept alive for the session: the choice is made on
+/// `ToolSelectionScreen`, which only reads this, and the screens that watch
+/// it build a frame later. Auto-disposed, the state was dropped in between
+/// and a switch to GitHub Actions silently fell back to Jenkins — hidden
+/// until P14-02 removed the theme's app-wide watch that kept it alive.
 
 @ProviderFor(ActiveToolNotifier)
 final activeToolNotifierProvider = ActiveToolNotifierProvider._();
 
-/// Which CI/CD tool's brand color tints `AppTheme`'s `primary`/`onPrimary`
-/// (see `core/theme/app_theme.dart` and `main.dart`). `null` means "no tool
-/// selected yet" — `Login`/`Signup`/`ToolSelectionScreen` render with the
-/// original blue-and-white theme in that state; the app only turns
-/// tool-colored once a card is actually tapped on `ToolSelectionScreen`.
+/// Which CI/CD tool the session is using: it picks what the Home and
+/// History tabs show and which credentials Settings and Profile manage.
+/// `null` means "no tool selected yet"; screens treat it as Jenkins.
 ///
 /// Deliberately in-memory only, *not* persisted: an authenticated user is
 /// always routed back through `ToolSelectionScreen` after a cold launch
-/// (see `app_router.dart`'s redirect), so there's nothing to restore — and
-/// persisting it previously meant a stale "jenkins" from an earlier session
-/// made the pre-selection screens start red instead of blue, which is
-/// exactly the bug this avoids.
+/// (see `app_router.dart`'s redirect), so there's nothing to restore.
+///
+/// Kept alive for the session: the choice is made on
+/// `ToolSelectionScreen`, which only reads this, and the screens that watch
+/// it build a frame later. Auto-disposed, the state was dropped in between
+/// and a switch to GitHub Actions silently fell back to Jenkins — hidden
+/// until P14-02 removed the theme's app-wide watch that kept it alive.
 final class ActiveToolNotifierProvider
     extends $NotifierProvider<ActiveToolNotifier, CiTool?> {
-  /// Which CI/CD tool's brand color tints `AppTheme`'s `primary`/`onPrimary`
-  /// (see `core/theme/app_theme.dart` and `main.dart`). `null` means "no tool
-  /// selected yet" — `Login`/`Signup`/`ToolSelectionScreen` render with the
-  /// original blue-and-white theme in that state; the app only turns
-  /// tool-colored once a card is actually tapped on `ToolSelectionScreen`.
+  /// Which CI/CD tool the session is using: it picks what the Home and
+  /// History tabs show and which credentials Settings and Profile manage.
+  /// `null` means "no tool selected yet"; screens treat it as Jenkins.
   ///
   /// Deliberately in-memory only, *not* persisted: an authenticated user is
   /// always routed back through `ToolSelectionScreen` after a cold launch
-  /// (see `app_router.dart`'s redirect), so there's nothing to restore — and
-  /// persisting it previously meant a stale "jenkins" from an earlier session
-  /// made the pre-selection screens start red instead of blue, which is
-  /// exactly the bug this avoids.
+  /// (see `app_router.dart`'s redirect), so there's nothing to restore.
+  ///
+  /// Kept alive for the session: the choice is made on
+  /// `ToolSelectionScreen`, which only reads this, and the screens that watch
+  /// it build a frame later. Auto-disposed, the state was dropped in between
+  /// and a switch to GitHub Actions silently fell back to Jenkins — hidden
+  /// until P14-02 removed the theme's app-wide watch that kept it alive.
   ActiveToolNotifierProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'activeToolNotifierProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -78,20 +81,21 @@ final class ActiveToolNotifierProvider
 }
 
 String _$activeToolNotifierHash() =>
-    r'd5d59b38a9266a2a3d07cba04589e569db941481';
+    r'6b90ba983df72f58b2539051686d31da752287f6';
 
-/// Which CI/CD tool's brand color tints `AppTheme`'s `primary`/`onPrimary`
-/// (see `core/theme/app_theme.dart` and `main.dart`). `null` means "no tool
-/// selected yet" — `Login`/`Signup`/`ToolSelectionScreen` render with the
-/// original blue-and-white theme in that state; the app only turns
-/// tool-colored once a card is actually tapped on `ToolSelectionScreen`.
+/// Which CI/CD tool the session is using: it picks what the Home and
+/// History tabs show and which credentials Settings and Profile manage.
+/// `null` means "no tool selected yet"; screens treat it as Jenkins.
 ///
 /// Deliberately in-memory only, *not* persisted: an authenticated user is
 /// always routed back through `ToolSelectionScreen` after a cold launch
-/// (see `app_router.dart`'s redirect), so there's nothing to restore — and
-/// persisting it previously meant a stale "jenkins" from an earlier session
-/// made the pre-selection screens start red instead of blue, which is
-/// exactly the bug this avoids.
+/// (see `app_router.dart`'s redirect), so there's nothing to restore.
+///
+/// Kept alive for the session: the choice is made on
+/// `ToolSelectionScreen`, which only reads this, and the screens that watch
+/// it build a frame later. Auto-disposed, the state was dropped in between
+/// and a switch to GitHub Actions silently fell back to Jenkins — hidden
+/// until P14-02 removed the theme's app-wide watch that kept it alive.
 
 abstract class _$ActiveToolNotifier extends $Notifier<CiTool?> {
   CiTool? build();

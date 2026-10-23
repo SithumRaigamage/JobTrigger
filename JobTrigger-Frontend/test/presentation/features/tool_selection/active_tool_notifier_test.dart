@@ -21,4 +21,22 @@ void main() {
 
     expect(container.read(activeToolNotifierProvider), CiTool.githubActions);
   });
+
+  // Regression: the choice is made on ToolSelectionScreen, which only reads
+  // the provider, and the screens that watch it build on a later frame.
+  // Auto-disposed, the state was gone by then, so a switch to GitHub
+  // Actions fell back to Jenkins everywhere (found with Playwright after
+  // P14-02 removed the theme's watch that had kept it alive).
+  test('the choice survives with nothing watching it', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    container
+        .read(activeToolNotifierProvider.notifier)
+        .setActiveTool(CiTool.githubActions);
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(container.read(activeToolNotifierProvider), CiTool.githubActions);
+  });
 }
