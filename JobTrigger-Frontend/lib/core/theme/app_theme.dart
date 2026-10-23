@@ -253,7 +253,7 @@ class AppTheme {
       ),
       listTileTheme: ListTileThemeData(
         iconColor: t.textSecondary,
-        textColor: t.text,
+        // No `textColor`: it would override the subtitle's muted colour.
         titleTextStyle: text.bodyLarge?.copyWith(fontSize: 15),
         subtitleTextStyle: text.bodySmall,
         minVerticalPadding: 10,

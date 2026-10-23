@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_tokens.dart';
+import '../../core/theme/app_typography.dart';
 
 /// A form field with its label above it, as the redesign draws every form
 /// (`UI-UX/screens/01-login`, `21-edit-server-sheet`). The visible label is
@@ -33,11 +34,11 @@ class LabeledField extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppTokens.of(context);
     final textTheme = Theme.of(context).textTheme;
-    final labelStyle = textTheme.labelMedium?.copyWith(
+    final base = textTheme.labelMedium?.copyWith(
       fontWeight: FontWeight.w600,
       color: t.textSecondary,
-      fontFamily: monospaceLabel ? 'JetBrains Mono' : null,
     );
+    final labelStyle = monospaceLabel ? AppTypography.mono(base) : base;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,

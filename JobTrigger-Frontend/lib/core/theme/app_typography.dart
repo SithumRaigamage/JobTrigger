@@ -16,14 +16,23 @@ class AppTypography {
   static const sans = 'Inter';
   static const monoFamily = 'JetBrains Mono';
 
+  /// JetBrains Mono draws `://`, `->`, `!=` and the like as ligatures.
+  /// What a CI tool printed must read character for character, so they
+  /// are off wherever the mono face is used.
+  static const noLigatures = [
+    FontFeature.disable('calt'),
+    FontFeature.disable('liga'),
+  ];
+
   /// The same style in the monospaced face.
-  static TextStyle mono(TextStyle? style) =>
-      (style ?? const TextStyle()).copyWith(fontFamily: monoFamily);
+  static TextStyle mono(TextStyle? style) => (style ?? const TextStyle())
+      .copyWith(fontFamily: monoFamily, fontFeatures: noLigatures);
 
   /// Console output, column-aligned (`BuildLogView.swift` set the log
   /// monospaced too).
   static const buildLog = TextStyle(
     fontFamily: monoFamily,
+    fontFeatures: noLigatures,
     fontSize: 12,
     height: 1.7,
   );

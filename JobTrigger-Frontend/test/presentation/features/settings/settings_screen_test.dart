@@ -168,9 +168,9 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('JENKINS SERVERS'), findsOneWidget);
-      expect(find.text('No Servers Yet'), findsOneWidget);
+      expect(find.text('No servers yet'), findsOneWidget);
       expect(find.text('GITHUB'), findsNothing);
-      expect(find.text('No GitHub Credentials Yet'), findsNothing);
+      expect(find.text('No GitHub credentials yet'), findsNothing);
     },
   );
 
@@ -215,9 +215,9 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('GITHUB'), findsOneWidget);
-      expect(find.text('No GitHub Credentials Yet'), findsOneWidget);
+      expect(find.text('No GitHub credentials yet'), findsOneWidget);
       expect(find.text('JENKINS SERVERS'), findsNothing);
-      expect(find.text('No Servers Yet'), findsNothing);
+      expect(find.text('No servers yet'), findsNothing);
     },
   );
 
@@ -336,11 +336,11 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('SONARQUBE'), findsOneWidget);
-      expect(find.text('No SonarQube Credentials Yet'), findsOneWidget);
+      expect(find.text('No SonarQube credentials yet'), findsOneWidget);
       expect(find.text('JENKINS SERVERS'), findsNothing);
-      expect(find.text('No Servers Yet'), findsNothing);
+      expect(find.text('No servers yet'), findsNothing);
       expect(find.text('GITHUB'), findsNothing);
-      expect(find.text('No GitHub Credentials Yet'), findsNothing);
+      expect(find.text('No GitHub credentials yet'), findsNothing);
     },
   );
 
@@ -425,6 +425,9 @@ void main() {
       await pumpSettings(tester, FakeBiometricService());
       expect(find.text('Lock after leaving the app'), findsNothing);
 
+      // P14-10: Security sits below the server list now.
+      await tester.ensureVisible(find.text('Require biometrics'));
+      await tester.pump();
       await tester.tap(find.text('Require biometrics'));
       await tester.pumpAndSettle();
 
@@ -441,6 +444,9 @@ void main() {
         FakeBiometricService(AuthOutcome.unavailable),
       );
 
+      // P14-10: Security sits below the server list now.
+      await tester.ensureVisible(find.text('Require biometrics'));
+      await tester.pump();
       await tester.tap(find.text('Require biometrics'));
       await tester.pump();
 
