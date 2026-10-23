@@ -62,7 +62,7 @@ CI run before it merges.
 - [x] P14-17 Nodes (design 16).
 - [x] P14-18 Queue (design 17).
 - [x] P14-19 GitHub workflows (design 18).
-- [ ] P14-20 Open link (design 19).
+- [x] P14-20 Open link (design 19).
 - [ ] P14-21 App info (design 20).
 - [ ] P14-22 Edit sheets: Jenkins server, GitHub and SonarQube
       credentials (design 21).
