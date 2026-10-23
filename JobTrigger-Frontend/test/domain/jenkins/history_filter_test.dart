@@ -71,4 +71,13 @@ void main() {
       reason: 'a context path before /job/ is ignored',
     );
   });
+
+  test('jobLabelFromBuildUrl names the job a build belongs to', () {
+    expect(jobLabelFromBuildUrl('https://ci.test/job/team/job/api/42/'), 'api');
+    expect(
+      jobLabelFromBuildUrl('https://ci.test/job/p/job/feature%2Flogin/3/'),
+      'feature/login',
+    );
+    expect(jobLabelFromBuildUrl('https://ci.test/queue/item/9/'), '');
+  });
 }

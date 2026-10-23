@@ -75,3 +75,20 @@ String folderPathOf(String jobUrl) {
   if (names.length <= 1) return '';
   return names.sublist(0, names.length - 1).join(' / ');
 }
+
+/// P14-15: the job a build belongs to, from the build's URL —
+/// `…/job/team/job/api/42/` → `api`, URL-decoded. Empty when the URL has
+/// no `job/` segment.
+String jobLabelFromBuildUrl(String buildUrl) {
+  final segments = Uri.tryParse(buildUrl)?.pathSegments ?? const <String>[];
+  for (var i = segments.length - 2; i >= 0; i--) {
+    if (segments[i] == 'job' && segments[i + 1].isNotEmpty) {
+      try {
+        return Uri.decodeComponent(segments[i + 1]);
+      } on ArgumentError {
+        return segments[i + 1];
+      }
+    }
+  }
+  return '';
+}
