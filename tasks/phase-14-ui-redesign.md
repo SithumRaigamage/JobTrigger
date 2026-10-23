@@ -55,7 +55,7 @@ CI run before it merges.
 - [x] P14-10 Settings (design 09).
 - [x] P14-11 Profile (design 10).
 - [x] P14-12 Job detail (design 11).
-- [ ] P14-13 Stage detail sheet (design 12).
+- [x] P14-13 Stage detail sheet (design 12).
 - [ ] P14-14 Job history (design 13).
 - [ ] P14-15 Build detail (design 14).
 - [ ] P14-16 Build log (design 15).

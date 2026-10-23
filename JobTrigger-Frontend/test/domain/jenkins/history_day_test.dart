@@ -52,7 +52,8 @@ void main() {
     });
   });
 
-  test('clockTime pads to HH:MM', () {
+  test('clockTime pads to HH:MM, and HH:MM:SS with seconds', () {
     expect(clockTime(DateTime(2026, 1, 1, 8, 5)), '08:05');
+    expect(clockTime(DateTime(2026, 1, 1, 8, 5, 9), seconds: true), '08:05:09');
   });
 }

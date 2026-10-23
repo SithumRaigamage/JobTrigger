@@ -56,7 +56,9 @@ String dayLabel(DateTime day, {DateTime? now}) {
   return that.year == today.year ? label : '$label ${that.year}';
 }
 
-/// The time of day as `HH:MM`, 24-hour.
-String clockTime(DateTime time) =>
-    '${time.hour.toString().padLeft(2, '0')}:'
-    '${time.minute.toString().padLeft(2, '0')}';
+/// The time of day as `HH:MM`, 24-hour — `HH:MM:SS` with [seconds].
+String clockTime(DateTime time, {bool seconds = false}) {
+  String two(int n) => n.toString().padLeft(2, '0');
+  final hm = '${two(time.hour)}:${two(time.minute)}';
+  return seconds ? '$hm:${two(time.second)}' : hm;
+}

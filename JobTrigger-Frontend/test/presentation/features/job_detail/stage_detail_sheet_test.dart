@@ -108,8 +108,9 @@ void main() {
 
     expect(find.text('Unit'), findsOneWidget);
     expect(find.text('Integration'), findsOneWidget);
-    // The group shows the worst branch status, not Jenkins' SUCCESS.
-    expect(find.text('FAILED'), findsOneWidget);
+    // The group shows the worst branch status, not Jenkins' SUCCESS —
+    // in words since P14-13.
+    expect(find.text('Failed'), findsOneWidget);
     expect(find.text('log of boom'), findsOneWidget);
   });
 
