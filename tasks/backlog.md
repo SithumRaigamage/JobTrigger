@@ -15,6 +15,34 @@ Phase 0–6 task without first moving the item here into an actual phase file
   `docs/user-stories/circleci/15-circleci.md`. SonarQube was itself
   promoted out of this item 2026-09-15 — see `tasks/phase-10-sonarqube.md`.
   GitLab CI and CircleCI remain deferred here for actual implementation.
+- **More CI/CD tools** (listed 2026-10-23 at the owner's request). Kept
+  here, not in the app: the tool-selection screen shows only tools that
+  work, plus a "Need another tool? Tell us" link that emails support, so
+  requests decide what's built next. Each tool is its own epic
+  (credentials, client, screens, tests) and joins `CiTool` only when built.
+  Only tools with a remote API qualify; CLI-only tools come in their hosted
+  or server form.
+  - *CI and build:* GitLab CI, CircleCI, Azure DevOps Pipelines, Bitbucket
+    Pipelines, TeamCity, Bamboo, Travis CI, Buildkite, Drone / Harness CI,
+    Woodpecker CI, Concourse, GoCD, Semaphore, Codefresh, AWS CodeBuild /
+    CodePipeline, Google Cloud Build, Gitea / Forgejo Actions, Tekton.
+  - *Deployment and GitOps:* Argo CD, Argo Workflows / Rollouts, Flux,
+    Spinnaker, Harness CD, Octopus Deploy, AWS CodeDeploy.
+  - *Infrastructure as code:* HCP Terraform, Pulumi Cloud, Spacelift, env0,
+    Scalr, Atlantis.
+  - *Configuration and automation:* Ansible AWX / Automation Platform,
+    Rundeck, Puppet Enterprise, Chef Automate, Salt.
+  - *Containers and orchestration:* Kubernetes, OpenShift, Rancher, Nomad,
+    Portainer, AWS ECS.
+  - *Code quality and security:* SonarQube (backend credentials already
+    exist), Snyk, Codecov, Coveralls, Checkmarx, Veracode, GitGuardian,
+    Dependabot.
+  - *Artifacts and registries:* JFrog Artifactory, Sonatype Nexus, Harbor,
+    Docker Hub, GitHub Container Registry.
+  - *Mobile CI and release:* Bitrise, Codemagic, Xcode Cloud, App Store
+    Connect, Google Play Console, Firebase App Distribution.
+  - *Monitoring and incidents:* Datadog, Grafana, Prometheus /
+    Alertmanager, PagerDuty, Sentry.
 - Push notifications for build completion/failure. *(Local, on-device
   notifications promoted 2026-09-29 → `phase-11-jenkins-extended.md`
   P11-24 / US-JX-10; true server push remains here.)*
