@@ -11,7 +11,7 @@ const _server = JenkinsServer(
   serverName: 'Acme production',
   jenkinsURL: 'https://ci.acme.dev',
   username: 'sam',
-  secret: '118addfcc60b8573398ead1f701cb565a1',
+  secret: 'fixture-secret',
 );
 
 /// Opens the sheet from a button and records what it completed with.

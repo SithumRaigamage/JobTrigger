@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 
+import '../network/request_id.dart';
+
 /// The failure shapes every repository maps `DioException`s to before they
 /// reach a notifier — see `docs/architecture.md#6-error-handling`. Screens
 /// render copy from `AppFailure.message`, never by inspecting HTTP status
@@ -26,7 +28,10 @@ sealed class AppFailure {
           // credentials that are actually correct (US-JX-12/13).
           403 => const PermissionFailure(),
           404 => const NotFoundFailure(),
-          final code? => ServerFailure(code),
+          final code? => ServerFailure(
+            code,
+            requestId: _requestIdOf(exception.response),
+          ),
           null => const UnknownFailure(),
         };
       case DioExceptionType.cancel:
@@ -67,6 +72,9 @@ sealed class AppFailure {
     // The backend throttles login and signup (AUD-05).
     ServerFailure(statusCode: 429) =>
       'Too many attempts. Please wait a few minutes and try again.',
+    ServerFailure(:final statusCode, requestId: final id?) =>
+      'Something went wrong on the server (HTTP $statusCode). '
+          'Reference: $id',
     ServerFailure(:final statusCode) =>
       'Something went wrong on the server (HTTP $statusCode).',
     RateLimitFailure() =>
@@ -107,9 +115,20 @@ final class NotFoundFailure extends AppFailure {
 }
 
 final class ServerFailure extends AppFailure {
-  const ServerFailure(this.statusCode);
+  const ServerFailure(this.statusCode, {this.requestId});
 
   final int statusCode;
+
+  /// The backend's id for the failed request (P13-26), quoted in the copy
+  /// so a bug report can be matched to its log lines. Null from servers
+  /// that don't send one (Jenkins, GitHub).
+  final String? requestId;
+}
+
+/// The `x-request-id` a response carries, if it's shaped like one.
+String? _requestIdOf(Response<dynamic>? response) {
+  final id = response?.headers.value('x-request-id');
+  return id != null && requestIdPattern.hasMatch(id) ? id : null;
 }
 
 /// See [AppFailure.fromGitHubException] — GitHub-only, never produced by
