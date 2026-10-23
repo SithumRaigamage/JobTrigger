@@ -49,9 +49,12 @@ class _StatusIndicatorState extends State<StatusIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final color = AppTokens.of(
-      context,
-    ).status(AppColors.toneForJobColor(widget.color)).dot;
+    // P14-07: a building job is drawn in the running colour, as Home's
+    // status word and summary count it; the pulse still marks it too.
+    final tone = _isAnimating
+        ? StatusTone.running
+        : AppColors.toneForJobColor(widget.color);
+    final color = AppTokens.of(context).status(tone).dot;
 
     return Semantics(
       label: AppColors.describeJobColor(widget.color),

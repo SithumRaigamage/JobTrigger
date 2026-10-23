@@ -123,9 +123,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Pinned'), findsOneWidget);
-    expect(find.text('All jobs'), findsOneWidget);
-    expect(find.text('#41'), findsWidgets);
+    // P14-07: section labels are drawn uppercase (SectionLabel), and a
+    // build line reads "#41 · 2h ago".
+    expect(find.text('PINNED'), findsOneWidget);
+    expect(find.text('ALL JOBS'), findsOneWidget);
+    expect(find.textContaining('#41'), findsWidgets);
     expect(
       find.text('Not found — it may have been deleted or renamed'),
       findsOneWidget,

@@ -28,7 +28,15 @@ class SectionLabel extends StatelessWidget {
             Icon(icon, size: 14, color: muted),
             const SizedBox(width: 6),
           ],
-          Expanded(child: Text(text.toUpperCase(), style: style)),
+          Expanded(
+            child: Text(
+              text.toUpperCase(),
+              // Read in its natural case: some screen readers spell out
+              // all-caps text letter by letter.
+              semanticsLabel: text,
+              style: style,
+            ),
+          ),
           if (trailing != null)
             Text(
               trailing!,
