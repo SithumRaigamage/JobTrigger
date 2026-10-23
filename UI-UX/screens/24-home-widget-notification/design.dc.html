@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home-screen widget and build notification</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #1E293B; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; padding: 48px 16px 32px; gap: 14px">
+
+  <h2 style="margin: 0 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #CBD5E1">Notification</h2>
+  <div style="padding: 12px 14px; border-radius: 18px; background: #0F172A; display: flex; gap: 12px; align-items: flex-start">
+    <span style="width: 36px; height: 36px; flex: none; border-radius: 9px; background: {{accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+    <span style="flex: 1; display: flex; flex-direction: column; gap: 3px">
+      <span style="display: flex; justify-content: space-between; font-size: 12px; color: #94A3B8"><span>JobTrigger</span><span>now</span></span>
+      <span style="font-size: 15px; font-weight: 600">api-gateway #482 succeeded</span>
+      <span style="font-size: 14px; color: #CBD5E1">Finished in 3m 41s on Acme production</span>
+    </span>
+  </div>
+
+  <h2 style="margin: 6px 4px 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #CBD5E1">Notification · app lock on</h2>
+  <div style="padding: 12px 14px; border-radius: 18px; background: #0F172A; display: flex; gap: 12px; align-items: flex-start">
+    <span style="width: 36px; height: 36px; flex: none; border-radius: 9px; background: {{accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+    <span style="flex: 1; display: flex; flex-direction: column; gap: 3px">
+      <span style="display: flex; justify-content: space-between; font-size: 12px; color: #94A3B8"><span>JobTrigger</span><span>now</span></span>
+      <span style="font-size: 15px; font-weight: 600">A watched build finished</span>
+      <span style="font-size: 14px; color: #CBD5E1">Unlock JobTrigger to see the result.</span>
+    </span>
+  </div>
+
+  <h2 style="margin: 6px 4px 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #CBD5E1">Widget · pinned jobs</h2>
+  <div style="padding: 16px; border-radius: 22px; background: #0B1120; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #94A3B8"><span style="font-weight: 600; color: #CBD5E1">Pinned jobs</span><span>Updated 2m ago</span></div>
+    <div style="display: flex; align-items: center; gap: 10px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #60A5FA"></span><span style="flex: 1; font-size: 14px; font-weight: 500">api-gateway</span><span style="font-size: 12px; font-weight: 600; color: #93C5FD">Running</span></div>
+    <div style="display: flex; align-items: center; gap: 10px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #F87171"></span><span style="flex: 1; font-size: 14px; font-weight: 500">web-frontend</span><span style="font-size: 12px; font-weight: 600; color: #FCA5A5">Failed</span></div>
+    <div style="display: flex; align-items: center; gap: 10px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #4ADE80"></span><span style="flex: 1; font-size: 14px; font-weight: 500">billing-service</span><span style="font-size: 12px; font-weight: 600; color: #86EFAC">Success</span></div>
+  </div>
+
+  <h2 style="margin: 6px 4px 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #CBD5E1">Widget · app lock on</h2>
+  <div style="padding: 16px; border-radius: 22px; background: #0B1120; display: flex; align-items: center; gap: 12px">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">3 pinned jobs</span><span style="font-size: 13px; color: #94A3B8">Unlock JobTrigger to see them</span></span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2563EB","options":["#2563EB","#7C3AED","#0F766E","#C2410C"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#2563EB' };
+  }
+}
+</script>
+</body>
+</html>

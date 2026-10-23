@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stage detail — Test</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; position: relative; overflow: hidden">
+
+  <div aria-hidden="true" style="padding: 104px 20px 0; display: flex; flex-direction: column; gap: 14px; opacity: 0.5">
+    <div style="font-size: 28px; font-weight: 700">api-gateway</div>
+    <div style="height: 110px; border-radius: 18px; background: #111A2B; border: 1px solid #1F2A3D"></div>
+    <div style="height: 46px; border-radius: 12px; background: #111A2B"></div>
+    <div style="height: 46px; border-radius: 12px; background: #111A2B"></div>
+  </div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(2, 6, 23, 0.72)"></div>
+
+  <section role="dialog" aria-modal="true" aria-labelledby="stage-title" style="position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 20px 32px; background: #111A2B; border-top: 1px solid #1F2A3D; border-radius: 24px 24px 0 0; display: flex; flex-direction: column; gap: 18px">
+    <span aria-hidden="true" style="align-self: center; width: 40px; height: 5px; border-radius: 3px; background: #334155"></span>
+
+    <div style="display: flex; align-items: flex-start; gap: 12px">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 12px; font-weight: 600; color: #94A3B8">Stage 3 of 5 · #482</span>
+        <h2 id="stage-title" style="margin: 0; font-size: 24px; font-weight: 700">Test</h2>
+      </div>
+      <button type="button" aria-label="Close" style="width: 44px; height: 44px; border: 0; border-radius: 50%; background: #1E293B; color: #CBD5E1; display: flex; align-items: center; justify-content: center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <div style="padding: 10px 12px; border-radius: 12px; background: #0B1120; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 11px; color: #94A3B8">Status</span><span style="font-size: 14px; font-weight: 600; color: #93C5FD">Running</span></div>
+      <div style="padding: 10px 12px; border-radius: 12px; background: #0B1120; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 11px; color: #94A3B8">Started</span><span style="font: 500 14px 'JetBrains Mono', monospace">10:41:52</span></div>
+      <div style="padding: 10px 12px; border-radius: 12px; background: #0B1120; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 11px; color: #94A3B8">Elapsed</span><span style="font: 500 14px 'JetBrains Mono', monospace">0m 38s</span></div>
+    </div>
+
+    <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px">
+      <li style="display: flex; align-items: center; gap: 12px; min-height: 44px">
+        <span style="width: 22px; height: 22px; border-radius: 50%; background: #0F2E1F; color: #86EFAC; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></span>
+        <span style="flex: 1; font: 400 14px 'JetBrains Mono', monospace">npm ci</span><span style="font: 400 12px 'JetBrains Mono', monospace; color: #94A3B8">12s · Done</span>
+      </li>
+      <li style="display: flex; align-items: center; gap: 12px; min-height: 44px">
+        <span style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid #60A5FA; box-sizing: border-box"></span>
+        <span style="flex: 1; font: 500 14px 'JetBrains Mono', monospace; color: #BFDBFE">npm test -- --ci</span><span style="font: 400 12px 'JetBrains Mono', monospace; color: #93C5FD">26s · Running</span>
+      </li>
+      <li style="display: flex; align-items: center; gap: 12px; min-height: 44px">
+        <span style="width: 22px; height: 22px; border-radius: 50%; border: 2px dashed #475569; box-sizing: border-box"></span>
+        <span style="flex: 1; font: 400 14px 'JetBrains Mono', monospace; color: #CBD5E1">publish coverage</span><span style="font-size: 12px; color: #94A3B8">Waiting</span>
+      </li>
+    </ol>
+
+    <a href="BuildLog.dc.html" style="height: 52px; border-radius: 14px; background: #1E293B; color: #F1F5F9; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 17 6-5-6-5M12 19h8"/></svg>
+      View stage log
+    </a>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
