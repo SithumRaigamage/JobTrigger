@@ -4,15 +4,20 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_tokens.dart';
 import '../../common_widgets/pinned_footer_layout.dart';
-import '../../common_widgets/section_label.dart';
+import '../../common_widgets/external_link.dart';
 import '../../navigation/app_routes.dart';
+import '../app_info/app_info_notifier.dart';
 import 'active_tool_notifier.dart';
 import 'ci_tool.dart';
 
 /// Ported from `Tools/ToolSelection/ToolSelectionView.swift`, laid out to
 /// the P14 design (`UI-UX/screens/03-tool-selection`): the available tools
-/// as a single-choice list, the not-yet-available ones below them, and a
-/// Continue button that commits the choice. Shown after login, and again
+/// as a single-choice list and a Continue button that commits the choice.
+///
+/// Only tools that work are shown. Planned ones live in `tasks/backlog.md`,
+/// not here: a list of unbuilt tools is onboarding noise and a promise an
+/// installed build can't take back. Instead, "Need another tool?" emails
+/// support, so requests decide what's built next. Shown after login, and again
 /// when switching tool from the profile.
 class ToolSelectionScreen extends ConsumerStatefulWidget {
   const ToolSelectionScreen({super.key});
@@ -38,7 +43,8 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
     final available = CiTool.values.where((tool) => tool.isAvailable);
-    final later = CiTool.values.where((tool) => !tool.isAvailable);
+    // From `GET /api/appinfo`; no address, no link.
+    final supportEmail = ref.watch(appInfoNotifierProvider).value?.supportEmail;
 
     return Scaffold(
       body: SafeArea(
@@ -81,21 +87,15 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
                   ],
                 ),
               ),
-              if (later.isNotEmpty) ...[
-                const SizedBox(height: 14),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4),
-                  child: SectionLabel('Coming later'),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (final (i, tool) in later.indexed) ...[
-                      if (i > 0) const SizedBox(width: 10),
-                      Expanded(child: _LaterTile(tool: tool)),
-                    ],
-                  ],
+              if (supportEmail != null) ...[
+                const SizedBox(height: 6),
+                Center(
+                  child: TextButton(
+                    key: const Key('tool_request_link'),
+                    onPressed: () =>
+                        openExternalLink(ref, toolRequestUri(supportEmail)),
+                    child: const Text('Need another tool? Tell us'),
+                  ),
                 ),
               ],
             ],
@@ -115,27 +115,19 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
 /// colour is drawn (P14 decision 4). A near-black brand (GitHub) is drawn
 /// reversed in dark mode so the tile doesn't vanish into the card.
 class _ToolMark extends StatelessWidget {
-  const _ToolMark({required this.tool, this.size = 44, this.muted = false});
+  const _ToolMark({required this.tool});
 
   final CiTool tool;
-  final double size;
-  final bool muted;
+
+  static const size = 44.0;
 
   @override
   Widget build(BuildContext context) {
     final t = AppTokens.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final reversed = isDark && tool.accentColor.computeLuminance() < 0.05;
-    final background = muted
-        ? t.raised
-        : reversed
-        ? t.text
-        : tool.accentColor;
-    final foreground = muted
-        ? t.textSecondary
-        : reversed
-        ? tool.accentColor
-        : Colors.white;
+    final background = reversed ? t.text : tool.accentColor;
+    final foreground = reversed ? tool.accentColor : Colors.white;
     return ExcludeSemantics(
       child: Container(
         width: size,
@@ -232,44 +224,11 @@ class _ToolOption extends StatelessWidget {
   }
 }
 
-/// A tool that isn't available yet: shown so users know it's coming, not
-/// selectable, and read out as unavailable.
-class _LaterTile extends StatelessWidget {
-  const _LaterTile({required this.tool});
-
-  final CiTool tool;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppTokens.of(context);
-    return Semantics(
-      key: Key('tool_card_${tool.name}'),
-      enabled: false,
-      label: '${tool.displayName}, coming later',
-      excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
-        decoration: BoxDecoration(
-          color: t.chrome,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: t.cardBorder),
-        ),
-        child: Column(
-          children: [
-            _ToolMark(tool: tool, size: 36, muted: true),
-            const SizedBox(height: 8),
-            Text(
-              tool.displayName,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: t.textSecondary),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+/// A pre-addressed email asking for a tool the app doesn't support yet.
+Uri toolRequestUri(String supportEmail) => Uri(
+  scheme: 'mailto',
+  path: supportEmail,
+  query:
+      'subject=${Uri.encodeComponent('JobTrigger tool request')}'
+      '&body=${Uri.encodeComponent('The CI/CD tool I would like to use: ')}',
+);
