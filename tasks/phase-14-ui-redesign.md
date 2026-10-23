@@ -66,7 +66,7 @@ CI run before it merges.
 - [x] P14-21 App info (design 20).
 - [x] P14-22 Edit sheets: Jenkins server, GitHub and SonarQube
       credentials (design 21).
-- [ ] P14-23 Account dialogs: change password, delete account (design 22).
+- [x] P14-23 Account dialogs: change password, delete account (design 22).
 - [ ] P14-24 Unknown route (design 23).
 - [ ] P14-25 Home-screen widget and build notifications (design 24).
 - [ ] P14-26 Close-out: update the design-system user stories
