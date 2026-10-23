@@ -5,25 +5,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
-import '../../../core/platform/package_info_provider.dart';
-import '../../common_widgets/glass_surface.dart';
-import '../../common_widgets/gradient_backdrop.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../common_widgets/app_logo.dart';
+import '../../common_widgets/inline_alert.dart';
+import '../../common_widgets/labeled_field.dart';
 import '../../common_widgets/loading_overlay.dart';
-import '../../common_widgets/toast_controller.dart';
+import '../../common_widgets/pinned_footer_layout.dart';
 import '../../navigation/app_routes.dart';
 import 'login_notifier.dart';
 import 'remembered_email_notifier.dart';
 
-/// Ported from `Features/Auth/LoginView.swift`. Errors surface as a toast
-/// (matching the original's `NotificationManager` usage) rather than inline
-/// field text — actual navigation on success is left to `app_router.dart`'s
-/// redirect reacting to `authNotifierProvider`, not driven from here.
+/// Ported from `Features/Auth/LoginView.swift`, laid out to the P14 design
+/// (`UI-UX/screens/01-login`). A failed login is shown inline above the
+/// form, where the user is looking, rather than as a toast. Navigation on
+/// success is left to `app_router.dart`'s redirect reacting to
+/// `authNotifierProvider`, not driven from here.
 ///
-/// Responsive: below [_wideBreakpoint] (phones, most iOS/Android) this is a
-/// single centered card over a softly tinted backdrop. At or above it
-/// (macOS window, iPad landscape, desktop browser) it splits into a left
-/// branding/feature panel and a right form panel, so the extra horizontal
-/// space is used instead of just padding out a centered card.
+/// Responsive: below [_wideBreakpoint] (phones) the form fills the screen
+/// with the button at the bottom. At or above it (macOS window, iPad
+/// landscape) a branding panel takes the left side.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -71,91 +71,49 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(loginNotifierProvider, (previous, next) {
-      if (next case AsyncError(:final error)) {
-        ref
-            .read(toastControllerProvider)
-            .show(
-              type: ToastType.warning,
-              title: 'Login Failed',
-              message: describeError(error),
-            );
-      }
-    });
+    final login = ref.watch(loginNotifierProvider);
+    final isLoading = login.isLoading;
+    final error = switch (login) {
+      AsyncError(:final error) => describeError(error),
+      _ => null,
+    };
 
-    final isLoading = ref.watch(loginNotifierProvider).isLoading;
+    Widget form({required bool showLogo}) => PinnedFooterLayout(
+      body: _LoginForm(
+        emailController: _emailController,
+        passwordController: _passwordController,
+        obscurePassword: _obscurePassword,
+        onToggleObscure: () =>
+            setState(() => _obscurePassword = !_obscurePassword),
+        rememberMe: _rememberMe,
+        onRememberMeChanged: (value) => setState(() => _rememberMe = value),
+        error: error,
+        onSubmit: _submit,
+        showLogo: showLogo,
+      ),
+      footer: _LoginActions(
+        isLoading: isLoading,
+        onSignIn: _submit,
+        onSignUp: () => context.go(AppRoutes.signup),
+      ),
+    );
 
     return Scaffold(
-      body: GradientBackdrop(
-        child: SafeArea(
-          child: LoadingOverlay(
-            isLoading: isLoading,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= _wideBreakpoint;
-                if (isWide) {
-                  return Row(
-                    children: [
-                      const Expanded(flex: 5, child: _BrandingPanel()),
-                      Expanded(
-                        flex: 4,
-                        child: Center(
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 48,
-                              vertical: 32,
-                            ),
-                            child: _LoginForm(
-                              emailController: _emailController,
-                              passwordController: _passwordController,
-                              obscurePassword: _obscurePassword,
-                              onToggleObscure: () => setState(
-                                () => _obscurePassword = !_obscurePassword,
-                              ),
-                              rememberMe: _rememberMe,
-                              onRememberMeChanged: (value) {
-                                setState(() => _rememberMe = value ?? false);
-                              },
-                              isLoading: isLoading,
-                              onSignIn: _submit,
-                              onSignUp: () => context.go(AppRoutes.signup),
-                              showLogo: false,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                }
-                return Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 32,
-                    ),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 440),
-                      child: _LoginForm(
-                        emailController: _emailController,
-                        passwordController: _passwordController,
-                        obscurePassword: _obscurePassword,
-                        onToggleObscure: () => setState(
-                          () => _obscurePassword = !_obscurePassword,
-                        ),
-                        rememberMe: _rememberMe,
-                        onRememberMeChanged: (value) {
-                          setState(() => _rememberMe = value ?? false);
-                        },
-                        isLoading: isLoading,
-                        onSignIn: _submit,
-                        onSignUp: () => context.go(AppRoutes.signup),
-                        showLogo: true,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+      body: SafeArea(
+        child: LoadingOverlay(
+          isLoading: isLoading,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < _wideBreakpoint) {
+                return form(showLogo: true);
+              }
+              return Row(
+                children: [
+                  const Expanded(flex: 5, child: _BrandingPanel()),
+                  Expanded(flex: 4, child: form(showLogo: false)),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -225,7 +183,7 @@ class _BrandingPanel extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    Icons.shield_outlined,
+                    Icons.play_arrow_rounded,
                     color: colorScheme.onPrimary,
                   ),
                 ),
@@ -324,9 +282,8 @@ class _LoginForm extends StatelessWidget {
     required this.onToggleObscure,
     required this.rememberMe,
     required this.onRememberMeChanged,
-    required this.isLoading,
-    required this.onSignIn,
-    required this.onSignUp,
+    required this.error,
+    required this.onSubmit,
     required this.showLogo,
   });
 
@@ -335,204 +292,140 @@ class _LoginForm extends StatelessWidget {
   final bool obscurePassword;
   final VoidCallback onToggleObscure;
   final bool rememberMe;
-  final ValueChanged<bool?> onRememberMeChanged;
-  final bool isLoading;
-  final VoidCallback onSignIn;
-  final VoidCallback onSignUp;
+  final ValueChanged<bool> onRememberMeChanged;
+
+  /// The last attempt's failure, already worded for the user.
+  final String? error;
+  final VoidCallback onSubmit;
   final bool showLogo;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final t = AppTokens.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
       children: [
         if (showLogo) ...[
-          Center(
-            child: Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: colorScheme.primary,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(
-                Icons.shield_outlined,
-                color: colorScheme.onPrimary,
-                size: 32,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'JobTrigger',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 6),
-        ] else ...[
-          Text(
-            'Welcome back',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 6),
+          const Align(alignment: Alignment.centerLeft, child: AppLogo()),
+          const SizedBox(height: 18),
         ],
+        Text('Welcome back', style: textTheme.headlineLarge),
+        const SizedBox(height: 8),
         Text(
-          'Sign in to manage your Jenkins builds',
-          textAlign: showLogo ? TextAlign.center : TextAlign.start,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
+          'Log in to trigger and watch your builds.',
+          style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
         ),
         const SizedBox(height: 32),
-        TextField(
-          key: const Key('login_email_field'),
-          controller: emailController,
-          keyboardType: TextInputType.emailAddress,
-          textCapitalization: TextCapitalization.none,
-          autocorrect: false,
-          decoration: const InputDecoration(
-            labelText: 'Email',
-            hintText: 'email@example.com',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.mail_outline),
+        if (error != null) ...[
+          InlineAlert(message: error!, liveRegion: true),
+          const SizedBox(height: 16),
+        ],
+        LabeledField(
+          label: 'Email',
+          child: TextField(
+            key: const Key('login_email_field'),
+            controller: emailController,
+            keyboardType: TextInputType.emailAddress,
+            textCapitalization: TextCapitalization.none,
+            autocorrect: false,
+            autofillHints: const [AutofillHints.email],
+            textInputAction: TextInputAction.next,
+            decoration: const InputDecoration(hintText: 'you@company.com'),
           ),
         ),
         const SizedBox(height: 16),
-        TextField(
-          key: const Key('login_password_field'),
-          controller: passwordController,
-          obscureText: obscurePassword,
-          decoration: InputDecoration(
-            labelText: 'Password',
-            hintText: 'Required',
-            border: const OutlineInputBorder(),
-            prefixIcon: const Icon(Icons.lock_outline),
-            suffixIcon: IconButton(
-              // AUD-62: an icon-only button needs an accessible name --
-              // `labeledTapTargetGuideline` rejects a tappable node with no
-              // semantic label, and a screen reader has nothing to announce.
-              tooltip: 'Show or hide password',
-              icon: Icon(
-                obscurePassword
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
+        LabeledField(
+          label: 'Password',
+          child: TextField(
+            key: const Key('login_password_field'),
+            controller: passwordController,
+            obscureText: obscurePassword,
+            autofillHints: const [AutofillHints.password],
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => onSubmit(),
+            decoration: InputDecoration(
+              suffixIcon: IconButton(
+                // AUD-62: an icon-only button needs an accessible name --
+                // `labeledTapTargetGuideline` rejects a tappable node with no
+                // semantic label, and a screen reader has nothing to announce.
+                tooltip: obscurePassword ? 'Show password' : 'Hide password',
+                icon: Icon(
+                  obscurePassword
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                ),
+                onPressed: onToggleObscure,
               ),
-              onPressed: onToggleObscure,
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        CheckboxListTile(
+        const SizedBox(height: 8),
+        SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('Remember me'),
+          title: const Text('Remember my email'),
           value: rememberMe,
           onChanged: onRememberMeChanged,
-          dense: true,
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 50,
-          child: FilledButton(
-            key: const Key('login_submit_button'),
-            onPressed: isLoading ? null : onSignIn,
-            child: isLoading
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: colorScheme.onPrimary,
-                    ),
-                  )
-                : const Text('Sign In'),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Center(
-          child: TextButton(
-            onPressed: onSignUp,
-            child: const Text("Don't have an account? Sign Up"),
-          ),
-        ),
-        const SizedBox(height: 28),
-        const _PlatformFooter(),
-      ],
-    );
-  }
-}
-
-/// Small "works everywhere" strip — cheap way to make the empty space below
-/// the button feel intentional instead of cut off.
-class _PlatformFooter extends ConsumerWidget {
-  const _PlatformFooter();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final packageInfo = ref.watch(packageInfoProvider);
-
-    return Column(
-      children: [
-        const Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 8,
-          children: [
-            _PlatformChip(icon: Icons.phone_iphone, label: 'iOS'),
-            _PlatformChip(icon: Icons.android, label: 'Android'),
-            _PlatformChip(icon: Icons.laptop_mac, label: 'macOS'),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Text(
-          // Blank while unresolved rather than repeating "JobTrigger" (the
-          // headline above already shows it) -- avoids two identical
-          // "JobTrigger" texts on screen at once before the real version
-          // loads.
-          packageInfo.when(
-            data: (info) => 'v${info.version}',
-            loading: () => '',
-            error: (_, _) => '',
-          ),
-          style: TextStyle(
-            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-            fontSize: 11,
-          ),
         ),
       ],
     );
   }
 }
 
-class _PlatformChip extends StatelessWidget {
-  const _PlatformChip({required this.icon, required this.label});
-  final IconData icon;
-  final String label;
+class _LoginActions extends StatelessWidget {
+  const _LoginActions({
+    required this.isLoading,
+    required this.onSignIn,
+    required this.onSignUp,
+  });
+
+  final bool isLoading;
+  final VoidCallback onSignIn;
+  final VoidCallback onSignUp;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return GlassSurface.card(
-      borderRadius: BorderRadius.circular(20),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: colorScheme.onSurfaceVariant),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 11),
-          ),
-        ],
-      ),
+    final muted = AppTokens.of(context).textMuted;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FilledButton(
+          key: const Key('login_submit_button'),
+          onPressed: isLoading ? null : onSignIn,
+          child: isLoading
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colorScheme.onPrimary,
+                  ),
+                )
+              : const Text('Log in'),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              'New to JobTrigger?',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontSize: 14, color: muted),
+            ),
+            TextButton(
+              onPressed: onSignUp,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+              ),
+              child: const Text('Create an account'),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

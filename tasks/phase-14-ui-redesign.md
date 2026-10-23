@@ -37,7 +37,7 @@ and CI green on its commit (Definition of Done from AUD-42).
       `AppTheme` component themes, single accent, flat `GlassSurface`,
       plain backdrop, bottom navigation bar, shared `StatusPill` and
       `SectionLabel` widgets.
-- [ ] P14-03 Login (design 01).
+- [x] P14-03 Login (design 01).
 - [ ] P14-04 Signup (design 02).
 - [ ] P14-05 Tool selection (design 03).
 - [ ] P14-06 App lock (design 04).
