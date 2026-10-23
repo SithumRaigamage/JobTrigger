@@ -25,3 +25,38 @@ String formatBuildDuration(num millis) {
   }
   return '${total.inHours}h ${total.inMinutes.remainder(60)}m';
 }
+
+const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const _months = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+/// A day heading for a list of builds: `Today`, `Yesterday`, then
+/// `Mon 20 Oct`, with the year added when it isn't this one (P14-09).
+String dayLabel(DateTime day, {DateTime? now}) {
+  final today = now ?? DateTime.now();
+  final start = DateTime(today.year, today.month, today.day);
+  final that = DateTime(day.year, day.month, day.day);
+  final daysAgo = start.difference(that).inHours ~/ 24;
+  if (daysAgo == 0) return 'Today';
+  if (daysAgo == 1) return 'Yesterday';
+  final label =
+      '${_weekdays[that.weekday - 1]} ${that.day} ${_months[that.month - 1]}';
+  return that.year == today.year ? label : '$label ${that.year}';
+}
+
+/// The time of day as `HH:MM`, 24-hour.
+String clockTime(DateTime time) =>
+    '${time.hour.toString().padLeft(2, '0')}:'
+    '${time.minute.toString().padLeft(2, '0')}';

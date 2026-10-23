@@ -29,6 +29,7 @@ import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_indicator.dart';
 import '../../common_widgets/status_pill.dart';
+import '../../common_widgets/status_tile.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'folder_breadcrumb_notifier.dart';
@@ -833,24 +834,24 @@ class _PinnedCard extends ConsumerWidget {
             : () => context.push(AppRoutes.jobDetail, extra: job),
         child: Row(
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: colors.background,
-                borderRadius: BorderRadius.circular(10),
+            if (loading)
+              SizedBox(
+                width: 36,
+                height: 36,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colors.foreground,
+                  ),
+                ),
+              )
+            else
+              StatusTile(
+                tone: tone,
+                size: 36,
+                icon: missing ? Icons.link_off_rounded : null,
               ),
-              child: loading
-                  ? const Padding(
-                      padding: EdgeInsets.all(10),
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(
-                      missing ? Icons.link_off_rounded : _iconFor(tone),
-                      size: 18,
-                      color: colors.foreground,
-                    ),
-            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -900,15 +901,6 @@ class _PinnedCard extends ConsumerWidget {
       ),
     );
   }
-
-  static IconData _iconFor(StatusTone tone) => switch (tone) {
-    StatusTone.running => Icons.autorenew_rounded,
-    StatusTone.failure => Icons.close_rounded,
-    StatusTone.success => Icons.check_rounded,
-    StatusTone.unstable => Icons.warning_amber_rounded,
-    StatusTone.paused => Icons.pause_rounded,
-    StatusTone.neutral => Icons.remove_rounded,
-  };
 }
 
 /// US-JX-03: "Scan now" plus the scan log, for a multibranch project or
