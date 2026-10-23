@@ -50,7 +50,7 @@ CI run before it merges.
 - [x] P14-05 Tool selection (design 03).
 - [x] P14-06 App lock (design 04).
 - [x] P14-07 Home — Jenkins, dark and light (designs 05, 06).
-- [ ] P14-08 Home — GitHub repositories (design 07).
+- [x] P14-08 Home — GitHub repositories (design 07).
 - [ ] P14-09 Global history (design 08).
 - [ ] P14-10 Settings (design 09).
 - [ ] P14-11 Profile (design 10).

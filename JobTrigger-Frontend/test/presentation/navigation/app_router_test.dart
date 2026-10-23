@@ -242,9 +242,10 @@ void main() {
 
       expect(find.byType(GitHubRepoScreen), findsOneWidget);
       expect(find.byType(HomeScreen), findsNothing);
-      expect(find.text('hello-world'), findsOneWidget);
+      // P14-08: a repo card reads "owner/name".
+      expect(find.text('octocat/hello-world'), findsOneWidget);
 
-      await tester.tap(find.text('hello-world'));
+      await tester.tap(find.text('octocat/hello-world'));
       await tester.pumpAndSettle();
 
       expect(find.byType(GitHubWorkflowListScreen), findsOneWidget);
