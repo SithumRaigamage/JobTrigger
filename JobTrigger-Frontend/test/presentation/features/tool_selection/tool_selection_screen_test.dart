@@ -6,6 +6,7 @@ import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/presentation/features/tool_selection/active_tool_notifier.dart';
 import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
 import 'package:job_trigger/presentation/features/tool_selection/tool_selection_screen.dart';
+import 'package:job_trigger/presentation/features/tool_selection/upcoming_tools.dart';
 import 'package:job_trigger/presentation/navigation/app_routes.dart';
 
 /// P14-05: choose a tool, then Continue (`UI-UX/screens/03-tool-selection`).
@@ -70,8 +71,26 @@ void main() {
   testWidgets('tools that are coming later cannot be chosen', (tester) async {
     await pumpScreen(tester);
 
-    await tester.tap(find.byKey(const Key('tool_card_gitlab')));
+    await tester.ensureVisible(find.text('GitLab CI'));
+    await tester.pump();
+    await tester.tap(find.text('GitLab CI'));
     await tester.pump();
     expect(find.text('Continue with Jenkins'), findsOneWidget);
+  });
+
+  testWidgets('every planned tool is listed under Coming later', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+
+    for (final group in upcomingToolGroups) {
+      expect(find.text(group.name), findsOneWidget);
+      for (final tool in group.tools) {
+        expect(find.text(tool), findsOneWidget, reason: tool);
+      }
+    }
+    // Shown, never selectable: none of them is a radio option.
+    expect(find.text('Kubernetes'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('^Kubernetes,')), findsNothing);
   });
 }

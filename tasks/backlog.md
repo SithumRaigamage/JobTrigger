@@ -15,6 +15,19 @@ Phase 0–6 task without first moving the item here into an actual phase file
   `docs/user-stories/circleci/15-circleci.md`. SonarQube was itself
   promoted out of this item 2026-09-15 — see `tasks/phase-10-sonarqube.md`.
   GitLab CI and CircleCI remain deferred here for actual implementation.
+- **Coming-later tools** (added 2026-10-23 at the owner's request). The
+  tool-selection screen lists 66 planned tools under "Coming later", grouped
+  by category, from `lib/presentation/features/tool_selection/upcoming_tools.dart`.
+  They are display only — none is selectable. Each is its own epic
+  (credentials, client, screens, tests) and moves into `CiTool` and a
+  phase file only when it is planned and built. Categories: CI and build
+  (incl. GitLab CI, CircleCI, Azure DevOps), deployment and GitOps (Argo
+  CD, Flux…), infrastructure as code (HCP Terraform, Pulumi…),
+  configuration and automation (Ansible AWX, Rundeck…), containers
+  (Kubernetes, OpenShift…), code quality and security (SonarQube, Snyk…),
+  artifacts and registries, mobile CI and release, monitoring and
+  incidents. Only tools with a remote API are listed; CLI-only tools appear
+  in their hosted or server form.
 - Push notifications for build completion/failure. *(Local, on-device
   notifications promoted 2026-09-29 → `phase-11-jenkins-extended.md`
   P11-24 / US-JX-10; true server push remains here.)*

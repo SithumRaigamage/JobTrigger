@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_tokens.dart';
-import '../../common_widgets/pinned_footer_layout.dart';
+import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
 import '../../navigation/app_routes.dart';
 import 'active_tool_notifier.dart';
 import 'ci_tool.dart';
+import 'upcoming_tools.dart';
 
 /// Ported from `Tools/ToolSelection/ToolSelectionView.swift`, laid out to
 /// the P14 design (`UI-UX/screens/03-tool-selection`): the available tools
@@ -38,73 +39,87 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
     final available = CiTool.values.where((tool) => tool.isAvailable);
-    final later = CiTool.values.where((tool) => !tool.isAvailable);
 
+    // Not PinnedFooterLayout: with every coming-later tool listed the body
+    // is several screens tall, and that layout scrolls its footer with the
+    // body. Continue stays on screen here; only the list scrolls.
     return Scaffold(
       body: SafeArea(
-        child: PinnedFooterLayout(
-          padding: const EdgeInsets.fromLTRB(20, 40, 20, 24),
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'What do you build with?',
-                      style: textTheme.headlineLarge,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'You can switch any time from your profile.',
-                      style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Semantics(
-                label: 'CI tool',
-                explicitChildNodes: true,
-                child: Column(
-                  children: [
-                    for (final tool in available) ...[
-                      _ToolOption(
-                        tool: tool,
-                        selected: tool == _selected,
-                        onTap: () => setState(() => _selected = tool),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 40, 20, 16),
+                child: ResponsiveCenter(
+                  maxWidth: 440,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'What do you build with?',
+                              style: textTheme.headlineLarge,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'You can switch any time from your profile.',
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: t.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 24),
+                      Semantics(
+                        label: 'CI tool',
+                        explicitChildNodes: true,
+                        child: Column(
+                          children: [
+                            for (final tool in available) ...[
+                              _ToolOption(
+                                tool: tool,
+                                selected: tool == _selected,
+                                onTap: () => setState(() => _selected = tool),
+                              ),
+                              const SizedBox(height: 10),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4),
+                        child: SectionLabel('Coming later'),
+                      ),
+                      for (final group in upcomingToolGroups) ...[
+                        const SizedBox(height: 10),
+                        _UpcomingGroup(group: group),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-              if (later.isNotEmpty) ...[
-                const SizedBox(height: 14),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4),
-                  child: SectionLabel('Coming later'),
+            ),
+            ResponsiveCenter(
+              maxWidth: 440,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    key: const Key('tool_continue_button'),
+                    onPressed: _continue,
+                    child: Text('Continue with ${_selected.displayName}'),
+                  ),
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (final (i, tool) in later.indexed) ...[
-                      if (i > 0) const SizedBox(width: 10),
-                      Expanded(child: _LaterTile(tool: tool)),
-                    ],
-                  ],
-                ),
-              ],
-            ],
-          ),
-          footer: FilledButton(
-            key: const Key('tool_continue_button'),
-            onPressed: _continue,
-            child: Text('Continue with ${_selected.displayName}'),
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -115,27 +130,19 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
 /// colour is drawn (P14 decision 4). A near-black brand (GitHub) is drawn
 /// reversed in dark mode so the tile doesn't vanish into the card.
 class _ToolMark extends StatelessWidget {
-  const _ToolMark({required this.tool, this.size = 44, this.muted = false});
+  const _ToolMark({required this.tool});
 
   final CiTool tool;
-  final double size;
-  final bool muted;
+
+  static const size = 44.0;
 
   @override
   Widget build(BuildContext context) {
     final t = AppTokens.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final reversed = isDark && tool.accentColor.computeLuminance() < 0.05;
-    final background = muted
-        ? t.raised
-        : reversed
-        ? t.text
-        : tool.accentColor;
-    final foreground = muted
-        ? t.textSecondary
-        : reversed
-        ? tool.accentColor
-        : Colors.white;
+    final background = reversed ? t.text : tool.accentColor;
+    final foreground = reversed ? tool.accentColor : Colors.white;
     return ExcludeSemantics(
       child: Container(
         width: size,
@@ -232,40 +239,60 @@ class _ToolOption extends StatelessWidget {
   }
 }
 
-/// A tool that isn't available yet: shown so users know it's coming, not
-/// selectable, and read out as unavailable.
-class _LaterTile extends StatelessWidget {
-  const _LaterTile({required this.tool});
+/// One category of tools that aren't available yet (`upcoming_tools.dart`):
+/// names only, not selectable. Read out as one sentence per category, so a
+/// screen reader doesn't step through dozens of disabled items.
+class _UpcomingGroup extends StatelessWidget {
+  const _UpcomingGroup({required this.group});
 
-  final CiTool tool;
+  final UpcomingToolGroup group;
 
   @override
   Widget build(BuildContext context) {
     final t = AppTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
     return Semantics(
-      key: Key('tool_card_${tool.name}'),
+      key: Key('upcoming_${group.name}'),
       enabled: false,
-      label: '${tool.displayName}, coming later',
+      label: '${group.name}, coming later: ${group.tools.join(', ')}',
       excludeSemantics: true,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
         decoration: BoxDecoration(
           color: t.chrome,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: t.cardBorder),
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ToolMark(tool: tool, size: 36, muted: true),
-            const SizedBox(height: 8),
             Text(
-              tool.displayName,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: t.textSecondary),
+              group.name,
+              style: textTheme.labelLarge?.copyWith(color: t.textSecondary),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final tool in group.tools)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: t.raised,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      tool,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: t.textSecondary,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ],
         ),

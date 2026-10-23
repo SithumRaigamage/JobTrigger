@@ -45,9 +45,10 @@ extension CiToolX on CiTool {
     CiTool.circleci => AppColors.ciToolCircleci,
   };
 
-  /// Jenkins and GitHub Actions are available (`Phase 8`, GH-REPO onward);
-  /// GitLab CI, SonarQube, and CircleCI stay disabled placeholders (see
-  /// `tasks/backlog.md`'s `BACKLOG-01`).
+  /// Jenkins and GitHub Actions are available (`Phase 8`, GH-REPO onward).
+  /// GitLab CI, SonarQube, and CircleCI stay unavailable; the tool-selection
+  /// screen lists them, with every other planned tool, from
+  /// `upcoming_tools.dart` (see `tasks/backlog.md`'s `BACKLOG-01`).
   bool get isAvailable =>
       this == CiTool.jenkins || this == CiTool.githubActions;
 }
