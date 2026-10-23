@@ -29,6 +29,47 @@ class AppColors {
   static const raisedDark = Color(0xFF1E293B); // secondary buttons, chips
   static const consoleDark = Color(0xFF060A14);
 
+  // The build log is drawn on [consoleDark] in both themes (AUD-30: kept
+  // here, not as literals in the widgets, so their contrast is tested).
+  static const consoleText = textSecondaryDark;
+
+  /// Line numbers: 5.6:1 on [consoleDark].
+  static const consoleGutter = Color(0xFF8291A8);
+
+  /// Behind a line that reads as an error.
+  static const consoleErrorLine = Color(0xFF2A1216);
+
+  /// The log screen's banners and bars.
+  static const consoleBar = raisedDark;
+
+  /// The current search match, and the other matches.
+  static const consoleMatch = Color(0xFFFFB300);
+  static const consoleOtherMatch = Color(0x66FFB300);
+
+  /// The 16 standard terminal colours, tuned for legibility on black.
+  /// Jenkins output picks them, so a few (black on black) can't be legible.
+  static const consoleAnsi = [
+    Color(0xFF000000),
+    Color(0xFFEF5350),
+    Color(0xFF66BB6A),
+    Color(0xFFFFCA28),
+    Color(0xFF42A5F5),
+    Color(0xFFAB47BC),
+    Color(0xFF26C6DA),
+    Color(0xFFE0E0E0),
+    Color(0xFF757575),
+    Color(0xFFFF8A80),
+    Color(0xFFB9F6CA),
+    Color(0xFFFFFF8D),
+    Color(0xFF82B1FF),
+    Color(0xFFEA80FC),
+    Color(0xFF84FFFF),
+    Color(0xFFFFFFFF),
+  ];
+
+  /// The light theme's card shadow: slate 900 at 6%.
+  static const shadowLight = Color(0x0F0F172A);
+
   static const textDark = Color(0xFFF1F5F9);
   static const textSecondaryDark = Color(0xFFCBD5E1);
 

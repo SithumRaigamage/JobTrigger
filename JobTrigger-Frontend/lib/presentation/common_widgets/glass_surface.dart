@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../core/theme/reduce_transparency_notifier.dart';
 
@@ -90,7 +91,11 @@ class GlassSurface extends ConsumerWidget {
   static const _blurSigma = 12.0;
   static const _chromeOpacity = 0.94;
   static const _lightShadow = [
-    BoxShadow(color: Color(0x0F0F172A), blurRadius: 2, offset: Offset(0, 1)),
+    BoxShadow(
+      color: AppColors.shadowLight,
+      blurRadius: 2,
+      offset: Offset(0, 1),
+    ),
   ];
 
   @override

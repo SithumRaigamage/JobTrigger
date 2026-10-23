@@ -330,7 +330,7 @@ class _StepLogView extends ConsumerWidget {
                     ? '(no output)'
                     : sanitizeConsoleLog(log.text).trimRight(),
                 style: AppTypography.buildLog.copyWith(
-                  color: const Color(0xFFCBD5E1),
+                  color: AppColors.consoleText,
                 ),
               ),
             ),
