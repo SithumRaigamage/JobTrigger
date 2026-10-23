@@ -11,7 +11,9 @@ import '../features/app_info/app_info_screen.dart';
 import '../features/auth/auth_notifier.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/signup_screen.dart';
-import '../common_widgets/glass_surface.dart';
+import '../../core/theme/app_tokens.dart';
+import '../../core/theme/app_typography.dart';
+import '../common_widgets/pinned_footer_layout.dart';
 import '../features/build_detail/build_detail_screen.dart';
 import '../features/build_log/build_log_screen.dart';
 import '../features/github/github_repo_screen.dart';
@@ -113,55 +115,101 @@ class _GitHubHistoryUnavailableScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: GlassAppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          tooltip: 'Tool Selection',
-          onPressed: () => context.go(AppRoutes.toolSelection),
-        ),
-        title: const Text('History'),
-      ),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.only(
-            top: MediaQuery.paddingOf(context).top + kToolbarHeight,
-          ),
-          child: const Text('GitHub Actions run history is coming soon'),
-        ),
-      ),
+    return _MessageScreen(
+      mark: const Icon(Icons.history_rounded, size: 56),
+      title: 'History',
+      message: 'GitHub Actions run history is coming soon',
+      actionLabel: 'Switch CI tool',
+      onAction: () => context.go(AppRoutes.toolSelection),
     );
   }
 }
 
-/// Shown for a path the app doesn't have, with a way back.
+/// Shown for a path the app doesn't have, with a way back
+/// (`UI-UX/screens/23-unknown-route`).
 class _UnknownRouteScreen extends StatelessWidget {
   const _UnknownRouteScreen();
 
   @override
   Widget build(BuildContext context) {
+    return _MessageScreen(
+      mark: Text(
+        '404',
+        style: AppTypography.mono(Theme.of(context).textTheme.displayMedium)
+            .copyWith(
+              fontWeight: FontWeight.w700,
+              color: AppTokens.of(context).textMuted.withValues(alpha: 0.4),
+            ),
+      ),
+      title: 'That link didn’t lead anywhere',
+      message:
+          'The build or page may have been deleted, or the link is from an '
+          'older version of the app.',
+      actionLabel: 'Go to Home',
+      onAction: () => context.go(AppRoutes.home),
+    );
+  }
+}
+
+/// A centred mark, heading and explanation with one way out pinned to the
+/// foot — the router's own dead ends.
+class _MessageScreen extends StatelessWidget {
+  const _MessageScreen({
+    required this.mark,
+    required this.title,
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+  });
+
+  final Widget mark;
+  final String title;
+  final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: const GlassAppBar(title: Text('Not found')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.link_off, size: 40),
-              const SizedBox(height: 12),
-              const Text(
-                "This link doesn't lead anywhere in JobTrigger.",
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => context.go(AppRoutes.home),
-                child: const Text('Go to jobs'),
-              ),
-            ],
+      body: SafeArea(
+        child: PinnedFooterLayout(
+          // The layout pins its body to the top; a proportional gap sets the
+          // message about a third of the way down, as the design does.
+          body: Padding(
+            padding: EdgeInsets.only(
+              top: MediaQuery.sizeOf(context).height * 0.24,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Decorative: the heading says what happened.
+                ExcludeSemantics(
+                  child: IconTheme.merge(
+                    data: IconThemeData(color: t.textMuted),
+                    child: mark,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Semantics(
+                  header: true,
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: textTheme.headlineSmall,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
+                ),
+              ],
+            ),
           ),
+          footer: FilledButton(onPressed: onAction, child: Text(actionLabel)),
         ),
       ),
     );

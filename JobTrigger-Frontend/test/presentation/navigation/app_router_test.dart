@@ -293,9 +293,7 @@ void main() {
 
     router.go('/no/such/place');
     await tester.pumpAndSettle();
-    expect(
-      find.text("This link doesn't lead anywhere in JobTrigger."),
-      findsOneWidget,
-    );
+    expect(find.text('That link didn’t lead anywhere'), findsOneWidget);
+    expect(find.text('Go to Home'), findsOneWidget);
   });
 }
