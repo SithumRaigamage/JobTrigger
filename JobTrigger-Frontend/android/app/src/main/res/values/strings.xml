@@ -2,6 +2,11 @@
 <resources>
     <string name="widget_title">Pinned jobs</string>
     <string name="widget_empty">Pin jobs in JobTrigger</string>
-    <string name="widget_updated">updated %1$s</string>
+    <string name="widget_updated">Updated %1$s</string>
     <string name="widget_description">Your pinned Jenkins jobs at a glance</string>
+    <plurals name="widget_locked_count">
+        <item quantity="one">%d pinned job</item>
+        <item quantity="other">%d pinned jobs</item>
+    </plurals>
+    <string name="widget_locked_hint">Unlock JobTrigger to see them</string>
 </resources>

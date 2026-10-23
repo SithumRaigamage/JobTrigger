@@ -68,7 +68,7 @@ CI run before it merges.
       credentials (design 21).
 - [x] P14-23 Account dialogs: change password, delete account (design 22).
 - [x] P14-24 Unknown route (design 23).
-- [ ] P14-25 Home-screen widget and build notifications (design 24).
+- [x] P14-25 Home-screen widget and build notifications (design 24).
 - [ ] P14-26 Close-out: update the design-system user stories
       (`docs/user-stories/00-design-system-glassmorphism.md`) to the
       approved look, and mark the phase done in `tasks/README.md`.

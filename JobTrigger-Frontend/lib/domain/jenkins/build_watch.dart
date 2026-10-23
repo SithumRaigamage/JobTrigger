@@ -80,7 +80,7 @@ class BuildNotification {
   /// glance shouldn't name what's being built).
   BuildNotification redacted() => BuildNotification(
     title: 'A watched build finished',
-    body: 'Open JobTrigger to see which.',
+    body: 'Unlock JobTrigger to see the result.',
     jobUrl: jobUrl,
     serverId: serverId,
     id: id,
@@ -129,19 +129,21 @@ WatchOutcome decideWatch(BuildWatch watch, List<JenkinsBuild> recent) {
 }
 
 BuildNotification notificationFor(BuildWatch watch, JenkinsBuild build) {
-  final (mark, verb) = switch (build.result) {
-    'SUCCESS' => ('✅', 'succeeded'),
-    'FAILURE' => ('❌', 'failed'),
-    'UNSTABLE' => ('⚠️', 'is unstable'),
-    'ABORTED' => ('⏹', 'was aborted'),
-    _ => ('•', 'finished'),
+  // Worded, not marked with an emoji: the verb carries the result
+  // (`UI-UX/screens/24-home-widget-notification`).
+  final verb = switch (build.result) {
+    'SUCCESS' => 'succeeded',
+    'FAILURE' => 'failed',
+    'UNSTABLE' => 'is unstable',
+    'ABORTED' => 'was aborted',
+    _ => 'finished',
   };
   final duration = build.duration;
   return BuildNotification(
-    title: '$mark ${watch.jobLabel} #${build.number} $verb',
+    title: '${watch.jobLabel} #${build.number} $verb',
     body: duration == null
         ? 'Tap to open'
-        : 'Took ${formatBuildDuration(duration)}',
+        : 'Finished in ${formatBuildDuration(duration)}',
     jobUrl: watch.jobUrl,
     serverId: watch.serverId,
     id: '${watch.jobUrl}#${build.number}'.hashCode & 0x7fffffff,

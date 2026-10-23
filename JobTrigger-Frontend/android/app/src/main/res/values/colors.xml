@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- US-JX-23 widget colors, from AppColors (light). -->
+<!-- US-JX-23 widget colors, from AppColors (light, P14 palette). Status
+     pairs are the text and dot colors the app's status pills use. -->
 <resources>
-    <color name="widget_background">#FFF8FAFC</color>
+    <color name="widget_background">#FFFFFFFF</color>
     <color name="widget_text">#FF0F172A</color>
     <color name="widget_secondary">#FF334155</color>
-    <color name="widget_accent">#FF007AFF</color>
+    <color name="widget_muted">#FF475569</color>
+    <color name="widget_success_text">#FF15803D</color>
+    <color name="widget_success_dot">#FF16A34A</color>
+    <color name="widget_failure_text">#FFB91C1C</color>
+    <color name="widget_failure_dot">#FFDC2626</color>
+    <color name="widget_unstable_text">#FFC2410C</color>
+    <color name="widget_unstable_dot">#FFEA580C</color>
+    <color name="widget_running_text">#FF1D4ED8</color>
+    <color name="widget_running_dot">#FF2563EB</color>
+    <color name="widget_neutral_text">#FF334155</color>
+    <color name="widget_neutral_dot">#FF64748B</color>
 </resources>

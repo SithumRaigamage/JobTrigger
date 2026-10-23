@@ -41,7 +41,11 @@ class WidgetJob {
 /// What the app hands the widget. The widget renders it and never fetches
 /// anything itself.
 class WidgetSnapshot {
-  const WidgetSnapshot({required this.jobs, required this.updatedAt});
+  const WidgetSnapshot({
+    required this.jobs,
+    required this.updatedAt,
+    this.lockedCount,
+  });
 
   /// A medium widget shows four rows; a small one the first two.
   static const maxJobs = 4;
@@ -49,9 +53,17 @@ class WidgetSnapshot {
   final List<WidgetJob> jobs;
   final DateTime updatedAt;
 
+  /// Set while the app lock is on (AUD-54): how many jobs are pinned, with
+  /// [jobs] left empty — the widget says "3 pinned jobs, unlock to see
+  /// them" (`UI-UX/screens/24-home-widget-notification`).
+  final int? lockedCount;
+
+  bool get isLocked => lockedCount != null;
+
   Map<String, Object?> toJson() => {
     'jobs': [for (final job in jobs) job.toJson()],
     'updatedAt': updatedAt.millisecondsSinceEpoch,
+    'lockedCount': lockedCount,
   };
 }
 
@@ -59,29 +71,29 @@ class WidgetSnapshot {
 /// failed, or the job is gone).
 typedef PinnedStatus = ({String label, String url, JenkinsJob? job});
 
-/// [hideNames] (AUD-54): the app lock is on, so the home screen shows
-/// "Pinned job 1" and so on with each status, not the job names.
+/// [hideNames] (AUD-54): the app lock is on, so the home screen shows only
+/// how many jobs are pinned — not their names, nor their statuses, which
+/// would say what's failing to whoever holds the phone (P14-25).
 WidgetSnapshot buildWidgetSnapshot(
   List<PinnedStatus> pins, {
   required DateTime now,
   bool hideNames = false,
-}) => WidgetSnapshot(
-  jobs: [
-    for (final (i, pin) in pins.take(WidgetSnapshot.maxJobs).indexed)
-      _widgetJob(
-        hideNames ? 'Pinned job ${i + 1}' : pin.label,
-        pin.url,
-        pin.job,
-      ),
-  ],
-  updatedAt: now,
-);
+}) => hideNames
+    ? WidgetSnapshot(jobs: const [], updatedAt: now, lockedCount: pins.length)
+    : WidgetSnapshot(
+        jobs: [
+          for (final pin in pins.take(WidgetSnapshot.maxJobs))
+            _widgetJob(pin.label, pin.url, pin.job),
+        ],
+        updatedAt: now,
+      );
 
 WidgetJob _widgetJob(String label, String url, JenkinsJob? job) {
   final color = job?.color?.toLowerCase();
   final building = color?.endsWith('_anime') ?? false;
   final (status, text) = switch (color?.replaceAll('_anime', '')) {
-    _ when building => (WidgetJobStatus.running, 'Building'),
+    // Worded as the app's status pills word it.
+    _ when building => (WidgetJobStatus.running, 'Running'),
     'blue' => (WidgetJobStatus.success, 'Success'),
     'red' => (WidgetJobStatus.failure, 'Failed'),
     'yellow' => (WidgetJobStatus.unstable, 'Unstable'),
