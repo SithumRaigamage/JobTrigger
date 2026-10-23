@@ -160,5 +160,44 @@ void main() {
     test('other server errors keep the status code', () {
       expect(const ServerFailure(502).message, contains('HTTP 502'));
     });
+
+    test('a server error quotes the backend request id (P13-26)', () {
+      expect(
+        const ServerFailure(500, requestId: 'a1b2c3d4e5f60718').message,
+        'Something went wrong on the server (HTTP 500). '
+        'Reference: a1b2c3d4e5f60718',
+      );
+    });
+  });
+
+  group('request id from a response (P13-26)', () {
+    ServerFailure fromHeader(String value) =>
+        AppFailure.fromDioException(
+              _exception(
+                type: DioExceptionType.badResponse,
+                statusCode: 500,
+                headers: {
+                  'x-request-id': [value],
+                },
+              ),
+            )
+            as ServerFailure;
+
+    test('an id-shaped header is kept', () {
+      expect(fromHeader('a1b2c3d4e5f60718').requestId, 'a1b2c3d4e5f60718');
+    });
+
+    test('anything else is dropped, so it never reaches the copy', () {
+      expect(fromHeader('call support <now>').requestId, isNull);
+    });
+
+    test('no header, no id', () {
+      final failure =
+          AppFailure.fromDioException(
+                _exception(type: DioExceptionType.badResponse, statusCode: 500),
+              )
+              as ServerFailure;
+      expect(failure.requestId, isNull);
+    });
   });
 }

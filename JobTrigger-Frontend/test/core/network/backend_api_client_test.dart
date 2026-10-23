@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/network/backend_api_client.dart';
+import 'package:job_trigger/core/network/request_id.dart';
 import 'package:job_trigger/core/storage/secure_storage_service.dart';
 
 /// A fake adapter that always responds with a fixed status code, so tests
@@ -48,6 +49,7 @@ class _RefreshingBackend implements HttpClientAdapter {
   final int? refreshStatus;
   int refreshCalls = 0;
   final protectedTokens = <String?>[];
+  final requestIds = <String?>[];
 
   @override
   Future<ResponseBody> fetch(
@@ -81,6 +83,7 @@ class _RefreshingBackend implements HttpClientAdapter {
     }
     final token = options.headers['x-auth-token'] as String?;
     protectedTokens.add(token);
+    requestIds.add(options.headers['x-request-id'] as String?);
     return token == 'access-2' ? json(<Object>[], 200) : json({}, 401);
   }
 
@@ -110,6 +113,27 @@ void main() {
       await dio.get<void>('/api/credentials');
 
       expect(adapter.lastRequest?.headers['x-auth-token'], 'token-123');
+    },
+  );
+
+  test(
+    'sends a request id on every request, public ones too (P13-26)',
+    () async {
+      final adapter = _FixedStatusAdapter(200);
+      final dio = buildBackendDio(
+        baseUrl: 'https://example.test',
+        secureStorage: secureStorage,
+        debugLogging: false,
+      )..httpClientAdapter = adapter;
+
+      await dio.post<void>('/api/auth/login');
+      final first = adapter.lastRequest?.headers['x-request-id'] as String?;
+      await dio.post<void>('/api/auth/login');
+      final second = adapter.lastRequest?.headers['x-request-id'] as String?;
+
+      expect(first, matches(requestIdPattern));
+      expect(second, matches(requestIdPattern));
+      expect(first, isNot(second));
     },
   );
 
@@ -178,6 +202,8 @@ void main() {
 
       expect(response.statusCode, 200);
       expect(backend.protectedTokens, ['access-1', 'access-2']);
+      // The replay is the same request, so it keeps its id (P13-26).
+      expect(backend.requestIds.toSet(), hasLength(1));
       expect(await secureStorage.readToken(), 'access-2');
       expect(await secureStorage.readRefreshToken(), 'refresh-2');
       expect(unauthorizedCalls, 0);

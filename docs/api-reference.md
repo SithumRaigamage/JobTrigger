@@ -53,6 +53,13 @@ client-supplied `x-request-id` is echoed back only when it matches
 reused verbatim). A **500** body is `{ message: "Server error", requestId }`
 — quote the `requestId` in a bug report; the message itself stays generic.
 
+The app sends its own `x-request-id` on every backend request (16 hex
+characters, `core/network/request_id.dart`; kept when a request is replayed
+after a token refresh), so the id is known on both sides. A backend 5xx
+becomes `ServerFailure(requestId:)` and the error copy ends with
+`Reference: <id>`. Jenkins and GitHub requests carry no id: those servers
+don't log it.
+
 **`needsReentry`** — every credential object in a response carries
 `needsReentry: true|false`. When the server cannot decrypt a stored secret
 (a key id dropped from the keyring, or a failed GCM tag), the credential is

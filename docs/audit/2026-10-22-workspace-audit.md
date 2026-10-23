@@ -45,7 +45,7 @@ both green at the commit recorded below.
 | P13-23 | §13 | **FIXED** | CONFIRMED | `userId` indexes added to `JenkinsCredential`, `GitHubCredential`, and `SonarQubeCredential`; unindexed credential list queries now have an index on the look-up field. |
 | P13-24 | §11 | **FIXED** | CONFIRMED | `core/network` no longer imports `presentation`: the three factories resolve credentials via Riverpod providers, not by importing presentation notifiers. |
 | P13-25 | §14 | **FIXED** | CONFIRMED | Lean pinned-job status query (`JenkinsRepository.fetchJobStatus` walks the same minimal `tree`); cold-start tree fetch per pin eliminated. |
-| P13-26 | §19 | **PARTIAL** | CONFIRMED | Request-ID middleware and structured JSON logs (`middleware/requestId.js`, `requestLogger.js`, `errorHandler.js`) with level, timestamp, requestId, userId, route, latency, error. *Correction (2026-10-23):* the id is **not** propagated to Jenkins calls — the backend makes none (Jenkins is called from the app directly), and the app sends no request id, so there is no end-to-end correlation. |
+| P13-26 | §19 | **FIXED** | CONFIRMED | Request-ID middleware and structured JSON logs (`middleware/requestId.js`, `requestLogger.js`, `errorHandler.js`) with level, timestamp, requestId, userId, route, latency, error. *Correction (2026-10-23):* the id was **not** propagated to Jenkins calls — the backend makes none (Jenkins is called from the app directly) — and the app sent no request id. Since 2026-10-23 the app sends `x-request-id` on every backend request and quotes it on a backend 5xx ("Reference: …"), so app and backend correlate. Jenkins and GitHub get no id: they don't log it. |
 | P13-27 | AUD-66 | **FIXED** | CONFIRMED | `security/secretMaterialScan.js` guards the tracked tree against credential material; findings never return the value; reviewed fixtures live in `.secret-material-allowlist`; no credential-shaped key is waived; synthetic token assembled at runtime in the test so no token-shaped literal is ever committed. |
 
 ### Tasks Still Open
@@ -53,8 +53,7 @@ both green at the commit recorded below.
 *Corrected 2026-10-23 after re-checking the code on `develop`.*
 
 - **P13-07 — partial.** Password reset is not built (US-AUTH-08).
-- **P13-26 — partial.** Request ids stop at the backend; there is no
-  correlation with the app or with Jenkins.
+- ~~P13-26~~ — fixed 2026-10-23: the app now sends and shows the request id.
 
 ### Residual Owner Action (tracked in `phase-13-audit-2-remediation.md`)
 
@@ -133,11 +132,12 @@ FIXED by `b1c3937`.
 **Category:** OBSERVABILITY · **Severity:** Medium · **Priority:** P2
 **Location:** `JobTrigger-Backend/server.js`, `middleware/*.js`
 **Fix:** Request-ID middleware; structured JSON logs.
-PARTIAL — `bb5d6fb`. The original note claimed the correlation id is
-propagated to Jenkins calls; the backend makes no Jenkins calls and the app
-sends no request id, so correlation ends at the backend.
+`bb5d6fb`. The original note claimed the correlation id is propagated to
+Jenkins calls; the backend makes no Jenkins calls, and the app sent no
+request id. FIXED 2026-10-23: the app sends `x-request-id` on every backend
+request and shows it as "Reference: …" on a backend 5xx.
 
-Seven are resolved and NEW-08 is partial (corrected 2026-10-23).
+All eight are resolved (NEW-08 completed 2026-10-23).
 
 ---
 
@@ -146,11 +146,11 @@ Seven are resolved and NEW-08 is partial (corrected 2026-10-23).
 | Metric | Value |
 |--------|-------|
 | Phase 13 tasks total | 27 |
-| Verified **FIXED** | 25 |
-| **PARTIAL** | 2 (P13-07, P13-26) |
+| Verified **FIXED** | 26 |
+| **PARTIAL** | 1 (P13-07 — password reset needs an email provider) |
 | **NOT FIXED** — owner action | 1 (AUD-66 token revocation) |
 | New findings this audit (NEW-01 … NEW-08) | 8 |
-| New findings resolved | 7 (NEW-08 partial) |
+| New findings resolved | 8 |
 | Prior audit items re-verified (AUD-01 … AUD-66, excluding prior audits) | 0 — this is the first audit that actually verifies the work |
 | Running `flutter analyze` | Clean (CI green) |
 | Running backend suite | 153 passing |
@@ -171,7 +171,7 @@ Top priorities recapitulated: §11 inversion (P13-24), request IDs + logs
   test-run confirmation (e.g. §11 layering, §14 latency), the test suite
   was executed, not just read.
 - **Corrections, 2026-10-23.** Re-checked against `develop`: P13-07 and
-  P13-26/NEW-08 downgraded to partial, P13-17's script name corrected,
+  P13-26/NEW-08 found partial (P13-26/NEW-08 then completed the same day), P13-17's script name corrected,
   P13-13 noted as completed by P14-25, typos fixed. GitHub Actions has since
   been disabled for the repository by the owner; the last runs (2026-10-23)
   were green.

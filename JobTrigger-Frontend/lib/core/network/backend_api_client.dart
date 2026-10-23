@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../config/app_config.dart';
 import '../storage/secure_storage_service.dart';
+import 'request_id.dart';
 import 'session_signal.dart';
 
 part 'backend_api_client.g.dart';
@@ -58,6 +59,18 @@ Dio buildBackendDio({
   // refresh rather than starting its own (the old refresh token would
   // otherwise be spent several times over).
   Future<_RefreshOutcome>? refreshing;
+
+  // P13-26: one id per request, kept when the request is retried after a
+  // token refresh (the same options are sent again), so both attempts log
+  // under it on the backend.
+  dio.interceptors.add(
+    InterceptorsWrapper(
+      onRequest: (options, handler) {
+        options.headers.putIfAbsent('x-request-id', newRequestId);
+        handler.next(options);
+      },
+    ),
+  );
 
   dio.interceptors.add(
     InterceptorsWrapper(
