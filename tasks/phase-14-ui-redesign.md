@@ -69,6 +69,31 @@ CI run before it merges.
 - [x] P14-23 Account dialogs: change password, delete account (design 22).
 - [x] P14-24 Unknown route (design 23).
 - [x] P14-25 Home-screen widget and build notifications (design 24).
-- [ ] P14-26 Close-out: update the design-system user stories
-      (`docs/user-stories/00-design-system-glassmorphism.md`) to the
+- [x] P14-26 Close-out: update the design-system user stories
+      (`docs/user-stories/shared/00-design-system-glassmorphism.md`) to the
       approved look, and mark the phase done in `tasks/README.md`.
+
+## Outcome (2026-10-23)
+
+All 26 tasks done on `feature/ui-redesign`, one commit each, verified
+locally as the CI note above describes. Still open before merge: a real CI
+run once GitHub Actions is re-enabled, and the manual mid-range Android
+scroll check (US-DESIGN-04, carried over from P5-13).
+
+Where a screen differs from its design, on purpose (details in each
+commit message):
+
+- Designs show actions that need features not built yet, so they're left
+  out rather than faked: build share and rebuild (P14-15), the repo's last
+  run status (P14-08), workflow Run buttons — GH-RUN (P14-19), node labels
+  (P14-17).
+- App lock keeps a single Unlock button (P14-06).
+- Settings keeps credential sections scoped to the active CI tool (P14-10).
+- Open link asks "Switch to <server>?" rather than stating it (P14-20).
+- App info's "Open-source licenses" opens out — the backend supplies a URL,
+  not an in-app page (P14-21).
+- Build notifications don't name the server — a watch stores only its id
+  (P14-25).
+- Two changes go beyond looks, both approved with the designs: the edit
+  sheets gained their own Delete (confirmed as a swipe is, P14-22), and the
+  locked home-screen widget shows only how many jobs are pinned (P14-25).

@@ -32,7 +32,7 @@ to the same file, just at a new path.
 
 | Folder | File | Epic | Covers |
 |---|---|---|---|
-| `shared/` | [00-design-system-glassmorphism.md](shared/00-design-system-glassmorphism.md) | DESIGN | The frosted-glass visual language every screen below must implement |
+| `shared/` | [00-design-system-glassmorphism.md](shared/00-design-system-glassmorphism.md) | DESIGN | The visual language every screen below implements: frosted nav chrome, flat cards, one accent, status tones (Phase 14) |
 | `shared/` | [01-authentication.md](shared/01-authentication.md) | AUTH | Sign up, log in, session persistence, logout, session expiry |
 | `shared/` | [02-tool-selection.md](shared/02-tool-selection.md) | TOOL | Choosing the active CI tool |
 | `shared/` | [08-profile-settings-app-info.md](shared/08-profile-settings-app-info.md) | PROF | Profile, appearance, app info, bottom tab navigation |
