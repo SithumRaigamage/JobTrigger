@@ -275,7 +275,7 @@ why I need to log in again
 
 **Priority:** Must (App Store Review Guideline 5.1.1(v); Google Play
 data-deletion policy)
-**Source:** `docs/audit/2026-10-22-workspace-audit.md` AUD-48, P13-07
+**Source:** AUD-48, P13-07 (`tasks/phase-13-audit-2-remediation.md`)
 **Dependencies:** US-AUTH-02, US-AUTH-04
 
 As a JobTrigger user
@@ -328,11 +328,12 @@ So that whoever has it, and every device signed in with it, is locked out
 
 ---
 
-### US-AUTH-08 — Reset a forgotten password (open)
+### US-AUTH-08 — Reset a forgotten password (deferred to backlog)
 
 **Priority:** Should
-**Source:** AUD-48. **Not implemented:** it needs an email provider for the
-backend, a product decision outside the current architecture.
+**Source:** AUD-48. **Not implemented — deferred to `tasks/backlog.md`
+(2026-10-23):** it needs an email provider for the backend, a product
+decision outside the current architecture.
 
 As a user who forgot my password
 I want to reset it by email
