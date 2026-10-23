@@ -47,7 +47,7 @@ CI run before it merges.
       `SectionLabel` widgets.
 - [x] P14-03 Login (design 01).
 - [x] P14-04 Signup (design 02).
-- [ ] P14-05 Tool selection (design 03).
+- [x] P14-05 Tool selection (design 03).
 - [ ] P14-06 App lock (design 04).
 - [ ] P14-07 Home — Jenkins, dark and light (designs 05, 06).
 - [ ] P14-08 Home — GitHub repositories (design 07).

@@ -65,12 +65,15 @@ void main() {
       );
 
       await tester.tap(jenkinsCard);
+      await tester.pumpAndSettle();
+      // P14-05: choosing a tool highlights it; Continue commits it.
+      await tester.tap(find.byKey(const Key('tool_continue_button')));
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
       expect(
         find.text('Jobs'),
         findsOneWidget,
-        reason: 'Tapping Jenkins should navigate to HomeScreen ("Jobs").',
+        reason: 'Choosing Jenkins and continuing should land on Home ("Jobs").',
       );
       expect(
         Theme.of(tester.element(find.text('Jobs'))).colorScheme.primary,

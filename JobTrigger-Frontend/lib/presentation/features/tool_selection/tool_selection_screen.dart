@@ -3,288 +3,107 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_tokens.dart';
-import '../../common_widgets/glass_surface.dart';
-import '../../common_widgets/gradient_backdrop.dart';
-import '../../common_widgets/responsive_center.dart';
+import '../../common_widgets/pinned_footer_layout.dart';
+import '../../common_widgets/section_label.dart';
 import '../../navigation/app_routes.dart';
 import 'active_tool_notifier.dart';
 import 'ci_tool.dart';
 
-/// Ported from `Tools/ToolSelection/ToolSelectionView.swift`. Displayed
-/// after login, before the main app shell. Static grid — see
-/// `docs/state-management.md`'s "Feature: tool_selection" section.
-class ToolSelectionScreen extends StatelessWidget {
+/// Ported from `Tools/ToolSelection/ToolSelectionView.swift`, laid out to
+/// the P14 design (`UI-UX/screens/03-tool-selection`): the available tools
+/// as a single-choice list, the not-yet-available ones below them, and a
+/// Continue button that commits the choice. Shown after login, and again
+/// when switching tool from the profile.
+class ToolSelectionScreen extends ConsumerStatefulWidget {
   const ToolSelectionScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Scaffold(
-      body: GradientBackdrop(
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ResponsiveCenter(
-                maxWidth: 900,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: colorScheme.primary.withValues(
-                                alpha: 0.25,
-                              ),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.shield_outlined,
-                          color: colorScheme.onPrimary,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Choose Your Tool',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Select a CI/CD platform to get started',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTokens.of(context).textMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ResponsiveCenter(
-                  maxWidth: 900,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            const spacing = 16.0;
-                            final columns = responsiveColumnCount(
-                              constraints.maxWidth,
-                              // Wider than the grid utility's own 180
-                              // default -- _ToolCard's fixed-height content
-                              // (icon + name + tagline) overflows its cell
-                              // below ~180px of width at the 1.05 aspect
-                              // ratio used below, so this keeps a safety
-                              // margin rather than tuning it to the exact
-                              // pixel.
-                              targetTileWidth: 220,
-                            );
-                            final cardWidth =
-                                (constraints.maxWidth -
-                                    (columns - 1) * spacing) /
-                                columns;
-                            // Wrap (not GridView) so a trailing partial row
-                            // -- e.g. 5 tools at 4 columns leaving 1 alone --
-                            // centers as a group instead of sitting flush
-                            // left with a large empty gap beside it.
-                            return Wrap(
-                              alignment: WrapAlignment.center,
-                              spacing: spacing,
-                              runSpacing: spacing,
-                              children: [
-                                for (final tool in CiTool.values)
-                                  SizedBox(
-                                    width: cardWidth,
-                                    height: cardWidth / 0.85,
-                                    child: _ToolCard(tool: tool),
-                                  ),
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'More integrations rolling out — Jenkins and '
-                          'GitHub Actions are fully supported today.',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: AppTokens.of(context).textMuted,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  ConsumerState<ToolSelectionScreen> createState() =>
+      _ToolSelectionScreenState();
 }
 
-class _ToolCard extends ConsumerStatefulWidget {
-  const _ToolCard({required this.tool});
+class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
+  /// The highlighted choice before Continue — the tool already in use when
+  /// switching, Jenkins on first run.
+  late CiTool _selected =
+      ref.read(activeToolNotifierProvider) ?? CiTool.jenkins;
 
-  final CiTool tool;
-
-  @override
-  ConsumerState<_ToolCard> createState() => _ToolCardState();
-}
-
-class _ToolCardState extends ConsumerState<_ToolCard> {
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (widget.tool.isAvailable) setState(() => _pressed = value);
-  }
-
-  void _select(CiTool tool) {
-    ref.read(activeToolNotifierProvider.notifier).setActiveTool(tool);
+  void _continue() {
+    ref.read(activeToolNotifierProvider.notifier).setActiveTool(_selected);
     context.go(AppRoutes.home);
   }
 
   @override
   Widget build(BuildContext context) {
-    final tool = widget.tool;
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    // AUD-62: the old card-wide `Opacity(0.6)` dimmed the *text* along with
-    // the art, which dropped the tool name/tagline to 3.1:1 and the "Soon"
-    // pill to 2.7:1. Availability is now carried by the badge, the border and
-    // the icon tint -- never by lowering text contrast.
-    final mutedText = AppTokens.of(context).textMuted;
+    final textTheme = Theme.of(context).textTheme;
+    final t = AppTokens.of(context);
+    final available = CiTool.values.where((tool) => tool.isAvailable);
+    final later = CiTool.values.where((tool) => !tool.isAvailable);
 
-    return AnimatedScale(
-      key: Key('tool_card_${tool.name}'),
-      scale: _pressed ? 0.97 : 1.0,
-      duration: const Duration(milliseconds: 120),
-      curve: Curves.easeOut,
-      // GlassSurface.card's own fill/border/shadow replace the ad hoc
-      // Material+Container decoration this used to be; the tool's
-      // accent-tinted border is layered on top via a second Container
-      // since GlassSurface doesn't know about per-instance accent colors.
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: tool.isAvailable
-                ? tool.accentColor.withValues(alpha: 0.25)
-                : Colors.grey.withValues(alpha: 0.1),
-            width: 1.5,
-          ),
-        ),
-        child: GlassSurface.card(
-          borderRadius: BorderRadius.circular(20),
-          onTap: tool.isAvailable ? () => _select(tool) : null,
-          onTapDown: (_) => _setPressed(true),
-          onTapUp: (_) => _setPressed(false),
-          onTapCancel: () => _setPressed(false),
-          child: Stack(
-            alignment: Alignment.topRight,
+    return Scaffold(
+      body: SafeArea(
+        child: PinnedFooterLayout(
+          padding: const EdgeInsets.fromLTRB(20, 40, 20, 24),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Opacity(
-                      // The icon is decoration next to the tool's name, so
-                      // fading it for the not-yet-available tools is safe --
-                      // the text below it stays at full contrast.
-                      opacity: tool.isAvailable ? 1.0 : 0.5,
-                      child: Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: tool.accentColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Icon(
-                          tool.icon,
-                          size: 26,
-                          color: tool.accentColor,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
                     Text(
-                      tool.displayName,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: tool.isAvailable
-                            ? colorScheme.onSurface
-                            : mutedText,
-                      ),
+                      'What do you build with?',
+                      style: textTheme.headlineLarge,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 8),
                     Text(
-                      tool.tagline,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: mutedText,
-                      ),
+                      'You can switch any time from your profile.',
+                      style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
                     ),
-                    if (tool.isAvailable) ...[
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Semantics(
+                label: 'CI tool',
+                explicitChildNodes: true,
+                child: Column(
+                  children: [
+                    for (final tool in available) ...[
+                      _ToolOption(
+                        tool: tool,
+                        selected: tool == _selected,
+                        onTap: () => setState(() => _selected = tool),
+                      ),
                       const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: tool.accentColor.withValues(alpha: 0.14),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'Recommended',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: tool.accentColor,
-                          ),
-                        ),
-                      ),
                     ],
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: tool.isAvailable
-                    ? Icon(
-                        Icons.check_circle,
-                        size: 18,
-                        color: tool.accentColor,
-                      )
-                    : const _ComingSoonBadge(),
-              ),
+              if (later.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: SectionLabel('Coming later'),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (final (i, tool) in later.indexed) ...[
+                      if (i > 0) const SizedBox(width: 10),
+                      Expanded(child: _LaterTile(tool: tool)),
+                    ],
+                  ],
+                ),
+              ],
             ],
+          ),
+          footer: FilledButton(
+            key: const Key('tool_continue_button'),
+            onPressed: _continue,
+            child: Text('Continue with ${_selected.displayName}'),
           ),
         ),
       ),
@@ -292,25 +111,163 @@ class _ToolCardState extends ConsumerState<_ToolCard> {
   }
 }
 
-class _ComingSoonBadge extends StatelessWidget {
-  const _ComingSoonBadge();
+/// The tool's brand mark on its own colour — the one place a tool's brand
+/// colour is drawn (P14 decision 4). A near-black brand (GitHub) is drawn
+/// reversed in dark mode so the tile doesn't vanish into the card.
+class _ToolMark extends StatelessWidget {
+  const _ToolMark({required this.tool, this.size = 44, this.muted = false});
+
+  final CiTool tool;
+  final double size;
+  final bool muted;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        // AUD-62: grey 600 -- the white label reaches 6.2:1 on it (plain
-        // grey gave 2.7:1).
-        color: const Color(0xFF616161),
-        borderRadius: BorderRadius.circular(20),
+    final t = AppTokens.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final reversed = isDark && tool.accentColor.computeLuminance() < 0.05;
+    final background = muted
+        ? t.raised
+        : reversed
+        ? t.text
+        : tool.accentColor;
+    final foreground = muted
+        ? t.textSecondary
+        : reversed
+        ? tool.accentColor
+        : Colors.white;
+    return ExcludeSemantics(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(size * 0.27),
+        ),
+        child: Icon(tool.icon, size: size * 0.5, color: foreground),
       ),
-      child: const Text(
-        'Soon',
-        style: TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
+    );
+  }
+}
+
+class _ToolOption extends StatelessWidget {
+  const _ToolOption({
+    required this.tool,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final CiTool tool;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTokens.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    const radius = BorderRadius.all(Radius.circular(16));
+
+    return Semantics(
+      key: Key('tool_card_${tool.name}'),
+      inMutuallyExclusiveGroup: true,
+      checked: selected,
+      button: true,
+      label: '${tool.displayName}, ${tool.tagline}',
+      excludeSemantics: true,
+      child: Material(
+        color: t.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius,
+          side: BorderSide(
+            color: selected ? colorScheme.primary : t.cardBorder,
+            width: 2,
+          ),
+        ),
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                _ToolMark(tool: tool),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(tool.displayName, style: textTheme.titleMedium),
+                      const SizedBox(height: 3),
+                      Text(tool.tagline, style: textTheme.bodySmall),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: selected ? colorScheme.primary : Colors.transparent,
+                    border: selected
+                        ? null
+                        : Border.all(color: colorScheme.outline, width: 2),
+                  ),
+                  child: selected
+                      ? Icon(
+                          Icons.check_rounded,
+                          size: 16,
+                          color: colorScheme.onPrimary,
+                        )
+                      : null,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A tool that isn't available yet: shown so users know it's coming, not
+/// selectable, and read out as unavailable.
+class _LaterTile extends StatelessWidget {
+  const _LaterTile({required this.tool});
+
+  final CiTool tool;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTokens.of(context);
+    return Semantics(
+      key: Key('tool_card_${tool.name}'),
+      enabled: false,
+      label: '${tool.displayName}, coming later',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
+        decoration: BoxDecoration(
+          color: t.chrome,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: t.cardBorder),
+        ),
+        child: Column(
+          children: [
+            _ToolMark(tool: tool, size: 36, muted: true),
+            const SizedBox(height: 8),
+            Text(
+              tool.displayName,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: t.textSecondary),
+            ),
+          ],
         ),
       ),
     );
