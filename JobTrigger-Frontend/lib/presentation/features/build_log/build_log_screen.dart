@@ -7,6 +7,7 @@ import '../../../core/error/error_message.dart';
 import '../../../domain/jenkins/console_decoder.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../common_widgets/responsive_center.dart';
@@ -449,13 +450,13 @@ class _Banner extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  static const _text = Color(0xFFCBD5E1);
+  static const _text = AppColors.consoleText;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFF1E293B),
+      color: AppColors.consoleBar,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Row(
         children: [

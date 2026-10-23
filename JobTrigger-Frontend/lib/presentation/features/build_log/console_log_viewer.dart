@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 
 import '../../../core/theme/app_typography.dart';
@@ -58,9 +60,9 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
   static const _padding = EdgeInsets.symmetric(horizontal: 12, vertical: 8);
 
   /// Console text, and the dimmer gutters (line numbers, timestamps) —
-  /// 5.5:1 on the console background, where `white38` was about 3:1.
-  static const _text = Color(0xFFCBD5E1);
-  static const _gutter = Color(0xFF8291A8);
+  /// 5.6:1 on the console background, where `white38` was about 3:1.
+  static const _text = AppColors.consoleText;
+  static const _gutter = AppColors.consoleGutter;
 
   /// Whether new output scrolls into view.
   bool get following => _autoScroll;
@@ -271,7 +273,7 @@ class _LineRow extends StatelessWidget {
   final bool isCurrentMatch;
 
   /// A failing line's tint (`UI-UX/screens/15-build-log`).
-  static const _errorTint = Color(0xFF2A1216);
+  static const _errorTint = AppColors.consoleErrorLine;
 
   @override
   Widget build(BuildContext context) {
@@ -331,8 +333,8 @@ List<TextSpan> highlightConsoleSpans(
 }) {
   final needle = query.toLowerCase();
   final highlight = isCurrentMatch
-      ? const Color(0xFFFFB300)
-      : const Color(0x66FFB300);
+      ? AppColors.consoleMatch
+      : AppColors.consoleOtherMatch;
   final result = <TextSpan>[];
   for (final span in spans) {
     final style = consoleTextStyle(span.style, base);
@@ -387,32 +389,12 @@ TextStyle consoleTextStyle(ConsoleStyle style, TextStyle base) {
   );
 }
 
-/// The 16 standard colors, tuned for legibility on black.
-const _standardColors = [
-  Color(0xFF000000),
-  Color(0xFFEF5350),
-  Color(0xFF66BB6A),
-  Color(0xFFFFCA28),
-  Color(0xFF42A5F5),
-  Color(0xFFAB47BC),
-  Color(0xFF26C6DA),
-  Color(0xFFE0E0E0),
-  Color(0xFF757575),
-  Color(0xFFFF8A80),
-  Color(0xFFB9F6CA),
-  Color(0xFFFFFF8D),
-  Color(0xFF82B1FF),
-  Color(0xFFEA80FC),
-  Color(0xFF84FFFF),
-  Color(0xFFFFFFFF),
-];
-
 /// xterm-256 and truecolor to [Color].
 Color consoleColor(ConsoleColor color) {
   final rgb = color.rgb;
   if (rgb != null) return Color(0xFF000000 | rgb);
   final index = color.index!;
-  if (index < 16) return _standardColors[index];
+  if (index < 16) return AppColors.consoleAnsi[index];
   if (index < 232) {
     const levels = [0, 95, 135, 175, 215, 255];
     final cube = index - 16;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_tokens.dart';
 import 'glass_surface.dart';
 import 'toast_controller.dart';
 
@@ -20,13 +21,14 @@ class ToastView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Not `static const` -- info's color follows the active tool's accent
-    // (`Theme.of(context).colorScheme.primary`) rather than a hardcoded
-    // blue, consistent with the rest of the app's theming.
+    // AUD-30: the theme's status colours, whose contrast is tested in
+    // both themes — not Material's `Colors.green`/`red`/`orange`, which
+    // fall below 3:1 on a light card.
+    final t = AppTokens.of(context);
     final colorByType = {
-      ToastType.success: Colors.green,
-      ToastType.error: Colors.red,
-      ToastType.warning: Colors.orange,
+      ToastType.success: t.success.foreground,
+      ToastType.error: t.failure.foreground,
+      ToastType.warning: t.unstable.foreground,
       ToastType.info: Theme.of(context).colorScheme.primary,
     };
     final color = colorByType[message.type]!;

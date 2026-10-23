@@ -96,4 +96,31 @@ void main() {
     expect(AppColors.toneForJobColor('disabled'), StatusTone.neutral);
     expect(AppColors.isJobColorAnimating('red_anime'), isTrue);
   });
+
+  // AUD-30: the build log's own colours, drawn on the console in both
+  // themes, are tokens now — so they're measured like the rest.
+  group('console', () {
+    for (final (name, ground) in const [
+      ('console', AppColors.consoleDark),
+      ('an error line', AppColors.consoleErrorLine),
+      ('a banner', AppColors.consoleBar),
+    ]) {
+      test('text reads at 4.5:1 on $name', () {
+        expect(
+          _contrast(AppColors.consoleText, ground),
+          greaterThanOrEqualTo(4.5),
+        );
+      });
+    }
+    test('line numbers read at 4.5:1 on the console and error lines', () {
+      expect(
+        _contrast(AppColors.consoleGutter, AppColors.consoleDark),
+        greaterThanOrEqualTo(4.5),
+      );
+      expect(
+        _contrast(AppColors.consoleGutter, AppColors.consoleErrorLine),
+        greaterThanOrEqualTo(4.5),
+      );
+    });
+  });
 }

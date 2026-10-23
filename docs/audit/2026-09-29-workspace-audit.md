@@ -79,7 +79,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-27 | Medium | Security / UX | Password build parameters rendered in plaintext and pre-filled | fixed (P11-04) |
 | AUD-28 | Low | Privacy | Logout leaves per-user preferences behind on a shared device | fixed (P12-09) |
 | AUD-29 | Low | Bug | Artifact download state keyed by relative path only, shared across builds | fixed (P12-09) |
-| AUD-30 | Low | UI / A11y | Hardcoded colors bypass `AppColors` tokens (dark-mode contrast) | fixed (P12-09) |
+| AUD-30 | Low | UI / A11y | Hardcoded colors bypass `AppColors` tokens (dark-mode contrast) | fixed (P12-09; toasts and console colours 2026-10-23) |
 | AUD-31 | Low | Code quality (backend) | Three copy-pasted credential controllers | fixed (P12-25) |
 | AUD-32 | Low | Code quality | Trailing-slash URL normalisation duplicated 11× in `JenkinsRepositoryImpl` | fixed (P12-04) |
 | AUD-33 | Low | UX | Search results lack folder context; empty state can't pull to refresh | fixed (P11-10) |
@@ -90,7 +90,7 @@ are cross-referenced instead of being fixed twice.
 | AUD-39 | High | Bug | Cancelling a *pipeline* build reports failure (Jenkins answers the stop with a 302) | fixed (P11-13) |
 | AUD-40 | High | Release | Android build fails: `flutter_secure_storage` 11 needs compileSdk 37, the app compiled against 36 | fixed (P11-24) |
 | AUD-41 | Medium | Testing | Backend suite failed intermittently (~1 run in 10): supertest's per-request throwaway servers | fixed (P12-27) |
-| AUD-36 | Low | Hygiene | Untracked leftovers in the workspace (1.2 GB build output, coverage, stray tool dirs) | fixed (local cleanup 2026-09-29) |
+| AUD-36 | Low | Hygiene | Untracked leftovers in the workspace (1.2 GB build output, coverage, stray tool dirs) | fixed (local cleanup 2026-09-29, again 2026-10-23) |
 
 **Counts:** 3 Critical, 17 High, 12 Medium, 9 Low (41 total). AUD-37 and AUD-38 were found on 2026-09-29 during P11-04's real-server verification, AUD-39 on 2026-09-30 during P11-13's, AUD-40 on 2026-09-30 while compile-checking P11-24's native setup, and AUD-41 on 2026-10-01 while writing P12-27's tests.
 
@@ -604,7 +604,13 @@ are cross-referenced instead of being fixed twice.
   plain amber and orange measure 1.6 to 2.2:1 on light. **Follow-up:** the
   ported `buildUnstable` (`Colors.orange`) is also 2.06:1 on light, but
   it's a SwiftUI-parity color used across many screens, so changing it is
-  left for a design decision rather than done silently.
+  left for a design decision rather than done silently. *(Resolved by the
+  P14 redesign: every status colour is a measured token.)* **Re-check
+  2026-10-23 — reopened and fixed:** toasts still used `Colors.green`,
+  `red` and `orange` (the green about 2.8:1 on a light card), and the P14
+  build log, its banners and the stage sheet's log had literal colours.
+  Toasts now take the theme's status colours; the console colours are
+  `AppColors.console*` tokens, with their contrast tested.
 - **AUD-31 — Duplicated backend controllers:** `credentialsController`,
   `githubCredentialsController`, and `sonarqubeCredentialsController` are
   copy-pastes. Fix: a `makeCredentialController(Model, fields)` factory,
@@ -632,7 +638,11 @@ are cross-referenced instead of being fixed twice.
   (2026-09-29, alongside this audit) produces no commit diff. No tracked file
   was found to be unnecessary: the `macos/` target is the documented
   local-dev target (see `secure_storage_service.dart`), and the
-  `RunnerTests` stubs are referenced by the Xcode projects.
+  `RunnerTests` stubs are referenced by the Xcode projects. **Re-check
+  2026-10-23:** `.github/modernize/java-upgrade/`, `.DS_Store` files,
+  `JobTrigger-Frontend/coverage/` and a stray `.a11y.log` had come back
+  locally; removed again. All are git-ignored, so they can't reach a
+  commit.
 
 ## Out of scope / verified OK
 
