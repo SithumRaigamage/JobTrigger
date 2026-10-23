@@ -21,7 +21,8 @@ class HistoryTile extends StatelessWidget {
     this.onTap,
     this.onReplay,
     this.grouped = false,
-  });
+    bool? withDate,
+  }) : withDate = withDate ?? !grouped;
 
   final JenkinsBuild jenkinsBuild;
 
@@ -37,9 +38,12 @@ class HistoryTile extends StatelessWidget {
   /// global cross-job history view doesn't have.
   final VoidCallback? onReplay;
 
-  /// A row inside a grouped card under a day heading: no card of its own,
-  /// and only the time of day, since the heading gives the date.
+  /// A row inside a grouped card: no card of its own.
   final bool grouped;
+
+  /// Whether the time shows the day too ("Today 10:41"). Off for rows
+  /// under a day heading, which already gives it.
+  final bool withDate;
 
   @override
   Widget build(BuildContext context) {
@@ -53,9 +57,10 @@ class HistoryTile extends StatelessWidget {
     final duration = build.duration;
     final detail = [
       StatusPill.labelForBuildResult(build.building ? null : build.result),
-      if (build.building)
+      // With the date shown below, "started 1m ago" would say it twice.
+      if (build.building && !withDate)
         'started ${relativeTime(started)}'
-      else if (duration != null && duration > 0)
+      else if (!build.building && duration != null && duration > 0)
         formatBuildDuration(duration),
     ].join(' · ');
     final mono = AppTypography.mono(textTheme.bodySmall).copyWith(fontSize: 12);
@@ -97,11 +102,17 @@ class HistoryTile extends StatelessWidget {
                     color: t.status(tone).foreground,
                   ),
                 ),
+                if (withDate) ...[
+                  const SizedBox(height: 2),
+                  Text(_dateTime(started), style: mono),
+                ],
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Text(grouped ? clockTime(started) : _dateTime(started), style: mono),
+          if (!withDate) ...[
+            const SizedBox(width: 8),
+            Text(clockTime(started), style: mono),
+          ],
           if (onReplay != null)
             IconButton(
               icon: const Icon(Icons.replay_rounded, size: 20),
