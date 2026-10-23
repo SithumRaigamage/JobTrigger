@@ -3,7 +3,7 @@ import 'jenkins_build.dart';
 /// Fewer finished builds than this and trends would mislead (US-JX-15).
 const minBuildsForTrends = 5;
 
-/// One point on the duration sparkline, oldest first.
+/// One build on the duration chart, oldest first.
 typedef TrendPoint = ({int number, double durationMillis, bool failed});
 
 /// Success rate and durations over a job's recent finished builds

@@ -242,9 +242,10 @@ void main() {
 
       expect(find.byType(GitHubRepoScreen), findsOneWidget);
       expect(find.byType(HomeScreen), findsNothing);
-      expect(find.text('hello-world'), findsOneWidget);
+      // P14-08: a repo card reads "owner/name".
+      expect(find.text('octocat/hello-world'), findsOneWidget);
 
-      await tester.tap(find.text('hello-world'));
+      await tester.tap(find.text('octocat/hello-world'));
       await tester.pumpAndSettle();
 
       expect(find.byType(GitHubWorkflowListScreen), findsOneWidget);
@@ -292,9 +293,7 @@ void main() {
 
     router.go('/no/such/place');
     await tester.pumpAndSettle();
-    expect(
-      find.text("This link doesn't lead anywhere in JobTrigger."),
-      findsOneWidget,
-    );
+    expect(find.text('That link didn’t lead anywhere'), findsOneWidget);
+    expect(find.text('Go to Home'), findsOneWidget);
   });
 }

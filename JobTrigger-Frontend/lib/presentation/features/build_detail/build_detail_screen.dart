@@ -4,6 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../domain/jenkins/history_filter.dart';
+import '../../common_widgets/grouped_card.dart';
+import '../../common_widgets/inline_alert.dart';
+import '../../common_widgets/section_label.dart';
+import '../../common_widgets/status_pill.dart';
 import '../../../domain/jenkins/html_text.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/relative_time.dart';
@@ -21,7 +28,8 @@ import 'build_detail_notifier.dart';
 /// stages, tests, artifacts), plus "keep forever" and an editable
 /// description. Reached from history and the last success/failure links.
 /// [jenkinsBuild] is the (possibly partial) build it was opened from, shown
-/// until the full fetch lands.
+/// until the full fetch lands. Laid out to the P14 design
+/// (`UI-UX/screens/14-build-detail`).
 class BuildDetailScreen extends ConsumerWidget {
   const BuildDetailScreen({super.key, required this.jenkinsBuild});
 
@@ -32,29 +40,41 @@ class BuildDetailScreen extends ConsumerWidget {
     final url = jenkinsBuild.url;
     final detail = ref.watch(buildDetailNotifierProvider(url));
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: GlassAppBar(
-        title: Text(jenkinsBuild.displayName ?? '#${jenkinsBuild.number}'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.article_outlined),
-            tooltip: 'View log',
-            onPressed: () =>
-                context.push(AppRoutes.buildLog, extra: jenkinsBuild),
-          ),
-        ],
-      ),
-      body: ResponsiveCenter(
-        child: detail.when(
-          skipLoadingOnRefresh: true,
-          data: (build) => _BuildBody(jenkinsBuild: build),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: ConnectionErrorView(
-              message: describeError(error),
-              onRetry: () => ref.invalidate(buildDetailNotifierProvider(url)),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            ResponsiveCenter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.chevron_left_rounded, size: 28),
+                    tooltip: 'Back',
+                    onPressed: () => Navigator.of(context).maybePop(),
+                  ),
+                ),
+              ),
             ),
-          ),
+            Expanded(
+              child: ResponsiveCenter(
+                child: detail.when(
+                  skipLoadingOnRefresh: true,
+                  data: (build) => _BuildBody(jenkinsBuild: build),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, _) => Center(
+                    child: ConnectionErrorView(
+                      message: describeError(error),
+                      onRetry: () =>
+                          ref.invalidate(buildDetailNotifierProvider(url)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -69,90 +89,118 @@ class _BuildBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
-    final stages = ref
-        .watch(pipelineStagesNotifierProvider(jenkinsBuild.url))
-        .value;
-    final report = ref
-        .watch(testReportNotifierProvider(jenkinsBuild.url))
-        .value;
-    void viewLog() => context.push(AppRoutes.buildLog, extra: jenkinsBuild);
+    final t = AppTokens.of(context);
+    final build = jenkinsBuild;
+    final stages = ref.watch(pipelineStagesNotifierProvider(build.url)).value;
+    final report = ref.watch(testReportNotifierProvider(build.url)).value;
+    void viewLog() => context.push(AppRoutes.buildLog, extra: build);
+
+    final jobLabel = jobLabelFromBuildUrl(build.url);
+    final number = '#${build.number}';
+    final name = build.displayName;
+    final started = fromJenkinsTimestamp(build.timestamp);
+    final duration = build.duration;
+    final failedStage = stages
+        ?.where((stage) => stage.status.toUpperCase() == 'FAILED')
+        .firstOrNull;
+    final broken =
+        !build.building &&
+        (build.result == 'FAILURE' || build.result == 'UNSTABLE');
 
     return ListView(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        MediaQuery.paddingOf(context).top + kToolbarHeight + 16,
-        16,
-        24,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
       children: [
-        GlassSurface.card(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    jenkinsBuild.building ? Icons.autorenew : Icons.circle,
-                    size: 16,
-                    color: AppColors.forBuildResult(jenkinsBuild.result),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    jenkinsBuild.building
-                        ? 'Building…'
-                        : (jenkinsBuild.result ?? 'Unknown'),
-                    style: textTheme.titleMedium,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                [
-                  'Started ${relativeTime(fromJenkinsTimestamp(jenkinsBuild.timestamp))}',
-                  if (!jenkinsBuild.building && jenkinsBuild.duration != null)
-                    'took ${formatBuildDuration(jenkinsBuild.duration!)}',
-                ].join(' · '),
-                style: textTheme.bodySmall,
-              ),
-              if (jenkinsBuild.causes.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  jenkinsBuild.causes.join(', '),
-                  style: textTheme.bodySmall,
+        if (jobLabel.isNotEmpty)
+          Text(
+            jobLabel,
+            style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
+          ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Flexible(
+              child: Semantics(
+                header: true,
+                child: Text(
+                  number,
+                  style: AppTypography.mono(textTheme.headlineMedium),
                 ),
-              ],
-              if (jenkinsBuild.upstreamCause case final cause?) ...[
-                const SizedBox(height: 4),
-                UpstreamLink(cause: cause),
-              ],
-            ],
-          ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            StatusPill.forBuildResult(build.building ? null : build.result),
+          ],
         ),
-        const SizedBox(height: 12),
-        _KeepForeverTile(jenkinsBuild: jenkinsBuild),
-        const SizedBox(height: 12),
-        _DescriptionCard(jenkinsBuild: jenkinsBuild),
-        if (jenkinsBuild.parameterValues.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          Text('Parameters', style: textTheme.titleSmall),
+        // A custom build name ("Release 1.4"), when it isn't just "#n".
+        if (name != null && name.isNotEmpty && name != number) ...[
           const SizedBox(height: 4),
-          for (final MapEntry(:key, :value)
-              in jenkinsBuild.parameterValues.entries)
-            Text('$key: $value', style: textTheme.bodySmall),
+          Text(name, style: textTheme.titleSmall),
         ],
-        if (jenkinsBuild.changes.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          Text('Changes', style: textTheme.titleSmall),
-          ChangesList(changes: jenkinsBuild.changes),
-        ],
-        if (stages != null && stages.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          StageChipRow(
-            buildUrl: jenkinsBuild.url,
-            stages: stages,
-            onViewLog: viewLog,
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _Figure(
+                label: build.building ? 'Running for' : 'Duration',
+                value: build.building
+                    ? formatBuildDuration(
+                        DateTime.now().millisecondsSinceEpoch - build.timestamp,
+                      )
+                    : duration == null
+                    ? '—'
+                    : formatBuildDuration(duration),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _Figure(
+                label: 'Started',
+                value: '${dayLabel(started)} ${clockTime(started)}',
+              ),
+            ),
+          ],
+        ),
+        if (build.causes.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _Figure(
+            label: 'Triggered by',
+            value: build.causes.join(', '),
+            mono: false,
           ),
+        ],
+        if (build.upstreamCause case final cause?) ...[
+          const SizedBox(height: 8),
+          UpstreamLink(cause: cause),
+        ],
+        if (broken) ...[
+          const SizedBox(height: 14),
+          InlineAlert(
+            tone: build.result == 'UNSTABLE'
+                ? StatusTone.unstable
+                : StatusTone.failure,
+            title: failedStage == null
+                ? (build.result == 'UNSTABLE' ? 'Unstable' : 'Build failed')
+                : 'Failed at stage “${failedStage.name}”',
+            message: report != null && report.failCount > 0
+                ? '${report.failCount} test'
+                      '${report.failCount == 1 ? '' : 's'} failed'
+                : 'See the console log for the error.',
+          ),
+        ],
+        const SizedBox(height: 14),
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
+          onPressed: viewLog,
+          icon: const Icon(Icons.terminal_rounded),
+          label: const Text('Console log'),
+        ),
+        if (stages != null && stages.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          const SectionLabel('Pipeline'),
+          const SizedBox(height: 8),
+          StageChipRow(buildUrl: build.url, stages: stages, onViewLog: viewLog),
         ],
         if (report != null) ...[
           const SizedBox(height: 12),
@@ -161,15 +209,106 @@ class _BuildBody extends ConsumerWidget {
             child: TestReportChip(report: report),
           ),
         ],
-        if (jenkinsBuild.artifacts.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          Text('Artifacts', style: textTheme.titleSmall),
-          ArtifactsList(
-            buildUrl: jenkinsBuild.url,
-            artifacts: jenkinsBuild.artifacts,
+        if (build.artifacts.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          const SectionLabel('Artifacts'),
+          const SizedBox(height: 4),
+          ArtifactsList(buildUrl: build.url, artifacts: build.artifacts),
+        ],
+        if (build.parameterValues.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          const SectionLabel('Parameters'),
+          const SizedBox(height: 8),
+          GroupedCard(
+            children: [
+              for (final MapEntry(:key, :value)
+                  in build.parameterValues.entries)
+                _ParameterRow(name: key, value: value),
+            ],
           ),
         ],
+        if (build.changes.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          const SectionLabel('Changes'),
+          ChangesList(changes: build.changes),
+        ],
+        const SizedBox(height: 20),
+        _DescriptionCard(jenkinsBuild: build),
+        const SizedBox(height: 12),
+        _KeepForeverTile(jenkinsBuild: build),
       ],
+    );
+  }
+}
+
+/// A labelled figure: duration, start, cause.
+class _Figure extends StatelessWidget {
+  const _Figure({required this.label, required this.value, this.mono = true});
+
+  final String label;
+  final String value;
+
+  /// Times and durations are monospaced; a sentence like the cause isn't.
+  final bool mono;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    return MergeSemantics(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: t.card,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: t.cardBorder),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: textTheme.labelSmall?.copyWith(fontSize: 11)),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: mono
+                  ? AppTypography.mono(
+                      textTheme.bodyMedium,
+                    ).copyWith(fontSize: 14)
+                  : textTheme.bodyMedium?.copyWith(fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One parameter the build ran with, as Jenkins spells it.
+class _ParameterRow extends StatelessWidget {
+  const _ParameterRow({required this.name, required this.value});
+
+  final String name;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = AppTypography.mono(Theme.of(context).textTheme.bodySmall);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(name, style: style),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: style.copyWith(color: AppTokens.of(context).text),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -184,35 +323,36 @@ class _KeepForeverTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final kept = jenkinsBuild.keepLog ?? false;
-    return GlassSurface.card(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: SwitchListTile(
-        secondary: Icon(kept ? Icons.lock : Icons.lock_open),
-        title: const Text('Keep this build forever'),
-        subtitle: Text(
-          kept
-              ? 'Exempt from log rotation'
-              : 'Jenkins may delete it when rotating old builds',
+    return GroupedCard(
+      children: [
+        SwitchListTile(
+          secondary: Icon(kept ? Icons.lock_rounded : Icons.lock_open_rounded),
+          title: const Text('Keep this build forever'),
+          subtitle: Text(
+            kept
+                ? 'Exempt from log rotation'
+                : 'Jenkins may delete it when rotating old builds',
+          ),
+          value: kept,
+          onChanged: (_) async {
+            final confirmed = await showConfirmationDialog(
+              context,
+              title: kept ? 'Stop keeping forever?' : 'Keep forever?',
+              message: kept
+                  ? 'Jenkins may then delete this build when it rotates old '
+                        'builds.'
+                  : "This build will be kept regardless of the job's "
+                        'rotation settings.',
+              confirmLabel: kept ? 'Stop keeping' : 'Keep',
+              destructive: kept,
+            );
+            if (!confirmed) return;
+            await ref
+                .read(buildDetailNotifierProvider(jenkinsBuild.url).notifier)
+                .toggleKeepForever();
+          },
         ),
-        value: kept,
-        onChanged: (_) async {
-          final confirmed = await showConfirmationDialog(
-            context,
-            title: kept ? 'Stop keeping forever?' : 'Keep forever?',
-            message: kept
-                ? 'Jenkins may then delete this build when it rotates old '
-                      'builds.'
-                : "This build will be kept regardless of the job's "
-                      'rotation settings.',
-            confirmLabel: kept ? 'Stop keeping' : 'Keep',
-            destructive: kept,
-          );
-          if (!confirmed) return;
-          await ref
-              .read(buildDetailNotifierProvider(jenkinsBuild.url).notifier)
-              .toggleKeepForever();
-        },
-      ),
+      ],
     );
   }
 }
@@ -229,13 +369,13 @@ class _DescriptionCard extends ConsumerWidget {
     final text = htmlToPlainText(jenkinsBuild.description ?? '');
     final textTheme = Theme.of(context).textTheme;
     return GlassSurface.card(
-      padding: const EdgeInsets.fromLTRB(16, 8, 8, 12),
+      padding: const EdgeInsets.fromLTRB(16, 4, 4, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(child: Text('Description', style: textTheme.titleSmall)),
+              const Expanded(child: SectionLabel('Description')),
               IconButton(
                 icon: const Icon(Icons.edit_outlined),
                 tooltip: 'Edit description',

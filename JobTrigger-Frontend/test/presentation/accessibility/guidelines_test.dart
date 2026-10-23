@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:job_trigger/core/theme/app_colors.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/presentation/features/auth/login_screen.dart';
 import 'package:job_trigger/presentation/features/auth/signup_screen.dart';
@@ -32,8 +31,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             child: MaterialApp(
-              theme: AppTheme.light(accentColor: AppColors.brandSeed),
-              darkTheme: AppTheme.dark(accentColor: AppColors.brandSeed),
+              theme: AppTheme.light(),
+              darkTheme: AppTheme.dark(),
               themeMode: dark ? ThemeMode.dark : ThemeMode.light,
               home: build(),
             ),

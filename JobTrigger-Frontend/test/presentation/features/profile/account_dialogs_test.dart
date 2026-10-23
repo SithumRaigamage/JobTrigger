@@ -21,7 +21,7 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'my-password');
-    await tester.tap(find.widgetWithText(TextButton, 'Delete account'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
     await tester.pumpAndSettle();
     return result;
   }

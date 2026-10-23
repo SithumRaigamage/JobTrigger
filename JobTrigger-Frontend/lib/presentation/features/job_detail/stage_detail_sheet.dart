@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/error_message.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../domain/jenkins/relative_time.dart';
+import '../../common_widgets/inline_alert.dart';
 import '../../../domain/jenkins/console_log_sanitizer.dart';
 import '../../../domain/jenkins/pipeline_stage.dart';
 import 'stage_status_style.dart';
@@ -29,30 +33,78 @@ class StageDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final stage = node.stage;
     final textTheme = Theme.of(context).textTheme;
+    final t = AppTokens.of(context);
+    final started = stage.startTimeMillis;
+    final duration = stage.durationMillis;
+    final running = node.status.toUpperCase() == 'IN_PROGRESS';
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.6,
       maxChildSize: 0.95,
       builder: (context, controller) => ListView(
         controller: controller,
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _StatusIcon(status: node.status, size: 20),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Semantics(
+                    header: true,
+                    child: Text(stage.name, style: textTheme.headlineSmall),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded),
+                tooltip: 'Close',
+                style: IconButton.styleFrom(backgroundColor: t.raised),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _Stat(
+                  label: 'Status',
+                  value: labelForStageStatus(node.status),
+                  color: t
+                      .status(AppColors.toneForStageStatus(node.status))
+                      .foreground,
+                ),
+              ),
               const SizedBox(width: 8),
-              Expanded(child: Text(stage.name, style: textTheme.titleMedium)),
-              Text(node.status, style: textTheme.labelMedium),
+              Expanded(
+                child: _Stat(
+                  label: 'Started',
+                  value: started == null
+                      ? '—'
+                      : clockTime(
+                          DateTime.fromMillisecondsSinceEpoch(started),
+                          seconds: true,
+                        ),
+                  mono: true,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _Stat(
+                  label: running ? 'Elapsed' : 'Duration',
+                  value: duration == null || duration <= 0
+                      ? '—'
+                      : formatBuildDuration(duration),
+                  mono: true,
+                ),
+              ),
             ],
           ),
           if (stage.errorMessage case final message?) ...[
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.error,
-              ),
-            ),
+            const SizedBox(height: 12),
+            InlineAlert(message: message),
           ],
           const SizedBox(height: 12),
           if (node.branches.isEmpty)
@@ -64,23 +116,27 @@ class StageDetailSheet extends StatelessWidget {
           else
             for (final branch in node.branches) ...[
               Padding(
-                padding: const EdgeInsets.only(top: 8, bottom: 4),
+                padding: const EdgeInsets.only(top: 12, bottom: 4),
                 child: Row(
                   children: [
-                    const Icon(Icons.call_split, size: 16),
+                    Icon(
+                      Icons.call_split_rounded,
+                      size: 16,
+                      color: t.textMuted,
+                    ),
                     const SizedBox(width: 6),
                     _StatusIcon(status: branch.status, size: 16),
                     const SizedBox(width: 6),
-                    Text(branch.name, style: textTheme.titleSmall),
+                    Expanded(
+                      child: Text(branch.name, style: textTheme.titleSmall),
+                    ),
                   ],
                 ),
               ),
               if (branch.errorMessage case final message?)
-                Text(
-                  message,
-                  style: textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: InlineAlert(message: message),
                 ),
               _StepList(
                 buildUrl: buildUrl,
@@ -90,13 +146,63 @@ class StageDetailSheet extends StatelessWidget {
             ],
           if (onViewFullLog != null) ...[
             const SizedBox(height: 16),
-            OutlinedButton.icon(
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
               onPressed: onViewFullLog,
-              icon: const Icon(Icons.article_outlined),
+              icon: const Icon(Icons.terminal_rounded),
               label: const Text('View full log'),
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// One of the three figures under the stage name.
+class _Stat extends StatelessWidget {
+  const _Stat({
+    required this.label,
+    required this.value,
+    this.color,
+    this.mono = false,
+  });
+
+  final String label;
+  final String value;
+  final Color? color;
+  final bool mono;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final valueStyle = textTheme.titleSmall?.copyWith(
+      fontSize: 14,
+      color: color ?? t.text,
+    );
+    return MergeSemantics(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: t.background,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: textTheme.labelSmall?.copyWith(fontSize: 11)),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: mono ? AppTypography.mono(valueStyle) : valueStyle,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -168,7 +274,10 @@ class _StepTile extends StatelessWidget {
       initiallyExpanded: initiallyExpanded,
       tilePadding: EdgeInsets.zero,
       leading: _StatusIcon(status: step.status, size: 18),
-      title: Text(step.name),
+      title: Text(
+        step.name,
+        style: AppTypography.mono(Theme.of(context).textTheme.bodyMedium),
+      ),
       subtitle: step.description == null
           ? null
           : Text(
@@ -212,15 +321,17 @@ class _StepLogView extends ConsumerWidget {
             constraints: const BoxConstraints(maxHeight: 240),
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(8),
+              color: AppTokens.of(context).console,
+              borderRadius: BorderRadius.circular(10),
             ),
             child: SingleChildScrollView(
               child: SelectableText(
                 log.text.isEmpty
                     ? '(no output)'
                     : sanitizeConsoleLog(log.text).trimRight(),
-                style: AppTypography.buildLog.copyWith(color: Colors.white),
+                style: AppTypography.buildLog.copyWith(
+                  color: const Color(0xFFCBD5E1),
+                ),
               ),
             ),
           ),
@@ -254,8 +365,8 @@ class _StatusIcon extends StatelessWidget {
   Widget build(BuildContext context) => Icon(
     iconForStageStatus(status),
     size: size,
-    color: colorForStageStatus(status),
-    semanticLabel: status,
+    color: colorForStageStatus(context, status),
+    semanticLabel: labelForStageStatus(status),
   );
 }
 

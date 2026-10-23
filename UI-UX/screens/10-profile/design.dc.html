@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Profile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+  <main style="flex: 1; overflow: hidden; padding: 56px 20px 0; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; align-items: center; gap: 14px; padding-bottom: 10px">
+      <span style="width: 60px; height: 60px; flex: none; border-radius: 50%; background: {{accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700">S</span>
+      <span style="display: flex; flex-direction: column; gap: 3px">
+        <h1 style="margin: 0; font-size: 22px; font-weight: 700">sam@acme.dev</h1>
+        <span style="font-size: 13px; color: #94A3B8">2 servers · GitHub connected</span>
+      </span>
+    </div>
+
+    <h2 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #94A3B8">Security</h2>
+    <div style="background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; display: flex; flex-direction: column">
+      <label style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 14px; border-bottom: 1px solid #1F2A3D">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 500">App lock</span><span style="font-size: 12px; color: #94A3B8">Face ID when JobTrigger opens</span></span>
+        <input type="checkbox" role="switch" checked style="width: 44px; height: 26px; accent-color: {{accent}}">
+      </label>
+      <label style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 14px">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 500">Confirm before triggering</span><span style="font-size: 12px; color: #94A3B8">Ask again for builds and deletes</span></span>
+        <input type="checkbox" role="switch" checked style="width: 44px; height: 26px; accent-color: {{accent}}">
+      </label>
+    </div>
+
+    <h2 style="margin: 10px 0 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #94A3B8">Account</h2>
+    <div style="background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; display: flex; flex-direction: column">
+      <a href="PasswordDialog.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 14px; border-bottom: 1px solid #1F2A3D">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3"/></svg>
+        <span style="flex: 1; font-size: 15px">Change password</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
+      <a href="AppInfo.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 14px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg>
+        <span style="flex: 1; font-size: 15px">About JobTrigger</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
+    </div>
+
+    <div style="background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; display: flex; flex-direction: column; margin-top: 10px">
+      <a href="Login.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 14px; border-bottom: 1px solid #1F2A3D">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11"/></svg>
+        <span style="flex: 1; font-size: 15px">Log out</span>
+      </a>
+      <button type="button" style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 14px; border: 0; background: transparent; color: #FCA5A5; font: 500 15px Inter, sans-serif; text-align: left">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+        Delete account
+      </button>
+    </div>
+
+    <p style="margin: 6px 0 0; text-align: center; font: 400 12px 'JetBrains Mono', monospace; color: #94A3B8">Version 1.0.0 (1)</p>
+  </main>
+
+  <nav aria-label="Main" style="display: flex; justify-content: space-around; padding: 8px 8px 26px; background: #0F172A; border-top: 1px solid #1E293B">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 72px; font-size: 11px; font-weight: 500; color: #94A3B8">
+      <span style="width: 56px; height: 30px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg></span>Home
+    </a>
+    <a href="History.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 72px; font-size: 11px; font-weight: 500; color: #94A3B8">
+      <span style="width: 56px; height: 30px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>History
+    </a>
+    <a href="Settings.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 72px; font-size: 11px; font-weight: 500; color: #94A3B8">
+      <span style="width: 56px; height: 30px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></span>Settings
+    </a>
+    <a href="Profile.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 72px; font-size: 11px; font-weight: 600; color: #F1F5F9">
+      <span style="width: 56px; height: 30px; border-radius: 15px; background: {{accent}}; display: flex; align-items: center; justify-content: center; color: #FFFFFF"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span>Profile
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2563EB","options":["#2563EB","#7C3AED","#0F766E","#C2410C"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#2563EB' };
+  }
+}
+</script>
+</body>
+</html>

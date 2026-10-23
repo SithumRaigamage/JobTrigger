@@ -38,8 +38,8 @@ void main() {
         _b(7, 'FAILURE'),
       ]);
       expect(outcome.keep, isNull);
-      expect(outcome.notify!.title, '❌ api #7 failed');
-      expect(outcome.notify!.body, 'Took 4m 12s');
+      expect(outcome.notify!.title, 'api #7 failed');
+      expect(outcome.notify!.body, 'Finished in 4m 12s');
       expect(outcome.notify!.jobUrl, 'https://ci/job/api/');
     });
 
@@ -62,7 +62,7 @@ void main() {
         _b(9, 'SUCCESS'),
         _b(8, 'FAILURE'),
       ]);
-      expect(outcome.notify!.title, '✅ api #9 succeeded');
+      expect(outcome.notify!.title, 'api #9 succeeded');
       expect(outcome.keep!.lastNotified, 9);
     });
 

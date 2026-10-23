@@ -23,6 +23,7 @@ class ConsoleLogViewer extends StatefulWidget {
     this.timestamps = ConsoleTimestamps.none,
     this.query = '',
     this.currentMatchLine,
+    this.onFollowChanged,
   });
 
   final List<ConsoleLine> lines;
@@ -34,6 +35,11 @@ class ConsoleLogViewer extends StatefulWidget {
   final ConsoleTimestamps timestamps;
   final String query;
   final int? currentMatchLine;
+
+  /// Called when following the latest output turns on or off — off as
+  /// soon as the user scrolls up or jumps to a line (P14-16: the screen's
+  /// Follow toggle shows it).
+  final ValueChanged<bool>? onFollowChanged;
 
   @override
   State<ConsoleLogViewer> createState() => ConsoleLogViewerState();
@@ -51,8 +57,29 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
 
   static const _padding = EdgeInsets.symmetric(horizontal: 12, vertical: 8);
 
+  /// Console text, and the dimmer gutters (line numbers, timestamps) —
+  /// 5.5:1 on the console background, where `white38` was about 3:1.
+  static const _text = Color(0xFFCBD5E1);
+  static const _gutter = Color(0xFF8291A8);
+
+  /// Whether new output scrolls into view.
+  bool get following => _autoScroll;
+
+  void _setFollowing(bool value) {
+    if (value == _autoScroll) return;
+    setState(() => _autoScroll = value);
+    widget.onFollowChanged?.call(value);
+  }
+
+  /// Turns following back on and scrolls to the latest output.
+  void follow() {
+    setState(() => _jumpTarget = null);
+    _setFollowing(true);
+    _scrollToEnd();
+  }
+
   TextStyle get _baseStyle => AppTypography.buildLog.copyWith(
-    color: Colors.white,
+    color: _text,
     fontSize: widget.prefs.fontSize,
     height: 1.35,
   );
@@ -75,7 +102,7 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
     if (!_scrollController.hasClients) return;
     final position = _scrollController.position;
     final atBottom = position.pixels >= position.maxScrollExtent - 24;
-    if (atBottom != _autoScroll) setState(() => _autoScroll = atBottom);
+    _setFollowing(atBottom);
   }
 
   @override
@@ -95,10 +122,8 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
   /// Scrolls so [line] (an index into `lines`) is on screen.
   void jumpToLine(int line) {
     if (!_scrollController.hasClients) return;
-    setState(() {
-      _autoScroll = false;
-      _jumpTarget = line;
-    });
+    setState(() => _jumpTarget = line);
+    _setFollowing(false);
     final estimate = (line * _lineHeight - 120).clamp(
       0.0,
       _scrollController.position.maxScrollExtent,
@@ -126,6 +151,12 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
   Widget build(BuildContext context) {
     final lines = widget.lines;
     final showTimestamps = widget.prefs.timestamps;
+    final gutterChars = '${widget.firstLineNumber + lines.length}'.length;
+    // Measured once per build, not per row: the face is monospaced.
+    final gutterWidth = (TextPainter(
+      text: TextSpan(text: '0' * (gutterChars + 1), style: _baseStyle),
+      textDirection: TextDirection.ltr,
+    )..layout()).width;
     final list = ListView.builder(
       controller: _scrollController,
       padding: _padding,
@@ -137,6 +168,9 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
       itemBuilder: (context, index) {
         final row = _LineRow(
           line: lines[index],
+          lineNumber: widget.firstLineNumber + index + 1,
+          gutterChars: gutterChars,
+          gutterWidth: gutterWidth,
           baseStyle: _baseStyle,
           wrap: widget.prefs.wrap,
           timestamp: showTimestamps
@@ -164,26 +198,14 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
                 controller: _horizontalController,
                 scrollDirection: Axis.horizontal,
                 child: SizedBox(
-                  width: _contentWidth(constraints.maxWidth, showTimestamps),
+                  width: _contentWidth(
+                    constraints.maxWidth,
+                    showTimestamps,
+                    gutterChars,
+                  ),
                   child: list,
                 ),
               ),
-            ),
-          ),
-        if (!_autoScroll)
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: FloatingActionButton.small(
-              tooltip: 'Jump to latest output',
-              onPressed: () {
-                setState(() {
-                  _autoScroll = true;
-                  _jumpTarget = null;
-                });
-                _scrollToEnd();
-              },
-              child: const Icon(Icons.arrow_downward),
             ),
           ),
       ],
@@ -200,7 +222,7 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
   }
 
   /// Wide enough for the longest line in monospace, at least the viewport.
-  double _contentWidth(double viewport, bool showTimestamps) {
+  double _contentWidth(double viewport, bool showTimestamps, int gutterChars) {
     final painter = TextPainter(
       text: TextSpan(text: 'M', style: _baseStyle),
       textDirection: TextDirection.ltr,
@@ -209,7 +231,9 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
     for (final line in widget.lines) {
       if (line.text.length > longest) longest = line.text.length;
     }
-    final gutter = showTimestamps ? 9 * painter.width + 8 : 0;
+    final gutter =
+        (showTimestamps ? 9 * painter.width + 8 : 0) +
+        (gutterChars + 1) * painter.width;
     final width = longest * painter.width + gutter + _padding.horizontal;
     return width > viewport ? width : viewport;
   }
@@ -218,6 +242,9 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
 class _LineRow extends StatelessWidget {
   const _LineRow({
     required this.line,
+    required this.lineNumber,
+    required this.gutterChars,
+    required this.gutterWidth,
     required this.baseStyle,
     required this.wrap,
     required this.timestamp,
@@ -227,6 +254,15 @@ class _LineRow extends StatelessWidget {
   });
 
   final ConsoleLine line;
+
+  /// 1-based number of this line in the whole log.
+  final int lineNumber;
+
+  /// How many digits the widest line number has, so numbers right-align.
+  final int gutterChars;
+
+  /// The gutter's width, measured once by the viewer.
+  final double gutterWidth;
   final TextStyle baseStyle;
   final bool wrap;
   final String? timestamp;
@@ -234,13 +270,19 @@ class _LineRow extends StatelessWidget {
   final String query;
   final bool isCurrentMatch;
 
+  /// A failing line's tint (`UI-UX/screens/15-build-log`).
+  static const _errorTint = Color(0xFF2A1216);
+
   @override
   Widget build(BuildContext context) {
+    final gutterStyle = baseStyle.copyWith(
+      color: ConsoleLogViewerState._gutter,
+    );
     final spans = <InlineSpan>[
       if (showTimestampGutter)
         TextSpan(
           text: '${(timestamp ?? '').padRight(8)}  ',
-          style: baseStyle.copyWith(color: Colors.white38),
+          style: gutterStyle,
         ),
       ...highlightConsoleSpans(
         line.spans,
@@ -248,13 +290,34 @@ class _LineRow extends StatelessWidget {
         query,
         isCurrentMatch: isCurrentMatch,
       ),
+      // An empty paragraph lays out taller than a line of text; a
+      // zero-width space keeps a blank line the height of the others.
+      // Copy, share and search read `line.text`, not these spans.
+      if (line.text.isEmpty) const TextSpan(text: '\u200B'),
     ];
-    return Text.rich(
-      TextSpan(children: spans),
-      softWrap: wrap,
-      maxLines: wrap ? null : 1,
-      overflow: wrap ? TextOverflow.clip : TextOverflow.visible,
+    final number = '$lineNumber'.padLeft(gutterChars);
+    final row = Stack(
+      children: [
+        // The line comes first in the tree; the number is painted beside
+        // it, decoration a screen reader skips.
+        Padding(
+          padding: EdgeInsets.only(left: gutterWidth),
+          child: Text.rich(
+            TextSpan(style: baseStyle, children: spans),
+            softWrap: wrap,
+            maxLines: wrap ? null : 1,
+            overflow: wrap ? TextOverflow.clip : TextOverflow.visible,
+          ),
+        ),
+        Positioned(
+          left: 0,
+          top: 0,
+          child: ExcludeSemantics(child: Text(number, style: gutterStyle)),
+        ),
+      ],
     );
+    if (!isErrorLine(line.text)) return row;
+    return ColoredBox(color: _errorTint, child: row);
   }
 }
 

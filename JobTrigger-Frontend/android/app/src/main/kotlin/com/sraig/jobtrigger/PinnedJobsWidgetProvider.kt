@@ -58,6 +58,24 @@ class PinnedJobsWidgetProvider : HomeWidgetProvider() {
         val capacity = if (minHeight in 1 until MEDIUM_MIN_HEIGHT_DP) 2 else ROWS.size
 
         views.setOnClickPendingIntent(R.id.widget_root, openApp(context, widgetId))
+
+        // AUD-54: the app lock is on, so the snapshot carries only how many
+        // jobs are pinned (P14-25).
+        val locked = snapshot != null && !snapshot.isNull("lockedCount")
+        views.setViewVisibility(R.id.widget_locked, if (locked) View.VISIBLE else View.GONE)
+        views.setViewVisibility(R.id.widget_header, if (locked) View.GONE else View.VISIBLE)
+        if (locked) {
+            val pinned = snapshot!!.optInt("lockedCount")
+            views.setTextViewText(
+                R.id.widget_locked_count,
+                context.resources.getQuantityString(R.plurals.widget_locked_count, pinned, pinned),
+            )
+            views.setViewVisibility(R.id.widget_empty, View.GONE)
+            ROWS.forEach { views.setViewVisibility(it.root, View.GONE) }
+            manager.updateAppWidget(widgetId, views)
+            return
+        }
+
         val count = minOf(jobs?.length() ?: 0, capacity)
         views.setViewVisibility(R.id.widget_empty, if (count == 0) View.VISIBLE else View.GONE)
 
@@ -77,17 +95,13 @@ class PinnedJobsWidgetProvider : HomeWidgetProvider() {
                 return@forEachIndexed
             }
             val job = jobs!!.getJSONObject(index)
+            val (textColor, dotColor) = colorsFor(context, job.optString("status"))
             views.setViewVisibility(row.root, View.VISIBLE)
             views.setTextViewText(row.label, job.optString("label"))
-            val number = if (job.isNull("buildNumber")) null else job.optInt("buildNumber")
-            val started = if (job.isNull("buildTimestamp")) null else job.optLong("buildTimestamp")
-            val detail = buildString {
-                append(job.optString("statusText"))
-                if (number != null) append(" · #").append(number)
-                if (started != null && started > 0) append(" · ").append(relative(started))
-            }
-            views.setTextViewText(row.detail, detail)
-            views.setInt(row.dot, "setColorFilter", colorFor(job.optString("status")))
+            // Status is spelled out, never color alone (NFR-A11Y-03).
+            views.setTextViewText(row.status, job.optString("statusText"))
+            views.setTextColor(row.status, textColor)
+            views.setInt(row.dot, "setColorFilter", dotColor)
             views.setOnClickPendingIntent(
                 row.root,
                 openLink(context, widgetId * ROWS.size + index, job.optString("link")),
@@ -125,26 +139,29 @@ class PinnedJobsWidgetProvider : HomeWidgetProvider() {
         )
     }
 
-    // Matches AppColors: build success/failure/unstable, brand, grey.
-    private fun colorFor(status: String): Int = when (status) {
-        "success" -> 0xFF4CAF50.toInt()
-        "failure" -> 0xFFF44336.toInt()
-        "unstable" -> 0xFFFF9800.toInt()
-        "running" -> 0xFF007AFF.toInt()
-        else -> 0xFF9E9E9E.toInt()
+    // The app's status pill colors (AppColors); values-night has the dark pair.
+    private fun colorsFor(context: Context, status: String): Pair<Int, Int> {
+        val (text, dot) = when (status) {
+            "success" -> R.color.widget_success_text to R.color.widget_success_dot
+            "failure" -> R.color.widget_failure_text to R.color.widget_failure_dot
+            "unstable" -> R.color.widget_unstable_text to R.color.widget_unstable_dot
+            "running" -> R.color.widget_running_text to R.color.widget_running_dot
+            else -> R.color.widget_neutral_text to R.color.widget_neutral_dot
+        }
+        return context.getColor(text) to context.getColor(dot)
     }
 
-    private data class Row(val root: Int, val dot: Int, val label: Int, val detail: Int)
+    private data class Row(val root: Int, val dot: Int, val label: Int, val status: Int)
 
     private companion object {
         const val SNAPSHOT_KEY = "snapshot"
         const val MEDIUM_MIN_HEIGHT_DP = 110
 
         val ROWS = listOf(
-            Row(R.id.row1, R.id.row1_dot, R.id.row1_label, R.id.row1_detail),
-            Row(R.id.row2, R.id.row2_dot, R.id.row2_label, R.id.row2_detail),
-            Row(R.id.row3, R.id.row3_dot, R.id.row3_label, R.id.row3_detail),
-            Row(R.id.row4, R.id.row4_dot, R.id.row4_label, R.id.row4_detail),
+            Row(R.id.row1, R.id.row1_dot, R.id.row1_label, R.id.row1_status),
+            Row(R.id.row2, R.id.row2_dot, R.id.row2_label, R.id.row2_status),
+            Row(R.id.row3, R.id.row3_dot, R.id.row3_label, R.id.row3_status),
+            Row(R.id.row4, R.id.row4_dot, R.id.row4_label, R.id.row4_status),
         )
     }
 }

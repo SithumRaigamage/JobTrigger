@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/error/result.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../domain/credential/server_url.dart';
+import '../../common_widgets/grouped_card.dart';
 import '../../../core/theme/reduce_transparency_notifier.dart';
 import '../../../core/theme/theme_notifier.dart';
 import '../../../domain/credential/github_credential.dart';
@@ -14,18 +17,14 @@ import '../../../domain/jenkins/server_status.dart';
 import '../../../core/config/app_config.dart';
 import '../../../domain/credential/sonarqube_credential.dart';
 import '../../common_widgets/connection_error_view.dart';
-import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/secret_reentry_notice.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/toast_controller.dart';
-import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../tool_selection/active_tool_notifier.dart';
 import '../tool_selection/ci_tool.dart';
 import '../../../data/credentials/active_github_credential_notifier.dart';
-import '../app_lock/app_lock_notifier.dart';
 import '../notifications/build_watch_notifier.dart';
-import '../../../domain/app_lock/app_lock_settings.dart';
 import '../../../data/credentials/active_server_notifier.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../../data/credentials/credentials_notifier.dart';
@@ -81,150 +80,145 @@ class SettingsScreen extends ConsumerWidget {
     final showSonarQubeSection = activeTool == CiTool.sonarqube;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      extendBody: true,
-      appBar: GlassAppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          tooltip: 'Tool Selection',
-          onPressed: () => context.go(AppRoutes.toolSelection),
-        ),
-        title: const Text('Settings'),
-      ),
-      body: ResponsiveCenter(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: MediaQuery.paddingOf(context).top + kToolbarHeight + 8,
+      body: SafeArea(
+        bottom: false,
+        child: ResponsiveCenter(
+          child: CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+                sliver: SliverToBoxAdapter(
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      'Settings',
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
+                  ),
+                ),
               ),
-            ),
-            const SliverToBoxAdapter(child: _AppearanceSection()),
-            const SliverToBoxAdapter(child: _SecuritySection()),
-            if (showJenkinsSection) ...[
-              const SliverToBoxAdapter(child: Divider(height: 1)),
-              SliverToBoxAdapter(
-                child: _SectionHeader(
-                  title: 'JENKINS SERVERS',
+              if (showJenkinsSection)
+                ..._section<JenkinsServer>(
+                  title: 'Jenkins servers',
+                  addLabel: 'Add Jenkins server',
                   onAdd: () => showServerEditBottomSheet(context),
+                  async: credentialsAsync,
+                  onRetry: () =>
+                      ref.read(credentialsNotifierProvider.notifier).refresh(),
+                  emptyStateBuilder: () => _EmptyState(
+                    icon: Icons.dns_outlined,
+                    title: 'No servers yet',
+                    message: 'Add a Jenkins server to get started.',
+                    buttonLabel: 'Add Jenkins server',
+                    onAdd: () => showServerEditBottomSheet(context),
+                  ),
+                  tileBuilder: (context, server) => _ServerTile(
+                    server: server,
+                    isActive: server.id == activeServer?.id,
+                  ),
                 ),
-              ),
-              ..._credentialSlivers<JenkinsServer>(
-                async: credentialsAsync,
-                onRetry: () =>
-                    ref.read(credentialsNotifierProvider.notifier).refresh(),
-                emptyStateBuilder: () => _EmptyState(
-                  icon: Icons.dns_outlined,
-                  title: 'No Servers Yet',
-                  message: 'Add a Jenkins server to get started.',
-                  buttonLabel: 'Add Jenkins Server',
-                  onAdd: () => showServerEditBottomSheet(context),
-                ),
-                tileBuilder: (context, server) => _ServerTile(
-                  server: server,
-                  isActive: server.id == activeServer?.id,
-                ),
-              ),
-            ],
-            if (showGitHubSection) ...[
-              const SliverToBoxAdapter(child: Divider(height: 1)),
-              SliverToBoxAdapter(
-                child: _SectionHeader(
-                  title: 'GITHUB',
+              if (showGitHubSection)
+                ..._section<GitHubCredential>(
+                  title: 'GitHub',
+                  addLabel: 'Add GitHub credential',
                   onAdd: () => showGitHubCredentialEditBottomSheet(context),
+                  async: githubCredentialsAsync,
+                  onRetry: () => ref
+                      .read(gitHubCredentialsNotifierProvider.notifier)
+                      .refresh(),
+                  emptyStateBuilder: () => _EmptyState(
+                    icon: Icons.hub_outlined,
+                    title: 'No GitHub credentials yet',
+                    message: 'Add a Personal Access Token to get started.',
+                    buttonLabel: 'Add GitHub credential',
+                    onAdd: () => showGitHubCredentialEditBottomSheet(context),
+                  ),
+                  tileBuilder: (context, credential) => _GitHubCredentialTile(
+                    credential: credential,
+                    isActive: credential.id == activeGithubCredential?.id,
+                  ),
                 ),
-              ),
-              ..._credentialSlivers<GitHubCredential>(
-                async: githubCredentialsAsync,
-                onRetry: () => ref
-                    .read(gitHubCredentialsNotifierProvider.notifier)
-                    .refresh(),
-                emptyStateBuilder: () => _EmptyState(
-                  icon: Icons.hub_outlined,
-                  title: 'No GitHub Credentials Yet',
-                  message: 'Add a Personal Access Token to get started.',
-                  buttonLabel: 'Add GitHub Credential',
-                  onAdd: () => showGitHubCredentialEditBottomSheet(context),
+              if (showSonarQubeSection)
+                ..._section<SonarQubeCredential>(
+                  title: 'SonarQube',
+                  addLabel: 'Add SonarQube credential',
+                  onAdd: () => showSonarQubeCredentialEditBottomSheet(context),
+                  async: sonarQubeCredentialsAsync,
+                  onRetry: () => ref
+                      .read(sonarQubeCredentialsNotifierProvider.notifier)
+                      .refresh(),
+                  emptyStateBuilder: () => _EmptyState(
+                    icon: Icons.verified_outlined,
+                    title: 'No SonarQube credentials yet',
+                    message: 'Add a User Token to get started.',
+                    buttonLabel: 'Add SonarQube credential',
+                    onAdd: () =>
+                        showSonarQubeCredentialEditBottomSheet(context),
+                  ),
+                  tileBuilder: (context, credential) =>
+                      _SonarQubeCredentialTile(
+                        credential: credential,
+                        isActive:
+                            credential.id == activeSonarQubeCredential?.id,
+                      ),
                 ),
-                tileBuilder: (context, credential) => _GitHubCredentialTile(
-                  credential: credential,
-                  isActive: credential.id == activeGithubCredential?.id,
-                ),
-              ),
-            ],
-            if (showSonarQubeSection) ...[
-              const SliverToBoxAdapter(child: Divider(height: 1)),
+              const _Padded(child: _AppearanceSection()),
+              // US-JX-10.
+              const _Padded(child: _WatchesSection()),
               SliverToBoxAdapter(
-                child: _SectionHeader(
-                  title: 'SONARQUBE',
-                  onAdd: () => showSonarQubeCredentialEditBottomSheet(context),
-                ),
-              ),
-              ..._credentialSlivers<SonarQubeCredential>(
-                async: sonarQubeCredentialsAsync,
-                onRetry: () => ref
-                    .read(sonarQubeCredentialsNotifierProvider.notifier)
-                    .refresh(),
-                emptyStateBuilder: () => _EmptyState(
-                  icon: Icons.verified_outlined,
-                  title: 'No SonarQube Credentials Yet',
-                  message: 'Add a User Token to get started.',
-                  buttonLabel: 'Add SonarQube Credential',
-                  onAdd: () => showSonarQubeCredentialEditBottomSheet(context),
-                ),
-                tileBuilder: (context, credential) => _SonarQubeCredentialTile(
-                  credential: credential,
-                  isActive: credential.id == activeSonarQubeCredential?.id,
-                ),
+                child: SizedBox(height: glassNavBarClearance(context) + 16),
               ),
             ],
-            // US-JX-10.
-            const SliverToBoxAdapter(child: _WatchesSection()),
-            SliverToBoxAdapter(
-              child: SizedBox(height: glassNavBarClearance(context) + 12),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  /// Shared `AsyncValue<List<T>>.when` → sliver mapping for both sections
-  /// — loading/error/empty/populated, same as the original single-section
-  /// `_ServerList` handled inline, just returning slivers instead of a
-  /// bare widget so both sections can share one `CustomScrollView`.
-  /// [tileBuilder] receives each already-typed, definitely-non-null item
-  /// from within the `data:` branch — no force-unwrapping an outer
-  /// `AsyncValue.value` needed.
-  List<Widget> _credentialSlivers<T>({
+  /// One credential section: its heading with an inline Add, then the
+  /// saved items as one grouped card — or loading, an error with retry, or
+  /// the empty state. [tileBuilder] receives each already-typed item.
+  List<Widget> _section<T>({
+    required String title,
+    required String addLabel,
+    required VoidCallback onAdd,
     required AsyncValue<List<T>> async,
     required VoidCallback onRetry,
     required Widget Function() emptyStateBuilder,
     required Widget Function(BuildContext, T) tileBuilder,
   }) {
     return [
-      async.when(
-        data: (items) => items.isEmpty
-            ? SliverToBoxAdapter(child: emptyStateBuilder())
-            : SliverPadding(
-                padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => tileBuilder(context, items[index]),
-                    childCount: items.length,
-                  ),
-                ),
-              ),
-        loading: () => const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Center(child: CircularProgressIndicator()),
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 12, 4),
+        sliver: SliverToBoxAdapter(
+          child: GroupHeader(
+            title: title,
+            action: TextButton.icon(
+              onPressed: onAdd,
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: Text('Add', semanticsLabel: addLabel),
+            ),
           ),
         ),
-        error: (error, stackTrace) => SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: ConnectionErrorView(
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        sliver: SliverToBoxAdapter(
+          child: async.when(
+            data: (items) => items.isEmpty
+                ? emptyStateBuilder()
+                : Builder(
+                    builder: (context) => GroupedCard(
+                      children: [
+                        for (final item in items) tileBuilder(context, item),
+                      ],
+                    ),
+                  ),
+            loading: () => const Padding(
+              padding: EdgeInsets.all(24),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (error, stackTrace) => ConnectionErrorView(
               message: describeError(error),
               onRetry: onRetry,
             ),
@@ -235,36 +229,17 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, required this.onAdd});
+/// A non-credential section, padded like the rest.
+class _Padded extends StatelessWidget {
+  const _Padded({required this.child});
 
-  final String title;
-  final VoidCallback onAdd;
+  final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 8, 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            tooltip: 'Add',
-            visualDensity: VisualDensity.compact,
-            onPressed: onAdd,
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => SliverPadding(
+    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+    sliver: SliverToBoxAdapter(child: child),
+  );
 }
 
 class _EmptyState extends StatelessWidget {
@@ -284,39 +259,31 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final t = AppTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    return GroupedCard(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 48,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+      children: [
+        Column(
+          children: [
+            Icon(icon, size: 40, color: t.textMuted),
+            const SizedBox(height: 12),
+            Text(title, style: textTheme.titleMedium),
+            const SizedBox(height: 4),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: textTheme.bodySmall,
             ),
-          ),
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: onAdd,
-            icon: const Icon(Icons.add),
-            label: Text(buttonLabel),
-          ),
-        ],
-      ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: onAdd,
+              icon: const Icon(Icons.add_rounded),
+              label: Text(buttonLabel),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -329,142 +296,41 @@ class _AppearanceSection extends ConsumerWidget {
     final themeMode = ref.watch(themeNotifierProvider);
     final reduceTransparency = ref.watch(reduceTransparencyNotifierProvider);
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'APPEARANCE',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          SegmentedButton<ThemeMode>(
-            segments: const [
-              ButtonSegment(
-                value: ThemeMode.system,
-                label: Text('System'),
-                icon: Icon(Icons.brightness_auto),
-              ),
-              ButtonSegment(
-                value: ThemeMode.light,
-                label: Text('Light'),
-                icon: Icon(Icons.light_mode),
-              ),
-              ButtonSegment(
-                value: ThemeMode.dark,
-                label: Text('Dark'),
-                icon: Icon(Icons.dark_mode),
-              ),
-            ],
-            selected: {themeMode},
-            onSelectionChanged: (selection) => ref
-                .read(themeNotifierProvider.notifier)
-                .setThemeMode(selection.first),
-          ),
-          // US-DESIGN-03: manual accessibility fallback for the glass
-          // effect -- Flutter doesn't expose iOS's "Reduce Transparency"
-          // signal, so this is a first-party toggle rather than an
-          // OS auto-detect. See ReduceTransparencyNotifier.
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Reduce transparency'),
-            subtitle: const Text('Use solid surfaces instead of frosted glass'),
-            value: reduceTransparency,
-            onChanged: (value) => ref
-                .read(reduceTransparencyNotifierProvider.notifier)
-                .setReduceTransparency(value),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// US-JX-21: the biometric app lock.
-class _SecuritySection extends ConsumerWidget {
-  const _SecuritySection();
-
-  static String _timeoutLabel(Duration timeout) => switch (timeout.inMinutes) {
-    0 => 'Immediately',
-    1 => 'After 1 minute',
-    final minutes => 'After $minutes minutes',
-  };
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(
-      appLockNotifierProvider.select((lock) => lock.settings),
-    );
-    final notifier = ref.read(appLockNotifierProvider.notifier);
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'SECURITY',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Require biometrics'),
-            subtitle: const Text(
-              'Face ID, fingerprint, or your device passcode to open the app',
-            ),
-            value: settings.enabled,
-            onChanged: (value) async {
-              final change = await notifier.setEnabled(value);
-              if (change == LockChange.noDeviceSecurity) {
-                ref
-                    .read(toastControllerProvider)
-                    .show(
-                      type: ToastType.warning,
-                      title: "Can't turn on app lock",
-                      message:
-                          'Set up a passcode, fingerprint, or face unlock on '
-                          'your phone first.',
-                    );
-              }
-            },
-          ),
-          if (settings.enabled) ...[
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Lock after leaving the app'),
-              trailing: DropdownButton<Duration>(
-                value: settings.timeout,
-                underline: const SizedBox.shrink(),
-                items: [
-                  for (final timeout in AppLockSettings.timeouts)
-                    DropdownMenuItem(
-                      value: timeout,
-                      child: Text(_timeoutLabel(timeout)),
-                    ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const GroupHeader(title: 'Appearance'),
+        GroupedCard(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: SegmentedButton<ThemeMode>(
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(value: ThemeMode.system, label: Text('System')),
+                  ButtonSegment(value: ThemeMode.light, label: Text('Light')),
+                  ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
                 ],
-                onChanged: (timeout) {
-                  if (timeout != null) notifier.setTimeout(timeout);
-                },
+                selected: {themeMode},
+                onSelectionChanged: (selection) => ref
+                    .read(themeNotifierProvider.notifier)
+                    .setThemeMode(selection.first),
               ),
             ),
+            // US-DESIGN-03: a first-party toggle -- Flutter doesn't expose
+            // iOS's "Reduce Transparency" signal. See
+            // ReduceTransparencyNotifier.
             SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Require for actions'),
-              subtitle: const Text(
-                'Trigger, cancel, approve, replay, node and job changes',
-              ),
-              value: settings.requireForSensitive,
-              onChanged: notifier.setRequireForSensitive,
+              title: const Text('Reduce transparency'),
+              subtitle: const Text('Solid bars instead of see-through ones'),
+              value: reduceTransparency,
+              onChanged: (value) => ref
+                  .read(reduceTransparencyNotifierProvider.notifier)
+                  .setReduceTransparency(value),
             ),
           ],
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -477,77 +343,48 @@ class _ServerTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Dismissible(
-        key: ValueKey(server.id),
-        direction: DismissDirection.endToStart,
-        confirmDismiss: (_) => _confirmDelete(context),
-        onDismissed: (_) => _deleteServer(ref, server),
-        background: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.errorContainer,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Icon(
-            Icons.delete,
-            color: Theme.of(context).colorScheme.onErrorContainer,
-          ),
-        ),
-        // `onTap` lives on GlassSurface.card itself, not the ListTile
-        // -- a ListTile's ink splashes paint on the nearest ancestor
-        // Material, and GlassSurface's DecoratedBox fill would sit
-        // between the ListTile and that ancestor and hide them
-        // (Flutter's own "ListTile background color or ink splashes
-        // may be invisible" warning) unless routed through here.
-        child: GlassSurface.card(
-          onTap: isActive ? null : () => _setActiveServer(ref, server),
-          child: ListTile(
-            // A radio-style selection indicator, not just a checkmark
-            // that only ever appears on the active row -- without a
-            // control on every row, nothing suggested the *other* rows
-            // were tappable to select them (the whole-row tap "worked"
-            // but had no discoverable affordance).
-            leading: Icon(
-              isActive
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_unchecked,
-              color: isActive
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            title: Text(server.serverName),
-            subtitle: isActive
-                ? _ActiveServerSubtitle(server: server)
-                : _inactiveServerSubtitle(context, server),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit',
-              onPressed: () =>
-                  showServerEditBottomSheet(context, existing: server),
-            ),
-          ),
+    return Dismissible(
+      key: ValueKey(server.id),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _confirmDelete(context),
+      onDismissed: (_) => _deleteServer(ref, server),
+      background: Container(
+        color: AppTokens.of(context).failure.background,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Icon(
+          Icons.delete_outline_rounded,
+          color: AppTokens.of(context).failure.foreground,
         ),
       ),
-    );
-  }
-
-  /// AUD-63: a credential whose secret the backend could not decrypt is
-  /// still listed, but it can't authenticate. Say so — "Uses a password"
-  /// would read like a working credential, and there's no password to use.
-  Widget _inactiveServerSubtitle(BuildContext context, JenkinsServer server) {
-    if (server.needsReentry) return const SecretReentryNotice();
-    if (looksLikeJenkinsApiToken(server.secret)) return Text(server.jenkinsURL);
-    return Text.rich(
-      TextSpan(
-        text: server.jenkinsURL,
-        children: [
-          TextSpan(
-            text: ' · Uses a password',
-            style: TextStyle(color: Theme.of(context).colorScheme.tertiary),
-          ),
+      child: _CredentialRow(
+        isActive: isActive,
+        title: server.serverName,
+        onActivate: () => _setActiveServer(ref, server),
+        onEdit: () async {
+          // P14-22: the sheet's own "Delete server" ends the same way a
+          // swipe does — confirmed, then deleted.
+          final delete = await showServerEditBottomSheet(
+            context,
+            existing: server,
+          );
+          if (delete == true &&
+              context.mounted &&
+              await _confirmDelete(context)) {
+            await _deleteServer(ref, server);
+          }
+        },
+        details: [
+          _MonoLine(server.jenkinsURL),
+          // AUD-14 / AUD-52: the design flags a server reached over
+          // plain http.
+          if (isCleartextUrl(server.jenkinsURL)) const _CleartextLine(),
+          if (isActive)
+            _ActiveServerSubtitle(server: server)
+          else if (server.needsReentry)
+            const SecretReentryNotice()
+          else if (!looksLikeJenkinsApiToken(server.secret))
+            const _NoteLine('Uses a password'),
         ],
       ),
     );
@@ -625,54 +462,43 @@ class _GitHubCredentialTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Dismissible(
-        key: ValueKey(credential.id),
-        direction: DismissDirection.endToStart,
-        confirmDismiss: (_) => _confirmDelete(context),
-        onDismissed: (_) => _deleteCredential(ref, credential),
-        background: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.errorContainer,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Icon(
-            Icons.delete,
-            color: Theme.of(context).colorScheme.onErrorContainer,
-          ),
+    return Dismissible(
+      key: ValueKey(credential.id),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _confirmDelete(context),
+      onDismissed: (_) => _deleteCredential(ref, credential),
+      background: Container(
+        color: AppTokens.of(context).failure.background,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Icon(
+          Icons.delete_outline_rounded,
+          color: AppTokens.of(context).failure.foreground,
         ),
-        child: GlassSurface.card(
-          onTap: isActive ? null : () => _setActiveCredential(ref, credential),
-          child: ListTile(
-            leading: Icon(
-              isActive
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_unchecked,
-              color: isActive
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            title: Text(credential.label),
-            // AUD-63: an unreadable secret takes precedence over the
-            // owner hint — the credential can't authenticate at all.
-            subtitle: credential.needsReentry
-                ? const SecretReentryNotice()
-                : credential.defaultOwner == null
-                ? null
-                : Text(credential.defaultOwner!),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit',
-              onPressed: () => showGitHubCredentialEditBottomSheet(
-                context,
-                existing: credential,
-              ),
-            ),
-          ),
-        ),
+      ),
+      child: _CredentialRow(
+        isActive: isActive,
+        title: credential.label,
+        onActivate: () => _setActiveCredential(ref, credential),
+        onEdit: () async {
+          final delete = await showGitHubCredentialEditBottomSheet(
+            context,
+            existing: credential,
+          );
+          if (delete == true &&
+              context.mounted &&
+              await _confirmDelete(context)) {
+            await _deleteCredential(ref, credential);
+          }
+        },
+        // AUD-63: an unreadable secret takes precedence over the owner
+        // hint — the credential can't authenticate at all.
+        details: [
+          if (credential.needsReentry)
+            const SecretReentryNotice()
+          else if (credential.defaultOwner != null)
+            _MonoLine(credential.defaultOwner!),
+        ],
       ),
     );
   }
@@ -747,51 +573,44 @@ class _SonarQubeCredentialTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Dismissible(
-        key: ValueKey(credential.id),
-        direction: DismissDirection.endToStart,
-        confirmDismiss: (_) => _confirmDelete(context),
-        onDismissed: (_) => _deleteCredential(ref, credential),
-        background: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.errorContainer,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Icon(
-            Icons.delete,
-            color: Theme.of(context).colorScheme.onErrorContainer,
-          ),
+    return Dismissible(
+      key: ValueKey(credential.id),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _confirmDelete(context),
+      onDismissed: (_) => _deleteCredential(ref, credential),
+      background: Container(
+        color: AppTokens.of(context).failure.background,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Icon(
+          Icons.delete_outline_rounded,
+          color: AppTokens.of(context).failure.foreground,
         ),
-        child: GlassSurface.card(
-          onTap: isActive ? null : () => _setActiveCredential(ref, credential),
-          child: ListTile(
-            leading: Icon(
-              isActive
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_unchecked,
-              color: isActive
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            title: Text(credential.label),
-            // AUD-63: an unreadable secret takes precedence over the URL.
-            subtitle: credential.needsReentry
-                ? const SecretReentryNotice()
-                : Text(credential.baseUrl),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit',
-              onPressed: () => showSonarQubeCredentialEditBottomSheet(
-                context,
-                existing: credential,
-              ),
-            ),
-          ),
-        ),
+      ),
+      child: _CredentialRow(
+        isActive: isActive,
+        title: credential.label,
+        onActivate: () => _setActiveCredential(ref, credential),
+        onEdit: () async {
+          final delete = await showSonarQubeCredentialEditBottomSheet(
+            context,
+            existing: credential,
+          );
+          if (delete == true &&
+              context.mounted &&
+              await _confirmDelete(context)) {
+            await _deleteCredential(ref, credential);
+          }
+        },
+        // AUD-63: an unreadable secret takes precedence over the URL.
+        details: [
+          if (credential.needsReentry)
+            const SecretReentryNotice()
+          else ...[
+            _MonoLine(credential.baseUrl),
+            if (isCleartextUrl(credential.baseUrl)) const _CleartextLine(),
+          ],
+        ],
       ),
     );
   }
@@ -878,14 +697,7 @@ class _ActiveServerSubtitle extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(server.jenkinsURL),
-        if (notes.isNotEmpty)
-          Text(
-            notes.join(' · '),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context).colorScheme.tertiary,
-            ),
-          ),
+        if (notes.isNotEmpty) _NoteLine(notes.join(' · ')),
         if (server.needsReentry)
           const SecretReentryNotice(
             detail:
@@ -905,42 +717,212 @@ class _WatchesSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final watches = ref.watch(buildWatchNotifierProvider);
     final textTheme = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('NOTIFICATIONS', style: textTheme.labelMedium),
-          const SizedBox(height: 4),
-          if (watches.isEmpty)
-            Text(
-              'Tap the bell on a job to be notified when builds finish.',
-              style: textTheme.bodySmall,
-            )
-          else
-            for (final watch in watches)
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.notifications_active_outlined),
-                title: Text(watch.jobLabel),
-                subtitle: Text(
-                  watch.isJobWatch
-                      ? 'Every build'
-                      : 'Build #${watch.buildNumber}',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const GroupHeader(title: 'Notifications'),
+        if (watches.isEmpty)
+          Text(
+            'Tap the bell on a job to be notified when builds finish.',
+            style: textTheme.bodySmall,
+          )
+        else
+          GroupedCard(
+            children: [
+              for (final watch in watches)
+                ListTile(
+                  leading: const Icon(Icons.notifications_active_outlined),
+                  title: Text(watch.jobLabel),
+                  subtitle: Text(
+                    watch.isJobWatch
+                        ? 'Every build'
+                        : 'Build #${watch.buildNumber}',
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    tooltip: 'Stop notifying',
+                    onPressed: () => ref
+                        .read(buildWatchNotifierProvider.notifier)
+                        .unwatch(watch),
+                  ),
                 ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.close),
-                  tooltip: 'Stop notifying',
-                  onPressed: () => ref
-                      .read(buildWatchNotifierProvider.notifier)
-                      .unwatch(watch),
+            ],
+          ),
+        const SizedBox(height: 8),
+        Text(
+          'While the app is closed, checks run when your phone allows — '
+          'usually every 15 minutes or more.',
+          style: textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+}
+
+/// One saved server or credential in its group: a radio mark and tap to
+/// make it the active one, its details, and an edit button. Shared by the
+/// three credential kinds so they can't drift apart.
+class _CredentialRow extends StatelessWidget {
+  const _CredentialRow({
+    required this.isActive,
+    required this.title,
+    required this.onActivate,
+    required this.onEdit,
+    this.details = const [],
+  });
+
+  final bool isActive;
+  final String title;
+  final VoidCallback onActivate;
+  final VoidCallback onEdit;
+  final List<Widget> details;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    return Row(
+      children: [
+        Expanded(
+          child: Semantics(
+            selected: isActive,
+            inMutuallyExclusiveGroup: true,
+            child: InkWell(
+              // A radio mark on every row, so the inactive ones read as
+              // choosable, not just the active one with a tick.
+              onTap: isActive ? null : onActivate,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 4, 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 1),
+                      child: _RadioMark(selected: isActive),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          ...details,
+                        ],
+                      ),
+                    ),
+                    if (isActive)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8, top: 2),
+                        child: Text(
+                          'Active',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: t.textSecondary,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-          const SizedBox(height: 4),
-          Text(
-            'While the app is closed, checks run when your phone allows — '
-            'usually every 15 minutes or more.',
-            style: textTheme.labelSmall,
+            ),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.edit_outlined, size: 20),
+          tooltip: 'Edit $title',
+          onPressed: onEdit,
+        ),
+        const SizedBox(width: 4),
+      ],
+    );
+  }
+}
+
+class _RadioMark extends StatelessWidget {
+  const _RadioMark({required this.selected});
+
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ExcludeSemantics(
+      child: Container(
+        width: 22,
+        height: 22,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: selected ? colorScheme.primary : Colors.transparent,
+          border: selected
+              ? null
+              : Border.all(color: colorScheme.outline, width: 2),
+        ),
+        child: selected
+            ? Icon(Icons.check_rounded, size: 14, color: colorScheme.onPrimary)
+            : null,
+      ),
+    );
+  }
+}
+
+/// A URL or name as Jenkins and GitHub write it.
+class _MonoLine extends StatelessWidget {
+  const _MonoLine(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    text,
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+    style: AppTypography.mono(
+      Theme.of(context).textTheme.bodySmall,
+    ).copyWith(fontSize: 12),
+  );
+}
+
+/// A secondary note under a row: Jenkins version, "Uses a password".
+class _NoteLine extends StatelessWidget {
+  const _NoteLine(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 2),
+    child: Text(
+      text,
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12),
+    ),
+  );
+}
+
+/// AUD-14 / AUD-52: this server is reached over plain `http://`.
+class _CleartextLine extends StatelessWidget {
+  const _CleartextLine();
+
+  @override
+  Widget build(BuildContext context) {
+    final color = AppTokens.of(context).unstable.foreground;
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Row(
+        children: [
+          Icon(Icons.lock_open_rounded, size: 13, color: color),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              'http:// — not encrypted',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontSize: 12, color: color),
+            ),
           ),
         ],
       ),

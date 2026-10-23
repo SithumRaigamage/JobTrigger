@@ -1,62 +1,99 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/theme/app_colors.dart';
+import 'package:job_trigger/core/theme/app_theme.dart';
+import 'package:job_trigger/core/theme/app_tokens.dart';
 
-/// WCAG 2.x contrast ratio.
 double _contrast(Color a, Color b) {
   final la = a.computeLuminance(), lb = b.computeLuminance();
   final (hi, lo) = la > lb ? (la, lb) : (lb, la);
   return (hi + 0.05) / (lo + 0.05);
 }
 
+/// P14-02: every colour pairing the redesign relies on, measured. Text
+/// needs 4.5:1 (WCAG 1.4.3); dots, bars and icons need 3:1 (WCAG 1.4.11).
 void main() {
-  const lightSurfaces = [AppColors.backgroundLight];
-  const darkSurfaces = [
-    AppColors.backgroundDark,
-    AppColors.glassFallbackFillDark,
-  ];
+  for (final (name, t) in const [
+    ('dark', AppTokens.dark),
+    ('light', AppTokens.light),
+  ]) {
+    group('$name tokens', () {
+      test('each status reads as text on its own tint and on a card', () {
+        for (final tone in StatusTone.values) {
+          final s = t.status(tone);
+          for (final ground in [s.background, t.card, t.background]) {
+            expect(
+              _contrast(s.foreground, ground),
+              greaterThanOrEqualTo(4.5),
+              reason: '$tone text on $ground',
+            );
+          }
+        }
+      });
 
-  // AUD-62 (and AUD-30's open follow-up): status icons and dots need 3:1
-  // against every surface they sit on (WCAG 1.4.11).
-  test('every status color reaches 3:1 on light and dark surfaces', () {
-    const statuses = {
-      'success': AppColors.buildSuccess,
-      'failure': AppColors.buildFailure,
-      'aborted': AppColors.buildAborted,
-      'unstable': AppColors.buildUnstable,
-      'running': AppColors.buildRunning,
-      'paused': AppColors.buildPaused,
-      'folder': AppColors.folder,
-    };
-    for (final MapEntry(key: name, value: color) in statuses.entries) {
-      for (final surface in [...lightSurfaces, ...darkSurfaces]) {
-        expect(
-          _contrast(color, surface),
-          greaterThanOrEqualTo(3.0),
-          reason: '$name on $surface',
-        );
-      }
-    }
+      test('each status dot reaches 3:1 on a card and the background', () {
+        for (final tone in StatusTone.values) {
+          for (final ground in [t.card, t.background]) {
+            expect(
+              _contrast(t.status(tone).dot, ground),
+              greaterThanOrEqualTo(3.0),
+              reason: '$tone dot on $ground',
+            );
+          }
+        }
+      });
+
+      test('muted and secondary text reach 4.5:1 on every surface', () {
+        for (final color in [t.textMuted, t.textSecondary, t.text]) {
+          for (final ground in [t.card, t.background, t.raised, t.chrome]) {
+            expect(
+              _contrast(color, ground),
+              greaterThanOrEqualTo(4.5),
+              reason: '$color on $ground',
+            );
+          }
+        }
+      });
+    });
+  }
+
+  test('white on the accent reaches 4.5:1', () {
+    expect(
+      _contrast(Colors.white, AppColors.accent),
+      greaterThanOrEqualTo(4.5),
+    );
   });
 
-  test('job ball colors use the same measured shades', () {
-    expect(AppColors.forJobColor('blue'), AppColors.buildSuccess);
-    expect(AppColors.forJobColor('yellow_anime'), AppColors.buildUnstable);
-    expect(AppColors.forJobColor('disabled'), AppColors.buildAborted);
+  test('both themes carry their tokens and the one accent', () {
+    final light = AppTheme.light(), dark = AppTheme.dark();
+    expect(light.extension<AppTokens>(), AppTokens.light);
+    expect(dark.extension<AppTokens>(), AppTokens.dark);
+    expect(light.colorScheme.primary, AppColors.accent);
+    expect(dark.colorScheme.primary, AppColors.accent);
   });
 
-  test('success text reaches 4.5:1 in both themes', () {
-    for (final surface in lightSurfaces) {
-      expect(
-        _contrast(AppColors.successText(Brightness.light), surface),
-        greaterThanOrEqualTo(4.5),
-      );
-    }
-    for (final surface in darkSurfaces) {
-      expect(
-        _contrast(AppColors.successText(Brightness.dark), surface),
-        greaterThanOrEqualTo(4.5),
-      );
-    }
+  test('build results map to tones; a null result is still running', () {
+    expect(AppColors.toneForBuildResult('SUCCESS'), StatusTone.success);
+    expect(AppColors.toneForBuildResult('failure'), StatusTone.failure);
+    expect(AppColors.toneForBuildResult('UNSTABLE'), StatusTone.unstable);
+    expect(AppColors.toneForBuildResult(null), StatusTone.running);
+    expect(AppColors.toneForBuildResult('ABORTED'), StatusTone.neutral);
+  });
+
+  test('stage statuses map to tones', () {
+    expect(AppColors.toneForStageStatus('FAILED'), StatusTone.failure);
+    expect(AppColors.toneForStageStatus('IN_PROGRESS'), StatusTone.running);
+    expect(
+      AppColors.toneForStageStatus('PAUSED_PENDING_INPUT'),
+      StatusTone.paused,
+    );
+    expect(AppColors.toneForStageStatus('NOT_EXECUTED'), StatusTone.neutral);
+  });
+
+  test('job ball colors map to tones, "blue" meaning success', () {
+    expect(AppColors.toneForJobColor('blue'), StatusTone.success);
+    expect(AppColors.toneForJobColor('yellow_anime'), StatusTone.unstable);
+    expect(AppColors.toneForJobColor('disabled'), StatusTone.neutral);
+    expect(AppColors.isJobColorAnimating('red_anime'), isTrue);
   });
 }

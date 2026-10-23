@@ -157,11 +157,13 @@ void main() {
       await _pump(tester, const Ok(null));
 
       expect(find.text('Built-In Node'), findsOneWidget);
-      expect(find.textContaining('Online · 1/4 busy'), findsOneWidget);
-      expect(find.textContaining('Offline · 0/2 busy'), findsOneWidget);
+      // P14-17: status and load are shown apart.
+      expect(find.text('Online'), findsOneWidget);
+      expect(find.text('1 / 4 busy'), findsOneWidget);
+      expect(find.text('Offline'), findsOneWidget);
+      expect(find.text('0 / 2 busy'), findsOneWidget);
 
-      await tester.tap(find.text('Built-In Node'));
-      await tester.pumpAndSettle();
+      // Running builds are listed on the card, no expanding needed.
       expect(find.text('slow-build #9 (Work)'), findsOneWidget);
 
       // Dispose inside the test so the 10s refresh timer is cancelled.

@@ -137,7 +137,9 @@ void main() {
     );
 
     expect(find.text('Switch to Staging?'), findsOneWidget);
-    await tester.tap(find.text('Switch'));
+    // P14-20: asked on the screen, naming what opens.
+    expect(find.text('api'), findsOneWidget);
+    await tester.tap(find.text('Switch and open'));
     await _settle(tester);
 
     expect(container.read(activeServerNotifierProvider)?.id, 'staging');
@@ -155,7 +157,7 @@ void main() {
       'https://staging.example.com/job/api/',
     );
 
-    await tester.tap(find.text('Cancel'));
+    await tester.tap(find.textContaining('Stay on'));
     await _settle(tester);
 
     expect(container.read(activeServerNotifierProvider)?.id, 'prod');

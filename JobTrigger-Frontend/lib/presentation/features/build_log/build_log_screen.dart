@@ -7,7 +7,8 @@ import '../../../core/error/error_message.dart';
 import '../../../domain/jenkins/console_decoder.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../common_widgets/connection_error_view.dart';
-import '../../common_widgets/glass_surface.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../common_widgets/responsive_center.dart';
 import 'build_log_notifier.dart';
 import 'console_log_viewer.dart';
@@ -17,7 +18,7 @@ import 'console_notifiers.dart';
 /// highlights, jump to first error, ANSI colors, timestamps, wrap and font
 /// size, and saving the full log. [jenkinsBuild] comes from navigation
 /// `extra`. A non-build log (e.g. a multibranch scan) sets its title in
-/// `displayName`.
+/// `displayName`. Laid out to the P14 design (`UI-UX/screens/15-build-log`).
 class BuildLogScreen extends ConsumerStatefulWidget {
   const BuildLogScreen({super.key, required this.jenkinsBuild});
 
@@ -29,7 +30,9 @@ class BuildLogScreen extends ConsumerStatefulWidget {
 
 class _BuildLogScreenState extends ConsumerState<BuildLogScreen> {
   final _viewerKey = GlobalKey<ConsoleLogViewerState>();
-  bool _searching = false;
+
+  /// Mirrors the viewer: on while new output scrolls into view.
+  bool _following = true;
 
   String get _url => widget.jenkinsBuild.url;
 
@@ -57,129 +60,210 @@ class _BuildLogScreenState extends ConsumerState<BuildLogScreen> {
       },
     );
 
+    final t = AppTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final lineCount = log == null
+        ? null
+        : log.droppedLines + log.visibleLines.length;
+
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: GlassAppBar(
-        // The console is always black regardless of light/dark mode, so its
-        // chrome is pinned to dark glass tokens too.
-        brightness: Brightness.dark,
-        title: _searching ? _SearchField(buildUrl: _url) : Text(_title),
-        actions: [
-          if (_searching) ...[
-            Center(child: Text(search.counter)),
-            IconButton(
-              icon: const Icon(Icons.keyboard_arrow_up),
-              tooltip: 'Previous match',
-              onPressed: search.matches.isEmpty
-                  ? null
-                  : ref
-                        .read(consoleSearchNotifierProvider(_url).notifier)
-                        .previous,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 4, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left_rounded, size: 28),
+                    tooltip: 'Back',
+                    onPressed: () => Navigator.of(context).maybePop(),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Semantics(
+                          header: true,
+                          child: Text('Console', style: textTheme.titleMedium),
+                        ),
+                        Text(
+                          [
+                            _title,
+                            if (lineCount != null)
+                              '${_thousands(lineCount)} lines',
+                          ].join(' · '),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.mono(
+                            textTheme.bodySmall,
+                          ).copyWith(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.copy_rounded, size: 20),
+                    tooltip: 'Copy log',
+                    onPressed: log == null
+                        ? null
+                        : () => _onMenu(_MenuAction.copy, prefs, log),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.ios_share_rounded, size: 20),
+                    tooltip: 'Share log',
+                    onPressed: log == null
+                        ? null
+                        : () => _onMenu(_MenuAction.share, prefs, log),
+                  ),
+                  _MenuButton(
+                    prefs: prefs,
+                    enabled: log != null,
+                    exporting: exporting,
+                    onSelected: (action) => _onMenu(action, prefs, log),
+                  ),
+                ],
+              ),
             ),
-            IconButton(
-              icon: const Icon(Icons.keyboard_arrow_down),
-              tooltip: 'Next match',
-              onPressed: search.matches.isEmpty
-                  ? null
-                  : ref.read(consoleSearchNotifierProvider(_url).notifier).next,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+              child: _SearchBar(buildUrl: _url, search: search),
+            ),
+            Expanded(
+              child: ColoredBox(
+                // The console is dark in both themes: build output is read
+                // like a terminal, and its colours are measured on this.
+                color: t.console,
+                child: ResponsiveCenter(
+                  // Wider than the default: log lines use the room on a
+                  // desktop window.
+                  maxWidth: 1200,
+                  child: logAsync.when(
+                    skipLoadingOnRefresh: true,
+                    data: (log) => Column(
+                      children: [
+                        if (log.isPartial)
+                          _Banner(
+                            icon: Icons.content_cut_rounded,
+                            text:
+                                'Showing the last '
+                                '${log.visibleLines.length} lines. Save the '
+                                'full log to see everything.',
+                          ),
+                        if (prefs.timestamps && timestamps.embedded)
+                          const SizedBox.shrink()
+                        else if (prefs.timestamps && timestamps.pluginMissing)
+                          const _Banner(
+                            icon: Icons.schedule_rounded,
+                            text:
+                                "This server doesn't have the Timestamper "
+                                'plugin.',
+                          )
+                        else if (prefs.timestamps &&
+                            !log.streaming &&
+                            timestamps.values.isNotEmpty &&
+                            timestamps.isEmpty)
+                          const _Banner(
+                            icon: Icons.schedule_rounded,
+                            text: 'No timestamps were recorded for this build.',
+                          ),
+                        if (log.reconnecting)
+                          const _Banner(
+                            icon: Icons.wifi_off_rounded,
+                            text: 'Connection lost — retrying…',
+                          ),
+                        // AUD-64/NEW-05: Jenkins no longer has this build.
+                        // Streaming has stopped for good, so this is a
+                        // terminal state, not a transient one.
+                        if (log.buildGone)
+                          const _Banner(
+                            icon: Icons.search_off_rounded,
+                            text: 'This build no longer exists on the server.',
+                          ),
+                        Expanded(
+                          child: ConsoleLogViewer(
+                            key: _viewerKey,
+                            lines: log.visibleLines,
+                            prefs: prefs,
+                            firstLineNumber: log.droppedLines,
+                            timestamps: timestamps,
+                            query: search.query,
+                            currentMatchLine: search.currentLine,
+                            onFollowChanged: (following) =>
+                                setState(() => _following = following),
+                          ),
+                        ),
+                      ],
+                    ),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (error, stackTrace) => Center(
+                      child: ConnectionErrorView(
+                        message: describeError(error),
+                        onRetry: () =>
+                            ref.invalidate(buildLogNotifierProvider(_url)),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: t.background,
+                border: Border(top: BorderSide(color: t.cardBorder)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: t.failure.background,
+                          foregroundColor: t.failure.foreground,
+                        ),
+                        onPressed: log == null
+                            ? null
+                            : () => _jumpToFirstError(log),
+                        icon: const Icon(Icons.warning_amber_rounded, size: 18),
+                        label: const Text('Jump to first error'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Semantics(
+                      toggled: _following,
+                      child: OutlinedButton.icon(
+                        style: _following
+                            ? OutlinedButton.styleFrom(
+                                backgroundColor: t.running.background,
+                                foregroundColor: t.running.foreground,
+                                side: BorderSide(color: t.running.dot),
+                              )
+                            : null,
+                        onPressed: () => _viewerKey.currentState?.follow(),
+                        icon: const Icon(
+                          Icons.arrow_downward_rounded,
+                          size: 18,
+                        ),
+                        label: const Text('Follow'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
-          IconButton(
-            icon: Icon(_searching ? Icons.close : Icons.search),
-            tooltip: _searching ? 'Close search' : 'Search log',
-            onPressed: () {
-              if (_searching) {
-                ref
-                    .read(consoleSearchNotifierProvider(_url).notifier)
-                    .setQuery('');
-              }
-              setState(() => _searching = !_searching);
-            },
-          ),
-          if (!_searching)
-            IconButton(
-              icon: const Icon(Icons.error_outline),
-              tooltip: 'Jump to first error',
-              onPressed: log == null ? null : () => _jumpToFirstError(log),
-            ),
-          _MenuButton(
-            prefs: prefs,
-            enabled: log != null,
-            exporting: exporting,
-            onSelected: (action) => _onMenu(action, prefs, log),
-          ),
-        ],
-      ),
-      // Wider than the default ResponsiveCenter max width: log lines
-      // benefit from horizontal room on a desktop window.
-      body: ResponsiveCenter(
-        maxWidth: 1200,
-        child: logAsync.when(
-          skipLoadingOnRefresh: true,
-          data: (log) => Column(
-            children: [
-              SizedBox(
-                height: MediaQuery.paddingOf(context).top + kToolbarHeight,
-              ),
-              if (log.isPartial)
-                _Banner(
-                  icon: Icons.content_cut,
-                  text:
-                      'Showing the last ${log.visibleLines.length} lines. '
-                      'Save the full log to see everything.',
-                ),
-              if (prefs.timestamps && timestamps.embedded)
-                const SizedBox.shrink()
-              else if (prefs.timestamps && timestamps.pluginMissing)
-                const _Banner(
-                  icon: Icons.schedule,
-                  text: "This server doesn't have the Timestamper plugin.",
-                )
-              else if (prefs.timestamps &&
-                  !log.streaming &&
-                  timestamps.values.isNotEmpty &&
-                  timestamps.isEmpty)
-                const _Banner(
-                  icon: Icons.schedule,
-                  text: 'No timestamps were recorded for this build.',
-                ),
-              if (log.reconnecting)
-                const _Banner(
-                  icon: Icons.wifi_off,
-                  text: 'Connection lost — retrying…',
-                ),
-              // AUD-64/NEW-05: Jenkins no longer has this build. Streaming
-              // has stopped for good, so this is a terminal state, not a
-              // transient one.
-              if (log.buildGone)
-                const _Banner(
-                  icon: Icons.search_off,
-                  text: 'This build no longer exists on the server.',
-                ),
-              Expanded(
-                child: ConsoleLogViewer(
-                  key: _viewerKey,
-                  lines: log.visibleLines,
-                  prefs: prefs,
-                  firstLineNumber: log.droppedLines,
-                  timestamps: timestamps,
-                  query: search.query,
-                  currentMatchLine: search.currentLine,
-                ),
-              ),
-            ],
-          ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) => Center(
-            child: ConnectionErrorView(
-              message: describeError(error),
-              onRetry: () => ref.invalidate(buildLogNotifierProvider(_url)),
-            ),
-          ),
         ),
       ),
     );
   }
+
+  /// `2481` → `2,481`.
+  static String _thousands(int n) => n.toString().replaceAllMapped(
+    RegExp(r'(\d)(?=(\d{3})+$)'),
+    (m) => '${m[1]},',
+  );
 
   void _jumpToFirstError(ConsoleState log) {
     final lines = log.visibleLines;
@@ -242,25 +326,51 @@ class _BuildLogScreenState extends ConsumerState<BuildLogScreen> {
   }
 }
 
-class _SearchField extends ConsumerWidget {
-  const _SearchField({required this.buildUrl});
+/// Always there above the console (`UI-UX/screens/15-build-log`): the
+/// query, "2 / 3", and previous/next.
+class _SearchBar extends ConsumerWidget {
+  const _SearchBar({required this.buildUrl, required this.search});
 
   final String buildUrl;
+  final ConsoleSearch search;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return TextField(
-      autofocus: true,
-      style: const TextStyle(color: Colors.white),
-      cursorColor: Colors.white,
-      decoration: const InputDecoration(
-        hintText: 'Search log',
-        hintStyle: TextStyle(color: Colors.white54),
-        border: InputBorder.none,
+    final notifier = ref.read(consoleSearchNotifierProvider(buildUrl).notifier);
+    final mono = AppTypography.mono(Theme.of(context).textTheme.bodyMedium);
+    return Semantics(
+      label: 'Search log',
+      child: TextField(
+        style: mono,
+        textInputAction: TextInputAction.search,
+        decoration: InputDecoration(
+          hintText: 'Search log',
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+          prefixIcon: const Icon(Icons.search_rounded, size: 20),
+          suffixIcon: search.query.isEmpty
+              ? null
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(search.counter, style: mono.copyWith(fontSize: 12)),
+                    IconButton(
+                      icon: const Icon(Icons.keyboard_arrow_up_rounded),
+                      tooltip: 'Previous match',
+                      onPressed: search.matches.isEmpty
+                          ? null
+                          : notifier.previous,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                      tooltip: 'Next match',
+                      onPressed: search.matches.isEmpty ? null : notifier.next,
+                    ),
+                  ],
+                ),
+        ),
+        onChanged: notifier.setQuery,
       ),
-      onChanged: ref
-          .read(consoleSearchNotifierProvider(buildUrl).notifier)
-          .setQuery,
     );
   }
 }
@@ -299,7 +409,7 @@ class _MenuButton extends StatelessWidget {
               height: 18,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : const Icon(Icons.more_vert),
+          : const Icon(Icons.more_vert_rounded),
       onSelected: onSelected,
       itemBuilder: (context) => [
         CheckedPopupMenuItem(
@@ -323,8 +433,6 @@ class _MenuButton extends StatelessWidget {
           child: const Text('Larger text'),
         ),
         const PopupMenuDivider(),
-        const PopupMenuItem(value: _MenuAction.copy, child: Text('Copy')),
-        const PopupMenuItem(value: _MenuAction.share, child: Text('Share')),
         PopupMenuItem(
           value: _MenuAction.saveFull,
           enabled: !exporting,
@@ -341,20 +449,24 @@ class _Banner extends StatelessWidget {
   final IconData icon;
   final String text;
 
+  static const _text = Color(0xFFCBD5E1);
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFF263238),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: const Color(0xFF1E293B),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: Colors.white70),
+          Icon(icon, size: 16, color: _text),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: _text, fontSize: 12),
             ),
           ),
         ],

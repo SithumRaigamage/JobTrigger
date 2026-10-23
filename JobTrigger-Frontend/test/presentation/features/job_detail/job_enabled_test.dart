@@ -166,7 +166,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('This job is disabled'), findsNothing);
-    expect(find.text('Trigger Build'), findsOneWidget);
+    expect(find.text('Trigger build'), findsOneWidget);
     await tester.pump(const Duration(seconds: 4)); // toast auto-dismiss
   });
 }

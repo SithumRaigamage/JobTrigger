@@ -91,9 +91,10 @@ void main() {
 
     expect(bridge.written, isNotEmpty);
     for (final snapshot in bridge.written) {
-      expect(snapshot.jobs.single.label, 'Pinned job 1');
+      // Not the name, nor the status (P14-25): just how many are pinned.
+      expect(snapshot.jobs, isEmpty);
+      expect(snapshot.lockedCount, 1);
     }
-    expect(bridge.written.last.jobs.single.status, WidgetJobStatus.failure);
   });
 
   test('logout clears the widget snapshot', () async {

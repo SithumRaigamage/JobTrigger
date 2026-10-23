@@ -63,7 +63,7 @@ void main() {
   test('notifies for a finished build and drops its watch', () async {
     await store.save([_watch('api')]);
     final remaining = await run((_) async => _Repo(const Ok([_finished])));
-    expect(shown.single.title, '✅ api #7 succeeded');
+    expect(shown.single.title, 'api #7 succeeded');
     expect(remaining, isEmpty);
     expect(await store.load(), isEmpty);
   });

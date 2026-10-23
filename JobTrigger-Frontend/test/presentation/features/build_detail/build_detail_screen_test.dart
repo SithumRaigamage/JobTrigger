@@ -89,10 +89,13 @@ void main() {
   ) async {
     await _pump(tester);
 
-    expect(find.text('SUCCESS'), findsOneWidget);
-    expect(find.textContaining('took 4m 12s'), findsOneWidget);
+    // P14-15: the result as a pill, the duration as a figure, and each
+    // parameter as a name/value row.
+    expect(find.text('Success'), findsOneWidget);
+    expect(find.text('4m 12s'), findsOneWidget);
     expect(find.text('Started by user admin'), findsOneWidget);
-    expect(find.text('BRANCH: main'), findsOneWidget);
+    expect(find.text('BRANCH'), findsOneWidget);
+    expect(find.text('main'), findsOneWidget);
     // HTML is never rendered: tags gone, entities decoded.
     expect(find.text('Release 1.4 & hotfix'), findsOneWidget);
     expect(find.textContaining('<b>'), findsNothing);

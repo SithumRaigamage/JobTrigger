@@ -43,7 +43,7 @@ void main() {
     );
     expect(
       [for (final j in jobs) j.statusText],
-      ['Success', 'Failed', 'Unstable', 'Building'],
+      ['Success', 'Failed', 'Unstable', 'Running'],
     );
     expect(jobs.first.buildNumber, 42);
     expect(jobs.first.buildTimestamp, 1000);
@@ -86,13 +86,20 @@ void main() {
     });
   });
 
-  test('hides job names while the app lock is on (AUD-54)', () {
-    final jobs = buildWidgetSnapshot(
+  test('while the app lock is on, only the count leaves the app (AUD-54)', () {
+    final snapshot = buildWidgetSnapshot(
       [_pin(_job('red')), _pin(_job('blue'), label: 'web')],
       now: now,
       hideNames: true,
-    ).jobs;
-    expect(jobs.map((job) => job.label), ['Pinned job 1', 'Pinned job 2']);
-    expect(jobs.map((job) => job.statusText), ['Failed', 'Success']);
+    );
+    expect(snapshot.jobs, isEmpty);
+    expect(snapshot.lockedCount, 2);
+    expect(snapshot.toJson()['lockedCount'], 2);
+  });
+
+  test('unlocked, there is no locked count', () {
+    final snapshot = buildWidgetSnapshot([_pin(_job('red'))], now: now);
+    expect(snapshot.isLocked, isFalse);
+    expect(snapshot.toJson()['lockedCount'], isNull);
   });
 }

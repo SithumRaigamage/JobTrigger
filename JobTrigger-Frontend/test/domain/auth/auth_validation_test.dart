@@ -54,4 +54,31 @@ void main() {
       expect(AuthValidation.passwordsMatch('secret', ''), isTrue);
     });
   });
+
+  group('AuthValidation.passwordStrength', () {
+    test('0 below the minimum length', () {
+      expect(AuthValidation.passwordStrength(''), 0);
+      expect(AuthValidation.passwordStrength('Ab1!xyz'), 0);
+    });
+
+    test('1 at the minimum with one kind of character', () {
+      expect(AuthValidation.passwordStrength('abcdefgh'), 1);
+    });
+
+    test('a point for 12+ characters', () {
+      expect(AuthValidation.passwordStrength('abcdefghijkl'), 2);
+    });
+
+    test('a point for three kinds of character', () {
+      expect(AuthValidation.passwordStrength('abcdEF12'), 2);
+    });
+
+    test('tops out with length and all four kinds', () {
+      expect(
+        AuthValidation.passwordStrength('correct-Horse-9'),
+        AuthValidation.maxPasswordStrength,
+      );
+      expect(AuthValidation.passwordStrength('abcdefghijklmnop'), 3);
+    });
+  });
 }

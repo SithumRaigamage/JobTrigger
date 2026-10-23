@@ -16,7 +16,7 @@ void main() {
     await tester.pumpWidget(const ProviderScope(child: MyApp()));
     await tester.pumpAndSettle();
 
-    expect(find.text('JobTrigger'), findsOneWidget);
-    expect(find.text('Sign In'), findsOneWidget);
+    expect(find.text('Welcome back'), findsOneWidget);
+    expect(find.text('Log in'), findsOneWidget);
   });
 }

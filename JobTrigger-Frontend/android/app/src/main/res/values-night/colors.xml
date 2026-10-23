@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- US-JX-23 widget colors, AppColors' dark palette (secondary
-     lightened for contrast on the small widget text). -->
+<!-- US-JX-23 widget colors, AppColors' dark P14 palette. -->
 <resources>
-    <color name="widget_background">#FF0F172A</color>
+    <color name="widget_background">#FF0B1120</color>
     <color name="widget_text">#FFF1F5F9</color>
     <color name="widget_secondary">#FFCBD5E1</color>
-    <color name="widget_accent">#FF4DA3FF</color>
+    <color name="widget_muted">#FF94A3B8</color>
+    <color name="widget_success_text">#FF86EFAC</color>
+    <color name="widget_success_dot">#FF4ADE80</color>
+    <color name="widget_failure_text">#FFFCA5A5</color>
+    <color name="widget_failure_dot">#FFF87171</color>
+    <color name="widget_unstable_text">#FFFDBA74</color>
+    <color name="widget_unstable_dot">#FFFB923C</color>
+    <color name="widget_running_text">#FF93C5FD</color>
+    <color name="widget_running_dot">#FF60A5FA</color>
+    <color name="widget_neutral_text">#FFCBD5E1</color>
+    <color name="widget_neutral_dot">#FF94A3B8</color>
 </resources>

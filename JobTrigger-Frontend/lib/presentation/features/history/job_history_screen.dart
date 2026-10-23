@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../domain/jenkins/history_filter.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../common_widgets/connection_error_view.dart';
-import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../../../data/credentials/active_server_notifier.dart';
@@ -19,6 +19,7 @@ import 'replay_sheet.dart';
 /// Ported from `HistoryView.swift`, extended for US-JX-06: pages through
 /// all of a job's history (loading more near the end of the list) and
 /// filters by result or "started by me". Reuses `HistoryTile` (P5-16).
+/// Laid out to the P14 design (`UI-UX/screens/13-job-history`).
 class JobHistoryScreen extends ConsumerWidget {
   const JobHistoryScreen({super.key, required this.job});
 
@@ -29,20 +30,43 @@ class JobHistoryScreen extends ConsumerWidget {
     final pagesAsync = ref.watch(jobHistoryPagesNotifierProvider(job.url));
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: GlassAppBar(title: Text('${job.label} History')),
-      body: ResponsiveCenter(
-        child: pagesAsync.when(
-          data: (pages) => _HistoryList(job: job, pages: pages),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) => Center(
-            child: ConnectionErrorView(
-              message: describeError(error),
-              onRetry: () => ref
-                  .read(jobHistoryPagesNotifierProvider(job.url).notifier)
-                  .refresh(),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            ResponsiveCenter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.chevron_left_rounded, size: 28),
+                    tooltip: 'Back',
+                    onPressed: () => Navigator.of(context).maybePop(),
+                  ),
+                ),
+              ),
             ),
-          ),
+            Expanded(
+              child: ResponsiveCenter(
+                child: pagesAsync.when(
+                  data: (pages) => _HistoryList(job: job, pages: pages),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stackTrace) => Center(
+                    child: ConnectionErrorView(
+                      message: describeError(error),
+                      onRetry: () => ref
+                          .read(
+                            jobHistoryPagesNotifierProvider(job.url).notifier,
+                          )
+                          .refresh(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -65,6 +89,8 @@ class _HistoryList extends ConsumerWidget {
     final notifier = ref.read(
       jobHistoryPagesNotifierProvider(job.url).notifier,
     );
+    final textTheme = Theme.of(context).textTheme;
+    final t = AppTokens.of(context);
 
     return NotificationListener<ScrollNotification>(
       // Load the next page a screen before the end, so scrolling rarely
@@ -75,45 +101,75 @@ class _HistoryList extends ConsumerWidget {
       },
       child: RefreshIndicator(
         onRefresh: notifier.refresh,
-        child: ListView.builder(
+        child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(
-            8,
-            MediaQuery.paddingOf(context).top + kToolbarHeight + 8,
-            8,
-            8,
-          ),
-          // Filter row, the builds, then one footer row.
-          itemCount: builds.length + 2,
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return Column(
-                children: [
-                  // US-JX-15, over everything loaded (not the filter).
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                    child: BuildTrendsCard(builds: pages.builds),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      job.label,
+                      style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
+                    ),
+                    const SizedBox(height: 4),
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        'Build history',
+                        style: textTheme.headlineMedium,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // US-JX-15, over everything loaded (not the filter).
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              sliver: SliverToBoxAdapter(
+                child: BuildTrendsCard(builds: pages.builds),
+              ),
+            ),
+            SliverToBoxAdapter(child: _FilterRow(jobUrl: job.url)),
+            if (builds.isNotEmpty)
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: DecoratedSliver(
+                  decoration: BoxDecoration(
+                    color: t.card,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: t.cardBorder),
                   ),
-                  _FilterRow(jobUrl: job.url),
-                ],
-              );
-            }
-            if (index == builds.length + 1) {
-              return _Footer(
+                  sliver: SliverList.separated(
+                    itemCount: builds.length,
+                    itemBuilder: (context, index) {
+                      final build = builds[index];
+                      return HistoryTile(
+                        key: ValueKey(build.url),
+                        jenkinsBuild: build,
+                        grouped: true,
+                        withDate: true,
+                        onTap: () =>
+                            context.push(AppRoutes.buildDetail, extra: build),
+                        onReplay: () => _replay(context, build),
+                      );
+                    },
+                    separatorBuilder: (_, _) => const Divider(),
+                  ),
+                ),
+              ),
+            SliverToBoxAdapter(
+              child: _Footer(
                 pages: pages,
                 noMatches: builds.isEmpty,
                 filtered: filter.isActive,
                 onLoadMore: notifier.loadMore,
-              );
-            }
-            final build = builds[index - 1];
-            return HistoryTile(
-              key: ValueKey(build.url),
-              jenkinsBuild: build,
-              onTap: () => context.push(AppRoutes.buildDetail, extra: build),
-              onReplay: () => _replay(context, build),
-            );
-          },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -139,10 +195,10 @@ class _FilterRow extends ConsumerWidget {
       jobHistoryFilterNotifierProvider(jobUrl).notifier,
     );
     return SizedBox(
-      height: 48,
+      height: 60,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
         children: [
           // First, so it's visible without scrolling the chip row.
           Padding(
@@ -158,6 +214,7 @@ class _FilterRow extends ConsumerWidget {
               padding: const EdgeInsets.only(right: 6),
               child: ChoiceChip(
                 label: Text(result.label),
+                showCheckmark: false,
                 selected: filter.result == result,
                 onSelected: (_) => notifier.setResult(result),
               ),

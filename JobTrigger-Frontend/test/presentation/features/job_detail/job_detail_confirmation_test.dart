@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:job_trigger/presentation/common_widgets/labeled_field.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/credentials_repository_impl.dart';
@@ -123,7 +124,7 @@ void main() {
     ) async {
       final repository = await _pumpScreen(tester);
 
-      await tester.tap(find.text('Trigger Build'));
+      await tester.tap(find.text('Build with parameters'));
       await tester.pumpAndSettle();
       expect(find.text('Trigger build?'), findsOneWidget);
 
@@ -135,7 +136,7 @@ void main() {
     testWidgets('confirming triggers exactly once', (tester) async {
       final repository = await _pumpScreen(tester);
 
-      await tester.tap(find.text('Trigger Build'));
+      await tester.tap(find.text('Build with parameters'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Trigger'));
       await tester.pumpAndSettle();
@@ -148,11 +149,15 @@ void main() {
     ) async {
       await _pumpScreen(tester);
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'DEPLOY_TOKEN'),
+        // P14-12: the parameter's name sits above its field.
+        find.descendant(
+          of: find.widgetWithText(LabeledField, 'DEPLOY_TOKEN'),
+          matching: find.byType(TextFormField),
+        ),
         'top-secret',
       );
 
-      await tester.tap(find.text('Trigger Build'));
+      await tester.tap(find.text('Build with parameters'));
       await tester.pumpAndSettle();
 
       final dialog = find.byType(AlertDialog);
@@ -178,7 +183,7 @@ void main() {
     ) async {
       final repository = await _pumpScreen(tester);
 
-      await tester.tap(find.text('Cancel Build'));
+      await tester.tap(find.text('Stop'));
       await tester.pumpAndSettle();
       expect(find.text('Cancel build #7?'), findsOneWidget);
 
@@ -186,7 +191,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(repository.cancelCalls, 0);
 
-      await tester.tap(find.text('Cancel Build'));
+      await tester.tap(find.text('Stop'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cancel build'));
       await tester.pumpAndSettle();

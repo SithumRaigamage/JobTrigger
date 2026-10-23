@@ -5,61 +5,24 @@ import '../../../core/error/error_message.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import '../../../domain/credential/jenkins_url.dart';
 import '../../../domain/credential/token_hygiene.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../common_widgets/cleartext_warning.dart';
 import '../../common_widgets/external_link.dart';
-import '../../common_widgets/glass_surface.dart';
+import '../../common_widgets/labeled_field.dart';
 import '../../common_widgets/secret_reentry_notice.dart';
 import '../../common_widgets/toast_controller.dart';
+import 'edit_sheet.dart';
 import 'server_form_notifier.dart';
 import 'test_connection_notifier.dart';
 
-/// Ported from the add/edit sheet in `SettingsView.swift`. [existing] is
-/// null when adding a new server, non-null when editing one.
-///
-/// A bottom sheet is anchored to the bottom edge and spans the full window
-/// width -- fine, thumb-reachable UX on a phone, but reads as "not
-/// centered"/oddly docked on a wide macOS window. Same narrow/wide split as
-/// `LoginScreen`'s responsive layout: a real centered `Dialog` at or above
-/// the breakpoint, the native bottom sheet below it.
-Future<void> showServerEditBottomSheet(
+/// Ported from the add/edit sheet in `SettingsView.swift`, laid out to the
+/// P14 design (`UI-UX/screens/21-edit-server-sheet`). [existing] is null
+/// when adding a new server, non-null when editing one. Completes with
+/// `true` when the user asked to delete [existing] (see [showEditSheet]).
+Future<bool?> showServerEditBottomSheet(
   BuildContext context, {
   JenkinsServer? existing,
-}) {
-  const wideBreakpoint = 900.0;
-  if (MediaQuery.sizeOf(context).width >= wideBreakpoint) {
-    return showDialog<void>(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: GlassSurface.chrome(
-          borderRadius: BorderRadius.circular(20),
-          child: ServerEditBottomSheet(existing: existing),
-        ),
-      ),
-    );
-  }
-  return showModalBottomSheet<void>(
-    context: context,
-    // `showModalBottomSheet` defaults to the *nearest* Navigator, unlike
-    // `showDialog` above (which already defaults to the root one) --
-    // Settings lives inside MainScaffold's StatefulShellRoute branch, so
-    // without this the sheet attaches to that branch's own nested
-    // Navigator and ends up part of the Scaffold's `body`, which paints
-    // (and hit-tests) *underneath* the persistent glass nav bar. That cut
-    // the sheet off visually and swallowed taps on whatever fell in the
-    // overlap (e.g. the "Test Jenkins Connection" button). The root
-    // navigator renders above the whole app, nav bar included -- the
-    // normal expectation for a modal.
-    useRootNavigator: true,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (context) => GlassSurface.chrome(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      child: ServerEditBottomSheet(existing: existing),
-    ),
-  );
-}
+}) => showEditSheet(context, ServerEditBottomSheet(existing: existing));
 
 class ServerEditBottomSheet extends ConsumerStatefulWidget {
   const ServerEditBottomSheet({super.key, this.existing});
@@ -88,8 +51,6 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
     text: widget.existing?.paramToken,
   );
   late bool _isDefault = widget.existing?.isDefault ?? false;
-  bool _obscurePassword = true;
-  bool _obscureParamToken = true;
 
   bool get _isEditing => widget.existing != null;
 
@@ -127,157 +88,96 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
     final saveState = ref.watch(serverFormNotifierProvider);
     final testState = ref.watch(testConnectionNotifierProvider);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        // Caps the form at a sane width on a wide macOS window instead of
-        // stretching text fields edge to edge -- same ResponsiveCenter
-        // pattern used by full-page screens, just centered manually here
-        // since this widget is the bottom sheet's content itself.
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  _isEditing ? 'Edit Server' : 'Add Server',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _serverNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Server Name',
-                    hintText: 'My Jenkins Server',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _jenkinsURLController,
-                  keyboardType: TextInputType.url,
-                  autocorrect: false,
-                  // Re-check the URL (AUD-14) as the user types.
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    labelText: 'Jenkins URL',
-                    hintText: 'https://ci.example.com',
-                    border: const OutlineInputBorder(),
-                    errorText: _jenkinsURLController.text.trim().isEmpty
-                        ? null
-                        : jenkinsUrlProblem(_jenkinsURLController.text),
-                    errorMaxLines: 2,
-                  ),
-                ),
-                if (isCleartextUrl(_jenkinsURLController.text))
-                  const CleartextWarning(
-                    secretDescription:
-                        'your username and password or token are',
-                  ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _usernameController,
-                  autocorrect: false,
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                if (_needsReentry) ...[
-                  SecretReentryNotice(
-                    style: Theme.of(context).textTheme.bodySmall,
-                    detail:
-                        'The stored secret could not be read, so it has to be '
-                        'entered again before this server can be used.',
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                TextField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  // Re-check the token heuristic as the user types.
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    labelText: 'API token or password',
-                    border: const OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      tooltip: _obscurePassword
-                          ? 'Show password'
-                          : 'Hide password',
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
-                ),
-                if (_passwordController.text.isNotEmpty &&
-                    !looksLikeJenkinsApiToken(_passwordController.text))
-                  _PasswordAdvisory(jenkinsUrl: _jenkinsURLController.text),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _paramTokenController,
-                  autocorrect: false,
-                  obscureText: _obscureParamToken,
-                  decoration: InputDecoration(
-                    labelText: 'Build Token (for triggering)',
-                    border: const OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureParamToken
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      tooltip: _obscureParamToken
-                          ? 'Show build token'
-                          : 'Hide build token',
-                      onPressed: () => setState(
-                        () => _obscureParamToken = !_obscureParamToken,
-                      ),
-                    ),
-                  ),
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Set as default server'),
-                  value: _isDefault,
-                  onChanged: (value) => setState(() => _isDefault = value),
-                ),
-                const SizedBox(height: 8),
-                _TestConnectionStatus(state: testState),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.wifi_tethering),
-                  label: const Text('Test Jenkins Connection'),
-                  onPressed: testState.isLoading ? null : _testConnection,
-                ),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: saveState.isLoading ? null : _save,
-                  child: saveState.isLoading
-                      ? const SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(_isEditing ? 'Save' : 'Add'),
-                ),
-              ],
+    final url = _jenkinsURLController.text;
+    return EditSheetFrame(
+      title: _isEditing ? 'Edit server' : 'Add server',
+      saveLabel: _isEditing ? 'Save' : 'Add',
+      saving: saveState.isLoading,
+      onSave: _save,
+      deleteLabel: _isEditing ? 'Delete server' : null,
+      children: [
+        LabeledField(
+          label: 'Name',
+          child: TextField(
+            controller: _serverNameController,
+            decoration: const InputDecoration(hintText: 'My Jenkins server'),
+          ),
+        ),
+        const SizedBox(height: 16),
+        LabeledField(
+          label: 'Server URL',
+          child: TextField(
+            controller: _jenkinsURLController,
+            keyboardType: TextInputType.url,
+            autocorrect: false,
+            style: AppTypography.mono(Theme.of(context).textTheme.bodyLarge),
+            // Re-check the URL (AUD-14) as the user types.
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              hintText: 'https://ci.example.com',
+              errorText: url.trim().isEmpty ? null : jenkinsUrlProblem(url),
+              errorMaxLines: 2,
             ),
           ),
         ),
-      ),
+        if (isCleartextUrl(url))
+          const CleartextWarning(
+            secretDescription: 'your username and password or token are',
+          ),
+        const SizedBox(height: 16),
+        LabeledField(
+          label: 'Username',
+          child: TextField(controller: _usernameController, autocorrect: false),
+        ),
+        const SizedBox(height: 16),
+        if (_needsReentry) ...[
+          SecretReentryNotice(
+            style: Theme.of(context).textTheme.bodySmall,
+            detail:
+                'The stored secret could not be read, so it has to be '
+                'entered again before this server can be used.',
+          ),
+          const SizedBox(height: 12),
+        ],
+        LabeledField(
+          label: 'API token',
+          helper:
+              'Use a Jenkins API token, not your password. '
+              'It’s stored encrypted.',
+          child: SecretTextField(
+            controller: _passwordController,
+            noun: 'token',
+            // Re-check the token heuristic as the user types.
+            onChanged: (_) => setState(() {}),
+          ),
+        ),
+        if (_passwordController.text.isNotEmpty &&
+            !looksLikeJenkinsApiToken(_passwordController.text))
+          _PasswordAdvisory(jenkinsUrl: url),
+        const SizedBox(height: 16),
+        LabeledField(
+          label: 'Build token (optional)',
+          helper: 'The job’s “Trigger builds remotely” token, if it uses one.',
+          child: SecretTextField(
+            controller: _paramTokenController,
+            noun: 'build token',
+          ),
+        ),
+        const SizedBox(height: 4),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Set as default server'),
+          value: _isDefault,
+          onChanged: (value) => setState(() => _isDefault = value),
+        ),
+        const SizedBox(height: 8),
+        ConnectionTest<int>(
+          state: testState,
+          onTest: _testConnection,
+          describe: (count) =>
+              'Connected — $count job${count == 1 ? '' : 's'} found',
+        ),
+      ],
     );
   }
 
@@ -307,31 +207,6 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
           // nothing to fall back to — the user has to type it again.
           needsReentry: _needsReentry,
         );
-  }
-}
-
-class _TestConnectionStatus extends StatelessWidget {
-  const _TestConnectionStatus({required this.state});
-
-  final AsyncValue<int?> state;
-
-  @override
-  Widget build(BuildContext context) {
-    return switch (state) {
-      AsyncData(value: null) => const SizedBox.shrink(),
-      AsyncData(:final value?) => Text(
-        'Connected — $value job${value == 1 ? '' : 's'} found',
-        style: TextStyle(
-          color: AppColors.successText(Theme.of(context).brightness),
-        ),
-      ),
-      AsyncLoading() => const Text('Testing...'),
-      AsyncError(:final error) => Text(
-        'Failed: ${describeError(error)}',
-        // AUD-62: the theme's error color is made for text; red 500 wasn't.
-        style: TextStyle(color: Theme.of(context).colorScheme.error),
-      ),
-    };
   }
 }
 

@@ -41,3 +41,24 @@ List<HistoryEntry> buildHistoryTimeline(
   entries.sort((a, b) => b.build.timestamp.compareTo(a.build.timestamp));
   return entries.take(limit).toList();
 }
+
+/// P14-09: [entries] (newest first) split by the local calendar day their
+/// build started, keeping that order — Global History draws one section per
+/// day.
+List<(DateTime, List<HistoryEntry>)> groupHistoryByDay(
+  List<HistoryEntry> entries,
+) {
+  final groups = <(DateTime, List<HistoryEntry>)>[];
+  for (final entry in entries) {
+    final started = DateTime.fromMillisecondsSinceEpoch(
+      entry.build.timestamp.toInt(),
+    );
+    final day = DateTime(started.year, started.month, started.day);
+    if (groups.isEmpty || groups.last.$1 != day) {
+      groups.add((day, [entry]));
+    } else {
+      groups.last.$2.add(entry);
+    }
+  }
+  return groups;
+}
