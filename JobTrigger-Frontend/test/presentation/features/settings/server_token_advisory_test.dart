@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:job_trigger/presentation/common_widgets/labeled_field.dart';
 import 'package:job_trigger/presentation/features/settings/server_edit_bottom_sheet.dart';
 
 Future<void> _pump(WidgetTester tester) async {
@@ -9,26 +10,27 @@ Future<void> _pump(WidgetTester tester) async {
   await tester.pumpWidget(
     const ProviderScope(
       child: MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(child: ServerEditBottomSheet()),
-        ),
+        // The sheet scrolls its own fields (P14-22).
+        home: Scaffold(body: ServerEditBottomSheet()),
       ),
     ),
   );
 }
 
-Finder get _secretField =>
-    find.widgetWithText(TextField, 'API token or password');
+/// Since P14-22 the label sits above the field, in a `LabeledField`.
+Finder _field(String label) => find.descendant(
+  of: find.widgetWithText(LabeledField, label),
+  matching: find.byType(TextField),
+);
+
+Finder get _secretField => _field('API token');
 
 void main() {
   testWidgets('a password-looking secret shows the token advisory (US-JX-22)', (
     tester,
   ) async {
     await _pump(tester);
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Jenkins URL'),
-      'https://ci.test',
-    );
+    await tester.enterText(_field('Server URL'), 'https://ci.test');
     await tester.enterText(_secretField, 'hunter2');
     await tester.pump();
 
@@ -45,7 +47,7 @@ void main() {
   });
 
   group('Jenkins URL field (AUD-14)', () {
-    Finder urlField() => find.widgetWithText(TextField, 'Jenkins URL');
+    Finder urlField() => _field('Server URL');
 
     testWidgets('http:// shows the cleartext warning; https:// does not', (
       tester,

@@ -361,7 +361,19 @@ class _ServerTile extends ConsumerWidget {
         isActive: isActive,
         title: server.serverName,
         onActivate: () => _setActiveServer(ref, server),
-        onEdit: () => showServerEditBottomSheet(context, existing: server),
+        onEdit: () async {
+          // P14-22: the sheet's own "Delete server" ends the same way a
+          // swipe does — confirmed, then deleted.
+          final delete = await showServerEditBottomSheet(
+            context,
+            existing: server,
+          );
+          if (delete == true &&
+              context.mounted &&
+              await _confirmDelete(context)) {
+            await _deleteServer(ref, server);
+          }
+        },
         details: [
           _MonoLine(server.jenkinsURL),
           // AUD-14 / AUD-52: the design flags a server reached over
@@ -468,8 +480,17 @@ class _GitHubCredentialTile extends ConsumerWidget {
         isActive: isActive,
         title: credential.label,
         onActivate: () => _setActiveCredential(ref, credential),
-        onEdit: () =>
-            showGitHubCredentialEditBottomSheet(context, existing: credential),
+        onEdit: () async {
+          final delete = await showGitHubCredentialEditBottomSheet(
+            context,
+            existing: credential,
+          );
+          if (delete == true &&
+              context.mounted &&
+              await _confirmDelete(context)) {
+            await _deleteCredential(ref, credential);
+          }
+        },
         // AUD-63: an unreadable secret takes precedence over the owner
         // hint — the credential can't authenticate at all.
         details: [
@@ -570,10 +591,17 @@ class _SonarQubeCredentialTile extends ConsumerWidget {
         isActive: isActive,
         title: credential.label,
         onActivate: () => _setActiveCredential(ref, credential),
-        onEdit: () => showSonarQubeCredentialEditBottomSheet(
-          context,
-          existing: credential,
-        ),
+        onEdit: () async {
+          final delete = await showSonarQubeCredentialEditBottomSheet(
+            context,
+            existing: credential,
+          );
+          if (delete == true &&
+              context.mounted &&
+              await _confirmDelete(context)) {
+            await _deleteCredential(ref, credential);
+          }
+        },
         // AUD-63: an unreadable secret takes precedence over the URL.
         details: [
           if (credential.needsReentry)

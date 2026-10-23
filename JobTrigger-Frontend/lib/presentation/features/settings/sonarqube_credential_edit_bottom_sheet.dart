@@ -4,46 +4,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/error_message.dart';
 import '../../../domain/credential/sonarqube_credential.dart';
 import '../../../domain/credential/sonarqube_url.dart';
-import '../../../core/theme/app_tokens.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../common_widgets/cleartext_warning.dart';
-import '../../common_widgets/glass_surface.dart';
+import '../../common_widgets/labeled_field.dart';
 import '../../common_widgets/secret_reentry_notice.dart';
 import '../../common_widgets/toast_controller.dart';
+import 'edit_sheet.dart';
 import 'sonarqube_credential_form_notifier.dart';
 import 'test_sonarqube_connection_notifier.dart';
 
-/// Mirrors `showGitHubCredentialEditBottomSheet`'s shape exactly, including
-/// the wide-window `Dialog` vs. narrow-window bottom-sheet split and
-/// `useRootNavigator: true`. [existing] is null when adding a new
-/// credential, non-null when editing.
-Future<void> showSonarQubeCredentialEditBottomSheet(
+/// Laid out like the Jenkins server sheet (`UI-UX/screens/21-edit-server-sheet`,
+/// see [showEditSheet]). [existing] is null when adding a new credential,
+/// non-null when editing. Completes with `true` when the user asked to
+/// delete [existing].
+Future<bool?> showSonarQubeCredentialEditBottomSheet(
   BuildContext context, {
   SonarQubeCredential? existing,
-}) {
-  const wideBreakpoint = 900.0;
-  if (MediaQuery.sizeOf(context).width >= wideBreakpoint) {
-    return showDialog<void>(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: GlassSurface.chrome(
-          borderRadius: BorderRadius.circular(20),
-          child: SonarQubeCredentialEditBottomSheet(existing: existing),
-        ),
-      ),
-    );
-  }
-  return showModalBottomSheet<void>(
-    context: context,
-    useRootNavigator: true,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (context) => GlassSurface.chrome(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      child: SonarQubeCredentialEditBottomSheet(existing: existing),
-    ),
-  );
-}
+}) => showEditSheet(
+  context,
+  SonarQubeCredentialEditBottomSheet(existing: existing),
+);
 
 class SonarQubeCredentialEditBottomSheet extends ConsumerStatefulWidget {
   const SonarQubeCredentialEditBottomSheet({super.key, this.existing});
@@ -70,7 +50,6 @@ class _SonarQubeCredentialEditBottomSheetState
     text: widget.existing?.defaultOrganization,
   );
   late bool _isDefault = widget.existing?.isDefault ?? false;
-  bool _obscureToken = true;
 
   bool get _isEditing => widget.existing != null;
 
@@ -107,131 +86,93 @@ class _SonarQubeCredentialEditBottomSheetState
     final saveState = ref.watch(sonarQubeCredentialFormNotifierProvider);
     final testState = ref.watch(testSonarQubeConnectionNotifierProvider);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  _isEditing
-                      ? 'Edit SonarQube Credential'
-                      : 'Add SonarQube Credential',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _labelController,
-                  decoration: const InputDecoration(
-                    labelText: 'Label',
-                    hintText: 'Personal, Work Org, etc.',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _baseUrlController,
-                  keyboardType: TextInputType.url,
-                  autocorrect: false,
-                  // Re-check the URL (AUD-52) as the user types.
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    labelText: 'Instance URL',
-                    hintText: 'https://sonarcloud.io',
-                    border: const OutlineInputBorder(),
-                    errorText: _baseUrlController.text.trim().isEmpty
-                        ? null
-                        : sonarQubeUrlProblem(_baseUrlController.text),
-                    errorMaxLines: 2,
-                  ),
-                ),
-                if (isCleartextUrl(_baseUrlController.text))
-                  const CleartextWarning(secretDescription: 'your token is'),
-                const SizedBox(height: 12),
-                if (_needsReentry) ...[
-                  SecretReentryNotice(
-                    style: Theme.of(context).textTheme.bodySmall,
-                    detail:
-                        'The stored token could not be read, so it has to be '
-                        'entered again before this credential can be used.',
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                TextField(
-                  controller: _tokenController,
-                  obscureText: _obscureToken,
-                  autocorrect: false,
-                  decoration: InputDecoration(
-                    labelText: 'User Token',
-                    // AUD-63: "leave blank to keep the current token" is a
-                    // lie when the current token can't be read — there's
-                    // nothing to keep.
-                    hintText: _needsReentry
-                        ? 'Enter the token again'
-                        : _isEditing
-                        ? 'Leave blank to keep the current token'
-                        : 'squ_…',
-                    border: const OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureToken
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      tooltip: _obscureToken ? 'Show token' : 'Hide token',
-                      onPressed: () =>
-                          setState(() => _obscureToken = !_obscureToken),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _defaultOrganizationController,
-                  autocorrect: false,
-                  decoration: const InputDecoration(
-                    labelText: 'Organization (optional)',
-                    hintText:
-                        'Required for SonarCloud, unused for self-hosted Server',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Set as default credential'),
-                  value: _isDefault,
-                  onChanged: (value) => setState(() => _isDefault = value),
-                ),
-                const SizedBox(height: 8),
-                _TestSonarQubeConnectionStatus(state: testState),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.wifi_tethering),
-                  label: const Text('Test Connection'),
-                  onPressed: testState.isLoading ? null : _testConnection,
-                ),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: saveState.isLoading ? null : _save,
-                  child: saveState.isLoading
-                      ? const SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(_isEditing ? 'Save' : 'Add'),
-                ),
-              ],
+    final url = _baseUrlController.text;
+    return EditSheetFrame(
+      title: _isEditing
+          ? 'Edit SonarQube credential'
+          : 'Add SonarQube credential',
+      saveLabel: _isEditing ? 'Save' : 'Add',
+      saving: saveState.isLoading,
+      onSave: _save,
+      deleteLabel: _isEditing ? 'Delete credential' : null,
+      children: [
+        LabeledField(
+          label: 'Label',
+          child: TextField(
+            controller: _labelController,
+            decoration: const InputDecoration(
+              hintText: 'Personal, Work org, etc.',
             ),
           ),
         ),
-      ),
+        const SizedBox(height: 16),
+        LabeledField(
+          label: 'Instance URL',
+          child: TextField(
+            controller: _baseUrlController,
+            keyboardType: TextInputType.url,
+            autocorrect: false,
+            style: AppTypography.mono(Theme.of(context).textTheme.bodyLarge),
+            // Re-check the URL (AUD-52) as the user types.
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              hintText: 'https://sonarcloud.io',
+              errorText: url.trim().isEmpty ? null : sonarQubeUrlProblem(url),
+              errorMaxLines: 2,
+            ),
+          ),
+        ),
+        if (isCleartextUrl(url))
+          const CleartextWarning(secretDescription: 'your token is'),
+        const SizedBox(height: 16),
+        if (_needsReentry) ...[
+          SecretReentryNotice(
+            style: Theme.of(context).textTheme.bodySmall,
+            detail:
+                'The stored token could not be read, so it has to be '
+                'entered again before this credential can be used.',
+          ),
+          const SizedBox(height: 12),
+        ],
+        LabeledField(
+          label: 'User token',
+          helper: 'Stored encrypted.',
+          child: SecretTextField(
+            controller: _tokenController,
+            noun: 'token',
+            // AUD-63: "leave blank to keep the current token" is a lie
+            // when the current token can't be read — there's nothing to
+            // keep.
+            hintText: _needsReentry
+                ? 'Enter the token again'
+                : _isEditing
+                ? 'Leave blank to keep the current token'
+                : 'squ_…',
+          ),
+        ),
+        const SizedBox(height: 16),
+        LabeledField(
+          label: 'Organization (optional)',
+          helper: 'Required for SonarCloud, unused for self-hosted Server.',
+          child: TextField(
+            controller: _defaultOrganizationController,
+            autocorrect: false,
+          ),
+        ),
+        const SizedBox(height: 4),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Set as default credential'),
+          value: _isDefault,
+          onChanged: (value) => setState(() => _isDefault = value),
+        ),
+        const SizedBox(height: 8),
+        ConnectionTest<bool>(
+          state: testState,
+          onTest: _testConnection,
+          describe: (_) => 'Connected',
+        ),
+      ],
     );
   }
 
@@ -269,28 +210,5 @@ class _SonarQubeCredentialEditBottomSheetState
           // field is a refusal to save, not "keep the current token".
           needsReentry: _needsReentry,
         );
-  }
-}
-
-class _TestSonarQubeConnectionStatus extends StatelessWidget {
-  const _TestSonarQubeConnectionStatus({required this.state});
-
-  final AsyncValue<bool?> state;
-
-  @override
-  Widget build(BuildContext context) {
-    return switch (state) {
-      AsyncData(value: null) => const SizedBox.shrink(),
-      AsyncData() => Text(
-        'Connected',
-        style: TextStyle(color: AppTokens.of(context).success.foreground),
-      ),
-      AsyncLoading() => const Text('Testing...'),
-      AsyncError(:final error) => Text(
-        'Failed: ${describeError(error)}',
-        // AUD-62: the theme's error color is made for text; red 500 wasn't.
-        style: TextStyle(color: Theme.of(context).colorScheme.error),
-      ),
-    };
   }
 }

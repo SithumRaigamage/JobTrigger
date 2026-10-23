@@ -64,7 +64,7 @@ CI run before it merges.
 - [x] P14-19 GitHub workflows (design 18).
 - [x] P14-20 Open link (design 19).
 - [x] P14-21 App info (design 20).
-- [ ] P14-22 Edit sheets: Jenkins server, GitHub and SonarQube
+- [x] P14-22 Edit sheets: Jenkins server, GitHub and SonarQube
       credentials (design 21).
 - [ ] P14-23 Account dialogs: change password, delete account (design 22).
 - [ ] P14-24 Unknown route (design 23).
