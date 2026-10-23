@@ -12,6 +12,14 @@ One task = one screen = one commit, pushed on its own, and a task is
 `done` only when that screen is fully built: analyze clean, tests green,
 and CI green on its commit (Definition of Done from AUD-42).
 
+**CI note (2026-10-23):** GitHub Actions is disabled for the repository
+(the owner's billing choice), so no workflow runs on this branch. Until
+it's re-enabled, each task is verified by running the Flutter CI steps
+locally before its commit — format check, `flutter analyze`, the
+generated-code drift check, and the full test suite — and each screen is
+compared against its `UI-UX/` render at 390×844. The branch gets a real
+CI run before it merges.
+
 ## Decisions approved with the designs
 
 1. **Flat cards replace frosted glass.** `GlassSurface` keeps its API but
@@ -38,7 +46,7 @@ and CI green on its commit (Definition of Done from AUD-42).
       plain backdrop, bottom navigation bar, shared `StatusPill` and
       `SectionLabel` widgets.
 - [x] P14-03 Login (design 01).
-- [ ] P14-04 Signup (design 02).
+- [x] P14-04 Signup (design 02).
 - [ ] P14-05 Tool selection (design 03).
 - [ ] P14-06 App lock (design 04).
 - [ ] P14-07 Home — Jenkins, dark and light (designs 05, 06).
