@@ -5,9 +5,9 @@ Goal: close every finding in the second workspace audit — `AUD-42` …
 were recorded in `docs/audit/2026-10-20-workspace-audit.md` and
 re-verified in `docs/audit/2026-10-22-workspace-audit.md`.
 
-The 2026-10-20 document is **deleted**: every finding in it is closed,
-and the 2026-10-22 document carries the status of record. This file is
-the tracker of record for the work.
+Both documents are **deleted** (the 2026-10-22 one on 2026-10-23) and
+remain in git history. **This file is the record**: the outcome is in
+[Closed 2026-10-23](#closed-2026-10-23) below, with what is still open.
 
 Approved 2026-10-20: the user asked for every finding to be fixed on one
 branch (`feature/audit-2026-10-20-remediation`), committed and pushed one
@@ -40,7 +40,8 @@ is green on the commit that closes it, not just a local run.
       ends a session; the refresh limiter is keyed by user, not IP.
 - [x] P13-07 **AUD-48 (client + backend).** Delete account (cascade) and
       change password (bumps `tokenVersion`). Password *reset* needs an
-      email provider — a product decision — and stays open as US-AUTH-08.
+      email provider — a product decision — and is deferred to
+      `backlog.md` as US-AUTH-08 (2026-10-23).
 - [x] P13-08 **AUD-49.** Build-watch checks never overlap and merge by key,
       so a watch added or removed mid-check isn't lost or resurrected.
 - [x] P13-09 **AUD-50.** Artifact file names are reduced to a safe basename.
@@ -71,7 +72,9 @@ is green on the commit that closes it, not just a local run.
 - [x] P13-23 **§13 (backend).** `userId` indexes on credential collections.
 - [x] P13-24 **§11.** `core/network` no longer imports `presentation`.
 - [x] P13-25 **§14.** Lean pinned-job status query.
-- [x] P13-26 **§19 (backend).** Request ids and structured error logs.
+- [x] P13-26 **§19 (backend + client).** Request ids and structured error
+      logs; since 2026-10-23 (#39) the app sends `x-request-id` on every
+      backend request and shows it as "Reference: …" on a backend 5xx.
 - [x] P13-27 **AUD-66.** The repository carries no credential material: a
       token-shaped value in the tree is a failing test, and the reviewed
       fixtures live in `.secret-material-allowlist`.
@@ -93,3 +96,19 @@ is green on the commit that closes it, not just a local run.
 - Crash-reporting choice (BACKLOG-07).
 - AUD-60 (staged blank plugin registrant): fixed in the index on
   2026-10-20; nothing to commit.
+
+## Closed 2026-10-23
+
+Re-verified against `develop` at `1024d4b` (after #39 and #40), locally
+since GitHub Actions is disabled by the owner: backend 153 passing,
+Flutter 784 passing, `flutter analyze` clean, no codegen drift.
+
+- **Fixed in code:** all 27 tasks, P13-01 … P13-27, and the eight findings
+  the 2026-10-22 verification added (NEW-01 … NEW-08). P13-26/NEW-08 was
+  overstated there (it claimed ids reached Jenkins) and was completed in
+  the app by #39.
+- **Deferred, not fixed:** password *reset* (US-AUTH-08, part of AUD-48 /
+  P13-07) — needs an email provider; in `backlog.md`.
+- **Open, owner action:** AUD-66 — revoke the leaked Jenkins API token in
+  that Jenkins (above). Code can't close it; treat the token as live until
+  it is revoked.

@@ -26,6 +26,11 @@ Phase 0–6 task without first moving the item here into an actual phase file
   2026-09-29 → P11-23 / US-JX-20.
 - ~~Biometric unlock (Face ID / fingerprint) gating app access.~~ Promoted
   2026-09-29 → P11-25 / US-JX-21.
+- Password reset by email (US-AUTH-08, from AUD-48 / P13-07). Deferred
+  2026-10-23: the backend has no email provider, and choosing one is a
+  product decision. Needs a provider, single-use 15-minute tokens, no
+  account enumeration, and a `tokenVersion` bump on reset — see the story
+  in `docs/user-stories/shared/01-authentication.md`.
 - Crash reporting / analytics tool selection (flagged in P6-08 — pick a
   tool with the team before treating this as committed scope). Asked
   directly during Phase 6; user chose to skip for now rather than commit

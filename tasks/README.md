@@ -26,7 +26,7 @@ check "where are we."
 | 10 — SonarQube integration (epic SQ) | `phase-10-sonarqube.md` | in-progress (Backend + SQ-CRED done, P10-00..06 of 16) | none — fourth CI tool, promoted from `backlog.md` |
 | 11 — Jenkins extended capabilities (epic JX) | `phase-11-jenkins-extended.md` | done 2026-09-30 (P11-01..28; P11-27 closed as won't-do by its verification gate). Only P11-03 is open, **blocked** on a physical Android device and tracked in `release-checklist.md` | P12-04 (shared repository guard); P11-01 fixture Jenkins for verification |
 | 12 — Audit remediation (epic AUDIT) | `phase-12-audit-remediation.md` | done 2026-10-01 (P12-01..11 frontend, P12-20..27 backend). Audit: 41 findings, all fixed; tracker: `docs/audit/2026-09-29-workspace-audit.md`. Open follow-up noted there: the SwiftUI-parity `buildUnstable` orange is below 3:1 on light | none; backend-track items need per-item approval; P12-06 needs a product decision on LAN `http://` |
-| 13 — Second audit remediation (epic AUDIT-2) | `phase-13-audit-2-remediation.md` | done 2026-10-22 (P13-01..27; 26 findings fixed, 0 open). Tracker: `docs/audit/2026-10-22-workspace-audit.md` | none; one owner action left (AUD-66: revoke the leaked Jenkins token) |
+| 13 — Second audit remediation (epic AUDIT-2) | `phase-13-audit-2-remediation.md` | done 2026-10-22, closed 2026-10-23 (P13-01..27 fixed; password reset deferred to `backlog.md` as US-AUTH-08). Audit documents deleted; this phase file is the record | none; one owner action left (AUD-66: revoke the leaked Jenkins token) |
 | 14 — UI redesign (epic UI-2) | `phase-14-ui-redesign.md` | done (P14-01..26). Designs: `UI-UX/` | none — approved by the user 2026-10-23 |
 | Backlog | `backlog.md` | n/a | — |
 
