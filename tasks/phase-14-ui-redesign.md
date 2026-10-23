@@ -58,7 +58,7 @@ CI run before it merges.
 - [x] P14-13 Stage detail sheet (design 12).
 - [x] P14-14 Job history (design 13).
 - [x] P14-15 Build detail (design 14).
-- [ ] P14-16 Build log (design 15).
+- [x] P14-16 Build log (design 15).
 - [ ] P14-17 Nodes (design 16).
 - [ ] P14-18 Queue (design 17).
 - [ ] P14-19 GitHub workflows (design 18).
