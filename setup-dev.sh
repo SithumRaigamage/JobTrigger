@@ -93,16 +93,32 @@ fi
 log_step "Running database migrations"
 log_info "Setting up collections, users, and Jenkins credentials..."
 
-if [ -f "JobTrigger-Backend/scripts/setup-migrations.js" ]; then
-  cd JobTrigger-Backend
-  node scripts/setup-migrations.js
-  MIGRATION_EXIT=$?
-  cd ..
+# AUD-58: the seed script refuses non-local databases unless told
+# --allow-remote, since it writes a test account whose password is in the
+# README. Against Atlas, seeding is opt-in (SEED_REMOTE=true); otherwise
+# the existing data is used and the backend still starts.
+MIGRATION_ARGS=()
+SKIP_MIGRATIONS=false
+if [ "$USE_DOCKER" != "true" ]; then
+  if [ "${SEED_REMOTE:-false}" = "true" ]; then
+    log_warning "SEED_REMOTE=true: seeding the cloud database (never use on production)"
+    MIGRATION_ARGS+=(--allow-remote)
+  else
+    SKIP_MIGRATIONS=true
+    log_warning "Skipping migrations: the cloud database is used as it is"
+    log_info "To seed it with the test account: SEED_REMOTE=true ./setup-dev.sh"
+  fi
+fi
 
-  if [ $MIGRATION_EXIT -eq 0 ]; then
+if [ "$SKIP_MIGRATIONS" = "true" ]; then
+  :
+elif [ -f "JobTrigger-Backend/scripts/setup-migrations.js" ]; then
+  # Checked with `if`, not `$?`: under `set -e` a failing command would
+  # end the script before its exit code could be read.
+  if (cd JobTrigger-Backend && node scripts/setup-migrations.js "${MIGRATION_ARGS[@]}"); then
     log_success "Database migrations completed successfully"
   else
-    log_error "Database migrations failed"
+    log_error "Database migrations failed (see the error above); the backend was not started"
     exit 1
   fi
 else
@@ -113,21 +129,28 @@ fi
 echo ""
 log_header "✨ Setup Complete!"
 log_success "Development environment ready"
-log_info "Backend running on: http://127.0.0.1:5001"
-log_info "Login credentials: developer@jobtrigger.app / SecurePassword123!"
+log_info "Backend will run on: http://127.0.0.1:5001"
 log_info "MongoDB: $([ "$USE_DOCKER" = "true" ] && echo "Docker (localhost:27017)" || echo "Atlas Cloud")"
-log_info "Jenkins servers: Production CI, Staging Pipeline, Development Build"
+if [ "$SKIP_MIGRATIONS" = "true" ]; then
+  LOGIN_HINT="an account that already exists in the cloud database"
+else
+  LOGIN_HINT="developer@jobtrigger.app / SecurePassword123!"
+  log_info "Seeded Jenkins servers: Production CI, Staging Pipeline, Development Build"
+fi
+log_info "Log in with: $LOGIN_HINT"
 
 echo ""
 log_info "Next steps:"
 echo "  1. Open a new terminal and run:"
 echo -e "     ${CYAN}cd JobTrigger-Frontend${NC}"
 echo -e "     ${CYAN}flutter run -d \"iPhone Air\"${NC}"
-echo "  2. Login with: developer@jobtrigger.app / SecurePassword123!"
+echo "  2. Log in with: $LOGIN_HINT"
 echo "  3. Check 'Remember me' checkbox ✨"
 
 echo ""
 log_header "🚀 Starting Backend (Node.js)"
+log_info "The backend is up when you see \"server.listening\" with port 5001 below."
+log_info "It keeps running in this terminal (restarting on file changes); press Ctrl+C to stop it."
 echo ""
 
 # Step 5: Start backend
