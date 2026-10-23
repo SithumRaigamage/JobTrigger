@@ -17,8 +17,8 @@ and CI green on its commit (Definition of Done from AUD-42).
 it's re-enabled, each task is verified by running the Flutter CI steps
 locally before its commit — format check, `flutter analyze`, the
 generated-code drift check, and the full test suite — and each screen is
-compared against its `UI-UX/` render at 390×844. The branch gets a real
-CI run before it merges.
+compared against its `UI-UX/` render at 390×844. The owner has decided
+Actions stays off (2026-10-23), so these local runs are the merge gate.
 
 ## Decisions approved with the designs
 
@@ -76,9 +76,10 @@ CI run before it merges.
 ## Outcome (2026-10-23)
 
 All 26 tasks done on `feature/ui-redesign`, one commit each, verified
-locally as the CI note above describes. Still open before merge: a real CI
-run once GitHub Actions is re-enabled, and the manual mid-range Android
-scroll check (US-DESIGN-04, carried over from P5-13).
+locally as the CI note above describes, which is the merge gate while
+Actions stays off. Still open after merge: the manual mid-range Android
+scroll check (US-DESIGN-04, carried over from P5-13) and a look at both
+home-screen widgets on real devices.
 
 Where a screen differs from its design, on purpose (details in each
 commit message):
