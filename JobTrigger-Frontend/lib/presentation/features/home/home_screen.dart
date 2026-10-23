@@ -28,7 +28,7 @@ import 'pinned_jobs_notifier.dart';
 import 'server_status_provider.dart';
 import 'views_notifier.dart';
 import 'visible_jobs_provider.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 
 /// Ported from `HomeView.swift`. Doesn't port the swipe-to-trigger-build
 /// action or the backend connectivity check — triggering builds is Phase 5
@@ -515,7 +515,7 @@ class _JobTile extends ConsumerWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.folder.withValues(alpha: 0.1),
+                color: AppTokens.of(context).unstable.background,
                 borderRadius: BorderRadius.circular(10),
               ),
               // Distinct shapes, not just color (NFR-A11Y-03): a
@@ -527,7 +527,7 @@ class _JobTile extends ConsumerWidget {
                     : job.isScannable
                     ? Icons.corporate_fare
                     : Icons.folder,
-                color: AppColors.folder,
+                color: AppTokens.of(context).unstable.foreground,
                 size: 20,
                 semanticLabel: job.isMultibranch
                     ? 'Multibranch project'

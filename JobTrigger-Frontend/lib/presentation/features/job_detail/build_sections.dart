@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../domain/jenkins/build_artifact.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
@@ -90,7 +90,7 @@ class StageChipRow extends StatelessWidget {
             avatar: Icon(
               iconForStageStatus(node.status),
               size: 16,
-              color: colorForStageStatus(node.status),
+              color: colorForStageStatus(context, node.status),
             ),
             // Status is conveyed by icon shape + this label text, not
             // color alone (NFR-A11Y-03).
@@ -143,7 +143,7 @@ class TestReportChip extends StatelessWidget {
           '${report.skipCount} skipped',
         ),
         backgroundColor: hasFailures
-            ? AppColors.buildFailure.withValues(alpha: 0.15)
+            ? AppTokens.of(context).failure.background
             : null,
       ),
     );
@@ -212,9 +212,9 @@ class _FailingTestTile extends StatelessWidget {
     final trace = test.stackTrace;
     return ExpansionTile(
       tilePadding: EdgeInsets.zero,
-      leading: const Icon(
+      leading: Icon(
         Icons.cancel,
-        color: AppColors.buildFailure,
+        color: AppTokens.of(context).failure.dot,
         size: 20,
       ),
       title: Text(test.name),

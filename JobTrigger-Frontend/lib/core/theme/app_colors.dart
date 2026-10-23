@@ -1,91 +1,161 @@
 import 'package:flutter/material.dart';
 
-/// Colors ported 1:1 from the SwiftUI app. Note there was no custom brand
-/// palette to port wholesale — `Shared/Navigation/AppTheme.swift` only held
-/// the light/system/dark mode enum, and `AccentColor.colorset` was never
-/// filled in; the app relied on iOS system semantic colors everywhere
-/// (`.blue`, `.secondary`, `UIColor.systemBackground`, etc.), which Material
-/// 3's `ColorScheme.fromSeed` covers in `app_theme.dart`. The two things
-/// that *were* consistently color-coded and worth preserving exactly are
-/// below.
+/// The raw palette of the P14 redesign (`UI-UX/README.md`, Design tokens).
+///
+/// Widgets don't read these directly: they read the per-theme set from
+/// [AppTokens] (`app_tokens.dart`), which picks the dark or light value of
+/// every token below. What lives here is the measured palette and the
+/// mappings from Jenkins' own vocabularies (build `result`, job ball
+/// `color`, pipeline stage `status`) to a [StatusTone].
+///
+/// Every pairing that carries meaning is measured in
+/// `test/core/theme/app_colors_test.dart`: 4.5:1 for text (WCAG 1.4.3),
+/// 3:1 for dots and icons (WCAG 1.4.11). A status is never conveyed by
+/// colour alone — it always has a text label too (NFR-A11Y-03).
 class AppColors {
   const AppColors._();
 
-  /// From `JobDetailView.statusColor`/`HistoryView` — Jenkins build result
-  /// → color. `building`/unrecognized results fall back to `aborted`'s gray,
-  /// matching the old app's `default: return .gray` (there was no distinct
-  /// "in progress" color).
-  ///
-  /// AUD-62: the SwiftUI app used the plain 500 shades, and green, orange,
-  /// and grey were under WCAG 1.4.11's 3:1 for icons on the light surface
-  /// (2.66, 2.06, and 2.56). These are the nearest shades that reach 3:1 on
-  /// light and both dark surfaces (`#F8FAFC` / `#0F172A` / `#1E293B`); every
-  /// status also carries a text label (NFR-A11Y-03), so the hue stays a
-  /// second signal, not the only one. `test/core/theme/app_colors_test.dart`
-  /// measures them.
-  static const buildSuccess = Color(
-    0xFF43A047,
-  ); // green 600: 3.16 / 5.41 / 4.43
-  static const buildFailure = Colors.red; // red 500: 3.52 / 4.85 / 3.97
-  static const buildAborted = Color(0xFF757575); // grey 600: 4.40 / 3.87 / 3.17
-  static const buildUnstable = Color(0xFFE06C00); // orange: 3.18 / 5.37 / 4.40
+  /// The one app-wide accent (P14 decision 4): primary buttons, the
+  /// selected tab, switches. White text on it is 5.2:1. A CI tool's brand
+  /// colour no longer re-tints the app — it appears only on that tool's
+  /// own logo tile — so Jenkins red can't be mistaken for "failed".
+  static const accent = Color(0xFF2563EB);
 
-  /// Pipeline stage states with no classic build-result equivalent, and the
-  /// Home folder tile (AUD-30). Shades chosen for at least 3:1 icon
-  /// contrast (WCAG 1.4.11) on both the light (`#F8FAFC`) and dark
-  /// (`#0F172A`/`#1E293B`) surfaces; plain amber/orange fall below 2.3:1
-  /// on light.
-  static const buildRunning = Color(0xFF1976D2); // blue 700: 4.40 / 3.18
-  static const buildPaused = Color(0xFFE65100); // orange 900: 3.62 / 3.86
-  static const folder = Color(0xFFF4511E); // deep orange 600: 3.32 / 4.21
+  // Dark surfaces, back to front.
+  static const backgroundDark = Color(0xFF0B1120);
+  static const chromeDark = Color(0xFF0F172A); // nav bar, sheets' backdrop
+  static const cardDark = Color(0xFF111A2B);
+  static const cardBorderDark = Color(0xFF1F2A3D);
+  static const raisedDark = Color(0xFF1E293B); // secondary buttons, chips
+  static const consoleDark = Color(0xFF060A14);
 
-  /// AUD-62: success *text* ("Connected — 12 jobs found") needs 4.5:1
-  /// (WCAG 1.4.3), which no single green reaches on both themes.
-  static Color successText(Brightness brightness) =>
-      brightness == Brightness.dark
-      ? const Color(0xFF81C784) // green 300: 8.87 / 7.27 on dark
-      : const Color(0xFF2E7D32); // green 800: 4.90 on light
+  static const textDark = Color(0xFFF1F5F9);
+  static const textSecondaryDark = Color(0xFFCBD5E1);
 
-  static Color forBuildResult(String? result) => switch (result
-      ?.toUpperCase()) {
-    'SUCCESS' => buildSuccess,
-    'FAILURE' => buildFailure,
-    'UNSTABLE' => buildUnstable,
-    _ => buildAborted, // ABORTED, building (null), and anything unrecognized.
-  };
+  /// The lowest text shade in dark mode: 6.6:1 on [cardDark].
+  static const textMutedDark = Color(0xFF94A3B8);
+
+  // Light surfaces.
+  static const backgroundLight = Color(0xFFF8FAFC);
+  static const chromeLight = Color(0xFFFFFFFF);
+  static const cardLight = Color(0xFFFFFFFF);
+  static const cardBorderLight = Color(0xFFE2E8F0);
+  static const raisedLight = Color(0xFFF1F5F9);
+
+  static const textLight = Color(0xFF0F172A);
+  static const textSecondaryLight = Color(0xFF334155);
+
+  /// The lowest text shade in light mode: 7.6:1 on [cardLight].
+  static const textMutedLight = Color(0xFF475569);
+
+  /// Each status as text, tint and dot, per theme. Dark mode draws pale
+  /// text on a deep tint; light mode draws 700/800 text on a pale tint.
+  static const successDark = StatusColors(
+    foreground: Color(0xFF86EFAC),
+    background: Color(0xFF0F2E1F),
+    dot: Color(0xFF4ADE80),
+  );
+  static const failureDark = StatusColors(
+    foreground: Color(0xFFFCA5A5),
+    background: Color(0xFF3A1418),
+    dot: Color(0xFFF87171),
+  );
+  static const unstableDark = StatusColors(
+    foreground: Color(0xFFFDBA74),
+    background: Color(0xFF3A2210),
+    dot: Color(0xFFFB923C),
+  );
+  static const runningDark = StatusColors(
+    foreground: Color(0xFF93C5FD),
+    background: Color(0xFF10284A),
+    dot: Color(0xFF60A5FA),
+  );
+  static const pausedDark = StatusColors(
+    foreground: Color(0xFFFCD34D),
+    background: Color(0xFF3A2E0B),
+    dot: Color(0xFFFBBF24),
+  );
+  static const neutralDark = StatusColors(
+    foreground: Color(0xFFCBD5E1),
+    background: Color(0xFF1E293B),
+    dot: Color(0xFF94A3B8),
+  );
+
+  static const successLight = StatusColors(
+    foreground: Color(0xFF15803D),
+    background: Color(0xFFDCFCE7),
+    dot: Color(0xFF16A34A),
+  );
+  static const failureLight = StatusColors(
+    foreground: Color(0xFFB91C1C),
+    background: Color(0xFFFEE2E2),
+    dot: Color(0xFFDC2626),
+  );
+  static const unstableLight = StatusColors(
+    foreground: Color(0xFFC2410C),
+    background: Color(0xFFFFEDD5),
+    dot: Color(0xFFEA580C),
+  );
+  static const runningLight = StatusColors(
+    foreground: Color(0xFF1D4ED8),
+    background: Color(0xFFDBEAFE),
+    dot: Color(0xFF2563EB),
+  );
+  static const pausedLight = StatusColors(
+    foreground: Color(0xFF92400E),
+    background: Color(0xFFFEF3C7),
+    dot: Color(0xFFD97706),
+  );
+  static const neutralLight = StatusColors(
+    foreground: Color(0xFF334155),
+    background: Color(0xFFF1F5F9),
+    dot: Color(0xFF64748B),
+  );
+
+  /// Jenkins build `result` → tone. `null` means still building.
+  static StatusTone toneForBuildResult(String? result) =>
+      switch (result?.toUpperCase()) {
+        'SUCCESS' => StatusTone.success,
+        'FAILURE' => StatusTone.failure,
+        'UNSTABLE' => StatusTone.unstable,
+        null => StatusTone.running,
+        _ => StatusTone.neutral, // ABORTED, NOT_BUILT, anything unrecognised.
+      };
+
+  /// Pipeline stage/step `status` → tone. Jenkins uses a different
+  /// vocabulary here (`FAILED`, `IN_PROGRESS`, …) than for a build result.
+  static StatusTone toneForStageStatus(String status) =>
+      switch (status.toUpperCase()) {
+        'SUCCESS' => StatusTone.success,
+        'FAILED' => StatusTone.failure,
+        'UNSTABLE' => StatusTone.unstable,
+        'IN_PROGRESS' => StatusTone.running,
+        'PAUSED_PENDING_INPUT' => StatusTone.paused,
+        _ => StatusTone.neutral, // NOT_EXECUTED, ABORTED, unrecognised.
+      };
 
   /// From `StatusIndicator.swift` — Jenkins' job "ball color" (`color`
   /// field: `blue`/`red`/`yellow`/`notbuilt`/`disabled`/`aborted`, each
-  /// optionally suffixed `_anime` while building) → color. Distinct from
-  /// [forBuildResult] above: this maps the job-tree list's `color` field,
-  /// not a build's `result` string. Note Jenkins' "blue" ball color means
-  /// *success* (a historical quirk) — the old app deliberately remaps it to
-  /// green so it reads as success to users, not literally blue.
-  /// Same shades as the build results above (AUD-62).
-  static const jobColorBlue = buildSuccess;
-  static const jobColorRed = buildFailure;
-  static const jobColorYellow = buildUnstable;
-  static const jobColorGray =
-      buildAborted; // aborted, disabled, notbuilt, unrecognized
+  /// optionally suffixed `_anime` while building) → tone. Jenkins' "blue"
+  /// means *success* (a historical quirk), so it maps to the success tone.
+  static StatusTone toneForJobColor(String? jenkinsColor) {
+    final clean = jenkinsColor?.toLowerCase().replaceAll('_anime', '') ?? '';
+    return switch (clean) {
+      'blue' => StatusTone.success,
+      'red' => StatusTone.failure,
+      'yellow' => StatusTone.unstable,
+      _ => StatusTone.neutral,
+    };
+  }
 
   /// The `_anime` suffix (e.g. `blue_anime`) means the job is currently
   /// building — `StatusIndicator` pulses while true.
   static bool isJobColorAnimating(String? jenkinsColor) =>
       jenkinsColor?.toLowerCase().contains('_anime') ?? false;
 
-  static Color forJobColor(String? jenkinsColor) {
-    final clean = jenkinsColor?.toLowerCase().replaceAll('_anime', '') ?? '';
-    return switch (clean) {
-      'blue' => jobColorBlue,
-      'red' => jobColorRed,
-      'yellow' => jobColorYellow,
-      _ => jobColorGray,
-    };
-  }
-
   /// P6-05: screen-reader label for [StatusIndicator] — the ball color
-  /// alone conveys nothing to a non-visual user. Mirrors [forJobColor]'s
-  /// mapping, plus the `_anime` "building" state.
+  /// alone conveys nothing to a non-visual user. Mirrors [toneForJobColor],
+  /// plus the `_anime` "building" state.
   static String describeJobColor(String? jenkinsColor) {
     final clean = jenkinsColor?.toLowerCase().replaceAll('_anime', '') ?? '';
     final base = switch (clean) {
@@ -101,90 +171,37 @@ class AppColors {
   }
 
   /// From `Tools/ToolSelection/CITool.swift`'s per-tool `accentColor`.
+  /// Drawn only on the tool's own logo tile (P14 decision 4).
   static const ciToolJenkins = Color(0xFFD12E2E);
   static const ciToolGithubActions = Color(0xFF212121);
   static const ciToolGitlab = Color(0xFFE65929);
   static const ciToolSonarqube = Color(0xFF4F99ED);
   static const ciToolCircleci = Color(0xFF17A694);
+}
 
-  /// iOS system blue — what the SwiftUI app actually rendered as its accent,
-  /// since `AccentColor.colorset` was left empty and every screen tinted off
-  /// the platform default. Used as `AppTheme`'s default `accentColor` (i.e.
-  /// before any tool is selected) and passed straight through to
-  /// `ColorScheme.fromSeed` in `app_theme.dart`.
-  ///
-  /// History: a full per-tool reseed (`ColorScheme.fromSeed(seedColor:
-  /// CiToolX.accentColor)`) was tried early on and reverted — from
-  /// [ciToolJenkins] red it produced a muddy, desaturated brown/terracotta
-  /// tonal palette across light-mode surfaces and containers, back when
-  /// those surfaces (cards, tiles, rows) read `colorScheme.surface`/
-  /// `surfaceContainerHigh` directly. `AppTheme` briefly swapped only
-  /// `primary`/`onPrimary` to work around that — but that left anything
-  /// defaulting to `secondary`/`secondaryContainer` (the bottom
-  /// `NavigationBar`'s selected indicator/icon chief among them) stuck on
-  /// this blue regardless of the active tool. Now that big surfaces read
-  /// the app's own independent glass tokens (`glassFillLight`/`Dark`)
-  /// instead, `AppTheme` reseeds the full scheme from `accentColor` again
-  /// — see its doc comment.
-  static const brandSeed = Color(0xFF007AFF);
+/// The kinds of status the app shows. Each has a text label wherever it
+/// appears; the colour is the second signal.
+enum StatusTone { success, failure, unstable, running, paused, neutral }
 
-  /// Light-mode surface tokens (ui-ux-pro-max `color --domain` "B2B Service"
-  /// palette), used directly rather than through `fromSeed` — M3's generated
-  /// light surface is only *near*-white and still carries a faint hue tint
-  /// from the seed, which reads as "not really white" against pure-white
-  /// cards elsewhere in the OS chrome.
-  static const surfaceLight = Colors.white;
-  static const backgroundLight = Color(0xFFF8FAFC);
-  static const onSurfaceLight = Color(0xFF0F172A);
-  static const secondaryLight = Color(0xFF334155);
-  static const outlineLight = Color(0xFFE2E8F0);
+/// One status's three colours in one theme: [foreground] for its text and
+/// icons, [background] for its tinted pill or tile, [dot] for a bare
+/// status dot or bar on a card.
+@immutable
+class StatusColors {
+  const StatusColors({
+    required this.foreground,
+    required this.background,
+    required this.dot,
+  });
 
-  /// Muted *text* (taglines, secondary labels) that still clears WCAG AA's
-  /// 4.5:1 for body copy.
-  ///
-  /// AUD-62: M3's `onSurfaceVariant` slot is not usable as body text here —
-  /// `ColorScheme.fromSeed` derives it at ~67% alpha over the surface, which
-  /// measures 2.4:1 on the white cards the app draws on. These two shades
-  /// are the slate-600/slate-300 pair, at 7.4:1 on light and 9.9:1 on the
-  /// dark glass fill.
-  static const mutedTextLight = Color(0xFF475569); // slate 600
-  static const mutedTextDark = Color(0xFFCBD5E1); // slate 300
+  final Color foreground;
+  final Color background;
+  final Color dot;
 
-  /// The muted-text shade for the current [brightness].
-  static Color mutedText(Brightness brightness) =>
-      brightness == Brightness.dark ? mutedTextDark : mutedTextLight;
-
-  /// Dark-mode counterparts, pinned in `app_theme.dart` for the same reason
-  /// as the light-mode set above: `AppTheme` now seeds its *entire*
-  /// `ColorScheme` (including `surface`) from the active tool's accent
-  /// color, and without pinning these, the scaffold background would drift
-  /// toward that accent hue while `GlassSurface`'s cards — which use the
-  /// fixed [glassFillDark] below, not `colorScheme.surface` — would not,
-  /// producing a visible mismatch between card fill and page background.
-  /// `backgroundDark` is deliberately one step darker than [glassFillDark]
-  /// (slate-900 vs. slate-800), matching light mode's own card-lighter-
-  /// than-background relationship.
-  static const backgroundDark = Color(0xFF0F172A);
-  static const onSurfaceDark = Color(0xFFF1F5F9);
-  static const outlineDark = Color(0x33FFFFFF);
-
-  /// Glassmorphism surface tokens (`docs/user-stories/00-design-system-
-  /// glassmorphism.md`, US-DESIGN-01/02) — a "subtle frost": high fill
-  /// opacity so body/status text stays legible per the WCAG AA floor
-  /// US-DESIGN-02 requires, a hairline border, and a soft low-spread
-  /// shadow for depth.
-  static const glassFillLight = Color(0xCCFFFFFF); // white @ ~80%
-  static const glassBorderLight = Color(0x1F0F172A); // onSurfaceLight @ ~12%
-  static const glassShadowLight = Color(0x1A0F172A); // onSurfaceLight @ ~10%
-
-  static const glassFillDark = Color(0xCC1E293B); // slate-800 @ ~80%
-  static const glassBorderDark = Color(0x33FFFFFF); // white @ ~20%
-  static const glassShadowDark = Color(0x40000000); // black @ ~25%
-
-  /// Opaque fallback fill for the reduce-transparency accessibility mode
-  /// (US-DESIGN-03) — same surface role as the glass fill tokens above, but
-  /// fully opaque; used instead of them (with blur skipped entirely) when
-  /// `ReduceTransparencyNotifier` is on.
-  static const glassFallbackFillLight = Color(0xFFF1F5F9);
-  static const glassFallbackFillDark = Color(0xFF1E293B);
+  static StatusColors lerp(StatusColors a, StatusColors b, double t) =>
+      StatusColors(
+        foreground: Color.lerp(a.foreground, b.foreground, t)!,
+        background: Color.lerp(a.background, b.background, t)!,
+        dot: Color.lerp(a.dot, b.dot, t)!,
+      );
 }

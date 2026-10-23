@@ -254,7 +254,7 @@ class _StatusIcon extends StatelessWidget {
   Widget build(BuildContext context) => Icon(
     iconForStageStatus(status),
     size: size,
-    color: colorForStageStatus(status),
+    color: colorForStageStatus(context, status),
     semanticLabel: status,
   );
 }

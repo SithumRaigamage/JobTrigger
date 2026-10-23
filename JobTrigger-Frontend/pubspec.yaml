@@ -98,6 +98,32 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # P14-02: the redesign's typefaces (UI-UX/README.md, Design tokens),
+  # bundled rather than fetched at runtime so the app needs no network for
+  # its own text and no extra package (CLAUDE.md §3). Both are SIL Open
+  # Font License 1.1; the licence texts ship beside them and are added to
+  # the in-app licenses page in main.dart.
+  assets:
+    - assets/fonts/Inter-OFL.txt
+    - assets/fonts/JetBrainsMono-OFL.txt
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+    - family: JetBrains Mono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+        - asset: assets/fonts/JetBrainsMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/JetBrainsMono-SemiBold.ttf
+          weight: 600
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

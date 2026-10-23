@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../domain/credential/github_credential.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/secret_reentry_notice.dart';
 import '../../common_widgets/toast_controller.dart';
@@ -254,9 +254,7 @@ class _TestGitHubConnectionStatus extends StatelessWidget {
       AsyncData(value: null) => const SizedBox.shrink(),
       AsyncData(:final value?) => Text(
         'Connected — authenticated as $value',
-        style: TextStyle(
-          color: AppColors.successText(Theme.of(context).brightness),
-        ),
+        style: TextStyle(color: AppTokens.of(context).success.foreground),
       ),
       AsyncLoading() => const Text('Testing...'),
       AsyncError(:final error) => Text(

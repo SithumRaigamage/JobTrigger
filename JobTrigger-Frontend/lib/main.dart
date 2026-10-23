@@ -1,13 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/config/app_config.dart';
-import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_notifier.dart';
 import 'presentation/common_widgets/toast_view.dart';
-import 'presentation/features/tool_selection/active_tool_notifier.dart';
-import 'presentation/features/tool_selection/ci_tool.dart';
 import 'presentation/navigation/app_router.dart';
 import 'core/platform/notification_service.dart';
 import 'presentation/features/app_lock/app_lock_gate.dart';
@@ -19,7 +18,25 @@ void main() {
   // AUD-43: a release build without its config fails here, at launch,
   // rather than at the first backend call.
   AppConfig.fromEnvironment();
+  _registerFontLicenses();
   runApp(const ProviderScope(child: MyApp()));
+}
+
+/// P14-02: the bundled typefaces are SIL OFL 1.1, which asks for the
+/// licence to travel with the fonts. Flutter's licenses page (App info →
+/// Open-source licenses) lists package licences on its own; these two are
+/// asset files, so they're added here.
+void _registerFontLicenses() {
+  LicenseRegistry.addLicense(() async* {
+    for (final (font, file) in const [
+      ('Inter', 'Inter-OFL.txt'),
+      ('JetBrains Mono', 'JetBrainsMono-OFL.txt'),
+    ]) {
+      yield LicenseEntryWithLineBreaks([
+        font,
+      ], await rootBundle.loadString('assets/fonts/$file'));
+    }
+  });
 }
 
 class MyApp extends ConsumerWidget {
@@ -43,19 +60,14 @@ class MyApp extends ConsumerWidget {
         }
       });
     final themeMode = ref.watch(themeNotifierProvider);
-    // primary/onPrimary re-tint from the active CI/CD tool's brand color
-    // once one is selected; null (pre-selection — Login/Signup/
-    // ToolSelectionScreen) falls back to the original blue. See
-    // ActiveToolNotifier and AppTheme's doc comment for why this isn't a
-    // full ColorScheme.fromSeed reseed.
-    final activeTool = ref.watch(activeToolNotifierProvider);
-    final accentColor = activeTool?.accentColor ?? AppColors.brandSeed;
 
     return MaterialApp.router(
       title: 'JobTrigger',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(accentColor: accentColor),
-      darkTheme: AppTheme.dark(accentColor: accentColor),
+      // P14 decision 4: one accent for the whole app, whichever CI tool is
+      // active (AppTheme's doc comment).
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       themeMode: themeMode,
       routerConfig: router,
       // US-JX-21: the lock covers everything, toasts included.

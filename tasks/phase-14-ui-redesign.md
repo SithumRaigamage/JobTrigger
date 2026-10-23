@@ -33,7 +33,7 @@ and CI green on its commit (Definition of Done from AUD-42).
 
 - [x] P14-01 Export the approved designs to `UI-UX/`, one folder per
       screen (render, standalone preview, source) with a README index.
-- [ ] P14-02 Foundation: fonts, colour tokens, theme-aware status colours,
+- [x] P14-02 Foundation: fonts, colour tokens, theme-aware status colours,
       `AppTheme` component themes, single accent, flat `GlassSurface`,
       plain backdrop, bottom navigation bar, shared `StatusPill` and
       `SectionLabel` widgets.

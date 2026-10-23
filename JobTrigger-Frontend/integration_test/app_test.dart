@@ -20,26 +20,21 @@ void main() {
   Color primaryColorAt(WidgetTester tester, Finder finder) =>
       Theme.of(tester.element(finder)).colorScheme.primary;
 
-  testWidgets(
-    'Login screen renders with the original blue theme, not tool-tinted',
-    (tester) async {
-      app.main();
-      await tester.pumpAndSettle();
+  testWidgets('Login screen renders with the app accent', (tester) async {
+    app.main();
+    await tester.pumpAndSettle();
 
-      final emailField = find.byKey(const Key('login_email_field'));
-      expect(emailField, findsOneWidget);
-      expect(
-        primaryColorAt(tester, emailField),
-        AppColors.brandSeed,
-        reason:
-            'Before any tool is selected, primary should be the original '
-            'blue (AppColors.brandSeed), not a tool accent color.',
-      );
-    },
-  );
+    final emailField = find.byKey(const Key('login_email_field'));
+    expect(emailField, findsOneWidget);
+    expect(
+      primaryColorAt(tester, emailField),
+      AppColors.accent,
+      reason: 'Before any tool is selected, primary is the app accent.',
+    );
+  });
 
   testWidgets(
-    'Login -> Tool Selection stays blue -> selecting Jenkins turns Home red',
+    'Login -> Tool Selection -> Jenkins Home all keep the one app accent',
     (tester) async {
       app.main();
       await tester.pumpAndSettle();
@@ -65,8 +60,8 @@ void main() {
       );
       expect(
         primaryColorAt(tester, jenkinsCard),
-        AppColors.brandSeed,
-        reason: 'ToolSelectionScreen itself is still pre-selection: blue.',
+        AppColors.accent,
+        reason: 'ToolSelectionScreen uses the app accent too.',
       );
 
       await tester.tap(jenkinsCard);
@@ -79,8 +74,10 @@ void main() {
       );
       expect(
         Theme.of(tester.element(find.text('Jobs'))).colorScheme.primary,
-        AppColors.ciToolJenkins,
-        reason: 'Once Jenkins is selected, primary should be Jenkins red.',
+        AppColors.accent,
+        reason:
+            'P14 decision 4: selecting Jenkins no longer re-tints the app — '
+            'Jenkins red would compete with the "failed" red.',
       );
     },
   );

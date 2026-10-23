@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import 'app_lock_notifier.dart';
 
 /// US-JX-21: wraps the whole app. Covers it while the lock settings load,
@@ -66,16 +66,13 @@ class AppLockView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
         child: ColoredBox(
           // The opaque fallback fill: the blur is decoration, not the
           // privacy guarantee.
-          color: isDark
-              ? AppColors.glassFallbackFillDark
-              : AppColors.glassFallbackFillLight,
+          color: AppTokens.of(context).background,
           child: Material(
             type: MaterialType.transparency,
             child: Center(

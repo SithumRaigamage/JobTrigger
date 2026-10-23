@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../common_widgets/glass_surface.dart';
 
@@ -43,7 +44,9 @@ class HistoryTile extends StatelessWidget {
           leading: Icon(
             Icons.circle,
             size: 12,
-            color: AppColors.forBuildResult(jenkinsBuild.result),
+            color: AppTokens.of(
+              context,
+            ).status(AppColors.toneForBuildResult(jenkinsBuild.result)).dot,
           ),
           title: Text(title),
           subtitle: Text(_formatTimestamp(jenkinsBuild.timestamp)),
@@ -55,7 +58,9 @@ class HistoryTile extends StatelessWidget {
                     ? 'Building'
                     : (jenkinsBuild.result ?? '—'),
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.forBuildResult(jenkinsBuild.result),
+                  color: AppTokens.of(context)
+                      .status(AppColors.toneForBuildResult(jenkinsBuild.result))
+                      .foreground,
                 ),
               ),
               if (onReplay != null)

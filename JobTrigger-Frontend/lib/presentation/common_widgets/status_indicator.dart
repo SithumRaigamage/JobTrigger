@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_tokens.dart';
 
 /// Ported from `Shared/Navigation/StatusIndicator.swift`. Pulses while the
 /// job is building (Jenkins' `_anime` color suffix).
@@ -48,7 +49,9 @@ class _StatusIndicatorState extends State<StatusIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final color = AppColors.forJobColor(widget.color);
+    final color = AppTokens.of(
+      context,
+    ).status(AppColors.toneForJobColor(widget.color)).dot;
 
     return Semantics(
       label: AppColors.describeJobColor(widget.color),

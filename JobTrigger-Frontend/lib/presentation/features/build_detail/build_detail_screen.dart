@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../domain/jenkins/html_text.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/relative_time.dart';
@@ -95,7 +96,11 @@ class _BuildBody extends ConsumerWidget {
                   Icon(
                     jenkinsBuild.building ? Icons.autorenew : Icons.circle,
                     size: 16,
-                    color: AppColors.forBuildResult(jenkinsBuild.result),
+                    color: AppTokens.of(context)
+                        .status(
+                          AppColors.toneForBuildResult(jenkinsBuild.result),
+                        )
+                        .dot,
                   ),
                   const SizedBox(width: 8),
                   Text(

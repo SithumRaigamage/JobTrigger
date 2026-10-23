@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/queue_entry.dart';
 import '../../../domain/jenkins/relative_time.dart';
@@ -105,10 +105,10 @@ class _QueueTile extends ConsumerWidget {
                     if (entry.stuck) ...[
                       const SizedBox(width: 8),
                       // Icon + text, never color alone (NFR-A11Y-03).
-                      const Icon(
+                      Icon(
                         Icons.warning_amber,
                         size: 16,
-                        color: AppColors.buildUnstable,
+                        color: AppTokens.of(context).unstable.foreground,
                       ),
                       Text(' Stuck', style: textTheme.labelSmall),
                     ],

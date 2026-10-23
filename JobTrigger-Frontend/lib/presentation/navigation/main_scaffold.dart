@@ -55,25 +55,27 @@ class MainScaffold extends StatelessWidget {
               // to its root, matching common tab-bar convention.
               initialLocation: index == navigationShell.currentIndex,
             ),
+            // P14-02: the redesign's outline icon set (UI-UX/screens/05);
+            // the selected tab gets the accent pill from AppTheme.
             destinations: const [
               NavigationDestination(
                 icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home),
+                selectedIcon: Icon(Icons.home_rounded),
                 label: 'Home',
               ),
               NavigationDestination(
-                icon: Icon(Icons.history),
-                selectedIcon: Icon(Icons.history),
+                icon: Icon(Icons.schedule_outlined),
+                selectedIcon: Icon(Icons.schedule),
                 label: 'History',
               ),
               NavigationDestination(
-                icon: Icon(Icons.settings_outlined),
-                selectedIcon: Icon(Icons.settings),
+                icon: Icon(Icons.tune_outlined),
+                selectedIcon: Icon(Icons.tune),
                 label: 'Settings',
               ),
               NavigationDestination(
-                icon: Icon(Icons.account_circle_outlined),
-                selectedIcon: Icon(Icons.account_circle),
+                icon: Icon(Icons.person_outline_rounded),
+                selectedIcon: Icon(Icons.person_rounded),
                 label: 'Profile',
               ),
             ],

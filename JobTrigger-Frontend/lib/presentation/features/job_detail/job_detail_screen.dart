@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../domain/jenkins/build_progress.dart';
 import '../../../domain/jenkins/build_watch.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
@@ -634,7 +635,9 @@ class _LastBuildCard extends StatelessWidget {
                 Icon(
                   lastBuild.building ? Icons.autorenew : Icons.circle,
                   size: 16,
-                  color: AppColors.forBuildResult(lastBuild.result),
+                  color: AppTokens.of(
+                    context,
+                  ).status(AppColors.toneForBuildResult(lastBuild.result)).dot,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -753,7 +756,9 @@ class _BuildLinks extends StatelessWidget {
               avatar: Icon(
                 link.icon,
                 size: 16,
-                color: AppColors.forBuildResult(link.build.result),
+                color: AppTokens.of(
+                  context,
+                ).status(AppColors.toneForBuildResult(link.build.result)).dot,
               ),
               label: Text(
                 '${link.label} #${link.build.number} · '

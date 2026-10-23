@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_node.dart';
 import '../../../domain/jenkins/parameter_file.dart';
@@ -81,7 +81,9 @@ class _NodeCard extends ConsumerWidget {
         shape: const Border(),
         leading: Icon(
           online ? Icons.dns : Icons.cloud_off,
-          color: online ? AppColors.buildSuccess : AppColors.buildAborted,
+          color: online
+              ? AppTokens.of(context).success.dot
+              : AppTokens.of(context).neutral.dot,
           semanticLabel: status,
         ),
         title: Text(node.displayName, style: textTheme.bodyLarge),

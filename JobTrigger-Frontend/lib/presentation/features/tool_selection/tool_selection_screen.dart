@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/gradient_backdrop.dart';
 import '../../common_widgets/responsive_center.dart';
@@ -22,8 +22,6 @@ class ToolSelectionScreen extends StatelessWidget {
 
     return Scaffold(
       body: GradientBackdrop(
-        color: colorScheme.primary,
-        background: colorScheme.surface,
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -69,9 +67,7 @@ class ToolSelectionScreen extends StatelessWidget {
                         'Select a CI/CD platform to get started',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.mutedText(
-                            Theme.of(context).brightness,
-                          ),
+                          color: AppTokens.of(context).textMuted,
                         ),
                       ),
                     ],
@@ -129,9 +125,7 @@ class ToolSelectionScreen extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                color: AppColors.mutedText(
-                                  Theme.of(context).brightness,
-                                ),
+                                color: AppTokens.of(context).textMuted,
                               ),
                         ),
                       ],
@@ -177,7 +171,7 @@ class _ToolCardState extends ConsumerState<_ToolCard> {
     // the art, which dropped the tool name/tagline to 3.1:1 and the "Soon"
     // pill to 2.7:1. Availability is now carried by the badge, the border and
     // the icon tint -- never by lowering text contrast.
-    final mutedText = AppColors.mutedText(theme.brightness);
+    final mutedText = AppTokens.of(context).textMuted;
 
     return AnimatedScale(
       key: Key('tool_card_${tool.name}'),

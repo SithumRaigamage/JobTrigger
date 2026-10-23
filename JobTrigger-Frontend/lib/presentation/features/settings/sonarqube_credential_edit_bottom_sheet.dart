@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/error_message.dart';
 import '../../../domain/credential/sonarqube_credential.dart';
 import '../../../domain/credential/sonarqube_url.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../common_widgets/cleartext_warning.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/secret_reentry_notice.dart';
@@ -283,9 +283,7 @@ class _TestSonarQubeConnectionStatus extends StatelessWidget {
       AsyncData(value: null) => const SizedBox.shrink(),
       AsyncData() => Text(
         'Connected',
-        style: TextStyle(
-          color: AppColors.successText(Theme.of(context).brightness),
-        ),
+        style: TextStyle(color: AppTokens.of(context).success.foreground),
       ),
       AsyncLoading() => const Text('Testing...'),
       AsyncError(:final error) => Text(

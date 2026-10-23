@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../domain/jenkins/build_trends.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/relative_time.dart';
@@ -81,7 +81,7 @@ class _BuildTrendsCardState extends State<BuildTrendsCard> {
                   painter: _SparklinePainter(
                     points: trends.points,
                     line: Theme.of(context).colorScheme.primary,
-                    failure: AppColors.buildFailure,
+                    failure: AppTokens.of(context).failure.dot,
                   ),
                 ),
               ),

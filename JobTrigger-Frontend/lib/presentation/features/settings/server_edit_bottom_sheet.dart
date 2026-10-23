@@ -5,7 +5,7 @@ import '../../../core/error/error_message.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import '../../../domain/credential/jenkins_url.dart';
 import '../../../domain/credential/token_hygiene.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../common_widgets/cleartext_warning.dart';
 import '../../common_widgets/external_link.dart';
 import '../../common_widgets/glass_surface.dart';
@@ -321,9 +321,7 @@ class _TestConnectionStatus extends StatelessWidget {
       AsyncData(value: null) => const SizedBox.shrink(),
       AsyncData(:final value?) => Text(
         'Connected — $value job${value == 1 ? '' : 's'} found',
-        style: TextStyle(
-          color: AppColors.successText(Theme.of(context).brightness),
-        ),
+        style: TextStyle(color: AppTokens.of(context).success.foreground),
       ),
       AsyncLoading() => const Text('Testing...'),
       AsyncError(:final error) => Text(

@@ -84,12 +84,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     final isLoading = ref.watch(loginNotifierProvider).isLoading;
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: GradientBackdrop(
-        color: colorScheme.primary,
-        background: colorScheme.surface,
         child: SafeArea(
           child: LoadingOverlay(
             isLoading: isLoading,
