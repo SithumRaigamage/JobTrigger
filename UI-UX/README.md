@@ -82,3 +82,9 @@ accent, so Jenkins red no longer competes with the "failed" red.
 
 **Shape.** Cards 16–18 radius, inputs and buttons 12–14, pills fully
 rounded. Touch targets at least 44 × 44. Primary button 52 high.
+
+## Website
+
+The approved designs for the JobTrigger website (epic WEB — marketing pages
+and the setup portal) live in [`Web/`](Web/README.md). They reuse the design
+tokens above with website-only treatments; see that README.

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Create account — JobTrigger</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F8FAFC}
+a{color:#1D4ED8;text-decoration:none}a:hover{color:#1E40AF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F8FAFC; color: #0F172A; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="signin" hint-size="100%,72px"></dc-import>
+
+  <main style="flex: 1; display: flex; flex-wrap: wrap">
+    <section style="flex: 1 1 480px; min-width: 0; box-sizing: border-box; padding: 72px 48px; background: #0B1120; color: #F1F5F9; display: flex; flex-direction: column; gap: 28px">
+      <h2 style="margin: 0; font-size: 44px; line-height: 1.08; font-weight: 800; letter-spacing: -0.03em">One account.<br><span style="color: #93C5FD">App and web.</span></h2>
+      <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px; font-size: 16px; color: #CBD5E1">
+        <li style="display: flex; gap: 12px; align-items: center"><span style="width: 28px; height: 28px; border-radius: 999px; background: #0F2E1F; color: #86EFAC; font-size: 14px; display: flex; align-items: center; justify-content: center" aria-hidden="true">✓</span>Your servers follow you to every phone</li>
+        <li style="display: flex; gap: 12px; align-items: center"><span style="width: 28px; height: 28px; border-radius: 999px; background: #0F2E1F; color: #86EFAC; font-size: 14px; display: flex; align-items: center; justify-content: center" aria-hidden="true">✓</span>Tokens encrypted at rest</li>
+        <li style="display: flex; gap: 12px; align-items: center"><span style="width: 28px; height: 28px; border-radius: 999px; background: #0F2E1F; color: #86EFAC; font-size: 14px; display: flex; align-items: center; justify-content: center" aria-hidden="true">✓</span>Free</li>
+      </ul>
+    </section>
+
+    <section style="flex: 1 1 480px; min-width: 0; box-sizing: border-box; padding: 72px 20px; display: flex; justify-content: center">
+      <div style="width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 24px">
+        <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Create your account</h1>
+        <form style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); padding: 28px; display: flex; flex-direction: column; gap: 18px">
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="email" style="font-size: 13px; font-weight: 600; color: #334155">Email</label>
+            <input id="email" type="email" autocomplete="email" value="sam@acme.dev" style="height: 50px; padding: 0 14px; background: #FFFFFF; border: 1px solid #94A3B8; border-radius: 12px; color: #0F172A; font: 400 16px Inter, sans-serif; outline: none">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="password" style="font-size: 13px; font-weight: 600; color: #334155">Password</label>
+            <input id="password" type="password" autocomplete="new-password" aria-describedby="pw-hint" value="hunter22" style="height: 50px; padding: 0 14px; background: #FFFFFF; border: 1px solid #94A3B8; border-radius: 12px; color: #0F172A; font: 400 16px Inter, sans-serif; outline: none">
+            <span id="pw-hint" style="font-size: 13px; color: #15803D; font-weight: 600">✓ At least 8 characters</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="confirm" style="font-size: 13px; font-weight: 600; color: #334155">Confirm password</label>
+            <input id="confirm" type="password" autocomplete="new-password" aria-invalid="true" aria-describedby="confirm-err" value="hunter2" style="height: 50px; padding: 0 14px; background: #FFFFFF; border: 2px solid #B91C1C; border-radius: 12px; color: #0F172A; font: 400 16px Inter, sans-serif; outline: none">
+            <span id="confirm-err" style="font-size: 13px; color: #B91C1C; font-weight: 600">Passwords don't match.</span>
+          </div>
+          <a href="Servers.dc.html" style="height: 52px; border-radius: 14px; background: #2563EB; color: #FFFFFF; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center">Create account</a>
+          <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #475569">By creating an account you agree to the <a href="Privacy.dc.html">terms</a> and <a href="Privacy.dc.html">privacy policy</a>.</p>
+        </form>
+        <p style="margin: 0; text-align: center; font-size: 14px; color: #475569">Already have an account? <a href="SignIn.dc.html" style="font-weight: 600">Sign in</a></p>
+      </div>
+    </section>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

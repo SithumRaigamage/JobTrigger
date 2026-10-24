@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JobTrigger — what's new</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F8FAFC}
+a{color:#1D4ED8;text-decoration:none}a:hover{color:#1E40AF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F8FAFC; color: #0F172A; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="changelog" hint-size="100%,72px"></dc-import>
+
+  <main style="display: flex; flex-direction: column">
+    <section style="background: #0B1120; color: #F1F5F9">
+      <div style="max-width: 960px; margin: 0 auto; box-sizing: border-box; padding: 72px 20px 64px; display: flex; flex-direction: column; gap: 12px">
+        <h1 style="margin: 0; font-size: 56px; line-height: 1.05; font-weight: 800; letter-spacing: -0.04em">What's new</h1>
+        <p style="margin: 0; font-size: 17px; color: #CBD5E1">Every release, newest first.</p>
+      </div>
+    </section>
+
+    <ol style="width: 100%; max-width: 960px; margin: 0 auto; box-sizing: border-box; padding: 56px 20px 104px; list-style: none; display: flex; flex-direction: column; gap: 20px">
+      <sc-for list="{{ releases }}" as="r" hint-placeholder-count="3">
+        <li style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); padding: 28px; display: flex; flex-wrap: wrap; gap: 12px 36px">
+          <div style="flex: 0 0 150px; display: flex; flex-direction: column; gap: 6px">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 500">{{ r.version }}</span>
+            <span style="font-size: 13px; color: #475569">{{ r.date }}</span>
+            <sc-if value="{{ r.latest }}" hint-placeholder-val="{{ false }}">
+              <span style="align-self: flex-start; padding: 3px 10px; border-radius: 999px; background: #DBEAFE; color: #1D4ED8; font-size: 12px; font-weight: 600">Latest</span>
+            </sc-if>
+          </div>
+          <div style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+            <h2 style="margin: 0; font-size: 22px; font-weight: 700">{{ r.title }}</h2>
+            <ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 15px; line-height: 1.6; color: #334155">
+              <sc-for list="{{ r.items }}" as="it" hint-placeholder-count="3">
+                <li>{{ it.text }}</li>
+              </sc-for>
+            </ul>
+          </div>
+        </li>
+      </sc-for>
+    </ol>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const rel = [
+      { title: 'A fresh new look', items: ['Every screen redesigned, clearer in light and dark', 'Build status always has a text label, not only a colour', 'Only working tools are shown, with a "request a tool" link'] },
+      { title: 'Much more Jenkins', items: ['Notifications when a watched build finishes', 'Pinned jobs and a home-screen widget', 'Nodes, the queue, views and multibranch', 'Face ID / fingerprint app lock'] },
+      { title: 'GitHub Actions and SonarQube', items: ['GitHub accounts, repositories and workflows', 'SonarQube projects and quality gates'] },
+    ];
+    return {
+      releases: rel.map((r, i) => ({
+        ...r,
+        version: '[VERSION]',
+        date: '[DATE]',
+        latest: i === 0,
+        items: r.items.map((text) => ({ text })),
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>
