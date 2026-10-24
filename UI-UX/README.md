@@ -1,5 +1,8 @@
 # UI/UX — JobTrigger redesign (approved 2026-10-23)
 
+**Browse everything in one place: open [`preview.html`](preview.html)** — every
+app and website screen as a thumbnail, each linking to its preview.
+
 The approved screen designs for the Flutter app's modernised look. Each
 screen has its own folder under [`screens/`](screens/):
 

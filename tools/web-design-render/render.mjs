@@ -106,6 +106,9 @@ function rewrite(html, folder) {
     .replace(/href="([A-Za-z]+)\.dc\.html(#[\w-]+)?"/g, (m, n, hash) => (folderOf[n] ? 'href="../' + folderOf[n] + '/preview.html' + (hash || '') + '"' : m));
 }
 
+// Fixed link back to UI-UX/preview.html, the page that lists every screen.
+const backLink = '<a href="../../../preview.html" style="position: fixed; left: 16px; bottom: 16px; z-index: 1000; padding: 10px 16px; border-radius: 999px; background: #0F172A; color: #FFFFFF; font: 600 14px Inter, system-ui, sans-serif; text-decoration: none; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.35)">← All screens</a>\n';
+
 const all = {};
 for (const [name] of pages) all[name] = parse(name);
 
@@ -124,7 +127,6 @@ for (const [name, folder, width] of pages) {
   await page.evaluate(() => document.fonts.ready);
   if (errors.length) throw new Error(name + ': ' + errors.join('; '));
   const html = '<!doctype html>\n' + (await page.evaluate(() => document.documentElement.outerHTML)) + '\n';
-  fs.writeFileSync(file, rewrite(html, folder));
   // Shared parts are cropped to the part itself; pages are captured full length.
   if (['Header', 'Footer', 'Sidebar'].includes(name)) {
     await page.locator('body > *').first().screenshot({ path: path.join(dir, 'screen.png') });
@@ -132,6 +134,8 @@ for (const [name, folder, width] of pages) {
     await page.screenshot({ path: path.join(dir, 'screen.png'), fullPage: true });
   }
   const h = await page.evaluate(() => document.body.firstElementChild.getBoundingClientRect().height | 0);
+  // Added after the screenshot so the PNG shows only the design.
+  fs.writeFileSync(file, rewrite(html, folder).replace('</body>', backLink + '</body>'));
   console.log(folder, width + 'x' + h);
   await page.close();
 }

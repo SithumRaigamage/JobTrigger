@@ -17,6 +17,10 @@ kept in [`rejected/`](rejected/):
 
 ## Files
 
+To browse every screen (website and app) from one page, open
+[`../preview.html`](../preview.html).
+
+
 | Folder | What it is |
 |---|---|
 | [`screens/`](screens/) | One folder per page with `screen.png` (rendered at 1440 px wide, @2x; full page length) and `preview.html` (the same page as static HTML — open it in any browser; links between pages work). Start here. |
