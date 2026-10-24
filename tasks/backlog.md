@@ -54,6 +54,14 @@ Phase 0–6 task without first moving the item here into an actual phase file
   2026-09-29 → P11-23 / US-JX-20.
 - ~~Biometric unlock (Face ID / fingerprint) gating app access.~~ Promoted
   2026-09-29 → P11-25 / US-JX-21.
+- Website "notify me when it launches" email signup (epic WEB, decided
+  out of launch scope 2026-10-24). Needs a backend endpoint to store
+  emails, rate limiting, an unsubscribe path, and a privacy-policy change
+  (US-WEB-06) — backend track. Until then, "coming soon" copy on the site
+  links to the changelog (US-WEB-22).
+- Website launch date in the download section (epic WEB). The site says
+  "Coming soon" with no date until a release date is committed in
+  `release-checklist.md`; then flip the `app-store` status (US-WEB-22).
 - Password reset by email (US-AUTH-08, from AUD-48 / P13-07). Deferred
   2026-10-23: the backend has no email provider, and choosing one is a
   product decision. Needs a provider, single-use 15-minute tokens, no

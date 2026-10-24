@@ -1,7 +1,11 @@
 # web-design-render
 
 Regenerates `UI-UX/Web/screens/*/preview.html` and `screen.png` from the
-website design sources in `UI-UX/Web/design/`.
+website design sources in `UI-UX/Web/design/`, then rebuilds
+`UI-UX/preview.html` — the page that links every app and website screen
+(`hub.mjs`; it reads the app list from the table in `UI-UX/README.md`).
+Each website preview gets a "← All screens" link back to it, added after
+the screenshot so PNGs show only the design.
 
 The `.dc.html` sources need the design canvas's runtime, which isn't in the
 repo. `render.mjs` ships a small stand-in runtime (holes, `sc-for`, `sc-if`,

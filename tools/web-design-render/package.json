@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Renders UI-UX/Web/design/*.dc.html to static preview.html + screen.png",
   "scripts": {
-    "render": "node render.mjs ../../UI-UX/Web/design ../../UI-UX/Web/screens"
+    "render": "node render.mjs ../../UI-UX/Web/design ../../UI-UX/Web/screens && node hub.mjs ../../UI-UX"
   },
   "dependencies": {
     "playwright-core": "1.48.2"

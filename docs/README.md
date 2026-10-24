@@ -33,6 +33,10 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 - **[Second audit remediation — Phase 13](../tasks/phase-13-audit-2-remediation.md)** — Record of the second audit (`AUD-42`…`AUD-66`, `P13-01`…`P13-27`): all 27 tasks fixed; password reset deferred (US-AUTH-08); AUD-66 token revocation is an owner action. Its audit documents (2026-10-20, 2026-10-22) were deleted once closed and remain in git history
 - **[Pipeline security controls](./deployment.md#pipeline-security-controls-p13-18-aud-59)** — What CI checks, and which checks block
 
+## 📊 Market
+
+- **[Competitive analysis — 2026-10-24](./market/competitive-analysis.md)** — Mobile CI/CD apps on the App Store and Google Play (Jenkins, GitHub Actions, multi-tool, SonarQube), feature matrix, where JobTrigger wins, risks, pricing and messaging recommendations, what to monitor
+
 ## 📦 Release
 
 - **[Deployment](./deployment.md)** — App Store / Play Store submission process, CI/CD tooling options, what's blocked on store accounts vs. code
