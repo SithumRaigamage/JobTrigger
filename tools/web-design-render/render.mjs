@@ -13,6 +13,11 @@ const pages = [
   ['Servers', '10-my-servers', 1440], ['AddServer', '11-add-server', 1440], ['EditServer', '12-edit-server', 1440],
   ['Saved', '13-saved', 1440], ['Account', '14-account', 1440],
   ['Header', '15-header', 1440], ['Footer', '16-footer', 1440], ['Sidebar', '17-sidebar', 260],
+  // Pre-launch variants (US-WEB-22): coming-soon states while the app is in development.
+  ['MainSoon', '18-home-prelaunch', 1440], ['FeaturesSoon', '19-features-prelaunch', 1440],
+  ['ToolsSoon', '20-integrations-prelaunch', 1440], ['ChangelogSoon', '21-changelog-prelaunch', 1440],
+  ['AddServerSoon', '22-add-server-prelaunch', 1440], ['SavedSoon', '23-saved-prelaunch', 1440],
+  ['HeaderSoon', '24-header-prelaunch', 1440], ['FooterSoon', '25-footer-prelaunch', 1440],
 ];
 const folderOf = Object.fromEntries(pages.map(([n, f]) => [n, f]));
 
@@ -128,7 +133,7 @@ for (const [name, folder, width] of pages) {
   if (errors.length) throw new Error(name + ': ' + errors.join('; '));
   const html = '<!doctype html>\n' + (await page.evaluate(() => document.documentElement.outerHTML)) + '\n';
   // Shared parts are cropped to the part itself; pages are captured full length.
-  if (['Header', 'Footer', 'Sidebar'].includes(name)) {
+  if (['Header', 'Footer', 'Sidebar', 'HeaderSoon', 'FooterSoon'].includes(name)) {
     await page.locator('body > *').first().screenshot({ path: path.join(dir, 'screen.png') });
   } else {
     await page.screenshot({ path: path.join(dir, 'screen.png'), fullPage: true });

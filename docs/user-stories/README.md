@@ -49,7 +49,7 @@ to the same file, just at a new path.
 | `sonarqube/` | [14-sonarqube.md](sonarqube/14-sonarqube.md) | SQ | A code-quality server, not a build-trigger tool (**promoted, in progress** — `tasks/phase-10-sonarqube.md`): credential management, project browsing, quality gate/measures/issues |
 | `circleci/` | [15-circleci.md](circleci/15-circleci.md) | CC | A fourth real CI tool (docs-only, **not promoted/implemented**): credential management, project/pipeline/workflow browsing, run triggering/status/cancel/rerun, per-step job output, history |
 | `jenkins/` | [16-jenkins-extended.md](jenkins/16-jenkins-extended.md) | JX | New-scope Jenkins depth and capabilities added 2026-09-29 (**done 2026-09-30** — `tasks/phase-11-jenkins-extended.md`; US-JX-16 edited replay closed as won't-do by its verification gate): secure/complete parameter types, multibranch, stage logs, history paging, console search/colors, test details, server queue, notifications, pinned jobs, nodes, enable/disable, keep-forever, trends, edited replay, views, server status, deep links, offline tree, biometric lock, token hygiene, home-screen widget |
-| `web/` | [17-website.md](web/17-website.md) | WEB | A Next.js website (docs-only, **not promoted/implemented**, added 2026-10-24): marketing pages, plus a signed-in setup portal where users paste Jenkins/GitHub/SonarQube details on their laptop so the phone app picks them up without retyping tokens |
+| `web/` | [17-website.md](web/17-website.md) | WEB | A Next.js website (docs-only, **not promoted/implemented**, added 2026-10-24): marketing pages, plus a signed-in setup portal where users paste Jenkins/GitHub/SonarQube details on their laptop so the phone app picks them up without retyping tokens; launches with "Coming soon" states for unshipped features (US-WEB-22) |
 
 ## Story ID convention
 
@@ -59,7 +59,7 @@ to the same file, just at a new path.
 `GL-CRED`, `GL-PROJ`, `GL-RUN`, `GL-LOG`, `GL-HIST`), `SQ` (sub-epics
 `SQ-CRED`, `SQ-PROJ`, `SQ-QUALITY` — no RUN/LOG/HIST, SonarQube has no
 build-trigger concept, see its epic's intro), `CC` (sub-epics `CC-CRED`,
-`CC-PROJ`, `CC-RUN`, `CC-LOG`, `CC-HIST`), `WEB` (no sub-epics; 01–08 marketing, 10–21 setup portal) — e.g. `US-GL-CRED-01`,
+`CC-PROJ`, `CC-RUN`, `CC-LOG`, `CC-HIST`), `WEB` (no sub-epics; 01–08 marketing, 10–21 setup portal, 22 feature availability) — e.g. `US-GL-CRED-01`,
 `US-SQ-QUALITY-02`, `US-CC-RUN-04`. Cross-cutting baselines use
 `NFR-<CATEGORY>-##` (e.g. `NFR-SEC-01`) and are referenced, not repeated.
 Deferred items use `BACKLOG-##`.

@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JobTrigger — home (pre-launch)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B1120}
+a{color:#93C5FD;text-decoration:none}a:hover{color:#BFDBFE}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="HeaderSoon" current="home" hint-size="100%,72px"></dc-import>
+
+  <main style="display: flex; flex-direction: column">
+
+    <!-- HERO -->
+    <section style="background-color: #0B1120; background-image: radial-gradient(#1F2A3D 1px, transparent 1px); background-size: 28px 28px; border-bottom: 1px solid #1F2A3D">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 96px 20px 88px; display: flex; flex-wrap: wrap; gap: 48px; align-items: center">
+        <div style="flex: 1 1 500px; min-width: 0; display: flex; flex-direction: column; gap: 28px">
+          <a href="SignIn.dc.html" style="align-self: flex-start; display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; border-radius: 999px; background: #111A2B; border: 1px solid #1F2A3D; color: #CBD5E1; font-size: 14px">
+            <span style="padding: 3px 10px; border-radius: 999px; background: #2563EB; color: #FFFFFF; font-size: 12px; font-weight: 700">New</span>
+            Set up servers from your laptop →
+          </a>
+          <h1 style="margin: 0; font-size: 80px; line-height: 0.98; font-weight: 800; letter-spacing: -0.045em">Ship builds<br>from <span style="color: #93C5FD">anywhere.</span></h1>
+          <p style="margin: 0; max-width: 540px; font-size: 20px; line-height: 1.6; color: #CBD5E1">JobTrigger puts Jenkins, GitHub Actions and SonarQube in your pocket. Trigger jobs, watch logs stream live, and know the moment a build breaks.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 12px">
+            <a href="SignIn.dc.html" style="height: 56px; padding: 0 28px; border-radius: 14px; background: #2563EB; color: #FFFFFF; font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 10px">Set up your servers
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+            <a href="FeaturesSoon.dc.html" style="height: 56px; padding: 0 24px; border-radius: 14px; border: 1px solid #334155; color: #F1F5F9; font-size: 17px; font-weight: 600; display: flex; align-items: center">Take the tour</a>
+          </div>
+          <a href="#download" style="align-self: flex-start; display: flex; align-items: center; gap: 10px; font-size: 14px; color: #CBD5E1">
+            <span style="padding: 3px 10px; border-radius: 999px; background: #1E293B; color: #CBD5E1; font-size: 12px; font-weight: 700">Coming soon</span>
+            iPhone and Android apps — see what's launching
+          </a>
+        </div>
+
+        <div role="img" aria-label="JobTrigger on a phone, with a build-succeeded notification, a pipeline stage strip and a live console snippet around it" style="position: relative; flex: 1 1 500px; min-width: 0; height: 600px">
+          <div style="position: absolute; left: 50%; top: 0; width: 270px; margin-left: -135px; padding: 9px; background: #1E293B; border-radius: 44px; box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5)">
+            <img src="/_blob/e1bddce979008b06b2fafae929d8849b" alt="" style="display: block; width: 100%; border-radius: 35px">
+          </div>
+
+          <div style="position: absolute; left: 0; top: 64px; width: 264px; padding: 14px 16px; background: #FFFFFF; color: #0F172A; border-radius: 18px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35); display: flex; gap: 12px; align-items: flex-start">
+            <span style="width: 36px; height: 36px; flex: none; border-radius: 10px; background: #DCFCE7; color: #15803D; display: flex; align-items: center; justify-content: center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <span style="display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 14px; font-weight: 700">Build #482 succeeded</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #475569">api-gateway · main · 3m 12s</span>
+            </span>
+          </div>
+
+          <div style="position: absolute; right: 0; top: 292px; width: 290px; padding: 16px; background: #111A2B; border: 1px solid #334155; border-radius: 18px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; gap: 12px">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #94A3B8">Pipeline · #483</span>
+            <div style="display: flex; align-items: center; gap: 6px">
+              <span style="padding: 6px 8px; border-radius: 8px; background: #0F2E1F; color: #86EFAC; font-size: 12px; font-weight: 600">✓ Build</span>
+              <span style="flex: 1; height: 2px; background: #86EFAC"></span>
+              <span style="padding: 6px 8px; border-radius: 8px; background: #0F2E1F; color: #86EFAC; font-size: 12px; font-weight: 600">✓ Test</span>
+              <span style="flex: 1; height: 2px; background: #93C5FD"></span>
+              <span style="padding: 6px 8px; border-radius: 8px; background: #10284A; color: #93C5FD; font-size: 12px; font-weight: 600; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35)">● Deploy</span>
+            </div>
+          </div>
+
+          <div style="position: absolute; left: 12px; bottom: 0; width: 300px; padding: 14px 16px; background: #060A14; border: 1px solid #1F2A3D; border-radius: 16px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45); font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.7; display: flex; flex-direction: column">
+            <span style="color: #94A3B8">[deploy] pushing image :483</span>
+            <span style="color: #CBD5E1">[deploy] rolling 3/3 pods</span>
+            <span style="color: #86EFAC">✓ 214 tests passed</span>
+            <span style="color: #93C5FD">● waiting for health check…</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOGO STRIP -->
+    <section style="background: #0F172A; border-bottom: 1px solid #1F2A3D">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 28px 20px; display: flex; flex-wrap: wrap; gap: 16px 48px; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; color: #CBD5E1">
+        <span style="font-size: 13px; font-weight: 500; color: #94A3B8">One app for</span>
+        <span style="display: flex; align-items: center; gap: 10px"><span style="width: 32px; height: 32px; border-radius: 9px; background: #D33833; color: #FFFFFF; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center">J</span>Jenkins</span>
+        <span style="display: flex; align-items: center; gap: 10px"><span style="width: 32px; height: 32px; border-radius: 9px; background: #F1F5F9; color: #0B1120; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center">GH</span>GitHub Actions<span style="padding: 2px 8px; border-radius: 999px; background: #10284A; color: #93C5FD; font-size: 11px; font-weight: 700">Beta</span></span>
+        <span style="display: flex; align-items: center; gap: 10px"><span style="width: 32px; height: 32px; border-radius: 9px; background: #126ED3; color: #FFFFFF; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center">SQ</span>SonarQube<span style="padding: 2px 8px; border-radius: 999px; background: #1E293B; color: #CBD5E1; font-size: 11px; font-weight: 700">Coming soon</span></span>
+        <span style="display: flex; align-items: center; gap: 10px; color: #94A3B8; font-weight: 500"><span style="width: 32px; height: 32px; border-radius: 9px; border: 1px dashed #475569; display: flex; align-items: center; justify-content: center">+</span>More planned</span>
+      </div>
+    </section>
+
+    <!-- TIMELINE -->
+    <section style="background: #0B1120">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 104px 20px 40px; display: flex; flex-direction: column">
+        <div style="display: flex; flex-direction: column; gap: 14px; max-width: 760px; padding-bottom: 64px">
+          <h2 style="margin: 0; font-size: 52px; line-height: 1.05; font-weight: 800; letter-spacing: -0.035em">Everything you open Jenkins for. <span style="color: #94A3B8">Minus the laptop.</span></h2>
+        </div>
+
+        <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+          <div style="display: flex; gap: 28px">
+            <div style="flex: none; width: 48px; display: flex; flex-direction: column; align-items: center">
+              <span style="{{ s.nodeStyle }}">{{ s.n }}</span>
+              <span style="{{ s.lineStyle }}"></span>
+            </div>
+            <div style="flex: 1 1 auto; min-width: 0; padding-bottom: 96px; display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start">
+              <div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 14px; padding-top: 6px">
+                <span style="{{ s.kickerStyle }}">{{ s.kicker }}</span>
+                <h3 style="margin: 0; font-size: 36px; line-height: 1.1; font-weight: 800; letter-spacing: -0.03em">{{ s.title }}</h3>
+                <p style="margin: 0; font-size: 17px; line-height: 1.65; color: #CBD5E1">{{ s.body }}</p>
+              </div>
+              <div style="flex: 1 1 440px; min-width: 0">
+                <sc-if value="{{ s.isTrigger }}" hint-placeholder-val="{{ false }}">
+                  <div style="background: #FFFFFF; color: #0F172A; border-radius: 22px; padding: 24px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; gap: 16px">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                      <span style="font-size: 16px; font-weight: 700">deploy-api</span>
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #475569">Build with parameters</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px">
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #334155">BRANCH</span>
+                      <span style="height: 44px; padding: 0 14px; border: 1px solid #94A3B8; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 14px">release/2.4 <span aria-hidden="true">▾</span></span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px">
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #334155">ENVIRONMENT</span>
+                      <span style="display: flex; padding: 4px; background: #F1F5F9; border-radius: 12px; gap: 4px; font-size: 14px; font-weight: 600">
+                        <span style="flex: 1; padding: 8px; border-radius: 9px; text-align: center; color: #334155">dev</span>
+                        <span style="flex: 1; padding: 8px; border-radius: 9px; text-align: center; background: #FFFFFF; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.15)">staging</span>
+                        <span style="flex: 1; padding: 8px; border-radius: 9px; text-align: center; color: #334155">prod</span>
+                      </span>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #334155">DB_PASSWORD</span>
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #475569">•••••••• (masked)</span>
+                    </div>
+                    <span style="height: 48px; border-radius: 12px; background: #2563EB; color: #FFFFFF; font-weight: 600; display: flex; align-items: center; justify-content: center">▶ Build</span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ s.isWatch }}" hint-placeholder-val="{{ false }}">
+                  <div style="background: #060A14; border: 1px solid #1F2A3D; border-radius: 22px; overflow: hidden; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4)">
+                    <div style="padding: 12px 16px; background: #0F172A; border-bottom: 1px solid #1F2A3D; display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+                      <span style="padding: 4px 10px; border-radius: 999px; background: #10284A; color: #93C5FD; font-size: 12px; font-weight: 600">● Running · 1m 48s</span>
+                      <span style="margin-left: auto; height: 32px; padding: 0 12px; border-radius: 8px; background: #1E293B; color: #CBD5E1; font-size: 12px; display: flex; align-items: center">⌕ Search log</span>
+                    </div>
+                    <div style="padding: 18px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; display: flex; flex-direction: column">
+                      <span style="color: #94A3B8">12:04:01  Started by user sam</span>
+                      <span style="color: #CBD5E1">12:04:03  [Pipeline] stage (Build)</span>
+                      <span style="color: #CBD5E1">12:04:41  &gt; gradle assemble</span>
+                      <span style="color: #86EFAC">12:05:12  BUILD SUCCESSFUL in 31s</span>
+                      <span style="color: #CBD5E1">12:05:13  [Pipeline] stage (Test)</span>
+                      <span style="color: #FDBA74">12:05:40  WARN  2 flaky tests retried</span>
+                      <span style="color: #93C5FD">12:05:49  ▍</span>
+                    </div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ s.isFix }}" hint-placeholder-val="{{ false }}">
+                  <div style="background: #111A2B; border: 1px solid #334155; border-radius: 22px; padding: 22px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; gap: 18px">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+                      <span style="font-size: 16px; font-weight: 700">Build #481</span>
+                      <span style="padding: 4px 10px; border-radius: 999px; background: #3A1418; color: #FCA5A5; font-size: 12px; font-weight: 600">✕ Failed</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap">
+                      <span style="padding: 7px 10px; border-radius: 9px; background: #0F2E1F; color: #86EFAC; font-size: 12px; font-weight: 600">✓ Checkout</span>
+                      <span style="width: 18px; height: 2px; background: #86EFAC"></span>
+                      <span style="padding: 7px 10px; border-radius: 9px; background: #0F2E1F; color: #86EFAC; font-size: 12px; font-weight: 600">✓ Build</span>
+                      <span style="width: 18px; height: 2px; background: #FCA5A5"></span>
+                      <span style="padding: 7px 10px; border-radius: 9px; background: #3A1418; color: #FCA5A5; font-size: 12px; font-weight: 600; box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.25)">✕ Test</span>
+                      <span style="width: 18px; height: 2px; background: #334155"></span>
+                      <span style="padding: 7px 10px; border-radius: 9px; background: #1E293B; color: #94A3B8; font-size: 12px; font-weight: 600">○ Deploy</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 14px; background: #0B1120">
+                      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #94A3B8">Failed tests · 1 of 215</span>
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #FCA5A5">AuthTokenTest.expiresAfterRefresh</span>
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #94A3B8">expected 401 but was 200</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #CBD5E1">
+                      <span style="width: 26px; height: 26px; border-radius: 999px; background: #10284A; color: #93C5FD; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center">PK</span>
+                      <span><span style="font-family: 'JetBrains Mono', monospace; color: #93C5FD">a1f9c2e</span> refresh: extend token TTL</span>
+                    </div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ s.isRelax }}" hint-placeholder-val="{{ false }}">
+                  <div style="position: relative; height: 330px">
+                    <div style="position: absolute; left: 36px; right: 0; top: 0; padding: 14px 16px; background: #FFFFFF; color: #0F172A; border-radius: 18px; opacity: 0.55; transform: scale(0.94); transform-origin: top center; display: flex; gap: 12px">
+                      <span style="width: 34px; height: 34px; border-radius: 10px; background: #DCFCE7; color: #15803D; display: flex; align-items: center; justify-content: center; font-weight: 800">✓</span>
+                      <span style="display: flex; flex-direction: column"><span style="font-size: 14px; font-weight: 700">web-app #219 succeeded</span><span style="font-size: 12px; color: #475569">2 min ago</span></span>
+                    </div>
+                    <div style="position: absolute; left: 18px; right: 18px; top: 44px; padding: 14px 16px; background: #FFFFFF; color: #0F172A; border-radius: 18px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); display: flex; gap: 12px">
+                      <span style="width: 34px; height: 34px; border-radius: 10px; background: #FEE2E2; color: #B91C1C; display: flex; align-items: center; justify-content: center; font-weight: 800">✕</span>
+                      <span style="display: flex; flex-direction: column"><span style="font-size: 14px; font-weight: 700">api-gateway #481 failed</span><span style="font-size: 12px; color: #475569">Test stage · tap to see why</span></span>
+                    </div>
+                    <div style="position: absolute; left: 0; right: 60px; bottom: 0; padding: 16px; background: #111A2B; border: 1px solid #334155; border-radius: 22px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+                      <span style="padding: 12px; border-radius: 14px; background: #0F2E1F; color: #86EFAC; font-size: 13px; font-weight: 600; display: flex; flex-direction: column; gap: 4px">web-app<span style="font-size: 12px; font-weight: 500">✓ Success</span></span>
+                      <span style="padding: 12px; border-radius: 14px; background: #3A1418; color: #FCA5A5; font-size: 13px; font-weight: 600; display: flex; flex-direction: column; gap: 4px">api-gateway<span style="font-size: 12px; font-weight: 500">✕ Failed</span></span>
+                      <span style="padding: 12px; border-radius: 14px; background: #10284A; color: #93C5FD; font-size: 13px; font-weight: 600; display: flex; flex-direction: column; gap: 4px">deploy-api<span style="font-size: 12px; font-weight: 500">● Running</span></span>
+                      <span style="padding: 12px; border-radius: 14px; background: #3A2210; color: #FDBA74; font-size: 13px; font-weight: 600; display: flex; flex-direction: column; gap: 4px">nightly-e2e<span style="font-size: 12px; font-weight: 500">▲ Unstable</span></span>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- SETUP: slanted band -->
+    <section style="position: relative; background: #F8FAFC; color: #0F172A; overflow: hidden">
+      <div aria-hidden="true" style="position: absolute; left: -5%; right: -5%; top: 80px; bottom: 80px; background: #2563EB; transform: skewY(-4deg)"></div>
+      <div style="position: relative; max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 160px 20px; display: flex; flex-wrap: wrap; gap: 56px; align-items: center">
+        <div style="flex: 1 1 400px; min-width: 0; display: flex; flex-direction: column; gap: 18px; color: #FFFFFF">
+          <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #DBEAFE">Setup, solved</span>
+          <h2 style="margin: 0; font-size: 48px; line-height: 1.05; font-weight: 800; letter-spacing: -0.035em">Paste tokens on your laptop. Your phone already has them.</h2>
+          <p style="margin: 0; font-size: 18px; line-height: 1.6; color: #FFFFFF">No emailing yourself tokens. Sign in on the web, paste once, open the app.</p>
+          <a href="SignIn.dc.html" style="align-self: flex-start; height: 52px; padding: 0 24px; border-radius: 14px; background: #FFFFFF; color: #1D4ED8; font-size: 16px; font-weight: 700; display: flex; align-items: center">Set up a server →</a>
+        </div>
+        <div role="img" aria-label="A browser form with Jenkins details on a laptop, an arrow, and the same server appearing in the JobTrigger app on a phone" style="flex: 1 1 520px; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 20px">
+          <div style="flex: 1 1 300px; max-width: 360px; background: #FFFFFF; border-radius: 16px; box-shadow: 0 30px 60px rgba(15, 23, 42, 0.35); overflow: hidden">
+            <div style="padding: 10px 14px; background: #F1F5F9; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; gap: 8px">
+              <span style="width: 10px; height: 10px; border-radius: 999px; background: #FCA5A5"></span>
+              <span style="width: 10px; height: 10px; border-radius: 999px; background: #FDBA74"></span>
+              <span style="width: 10px; height: 10px; border-radius: 999px; background: #86EFAC"></span>
+              <span style="margin-left: 8px; flex: 1; padding: 4px 10px; border-radius: 6px; background: #FFFFFF; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #475569">jobtrigger.app/servers/new</span>
+            </div>
+            <div style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+              <span style="font-size: 15px; font-weight: 700">Add a Jenkins server</span>
+              <span style="padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 12px">https://ci.acme.dev</span>
+              <span style="padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 12px">sam</span>
+              <span style="padding: 10px 12px; border: 2px solid #2563EB; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 12px">••••••••••••a91f</span>
+              <span style="height: 38px; border-radius: 10px; background: #2563EB; color: #FFFFFF; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center">Save</span>
+            </div>
+          </div>
+          <span style="width: 52px; height: 52px; flex: none; border-radius: 999px; background: #FFFFFF; color: #2563EB; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(15, 23, 42, 0.3)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
+          <div style="flex: 0 0 200px; padding: 8px; background: #0B1120; border-radius: 34px; box-shadow: 0 30px 60px rgba(15, 23, 42, 0.45)">
+            <div style="background: #111A2B; border-radius: 27px; padding: 22px 14px; display: flex; flex-direction: column; gap: 10px; color: #F1F5F9">
+              <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #94A3B8">Servers</span>
+              <span style="padding: 12px; border-radius: 14px; background: #10284A; display: flex; flex-direction: column; gap: 4px">
+                <span style="font-size: 13px; font-weight: 700">Acme production</span>
+                <span style="font-size: 11px; color: #86EFAC">✓ Just added</span>
+              </span>
+              <span style="padding: 12px; border-radius: 14px; background: #1E293B; font-size: 13px; color: #CBD5E1">Home lab</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECURITY -->
+    <section style="background: #F8FAFC; color: #0F172A">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 40px 20px 112px; display: flex; flex-wrap: wrap; gap: 56px; align-items: center">
+        <div style="flex: 1 1 440px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+          <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1D4ED8">Security</span>
+          <h2 style="margin: 0; font-size: 44px; line-height: 1.08; font-weight: 800; letter-spacing: -0.03em">Built by people who guard tokens for a living.</h2>
+          <p style="margin: 0; font-size: 17px; line-height: 1.65; color: #475569">The app talks to your CI directly — never through us. Saved tokens are encrypted at rest and kept in your phone's secure storage.</p>
+          <a href="Security.dc.html" style="align-self: flex-start; color: #1D4ED8; font-size: 16px; font-weight: 600">How we handle your tokens →</a>
+        </div>
+        <div style="flex: 1 1 440px; min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+          <sc-for list="{{ trust }}" as="t" hint-placeholder-count="4">
+            <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); padding: 22px; display: flex; flex-direction: column; gap: 12px">
+              <span style="{{ t.iconStyle }}">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+              </span>
+              <span style="font-size: 16px; font-weight: 700">{{ t.t }}</span>
+              <span style="font-size: 14px; line-height: 1.5; color: #475569">{{ t.d }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOWNLOAD -->
+    <section id="download" style="background-color: #0B1120; background-image: radial-gradient(#1F2A3D 1px, transparent 1px); background-size: 28px 28px">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 112px 20px; display: flex; flex-wrap: wrap; gap: 48px; align-items: center; justify-content: space-between">
+        <div style="flex: 1 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 22px">
+          <span style="align-self: flex-start; padding: 5px 12px; border-radius: 999px; background: #1E293B; color: #CBD5E1; font-size: 13px; font-weight: 700">Coming soon</span>
+          <h2 style="margin: 0; font-size: 64px; line-height: 1; font-weight: 800; letter-spacing: -0.045em">Coming soon to<br><span style="color: #93C5FD">iPhone and Android.</span></h2>
+          <p style="margin: 0; max-width: 520px; font-size: 18px; line-height: 1.6; color: #CBD5E1">The app is in its final stretch. Set up your servers on the web today — they'll be waiting the moment you install it.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 12px">
+            <span aria-disabled="true" style="height: 56px; padding: 0 20px; border-radius: 12px; border: 1px dashed #475569; color: #94A3B8; display: flex; align-items: center; gap: 12px">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>
+              <span style="display: flex; flex-direction: column; line-height: 1.15"><span style="font-size: 11px">Coming soon to the</span><span style="font-size: 18px; font-weight: 700">App Store</span></span>
+            </span>
+            <span aria-disabled="true" style="height: 56px; padding: 0 20px; border-radius: 12px; border: 1px dashed #475569; color: #94A3B8; display: flex; align-items: center; gap: 12px">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3l14 9-14 9z"/></svg>
+              <span style="display: flex; flex-direction: column; line-height: 1.15"><span style="font-size: 11px">Coming soon to</span><span style="font-size: 18px; font-weight: 700">Google Play</span></span>
+            </span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center">
+            <a href="SignIn.dc.html" style="height: 52px; padding: 0 22px; border-radius: 14px; background: #2563EB; color: #FFFFFF; font-size: 16px; font-weight: 700; display: flex; align-items: center">Set up your servers now</a>
+            <a href="ChangelogSoon.dc.html" style="font-size: 15px; font-weight: 600">Follow launch updates →</a>
+          </div>
+        </div>
+        <div style="flex: 0 1 auto; display: flex; align-items: flex-end; gap: 24px">
+          <div style="width: 200px; padding: 8px; background: #1E293B; border-radius: 36px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5)">
+            <img src="/_blob/78ef8c66a4820687efbd414d6977f65a" alt="JobTrigger home-screen widget" style="display: block; width: 100%; border-radius: 28px">
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dc-import name="FooterSoon" hint-size="100%,380px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":4600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const colors = [
+      { fg: '#93C5FD', bg: '#10284A', glow: 'rgba(37, 99, 235, 0.45)' },
+      { fg: '#86EFAC', bg: '#0F2E1F', glow: 'rgba(34, 197, 94, 0.35)' },
+      { fg: '#FCA5A5', bg: '#3A1418', glow: 'rgba(248, 113, 113, 0.35)' },
+      { fg: '#FDBA74', bg: '#3A2210', glow: 'rgba(251, 146, 60, 0.35)' },
+    ];
+    const defs = [
+      { id: 'trigger', kicker: 'Trigger', title: 'Start any job, with the right inputs.', body: 'Browse folders and multibranch pipelines. Every parameter gets a proper input — branches, choices, files — and secrets stay masked and are never saved.' },
+      { id: 'watch', kicker: 'Watch', title: 'Logs that stream as fast as the build.', body: 'Follow the console live, search it, jump to a stage, and share the full log with your team in two taps.' },
+      { id: 'fix', kicker: 'Fix', title: 'See why it went red in seconds.', body: 'The failing stage, the failing test and the commit that went in — on one screen, before you reach a laptop.' },
+      { id: 'relax', kicker: 'Relax', title: 'Stop refreshing. We’ll tell you.', body: 'Watch a build and get a notification when it finishes. Pin your jobs to a home-screen widget.' },
+    ];
+    const steps = defs.map((d, i) => {
+      const c = colors[i];
+      const last = i === defs.length - 1;
+      return {
+        ...d,
+        n: i + 1,
+        isTrigger: d.id === 'trigger', isWatch: d.id === 'watch', isFix: d.id === 'fix', isRelax: d.id === 'relax',
+        nodeStyle: 'width: 48px; height: 48px; flex: none; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800; background: ' + c.bg + '; color: ' + c.fg + '; box-shadow: 0 0 0 6px ' + c.glow,
+        lineStyle: 'flex: 1; width: 2px; margin-top: 12px; background: ' + (last ? 'transparent' : '#1F2A3D'),
+        kickerStyle: 'font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: ' + c.fg,
+      };
+    });
+    const icon = (bg, fg) => 'width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: ' + bg + '; color: ' + fg;
+    const trust = [
+      { t: 'Encrypted at rest', d: 'Tokens are encrypted before they are stored.', iconStyle: icon('#DBEAFE', '#1D4ED8') },
+      { t: 'Secure storage', d: 'iOS Keychain and Android Keystore on the phone.', iconStyle: icon('#DCFCE7', '#15803D') },
+      { t: 'Masked on the web', d: 'Saved tokens are never sent back to your browser.', iconStyle: icon('#FFEDD5', '#C2410C') },
+      { t: 'Direct to your CI', d: 'No JobTrigger proxy between you and Jenkins.', iconStyle: icon('#FEE2E2', '#B91C1C') },
+    ];
+    return { steps, trust };
+  }
+}
+</script>
+</body>
+</html>

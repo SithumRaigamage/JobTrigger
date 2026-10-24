@@ -17,7 +17,7 @@ kept in [`rejected/`](rejected/):
 
 ## Files
 
-To browse every screen (website and app) from one page, open
+To browse every screen (website, pre-launch and app) from one page, open
 [`../preview.html`](../preview.html).
 
 
@@ -65,6 +65,35 @@ app's status colours, Inter + JetBrains Mono — with website-only treatments:
 - Status colours used as illustration accents (timeline nodes, chips,
   tool tiles), always with a text label.
 - Marketing pages use a top header; portal pages use a dark sidebar.
+
+## Pre-launch pages (coming-soon states)
+
+The app is still in development, so the site launches with some features
+not yet available. Rules and the full availability table are in
+[US-WEB-22](../../docs/user-stories/web/17-website.md#us-web-22--show-whats-available-and-whats-coming)
+and the epic's "Feature availability" section.
+
+These are **separate pages** (`*Soon.dc.html`, screens 18–25). The approved
+v4 pages above are unchanged and show the finished product; the site ships
+the pre-launch pages until each feature's status in US-WEB-22 flips to
+`live`. Pages without a pre-launch variant (Security, Privacy, Support,
+Sign in/up, My servers, Edit server, Account, Sidebar) need no change.
+
+| Screen | Source | Change |
+|---|---|---|
+| [Home](screens/18-home-prelaunch/screen.png) | `MainSoon.dc.html` | Download band → "Coming soon to iPhone and Android"; store badges disabled; QR removed. Hero CTA → "Set up your servers" (works today) + a "Coming soon" note for the apps; GitHub badged Beta, SonarQube Coming soon in the logo strip. |
+| [Header](screens/24-header-prelaunch/screen.png) / [Footer](screens/25-footer-prelaunch/screen.png) | `HeaderSoon` / `FooterSoon` | "Get the app" → "App coming soon" badge + "Set up servers"; footer band "The app is coming soon."; "Download" → "Launch updates". |
+| [Features](screens/19-features-prelaunch/screen.png) | `FeaturesSoon.dc.html` | GitHub Actions spotlight gets a **Beta** badge and "Runs and logs coming soon". |
+| [Integrations](screens/20-integrations-prelaunch/screen.png) | `ToolsSoon.dc.html` | SonarQube → **Coming soon** ("Save your server now — projects and quality gates coming soon"); GitHub → **Beta**; comparison table uses Yes / Beta / Soon / n/a. |
+| [Add server](screens/22-add-server-prelaunch/screen.png) | `AddServerSoon.dc.html` | "Test connection" disabled with a **Coming soon** badge; helper "You can test from the app after saving". |
+| [Saved](screens/23-saved-prelaunch/screen.png) | `SavedSoon.dc.html` | Store links + QR → "The JobTrigger app is coming soon. Your server is saved and will be waiting." |
+| [Changelog](screens/21-changelog-prelaunch/screen.png) | `ChangelogSoon.dc.html` | "v1.0 · Coming soon" (Ships / Beta items) and "After launch · No dates yet" (Next items) instead of `[VERSION]` cards. |
+
+Badges reuse the app's status colours: **Beta** = running blue
+(`#DBEAFE` / `#1D4ED8` light, `#10284A` / `#93C5FD` dark), **Coming soon** =
+slate (`#F1F5F9` / `#334155` light, `#1E293B` / `#CBD5E1` dark), **Planned** =
+dashed slate outline. Disabled actions keep their shape at reduced
+emphasis and always say why.
 
 ## Placeholders to fill before launch
 
