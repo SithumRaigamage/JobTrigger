@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Server saved — JobTrigger</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F8FAFC}
+a{color:#1D4ED8;text-decoration:none}a:hover{color:#1E40AF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F8FAFC; color: #0F172A; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="servers" signed-in="{{ yes }}" hint-size="100%,72px"></dc-import>
+
+  <main style="flex: 1; width: 100%; max-width: 1080px; margin: 0 auto; box-sizing: border-box; padding: 64px 20px 104px">
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch">
+      <section role="status" style="flex: 2 1 520px; min-width: 0; background: #0B1120; color: #F1F5F9; border-radius: 24px; padding: 48px 48px 0; display: flex; flex-wrap: wrap; gap: 32px; overflow: hidden">
+        <div style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 20px; padding-bottom: 48px">
+          <span style="width: 56px; height: 56px; border-radius: 18px; background: #0F2E1F; color: #86EFAC; display: flex; align-items: center; justify-content: center">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          </span>
+          <h1 style="margin: 0; font-size: 40px; line-height: 1.08; font-weight: 800; letter-spacing: -0.03em">Saved. Now open JobTrigger on your phone.</h1>
+          <p style="margin: 0; font-size: 17px; line-height: 1.6; color: #CBD5E1"><strong style="color: #F1F5F9">Acme production</strong> is ready. If the app is already open, just switch back to it.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px">
+            <a href="AddServer.dc.html" style="height: 52px; padding: 0 22px; border-radius: 14px; background: #2563EB; color: #FFFFFF; font-size: 16px; font-weight: 600; display: flex; align-items: center">Add another</a>
+            <a href="Servers.dc.html" style="height: 52px; padding: 0 20px; border-radius: 14px; background: #1E293B; color: #F1F5F9; font-size: 16px; font-weight: 600; display: flex; align-items: center">Back to my servers</a>
+          </div>
+        </div>
+        <div style="flex: 0 1 220px; display: flex; justify-content: center; align-items: flex-end">
+          <div style="width: 210px; padding: 8px 8px 0; background: #1E293B; border-radius: 36px 36px 0 0">
+            <img src="/_blob/98721b60c3bced2b85f30b4ffb97bb3a" alt="The new server in the JobTrigger app" style="display: block; width: 100%; height: 300px; object-fit: cover; object-position: top; border-radius: 28px 28px 0 0">
+          </div>
+        </div>
+      </section>
+
+      <aside style="flex: 1 1 280px; min-width: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 24px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); padding: 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 700">Don't have the app yet?</h2>
+        <div role="img" aria-label="QR code placeholder that opens the store listing" style="width: 150px; height: 150px; box-sizing: border-box; padding: 10px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 2px">
+          <sc-for list="{{ qr }}" as="cell" hint-placeholder-count="144">
+            <span style="{{ cell.style }}"></span>
+          </sc-for>
+        </div>
+        <p style="margin: 0; font-size: 13px; color: #475569">Scan with your phone camera, or</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; font-size: 14px; font-weight: 600">
+          <a href="https://apps.apple.com/">App Store</a><a href="https://play.google.com/">Google Play</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // Decorative stand-in for the store QR code; the build renders a real one.
+    const cells = [];
+    for (let i = 0; i < 144; i++) {
+      const r = Math.floor(i / 12), c = i % 12;
+      const finder = (r < 3 && c < 3) || (r < 3 && c > 8) || (r > 8 && c < 3);
+      const on = finder || ((r * 5 + c * 11 + r * c) % 5 < 2);
+      cells.push({ style: 'border-radius: 1px; background: ' + (on ? '#0B1120' : 'transparent') });
+    }
+    return { yes: true, qr: cells };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Create account — JobTrigger</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#111111;text-decoration:underline;text-decoration-color:#FF5A1F;text-underline-offset:3px}a:hover{color:#B83A0B}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F6F5F1; color: #111111; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="signin" hint-size="100%,72px"></dc-import>
+
+  <main style="flex: 1; display: flex; flex-wrap: wrap; border-bottom: 1px solid #111111">
+    <section style="flex: 1 1 480px; min-width: 0; box-sizing: border-box; padding: 72px 48px; background: #111111; color: #F6F5F1; display: flex; flex-direction: column; justify-content: space-between; gap: 40px">
+      <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 64px; line-height: 0.96; font-weight: 800; letter-spacing: -0.04em">One account.<br><span style="color: #FF5A1F">App and web.</span></h2>
+      <p style="margin: 0; max-width: 380px; font-size: 16px; line-height: 1.6; color: #D9D7D0">Create it here or in the app — it's the same account, and your servers follow you.</p>
+    </section>
+
+    <section style="flex: 1 1 480px; min-width: 0; box-sizing: border-box; padding: 72px 20px; display: flex; justify-content: center">
+      <div style="width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 24px">
+        <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 40px; font-weight: 800; letter-spacing: -0.03em">Create account</h1>
+        <form style="display: flex; flex-direction: column; gap: 18px">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <label for="email" style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #3D3D3A">EMAIL</label>
+            <input id="email" type="email" autocomplete="email" value="sam@acme.dev" style="height: 50px; padding: 0 14px; background: #FFFFFF; border: 1px solid #111111; border-radius: 4px; color: #111111; font: 400 16px 'IBM Plex Sans', sans-serif; outline: none">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <label for="password" style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #3D3D3A">PASSWORD</label>
+            <input id="password" type="password" autocomplete="new-password" aria-describedby="pw-hint" value="hunter22" style="height: 50px; padding: 0 14px; background: #FFFFFF; border: 1px solid #111111; border-radius: 4px; color: #111111; font: 400 16px 'IBM Plex Sans', sans-serif; outline: none">
+            <span id="pw-hint" style="font-size: 13px; color: #0A6B34; font-weight: 600">✓ At least 8 characters</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <label for="confirm" style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #3D3D3A">CONFIRM PASSWORD</label>
+            <input id="confirm" type="password" autocomplete="new-password" aria-invalid="true" aria-describedby="confirm-err" value="hunter2" style="height: 50px; padding: 0 14px; background: #FFFFFF; border: 2px solid #A3200E; border-radius: 4px; color: #111111; font: 400 16px 'IBM Plex Sans', sans-serif; outline: none">
+            <span id="confirm-err" style="font-size: 13px; color: #A3200E; font-weight: 600">Passwords don't match.</span>
+          </div>
+          <a href="Servers.dc.html" style="height: 52px; border-radius: 4px; background: #FF5A1F; border: 1px solid #111111; box-shadow: 4px 4px 0 #111111; color: #111111; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center">Create account</a>
+          <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #3D3D3A">By creating an account you agree to the <a href="Privacy.dc.html">terms</a> and <a href="Privacy.dc.html">privacy policy</a>.</p>
+        </form>
+        <p style="margin: 0; font-size: 14px; color: #3D3D3A">Have an account? <a href="SignIn.dc.html" style="font-weight: 600">Sign in</a></p>
+      </div>
+    </section>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,360px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

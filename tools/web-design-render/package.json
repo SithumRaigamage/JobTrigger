@@ -1,0 +1,12 @@
+{
+  "name": "web-design-render",
+  "private": true,
+  "type": "module",
+  "description": "Renders UI-UX/Web/design/*.dc.html to static preview.html + screen.png",
+  "scripts": {
+    "render": "node render.mjs ../../UI-UX/Web/design ../../UI-UX/Web/screens"
+  },
+  "dependencies": {
+    "playwright-core": "1.48.2"
+  }
+}

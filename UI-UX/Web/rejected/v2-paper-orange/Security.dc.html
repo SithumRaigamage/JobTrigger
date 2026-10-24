@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JobTrigger — security</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#111111;text-decoration:underline;text-decoration-color:#FF5A1F;text-underline-offset:3px}a:hover{color:#B83A0B}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F6F5F1; color: #111111; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="security" hint-size="100%,72px"></dc-import>
+
+  <main style="display: flex; flex-direction: column">
+    <section style="border-bottom: 1px solid #111111">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 80px 20px 64px; display: flex; flex-direction: column; gap: 18px">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #B83A0B">SECURITY</span>
+        <h1 style="margin: 0; max-width: 940px; font-family: 'Bricolage Grotesque', sans-serif; font-size: 72px; line-height: 0.98; font-weight: 800; letter-spacing: -0.04em">Where your tokens go. In plain words.</h1>
+        <p style="margin: 0; max-width: 640px; font-size: 18px; line-height: 1.6; color: #3D3D3A">You're trusting us with access to your CI. Here is exactly what happens to it.</p>
+      </div>
+    </section>
+
+    <section style="background: #111111; color: #F6F5F1; border-bottom: 1px solid #111111">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 72px 20px; display: flex; flex-direction: column; gap: 28px">
+        <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 36px; font-weight: 800; letter-spacing: -0.03em">Three connections. Nothing else.</h2>
+        <sc-for list="{{ flows }}" as="f" hint-placeholder-count="3">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 0; border: 1px solid #3D3D3A; border-radius: 4px; padding: 20px">
+            <span style="flex: 0 1 auto; padding: 12px 16px; border: 1px solid #F6F5F1; border-radius: 4px; font-weight: 600">{{ f.from }}</span>
+            <span style="flex: 1 1 160px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #FF5A1F; text-align: center">
+              <span style="width: 100%; border-top: 2px dashed #FF5A1F"></span>{{ f.via }}
+            </span>
+            <span style="flex: 0 1 auto; padding: 12px 16px; background: #F6F5F1; color: #111111; border-radius: 4px; font-weight: 600">{{ f.to }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="border-bottom: 1px solid #111111">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 72px 20px">
+        <div style="display: flex; flex-wrap: wrap; border-top: 1px solid #111111; border-left: 1px solid #111111">
+          <sc-for list="{{ facts }}" as="x" hint-placeholder-count="6">
+            <div style="flex: 1 1 340px; min-width: 0; padding: 28px; background: #FFFFFF; border-right: 1px solid #111111; border-bottom: 1px solid #111111; display: flex; flex-direction: column; gap: 10px">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #B83A0B">{{ x.n }}</span>
+              <h3 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.02em">{{ x.t }}</h3>
+              <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3D3D3A">{{ x.d }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 72px 20px 96px; display: flex; flex-direction: column; gap: 24px">
+        <div style="background: #FF5A1F; border: 1px solid #111111; border-radius: 4px; box-shadow: 6px 6px 0 #111111; padding: 32px; display: flex; flex-direction: column; gap: 14px">
+          <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -0.02em">Give it the smallest token you can.</h2>
+          <ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 16px; line-height: 1.6">
+            <li>Make a token just for JobTrigger, so you can revoke it alone.</li>
+            <li>On GitHub, use a fine-grained token limited to the repos you need.</li>
+            <li>Set an expiry date, then rotate it from the website.</li>
+          </ul>
+          <a href="AddServer.dc.html" style="align-self: flex-start; font-weight: 600; text-decoration-color: #111111">Step-by-step token guides →</a>
+        </div>
+        <p style="margin: 0; font-size: 15px; color: #3D3D3A">Found a security problem? Email <a href="mailto:security@example.com" style="font-family: 'IBM Plex Mono', monospace">[SECURITY EMAIL]</a> — we reply within [N] working days.</p>
+      </div>
+    </section>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,360px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      flows: [
+        { from: 'Your phone', via: 'DIRECT · HTTPS · NOT THROUGH US', to: 'Jenkins · GitHub · SonarQube' },
+        { from: 'Your phone', via: 'ACCOUNT + SAVED SERVERS', to: 'JobTrigger account service' },
+        { from: 'Your laptop', via: 'TOKENS SHOWN AS ••••ABCD', to: 'This website → account service' },
+      ],
+      facts: [
+        { n: '01', t: 'Encrypted at rest', d: 'Saved passwords and tokens are encrypted before storage. Your account password is hashed.' },
+        { n: '02', t: 'Secure storage on the phone', d: 'Tokens live in the iOS Keychain or Android Keystore, never in plain app settings.' },
+        { n: '03', t: 'Never shown in full on the web', d: 'Once saved, a token is never sent back to your browser. To change it, paste a new one.' },
+        { n: '04', t: 'Short sessions', d: 'Sign-ins expire quickly and renew quietly. The website signs you out after 30 idle minutes.' },
+        { n: '05', t: 'Your permissions only', d: 'JobTrigger can do only what your token allows. It never reads Jenkins’ credential store.' },
+        { n: '06', t: 'Optional app lock', d: 'Face ID or fingerprint, so an unlocked phone still can’t open JobTrigger.' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

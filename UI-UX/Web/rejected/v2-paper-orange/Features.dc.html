@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JobTrigger — features</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#111111;text-decoration:underline;text-decoration-color:#FF5A1F;text-underline-offset:3px}a:hover{color:#B83A0B}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F6F5F1; color: #111111; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="features" hint-size="100%,72px"></dc-import>
+
+  <main style="display: flex; flex-direction: column">
+    <section style="border-bottom: 1px solid #111111">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 80px 20px 64px; display: flex; flex-direction: column; gap: 20px">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #B83A0B">FEATURES</span>
+        <h1 style="margin: 0; max-width: 900px; font-family: 'Bricolage Grotesque', sans-serif; font-size: 72px; line-height: 0.98; font-weight: 800; letter-spacing: -0.04em">Run it, watch it, fix it. From anywhere.</h1>
+        <p style="margin: 0; font-size: 18px; color: #3D3D3A">Everything on this page ships in the current app.</p>
+      </div>
+    </section>
+
+    <sc-for list="{{ rows }}" as="row" hint-placeholder-count="4">
+      <section style="border-bottom: 1px solid #111111; background: {{ row.bg }}">
+        <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 80px 20px; display: flex; flex-wrap: wrap; gap: 56px; align-items: center">
+          <div style="flex: 1 1 440px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #B83A0B">{{ row.kicker }}</span>
+            <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 44px; line-height: 1.02; font-weight: 800; letter-spacing: -0.03em">{{ row.title }}</h2>
+            <p style="margin: 0; font-size: 17px; line-height: 1.65; color: #3D3D3A">{{ row.body }}</p>
+          </div>
+          <div style="flex: 1 1 360px; min-width: 0; display: flex; justify-content: center">
+            <div style="width: 250px; padding: 8px; background: #111111; border-radius: 40px; box-shadow: 10px 10px 0 #FF5A1F">
+              <img src="{{ row.img }}" alt="{{ row.alt }}" style="display: block; width: 100%; border-radius: 32px">
+            </div>
+          </div>
+        </div>
+      </section>
+    </sc-for>
+
+    <section style="border-bottom: 1px solid #111111">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 80px 20px; display: flex; flex-direction: column; gap: 32px">
+        <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 36px; font-weight: 800; letter-spacing: -0.03em">And the rest</h2>
+        <div style="display: flex; flex-wrap: wrap; border-top: 1px solid #111111; border-left: 1px solid #111111">
+          <sc-for list="{{ extras }}" as="x" hint-placeholder-count="6">
+            <div style="flex: 1 1 300px; min-width: 0; padding: 24px; background: #FFFFFF; border-right: 1px solid #111111; border-bottom: 1px solid #111111; display: flex; flex-direction: column; gap: 8px">
+              <h3 style="margin: 0; font-size: 17px; font-weight: 600">{{ x.t }}</h3>
+              <p style="margin: 0; font-size: 15px; line-height: 1.55; color: #3D3D3A">{{ x.d }}</p>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px">
+          <a href="Main.dc.html#download" style="height: 52px; padding: 0 24px; border-radius: 4px; background: #FF5A1F; border: 1px solid #111111; box-shadow: 4px 4px 0 #111111; color: #111111; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center">Get the app</a>
+          <a href="Tools.dc.html" style="height: 52px; padding: 0 22px; border-radius: 4px; border: 1px solid #111111; color: #111111; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center">Supported tools</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,360px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const rows = [
+      { kicker: '01 / TRIGGER', title: 'Any job, the right inputs', body: 'Browse folders and multibranch pipelines, then start a build. Every parameter type gets a proper input, and secret parameters stay masked and are never saved. Replay a build or approve an input step in a tap.', img: '/_blob/0638c7c882c3a7b0f6c4280c7692ecea', alt: 'Job detail screen with parameters' },
+      { kicker: '02 / WATCH', title: 'Console logs that keep up', body: 'The log streams while the build runs, with colours, search and per-stage views. Save the full log or share it with your team.', img: '/_blob/c80d001e83598fa199c1b9ad6ca3897c', alt: 'Streaming console log' },
+      { kicker: '03 / DIAGNOSE', title: 'See why it went red', body: 'Pipeline stages, test results, the commits that went in, artifacts and what triggered it — one screen. History and trends show whether it is getting worse.', img: '/_blob/f020d1a249872e17f414557956908073', alt: 'Build detail with stages and tests' },
+      { kicker: '04 / RELAX', title: 'Stop refreshing', body: 'Watch a build and get a notification when it finishes. Pin the jobs you care about to a home-screen widget.', img: '/_blob/76c6a0ea7be2e32b2800463ccc27352c', alt: 'Home-screen widget and notification' },
+    ];
+    return {
+      rows: rows.map((r, i) => ({ ...r, bg: i % 2 ? '#FFFFFF' : '#F6F5F1' })),
+      extras: [
+        { t: 'Many servers', d: 'Work and personal Jenkins, switch in a tap.' },
+        { t: 'GitHub Actions', d: 'Repositories and workflows next to Jenkins.' },
+        { t: 'Nodes and queue', d: 'See what is waiting and which agents are busy.' },
+        { t: 'App lock', d: 'Face ID or fingerprint, passcode as backup.' },
+        { t: 'Open Jenkins links', d: 'Paste a link from chat and jump straight to it.' },
+        { t: 'Light and dark', d: 'Follows your phone, readable in both.' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

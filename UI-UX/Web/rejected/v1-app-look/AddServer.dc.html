@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add server — JobTrigger</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B1120}
+a{color:#93C5FD;text-decoration:none}a:hover{color:#BFDBFE}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="servers" signed-in="{{ yes }}" hint-size="100%,72px"></dc-import>
+
+  <main style="flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; box-sizing: border-box; padding: 48px 20px 96px; display: flex; flex-direction: column; gap: 28px">
+    <a href="Servers.dc.html" style="align-self: flex-start; font-size: 14px; font-weight: 600">← My servers</a>
+    <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Add a server</h1>
+
+    <div role="tablist" aria-label="Tool" style="display: flex; flex-wrap: wrap; gap: 8px">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+        <button type="button" role="tab" aria-selected="{{ t.selected }}" onClick="{{ t.pick }}" style="{{ t.style }}">{{ t.label }}</button>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+      <form style="flex: 999 1 520px; min-width: 0; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 20px">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <label for="name" style="font-size: 13px; font-weight: 600; color: #CBD5E1">Name</label>
+          <input id="name" type="text" value="{{ nameValue }}" style="height: 50px; padding: 0 14px; background: #0B1120; border: 1px solid #1F2A3D; border-radius: 12px; color: #F1F5F9; font: 400 16px Inter, sans-serif; outline: none">
+        </div>
+
+        <sc-if value="{{ needsUrl }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="url" style="font-size: 13px; font-weight: 600; color: #CBD5E1">Server URL</label>
+            <input id="url" type="url" inputmode="url" spellcheck="false" value="{{ urlValue }}" style="height: 50px; padding: 0 14px; background: #0B1120; border: 1px solid #1F2A3D; border-radius: 12px; color: #F1F5F9; font: 400 15px 'JetBrains Mono', monospace; outline: none">
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isJenkins }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="user" style="font-size: 13px; font-weight: 600; color: #CBD5E1">Username</label>
+            <input id="user" type="text" autocomplete="off" spellcheck="false" value="sam" style="height: 50px; padding: 0 14px; background: #0B1120; border: 1px solid #1F2A3D; border-radius: 12px; color: #F1F5F9; font: 400 15px 'JetBrains Mono', monospace; outline: none">
+          </div>
+        </sc-if>
+
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+            <label for="token" style="font-size: 13px; font-weight: 600; color: #CBD5E1">{{ tokenLabel }}</label>
+            <a href="#help" style="font-size: 13px; font-weight: 600">How do I get this?</a>
+          </div>
+          <div style="display: flex; align-items: center; height: 50px; padding: 0 4px 0 14px; background: #0B1120; border: 1px solid #1F2A3D; border-radius: 12px">
+            <input id="token" type="password" autocomplete="off" spellcheck="false" value="11a2b3c4d5e6f7a8b9c0" style="flex: 1; min-width: 0; background: transparent; border: 0; color: #F1F5F9; font: 400 15px 'JetBrains Mono', monospace; outline: none">
+            <button type="button" aria-label="Show token" style="width: 44px; height: 44px; border: 0; background: transparent; color: #94A3B8; display: flex; align-items: center; justify-content: center; cursor: pointer">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <span style="font-size: 13px; color: #94A3B8">Sent once, encrypted, and never shown again in full.</span>
+        </div>
+
+        <sc-if value="{{ tested }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="padding: 12px 14px; border-radius: 12px; background: #0F2E1F; color: #86EFAC; font-size: 14px">✓ Connected as <span style="font-family: 'JetBrains Mono', monospace">sam</span></div>
+        </sc-if>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; padding-top: 4px">
+          <a href="Saved.dc.html" style="height: 52px; padding: 0 28px; border-radius: 14px; background: #2563EB; color: #FFFFFF; font-size: 16px; font-weight: 600; display: flex; align-items: center">Save</a>
+          <button type="button" onClick="{{ test }}" style="height: 52px; padding: 0 20px; border-radius: 14px; border: 1px solid #1F2A3D; background: transparent; color: #F1F5F9; font: 600 15px Inter, sans-serif; cursor: pointer">Test connection</button>
+          <a href="Servers.dc.html" style="height: 52px; padding: 0 16px; border-radius: 14px; color: #CBD5E1; font-size: 15px; font-weight: 600; display: flex; align-items: center">Cancel</a>
+        </div>
+      </form>
+
+      <aside id="help" aria-label="How to get a token" style="flex: 1 1 320px; min-width: 0; background: #0F172A; border: 1px solid #1F2A3D; border-radius: 18px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+        <h2 style="margin: 0; font-size: 17px; font-weight: 700">{{ helpTitle }}</h2>
+        <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px">
+          <sc-for list="{{ steps }}" as="step" hint-placeholder-count="4">
+            <li style="display: flex; gap: 12px; font-size: 14px; line-height: 1.55; color: #CBD5E1">
+              <span style="width: 24px; height: 24px; flex: none; border-radius: 999px; background: #10284A; color: #93C5FD; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{ step.n }}</span>
+              <span>{{ step.text }}</span>
+            </li>
+          </sc-for>
+        </ol>
+        <p style="margin: 0; padding: 12px 14px; border-radius: 12px; background: #3A2210; color: #FDBA74; font-size: 13px; line-height: 1.5">{{ helpTip }}</p>
+      </aside>
+    </div>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { tool: 'jenkins', tested: false }; }
+  renderVals() {
+    const tool = this.state.tool;
+    const tools = [
+      { id: 'jenkins', label: 'Jenkins' },
+      { id: 'github', label: 'GitHub' },
+      { id: 'sonar', label: 'SonarQube' },
+    ];
+    const tabBase = 'height: 44px; padding: 0 18px; border-radius: 999px; font: 600 14px Inter, sans-serif; cursor: pointer; ';
+    const help = {
+      jenkins: {
+        title: 'Getting a Jenkins API token',
+        steps: ['Open Jenkins and sign in.', 'Click your name (top right), then Security.', 'Under API Token, click Add new token and name it "JobTrigger".', 'Click Generate and copy the token. Jenkins only shows it once.'],
+        tip: 'Use an API token, not your Jenkins password — it works with single sign-on and you can revoke it on its own.',
+      },
+      github: {
+        title: 'Getting a GitHub token',
+        steps: ['On GitHub, open Settings → Developer settings → Personal access tokens → Fine-grained tokens.', 'Click Generate new token and pick only the repositories you need.', 'Under Repository permissions, set Actions to "Read and write" and Metadata to "Read-only".', 'Set an expiry date, generate, and copy the token.'],
+        tip: 'A fine-grained token limited to a few repositories is safer than a classic token.',
+      },
+      sonar: {
+        title: 'Getting a SonarQube token',
+        steps: ['Sign in to SonarQube.', 'Open My Account → Security.', 'Enter a name like "JobTrigger" and choose User token.', 'Click Generate and copy the token.'],
+        tip: 'Set an expiry date so an old token stops working on its own.',
+      },
+    }[tool];
+    return {
+      yes: true,
+      tabs: tools.map((t) => ({
+        ...t,
+        selected: t.id === tool ? 'true' : 'false',
+        style: tabBase + (t.id === tool ? 'border: 1px solid #2563EB; background: #2563EB; color: #FFFFFF' : 'border: 1px solid #1F2A3D; background: #111A2B; color: #CBD5E1'),
+        pick: () => this.setState({ tool: t.id, tested: false }),
+      })),
+      isJenkins: tool === 'jenkins',
+      needsUrl: tool !== 'github',
+      nameValue: { jenkins: 'Acme production', github: 'Acme org', sonar: 'Acme quality' }[tool],
+      urlValue: tool === 'sonar' ? 'https://sonar.acme.dev' : 'https://ci.acme.dev',
+      tokenLabel: { jenkins: 'API token', github: 'Personal access token', sonar: 'User token' }[tool],
+      helpTitle: help.title,
+      helpTip: help.tip,
+      steps: help.steps.map((text, i) => ({ n: i + 1, text })),
+      tested: this.state.tested,
+      test: () => this.setState({ tested: true }),
+    };
+  }
+}
+</script>
+</body>
+</html>

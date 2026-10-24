@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JobTrigger — features</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B1120}
+a{color:#93C5FD;text-decoration:none}a:hover{color:#BFDBFE}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="features" hint-size="100%,72px"></dc-import>
+
+  <main style="width: 100%; max-width: 1200px; margin: 0 auto; box-sizing: border-box; padding: 80px 20px 96px; display: flex; flex-direction: column; gap: 88px">
+    <div style="display: flex; flex-direction: column; gap: 16px; max-width: 720px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #93C5FD">Features</span>
+      <h1 style="margin: 0; font-size: 48px; line-height: 1.08; font-weight: 800; letter-spacing: -0.03em">Run, watch and fix builds from anywhere.</h1>
+      <p style="margin: 0; font-size: 18px; line-height: 1.6; color: #CBD5E1">Everything here ships in the current app. Nothing on this page is a promise.</p>
+    </div>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 48px; align-items: center">
+      <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <h2 style="margin: 0; font-size: 32px; line-height: 1.2; font-weight: 700; letter-spacing: -0.02em">Trigger any job, with the right inputs</h2>
+        <p style="margin: 0; font-size: 16px; line-height: 1.65; color: #CBD5E1">Browse folders and multibranch pipelines, then start a build. Every parameter type gets a proper input — choices, booleans, multi-line text, files — and secret parameters stay masked and are never saved.</p>
+        <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 15px; color: #CBD5E1">
+          <li style="display: flex; gap: 10px"><span style="color: #86EFAC" aria-hidden="true">✓</span>Search the job tree, even offline</li>
+          <li style="display: flex; gap: 10px"><span style="color: #86EFAC" aria-hidden="true">✓</span>Replay a build with the same parameters</li>
+          <li style="display: flex; gap: 10px"><span style="color: #86EFAC" aria-hidden="true">✓</span>Approve pipeline input steps</li>
+        </ul>
+      </div>
+      <div style="flex: 1 1 360px; min-width: 0; display: flex; justify-content: center">
+        <img src="/_blob/94be59c3c72461d8706b11629d294d56" alt="Job detail screen with a Build button and parameters" style="width: 260px; border-radius: 34px; border: 1px solid #1F2A3D">
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap-reverse; gap: 48px; align-items: center">
+      <div style="flex: 1 1 360px; min-width: 0; display: flex; justify-content: center">
+        <img src="/_blob/8810b65d8dbf3339798376fdd53741d9" alt="Streaming console log with search" style="width: 260px; border-radius: 34px; border: 1px solid #1F2A3D">
+      </div>
+      <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <h2 style="margin: 0; font-size: 32px; line-height: 1.2; font-weight: 700; letter-spacing: -0.02em">Console logs that keep up</h2>
+        <p style="margin: 0; font-size: 16px; line-height: 1.65; color: #CBD5E1">The log streams while the build runs, with colours, search and per-stage views. Save the full log or share it with your team in two taps.</p>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 48px; align-items: center">
+      <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <h2 style="margin: 0; font-size: 32px; line-height: 1.2; font-weight: 700; letter-spacing: -0.02em">See why a build failed</h2>
+        <p style="margin: 0; font-size: 16px; line-height: 1.65; color: #CBD5E1">Pipeline stages, test results, the commits that went in, artifacts, and what triggered it — on one screen. History and trends show whether it is getting worse.</p>
+      </div>
+      <div style="flex: 1 1 360px; min-width: 0; display: flex; justify-content: center; gap: 16px">
+        <img src="/_blob/0ef607e40938eb0e62b8d8de31fc3d64" alt="Build detail with stages and test results" style="width: 220px; border-radius: 30px; border: 1px solid #1F2A3D">
+        <img src="/_blob/4a4a882085a6c2dac78818ae5cda0f42" alt="Build history list" style="width: 220px; border-radius: 30px; border: 1px solid #1F2A3D; margin-top: 48px">
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap-reverse; gap: 48px; align-items: center">
+      <div style="flex: 1 1 360px; min-width: 0; display: flex; justify-content: center">
+        <img src="/_blob/377e21afc8768ef501e9e407ccd2b5b1" alt="Home-screen widget and build notification" style="width: 260px; border-radius: 34px; border: 1px solid #1F2A3D">
+      </div>
+      <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <h2 style="margin: 0; font-size: 32px; line-height: 1.2; font-weight: 700; letter-spacing: -0.02em">Stop refreshing</h2>
+        <p style="margin: 0; font-size: 16px; line-height: 1.65; color: #CBD5E1">Watch a build and get a notification when it finishes. Pin the jobs you care about and see their status on a home-screen widget.</p>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 28px">
+      <h2 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">And the rest</h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 16px">
+        <div style="flex: 1 1 260px; min-width: 0; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 8px">
+          <h3 style="margin: 0; font-size: 16px; font-weight: 600">Many servers</h3>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #CBD5E1">Add work and personal Jenkins servers and switch between them.</p>
+        </div>
+        <div style="flex: 1 1 260px; min-width: 0; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 8px">
+          <h3 style="margin: 0; font-size: 16px; font-weight: 600">GitHub Actions</h3>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #CBD5E1">Browse your repositories and workflows next to Jenkins.</p>
+        </div>
+        <div style="flex: 1 1 260px; min-width: 0; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 8px">
+          <h3 style="margin: 0; font-size: 16px; font-weight: 600">Nodes and queue</h3>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #CBD5E1">See what is waiting, which agents are busy, and take a node offline.</p>
+        </div>
+        <div style="flex: 1 1 260px; min-width: 0; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 8px">
+          <h3 style="margin: 0; font-size: 16px; font-weight: 600">App lock</h3>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #CBD5E1">Face ID or fingerprint, with your device passcode as backup.</p>
+        </div>
+        <div style="flex: 1 1 260px; min-width: 0; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 8px">
+          <h3 style="margin: 0; font-size: 16px; font-weight: 600">Open Jenkins links</h3>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #CBD5E1">Paste a job or build link from chat and jump straight to it.</p>
+        </div>
+        <div style="flex: 1 1 260px; min-width: 0; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 8px">
+          <h3 style="margin: 0; font-size: 16px; font-weight: 600">Light and dark</h3>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #CBD5E1">Follows your phone's theme, readable in both.</p>
+        </div>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 12px">
+      <a href="Main.dc.html#download" style="height: 52px; padding: 0 24px; border-radius: 14px; background: #2563EB; color: #FFFFFF; font-size: 16px; font-weight: 600; display: flex; align-items: center">Get the app</a>
+      <a href="Tools.dc.html" style="height: 52px; padding: 0 22px; border-radius: 14px; background: #1E293B; color: #F1F5F9; font-size: 16px; font-weight: 600; display: flex; align-items: center">Supported tools</a>
+    </div>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2500}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

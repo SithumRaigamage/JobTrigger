@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Create account — JobTrigger</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B1120}
+a{color:#93C5FD;text-decoration:none}a:hover{color:#BFDBFE}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="signin" hint-size="100%,72px"></dc-import>
+
+  <main style="flex: 1; width: 100%; box-sizing: border-box; padding: 72px 20px 96px; display: flex; justify-content: center">
+    <div style="width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 28px">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Create your account</h1>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55; color: #94A3B8">One account for the app and this website.</p>
+      </div>
+
+      <form style="background: #111A2B; border: 1px solid #1F2A3D; border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <label for="email" style="font-size: 13px; font-weight: 600; color: #CBD5E1">Email</label>
+          <input id="email" type="email" autocomplete="email" value="sam@acme.dev" style="height: 50px; padding: 0 14px; background: #0B1120; border: 1px solid #1F2A3D; border-radius: 12px; color: #F1F5F9; font: 400 16px Inter, sans-serif; outline: none">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <label for="password" style="font-size: 13px; font-weight: 600; color: #CBD5E1">Password</label>
+          <input id="password" type="password" autocomplete="new-password" aria-describedby="pw-hint" value="hunter22" style="height: 50px; padding: 0 14px; background: #0B1120; border: 1px solid #1F2A3D; border-radius: 12px; color: #F1F5F9; font: 400 16px Inter, sans-serif; outline: none">
+          <span id="pw-hint" style="font-size: 13px; color: #86EFAC">✓ At least 8 characters</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <label for="confirm" style="font-size: 13px; font-weight: 600; color: #CBD5E1">Confirm password</label>
+          <input id="confirm" type="password" autocomplete="new-password" aria-invalid="true" aria-describedby="confirm-err" value="hunter2" style="height: 50px; padding: 0 14px; background: #0B1120; border: 1px solid #F87171; border-radius: 12px; color: #F1F5F9; font: 400 16px Inter, sans-serif; outline: none">
+          <span id="confirm-err" style="font-size: 13px; color: #FCA5A5">Passwords don't match.</span>
+        </div>
+        <a href="Servers.dc.html" style="height: 52px; border-radius: 14px; background: #2563EB; color: #FFFFFF; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center">Create account</a>
+        <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #94A3B8">By creating an account you agree to the <a href="Privacy.dc.html">terms</a> and <a href="Privacy.dc.html">privacy policy</a>.</p>
+      </form>
+
+      <p style="margin: 0; text-align: center; font-size: 14px; color: #94A3B8">Already have an account? <a href="SignIn.dc.html" style="font-weight: 600">Sign in</a></p>
+    </div>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

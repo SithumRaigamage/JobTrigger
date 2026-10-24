@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JobTrigger — security</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B1120}
+a{color:#93C5FD;text-decoration:none}a:hover{color:#BFDBFE}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="security" hint-size="100%,72px"></dc-import>
+
+  <main style="width: 100%; max-width: 1200px; margin: 0 auto; box-sizing: border-box; padding: 80px 20px 96px; display: flex; flex-direction: column; gap: 72px">
+    <div style="display: flex; flex-direction: column; gap: 16px; max-width: 760px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #93C5FD">Security</span>
+      <h1 style="margin: 0; font-size: 48px; line-height: 1.08; font-weight: 800; letter-spacing: -0.03em">Where your tokens go, in plain words.</h1>
+      <p style="margin: 0; font-size: 18px; line-height: 1.6; color: #CBD5E1">You are trusting us with access to your CI. This page explains exactly what happens to that access.</p>
+    </div>
+
+    <section aria-labelledby="flows" style="display: flex; flex-direction: column; gap: 20px">
+      <h2 id="flows" style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">Three connections, nothing else</h2>
+
+      <div style="background: #111A2B; border: 1px solid #1F2A3D; border-radius: 18px; padding: 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+        <div style="flex: 0 1 220px; padding: 16px 18px; background: #1E293B; border-radius: 14px; font-weight: 600">Your phone</div>
+        <div style="flex: 1 1 200px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: #94A3B8; font-size: 13px; text-align: center">
+          <span style="width: 100%; height: 2px; background: #2563EB"></span>
+          Direct, over HTTPS. Not through us.
+        </div>
+        <div style="flex: 0 1 260px; padding: 16px 18px; background: #1E293B; border-radius: 14px; font-weight: 600">Jenkins · GitHub · SonarQube</div>
+      </div>
+
+      <div style="background: #111A2B; border: 1px solid #1F2A3D; border-radius: 18px; padding: 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+        <div style="flex: 0 1 220px; padding: 16px 18px; background: #1E293B; border-radius: 14px; font-weight: 600">Your phone</div>
+        <div style="flex: 1 1 200px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: #94A3B8; font-size: 13px; text-align: center">
+          <span style="width: 100%; height: 2px; background: #2563EB"></span>
+          Your account and saved servers
+        </div>
+        <div style="flex: 0 1 260px; padding: 16px 18px; background: #1E293B; border-radius: 14px; font-weight: 600">JobTrigger account service</div>
+      </div>
+
+      <div style="background: #111A2B; border: 1px solid #1F2A3D; border-radius: 18px; padding: 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+        <div style="flex: 0 1 200px; padding: 16px 18px; background: #1E293B; border-radius: 14px; font-weight: 600">Your laptop's browser</div>
+        <div style="flex: 1 1 140px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: #94A3B8; font-size: 13px; text-align: center">
+          <span style="width: 100%; height: 2px; background: #2563EB"></span>
+          Tokens shown as ••••abcd
+        </div>
+        <div style="flex: 0 1 180px; padding: 16px 18px; background: #1E293B; border-radius: 14px; font-weight: 600">This website</div>
+        <div style="flex: 1 1 100px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: #94A3B8; font-size: 13px">
+          <span style="width: 100%; height: 2px; background: #2563EB"></span>
+          HTTPS
+        </div>
+        <div style="flex: 0 1 220px; padding: 16px 18px; background: #1E293B; border-radius: 14px; font-weight: 600">JobTrigger account service</div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 20px">
+      <div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+        <h3 style="margin: 0; font-size: 19px; font-weight: 600">Encrypted at rest</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #CBD5E1">Saved passwords and tokens are encrypted before they are stored. Your account password is hashed, never stored as text.</p>
+      </div>
+      <div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+        <h3 style="margin: 0; font-size: 19px; font-weight: 600">Secure storage on the phone</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #CBD5E1">On the phone, tokens live in the iOS Keychain or Android Keystore — never in plain app settings.</p>
+      </div>
+      <div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+        <h3 style="margin: 0; font-size: 19px; font-weight: 600">Never shown in full on the web</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #CBD5E1">Once saved, a token is never sent back to your browser. To change it, you paste a new one.</p>
+      </div>
+      <div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+        <h3 style="margin: 0; font-size: 19px; font-weight: 600">Short sessions</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #CBD5E1">Sign-ins expire quickly and renew quietly. The website signs you out after 30 minutes idle, and you can sign out of every device at once.</p>
+      </div>
+      <div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+        <h3 style="margin: 0; font-size: 19px; font-weight: 600">Your permissions, nothing more</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #CBD5E1">JobTrigger can only do what your own token allows on your server. It never reads Jenkins' credential store.</p>
+      </div>
+      <div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+        <h3 style="margin: 0; font-size: 19px; font-weight: 600">Optional app lock</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #CBD5E1">Turn on Face ID or fingerprint so someone holding your unlocked phone still can't open JobTrigger.</p>
+      </div>
+    </section>
+
+    <section style="background: #3A2210; border: 1px solid #C2410C; border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #FDBA74">Our advice: give it the smallest token you can</h2>
+      <ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.6; color: #F1F5F9">
+        <li>Create a dedicated API token just for JobTrigger, so you can revoke it alone.</li>
+        <li>On GitHub, use a fine-grained token limited to the repositories you need.</li>
+        <li>Set an expiry date, and rotate it from the website when it runs out.</li>
+      </ul>
+      <a href="AddServer.dc.html" style="align-self: flex-start; font-size: 15px; font-weight: 600; color: #FDBA74">Step-by-step token guides →</a>
+    </section>
+
+    <p style="margin: 0; font-size: 14px; color: #94A3B8">Found a security problem? Email <a href="mailto:security@example.com" style="font-family: 'JetBrains Mono', monospace">[SECURITY EMAIL]</a>. We reply within [N] working days.</p>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2300}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
