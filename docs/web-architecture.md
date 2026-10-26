@@ -263,3 +263,9 @@ npm run e2e     # Playwright, for tasks touching portal flows
 A task is done when `npm run check` is clean, its tests exist and pass,
 and its pages match their `UI-UX/Web/screens/` render at 1440 px and
 360 px.
+
+**Playwright: never wait for `networkidle`.** Next's router never
+finishes reading its `<Link>` prefetch responses, so the network never
+looks idle and the wait times out (measured in P15-05; the server answers
+those requests in ~2 ms). Wait for the thing the test checks instead:
+`document.fonts.ready`, a visible element, or `expect.poll`.

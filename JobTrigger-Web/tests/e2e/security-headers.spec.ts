@@ -30,9 +30,7 @@ test("the page runs under the CSP with no violations", async ({ page }) => {
   });
 
   await page.goto("/");
-  await page.waitForLoadState("networkidle");
 
-  expect(violations).toEqual([]);
   // React attaches its fiber keys to DOM nodes once it has hydrated the page,
   // which only happens if the framework scripts were allowed to run.
   await expect
@@ -40,6 +38,8 @@ test("the page runs under the CSP with no violations", async ({ page }) => {
       page.evaluate(() => Object.keys(document.body).some((key) => key.startsWith("__react"))),
     )
     .toBe(true);
+  await page.evaluate(() => document.fonts.ready);
+  expect(violations).toEqual([]);
 });
 
 test("portal paths are never cached", async ({ request }) => {

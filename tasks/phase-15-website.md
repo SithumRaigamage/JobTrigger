@@ -58,7 +58,7 @@ runs are the merge gate.
 - [x] P15-04 Feature-status list `src/content/feature-status.ts`
       (US-WEB-22) seeded from the epic's availability table, plus
       `StatusBadge` and `DisabledAction`, with unit tests.
-- [ ] P15-05 Marketing header and footer (designs 15, 16, pre-launch
+- [x] P15-05 Marketing header and footer (designs 15, 16, pre-launch
       24, 25).
 
 ### Marketing

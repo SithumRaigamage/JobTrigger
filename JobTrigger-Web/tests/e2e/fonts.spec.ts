@@ -14,7 +14,9 @@ test("fonts load from this site, not Google", async ({ page }) => {
   });
 
   await page.goto("/");
-  await page.waitForLoadState("networkidle");
+  // Not "networkidle": Next's router never finishes reading its link
+  // prefetches, so the network never looks idle (measured in P15-05).
+  await page.evaluate(() => document.fonts.ready);
 
   expect(fontRequests.length).toBeGreaterThan(0);
   for (const url of fontRequests) {

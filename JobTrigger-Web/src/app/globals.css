@@ -14,6 +14,7 @@
 :root,
 [data-surface="light"] {
   --page: #f8fafc;
+  --sunken: #f1f5f9;
   --card: #ffffff;
   --raised: #f1f5f9;
   --line: #e2e8f0;
@@ -38,6 +39,8 @@
 
 [data-surface="dark"] {
   --page: #0b1120;
+  /* The app's console colour; the footer's backdrop. */
+  --sunken: #060a14;
   --card: #111a2b;
   --raised: #1e293b;
   --line: #1f2a3d;
@@ -66,6 +69,7 @@
   --color-*: initial;
 
   --color-page: var(--page);
+  --color-sunken: var(--sunken);
   --color-card: var(--card);
   --color-raised: var(--raised);
   --color-line: var(--line);
