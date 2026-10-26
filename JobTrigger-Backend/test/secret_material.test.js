@@ -56,6 +56,28 @@ describe('The repository carries no credential material (AUD-66)', function() {
       expect(findingsIn(`sha256: ${hash}`)).to.have.lengthOf(0);
     });
 
+    it('does not flag a design canvas image id in a /_blob/ URL', function() {
+      expect(findingsIn(`<img src="/_blob/${SAMPLE}" alt="">`)).to.have.lengthOf(0);
+    });
+
+    it('still flags a token next to a /_blob/ URL', function() {
+      const findings = findingsIn(`<img src="/_blob/${SAMPLE}"> ${SAMPLE}`);
+      expect(findings.map((f) => f.rule)).to.deep.equal(['token-literal']);
+    });
+
+    it('does not let /_blob/ hide a token anywhere else on the line', function() {
+      // The prefix must sit directly before the value, not merely on the line.
+      const findings = findingsIn(`/_blob/ token="${SAMPLE}"`);
+      expect(findings.map((f) => f.rule)).to.include('token-literal');
+    });
+
+    it('still applies the other rules to a /_blob/ value', function() {
+      const findings = findingsIn(`Authorization: Bearer /_blob/${SAMPLE}`);
+      expect(findings.map((f) => f.rule)).to.not.include('token-literal');
+      expect(findingsIn(`{"token": "${SAMPLE}"} /_blob/${SAMPLE}`).map((f) => f.rule))
+        .to.include('credential-value');
+    });
+
     it('never returns the value it found', function() {
       const findings = findingsIn(`{"password": "${SAMPLE}"}`);
       expect(JSON.stringify(findings)).to.not.include(SAMPLE);

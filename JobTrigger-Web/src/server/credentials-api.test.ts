@@ -24,7 +24,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const JENKINS_TOKEN = "11aabbccddeeff00112233445566a91f";
+const JENKINS_TOKEN = "fake-jenkins-token-a91f";
 const PARAM_TOKEN = "trigger-token-secret-value";
 const GITHUB_TOKEN = "github_pat_11ABCDEFG0123456789_secretpart";
 const SONAR_TOKEN = "squ_0123456789abcdef0123456789abcdef02cd";
