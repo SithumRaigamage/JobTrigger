@@ -140,7 +140,7 @@ export function IntegrationsView({ supportEmail }: { supportEmail: string | null
             <li key={card.tool} className="min-w-0 flex-[1_1_320px]">
               <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-card shadow-lift">
                 <div data-surface="dark" className={cn("flex h-24 items-end px-6.5", card.band)}>
-                  <ToolTile tool={card.tool} size="lg" github="dark" className="-mb-8" />
+                  <ToolTile tool={card.tool} size="lg" github="blend" className="-mb-8" />
                 </div>
                 <div className="flex flex-col gap-2.5 px-6.5 pt-6 pb-7">
                   <div className="flex flex-wrap items-center gap-2.5">
