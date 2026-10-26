@@ -19,6 +19,8 @@ const notices: Record<string, string> = {
   idle: "You were signed out after 30 minutes without activity.",
   expired: "Your session has ended. Please sign in again.",
   signedOut: "You're signed out.",
+  signedOutEverywhere: "You're signed out on every device.",
+  accountDeleted: "Your account and every saved server were deleted.",
 };
 
 export default async function SignInPage({ searchParams }: PageProps<"/sign-in">) {

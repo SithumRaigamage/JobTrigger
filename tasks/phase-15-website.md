@@ -90,7 +90,7 @@ runs are the merge gate.
       (designs 11 / 22, 13 / 23; US-WEB-12, 13, 14, 16, 17).
 - [x] P15-18 Edit and delete a server (design 12; US-WEB-15).
 - [x] P15-19 Choose the default server (US-WEB-18).
-- [ ] P15-20 Account: change password, sign out everywhere, delete
+- [x] P15-20 Account: change password, sign out everywhere, delete
       account (design 14; US-WEB-20, 21).
 
 ### Close-out
