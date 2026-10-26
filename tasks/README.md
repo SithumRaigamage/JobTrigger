@@ -28,7 +28,7 @@ check "where are we."
 | 12 — Audit remediation (epic AUDIT) | `phase-12-audit-remediation.md` | done 2026-10-01 (P12-01..11 frontend, P12-20..27 backend). Audit: 41 findings, all fixed; tracker: `docs/audit/2026-09-29-workspace-audit.md`. Open follow-up noted there: the SwiftUI-parity `buildUnstable` orange is below 3:1 on light | none; backend-track items need per-item approval; P12-06 needs a product decision on LAN `http://` |
 | 13 — Second audit remediation (epic AUDIT-2) | `phase-13-audit-2-remediation.md` | done 2026-10-22, closed 2026-10-23 (P13-01..27 fixed; password reset deferred to `backlog.md` as US-AUTH-08). Audit documents deleted; this phase file is the record | none; one owner action left (AUD-66: revoke the leaked Jenkins token) |
 | 14 — UI redesign (epic UI-2) | `phase-14-ui-redesign.md` | done (P14-01..26). Designs: `UI-UX/` | none — approved by the user 2026-10-23 |
-| 15 — Website (epic WEB) | `phase-15-website.md` | in-progress (P15-00 done) | none — new scope, promoted by the owner 2026-10-26. Portal go-live (P15-22) needs the backend deployed at a public `https://` URL |
+| 15 — Website (epic WEB) | `phase-15-website.md` | in-progress (P15-00..01 done) | none — new scope, promoted by the owner 2026-10-26. Portal go-live (P15-22) needs the backend deployed at a public `https://` URL |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." A handful

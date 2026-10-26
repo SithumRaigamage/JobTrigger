@@ -45,7 +45,7 @@ runs are the merge gate.
 
 - [x] P15-00 Docs: `CLAUDE.md` §3 Website row, this phase file, the
       Phase 15 row in `tasks/README.md`, `docs/web-architecture.md`.
-- [ ] P15-01 Scaffold `JobTrigger-Web/`: Next.js 16, TypeScript strict,
+- [x] P15-01 Scaffold `JobTrigger-Web/`: Next.js 16, TypeScript strict,
       Tailwind v4, ESLint, Prettier, Vitest, Playwright, `.nvmrc`,
       `npm run check` / `npm run e2e`, `src/server/config.ts`, README;
       `docs/dev-setup.md` gains a "Website" terminal.

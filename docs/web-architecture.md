@@ -184,7 +184,12 @@ fails at startup if anything is missing. Nothing secret is ever
 |---|---|
 | `JOBTRIGGER_BACKEND_URL` | Backend base URL (`http://127.0.0.1:5001` locally); must be `https://` in production |
 | `SESSION_SECRET` | `iron-session` encryption key, 32+ characters |
-| `NEXT_PUBLIC_SITE_URL` | Canonical URL for link previews and the sitemap (US-WEB-07) |
+| `SITE_URL` | Canonical URL for link previews and the sitemap (US-WEB-07); defaults to `http://localhost:3000` |
+
+All three are read at runtime on the server. `SITE_URL` is deliberately
+not `NEXT_PUBLIC_*`: those are inlined at build time, which would tie one
+Docker image (P15-23) to one environment. Validation runs on first use,
+not at import, so `next build` works without the portal's secrets.
 
 Per `CLAUDE.md` §8, these are documented here and in
 `JobTrigger-Web/README.md`, not in an example env file.
