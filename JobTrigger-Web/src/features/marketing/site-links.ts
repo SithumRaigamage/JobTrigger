@@ -12,6 +12,7 @@ export const routes = {
   // The approved footer points Terms at the privacy page; P15-10 settles it.
   terms: "/privacy#terms",
   signIn: "/sign-in",
+  addServer: "/servers/new",
 } as const;
 
 export const mainNav = [
