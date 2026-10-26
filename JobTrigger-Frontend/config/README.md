@@ -8,6 +8,7 @@ typed config object by `core/config/app_config.dart` (Phase 1).
 | `dev.json` | Local development | `BACKEND_BASE_URL` matches the old SwiftUI app's `Config.plist` (`http://127.0.0.1:5001`) — a locally-run `JobTrigger-Backend`. |
 | `staging.json` | Staging | `BACKEND_BASE_URL` is a placeholder (`https://api-staging.jobtrigger.app`) — no staging deployment exists yet. Update when one does. |
 | `prod.json` | Production | `BACKEND_BASE_URL` is a placeholder (`https://api.jobtrigger.app`, matching the example in `docs/api-reference.md`) — update when the backend is actually deployed. |
+| `device.json` | A physical iPhone (machine-local) | **Git-ignored, not committed.** Written by `scripts/run-on-iphone.sh` with this Mac's Wi-Fi IP (`http://<IP>:5001`), since `127.0.0.1` on a phone is the phone. See [`IPHONE.md`](../../IPHONE.md). |
 
 ## Usage
 
