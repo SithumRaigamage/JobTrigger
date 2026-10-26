@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { Field, Notice, PasswordField, SubmitButton } from "@/components/form";
+
 import { signInAction, type AuthFormState } from "./actions";
-import { Field, Notice, PasswordField, SubmitButton } from "./form-parts";
 
 const initial: AuthFormState = {};
 

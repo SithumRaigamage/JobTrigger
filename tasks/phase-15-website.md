@@ -85,7 +85,7 @@ runs are the merge gate.
 - [x] P15-15 Portal shell: sidebar (design 17), auth guard, sign out,
       30-minute idle timeout (US-WEB-20).
 - [x] P15-16 My servers, secrets masked (design 10; US-WEB-11).
-- [ ] P15-17 Add a Jenkins server, GitHub account or SonarQube server,
+- [x] P15-17 Add a Jenkins server, GitHub account or SonarQube server,
       with "How do I get this?" help and the "Now open the app" page
       (designs 11 / 22, 13 / 23; US-WEB-12, 13, 14, 16, 17).
 - [ ] P15-18 Edit and delete a server (design 12; US-WEB-15).

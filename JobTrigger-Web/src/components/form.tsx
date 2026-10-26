@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 
-import { cn } from "@/components/cn";
+import { cn } from "./cn";
 
 const inputBox =
   "h-12.5 rounded-control border bg-card px-3.5 text-base text-fg outline-none focus-visible:outline-2 focus-visible:outline-accent";
@@ -13,13 +13,17 @@ export function Field({
   label,
   error,
   hint,
+  notice,
   aside,
+  className,
   ...input
 }: {
   id: string;
   label: string;
   error?: string;
   hint?: ReactNode;
+  /** Always shown, even with an error, e.g. the http:// warning. */
+  notice?: ReactNode;
   aside?: ReactNode;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   const describedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
@@ -35,8 +39,12 @@ export function Field({
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
-        className={cn(inputBox, error ? "border-2 border-failed-fg" : "border-line-strong")}
         {...input}
+        className={cn(
+          inputBox,
+          error ? "border-2 border-failed-fg" : "border-line-strong",
+          className,
+        )}
       />
       {error ? (
         <span id={`${id}-error`} className="text-[0.8125rem] font-semibold text-failed-fg">
@@ -45,11 +53,12 @@ export function Field({
       ) : (
         hint && <span id={`${id}-hint`}>{hint}</span>
       )}
+      {notice}
     </div>
   );
 }
 
-/** A password input with a show/hide toggle (design 08). */
+/** A password or token input with a show/hide toggle (designs 08, 11). */
 export function PasswordField({
   id,
   label,
@@ -57,6 +66,7 @@ export function PasswordField({
   aside,
   autoComplete,
   hint,
+  secretName = "password",
   ...input
 }: {
   id: string;
@@ -64,7 +74,10 @@ export function PasswordField({
   error?: string;
   aside?: ReactNode;
   hint?: ReactNode;
-  autoComplete: "current-password" | "new-password";
+  /** "off" for CI tokens (US-WEB-12); browsers may still offer to save. */
+  autoComplete: "current-password" | "new-password" | "off";
+  /** Name for the show/hide button, e.g. "token". */
+  secretName?: string;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   const [visible, setVisible] = useState(false);
   const describedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
@@ -94,7 +107,7 @@ export function PasswordField({
         />
         <button
           type="button"
-          aria-label={visible ? "Hide password" : "Show password"}
+          aria-label={`${visible ? "Hide" : "Show"} ${secretName}`}
           aria-pressed={visible}
           onClick={() => setVisible((shown) => !shown)}
           className="flex size-11 items-center justify-center text-muted"

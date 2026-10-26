@@ -6,10 +6,11 @@ import { useActionState, useState } from "react";
 import { cn } from "@/components/cn";
 import { MIN_PASSWORD_LENGTH } from "@/domain/auth-validation";
 
+import { Field, Notice, PasswordField, SubmitButton } from "@/components/form";
+
 import { routes } from "../marketing/site-links";
 
 import { signUpAction, type AuthFormState } from "./actions";
-import { Field, Notice, PasswordField, SubmitButton } from "./form-parts";
 
 const initial: AuthFormState = {};
 
