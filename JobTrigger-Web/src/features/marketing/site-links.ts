@@ -21,3 +21,14 @@ export const mainNav = [
   { href: routes.changelog, label: "Changelog" },
   { href: routes.support, label: "Support" },
 ] as const;
+
+/**
+ * Store listings. Null until the app is listed (release-checklist.md);
+ * a store button only links once `app-stores` is live *and* its URL is
+ * set, and store-links.test.ts fails if the status is live while either
+ * is still null.
+ */
+export const storeLinks: { appStore: string | null; googlePlay: string | null } = {
+  appStore: null,
+  googlePlay: null,
+};

@@ -63,7 +63,9 @@ runs are the merge gate.
 
 ### Marketing
 
-- [ ] P15-06 Home (designs 01 / 18; US-WEB-01, 02).
+- [x] P15-06 Home (designs 01 / 18; US-WEB-01, 02). Built in four commits
+      (06a hero + tool strip, 06b timeline, 06c setup band + trust,
+      06d download).
 - [ ] P15-07 Features (designs 02 / 19; US-WEB-03).
 - [ ] P15-08 Integrations (designs 03 / 20; US-WEB-04).
 - [ ] P15-09 Security (design 04; US-WEB-05).
@@ -102,6 +104,11 @@ runs are the merge gate.
 - [ ] P15-23 Docker image (`output: "standalone"`) to run next to the
       backend, documented in `docs/deployment.md`; mark the phase done in
       `tasks/README.md`.
+- [ ] P15-24 Store links and QR code on Home's download section: set
+      `storeLinks` in `site-links.ts` and add a QR code (a pre-built SVG,
+      or a QR library — needs approval). **Blocked** on the store listings
+      in `release-checklist.md`. `store-links.test.ts` fails if
+      `app-stores` goes `live` before the URLs are set.
 
 ## Out of scope
 
