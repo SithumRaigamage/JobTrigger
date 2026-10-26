@@ -29,7 +29,7 @@ check "where are we."
 | 13 — Second audit remediation (epic AUDIT-2) | `phase-13-audit-2-remediation.md` | done 2026-10-22, closed 2026-10-23 (P13-01..27 fixed; password reset deferred to `backlog.md` as US-AUTH-08). Audit documents deleted; this phase file is the record | none; one owner action left (AUD-66: revoke the leaked Jenkins token) |
 | 14 — UI redesign (epic UI-2) | `phase-14-ui-redesign.md` | done (P14-01..26). Designs: `UI-UX/` | none — approved by the user 2026-10-23 |
 | 15 — Website (epic WEB) | `phase-15-website.md` | done 2026-10-26 (P15-00..23, merged to `develop` via PR #50). Owner actions open: connect Vercel, deploy the backend, fill `site-details.ts`, P15-24 store links | none — new scope, promoted by the owner 2026-10-26. Portal go-live (P15-22) needs the backend deployed at a public `https://` URL |
-| 16 — Brand logo (Concept B) | `phase-16-brand-logo.md` | in progress (P16-00..01 done), on `feat/brand-logo-b` | none — chosen and approved by the owner 2026-10-26 |
+| 16 — Brand logo (Concept B) | `phase-16-brand-logo.md` | in progress (P16-00..02 done), on `feat/brand-logo-b` | none — chosen and approved by the owner 2026-10-26 |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." A handful

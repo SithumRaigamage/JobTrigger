@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive icon background (P16-02): the Concept B tile navy. Not in
+     values-night: the icon looks the same in both themes. -->
+<resources>
+    <color name="ic_launcher_background">#FF0F172A</color>
+</resources>

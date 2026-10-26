@@ -49,7 +49,7 @@ Source drawings in [`UI-UX/brand/`](../UI-UX/brand/), on a 128-unit grid:
       Android foreground, one-colour layer, rounded mark) and
       `scripts/export-icons.sh`. iOS PNGs carry no alpha channel (App
       Store rule).
-- [ ] P16-02 App icon: every `AppIcon.appiconset` size; Android
+- [x] P16-02 App icon: every `AppIcon.appiconset` size; Android
       `ic_launcher` at every density plus the adaptive icon (navy
       background, foreground, monochrome).
 - [ ] P16-03 Splash screen: navy with the mark centred, Android
