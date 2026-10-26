@@ -9,6 +9,7 @@ const { errorHandler, notFound } = require('./middleware/errorHandler');
 const requestId = require('./middleware/requestId');
 const requestLogger = require('./middleware/requestLogger');
 const { logger } = require('./lib/logger');
+const { connectDatabase, connectionHint } = require('./lib/database');
 const { auditKeyIds } = require('./security/keyIdAudit');
 const CREDENTIAL_TARGETS = require('./models/credentialTargets');
 
@@ -94,7 +95,7 @@ async function startServer() {
     process.exit(1);
   }
   try {
-    await mongoose.connect(process.env.MONGODB_URI, { dbName: 'jobtrigger' });
+    await connectDatabase();
     logger.info('server.mongo_connected');
     await auditCredentialKeyIds();
     const PORT = process.env.PORT || 5001;
@@ -103,7 +104,13 @@ async function startServer() {
     });
     return server;
   } catch (err) {
-    logger.error('server.mongo_connect_failed', { error: err.message });
+    // P17-03: the hint says what to check (Atlas user, IP, DNS); the URI
+    // itself is never logged, since it carries the password.
+    const hint = connectionHint(err);
+    logger.error('server.mongo_connect_failed', {
+      error: err.message,
+      ...(hint && { hint }),
+    });
     process.exit(1);
   }
 }

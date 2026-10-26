@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const { requireLocalDatabase } = require('./localOnly');
+const { connectDatabase, connectionHint } = require('../lib/database');
 
 // Models
 const User = require('../models/User');
@@ -38,7 +39,7 @@ async function runMigrations() {
     log.step('Connecting to MongoDB');
     log.info(`URI: ${process.env.MONGODB_URI.replace(/:[^@]*@/, ':***@')}`);
 
-    await mongoose.connect(process.env.MONGODB_URI, { dbName: 'jobtrigger' });
+    await connectDatabase();
     log.success('Connected to MongoDB');
 
     // Get database instance
@@ -201,6 +202,8 @@ async function runMigrations() {
 
   } catch (err) {
     log.error(`Migration failed: ${err.message}`);
+    const hint = connectionHint(err);
+    if (hint) log.info(hint);
     console.error(err);
     process.exit(1);
   }

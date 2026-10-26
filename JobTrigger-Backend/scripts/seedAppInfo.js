@@ -1,6 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const AppInfo = require('../models/AppInfo');
+const { connectDatabase, connectionHint } = require('../lib/database');
 
 const seedData = {
   appVersion: "1.0.0",
@@ -13,7 +14,7 @@ const seedData = {
 
 const seedDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI, { dbName: 'jobtrigger' });
+    await connectDatabase();
     console.log('Connected to MongoDB for seeding');
 
     // Clear existing
@@ -25,7 +26,9 @@ const seedDB = async () => {
     
     mongoose.connection.close();
   } catch (error) {
-    console.error('Error seeding DB:', error);
+    console.error('Error seeding DB:', error.message);
+    const hint = connectionHint(error);
+    if (hint) console.error(hint);
     process.exit(1);
   }
 };

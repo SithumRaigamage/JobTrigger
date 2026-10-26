@@ -50,7 +50,7 @@ pastes connection strings.
       **Owner action:** create the Atlas project and paste `MONGODB_URI`.
 - [-] P17-02 ~~One-time copy of the local data into Atlas.~~ Dropped: there
       was no local JobTrigger data to copy (decision 4).
-- [ ] P17-03 Backend: fast `serverSelectionTimeoutMS` and a clear startup
+- [x] P17-03 Backend: fast `serverSelectionTimeoutMS` and a clear startup
       message when Atlas is unreachable (IP not allowed, bad credentials,
       paused cluster), with tests.
 - [ ] P17-04 Remove the local MongoDB: the compose service, `USE_DOCKER`
