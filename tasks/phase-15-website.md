@@ -49,7 +49,7 @@ runs are the merge gate.
       Tailwind v4, ESLint, Prettier, Vitest, Playwright, `.nvmrc`,
       `npm run check` / `npm run e2e`, `src/server/config.ts`, README;
       `docs/dev-setup.md` gains a "Website" terminal.
-- [ ] P15-02 Design tokens (light/dark), Inter + JetBrains Mono via
+- [x] P15-02 Design tokens (light/dark), Inter + JetBrains Mono via
       `next/font`, root layout, base primitives (`Button`, `Card`,
       `Container`).
 - [ ] P15-03 Security baseline (WEB-B1–B3): HSTS, strict CSP,
