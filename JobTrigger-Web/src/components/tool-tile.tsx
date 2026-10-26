@@ -10,6 +10,8 @@ const sizes = {
   sm: { box: "size-8 rounded-[9px]", text: { short: "text-sm", long: "text-xs" } },
   // My servers count tiles: 42 px.
   md: { box: "size-10.5 rounded-xl", text: { short: "text-base", long: "text-[0.8125rem]" } },
+  // Edit-server heading: 52 px.
+  header: { box: "size-13 rounded-[14px]", text: { short: "text-xl", long: "text-base" } },
   // Tool cards (Integrations): 64 px with a white ring over the card band.
   lg: {
     box: "size-16 rounded-[18px] border-4 border-on-accent",

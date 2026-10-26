@@ -109,6 +109,8 @@
   --color-brand-sonarqube: #126ed3;
   --color-on-brand: #ffffff;
   --color-live-dot: #22c55e;
+  /* Behind modal dialogs: ::backdrop doesn't inherit a section's tokens. */
+  --color-scrim: rgb(11 17 32 / 0.6);
 
   --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;

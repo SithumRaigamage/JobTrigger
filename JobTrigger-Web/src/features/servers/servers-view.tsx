@@ -178,13 +178,13 @@ export function ServersView({
           <span className="text-[0.9375rem] font-semibold text-failed-fg">
             {failureMessage(failure)}
           </span>
-          {/* A plain link: works without JavaScript, and reloads fresh (no-store). */}
-          <a
+          {/* Works without JavaScript; with it, re-renders this dynamic page. */}
+          <Link
             href="/servers"
             className="flex h-11 items-center rounded-control border border-line-strong bg-card px-4 text-sm font-semibold text-fg no-underline hover:text-fg"
           >
             Try again
-          </a>
+          </Link>
         </div>
       ) : (
         <>
