@@ -198,7 +198,7 @@ export function SecurityView() {
           <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(320px,100%),1fr))] gap-5">
             {facts.map((fact, index) => (
               <li key={fact.title}>
-                <Card className="flex h-full flex-col gap-3 rounded-panel p-6.5">
+                <Card radius="panel" className="flex h-full flex-col gap-3 p-6.5">
                   <span
                     aria-hidden="true"
                     className={cn(
@@ -244,7 +244,7 @@ export function SecurityView() {
               Step-by-step token guides →
             </Link>
           </div>
-          <Card className="flex min-w-0 flex-[1_1_300px] flex-col gap-3 rounded-3xl p-9 shadow-none">
+          <Card radius="xl" flat className="flex min-w-0 flex-[1_1_300px] flex-col gap-3 p-9">
             <h2 className="text-xl font-bold">Found a problem?</h2>
             <p className="text-[0.9375rem] leading-relaxed text-muted">
               Report it privately to <EmailLink field="securityEmail" />. We reply within{" "}

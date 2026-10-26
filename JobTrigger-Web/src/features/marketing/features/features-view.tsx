@@ -150,7 +150,7 @@ export function FeaturesView() {
           <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(300px,100%),1fr))] gap-5">
             {cards.map((card) => (
               <li key={card.title}>
-                <Card className="flex h-full flex-col gap-3.5 rounded-panel p-6.5">
+                <Card radius="panel" className="flex h-full flex-col gap-3.5 p-6.5">
                   <span
                     aria-hidden="true"
                     className={cn(

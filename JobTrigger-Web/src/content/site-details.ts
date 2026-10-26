@@ -13,6 +13,8 @@ export const siteDetails = {
   securityReplyDays: null as number | null,
   /** How long backups keep deleted data, e.g. "35 days". */
   backupRetention: null as string | null,
+  /** "Last updated" date on the legal pages, e.g. "1 December 2026". */
+  legalLastUpdated: null as string | null,
 };
 
 export type SiteDetail = keyof typeof siteDetails;
@@ -23,6 +25,7 @@ const placeholders: Record<SiteDetail, string> = {
   privacyEmail: "[PRIVACY EMAIL]",
   securityReplyDays: "[N]",
   backupRetention: "[RETENTION PERIOD FOR BACKUPS]",
+  legalLastUpdated: "[DATE]",
 };
 
 /** The value as text, or its bracketed placeholder while unset. */

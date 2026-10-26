@@ -4,9 +4,26 @@ import { cn } from "./cn";
 
 type Surface = "light" | "dark";
 
-/** The page column: 1240 px max, 20 px side gutter (UI-UX/Web designs). */
-export function Container({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("mx-auto w-full max-w-310 px-5", className)} {...props} />;
+const containerWidths = {
+  /** 1240 px: most pages. */
+  page: "max-w-310",
+  /** 960 px: Support. */
+  narrow: "max-w-240",
+};
+
+/**
+ * The page column with a 20 px side gutter (UI-UX/Web designs). Width is a
+ * prop, not a className override: `cn` joins classes without resolving
+ * conflicts, so two max-w-* classes would race on CSS order.
+ */
+export function Container({
+  width = "page",
+  className,
+  ...props
+}: ComponentProps<"div"> & { width?: keyof typeof containerWidths }) {
+  return (
+    <div className={cn("mx-auto w-full px-5", containerWidths[width], className)} {...props} />
+  );
 }
 
 type SectionProps = ComponentProps<"section"> & {
@@ -26,10 +43,28 @@ export function Section({ surface = "light", dotGrid = false, className, ...prop
   );
 }
 
-export function Card({ className, ...props }: ComponentProps<"div">) {
+const cardRadii = {
+  card: "rounded-card", // 18 px
+  lg: "rounded-[20px]",
+  panel: "rounded-panel", // 22 px
+  xl: "rounded-3xl", // 24 px
+};
+
+/** A bordered card. Radius and shadow are props for the same reason as Container's width. */
+export function Card({
+  radius = "card",
+  flat = false,
+  className,
+  ...props
+}: ComponentProps<"div"> & { radius?: keyof typeof cardRadii; flat?: boolean }) {
   return (
     <div
-      className={cn("rounded-card border border-line bg-card shadow-card", className)}
+      className={cn(
+        "border border-line bg-card",
+        cardRadii[radius],
+        !flat && "shadow-card",
+        className,
+      )}
       {...props}
     />
   );

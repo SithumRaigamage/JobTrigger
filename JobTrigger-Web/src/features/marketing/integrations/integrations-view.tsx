@@ -168,10 +168,11 @@ export function IntegrationsView({ supportEmail }: { supportEmail: string | null
           {/* Scrolls on its own on narrow screens; focusable so keyboard
               users can scroll it too (WEB-B5). */}
           <Card
+            radius="lg"
             role="region"
             aria-labelledby="compare-heading"
             tabIndex={0}
-            className="overflow-x-auto rounded-[20px]"
+            className="overflow-x-auto"
           >
             <table className="w-full min-w-170 border-collapse text-[0.9375rem]">
               <thead>

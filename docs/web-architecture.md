@@ -212,6 +212,11 @@ never logs request bodies, tokens or backend responses; error pages show
 - Inter and JetBrains Mono via `next/font` (self-hosted at build time, no
   request to Google at runtime — keeps WEB-B2's CSP strict).
 - Status is never shown by colour alone (badges always carry their label).
+- **Never override a component's own utility through `className`.** `cn`
+  joins classes without resolving conflicts, so `max-w-240` passed to a
+  `max-w-310` container races on CSS order (found in P15-10). Variants are
+  props instead: `Container width`, `Card radius` / `flat`, `Button
+  variant` / `size`, `ToolTile size` / `github`.
 - Every page works from 360 px wide (WEB-B4) and meets WCAG 2.1 AA
   (WEB-B5).
 

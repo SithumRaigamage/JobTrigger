@@ -71,7 +71,7 @@ export function Trust() {
         <ul className="grid min-w-0 flex-[1_1_440px] grid-cols-1 gap-4 sm:grid-cols-2">
           {facts.map((fact) => (
             <li key={fact.title}>
-              <Card className="flex h-full flex-col gap-3 rounded-[20px] p-5.5">
+              <Card radius="lg" className="flex h-full flex-col gap-3 p-5.5">
                 <span
                   className={cn("flex size-10 items-center justify-center rounded-xl", fact.tone)}
                 >
