@@ -56,9 +56,10 @@ describe("upkeepSession", () => {
   it("only bumps last activity while the access token has time left", async () => {
     const request = await requestWith(signedIn());
 
-    const cookies = await upkeepSession(request, NOW);
+    const { cookies, ended } = await upkeepSession(request, NOW);
 
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(ended).toBeNull();
     expect(cookies).toHaveLength(1);
     expect((await sessionIn(request))?.lastActivity).toBe(NOW);
   });
@@ -82,8 +83,9 @@ describe("upkeepSession", () => {
   it("signs out after 30 idle minutes", async () => {
     const request = await requestWith(signedIn({ lastActivity: NOW - IDLE_TIMEOUT_MS - 1 }));
 
-    const cookies = await upkeepSession(request, NOW);
+    const { cookies, ended } = await upkeepSession(request, NOW);
 
+    expect(ended).toBe("idle");
     expect(request.cookies.get(SESSION_COOKIE)).toBeUndefined();
     expect(cookies[0]).toMatchObject({ name: SESSION_COOKIE, value: "" });
   });
@@ -92,8 +94,7 @@ describe("upkeepSession", () => {
     fetchMock.mockResolvedValue(json({ message: "Session expired" }, 401));
     const request = await requestWith(signedIn({ accessToken: token("old", 0) }));
 
-    await upkeepSession(request, NOW);
-
+    expect((await upkeepSession(request, NOW)).ended).toBe("expired");
     expect(request.cookies.get(SESSION_COOKIE)).toBeUndefined();
   });
 
@@ -109,6 +110,6 @@ describe("upkeepSession", () => {
   it("does nothing without a session", async () => {
     const request = new NextRequest("http://localhost/servers");
 
-    expect(await upkeepSession(request, NOW)).toEqual([]);
+    expect(await upkeepSession(request, NOW)).toEqual({ cookies: [], ended: null });
   });
 });

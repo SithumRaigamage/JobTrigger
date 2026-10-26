@@ -17,6 +17,15 @@ export function isNoStorePath(pathname: string): boolean {
   );
 }
 
+/** Portal pages that need a signed-in user (sign-in and sign-up don't). */
+export const PROTECTED_PATH_PREFIXES = ["/servers", "/account"] as const;
+
+export function isProtectedPath(pathname: string): boolean {
+  return PROTECTED_PATH_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 /** A fresh, unguessable nonce for one response's CSP. */
 export function createNonce(): string {
   return btoa(crypto.randomUUID());

@@ -36,28 +36,35 @@ function requestJar(request: NextRequest, pending: PendingCookie[]): CookieJar {
   };
 }
 
+export type Upkeep = {
+  /** Cookies to set on the response. */
+  cookies: PendingCookie[];
+  /** Why the session ended during this request, if it did. */
+  ended: "idle" | "expired" | null;
+};
+
 /**
- * Applies the idle timeout and renews the access token if needed. Returns
- * the cookies to set on the response; the caller builds the response from
- * `request.headers` afterwards so the render sees the same session.
+ * Applies the idle timeout and renews the access token if needed. The
+ * caller builds the response from `request.headers` afterwards, so the
+ * render sees the same session.
  */
 export async function upkeepSession(
   request: NextRequest,
   now: number = Date.now(),
-): Promise<PendingCookie[]> {
+): Promise<Upkeep> {
   const pending: PendingCookie[] = [];
   let session;
   try {
     session = await getSessionFromJar(requestJar(request, pending));
   } catch {
     // No SESSION_SECRET configured: there is no portal session to keep.
-    return pending;
+    return { cookies: pending, ended: null };
   }
-  if (!isSignedIn(session)) return pending;
+  if (!isSignedIn(session)) return { cookies: pending, ended: null };
 
   if (isIdle(session, now)) {
     session.destroy();
-    return pending;
+    return { cookies: pending, ended: "idle" };
   }
 
   const expiresAt = tokenExpiresAt(session.accessToken);
@@ -68,12 +75,12 @@ export async function upkeepSession(
     } else if (renewed.failure.kind === "auth") {
       // Expired or revoked (e.g. "sign out of all devices" elsewhere).
       session.destroy();
-      return pending;
+      return { cookies: pending, ended: "expired" };
     }
     // Any other failure keeps the session (NFR-SEC-07).
   }
 
   session.lastActivity = now;
   await session.save();
-  return pending;
+  return { cookies: pending, ended: null };
 }

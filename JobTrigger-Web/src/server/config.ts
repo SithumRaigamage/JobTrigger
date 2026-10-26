@@ -76,6 +76,21 @@ export function getConfig(): AppConfig {
   return cached;
 }
 
+/**
+ * Whether the portal can run: its config is present and valid. Marketing
+ * pages work without it (a marketing-only deploy); portal pages check this
+ * first and say the portal is unavailable instead of failing.
+ */
+export function isPortalConfigured(): boolean {
+  try {
+    getConfig();
+    return true;
+  } catch (error) {
+    console.warn(`portal unavailable — ${error instanceof Error ? error.message : "config error"}`);
+    return false;
+  }
+}
+
 const siteUrlSchema = z.url().default("http://localhost:3000");
 
 /**

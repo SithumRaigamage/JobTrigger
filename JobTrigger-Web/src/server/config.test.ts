@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { getSiteUrl, parseConfig } from "./config";
 
@@ -90,5 +90,19 @@ describe("getSiteUrl", () => {
 
   it("rejects a malformed URL", () => {
     expect(() => getSiteUrl({ SITE_URL: "not a url" })).toThrow("SITE_URL");
+  });
+});
+
+describe("isPortalConfigured", () => {
+  it("is false, without throwing, when the portal's variables are missing", async () => {
+    vi.resetModules();
+    vi.stubEnv("JOBTRIGGER_BACKEND_URL", "");
+    vi.stubEnv("SESSION_SECRET", "");
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { isPortalConfigured } = await import("./config");
+
+    expect(isPortalConfigured()).toBe(false);
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 });

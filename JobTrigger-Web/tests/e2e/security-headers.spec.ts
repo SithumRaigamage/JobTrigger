@@ -25,7 +25,7 @@ test("every response gets a fresh nonce", async ({ request }) => {
   expect(await nonceOf()).not.toBe(await nonceOf());
 });
 
-for (const { path } of publicPages) {
+for (const path of [...publicPages.map((page) => page.path), "/sign-in", "/sign-up"]) {
   test(`${path} runs under the CSP with no violations`, async ({ page }) => {
     const violations: string[] = [];
     page.on("console", (message) => {
