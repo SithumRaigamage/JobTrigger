@@ -1,5 +1,7 @@
 import { Button } from "@/components/button";
+import { FeatureAction } from "@/components/feature-action";
 import { Card, Container, Kicker, Section } from "@/components/layout";
+import { StatusBadge } from "@/components/status-badge";
 
 // Token sample page (P15-02): every primitive on both surfaces, for
 // checking against UI-UX/Web. Replaced by the home page in P15-06.
@@ -48,6 +50,20 @@ function Sample({ heading }: { heading: string }) {
           ))}
         </ul>
       </Card>
+      <div className="flex flex-col gap-4">
+        <p className="flex flex-wrap items-center gap-2 font-semibold">
+          GitHub Actions <StatusBadge feature="github-runs" /> SonarQube{" "}
+          <StatusBadge feature="sonarqube-insights" size="md" /> GitLab CI{" "}
+          <StatusBadge feature="gitlab-ci" />
+        </p>
+        <FeatureAction
+          feature="web-test-connection"
+          label="Test connection"
+          reason="You can test the connection from the app after saving."
+        >
+          <Button size="lg">Test connection</Button>
+        </FeatureAction>
+      </div>
     </Container>
   );
 }

@@ -55,7 +55,7 @@ runs are the merge gate.
 - [x] P15-03 Security baseline (WEB-B1–B3): HSTS, strict CSP,
       `frame-ancestors 'none'`, `no-store` on portal routes, no secrets in
       logs or URLs.
-- [ ] P15-04 Feature-status list `src/content/feature-status.ts`
+- [x] P15-04 Feature-status list `src/content/feature-status.ts`
       (US-WEB-22) seeded from the epic's availability table, plus
       `StatusBadge` and `DisabledAction`, with unit tests.
 - [ ] P15-05 Marketing header and footer (designs 15, 16, pre-launch

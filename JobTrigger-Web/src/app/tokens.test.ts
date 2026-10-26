@@ -51,6 +51,8 @@ const textPairs: Array<[fg: string, bg: string]> = [
   ["unstable-fg", "unstable-bg"],
   ["running-fg", "running-bg"],
   ["neutral-fg", "neutral-bg"],
+  // StatusBadge `inset` (a "Coming soon" pill inside a disabled control).
+  ["neutral-fg", "line"],
 ];
 
 describe.each(Object.entries(surfaces))("%s surface", (_name, tokens) => {

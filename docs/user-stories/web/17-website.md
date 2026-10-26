@@ -77,7 +77,9 @@ shared NFRs referenced per story:
   US-DESIGN-* so the site and the app look like one product.
 - **WEB-B7, never promise what isn't shipped.** Every feature, tool, or
   action the site mentions reads its availability from one feature-status
-  list (US-WEB-22). Anything not `live` is badged and its action disabled.
+  list (US-WEB-22). Anything not `live` is badged; actions of `soon` and
+  `planned` features are disabled, while `beta` actions stay usable
+  (clarified 2026-10-26, P15-04).
 
 **Feature availability (as of 2026-10-24).** The app is still in
 development, so the site launches before parts of the product exist. This
