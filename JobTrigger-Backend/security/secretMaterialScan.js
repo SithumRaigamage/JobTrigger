@@ -45,6 +45,11 @@ const TOKEN_SHAPE = /(?<![0-9a-f])((?:11)?[0-9a-f]{32})(?![0-9a-f])/g;
 // The same shape, anchored, for a whole value.
 const TOKEN_VALUE = /^(11)?[0-9a-f]{32}$/;
 
+// A design canvas's image URL, `/_blob/<32 hex id>` (UI-UX/Web). The id is
+// an asset name, not a credential: the bare-literal rule skips a token
+// shape right after this prefix. Every other rule still applies to it.
+const ASSET_ID_PREFIX = '/_blob/';
+
 // Keys whose value is a credential. Compared after normalising the key
 // (lower-cased, non-letters removed), so `apiToken`, `api_token` and
 // `API-TOKEN` are all the same key.
@@ -179,6 +184,9 @@ function findSecretMaterial(text, relativePath, literalAllowed = false) {
       TOKEN_SHAPE.lastIndex = 0;
       let literal;
       while ((literal = TOKEN_SHAPE.exec(line)) !== null) {
+        const start = Math.max(0, literal.index - ASSET_ID_PREFIX.length);
+        const before = line.slice(start, literal.index);
+        if (before === ASSET_ID_PREFIX) continue;
         findings.push({
           rule: 'token-literal',
           file: relativePath,

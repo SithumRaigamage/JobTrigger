@@ -3,8 +3,8 @@ import { expect, test, type Page } from "@playwright/test";
 import { backendToken, seed } from "./backend";
 import { PASSWORD, signUp } from "./flows";
 
-const TOKEN = "11aabbccddeeff00112233445566a91f";
-const NEW_TOKEN = "11ffeeddccbbaa99887766554433b72e";
+const TOKEN = "fake-jenkins-token-a91f";
+const NEW_TOKEN = "fake-jenkins-token-b72e";
 
 async function withJenkins(page: Page) {
   const email = await signUp(page);

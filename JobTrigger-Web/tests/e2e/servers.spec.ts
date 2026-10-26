@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { backendToken, seed } from "./backend";
 import { PASSWORD, signUp } from "./flows";
 
-const JENKINS_TOKEN = "11aabbccddeeff00112233445566a91f";
+const JENKINS_TOKEN = "fake-jenkins-token-a91f";
 const GITHUB_TOKEN = "github_pat_11ABCDEFG0123456789_secretQ7rM";
 
 test("a new account sees the empty state and an Add link per tool", async ({ page }) => {
