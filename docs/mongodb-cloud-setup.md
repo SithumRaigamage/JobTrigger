@@ -1,136 +1,147 @@
-# MongoDB Cloud (Atlas) Setup Guide
+# MongoDB Atlas setup (development)
 
-## 🌐 Using MongoDB Atlas Instead of Docker
+The backend stores its data in **MongoDB Atlas**, MongoDB's cloud service.
+There is no local MongoDB (Phase 17, decided 2026-10-26): no Docker
+container, no `USE_DOCKER`. The backend code is unchanged; only
+`MONGODB_URI` in `JobTrigger-Backend/.env` points at Atlas.
 
-### Step 1: Create a MongoDB Atlas Account
+This guide sets up the **development** database once, in about 15
+minutes. Production is a separate project, set up when the backend host
+is chosen (`docs/deployment.md`, "Database").
 
-1. Go to [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
-2. Sign up (free tier available)
-3. Create a new project
-4. Create a new cluster (free M0 tier is enough for development)
+| | Development (this guide) | Production (later) |
+| --- | --- | --- |
+| Atlas project | `jobtrigger-dev` | `jobtrigger-prod` |
+| Cluster tier | Free **M0** (512 MB, shared, **no backups**) | Paid, with backups |
+| Data | Your own test data | Real users |
 
-### Step 2: Get Your Connection String
+Backend tests never use Atlas: `npm test` runs on a throwaway in-memory
+MongoDB that exists only for that run.
 
-1. In Atlas, go to **Databases** → Click **Connect** on your cluster
-2. Choose **"Drivers"** → **Node.js**
-3. Copy the connection string: `mongodb+srv://username:password@cluster.mongodb.net/jobtrigger`
-4. Replace `username` and `password` with your Atlas credentials
-5. The database name should be `jobtrigger`
+## 1. Create the project and the cluster
 
-### Step 3: Configure Your Backend
+1. Sign in at [cloud.mongodb.com](https://cloud.mongodb.com) (create a
+   free account if needed).
+2. **New Project** → name it `jobtrigger-dev` → **Create Project**.
+3. **Create** a cluster → choose **M0 (Free)**.
+   - **Name:** `jobtrigger-dev`
+   - **Provider and region:** any provider; pick the region **closest to
+     you**, since every request your backend makes travels there.
+   - Untick **Preload sample dataset**.
+4. **Create Deployment**. Atlas then offers a quick-start dialog for a user
+   and an IP address. Close it: steps 2 and 3 below set both up with
+   tighter permissions than the defaults.
 
-Update `JobTrigger-Backend/.env`:
+## 2. Create the database user
+
+The backend gets its own user that can read and write the `jobtrigger`
+database **and nothing else**, so a leaked password can't touch other
+databases or cluster settings.
+
+1. **Security → Database Access → Add New Database User**.
+2. **Authentication Method:** Password.
+3. **Username:** `jobtrigger-dev-app`.
+4. **Password:** **Autogenerate Secure Password**, then **Copy** it
+   somewhere safe for step 4 (a password manager, not a file in this repo).
+5. **Database User Privileges → Add Specific Privilege:**
+   - Role: `readWrite`
+   - Database: `jobtrigger`
+   - Collection: leave empty (all collections)
+6. **Add User**.
+
+> Don't pick the built-in **Atlas admin** or **Read and write to any
+> database** roles: both reach every database on the cluster.
+
+## 3. Allow your computer to connect
+
+Atlas refuses every connection until its address is on the list.
+
+1. **Security → Network Access → Add IP Address**.
+2. **Add Current IP Address** → add a comment such as `my laptop` →
+   **Confirm**.
+
+Your home or office IP can change. If the backend suddenly can't reach
+Atlas (section 7), add the new one here. Don't use **Allow Access from
+Anywhere** (`0.0.0.0/0`) for development: it leaves only the password
+between the internet and the database.
+
+## 4. Build the connection string
+
+1. **Database → Clusters → Connect** on `jobtrigger-dev` → **Drivers** →
+   **Node.js**.
+2. Copy the string. It looks like:
+
+   ```text
+   mongodb+srv://jobtrigger-dev-app:<db_password>@jobtrigger-dev.abcde.mongodb.net/?retryWrites=true&w=majority&appName=jobtrigger-dev
+   ```
+
+3. Replace `<db_password>` with the password from step 2. If it contains
+   any of `@ : / ? # [ ] %`, URL-encode those characters (`@` → `%40`,
+   `:` → `%3A`, `/` → `%2F`, `%` → `%25`, and so on).
+4. Add the database name after the host, before the `?`:
+
+   ```text
+   mongodb+srv://jobtrigger-dev-app:PASSWORD@jobtrigger-dev.abcde.mongodb.net/jobtrigger?retryWrites=true&w=majority&appName=jobtrigger-dev
+   ```
+
+   The backend and its scripts select `jobtrigger` themselves, so this is
+   for tools such as `mongosh`; it does no harm either way.
+
+## 5. Put it in `.env`
+
+Open `JobTrigger-Backend/.env` yourself and set:
 
 ```env
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/jobtrigger
-PORT=5001
-JWT_SECRET=supersecretjwtkey_123456
+MONGODB_URI=mongodb+srv://jobtrigger-dev-app:PASSWORD@jobtrigger-dev.abcde.mongodb.net/jobtrigger?retryWrites=true&w=majority&appName=jobtrigger-dev
 ```
 
-> **⚠️ Security:** Never commit `.env` to git. It's in `.gitignore` for a reason.
+Leave every other line as it is. In particular **don't change
+`CREDENTIALS_ENCRYPTION_KEY`**: the Jenkins, GitHub and SonarQube secrets
+copied from your old database are encrypted with it, and a new key would
+make all of them unreadable (`docs/deployment.md`, "Backend secrets at
+rest"). `.env` is git-ignored; never commit it or paste it into a chat,
+issue or PR.
 
-### Step 4: Run Setup Script
+> **Copying your existing data?** Do the one-time copy
+> (`scripts/copy-local-db-to-atlas.sh`, P17-02) **before** running
+> `./setup-dev.sh`. The setup script seeds a dev account, and the copy
+> refuses a database that already has data in it.
 
-**For MongoDB Cloud (default):**
-```bash
-./setup-dev.sh
-```
-
-This will:
-- ✅ Verify your MongoDB Cloud connection string
-- ✅ Seed the test account
-- ✅ Start the backend
-
-**For Docker (local MongoDB):**
-```bash
-USE_DOCKER=true ./setup-dev.sh
-```
-
-This will:
-- ✅ Start MongoDB in Docker
-- ✅ Seed the test account
-- ✅ Start the backend
-
-### Step 5: Stop Services
-
-```bash
-./stop-dev.sh
-```
-
-(MongoDB Cloud runs in the cloud, so no container to stop)
-
----
-
-## 🔄 Workflow with MongoDB Cloud
-
-```bash
-# 1. Update JobTrigger-Backend/.env with your connection string
-
-# 2. Run setup (no Docker needed!)
-./setup-dev.sh
-
-# 3. In another terminal, run Flutter app
-cd JobTrigger-Frontend
-flutter run -d "iPhone Air"
-
-# 4. Login with test account
-# Email: test@jobtrigger.dev
-# Password: password123
-
-# 5. When done
-./stop-dev.sh
-```
-
----
-
-## 📋 MongoDB Cloud vs Docker
-
-| Aspect | MongoDB Cloud | Docker (Local) |
-|--------|---|---|
-| Setup time | 5 min (one-time) | 1 min (each session) |
-| Internet required | Yes | No |
-| Data persistence | Yes (cloud) | Depends on setup |
-| Cost | Free tier | Free (local) |
-| Good for | Remote work, team sharing | Offline development |
-
----
-
-> **Seeding (AUD-58):** `setup-dev.sh`'s seed step refuses a non-local
-> database. To seed your *own* development cluster, run
-> `node scripts/setup-migrations.js --allow-remote` in `JobTrigger-Backend`.
-> Never seed a shared, staging, or production cluster: the seeded account's
-> password is published in this repository.
-
-## ✅ Verify Connection
-
-Test your connection string:
+## 6. Check the connection
 
 ```bash
 cd JobTrigger-Backend
 npm run dev
 ```
 
-If you see:
+Success is these two log lines (one JSON object per line):
+
+```text
+{"level":"info","time":"…","msg":"server.mongo_connected"}
+{"level":"info","time":"…","msg":"server.listening","port":5001}
 ```
-Server running on http://127.0.0.1:5001
-Connected to MongoDB
-```
 
-You're all set! ✅
+and `curl http://127.0.0.1:5001/healthz` answers `{"status":"ok"}`.
 
----
+## 7. Troubleshooting
 
-## 🆘 Troubleshooting
+The backend stops with a `"msg":"server.mongo_connect_failed"` line on
+stderr; its `error` field carries the reason:
 
-**"connect ECONNREFUSED"**
-- Check your connection string in `.env`
-- Verify IP allowlist in MongoDB Atlas (click "Network Access")
-- Make sure your password has no special characters (or URL-encode them)
+| Message contains | Cause | Fix |
+| --- | --- | --- |
+| `Server selection timed out` / `ReplicaSetNoPrimary` | Your IP isn't on the Network Access list, or a network blocks port 27017 | Step 3 again; try another network |
+| `bad auth` / `Authentication failed` | Wrong username or password, or a special character not URL-encoded. A common slip: using the **cluster** name (`jobtrigger-dev`, also in the host) instead of the **database user** (`jobtrigger-dev-app`) | Match the user to **Database Access** exactly; step 4.3; or reset the password (step 2, **Edit**) and wait for "Deploying your changes" to finish |
+| `querySrv ENOTFOUND` / `ETIMEOUT` | Your DNS can't resolve the `mongodb+srv` address | Check the cluster name; try another network or DNS (some routers block SRV lookups) |
+| `not authorized on jobtrigger` | The user's privilege isn't `readWrite` on `jobtrigger` | Step 2.5 |
 
-**"Authentication failed"**
-- Double-check username/password in connection string
-- Test credentials in MongoDB Atlas website first
+Free M0 clusters are **paused after a long period of inactivity**. If
+Atlas shows the cluster as paused, press **Resume** and wait a minute.
 
-**"Unknown error"**
-- Check MongoDB Atlas status page
-- Try clicking "Connect" again to get fresh connection string
+## If the password leaks
+
+1. **Database Access → `jobtrigger-dev-app` → Edit → Edit Password →
+   Autogenerate**, then **Update User**. The old password stops working
+   immediately.
+2. Put the new password in `.env` (steps 4–5) and restart the backend.
+3. Check **Project → Activity Feed** for connections you don't recognise.

@@ -40,7 +40,7 @@ pastes connection strings.
 ## Tasks
 
 - [x] P17-00 Docs: this file and the Phase 17 row in `tasks/README.md`.
-- [ ] P17-01 `docs/mongodb-cloud-setup.md` rewritten as the Atlas dev
+- [x] P17-01 `docs/mongodb-cloud-setup.md` rewritten as the Atlas dev
       setup: M0 cluster, a database user limited to `jobtrigger`, the
       network rule, the connection string. Fixes the stale test account
       and the missing `CREDENTIALS_ENCRYPTION_KEY` in the example.
