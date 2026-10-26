@@ -96,88 +96,10 @@ curl http://localhost:5001/api/appinfo
 
 ## 📱 Running on a Physical iPhone
 
-Install over USB with Xcode automatic signing — no TestFlight needed.
-
-### 1. Point the app at your Mac, not `127.0.0.1`
-
-`config/dev.json` uses `http://127.0.0.1:5001`, which on a phone means the
-phone itself. Find your Mac's Wi‑Fi IP and create a machine-local config
-(don't commit it — the IP is specific to your network):
-
-```bash
-ipconfig getifaddr en0   # e.g. 192.168.1.24
-```
-
-```json
-// JobTrigger-Frontend/config/device.json
-{
-  "ENVIRONMENT": "dev",
-  "BACKEND_BASE_URL": "http://<your-mac-ip>:5001"
-}
-```
-
-Phone and Mac must be on the same Wi‑Fi. The backend's `app.listen(PORT)`
-already binds all interfaces, so no backend change is needed. If login
-stops working later, your Mac's IP probably changed — re-check it.
-
-### 2. Prepare the iPhone (once)
-
-- Connect by cable and tap **Trust This Computer**.
-- Enable **Settings → Privacy & Security → Developer Mode** (iOS 16+; the
-  phone restarts).
-
-### 3. Check signing in Xcode (once)
-
-```bash
-open JobTrigger-Frontend/ios/Runner.xcworkspace
-```
-
-- **Xcode → Settings → Accounts**: sign in with the Apple ID for team
-  `QRCA2Z2HYQ`.
-- **Signing & Capabilities**: both **Runner** and **PinnedJobsWidget**
-  targets should show that team with no errors.
-- A free (personal) Apple ID likely can't sign the **App Groups**
-  capability (`group.Sraig.Lab-Trigger-frontend`, used by the home-screen
-  widget). Use the paid team, or temporarily drop the widget target/App
-  Group to test the rest of the app.
-
-### 4. Run it
-
-Start the backend (Terminal 1 above), then:
-
-```bash
-cd JobTrigger-Frontend
-flutter devices   # the iPhone should be listed
-
-# Debug — hot reload, needs the Mac attached
-flutter run --dart-define-from-file=config/device.json -d "<iPhone name>"
-
-# Profile — keeps working from the home screen after unplugging
-flutter run --profile --dart-define-from-file=config/device.json -d "<iPhone name>"
-```
-
-Recent iOS versions won't open a debug build from the home screen once it's
-detached from the Mac, so use `--profile` for standalone testing.
-
-**Don't use `--release` here:** `AppConfig.fromEnvironment` (AUD-43)
-deliberately throws at launch unless the build names a non-dev environment
-and an `https://` backend. A LAN `http` backend only works in debug/profile.
-
-### 5. First launch on the phone
-
-- **"Untrusted Developer"**: Settings → General → VPN & Device Management →
-  your developer profile → **Trust**.
-- **Local network prompt**: tap **Allow**, or the app can't reach your Mac's
-  backend or a LAN Jenkins server.
-
-Plain `http` works without ATS exceptions in `Info.plist` because `dio`
-uses `dart:io` sockets, which ATS doesn't apply to.
-
-### Beyond local testing
-
-Once the backend is deployed on `https`, update `config/prod.json` and go
-through TestFlight (`flutter build ipa --release --dart-define-from-file=config/prod.json`)
-— see [deployment.md](deployment.md).
+See **[IPHONE.md](../IPHONE.md)** in the repository root: the phone setup,
+`scripts/run-on-iphone.sh` (detects this Mac's Wi-Fi IP, writes the
+git-ignored `config/device.json`, checks the backend and runs the app), and
+how to reach a Jenkins running on this Mac from the phone.
 
 ---
 

@@ -83,6 +83,10 @@ the app.
 
 ## 🏃 Getting Started
 
+> 📱 **On a real iPhone?** Follow **[IPHONE.md](IPHONE.md)**: one command
+> (`scripts/run-on-iphone.sh`) points the app at this Mac, and it covers
+> reaching a Jenkins running on this Mac from the phone.
+
 There are two ways to bring up the backend: the one-shot script
 (`setup-dev.sh`), or the manual steps below. Either way, do the [iOS
 Simulator](#2-initialize-the-ios-simulator) and [Flutter app](#3-start-the-flutter-app)
