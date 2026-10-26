@@ -175,18 +175,7 @@ class _BrandingPanel extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: colorScheme.onPrimary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.play_arrow_rounded,
-                    color: colorScheme.onPrimary,
-                  ),
-                ),
+                const AppLogo(size: 44),
                 const SizedBox(width: 14),
                 Text(
                   'JobTrigger',

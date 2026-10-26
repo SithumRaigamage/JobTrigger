@@ -32,21 +32,37 @@ export default function OpengraphImage() {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-        <div
-          style={{
-            width: 72,
-            height: 72,
-            borderRadius: 20,
-            background: "#2563EB",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="#FFFFFF">
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        </div>
+        {/* The logo, Concept B (UI-UX/brand/mark.svg), with the hairline it
+            gets on dark surfaces so the navy tile stands off #0B1120. */}
+        <svg width="72" height="72" viewBox="0 0 128 128">
+          <rect width="128" height="128" rx="28" fill="#0F172A" />
+          <rect
+            x="1"
+            y="1"
+            width="126"
+            height="126"
+            rx="27"
+            fill="none"
+            stroke="#1F2A3D"
+            strokeWidth="2"
+          />
+          <path
+            d="M37 64 H48 M68 64 H78"
+            fill="none"
+            stroke="#60A5FA"
+            strokeWidth="6"
+            strokeLinecap="round"
+          />
+          <circle cx="28" cy="64" r="9" fill="none" stroke="#93C5FD" strokeWidth="6" />
+          <circle cx="58" cy="64" r="9" fill="none" stroke="#93C5FD" strokeWidth="6" />
+          <path
+            d="M84 46 L84 82 L108 64 Z"
+            fill="#4ADE80"
+            stroke="#4ADE80"
+            strokeWidth="6"
+            strokeLinejoin="round"
+          />
+        </svg>
         <span style={{ fontSize: 40, letterSpacing: -1 }}>JobTrigger</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>

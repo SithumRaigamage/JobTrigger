@@ -21,6 +21,13 @@ class AppColors {
   /// own logo tile — so Jenkins red can't be mistaken for "failed".
   static const accent = Color(0xFF2563EB);
 
+  // The logo (Phase 16, Concept B; UI-UX/brand/mark.svg). Fixed in both
+  // themes and never used for UI: the theme accent stays [accent].
+  static const logoTile = Color(0xFF0F172A);
+  static const logoStage = Color(0xFF93C5FD);
+  static const logoConnector = Color(0xFF60A5FA);
+  static const logoRun = Color(0xFF4ADE80);
+
   // Dark surfaces, back to front.
   static const backgroundDark = Color(0xFF0B1120);
   static const chromeDark = Color(0xFF0F172A); // nav bar, sheets' backdrop
