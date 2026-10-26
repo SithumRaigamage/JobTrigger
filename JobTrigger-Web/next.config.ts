@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
   // page rendered per request. Measured 2026-10-26; see
   // docs/web-architecture.md "Security headers".
   poweredByHeader: false,
+  // No dev toolbar: under `next dev` it injects <style> blocks without the
+  // CSP nonce, the strict policy blocks them, and it renders as a blank box
+  // over the logo. Kept off rather than loosening the dev CSP, so dev and
+  // production share one policy (owner decision 2026-10-26).
+  devIndicators: false,
   // A self-contained server for the Docker image only (P15-23): the
   // Dockerfile sets NEXT_STANDALONE=1. `next start` and Vercel use the
   // regular output, and `next start` refuses to serve a standalone build.

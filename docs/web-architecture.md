@@ -186,6 +186,12 @@ One strict policy on every page (owner decision 2026-10-26):
   new portal paths there).
 - The header builders live in `src/security-headers.ts`, outside
   `server/`, because `next.config.ts` can't import `server-only`.
+- **No Next.js dev toolbar** (`devIndicators: false` in `next.config.ts`).
+  Under `next dev` it injects `<style>` blocks without the nonce, so the
+  CSP blocks them and it renders as a blank box over the logo. Turned off
+  rather than loosening the dev CSP, so dev and production share one
+  policy (owner decision 2026-10-26). Its error pop-up still logs CSP
+  messages in the dev console; that's Next's code, not ours.
 - **No inline `style` attributes, so no `next/image`.** It always adds
   `style="color:transparent"`, which the CSP blocks (found in P15-06a).
   Use `components/static-image.tsx` with a static import from
