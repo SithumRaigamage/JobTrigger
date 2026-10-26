@@ -34,6 +34,13 @@ configurations but configurable"), on branch `feat/iphone-lan-testing`.
       launch, Jenkins in Docker reachable from the phone, address changes,
       troubleshooting, security notes. Links from `README.md`,
       `docs/dev-setup.md` and `config/README.md`.
+- [x] P18-03 `IPHONE.md` additions after the owner's first run
+      (2026-10-26): Xcode's development pairing as its own step (the
+      owner's phone was trusted but not paired, and `flutter devices`
+      refused it with code -29), wireless install (3.1), how long an
+      install keeps working (paid team about a year, free Apple ID 7 days,
+      backend on the Mac and same Wi-Fi, TestFlight after `https://`), and
+      four troubleshooting rows.
 
 ## Outcome (2026-10-26)
 
@@ -45,3 +52,7 @@ configurations but configurable"), on branch `feat/iphone-lan-testing`.
   a simulator, two phones, unreadable output).
 - **Not run here:** an install on the phone itself (no iPhone was
   connected); the owner runs `scripts/run-on-iphone.sh` with it plugged in.
+
+**P18-03 note:** wireless detection by `scripts/run-on-iphone.sh` is
+documented from Flutter's behaviour, not yet seen on the owner's phone (it
+wasn't paired at the time).
