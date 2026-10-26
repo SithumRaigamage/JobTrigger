@@ -54,7 +54,7 @@ Source drawings in [`UI-UX/brand/`](../UI-UX/brand/), on a 128-unit grid:
       background, foreground, monochrome).
 - [x] P16-03 Splash screen: navy with the mark centred, Android
       (`launch_background.xml`, `-v21`) and iOS (`LaunchScreen`).
-- [ ] P16-04 `AppLogo` draws the B mark (hairline outline in dark mode),
+- [x] P16-04 `AppLogo` draws the B mark (hairline outline in dark mode),
       widget test; login and app info screens unchanged.
 - [ ] P16-05 Website: `BrandMark`, `icon.png`, `apple-icon.png`,
       `opengraph-image.tsx`.
