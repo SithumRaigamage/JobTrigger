@@ -35,7 +35,9 @@ export default defineConfig({
       // A production build, not `next dev`: it tests what ships (headers,
       // caching), and Next 16 allows only one `next dev` per project, so a
       // developer's running dev server (3000) would block the tests.
-      command: `npm run build && npm run start -- --port ${port}`,
+      // Built without SITE_URL, started with it: anything that captures
+      // runtime config at build time shows up as a wrong URL in the tests.
+      command: `env -u SITE_URL npm run build && npm run start -- --port ${port}`,
       url: `http://localhost:${port}`,
       reuseExistingServer: false,
       timeout: 180_000,

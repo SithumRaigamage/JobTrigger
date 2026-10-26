@@ -97,7 +97,7 @@ runs are the merge gate.
 
 - [x] P15-21 Accessibility and responsive pass (WEB-B4, B5) and
       Playwright end-to-end specs for sign-in → add server → saved.
-- [ ] P15-22 Vercel deployment: project setup, environment variables,
+- [x] P15-22 (prepared; **owner action**: connect the Vercel project) Vercel deployment: project setup, environment variables,
       `docs/deployment.md` "Website" section. Marketing can go live
       first; the portal is **blocked** until the backend has a public
       `https://` URL.

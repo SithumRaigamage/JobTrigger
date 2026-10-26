@@ -158,6 +158,61 @@ key once the run reports 0.
 Losing the key makes every stored credential unreadable (users would
 re-enter them), so back it up like the database.
 
+## Website (`JobTrigger-Web/`, Phase 15)
+
+The Next.js site is its own deploy, separate from the app stores and the
+backend. Vercel first (P15-22), Docker later (P15-23). Conventions:
+[`web-architecture.md`](web-architecture.md).
+
+### Vercel (P15-22)
+
+**Owner action** — connecting the project needs the owner's Vercel
+account; nothing here has been deployed.
+
+1. New project → import this repository → **Root Directory:
+   `JobTrigger-Web`**. Vercel detects Next.js; build command `npm run
+   build`, no output directory override. Node comes from `engines`
+   (`>=24`) and `.nvmrc`.
+2. Environment variables, **Production** only (see the table below).
+   Leave the portal's two variables unset on Preview deployments: a
+   preview then serves marketing pages and shows "server setup isn't
+   available" on the portal, rather than talking to the production
+   backend from an unreviewed branch.
+3. Domain: point the apex/`www` at Vercel and set `SITE_URL` to the
+   canonical one. HTTPS and the http→https redirect are Vercel's; the site
+   adds HSTS itself (`next.config.ts`).
+
+| Variable | Production value | Notes |
+|---|---|---|
+| `SITE_URL` | `https://<your domain>` | Canonical URLs, Open Graph, sitemap, robots.txt. Read at request time |
+| `JOBTRIGGER_BACKEND_URL` | `https://<backend host>` | Must be `https://` (`config.ts` refuses http outside loopback). **Unset until the backend is deployed** |
+| `SESSION_SECRET` | 32+ random characters | Encrypts the session cookie. `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`. Rotating it signs everyone out of the website (not the app) |
+
+**Marketing first, portal later.** No backend deployment exists yet
+(`config/prod.json` is a placeholder). With the two portal variables
+unset, every marketing page works and `/sign-in`, `/sign-up`,
+`/servers` and `/account` show "Server setup on the web isn't available
+right now" — verified against a production build with no portal env
+(2026-10-26). Set both variables once the backend is live at an
+`https://` URL; no code change is needed.
+
+What the deploy relies on, all verified locally against `next build &&
+next start`:
+
+- The proxy (`src/proxy.ts`) runs on the Node.js runtime, Next 16's
+  default for proxies; it sets the per-request CSP nonce, so every page is
+  rendered per request (`web-architecture.md` "Security headers").
+- `robots.txt` and `sitemap.xml` are rendered per request, so `SITE_URL`
+  set in Vercel is what they print (a build-time render printed
+  `http://localhost:3000`; fixed in P15-22, and the e2e build now runs
+  without `SITE_URL` to catch the class).
+- The Open Graph image is generated at build time from the bundled Inter
+  Bold; it reads no environment variable.
+
+Before promoting a deployment, run the local gate (`npm run check` and
+`npm run e2e` in `JobTrigger-Web/`) — GitHub Actions is off, so these are
+the merge gate.
+
 ## Recommendation
 
 Don't build the full auto-deploy pipeline yet — the project is pre-artwork

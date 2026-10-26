@@ -49,10 +49,13 @@ test("robots.txt disallows the portal and points to the sitemap", async ({ reque
   expect(text).toContain(`Sitemap: ${baseURL}/sitemap.xml`);
 });
 
-test("the sitemap lists public pages only", async ({ request }) => {
+test("the sitemap lists public pages only, at the runtime SITE_URL", async ({
+  request,
+  baseURL,
+}) => {
   const xml = await (await request.get("/sitemap.xml")).text();
 
-  expect(xml).toContain("/security</loc>");
+  expect(xml).toContain(`<loc>${baseURL}/security</loc>`);
   expect(xml).not.toMatch(/sign-in|servers|account/);
 });
 
