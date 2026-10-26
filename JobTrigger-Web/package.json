@@ -16,6 +16,7 @@
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
+    "iron-session": "^9.0.1",
     "next": "16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",

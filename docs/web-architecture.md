@@ -77,7 +77,8 @@ JobTrigger-Web/
     server/                `import "server-only"` — backend client, session,
                            refresh, masking, config. The ONLY backend caller.
     content/               feature-status.ts (US-WEB-22), changelog entries
-    proxy.ts               Per-request CSP nonce + no-store (headers only)
+    proxy.ts               Per-request CSP nonce; portal: no-store, noindex, session upkeep
+    session-upkeep.ts      Token renewal + idle timeout for the proxy
     security-headers.ts    Header builders shared with next.config.ts
   tests/e2e/               Playwright specs + fake backend
 ```
@@ -148,12 +149,24 @@ go to server logs only (NFR-SEC-04).
 ### Session and refresh
 
 - The access token lasts 15 minutes, the refresh token 30 days (AUD-26).
-- On a backend 401, `server/` calls `POST /api/auth/refresh` once, saves
-  the new pair in the session, and replays the request. A refresh 401
-  clears the session and redirects to `/sign-in`; any other refresh
-  failure keeps the session (NFR-SEC-07), as in the app.
-- Idle timeout (US-WEB-20): the session stores a last-activity time;
-  after 30 minutes the next request redirects to `/sign-in`.
+  Both live in one `iron-session` cookie (`jt_session`, `src/server/
+  session.ts`): encrypted, `HttpOnly`, `Secure`, `SameSite=Lax`, 30 days.
+- **Server components can't set cookies**, so renewal has two homes:
+  - **The proxy** (`src/session-upkeep.ts`), on portal paths, before the
+    page renders: renews an access token with under a minute left, applies
+    the 30-minute idle timeout (US-WEB-20), and bumps `lastActivity`. It
+    writes the request cookie too, so the same request's render reads the
+    renewed session. This is upkeep, not access control.
+  - **Server actions** wrap backend calls in `authed()`
+    (`src/server/authed.ts`): on a 401 it refreshes once, saves the pair
+    and replays the call.
+- Either way, a refresh 401 ends the session; any other refresh failure
+  (network, 5xx, 429) keeps it (NFR-SEC-07), as in the app.
+- A server component that still gets a 401 treats it as `AuthFailure` and
+  sends the user to `/sign-in`.
+- Secrets are masked in `src/server/credentials-api.ts` the moment a
+  response is parsed; the backend shapes (`*Dto`) are not exported, and a
+  test checks no full secret appears in anything it returns.
 
 ### Security headers (P15-03, WEB-B1–B3)
 

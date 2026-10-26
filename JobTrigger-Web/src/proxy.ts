@@ -1,14 +1,23 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { contentSecurityPolicy, createNonce, isNoStorePath } from "./security-headers";
+import { upkeepSession } from "./session-upkeep";
 
 /**
- * Sets the per-request CSP nonce (and `no-store` + `noindex` on portal paths). Headers
- * only: the proxy is skipped for prefetches and assets, so it must never be
- * the place an access check lives — server actions check the session
- * themselves (P15-13, P15-15).
+ * Per-request headers, plus session upkeep on portal paths. Sets the CSP
+ * nonce everywhere, and on portal paths renews the session and applies the
+ * idle timeout (src/session-upkeep.ts) and sends `no-store` + `noindex`.
+ *
+ * Never the place an access check lives: the proxy is skipped for
+ * prefetches and assets, so the portal layout and every server action check
+ * the session themselves (P15-15).
  */
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  const portal = isNoStorePath(request.nextUrl.pathname);
+  // Before the headers are copied below, so this request's render reads
+  // the renewed session.
+  const cookies = portal ? await upkeepSession(request) : [];
+
   const nonce = createNonce();
   const csp = contentSecurityPolicy(nonce, process.env.NODE_ENV === "development");
 
@@ -19,7 +28,8 @@ export function proxy(request: NextRequest) {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
-  if (isNoStorePath(request.nextUrl.pathname)) {
+  for (const cookie of cookies) response.cookies.set(cookie.name, cookie.value, cookie.options);
+  if (portal) {
     response.headers.set("Cache-Control", "no-store");
     // US-WEB-07: portal pages are never indexed, even if linked from outside.
     response.headers.set("X-Robots-Tag", "noindex, nofollow");

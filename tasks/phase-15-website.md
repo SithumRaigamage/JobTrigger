@@ -77,7 +77,7 @@ runs are the merge gate.
 
 ### Setup portal
 
-- [ ] P15-13 Server layer: `backend-client.ts` (`x-auth-token`,
+- [x] P15-13 Server layer: `backend-client.ts` (`x-auth-token`,
       `x-request-id`), `AppFailure` + `failureMessage()` mirroring the
       app, `zod` response schemas, `iron-session` session, refresh-once
       on 401, secret masking. Unit tests for every branch.
