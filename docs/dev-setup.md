@@ -106,9 +106,12 @@ them:
 
 Other `next dev` options pass through: `npm run dev:portal -- -p 3001`.
 
-The blank box in the top-left corner under `next dev` is Next.js's own
-developer toolbar, unstyled because of the site's strict CSP. It doesn't
-exist in production builds.
+Under `next dev` the browser console shows "Content Security Policy"
+messages about inline styles. They come from Next.js's own error pop-up,
+which injects styles without the CSP nonce; the site's code isn't
+involved, and production builds don't include it. Next's dev toolbar is
+turned off (`devIndicators: false`) for the same reason: unstyled, it
+covered the logo.
 
 **Deployed portal (Vercel):** it needs the backend at a public `https://`
 address (`docs/deployment.md`, "Website"). Atlas doesn't change that: the
