@@ -19,7 +19,8 @@ test("the sidebar shows the account and marks the current page", async ({ page }
   );
   await expect(nav.getByRole("link", { name: "Add server" })).not.toHaveAttribute("aria-current");
   await expect(page.getByText(email)).toBeVisible();
-  await expect(page.getByText(/will be waiting in the JobTrigger app/)).toBeVisible();
+  // The card is hidden on phones (compact sidebar); its copy follows app-stores.
+  await expect(page.getByText(/will be waiting in the JobTrigger app/)).toBeAttached();
 });
 
 test("sign out clears the session and returns home", async ({ page, context }) => {
