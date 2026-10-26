@@ -57,7 +57,7 @@ test("the sitemap lists public pages only", async ({ request }) => {
 });
 
 test("portal paths are marked noindex", async ({ request }) => {
-  const response = await request.get("/servers");
+  const response = await request.get("/servers", { maxRedirects: 0 });
 
   expect(response.headers()["x-robots-tag"]).toBe("noindex, nofollow");
 });

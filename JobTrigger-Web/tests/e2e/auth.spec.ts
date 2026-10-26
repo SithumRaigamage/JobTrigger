@@ -1,17 +1,7 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
+import { PASSWORD, signUp } from "./flows";
 import { fakeToken, sealedSession, uniqueEmail } from "./session";
-
-const PASSWORD = "correct-horse-battery";
-
-async function signUp(page: Page, email: string) {
-  await page.goto("/sign-up");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
-  await page.getByLabel("Confirm password").fill(PASSWORD);
-  await page.getByRole("button", { name: "Create account" }).click();
-  await page.waitForURL("**/servers/new");
-}
 
 test("sign up creates the account and an HttpOnly, SameSite=Lax session", async ({
   page,

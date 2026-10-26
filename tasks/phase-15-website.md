@@ -82,7 +82,7 @@ runs are the merge gate.
       app, `zod` response schemas, `iron-session` session, refresh-once
       on 401, secret masking. Unit tests for every branch.
 - [x] P15-14 Sign in and sign up (designs 08, 09; US-WEB-10).
-- [ ] P15-15 Portal shell: sidebar (design 17), auth guard, sign out,
+- [x] P15-15 Portal shell: sidebar (design 17), auth guard, sign out,
       30-minute idle timeout (US-WEB-20).
 - [ ] P15-16 My servers, secrets masked (design 10; US-WEB-11).
 - [ ] P15-17 Add a Jenkins server, GitHub account or SonarQube server,

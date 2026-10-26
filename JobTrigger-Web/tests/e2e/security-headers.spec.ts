@@ -47,7 +47,8 @@ for (const path of [...publicPages.map((page) => page.path), "/sign-in", "/sign-
 }
 
 test("portal paths are never cached", async ({ request }) => {
-  const response = await request.get("/servers");
+  // Signed out, this is the redirect to sign-in; it must not be cached either.
+  const response = await request.get("/servers", { maxRedirects: 0 });
 
   expect(response.headers()["cache-control"]).toContain("no-store");
 });

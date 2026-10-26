@@ -45,6 +45,9 @@ export async function proxy(request: NextRequest) {
   // and stamps it on its own scripts and styles.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("Content-Security-Policy", csp);
+  // The portal layout reads this to send a signed-out visitor back here
+  // after signing in.
+  requestHeaders.set("x-pathname", pathname);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
