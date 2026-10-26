@@ -15,6 +15,7 @@ const { encrypt, decrypt, isEncrypted, needsRotation, loadKeys } = require('../s
 // The same list the startup key-id audit uses (AUD-63), so a new
 // credential model can't be left out of the backfill.
 const CREDENTIAL_TARGETS = require('../models/credentialTargets');
+const { connectDatabase, connectionHint } = require('../lib/database');
 
 /** Returns how many documents needed (or, unless [dryRun], got) changes. */
 async function encryptExistingCredentials({ dryRun = false, log = console.log } = {}) {
@@ -64,12 +65,14 @@ async function main() {
   const dryRun = process.argv.includes('--dry-run');
   try {
     loadKeys(); // Fail before touching anything if the keys are unusable.
-    await mongoose.connect(process.env.MONGODB_URI, { dbName: 'jobtrigger' });
+    await connectDatabase();
     const total = await encryptExistingCredentials({ dryRun });
     console.log(`${dryRun ? 'Dry run' : 'Done'}: ${total} document(s).`);
     process.exitCode = 0;
   } catch (err) {
     console.error('Encryption backfill failed:', err.message);
+    const hint = connectionHint(err);
+    if (hint) console.error(hint);
     process.exitCode = 1;
   } finally {
     await mongoose.disconnect();

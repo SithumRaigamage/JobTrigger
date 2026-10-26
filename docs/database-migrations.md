@@ -183,26 +183,21 @@ node scripts/add-newfield.js
 
 ## 🔄 Full Data Reset (Development Only)
 
-```bash
-# 1. Stop everything
-./stop-dev.sh
+The database is the Atlas **dev** cluster (Phase 17); there is no local
+MongoDB to throw away. Never do this on production.
 
-# 2. Wipe MongoDB (Cloud: manual via Atlas UI, Docker: auto on down -v)
-docker compose down -v
+1. Stop the backend (`Ctrl+C` in its terminal).
+2. In Atlas: **Database → Browse Collections** on the `jobtrigger-dev`
+   cluster → hover the `jobtrigger` database → **Drop database** → type its
+   name to confirm.
+3. Reseed and start again:
 
-# 3. Start fresh
-USE_DOCKER=true ./setup-dev.sh
+   ```bash
+   ./setup-dev.sh   # dev account, sample Jenkins servers, app info
+   ```
 
-# 4. Run migrations in order
-cd JobTrigger-Backend
-node scripts/seedAppInfo.js    # Add app metadata
-npm run dev                      # Keep running
-
-# 5. (In new terminal) Seed test account
-curl -X POST http://localhost:5001/api/auth/signup \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@jobtrigger.dev","password":"password123"}'
-```
+Saved Jenkins/GitHub/SonarQube secrets are gone after a reset; anything you
+add again is encrypted with the current `CREDENTIALS_ENCRYPTION_KEY`.
 
 ---
 

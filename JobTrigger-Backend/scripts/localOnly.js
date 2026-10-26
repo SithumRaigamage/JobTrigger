@@ -1,12 +1,22 @@
 /**
- * AUD-58: guards the development scripts that write fixed data or drop
- * databases (setup-migrations.js seeds an account whose password is in the
- * README; cleanup-test-database.js drops the "test" database). They only
- * run against a MongoDB on this machine or the docker-compose service,
- * never under NODE_ENV=production, unless --allow-remote is passed for a
- * deliberate, non-production remote run.
+ * AUD-58: guards the development script that writes fixed data
+ * (setup-migrations.js seeds an account whose password is in the README).
+ * It runs against a MongoDB on this machine, or a remote one only with
+ * --allow-remote, which setup-dev.sh passes for the Atlas dev cluster
+ * (Phase 17). Never under NODE_ENV=production, and never against a URI
+ * that names production, even forced.
  */
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]', 'mongo']);
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
+
+/**
+ * True when [uri] names production: "prod" in its user, hosts, database or
+ * options (e.g. a `jobtrigger-prod` cluster or appName). The password is
+ * removed first: it is never inspected, and could hold "prod" by chance.
+ */
+function looksLikeProduction(uri) {
+  const withoutPassword = String(uri ?? '').replace(/^([a-z+]+:\/\/[^:@/]*):[^@]*@/i, '$1@');
+  return /prod/i.test(withoutPassword);
+}
 
 /** The hosts named in a mongodb:// or mongodb+srv:// URI. */
 function mongoHosts(uri) {
@@ -24,6 +34,10 @@ function remoteDatabaseProblem(uri, { env = process.env, argv = process.argv } =
   }
   const hosts = mongoHosts(uri);
   if (hosts.length === 0) return 'MONGODB_URI is missing or not a MongoDB URI.';
+  if (looksLikeProduction(uri)) {
+    return 'Refusing to seed a database whose URI names production ("prod" ' +
+      'in its user, cluster, database or appName). Seed only the dev cluster.';
+  }
   const remote = hosts.filter((host) => !LOCAL_HOSTS.has(host.toLowerCase()));
   if (remote.length > 0 && !argv.includes('--allow-remote')) {
     return `Refusing to write to a non-local database (${remote.join(', ')}). ` +
@@ -42,4 +56,9 @@ function requireLocalDatabase(uri) {
   }
 }
 
-module.exports = { mongoHosts, remoteDatabaseProblem, requireLocalDatabase };
+module.exports = {
+  looksLikeProduction,
+  mongoHosts,
+  remoteDatabaseProblem,
+  requireLocalDatabase,
+};

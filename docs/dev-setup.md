@@ -4,67 +4,42 @@
 
 ### `setup-dev.sh` — Start Development Environment
 
+The database is **MongoDB Atlas** (Phase 17); there is no local MongoDB.
+Set up the dev cluster once with [MongoDB Atlas Setup](./mongodb-cloud-setup.md).
+
 **What it does:**
-- ✅ Checks MongoDB connection (Cloud or Docker)
-- ✅ Runs `JobTrigger-Backend/scripts/setup-migrations.js` — seeds AppInfo, a
-  dev user (`developer@jobtrigger.app` / `SecurePassword123!`), and sample
-  Jenkins credentials (see [Database Migrations](./database-migrations.md)).
-  It only runs against a local MongoDB (`localhost`, `127.0.0.1`, or the
-  compose `mongo` service) and never with `NODE_ENV=production` (AUD-58).
-  For a personal Atlas cluster, run it yourself with
-  `node scripts/setup-migrations.js --allow-remote`; never against a shared
-  or staging database, since the dev password is published here.
-- ✅ Starts Node.js backend on `http://127.0.0.1:5001`
-- ✅ Keeps backend running in watch mode (auto-restart on file changes)
+- ✅ Checks `JobTrigger-Backend/.env` has an Atlas `MONGODB_URI` (it never
+  prints it: the string holds the database password)
+- ✅ Seeds the Atlas dev database with
+  `JobTrigger-Backend/scripts/setup-migrations.js`: AppInfo, a dev user
+  (`developer@jobtrigger.app` / `SecurePassword123!`) and sample Jenkins
+  credentials (see [Database Migrations](./database-migrations.md)). Safe to
+  repeat: an existing user or server is kept.
+  - That password is published here, so the seed refuses
+    `NODE_ENV=production` and any URI that names production — `prod` in its
+    user, cluster, database or `appName` (AUD-58, P17-04). Seed only your dev
+    cluster.
+  - `SEED_REMOTE=false ./setup-dev.sh` skips seeding.
+- ✅ Starts the Node.js backend on `http://127.0.0.1:5001` in watch mode
+  (restarts on file changes); `Ctrl+C` stops it
 
 **Run it:**
 ```bash
 ./setup-dev.sh
 ```
 
-**With Docker (local MongoDB):**
-```bash
-USE_DOCKER=true ./setup-dev.sh
-```
-
-**What you'll see:**
+**What you'll see** (shortened):
 ```
 🚀 JobTrigger Development Setup
-================================
-ℹ️  Environment: MongoDB Cloud (Atlas)
-✅ MongoDB Cloud connection string found in .env
+ℹ️  Database: MongoDB Atlas (docs/mongodb-cloud-setup.md)
+▶ STEP: Checking the Atlas connection string
+✅ MONGODB_URI found in JobTrigger-Backend/.env
+▶ STEP: Seeding the Atlas dev database
 ✅ Development user created: developer@jobtrigger.app
-✅ Created 3 Jenkins server credential(s)
-✅ Database migrations completed successfully
+✅ Seeding completed
 🚀 Starting Backend (Node.js)
-[dotenv] injecting env (3) from .env
-Server is running on port 5001
-Connected to MongoDB
-```
-
----
-
-### `stop-dev.sh` — Stop Development Environment
-
-**What it does:**
-- ✅ Stops MongoDB Docker container (if using Docker)
-- ✅ Tells you to stop backend manually (`Ctrl+C`)
-- ✅ Shows you data persistence options
-
-**Run it:**
-```bash
-./stop-dev.sh
-```
-
-**What you'll see:**
-```
-🛑 Stopping JobTrigger Development Services
-=========================================
-☁️  Using MongoDB Cloud (Atlas) — no container to stop
-ℹ️  Backend (npm run dev) must be stopped manually
-Press Ctrl+C in the backend terminal to stop it
-
-🎉 Done!
+{"level":"info","time":"…","msg":"server.mongo_connected"}
+{"level":"info","time":"…","msg":"server.listening","port":5001}
 ```
 
 ---
@@ -74,11 +49,8 @@ Press Ctrl+C in the backend terminal to stop it
 ### Terminal 1: Backend + Database
 
 ```bash
-# Start everything (MongoDB Cloud)
+# Seed the Atlas dev database and start the backend
 ./setup-dev.sh
-
-# Or with local Docker MongoDB
-USE_DOCKER=true ./setup-dev.sh
 
 # Keep this running
 # Backend listens on http://127.0.0.1:5001
@@ -214,11 +186,8 @@ through TestFlight (`flutter build ipa --release --dart-define-from-file=config/
 **`JobTrigger-Backend/.env`** controls backend behavior:
 
 ```env
-# MongoDB connection (MongoDB Cloud)
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/jobtrigger
-
-# Or local Docker MongoDB
-# MONGODB_URI=mongodb://localhost:27017/jobtrigger
+# MongoDB Atlas dev cluster (docs/mongodb-cloud-setup.md)
+MONGODB_URI=mongodb+srv://USER:PASSWORD@CLUSTER.mongodb.net/jobtrigger
 
 # Server port
 PORT=5001
@@ -259,40 +228,9 @@ prints `Missing required configuration: …` and exits instead of starting
 
 ## 🛑 Stopping Services
 
-**To stop:**
-
-```bash
-# In the backend terminal
-Ctrl+C
-
-# Then run
-./stop-dev.sh
-```
-
-**To restart:**
-```bash
-./setup-dev.sh
-```
-
----
-
-## 🐳 Docker vs MongoDB Cloud
-
-| Feature | Docker | MongoDB Cloud |
-|---------|--------|---|
-| Setup | `USE_DOCKER=true ./setup-dev.sh` | Add connection string to `.env` |
-| Internet needed | No | Yes |
-| Data persistence | Only if volume configured | Yes (always) |
-| Best for | Offline dev | Team collaboration |
-
-**Switch between them:**
-```bash
-# Use Docker
-USE_DOCKER=true ./setup-dev.sh
-
-# Use Cloud (default)
-./setup-dev.sh
-```
+Press `Ctrl+C` in the backend terminal. The Atlas cluster keeps running in
+the cloud; there is nothing local to stop. Start again with
+`./setup-dev.sh`.
 
 ---
 
@@ -321,20 +259,20 @@ USE_DOCKER=true ./setup-dev.sh
 
 ## 🆘 Troubleshooting
 
-**"Could not connect to MongoDB"**
-- Verify `MONGODB_URI` in `.env`
-- For MongoDB Cloud: check IP allowlist
-- For Docker: run `USE_DOCKER=true ./setup-dev.sh`
+**"Could not connect to MongoDB"** (`server.mongo_connect_failed`)
+- The log line's `hint` says what to check: the Atlas database user, the IP
+  allow list, DNS, or a paused cluster
+- Full table: [MongoDB Atlas Setup](./mongodb-cloud-setup.md#7-troubleshooting)
 
 **"Server won't start"**
 - Check port 5001 is free: `lsof -i :5001`
 - Kill any existing process: `kill -9 <PID>`
 - Try again: `./setup-dev.sh`
 
-**"Test account won't seed"**
-- Backend must be running first
-- Wait 3 seconds after backend starts
-- Check logs for seed response
+**"Seeding refused"**
+- `names production`: the URI has `prod` in its user, cluster, database or
+  `appName`. Point `MONGODB_URI` at the dev cluster
+- `NODE_ENV=production` is set in your shell: unset it
 
 **"Flutter app won't connect to backend"**
 - Ensure backend URL in `JobTrigger-Frontend/config/dev.json` is `http://127.0.0.1:5001`

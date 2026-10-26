@@ -6,8 +6,8 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 
 ## 🚀 Getting Started
 
-- **[Dev Setup Guide](./dev-setup.md)** — Start the backend + database, use `setup-dev.sh` / `stop-dev.sh`
-- **[MongoDB Cloud Setup](./mongodb-cloud-setup.md)** — Configure MongoDB Atlas for development
+- **[Dev Setup Guide](./dev-setup.md)** — Start the backend against Atlas with `setup-dev.sh`
+- **[MongoDB Atlas Setup](./mongodb-cloud-setup.md)** — Create the dev cluster (the only database; no local MongoDB)
 - **[API Reference](./api-reference.md)** — All backend + Jenkins endpoints this app calls
 
 ---
@@ -46,7 +46,7 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 
 ## 🛠️ Development Guides
 
-- **[Dev Setup](./dev-setup.md)** — What `setup-dev.sh` and `stop-dev.sh` do
+- **[Dev Setup](./dev-setup.md)** — What `setup-dev.sh` does
 - **[MongoDB Cloud](./mongodb-cloud-setup.md)** — MongoDB Atlas configuration
 - **[CLAUDE.md](../CLAUDE.md)** — Project rules, conventions, tech stack decisions
 
@@ -80,14 +80,8 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 ## ⚡ Common Commands
 
 ```bash
-# Start backend + database (MongoDB Cloud)
+# Seed the Atlas dev database and start the backend (Ctrl+C stops it)
 ./setup-dev.sh
-
-# Start backend + database (local Docker)
-USE_DOCKER=true ./setup-dev.sh
-
-# Stop services
-./stop-dev.sh
 
 # Build Flutter app
 cd JobTrigger-Frontend

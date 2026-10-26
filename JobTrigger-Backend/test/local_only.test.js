@@ -1,8 +1,11 @@
 const { expect } = require('chai');
-const { mongoHosts, remoteDatabaseProblem } = require('../scripts/localOnly');
+const {
+  looksLikeProduction,
+  mongoHosts,
+  remoteDatabaseProblem,
+} = require('../scripts/localOnly');
 
-// AUD-58: the seed and cleanup scripts must never touch a shared database
-// by accident.
+// AUD-58: the seed script must never touch a shared database by accident.
 describe('Development scripts stay local (AUD-58)', function() {
   const check = (uri, { env = {}, argv = [] } = {}) =>
     remoteDatabaseProblem(uri, { env, argv });
@@ -16,15 +19,18 @@ describe('Development scripts stay local (AUD-58)', function() {
     expect(mongoHosts('mongodb://[::1]:27017')).to.deep.equal(['[::1]']);
   });
 
-  it('allows this machine and the docker-compose service', function() {
+  it('allows this machine', function() {
     for (const uri of [
       'mongodb://localhost:27017',
       'mongodb://127.0.0.1:27017/jobtrigger',
-      'mongodb://mongo:27017',
       'mongodb://[::1]:27017',
     ]) {
       expect(check(uri), uri).to.equal(null);
     }
+  });
+
+  it('no longer treats the removed docker-compose service as local (P17-04)', function() {
+    expect(check('mongodb://mongo:27017')).to.match(/non-local database \(mongo\)/);
   });
 
   it('refuses a remote database unless explicitly forced', function() {
@@ -40,6 +46,33 @@ describe('Development scripts stay local (AUD-58)', function() {
     expect(check('mongodb://a.example', {
       env: { NODE_ENV: 'production' }, argv: ['--allow-remote'],
     })).to.match(/production/);
+  });
+
+  describe('a URI that names production (P17-04)', function() {
+    const devAtlas =
+      'mongodb+srv://jobtrigger-dev-app:pw@jobtrigger-dev.abc.mongodb.net/jobtrigger?appName=jobtrigger-dev';
+
+    it('allows the Atlas dev cluster when forced, as setup-dev.sh does', function() {
+      expect(check(devAtlas, { argv: ['--allow-remote'] })).to.equal(null);
+    });
+
+    it('refuses "prod" in the user, cluster, database or appName, even forced', function() {
+      for (const uri of [
+        'mongodb+srv://jobtrigger-prod-app:pw@cluster.abc.mongodb.net/jobtrigger',
+        'mongodb+srv://app:pw@jobtrigger-prod.abc.mongodb.net/jobtrigger',
+        'mongodb+srv://app:pw@cluster.abc.mongodb.net/jobtrigger_production',
+        'mongodb+srv://app:pw@cluster.abc.mongodb.net/jobtrigger?appName=Prod',
+      ]) {
+        expect(check(uri, { argv: ['--allow-remote'] }), uri).to.match(/names production/);
+      }
+    });
+
+    it('ignores the password, and never repeats it', function() {
+      const uri = 'mongodb+srv://app:Reproduce9@jobtrigger-dev.abc.mongodb.net/';
+      expect(looksLikeProduction(uri)).to.equal(false);
+      const prodUri = 'mongodb+srv://app:S3cret@jobtrigger-prod.abc.mongodb.net/';
+      expect(check(prodUri, { argv: ['--allow-remote'] })).to.not.include('S3cret');
+    });
   });
 
   it('refuses a missing URI', function() {
