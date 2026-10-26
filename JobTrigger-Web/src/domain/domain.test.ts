@@ -5,7 +5,7 @@ import { maskSecret } from "./mask";
 
 describe("maskSecret", () => {
   it("shows only the last four characters of a real-length secret", () => {
-    expect(maskSecret("11aabbccddeeff00112233445566778899")).toBe("••••8899");
+    expect(maskSecret("fake-secret-value-8899")).toBe("••••8899");
   });
 
   it("shows nothing of a short secret", () => {

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { signUp } from "./flows";
 
-const TOKEN = "11aabbccddeeff00112233445566a91f";
+const TOKEN = "fake-jenkins-token-a91f";
 
 test("add a Jenkins server, see it saved, and find it masked in the list", async ({ page }) => {
   await signUp(page);

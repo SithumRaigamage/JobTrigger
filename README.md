@@ -71,7 +71,9 @@ Full locked-dependency table (and the reasoning behind each choice) lives in
   or `brew install cocoapods`)
 - For Android: Android Studio + an emulator/device
 - Node.js 18.x+ (for the backend)
-- MongoDB (local via Docker, or a MongoDB Atlas connection string)
+- A MongoDB Atlas cluster and its connection string — set it up once with
+  [`docs/mongodb-cloud-setup.md`](docs/mongodb-cloud-setup.md). There is no
+  local MongoDB.
 - Jenkins 2.x with REST API enabled (only needed once you get past login —
   see [Create an Account](#4-create-an-account) below)
 
@@ -96,30 +98,22 @@ steps afterwards.
 credentials automatically, see [`docs/dev-setup.md`](docs/dev-setup.md)):
 
 ```bash
-./setup-dev.sh                 # uses MongoDB Cloud (Atlas) — needs MONGODB_URI in JobTrigger-Backend/.env
-USE_DOCKER=true ./setup-dev.sh # or: spin up local MongoDB via Docker instead
+./setup-dev.sh                    # needs the Atlas MONGODB_URI in JobTrigger-Backend/.env
+SEED_REMOTE=false ./setup-dev.sh  # start without seeding
 ```
 
 This blocks the terminal running the backend in watch mode — leave it
 running and use a new terminal tab for the steps that follow. Stop it later
-with `Ctrl+C` then `./stop-dev.sh`.
+with `Ctrl+C`.
 
 **Option B — manual steps:**
 
 ```bash
-# 1a. Start MongoDB (skip if using MongoDB Atlas — set MONGODB_URI in .env instead)
-docker compose up -d
-
-# 1b. Install deps and start the backend
+# MONGODB_URI in JobTrigger-Backend/.env points at Atlas
 cd JobTrigger-Backend
 npm install
 npm run dev
 ```
-
-`docker compose up -d` starts a `mongo:8` container on `localhost:27017`
-(matching `JobTrigger-Backend/.env`'s `MONGODB_URI`), with data persisted in
-a named Docker volume. `docker compose down` stops it (data persists);
-`docker compose down -v` also wipes the volume.
 
 The backend listens on `http://127.0.0.1:5001` by default. Confirm it's up:
 
