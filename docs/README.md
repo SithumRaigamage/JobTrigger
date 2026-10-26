@@ -18,6 +18,7 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 - **[Data Models](./data-models.md)** — Every model: Swift → Dart, old → new
 - **[State Management](./state-management.md)** — Riverpod provider structure per feature
 - **[Migration Strategy](./migration-strategy.md)** — Phased rollout, parity checklist, QA gates
+- **[Website Architecture](./web-architecture.md)** — `JobTrigger-Web/` (Next.js): stack, layers, the no-secrets-in-the-browser rule, conventions
 
 ## 🗄️ Database
 

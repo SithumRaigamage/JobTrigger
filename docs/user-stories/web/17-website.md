@@ -1,8 +1,9 @@
 # Epic: WEB — JobTrigger Website (marketing + setup portal)
 
-This epic is **new scope** added on 2026-10-24. It is docs-only and **not
-promoted or implemented**. It needs its own task phase and approval before
-any code is written (`CLAUDE.md` §9).
+This epic is **new scope** added on 2026-10-24. It was **promoted on
+2026-10-26** to [Phase 15](../../../tasks/phase-15-website.md), with
+Next.js approved and the website's conventions in
+[`docs/web-architecture.md`](../../web-architecture.md).
 
 **Why it exists.** Users run JobTrigger on their phone, but their Jenkins,
 GitHub, and SonarQube tokens are created in a browser on their laptop.
@@ -431,12 +432,13 @@ So that servers I add here appear in the app
   Then `/sign-up` creates one via `POST /api/auth/signup`, with the same
   validation rules as the app (US-AUTH-01)
 - Scenario: Wrong credentials
-  Then I see "Email or password is incorrect" (`AuthFailure` copy), never a
-  raw backend message or status code
+  Given the backend answers `400 { message: "Invalid credentials" }`
+  Then I see "Invalid credentials" (`RejectedRequestFailure` copy, the
+  backend's user-facing message, as in the app), never a status code
 - Scenario: Too many attempts
-  Given the backend's login rate limiter rejects the request
-  Then I see "Too many attempts, try again in a few minutes"
-  (`RateLimitFailure` copy)
+  Given the backend's login rate limiter rejects the request (429)
+  Then I see "Too many attempts. Please wait a few minutes and try again."
+  (`ServerFailure(429)` copy, as in the app)
 - Scenario: Token refresh
   Given my 15-minute access token expires while I'm using the portal
   Then the Next.js server refreshes it via `POST /api/auth/refresh` without
@@ -482,8 +484,9 @@ So that I know what's already configured
   Given I have nothing set up
   Then each group shows an "Add" call to action
 - Scenario: Backend unavailable
-  Then I see "Can't reach JobTrigger right now" (`NetworkFailure` /
-  `ServerFailure` copy) with a retry button
+  Then I see the app's `NetworkFailure` copy ("Can't reach the server.
+  Check your connection and try again.") or `ServerFailure` copy (with
+  its request reference) and a retry button
 
 **Security & Privacy Notes**
 - Masking happens on the Next.js server (see the epic's architecture
@@ -626,8 +629,8 @@ So that I can rotate tokens and clean up old servers from my laptop
   runs and the list updates
 - Scenario: Not found
   Given the server was deleted elsewhere (for example in the app)
-  Then I see "This server no longer exists" (`NotFoundFailure` copy) and
-  return to the list
+  Then I see "That couldn't be found — it may have been removed."
+  (`NotFoundFailure` copy) and return to the list
 
 **Security & Privacy Notes**
 - Edit and delete requests are CSRF-protected, as in US-WEB-10.
@@ -843,8 +846,8 @@ So that I can do it from a laptop as well as the app
   Then `DELETE /api/auth/account` runs, I'm signed out, and I see a
   confirmation that all my saved servers were removed
 - Scenario: Rate limited
-  Then the backend's limiter on both endpoints maps to `RateLimitFailure`
-  copy
+  Then the backend's limiter (429) on both endpoints maps to
+  `ServerFailure(429)` copy, as in the app
 
 **Security & Privacy Notes**
 - Both actions require the current password even with a valid session.
