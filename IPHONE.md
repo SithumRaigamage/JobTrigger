@@ -17,7 +17,8 @@ step 5 covers Jenkins.
 ## What you need
 
 - iPhone and Mac on the **same Wi-Fi**.
-- A USB cable for the first install.
+- A USB cable **once**, to pair the iPhone with this Mac. After that, installs
+  can go over Wi-Fi ([3.1](#31-install-without-the-cable-wireless)).
 - The backend set up once: [`docs/mongodb-cloud-setup.md`](docs/mongodb-cloud-setup.md)
   (Atlas) and [`docs/dev-setup.md`](docs/dev-setup.md).
 - Xcode signed in to the Apple ID for team `QRCA2Z2HYQ` (step 1).
@@ -25,9 +26,30 @@ step 5 covers Jenkins.
 ## 1. Prepare the iPhone and Xcode (once)
 
 1. Connect the iPhone by cable, unlock it and tap **Trust This Computer**.
-2. On the iPhone: **Settings → Privacy & Security → Developer Mode → On**
-   (the phone restarts).
-3. Open the project in Xcode:
+2. **Pair it for development.** "Trust This Computer" only allows files and
+   charging; installing apps needs a second, separate pairing with Xcode.
+   Keep the phone unlocked on the cable, then:
+   - Xcode → **Window → Devices and Simulators** (`⇧⌘2`) → select the
+     iPhone on the left.
+   - Click **Pair** (or **Use for Development**) if Xcode offers it, then
+     tap **Trust** on the phone and enter its passcode.
+   - Wait while Xcode shows **"Preparing … for development"**: 5–15
+     minutes the first time. Keep the phone unlocked until it finishes.
+3. On the iPhone: **Settings → Privacy & Security → Developer Mode → On**
+   (it appears after step 2). The phone restarts; confirm **Turn On**.
+4. Optional, for installing without the cable: in the same Xcode window,
+   tick **Connect via network** for the iPhone (recent Xcode does this
+   after pairing; a network icon shows next to the phone).
+5. Check that Flutter can use it:
+
+   ```bash
+   flutter devices    # lists "<your iPhone> (mobile)"
+   ```
+
+   Xcode can show the phone as *available* while Flutter still refuses it
+   as **"not paired with this Mac for development"**: that means step 2
+   isn't done.
+6. Open the project in Xcode:
 
    ```bash
    open JobTrigger-Frontend/ios/Runner.xcworkspace
@@ -94,6 +116,22 @@ flutter run --profile --dart-define-from-file=config/device.json -d "<iPhone>"
 > **Not `--release`.** A release build refuses an `http://` backend on
 > purpose (AUD-43) and stops at launch. Release builds wait for the backend
 > to be deployed on `https://` ([`docs/deployment.md`](docs/deployment.md)).
+
+### 3.1 Install without the cable (wireless)
+
+Once the iPhone is paired (step 1, including **Connect via network**), new
+builds can go over Wi-Fi:
+
+1. Unplug the cable. Keep the iPhone **unlocked** and on the **same Wi-Fi**
+   as the Mac.
+2. Check it's listed: `flutter devices` shows `<your iPhone> (wireless)`.
+3. Install as usual: `scripts/run-on-iphone.sh`. Flutter lists a wireless
+   iPhone like a cabled one; if the script doesn't pick it, name it:
+   `DEVICE="<your iPhone>" scripts/run-on-iphone.sh`.
+
+Over Wi-Fi the first install is slower than over the cable, and hot reload
+(`MODE=debug`) works with a short delay. If the phone drops off the list,
+unlock it and check its Wi-Fi; the cable always works as a fallback.
 
 ## 4. First launch on the phone
 
@@ -163,13 +201,30 @@ Router restarts and different networks change the Mac's IP. Then:
 
 Check the current address any time with `ipconfig getifaddr en0`.
 
-## 7. Troubleshooting
+## 7. How long an install keeps working
+
+- **Away from the cable:** a profile build opens from the home screen
+  without the Mac attached. A debug build may not, on recent iOS.
+- **Away from the Mac:** the app still needs the backend (and Jenkins) on
+  your Mac, running, with the phone on the **same Wi-Fi**. On mobile data
+  or another network it can't reach them.
+- **Expiry:** with the paid team (`QRCA2Z2HYQ`) the install keeps opening
+  for about a year. With a free (personal) Apple ID it stops opening after
+  **7 days**; run `scripts/run-on-iphone.sh` again to reinstall.
+- **Anywhere, no Mac:** that's **TestFlight**. It needs a release build,
+  and release builds refuse `http://` (AUD-43), so it waits until the
+  backend is deployed on `https://` ([`docs/deployment.md`](docs/deployment.md)).
+
+## 8. Troubleshooting
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
 | Script: "No Wi-Fi address found" | The Mac isn't on Wi-Fi (or uses another interface) | Join the Wi-Fi, or `BACKEND_HOST=<IP> scripts/run-on-iphone.sh` |
 | Script: "The backend doesn't answer" | Backend not started, or crashed | `./setup-dev.sh` in another terminal; read its last line |
-| Script: "No iPhone found" | Locked, untrusted, or Developer Mode off | Step 1; then `flutter devices` should list it |
+| Script: "No iPhone found" | Locked, untrusted, not paired for development, or Developer Mode off | Step 1; then `flutter devices` should list it |
+| `flutter devices`: "not paired with this Mac for development" (code -29) | "Trust This Computer" was done, but not Xcode's pairing | Step 1.2. Still stuck? On the phone: **Settings → General → Transfer or Reset iPhone → Reset → Reset Location & Privacy** (privacy settings and trusted computers only, not your data), replug, **Trust**, pair again |
+| Wireless iPhone missing from `flutter devices` | Phone locked, on another Wi-Fi, or **Connect via network** off | Unlock it; same Wi-Fi; step 1.4; or use the cable |
+| App won't open after a week | Installed with a free Apple ID (7-day limit) | Reinstall: `scripts/run-on-iphone.sh` (section 7) |
 | App: can't connect / login spins | Phone on another Wi-Fi (or mobile data), Local Network off, or the IP changed | Same Wi-Fi; step 4; step 6 |
 | Safari on the phone can't open `http://<Mac IP>:5001/healthz` | The phone can't reach the Mac at all | Same Wi-Fi; some guest and office networks block devices from seeing each other — use a home network or the iPhone's hotspot for the Mac |
 | Safari can't open Jenkins (`:8080`) | Published to `127.0.0.1` only, or not running | 5.1 (`-p 8080:8080`); `docker ps` |
