@@ -86,3 +86,14 @@ each, every one reviewed by the owner; P17-02 dropped (decision 4).
 - **Owner action open:** create the production cluster with the
   "Database" checklist in `docs/deployment.md` once the backend host is
   chosen.
+
+## After the merge (2026-10-26)
+
+GitHub secret scanning opened 9 alerts (`mongodb_atlas_db_uri_with_credentials`)
+on Phase 17's test fixtures and the Atlas guide's example: realistic
+`user:password@….mongodb.net` strings, all made up (the owner's cluster
+host appears nowhere in the repository). Fixed on `fix/mongodb-uri-fixtures`:
+fixtures use `example.net` hosts and `<…>` placeholder passwords, docs use
+`<user>:<password>@<cluster>.<id>.mongodb.net`, and the AUD-66 scan gains a
+`mongodb-uri` rule that fails `npm test` on any MongoDB URI whose password
+isn't a placeholder (`<…>`, `${…}`, `***`).
