@@ -71,7 +71,7 @@ runs are the merge gate.
 - [x] P15-09 Security (design 04; US-WEB-05).
 - [x] P15-10 Privacy policy, terms, support (designs 05, 06; US-WEB-06).
       Placeholders stay bracketed until the owner supplies them.
-- [ ] P15-11 Changelog (designs 07 / 21; US-WEB-08).
+- [x] P15-11 Changelog (designs 07 / 21; US-WEB-08).
 - [ ] P15-12 Link previews and search (US-WEB-07): metadata, Open Graph
       images, `sitemap.xml`, `robots.txt` (portal disallowed).
 

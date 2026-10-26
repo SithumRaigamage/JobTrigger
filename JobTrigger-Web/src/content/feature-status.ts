@@ -21,6 +21,11 @@ type Feature = {
   status: FeatureStatus;
   /** Why it has this status — the task-tracker evidence. */
   source: string;
+  /**
+   * Plain-language changelog lines (US-WEB-08). The upcoming entries are
+   * built from these: `live` → Ships, `beta` → Beta, `soon` → Next.
+   */
+  changelog?: readonly string[];
 };
 
 export const features = {
@@ -28,11 +33,18 @@ export const features = {
     label: "Jenkins: browse, trigger, logs, history, stages, tests",
     status: "live",
     source: "Phases 4, 5, 7 done",
+    changelog: [
+      "Jenkins: browse jobs, trigger with any parameter, live logs, stages, tests and history",
+    ],
   },
   "jenkins-extended": {
     label: "Jenkins: notifications, pinned jobs, widget, nodes, queue, app lock",
     status: "live",
     source: "Phase 11 done",
+    changelog: [
+      "Build notifications, pinned jobs and the home-screen widget",
+      "Nodes, queue, views and multibranch; Face ID / fingerprint app lock",
+    ],
   },
   "app-stores": {
     label: "App on the App Store and Google Play",
@@ -51,11 +63,13 @@ export const features = {
     label: "GitHub Actions (the tool)",
     status: "beta",
     source: "P8 GH-CRED + GH-REPO done; runs pending",
+    changelog: ["GitHub Actions: accounts, repositories and workflows"],
   },
   "github-runs": {
     label: "GitHub: runs, logs, history",
     status: "soon",
     source: "P8 in progress (11 of 28)",
+    changelog: ["GitHub Actions runs, logs and history"],
   },
   "sonarqube-save": {
     label: "SonarQube: save a server",
@@ -66,21 +80,25 @@ export const features = {
     label: "SonarQube: projects, quality gates, measures, issues",
     status: "soon",
     source: "P10 in progress (6 of 16)",
+    changelog: ["SonarQube projects, quality gates, measures and issues"],
   },
   "web-portal": {
     label: "Website: sign in, add/edit/delete servers, set active, account",
     status: "live",
     source: "Backend endpoints exist",
+    changelog: ["Set up servers from your laptop on this website"],
   },
   "web-test-connection": {
     label: "Website: test connection",
     status: "soon",
     source: "US-WEB-19 needs a new backend endpoint (backend track)",
+    changelog: ["Test connection from the website"],
   },
   "password-reset": {
     label: "Password reset",
     status: "soon",
     source: "Deferred, US-AUTH-08 in tasks/backlog.md",
+    changelog: ["Password reset by email"],
   },
   "gitlab-ci": {
     label: "GitLab CI",

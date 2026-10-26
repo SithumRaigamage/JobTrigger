@@ -7,6 +7,8 @@ type Surface = "light" | "dark";
 const containerWidths = {
   /** 1240 px: most pages. */
   page: "max-w-310",
+  /** 1040 px: Changelog. */
+  medium: "max-w-260",
   /** 960 px: Support. */
   narrow: "max-w-240",
 };
