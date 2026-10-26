@@ -18,6 +18,8 @@
   --card: #ffffff;
   --raised: #f1f5f9;
   --line: #e2e8f0;
+  --line-strong: #cbd5e1;
+  --band: #f1f5f9;
   --fg: #0f172a;
   --fg-secondary: #334155;
   --muted: #475569;
@@ -44,6 +46,9 @@
   --card: #111a2b;
   --raised: #1e293b;
   --line: #1f2a3d;
+  --line-strong: #334155;
+  /* The app's nav-bar colour; the logo strip under the hero. */
+  --band: #0f172a;
   --fg: #f1f5f9;
   --fg-secondary: #cbd5e1;
   --muted: #94a3b8;
@@ -73,6 +78,8 @@
   --color-card: var(--card);
   --color-raised: var(--raised);
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-band: var(--band);
   --color-fg: var(--fg);
   --color-fg-secondary: var(--fg-secondary);
   --color-muted: var(--muted);
@@ -97,7 +104,6 @@
   /* Brand colours appear only on a tool's own logo tile. */
   --color-brand-jenkins: #d33833;
   --color-brand-sonarqube: #126ed3;
-  --color-brand-github: #0f172a;
   --color-on-brand: #ffffff;
   --color-live-dot: #22c55e;
 
@@ -131,6 +137,9 @@
   --radius-panel: 22px;
 
   --shadow-card: var(--card-shadow);
+  /* Floating illustration pieces on dark sections. */
+  --shadow-float: 0 20px 40px rgb(0 0 0 / 0.4);
+  --shadow-device: 0 40px 80px rgb(0 0 0 / 0.5);
 }
 
 /* Dot-grid backdrop for dark sections: 1px dots on a 28px grid. */

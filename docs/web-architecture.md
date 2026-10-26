@@ -169,6 +169,11 @@ One strict policy on every page (owner decision 2026-10-26):
   new portal paths there).
 - The header builders live in `src/security-headers.ts`, outside
   `server/`, because `next.config.ts` can't import `server-only`.
+- **No inline `style` attributes, so no `next/image`.** It always adds
+  `style="color:transparent"`, which the CSP blocks (found in P15-06a).
+  Use `components/static-image.tsx` with a static import from
+  `src/assets/`; it keeps the intrinsic size, so layout doesn't shift. The
+  same applies to any `style={…}` prop: use Tailwind classes.
 
 **Why every page renders per request, and `cacheComponents` is off.** The
 App Router emits inline scripts on every page, so a CSP without

@@ -1,85 +1,12 @@
-import { Button } from "@/components/button";
-import { FeatureAction } from "@/components/feature-action";
-import { Card, Container, Kicker, Section } from "@/components/layout";
-import { StatusBadge } from "@/components/status-badge";
+import { Hero } from "@/features/marketing/home/hero";
+import { ToolStrip } from "@/features/marketing/home/tool-strip";
 
-// Token sample page (P15-02): every primitive on both surfaces, for
-// checking against UI-UX/Web. Replaced by the home page in P15-06.
-
-const statuses = [
-  { label: "Success", bg: "bg-success-bg", fg: "text-success-fg" },
-  { label: "Failed", bg: "bg-failed-bg", fg: "text-failed-fg" },
-  { label: "Unstable", bg: "bg-unstable-bg", fg: "text-unstable-fg" },
-  { label: "Running", bg: "bg-running-bg", fg: "text-running-fg" },
-  { label: "Aborted", bg: "bg-neutral-bg", fg: "text-neutral-fg" },
-] as const;
-
-function Sample({ heading }: { heading: string }) {
-  return (
-    <Container className="flex flex-col gap-8 py-20">
-      <div className="flex flex-col gap-4">
-        <Kicker>Design tokens</Kicker>
-        <h2 className="text-h2">{heading}</h2>
-        <p className="max-w-155 text-lg text-muted">
-          Inter for interface text; <span className="font-mono text-fg">JetBrains Mono #1428</span>{" "}
-          for what a CI tool printed. <a href="#top">A link</a>.
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-3">
-        <Button size="lg">Primary</Button>
-        <Button size="lg" variant="secondary">
-          Secondary
-        </Button>
-        <Button size="lg" variant="ghost">
-          Ghost
-        </Button>
-        <Button size="lg" disabled>
-          Disabled
-        </Button>
-      </div>
-      <Card className="flex flex-col gap-4 p-6">
-        <p className="font-semibold">Card</p>
-        <ul className="flex flex-wrap gap-2">
-          {statuses.map((status) => (
-            <li
-              key={status.label}
-              className={`rounded-full px-3 py-1 text-sm font-semibold ${status.bg} ${status.fg}`}
-            >
-              {status.label}
-            </li>
-          ))}
-        </ul>
-      </Card>
-      <div className="flex flex-col gap-4">
-        <p className="flex flex-wrap items-center gap-2 font-semibold">
-          GitHub Actions <StatusBadge feature="github-runs" /> SonarQube{" "}
-          <StatusBadge feature="sonarqube-insights" size="md" /> GitLab CI{" "}
-          <StatusBadge feature="gitlab-ci" />
-        </p>
-        <FeatureAction
-          feature="web-test-connection"
-          label="Test connection"
-          reason="You can test the connection from the app after saving."
-        >
-          <Button size="lg">Test connection</Button>
-        </FeatureAction>
-      </div>
-    </Container>
-  );
-}
-
+// Home (designs 01 / 18). Sections arrive in P15-06a–d.
 export default function HomePage() {
   return (
-    <main id="top" className="flex flex-1 flex-col">
-      <Section surface="dark" dotGrid className="border-b border-line">
-        <Container className="pt-24">
-          <h1 className="text-display">Trigger. Watch. Fix.</h1>
-        </Container>
-        <Sample heading="Dark surface" />
-      </Section>
-      <Section surface="light">
-        <Sample heading="Light surface" />
-      </Section>
+    <main className="flex flex-1 flex-col">
+      <Hero />
+      <ToolStrip />
     </main>
   );
 }
