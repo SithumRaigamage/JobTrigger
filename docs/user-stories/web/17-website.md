@@ -619,9 +619,10 @@ So that I can rotate tokens and clean up old servers from my laptop
 **Acceptance Criteria**
 - Scenario: Edit without re-entering the token
   Given I open a server's edit form
-  Then the token field is empty with "Leave blank to keep the current
-  token". If I leave it blank, the Next.js server sends the existing value
-  it read server-side, which never goes to the browser
+  Then the token field is empty with "Leave blank to keep the saved
+  token". If I leave it blank, the Next.js server leaves the token out of
+  the update, so the backend keeps the saved one; the website never reads
+  it (owner decision 2026-10-26, P15-18)
 - Scenario: Rotate a token
   Given I paste a new token
   Then `PUT /api/<type>/:id` saves it

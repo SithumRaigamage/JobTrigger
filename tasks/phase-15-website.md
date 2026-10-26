@@ -136,6 +136,23 @@ Still open — owner actions, not development:
   security/privacy emails, reply days, backup retention, legal date) and
   legal review of the privacy policy and the drafted terms.
 - **P15-24** store links and QR code, once the app is listed.
-- **Review the decisions taken during the run**, listed in the PR
-  description (e.g. http to container service names, github-actions vs
-  github-runs, the #EFF6FF kicker).
+
+## Decisions confirmed by the owner (2026-10-26)
+
+Taken during the unattended run, then put to the owner one by one; all
+kept as built:
+
+1. One strict nonce CSP on every page; `cacheComponents` off, no page
+   caching (P15-03).
+2. Plain http to the backend only for loopback and single-label container
+   service names; every other host needs https (P15-13, P15-23).
+3. The drafted Terms of use stays, marked for legal review (P15-10).
+4. The setup band's kicker is `#EFF6FF` (the design's `#DBEAFE` fails AA)
+   (P15-06c).
+5. `github-actions` (beta) and `github-runs` (soon) stay separate (P15-08).
+6. A blank token on edit is left out of the update; the site never reads
+   the saved secret (P15-18; US-WEB-15 updated to match).
+7. Error wording is the app's, not the mock-ups' (P15-00, P15-14+).
+8. Kept differences from the mock-ups: the confirm-password field, the
+   compact phone sidebar, the sign-up "coming soon" line, and the header
+   not sticky on phones.
