@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseConfig } from "./config";
+import { getSiteUrl, parseConfig } from "./config";
 
 const secret = "s".repeat(32);
 
@@ -76,5 +76,19 @@ describe("parseConfig", () => {
 
     expect(message).toContain("SESSION_SECRET: must be at least 32 characters");
     expect(message).not.toContain(short);
+  });
+});
+
+describe("getSiteUrl", () => {
+  it("defaults to the local dev URL and needs no portal secrets", () => {
+    expect(getSiteUrl({})).toBe("http://localhost:3000");
+  });
+
+  it("trims a trailing slash", () => {
+    expect(getSiteUrl({ SITE_URL: "https://jobtrigger.app/" })).toBe("https://jobtrigger.app");
+  });
+
+  it("rejects a malformed URL", () => {
+    expect(() => getSiteUrl({ SITE_URL: "not a url" })).toThrow("SITE_URL");
   });
 });

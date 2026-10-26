@@ -245,7 +245,7 @@ fails at startup if anything is missing. Nothing secret is ever
 | `SESSION_SECRET` | `iron-session` encryption key, 32+ characters |
 | `SITE_URL` | Canonical URL for link previews and the sitemap (US-WEB-07); defaults to `http://localhost:3000` |
 
-All three are read at runtime on the server. `SITE_URL` is deliberately
+All three are read at runtime on the server. `SITE_URL` alone is also available through `getSiteUrl()`, which metadata, `robots.txt` and the sitemap use, so marketing pages work on a deploy without the portal's secrets. `SITE_URL` is deliberately
 not `NEXT_PUBLIC_*`: those are inlined at build time, which would tie one
 Docker image (P15-23) to one environment. Validation runs on first use,
 not at import, so `next build` works without the portal's secrets.

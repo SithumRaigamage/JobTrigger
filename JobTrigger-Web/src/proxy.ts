@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { contentSecurityPolicy, createNonce, isNoStorePath } from "./security-headers";
 
 /**
- * Sets the per-request CSP nonce (and `no-store` on portal paths). Headers
+ * Sets the per-request CSP nonce (and `no-store` + `noindex` on portal paths). Headers
  * only: the proxy is skipped for prefetches and assets, so it must never be
  * the place an access check lives — server actions check the session
  * themselves (P15-13, P15-15).
@@ -21,6 +21,8 @@ export function proxy(request: NextRequest) {
   response.headers.set("Content-Security-Policy", csp);
   if (isNoStorePath(request.nextUrl.pathname)) {
     response.headers.set("Cache-Control", "no-store");
+    // US-WEB-07: portal pages are never indexed, even if linked from outside.
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
   }
   return response;
 }

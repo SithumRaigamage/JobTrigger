@@ -1,14 +1,15 @@
-import type { Metadata } from "next";
 import { connection } from "next/server";
 
+import { pageMetadata } from "@/features/marketing/page-metadata";
 import { IntegrationsView } from "@/features/marketing/integrations/integrations-view";
 import { getAppInfo } from "@/server/app-info";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Integrations",
   description:
     "Jenkins, GitHub Actions and SonarQube in JobTrigger: what works today, and what's coming.",
-};
+  path: "/integrations",
+});
 
 export default async function IntegrationsPage() {
   // Pages render alongside the root layout, so its connection() doesn't stop

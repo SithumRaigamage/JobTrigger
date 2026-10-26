@@ -75,3 +75,16 @@ export function getConfig(): AppConfig {
   cached ??= parseConfig(process.env);
   return cached;
 }
+
+const siteUrlSchema = z.url().default("http://localhost:3000");
+
+/**
+ * Just the public site URL, for metadata, the sitemap and robots.txt. Kept
+ * apart from getConfig() so marketing pages work on a deploy that has no
+ * portal secrets yet.
+ */
+export function getSiteUrl(env: Record<string, string | undefined> = process.env): string {
+  const result = siteUrlSchema.safeParse(env.SITE_URL);
+  if (!result.success) throw new Error("Invalid website configuration — SITE_URL: invalid URL");
+  return result.data.replace(/\/+$/, "");
+}

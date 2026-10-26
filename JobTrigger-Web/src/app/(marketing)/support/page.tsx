@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
 import { connection } from "next/server";
 
+import { pageMetadata } from "@/features/marketing/page-metadata";
 import { SupportView } from "@/features/marketing/support/support-view";
 import { getAppInfo } from "@/server/app-info";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Support",
   description: "Answers to common JobTrigger setup problems, and how to reach support.",
-};
+  path: "/support",
+});
 
 export default async function SupportPage() {
   // Calls the backend: wait for a request (docs/web-architecture.md §5).
