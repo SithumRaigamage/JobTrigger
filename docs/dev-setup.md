@@ -96,6 +96,18 @@ flutter run --dart-define-from-file=config/dev.json -d "iPhone Air"
 flutter run
 ```
 
+### Terminal 2b: Website (Optional)
+
+The Next.js site in `JobTrigger-Web/` (Phase 15). Node 24; see its
+[README](../JobTrigger-Web/README.md) for environment variables.
+
+```bash
+cd JobTrigger-Web
+npm install          # first time
+npm run dev          # http://localhost:3000 — backend stays on :5001
+npm run check        # before committing: format, lint, types, tests, build
+```
+
 ### Terminal 3: Seed Data / Testing (Optional)
 
 ```bash

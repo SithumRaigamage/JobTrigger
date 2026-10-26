@@ -1,0 +1,182 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens (docs/web-architecture.md §6), from UI-UX/README.md
+ * "Design tokens" and UI-UX/Web/README.md.
+ *
+ * Two colour sets with the same names: light on :root, dark under
+ * [data-surface="dark"]. The site has no OS-driven dark mode — the
+ * approved designs use fixed dark sections (hero, download band, portal
+ * sidebar). A component inside <Section surface="dark"> picks up the dark
+ * values with no code of its own.
+ */
+
+:root,
+[data-surface="light"] {
+  --page: #f8fafc;
+  --sunken: #f1f5f9;
+  --card: #ffffff;
+  --raised: #f1f5f9;
+  --line: #e2e8f0;
+  --line-strong: #cbd5e1;
+  --band: #f1f5f9;
+  --fg: #0f172a;
+  --fg-secondary: #334155;
+  --muted: #475569;
+  --link: #1d4ed8;
+  --link-hover: #1e40af;
+  --card-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+
+  --success-bg: #dcfce7;
+  --success-fg: #15803d;
+  --failed-bg: #fee2e2;
+  --failed-fg: #b91c1c;
+  --unstable-bg: #ffedd5;
+  --unstable-fg: #c2410c;
+  --running-bg: #dbeafe;
+  --running-fg: #1d4ed8;
+  --neutral-bg: #f1f5f9;
+  --neutral-fg: #334155;
+}
+
+[data-surface="dark"] {
+  --page: #0b1120;
+  /* The app's console colour; the footer's backdrop. */
+  --sunken: #060a14;
+  --card: #111a2b;
+  --raised: #1e293b;
+  --line: #1f2a3d;
+  --line-strong: #334155;
+  /* The app's nav-bar colour; the logo strip under the hero. */
+  --band: #0f172a;
+  --fg: #f1f5f9;
+  --fg-secondary: #cbd5e1;
+  --muted: #94a3b8;
+  --link: #93c5fd;
+  --link-hover: #bfdbfe;
+  --card-shadow: none;
+
+  --success-bg: #0f2e1f;
+  --success-fg: #86efac;
+  --failed-bg: #3a1418;
+  --failed-fg: #fca5a5;
+  --unstable-bg: #3a2210;
+  --unstable-fg: #fdba74;
+  --running-bg: #10284a;
+  --running-fg: #93c5fd;
+  --neutral-bg: #1e293b;
+  --neutral-fg: #cbd5e1;
+}
+
+@theme inline {
+  /* Only token colours exist: Tailwind's default palette is removed, so
+     `bg-blue-500` doesn't compile to anything. */
+  --color-*: initial;
+
+  --color-page: var(--page);
+  --color-sunken: var(--sunken);
+  --color-card: var(--card);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-band: var(--band);
+  --color-fg: var(--fg);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-muted: var(--muted);
+  --color-link: var(--link);
+  --color-link-hover: var(--link-hover);
+
+  --color-success-bg: var(--success-bg);
+  --color-success-fg: var(--success-fg);
+  --color-failed-bg: var(--failed-bg);
+  --color-failed-fg: var(--failed-fg);
+  --color-unstable-bg: var(--unstable-bg);
+  --color-unstable-fg: var(--unstable-fg);
+  --color-running-bg: var(--running-bg);
+  --color-running-fg: var(--running-fg);
+  --color-neutral-bg: var(--neutral-bg);
+  --color-neutral-fg: var(--neutral-fg);
+
+  /* The same on both surfaces. White on the accent is 5.2:1. */
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-on-accent: #ffffff;
+  /* Secondary text on the accent (the setup band's kicker). The design's
+     #dbeafe is 4.24:1 on the accent, below AA; #eff6ff is 4.75:1. */
+  --color-on-accent-muted: #eff6ff;
+  /* Brand colours appear only on a tool's own logo tile. */
+  --color-brand-jenkins: #d33833;
+  --color-brand-sonarqube: #126ed3;
+  --color-on-brand: #ffffff;
+  --color-live-dot: #22c55e;
+  /* Behind modal dialogs: ::backdrop doesn't inherit a section's tokens. */
+  --color-scrim: rgb(11 17 32 / 0.6);
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Headlines scale down to fit 360 px (WEB-B4). */
+  --text-display: clamp(2.75rem, 1.4rem + 5.6vw, 5rem);
+  --text-display--line-height: 0.98;
+  --text-display--letter-spacing: -0.045em;
+  --text-display--font-weight: 800;
+  --text-h1: clamp(2.5rem, 1.5rem + 4.2vw, 4.25rem);
+  --text-h1--line-height: 1.02;
+  --text-h1--letter-spacing: -0.045em;
+  --text-h1--font-weight: 800;
+  --text-h2: clamp(2rem, 1.5rem + 2.2vw, 2.75rem);
+  --text-h2--line-height: 1.08;
+  --text-h2--letter-spacing: -0.035em;
+  --text-h2--font-weight: 800;
+  --text-h3: 1.875rem;
+  --text-h3--line-height: 1.15;
+  --text-h3--letter-spacing: -0.03em;
+  --text-h3--font-weight: 800;
+  --text-kicker: 0.8125rem;
+  --text-kicker--line-height: 1.2;
+  --text-kicker--letter-spacing: 0.08em;
+  --text-kicker--font-weight: 700;
+
+  --radius-control: 12px;
+  --radius-card: 18px;
+  --radius-panel: 22px;
+
+  --shadow-card: var(--card-shadow);
+  /* Floating illustration pieces on dark sections. */
+  --shadow-float: 0 20px 40px rgb(0 0 0 / 0.4);
+  --shadow-device: 0 40px 80px rgb(0 0 0 / 0.5);
+  /* A card lifted off a light page (Integrations tool cards). */
+  --shadow-lift: 0 20px 40px rgb(15 23 42 / 0.12);
+}
+
+/* Dot-grid backdrop for dark sections: 1px dots on a 28px grid. */
+@utility bg-dot-grid {
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+@layer base {
+  body {
+    background-color: var(--page);
+    color: var(--fg);
+  }
+
+  /* A section sets its own background so nested surfaces paint correctly. */
+  [data-surface] {
+    background-color: var(--page);
+    color: var(--fg);
+  }
+
+  a {
+    color: var(--link);
+  }
+
+  a:hover {
+    color: var(--link-hover);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}

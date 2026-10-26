@@ -55,10 +55,12 @@ creating) its task entry first, and update the task's status when done.
 | Biometric auth | `local_auth` | Added in Phase 11 (P11-25, approved 2026-09-29) — the optional app lock (US-JX-21): Face ID / fingerprint with the device passcode as fallback. Gates the UI only; secrets stay in secure storage either way. |
 | Home-screen widget | `home_widget` | Added in Phase 11 (P11-26, approved 2026-09-29) — hands the pinned-jobs snapshot (US-JX-23) to the native widgets: an iOS WidgetKit extension (`ios/PinnedJobsWidget`, App Group `group.Sraig.Lab-Trigger-frontend`) and an Android `AppWidgetProvider`. The widgets never call Jenkins and hold no credentials. |
 | External links | `url_launcher` | Added in Phase 6 (P6-02) — the app info screen opens privacy policy/terms/licenses URLs and a `mailto:` support link, matching `AppInfoView.swift`'s `openURL` usage exactly. |
+| Website | Next.js (App Router) + TypeScript, Tailwind CSS, `zod`, `iron-session` | Added in Phase 15 (P15-00, approved 2026-10-26) — the marketing site and setup portal in `JobTrigger-Web/` (epic WEB). A separate Node project; the Flutter rows above don't apply to it. Its stack, layers and rules are in `docs/web-architecture.md`. Hosted on Vercel first, Docker later. |
 
 Do not introduce a second state-management library, a second HTTP client, or
 a second routing package. If a task seems to require it, flag it instead of
-silently adding a dependency.
+silently adding a dependency. The same applies inside `JobTrigger-Web/`
+against the stack in `docs/web-architecture.md`.
 
 ## 4. Architecture in one paragraph
 
