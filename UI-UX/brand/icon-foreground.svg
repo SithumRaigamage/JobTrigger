@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <!-- Android adaptive foreground: the glyph only, scaled into the 66-unit safe zone. -->
+  <g transform="translate(54 54) scale(0.6) translate(-63.5 -64)">
+  <path d="M37 64 H48 M68 64 H78" fill="none" stroke="#60A5FA" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="28" cy="64" r="9" fill="none" stroke="#93C5FD" stroke-width="6"/>
+  <circle cx="58" cy="64" r="9" fill="none" stroke="#93C5FD" stroke-width="6"/>
+  <path d="M84 46 L84 82 L108 64 Z" fill="#4ADE80" stroke="#4ADE80" stroke-width="6" stroke-linejoin="round"/>
+  </g>
+</svg>

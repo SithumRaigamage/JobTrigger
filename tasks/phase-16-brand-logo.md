@@ -45,7 +45,7 @@ Source drawings in [`UI-UX/brand/`](../UI-UX/brand/), on a 128-unit grid:
 ## Tasks
 
 - [x] P16-00 Docs: this file and the Phase 16 row in `tasks/README.md`.
-- [ ] P16-01 Source drawings in `UI-UX/brand/` (full-square iOS icon,
+- [x] P16-01 Source drawings in `UI-UX/brand/` (full-square iOS icon,
       Android foreground, one-colour layer, rounded mark) and
       `scripts/export-icons.sh`. iOS PNGs carry no alpha channel (App
       Store rule).
