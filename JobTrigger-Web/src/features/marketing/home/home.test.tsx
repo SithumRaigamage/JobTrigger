@@ -4,8 +4,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { FeatureId, FeatureStatus } from "@/content/feature-status";
 
 import { Hero } from "./hero";
+import { SetupBand } from "./setup-band";
 import { Timeline } from "./timeline";
 import { ToolStrip } from "./tool-strip";
+import { Trust } from "./trust";
 
 const overrides: Partial<Record<FeatureId, FeatureStatus>> = {};
 
@@ -90,5 +92,37 @@ describe("Timeline", () => {
       "Stop refreshing. We’ll tell you.",
     ]);
     expect(screen.getAllByRole("img")).toHaveLength(4);
+  });
+});
+
+describe("SetupBand", () => {
+  it("sends people to set up a server and describes its illustration", () => {
+    render(<SetupBand />);
+
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
+      "Paste tokens on your laptop. Your phone already has them.",
+    );
+    expect(screen.getByRole("link", { name: "Set up a server →" })).toHaveAttribute(
+      "href",
+      "/sign-in",
+    );
+    expect(screen.getByRole("img", { name: /browser form with Jenkins details/ })).toBeVisible();
+  });
+});
+
+describe("Trust", () => {
+  it("lists four security facts and links to the security page", () => {
+    render(<Trust />);
+
+    expect(screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual([
+      "Encrypted at rest",
+      "Secure storage",
+      "Masked on the web",
+      "Direct to your CI",
+    ]);
+    expect(screen.getByRole("link", { name: "How we handle your tokens →" })).toHaveAttribute(
+      "href",
+      "/security",
+    );
   });
 });

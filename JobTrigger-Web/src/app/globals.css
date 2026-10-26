@@ -101,6 +101,9 @@
   --color-accent: #2563eb;
   --color-accent-hover: #1d4ed8;
   --color-on-accent: #ffffff;
+  /* Secondary text on the accent (the setup band's kicker). The design's
+     #dbeafe is 4.24:1 on the accent, below AA; #eff6ff is 4.75:1. */
+  --color-on-accent-muted: #eff6ff;
   /* Brand colours appear only on a tool's own logo tile. */
   --color-brand-jenkins: #d33833;
   --color-brand-sonarqube: #126ed3;

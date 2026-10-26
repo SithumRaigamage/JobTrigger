@@ -67,3 +67,7 @@ it("white on the accent is at least 4.5:1", () => {
   expect(contrast("#ffffff", "#2563eb")).toBeGreaterThanOrEqual(4.5);
   expect(contrast("#ffffff", "#1d4ed8")).toBeGreaterThanOrEqual(4.5);
 });
+
+it("on-accent-muted on the accent is at least 4.5:1", () => {
+  expect(contrast("#eff6ff", "#2563eb")).toBeGreaterThanOrEqual(4.5);
+});
