@@ -158,6 +158,68 @@ key once the run reports 0.
 Losing the key makes every stored credential unreadable (users would
 re-enter them), so back it up like the database.
 
+## Database (MongoDB Atlas, Phase 17)
+
+Every environment runs on MongoDB Atlas; there is no self-hosted MongoDB.
+Development is set up in [`mongodb-cloud-setup.md`](mongodb-cloud-setup.md).
+**Production is not created yet:** it waits for the backend host, because
+the cluster's region and network rule depend on it. When it is created,
+work through this list.
+
+### Before launch
+
+1. **Its own project.** A separate Atlas project `jobtrigger-prod`, never a
+   second database on the dev cluster. Dev credentials, people and
+   experiments then can't reach production.
+2. **Name it "prod".** Cluster `jobtrigger-prod`, user
+   `jobtrigger-prod-app`. The dev seed script refuses any URI with "prod" in
+   its user, cluster, database or `appName` (AUD-58, P17-04), so a mixed-up
+   `.env` can't write the published dev account into production.
+3. **A tier with backups.** Free M0 has none. Pick a paid tier with cloud
+   backups, and set a retention that matches what the privacy policy states
+   (`JobTrigger-Web/src/content/site-details.ts`, `backupRetention`).
+4. **Region** next to the backend host: every request makes at least one
+   round trip to the database.
+5. **Least-privilege user.** `jobtrigger-prod-app` gets `readWrite` on
+   `jobtrigger` only, with a generated password. People use their own Atlas
+   accounts, with multi-factor authentication, never the application user.
+6. **Network access.** Allow only the backend host's outbound IP addresses.
+   If the host has no fixed outbound IP, prefer a private connection (VPC
+   peering or a private endpoint, on tiers that offer it) over
+   `0.0.0.0/0`. Allowing everyone leaves only the password in the way.
+7. **The connection string is a secret.** `MONGODB_URI` goes in the host's
+   secret store next to `JWT_SECRET` and `CREDENTIALS_ENCRYPTION_KEY`:
+   never in the repository, an image, a CI log or a chat. The backend never
+   logs it (P17-03).
+8. **Keep the key with the backups.** A backup is only usable with the
+   `CREDENTIALS_ENCRYPTION_KEY` (and any previous keys) that encrypted it.
+   Store a copy of the key outside the host's secret store, and keep old
+   keys for as long as the backup retention.
+9. **Alerts.** Turn on Atlas alerts for connections, storage and replica
+   set elections, sent to someone who will act. `/healthz` answers 503
+   while the backend has no database connection (AUD-17), so the host's
+   health check catches an outage too.
+
+### Restore drill
+
+Before launch, then every few months: restore the latest snapshot into a
+temporary cluster, point a non-production backend at it with the
+production key, and check that you can log in and that saved credentials
+decrypt (no `needsReentry`). Delete the temporary cluster afterwards. A
+backup nobody has restored is a guess.
+
+### If the database password leaks
+
+1. Atlas → **Database Access** → `jobtrigger-prod-app` → **Edit Password**
+   → generate a new one. The old one stops working at once.
+2. Update `MONGODB_URI` in the host's secret store and redeploy.
+3. Check the project's **Activity Feed** and the database access history
+   for connections you don't recognise.
+4. If `CREDENTIALS_ENCRYPTION_KEY` may have leaked too, rotate it as in
+   "Backend secrets at rest" above. With both, a stolen copy of the
+   database can be decrypted, so tell users to rotate their Jenkins,
+   GitHub and SonarQube tokens.
+
 ## Website (`JobTrigger-Web/`, Phase 15)
 
 The Next.js site is its own deploy, separate from the app stores and the

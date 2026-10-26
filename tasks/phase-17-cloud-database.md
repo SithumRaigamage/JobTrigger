@@ -56,7 +56,7 @@ pastes connection strings.
 - [x] P17-04 Remove the local MongoDB: the compose service, `USE_DOCKER`
       in `setup-dev.sh` / `stop-dev.sh`, and every doc
       that describes a local database; the seed guard change of decision 6.
-- [ ] P17-05 `docs/deployment.md` "Database": the production checklist
+- [x] P17-05 `docs/deployment.md` "Database": the production checklist
       (paid tier with backups, region, network rule, secret handling,
       restore drill, leaked-password steps).
 
@@ -65,3 +65,24 @@ pastes connection strings.
 - Moving to PostgreSQL / Neon (decision 1).
 - Creating the production cluster (decision 3).
 - Running the backend tests against Atlas (decision 5).
+
+## Outcome (2026-10-26)
+
+P17-00, 01, 03, 04 and 05 built on `feat/atlas-database`, one commit
+each, every one reviewed by the owner; P17-02 dropped (decision 4).
+
+- **Running:** the owner's Atlas dev cluster (`jobtrigger-dev`, user
+  `jobtrigger-dev-app`) is connected; the backend logged
+  `server.mongo_connected`.
+- **Checked:** backend suite (the AUD-66 scan needs PR #52); the seed
+  guard refused a fake `jobtrigger-prod` URI with exit 1 before
+  connecting.
+- **Found along the way:** the AUD-66 secret scan had failed on `develop`
+  since PR #50 (website fixtures and design image ids), fixed separately
+  in PR #52.
+- **`.env.example`:** its `MONGODB_URI` example was updated and committed
+  by the owner (`3b36384`); the agent doesn't edit `.env*` files
+  (`CLAUDE.md` §8).
+- **Owner action open:** create the production cluster with the
+  "Database" checklist in `docs/deployment.md` once the backend host is
+  chosen.
