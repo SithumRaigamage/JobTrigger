@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { publicPages } from "./pages";
+
 // WEB-B1–B3 against the production build (see playwright.config.ts).
 
 test("pages send the strict CSP and baseline headers", async ({ page }) => {
@@ -23,24 +25,26 @@ test("every response gets a fresh nonce", async ({ request }) => {
   expect(await nonceOf()).not.toBe(await nonceOf());
 });
 
-test("the page runs under the CSP with no violations", async ({ page }) => {
-  const violations: string[] = [];
-  page.on("console", (message) => {
-    if (/Content Security Policy/i.test(message.text())) violations.push(message.text());
+for (const { path } of publicPages) {
+  test(`${path} runs under the CSP with no violations`, async ({ page }) => {
+    const violations: string[] = [];
+    page.on("console", (message) => {
+      if (/Content Security Policy/i.test(message.text())) violations.push(message.text());
+    });
+
+    await page.goto(path);
+
+    // React attaches its fiber keys to DOM nodes once it has hydrated the
+    // page, which only happens if the framework scripts were allowed to run.
+    await expect
+      .poll(() =>
+        page.evaluate(() => Object.keys(document.body).some((key) => key.startsWith("__react"))),
+      )
+      .toBe(true);
+    await page.evaluate(() => document.fonts.ready);
+    expect(violations).toEqual([]);
   });
-
-  await page.goto("/");
-
-  // React attaches its fiber keys to DOM nodes once it has hydrated the page,
-  // which only happens if the framework scripts were allowed to run.
-  await expect
-    .poll(() =>
-      page.evaluate(() => Object.keys(document.body).some((key) => key.startsWith("__react"))),
-    )
-    .toBe(true);
-  await page.evaluate(() => document.fonts.ready);
-  expect(violations).toEqual([]);
-});
+}
 
 test("portal paths are never cached", async ({ request }) => {
   const response = await request.get("/servers");

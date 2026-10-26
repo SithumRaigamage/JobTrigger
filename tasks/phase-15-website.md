@@ -66,7 +66,7 @@ runs are the merge gate.
 - [x] P15-06 Home (designs 01 / 18; US-WEB-01, 02). Built in four commits
       (06a hero + tool strip, 06b timeline, 06c setup band + trust,
       06d download).
-- [ ] P15-07 Features (designs 02 / 19; US-WEB-03).
+- [x] P15-07 Features (designs 02 / 19; US-WEB-03).
 - [ ] P15-08 Integrations (designs 03 / 20; US-WEB-04).
 - [ ] P15-09 Security (design 04; US-WEB-05).
 - [ ] P15-10 Privacy policy, terms, support (designs 05, 06; US-WEB-06).

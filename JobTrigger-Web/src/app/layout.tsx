@@ -4,9 +4,9 @@ import { connection } from "next/server";
 import { inter, jetbrainsMono } from "./fonts";
 import "./globals.css";
 
-// The shared header and footer arrive in P15-05.
 export const metadata: Metadata = {
-  title: "JobTrigger",
+  // Pages set a short title; the template adds the product name.
+  title: { default: "JobTrigger", template: "%s · JobTrigger" },
   description: "Trigger, watch and fix your CI/CD builds from your phone.",
 };
 

@@ -1,8 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-test("home page loads", async ({ page }) => {
-  await page.goto("/");
+import { publicPages } from "./pages";
 
-  await expect(page).toHaveTitle("JobTrigger");
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-});
+for (const { path, title } of publicPages) {
+  test(`${path} loads with its title and one h1`, async ({ page }) => {
+    await page.goto(path);
+
+    await expect(page).toHaveTitle(title);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  });
+}
