@@ -13,11 +13,14 @@ server ready. The backend already stores credentials per user, so the app
 picks them up with no new sync mechanism. The same site also markets the
 product to people who don't use it yet.
 
-It has two parts:
+It has three parts:
 
 1. **Marketing** (US-WEB-01 … US-WEB-08), public pages for visitors.
 2. **Setup portal** (US-WEB-10 … US-WEB-21), signed-in pages to manage
    servers and the account.
+3. **Launching before the product is finished** (US-WEB-22), one
+   feature-status list that drives every "Beta" / "Coming soon" /
+   "Planned" badge, so the site never promises what isn't shipped.
 
 "Must" in this epic means *needed to set up a server without retyping a
 token on the phone, or needed to publish the app (store-required pages)*.
@@ -71,6 +74,37 @@ shared NFRs referenced per story:
   form fields (the web reading of NFR-A11Y-01/02).
 - **WEB-B6, same visual language.** Uses the colours, accent, and tone of
   US-DESIGN-* so the site and the app look like one product.
+- **WEB-B7, never promise what isn't shipped.** Every feature, tool, or
+  action the site mentions reads its availability from one feature-status
+  list (US-WEB-22). Anything not `live` is badged and its action disabled.
+
+**Feature availability (as of 2026-10-24).** The app is still in
+development, so the site launches before parts of the product exist. This
+table is the starting state of US-WEB-22's feature-status list; the source
+of truth for app progress is `tasks/README.md`.
+
+| Feature | Status | Why (task tracker) | What the site shows |
+|---|---|---|---|
+| Jenkins: browse, trigger, logs, history, stages, tests | `live` | Phases 4, 5, 7 done | Live |
+| Jenkins: notifications, pinned jobs, widget, nodes, queue, app lock | `live` | Phase 11 done | Live |
+| App on the App Store / Google Play | `soon` | `release-checklist.md` pending; app at 1.0.0+1 | "Coming soon to iPhone and Android"; store buttons disabled; no QR code |
+| GitHub: accounts, repositories, workflows | `live` | P8 GH-CRED + GH-REPO done | Live |
+| GitHub: runs, logs, history | `soon` | P8 in progress (11 of 28) | GitHub badged **Beta**; "Runs and logs coming soon" |
+| SonarQube: save a server (app and web) | `live` | P10 SQ-CRED done | Live |
+| SonarQube: projects, quality gates, measures, issues | `soon` | P10 in progress (6 of 16) | SonarQube badged **Coming soon** |
+| Website: sign in, add/edit/delete servers, set active, account | `live` | Backend endpoints exist | Live |
+| Website: test connection (US-WEB-19) | `soon` | Needs a new backend endpoint (backend track) | Button shown disabled, "Coming soon" |
+| Password reset | `soon` | Deferred, US-AUTH-08 in `tasks/backlog.md` | "Forgot?" links to support (already the case) |
+| GitLab CI, CircleCI | `planned` | Docs-only epics GL, CC | "Planned · no date yet" |
+| Changelog entries | `soon` | No public release yet | One "First public release — coming soon" entry |
+
+**Decisions taken for launch (2026-10-24), changeable later:**
+- The download section says **"Coming soon"** with no launch date until
+  one is committed in `release-checklist.md`.
+- **No "notify me" email signup** at launch. Collecting emails needs a new
+  backend endpoint and a privacy-policy change; it is logged in
+  `tasks/backlog.md` as a backend-track item. Until then, "coming soon"
+  copy points to the changelog.
 
 ---
 
@@ -131,9 +165,19 @@ So that I can start using it
   Given I visit on a desktop browser
   Then both badges show, plus a QR code that opens the store listing when
   scanned with a phone camera
-- Scenario: Not yet published
-  Given a store listing doesn't exist yet
-  Then that badge is hidden or shown as "Coming soon", never a dead link
+- Scenario: Not yet published (the state at launch)
+  Given the `app-store` feature in US-WEB-22 is `soon`
+  Then the section reads "Coming soon to iPhone and Android", the store
+  badges render as disabled (not links, `aria-disabled="true"`), the QR
+  code is not shown, and every "Get the app" button elsewhere on the site
+  reads "Coming soon" and points to `/changelog` instead of a store
+- Scenario: One store ships first
+  Given only one store listing is live
+  Then that badge is a real link and the other stays disabled with
+  "Coming soon"; the QR code appears only when at least one listing is live
+- Scenario: No dead links
+  Then no store badge or QR code ever points at a listing that doesn't
+  exist
 
 **Security & Privacy Notes**
 - The QR code contains only a public store URL, never account or server
@@ -165,7 +209,12 @@ So that I know whether it covers my workflow
   with a short description and screenshot
 - Scenario: Accuracy
   Then each listed feature maps to a shipped story (`tasks/README.md`
-  status "done"). Unshipped work isn't listed
+  status "done"). Unshipped work isn't listed as available
+- Scenario: Partly shipped tools
+  Given a tool is only partly built (GitHub Actions today: runs, logs and
+  history are `soon`)
+  Then its section carries a **Beta** badge and names what is coming,
+  e.g. "Runs and logs coming soon"
 
 **Security & Privacy Notes**
 - Demo data only in screenshots, as in US-WEB-01.
@@ -191,7 +240,17 @@ So that I don't install an app that can't help me
 **Acceptance Criteria**
 - Scenario: Supported tools
   Then Jenkins, GitHub Actions, and SonarQube are listed with what each one
-  supports today
+  supports today, each with a status badge from US-WEB-22: Jenkins
+  "Full support", GitHub Actions "Beta", SonarQube "Coming soon"
+- Scenario: SonarQube before its screens ship
+  Given SonarQube projects and quality gates are `soon`
+  Then the card says "Save your server now — projects and quality gates
+  coming soon", and the comparison table shows "Soon" for those rows,
+  never "Yes"
+- Scenario: Comparison table
+  Then each capability cell is one of "Yes", "Beta", "Soon", or "n/a",
+  driven by US-WEB-22, with the word always present (never colour or an
+  icon alone)
 - Scenario: Planned tools
   Then GitLab CI and CircleCI are listed as "Planned", with no promised date
 - Scenario: Request a tool
@@ -315,7 +374,8 @@ So that people know what it is before clicking
 
 ### US-WEB-08 — "What's new" changelog
 
-**Priority:** Could
+**Priority:** Should (raised from Could on 2026-10-24: every "Coming soon"
+link on the site points here, US-WEB-22)
 **Source:** new — website epic, 2026-10-24
 **Dependencies:** US-WEB-01
 
@@ -324,6 +384,12 @@ I want to see what changed in each release
 So that I notice new features
 
 **Acceptance Criteria**
+- Scenario: Before the first release (the state at launch)
+  Given no public release exists yet
+  Then the page shows one entry, "First public release — coming soon",
+  listing what the first release will include (the `live` features in
+  US-WEB-22) and what follows it (the `soon` ones), with no invented
+  version numbers or dates
 - Scenario: Release list
   Then each app release has an entry with version, date, and plain-language
   highlights, newest first
@@ -630,6 +696,11 @@ So that I can start using it without restarting the app
   new server appears without a restart or pull-to-refresh
 - Scenario: App not installed
   Then the confirmation also shows the store links / QR from US-WEB-02
+- Scenario: App not yet released (the state at launch)
+  Given the `app-store` feature in US-WEB-22 is `soon`
+  Then instead of store links the confirmation says "The JobTrigger app is
+  coming soon. Your server is saved and will be waiting when you install
+  it." with a link to the changelog
 
 **Security & Privacy Notes**
 - The confirmation never repeats the token.
@@ -685,6 +756,11 @@ I want to check that the details work before saving
 So that I don't discover a typo later on my phone
 
 **Acceptance Criteria**
+- Scenario: Before the backend endpoint exists (the state at launch)
+  Given the `test-connection` feature in US-WEB-22 is `soon`
+  Then the "Test connection" button is shown disabled with a "Coming soon"
+  badge and the helper text "You can test from the app after saving", and
+  saving works without it
 - Scenario: Success
   Given I press "Test connection"
   Then I see "Connected as <username>" from the tool
@@ -778,3 +854,61 @@ So that I can do it from a laptop as well as the app
 
 **Non-Functional Notes**
 - NFR-SEC-04, NFR-SEC-07, WEB-B1–B5.
+
+---
+
+## Part 3 — Launching before the product is finished
+
+### US-WEB-22 — Show what's available and what's coming
+
+**Priority:** Must
+**Source:** new — owner request 2026-10-24 ("the app is still in
+development; some pages can't be built for the complete product")
+**Dependencies:** US-WEB-01 … US-WEB-21 (every page reads from it)
+
+As a visitor or user
+I want the site to be honest about what works today and what is coming
+So that I don't sign up for something the app can't do yet
+
+**Acceptance Criteria**
+- Scenario: One feature-status list
+  Then the site has a single, version-controlled list of features, each
+  with a status of `live`, `beta`, `soon`, or `planned`, seeded from the
+  epic's "Feature availability" table. No page hard-codes "coming soon"
+  copy; it reads the status
+- Scenario: Flipping a status
+  Given a feature moves from `soon` to `live` (for example the app reaches
+  the stores)
+  When the list is changed and the site is redeployed
+  Then every badge, button, comparison cell, and "coming soon" sentence for
+  that feature updates, with no page edits
+- Scenario: Status badges
+  Then `beta` shows a blue "Beta" pill, `soon` a grey "Coming soon" pill,
+  and `planned` a dashed "Planned" pill, each with its text label (status
+  is never shown by colour alone)
+- Scenario: Disabled actions
+  Given an action belongs to a `soon` or `planned` feature
+  Then its button or link renders disabled (`aria-disabled="true"`, not
+  focusable as a link, not a dead URL) and says why ("Coming soon")
+- Scenario: Where "coming soon" points
+  Then any "coming soon" message that offers a next step links to the
+  changelog (US-WEB-08). There is no email signup until the backend-track
+  item "Launch notify-me signup" in `tasks/backlog.md` is approved
+- Scenario: Keeping it true
+  Then a feature is only set to `live` when its stories are "done" in
+  `tasks/README.md`, and the PR that ships a feature in the app (or the
+  release that puts it in the stores) updates the list in the same change
+  or a linked follow-up
+
+**Security & Privacy Notes**
+- None beyond the baselines. The list is static content, not user data.
+
+**UI / Design Notes**
+- WEB-B6. Badges reuse the app's status colours: Beta = running blue,
+  Coming soon = aborted/none slate, Planned = dashed slate outline.
+- Designs: the pre-launch pages (`*Soon.dc.html`, screens 18–25) in
+  `UI-UX/Web/`, listed under "Pre-launch pages" in `UI-UX/Web/README.md`.
+  They are separate from the approved v4 pages, which stay unchanged.
+
+**Non-Functional Notes**
+- WEB-B5, WEB-B7, NFR-A11Y-03.
