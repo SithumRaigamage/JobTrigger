@@ -43,6 +43,7 @@ secret is ever `NEXT_PUBLIC_*`.
 | Script                            | What it does                                                                               |
 | --------------------------------- | ------------------------------------------------------------------------------------------ |
 | `npm run dev`                     | Dev server on port 3000                                                                    |
+| `npm run dev:portal`              | Dev server with the portal on, against the local backend (`docs/dev-setup.md`)             |
 | `npm run build` / `npm start`     | Production build / serve it                                                                |
 | `npm run lint`                    | ESLint                                                                                     |
 | `npm run typecheck`               | `next typegen` + `tsc --noEmit`                                                            |

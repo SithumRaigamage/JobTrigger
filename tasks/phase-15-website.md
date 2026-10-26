@@ -110,6 +110,16 @@ runs are the merge gate.
       in `release-checklist.md`. `store-links.test.ts` fails if
       `app-stores` goes `live` before the URLs are set.
 
+### After launch
+
+- [x] P15-25 Use the portal locally (owner request 2026-10-26, after the
+      move to MongoDB Atlas): `npm run dev:portal` fills
+      `JOBTRIGGER_BACKEND_URL` (`http://127.0.0.1:5001`) and a per-run
+      `SESSION_SECRET` unless the shell sets them, and
+      `docs/dev-setup.md` gains "Use the portal locally". Verified: signed in
+      as the seeded dev account against the local backend on Atlas and saw
+      My servers. The deployed portal still needs an `https://` backend.
+
 ## Out of scope
 
 - **US-WEB-19 Test connection.** Needs a new backend endpoint (backend

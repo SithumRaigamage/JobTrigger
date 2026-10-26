@@ -76,9 +76,43 @@ The Next.js site in `JobTrigger-Web/` (Phase 15). Node 24; see its
 ```bash
 cd JobTrigger-Web
 npm install          # first time
-npm run dev          # http://localhost:3000 — backend stays on :5001
+npm run dev:portal   # http://localhost:3000, portal on (see below)
+npm run dev          # marketing pages only: the portal shows "isn't available"
 npm run check        # before committing: format, lint, types, tests, build
 ```
+
+#### Use the portal locally
+
+The portal (sign in, **My servers**, add and edit servers, account) talks
+to the **backend**, never to the database: browser → website → backend on
+`:5001` → MongoDB Atlas. With the backend running (Terminal 1):
+
+```bash
+cd JobTrigger-Web
+npm run dev:portal
+```
+
+Open <http://localhost:3000/sign-in> and sign in with the seeded dev
+account (`developer@jobtrigger.app` / `SecurePassword123!`) or your own.
+Anything you add appears in the app too: both read the same Atlas data.
+
+`dev:portal` fills the two portal settings unless your shell already sets
+them:
+
+| Setting | Default | Note |
+| --- | --- | --- |
+| `JOBTRIGGER_BACKEND_URL` | `http://127.0.0.1:5001` | The local backend |
+| `SESSION_SECRET` | New random value each start | Never printed or saved. A new one means signing in again after a restart; set your own to stay signed in |
+
+Other `next dev` options pass through: `npm run dev:portal -- -p 3001`.
+
+The blank box in the top-left corner under `next dev` is Next.js's own
+developer toolbar, unstyled because of the site's strict CSP. It doesn't
+exist in production builds.
+
+**Deployed portal (Vercel):** it needs the backend at a public `https://`
+address (`docs/deployment.md`, "Website"). Atlas doesn't change that: the
+website reaches the database only through the backend.
 
 ### Terminal 3: Seed Data / Testing (Optional)
 
