@@ -3,7 +3,7 @@
 # every PNG the app, the website and the store listings use. The PNGs are
 # committed; rerun this after changing a source drawing.
 #
-#   scripts/export-icons.sh [ios|android|web|store|all]   (default: all)
+#   scripts/export-icons.sh [ios|android|splash|web|store|all]   (default: all)
 #
 # Needs rsvg-convert (`brew install librsvg`) and python3 (stdlib only). A
 # tool on the developer's machine, not a project dependency (CLAUDE.md §3).
@@ -58,6 +58,16 @@ android() {
   render mark.svg 192 "$res/mipmap-xxxhdpi/ic_launcher.png"
 }
 
+splash() {
+  # iOS LaunchScreen.storyboard centres this on navy. 152 pt wide, the same
+  # glyph width as the Android splash (ic_launcher_foreground at 288dp).
+  local set="JobTrigger-Frontend/ios/Runner/Assets.xcassets/LaunchImage.imageset"
+  mkdir -p "$OUT/$set"
+  rsvg-convert -w 152 "$SRC/splash.svg" -o "$OUT/$set/LaunchImage.png"
+  rsvg-convert -w 304 "$SRC/splash.svg" -o "$OUT/$set/LaunchImage@2x.png"
+  rsvg-convert -w 456 "$SRC/splash.svg" -o "$OUT/$set/LaunchImage@3x.png"
+}
+
 web() {
   # Next.js serves these as the favicon and the iOS home-screen icon.
   render mark.svg 256 "JobTrigger-Web/src/app/icon.png"
@@ -72,11 +82,12 @@ store() {
 case "${1:-all}" in
   ios) ios ;;
   android) android ;;
+  splash) splash ;;
   web) web ;;
   store) store ;;
-  all) ios && android && web && store ;;
+  all) ios && android && splash && web && store ;;
   *)
-    echo "usage: $0 [ios|android|web|store|all]" >&2
+    echo "usage: $0 [ios|android|splash|web|store|all]" >&2
     exit 2
     ;;
 esac

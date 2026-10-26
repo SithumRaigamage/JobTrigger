@@ -52,7 +52,7 @@ Source drawings in [`UI-UX/brand/`](../UI-UX/brand/), on a 128-unit grid:
 - [x] P16-02 App icon: every `AppIcon.appiconset` size; Android
       `ic_launcher` at every density plus the adaptive icon (navy
       background, foreground, monochrome).
-- [ ] P16-03 Splash screen: navy with the mark centred, Android
+- [x] P16-03 Splash screen: navy with the mark centred, Android
       (`launch_background.xml`, `-v21`) and iOS (`LaunchScreen`).
 - [ ] P16-04 `AppLogo` draws the B mark (hairline outline in dark mode),
       widget test; login and app info screens unchanged.
