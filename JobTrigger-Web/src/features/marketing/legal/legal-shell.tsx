@@ -29,7 +29,7 @@ export function LegalShell({
   children: ReactNode;
 }) {
   return (
-    <main className="flex flex-1 flex-col">
+    <main id="content" tabIndex={-1} className="flex flex-1 flex-col">
       <Section surface="dark" dotGrid>
         <Container className="flex flex-col gap-4 pt-20 pb-18">
           <Kicker>Legal</Kicker>

@@ -68,7 +68,7 @@ function faqs() {
 /** Support page (design 06; US-WEB-06). The FAQ is native <details>: no JS. */
 export function SupportView({ supportEmail }: { supportEmail: string | null }) {
   return (
-    <main className="flex flex-1 flex-col">
+    <main id="content" tabIndex={-1} className="flex flex-1 flex-col">
       <Section surface="dark" dotGrid>
         <Container
           width="narrow"

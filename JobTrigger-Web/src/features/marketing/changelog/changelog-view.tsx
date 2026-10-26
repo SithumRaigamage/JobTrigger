@@ -81,7 +81,7 @@ export function ChangelogView() {
   const list = entries();
 
   return (
-    <main data-surface="dark" className="flex-1 bg-dot-grid">
+    <main id="content" tabIndex={-1} data-surface="dark" className="flex-1 bg-dot-grid">
       <Container width="medium" className="flex flex-col gap-14 pt-22 pb-28">
         <div className="flex flex-col gap-3.5">
           <Kicker>Changelog</Kicker>

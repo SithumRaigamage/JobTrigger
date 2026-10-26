@@ -95,7 +95,7 @@ runs are the merge gate.
 
 ### Close-out
 
-- [ ] P15-21 Accessibility and responsive pass (WEB-B4, B5) and
+- [x] P15-21 Accessibility and responsive pass (WEB-B4, B5) and
       Playwright end-to-end specs for sign-in → add server → saved.
 - [ ] P15-22 Vercel deployment: project setup, environment variables,
       `docs/deployment.md` "Website" section. Marketing can go live

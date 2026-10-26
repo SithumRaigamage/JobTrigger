@@ -17,7 +17,7 @@ export const metadata = pageMetadata({
 // statuses, so the same page is the pre-launch and the launch version.
 export default function HomePage() {
   return (
-    <main className="flex flex-1 flex-col">
+    <main id="content" tabIndex={-1} className="flex flex-1 flex-col">
       <Hero />
       <ToolStrip />
       <Timeline />

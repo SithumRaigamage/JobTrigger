@@ -123,7 +123,7 @@ export function IntegrationsView({ supportEmail }: { supportEmail: string | null
     .map((id) => features[id].label);
 
   return (
-    <main className="flex flex-1 flex-col">
+    <main id="content" tabIndex={-1} className="flex flex-1 flex-col">
       <Section surface="dark" dotGrid>
         <Container className="flex flex-col items-center gap-5 pt-24 pb-38 text-center">
           <Kicker>Integrations</Kicker>

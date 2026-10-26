@@ -29,6 +29,7 @@ export function AuthShell({
       />
       <div aria-hidden="true" className="absolute inset-x-[-10%] top-90 h-6 -skew-y-8 bg-accent" />
       <Container className="relative flex flex-1 flex-col gap-14 pt-8 pb-16">
+        {/* One page, one main landmark (WEB-B5). */}
         <Link
           href={routes.home}
           data-surface="dark"
@@ -36,7 +37,7 @@ export function AuthShell({
         >
           <BrandMark />
         </Link>
-        <div className="flex flex-wrap items-start justify-center gap-12">
+        <main id="content" className="flex flex-wrap items-start justify-center gap-12">
           <div
             data-surface="dark"
             className="flex max-w-120 min-w-0 flex-[1_1_380px] flex-col gap-4.5 bg-transparent pt-6"
@@ -51,7 +52,7 @@ export function AuthShell({
               </div>
             )}
           </div>
-        </div>
+        </main>
         <nav
           aria-label="Legal"
           className="mt-auto flex flex-wrap justify-center gap-5 text-[0.8125rem]"

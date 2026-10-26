@@ -176,7 +176,7 @@ const factTones = [
 /** Security page (design 04; US-WEB-05). */
 export function SecurityView() {
   return (
-    <main className="flex flex-1 flex-col">
+    <main id="content" tabIndex={-1} className="flex flex-1 flex-col">
       <Section surface="dark" dotGrid>
         <Container className="flex flex-col gap-14 py-24">
           <div className="flex max-w-205 flex-col gap-4.5">

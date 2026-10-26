@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { BrandMark } from "@/components/brand-mark";
+import { SkipLink } from "@/components/skip-link";
 import { statusOf } from "@/content/feature-status";
 
 import { routes } from "../marketing/site-links";
@@ -15,6 +16,7 @@ export function PortalShell({ email, children }: { email: string; children: Reac
 
   return (
     <div className="flex min-h-screen flex-wrap content-start md:content-stretch">
+      <SkipLink />
       <aside
         data-surface="dark"
         // Compact on phones: links in a row, account below, the card hidden, so
@@ -82,7 +84,11 @@ export function PortalShell({ email, children }: { email: string; children: Reac
           </form>
         </div>
       </aside>
-      <main className="flex min-w-0 flex-[999_1_560px] flex-col gap-7 px-5 pt-10 pb-20 md:px-[clamp(20px,4vw,56px)]">
+      <main
+        id="content"
+        tabIndex={-1}
+        className="flex min-w-0 flex-[999_1_560px] flex-col gap-7 px-5 pt-10 pb-20 md:px-[clamp(20px,4vw,56px)]"
+      >
         {children}
       </main>
     </div>
