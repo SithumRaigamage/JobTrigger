@@ -14,10 +14,17 @@ import { z } from "zod";
  * app's AUD-43 release guard.
  */
 
-/** True for http://localhost, 127.0.0.1 and [::1]. */
-function isLoopback(url: string): boolean {
+/**
+ * Hosts where plain http stays on the machine or a private network:
+ * loopback, and single-label names (`backend`, `jobtrigger-backend`), which
+ * resolve only as Docker/Kubernetes service names, never on the internet
+ * (P15-23: the website container next to the backend). Anything with a
+ * dot must be https.
+ */
+function isPrivateHost(url: string): boolean {
   const { hostname } = new URL(url);
-  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]") return true;
+  return /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i.test(hostname);
 }
 
 const configSchema = z
@@ -30,12 +37,12 @@ const configSchema = z
   .superRefine((env, ctx) => {
     // The backend receives account passwords and JWTs, so production must
     // reach it over TLS (WEB-B1). Local development keeps plain http, and so
-    // does a loopback address in production (a production build tested
-    // against a local or fake backend), where nothing crosses a network.
+    // does a private host in production (loopback for tests, a container
+    // service name next to the backend), where nothing crosses the internet.
     if (
       env.NODE_ENV === "production" &&
       !env.JOBTRIGGER_BACKEND_URL.startsWith("https://") &&
-      !isLoopback(env.JOBTRIGGER_BACKEND_URL)
+      !isPrivateHost(env.JOBTRIGGER_BACKEND_URL)
     ) {
       ctx.addIssue({
         code: "custom",

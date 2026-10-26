@@ -210,4 +210,6 @@ const server = createServer(async (req, res) => {
   return reply(404, { message: "Not found" });
 });
 
-server.listen(PORT, "127.0.0.1", () => console.log(`fake backend on ${PORT}`));
+// FAKE_BACKEND_HOST=0.0.0.0 lets a container reach it (the Docker smoke test).
+const HOST = process.env.FAKE_BACKEND_HOST ?? "127.0.0.1";
+server.listen(PORT, HOST, () => console.log(`fake backend on ${HOST}:${PORT}`));

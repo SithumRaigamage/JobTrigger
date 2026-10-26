@@ -31,7 +31,7 @@ Read and validated only in `src/server/config.ts`, on first use.
 
 | Variable                 | Required       | Example (local)         | Notes                                                                                                                    |
 | ------------------------ | -------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `JOBTRIGGER_BACKEND_URL` | For the portal | `http://127.0.0.1:5001` | Must be `https://` in production                                                                                         |
+| `JOBTRIGGER_BACKEND_URL` | For the portal | `http://127.0.0.1:5001` | `https://` in production, except loopback and container service names (`http://backend:5001`)                            |
 | `SESSION_SECRET`         | For the portal | 32+ random characters   | Encrypts the session cookie. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"` |
 | `SITE_URL`               | No             | `http://localhost:3000` | Canonical URL for link previews and the sitemap                                                                          |
 
@@ -50,6 +50,10 @@ secret is ever `NEXT_PUBLIC_*`.
 | `npm test` / `test:watch`         | Vitest unit tests (`src/**/*.test.ts(x)`)                                                  |
 | `npm run e2e`                     | Playwright on a production build (port 3100), desktop and 360 px                           |
 | `npm run check`                   | format check → lint → typecheck → test → build. **The merge gate** (GitHub Actions is off) |
+
+## Deploying
+
+Vercel and Docker: see [`docs/deployment.md`](../docs/deployment.md) "Website". Without the two portal variables the site serves its marketing pages and the portal says it's unavailable.
 
 ## Notes
 

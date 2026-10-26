@@ -254,7 +254,7 @@ fails at startup if anything is missing. Nothing secret is ever
 
 | Variable | Used for |
 |---|---|
-| `JOBTRIGGER_BACKEND_URL` | Backend base URL (`http://127.0.0.1:5001` locally); must be `https://` in production |
+| `JOBTRIGGER_BACKEND_URL` | Backend base URL (`http://127.0.0.1:5001` locally); in production `https://`, except loopback and single-label container service names such as `http://backend:5001` (P15-23) |
 | `SESSION_SECRET` | `iron-session` encryption key, 32+ characters |
 | `SITE_URL` | Canonical URL for link previews and the sitemap (US-WEB-07); defaults to `http://localhost:3000` |
 

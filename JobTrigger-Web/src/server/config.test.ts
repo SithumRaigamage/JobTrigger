@@ -39,15 +39,28 @@ describe("parseConfig", () => {
     },
   );
 
-  it("still rejects http to a private-network host in production", () => {
-    expect(() =>
-      parseConfig({
-        NODE_ENV: "production",
-        JOBTRIGGER_BACKEND_URL: "http://backend:5001",
-        SESSION_SECRET: secret,
-      }),
-    ).toThrow("must be https:// in production");
-  });
+  it.each(["http://backend:5001", "http://jobtrigger-backend:5001"])(
+    "allows http to a container service name in production: %s",
+    (url) => {
+      expect(
+        parseConfig({ NODE_ENV: "production", JOBTRIGGER_BACKEND_URL: url, SESSION_SECRET: secret })
+          .backendUrl,
+      ).toBe(url);
+    },
+  );
+
+  it.each(["http://backend.internal:5001", "http://10.0.0.5:5001", "http://api.example.com"])(
+    "still rejects http to any dotted host in production: %s",
+    (url) => {
+      expect(() =>
+        parseConfig({
+          NODE_ENV: "production",
+          JOBTRIGGER_BACKEND_URL: url,
+          SESSION_SECRET: secret,
+        }),
+      ).toThrow("must be https:// in production");
+    },
+  );
 
   it("accepts an https backend in production", () => {
     const config = parseConfig({

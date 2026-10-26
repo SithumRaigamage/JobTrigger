@@ -213,6 +213,36 @@ Before promoting a deployment, run the local gate (`npm run check` and
 `npm run e2e` in `JobTrigger-Web/`) — GitHub Actions is off, so these are
 the merge gate.
 
+### Docker (P15-23)
+
+`JobTrigger-Web/Dockerfile` builds Next.js's `standalone` server on
+`node:24-alpine` (the Dockerfile sets `NEXT_STANDALONE=1`; `next start`
+and Vercel use the regular output). Like the backend image, the runtime
+stage has no npm and runs as `node`.
+
+```bash
+cd JobTrigger-Web
+docker build -t jobtrigger-web .
+docker run -p 3000:3000 \
+  -e SITE_URL=https://<your domain> \
+  -e JOBTRIGGER_BACKEND_URL=http://backend:5001 \
+  -e SESSION_SECRET=<32+ random characters> \
+  jobtrigger-web
+```
+
+Next to the backend, put both on one Docker network and point the site at
+the backend's **service name**, e.g. `http://backend:5001`. Plain http is
+accepted in production only for loopback and single-label hosts (service
+names, which never resolve on the internet); anything with a dot must be
+`https://` (`src/server/config.ts`). Terminate TLS for the public site in
+front of the container (reverse proxy or load balancer) and redirect
+http→https there; the site sends HSTS itself.
+
+Verified 2026-10-26: the image ran next to the fake backend as a
+container named `backend`; sign-up → add server → saved worked end to end
+with zero CSP violations, as `node`, without npm, and the sitemap printed
+the runtime `SITE_URL`.
+
 ## Recommendation
 
 Don't build the full auto-deploy pipeline yet — the project is pre-artwork

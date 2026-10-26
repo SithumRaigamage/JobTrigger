@@ -101,7 +101,7 @@ runs are the merge gate.
       `docs/deployment.md` "Website" section. Marketing can go live
       first; the portal is **blocked** until the backend has a public
       `https://` URL.
-- [ ] P15-23 Docker image (`output: "standalone"`) to run next to the
+- [x] P15-23 Docker image (`output: "standalone"`) to run next to the
       backend, documented in `docs/deployment.md`; mark the phase done in
       `tasks/README.md`.
 - [ ] P15-24 Store links and QR code on Home's download section: set
@@ -118,3 +118,24 @@ runs are the merge gate.
 - **Masked-list and per-session revoke backend endpoints.** Flagged for
   the backend track (NFR-SEC-05); the site masks in its server layer and
   uses `logout-all` until then.
+
+## Outcome (2026-10-26)
+
+P15-00…P15-23 built on `feat/website`, one commit per task (P15-06 in
+four), each through the local gate (`npm run check` + `npm run e2e`).
+Done on owner instruction ("proceed with all, do not stop at checks, I
+will do a final review"), so the per-task approval stops of the workflow
+note above were folded into that final review.
+
+Still open — owner actions, not development:
+
+- **Vercel**: connect the project (P15-22, `docs/deployment.md` "Website").
+- **Backend deployment** at an `https://` URL, then set
+  `JOBTRIGGER_BACKEND_URL` + `SESSION_SECRET` to open the portal.
+- **Placeholders** in `src/content/site-details.ts` (company name,
+  security/privacy emails, reply days, backup retention, legal date) and
+  legal review of the privacy policy and the drafted terms.
+- **P15-24** store links and QR code, once the app is listed.
+- **Review the decisions taken during the run**, listed in the PR
+  description (e.g. http to container service names, github-actions vs
+  github-runs, the #EFF6FF kicker).
