@@ -26,10 +26,13 @@ pastes connection strings.
 3. **Dev now, prod later.** A free M0 cluster for development today.
    Production waits for the backend host decision, because its region and
    network rule depend on it (P17-05 documents the checklist).
-4. **Copy the local data once, then remove.** The local container runs one
-   last time, read-only, to copy `jobtrigger` into Atlas with per-collection
-   count checks; the same `CREDENTIALS_ENCRYPTION_KEY` stays, or saved
-   tokens become unreadable (P17-02).
+4. **No data to move (revised 2026-10-26).** The owner first chose to copy
+   the local data once. A read-only search then found no JobTrigger data on
+   the development Mac: no `jobtrigger-mongo` container or volume, no
+   `jobtrigger` database in the other project's MongoDB, and the 13 unnamed
+   MongoDB volumes all empty (3 system collections each). The owner
+   confirmed there was nothing to keep, so Atlas starts fresh and P17-02 is
+   dropped.
 5. **Tests stay on the in-memory MongoDB** (`mongodb-memory-server`): it
    exists only inside `npm test`, never touches Atlas, and the suite's
    cleanup drops databases.
@@ -45,16 +48,13 @@ pastes connection strings.
       network rule, the connection string. Fixes the stale test account
       and the missing `CREDENTIALS_ENCRYPTION_KEY` in the example.
       **Owner action:** create the Atlas project and paste `MONGODB_URI`.
-- [ ] P17-02 `scripts/copy-local-db-to-atlas.sh` (one-time): dump the
-      local `jobtrigger` with the `mongo:8` image's own tools, restore into
-      `ATLAS_URI` (read from the shell, never an argument), compare counts
-      per collection. Refuses a local target and a non-empty one unless
-      `--replace`. **Owner action:** run it and confirm the counts.
+- [-] P17-02 ~~One-time copy of the local data into Atlas.~~ Dropped: there
+      was no local JobTrigger data to copy (decision 4).
 - [ ] P17-03 Backend: fast `serverSelectionTimeoutMS` and a clear startup
       message when Atlas is unreachable (IP not allowed, bad credentials,
       paused cluster), with tests.
 - [ ] P17-04 Remove the local MongoDB: the compose service, `USE_DOCKER`
-      in `setup-dev.sh` / `stop-dev.sh`, the copy script, and every doc
+      in `setup-dev.sh` / `stop-dev.sh`, and every doc
       that describes a local database; the seed guard change of decision 6.
 - [ ] P17-05 `docs/deployment.md` "Database": the production checklist
       (paid tier with backups, region, network rule, secret handling,
