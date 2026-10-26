@@ -13,6 +13,13 @@ import { z } from "zod";
  * config fails loudly with every problem listed — the same idea as the
  * app's AUD-43 release guard.
  */
+
+/** True for http://localhost, 127.0.0.1 and [::1]. */
+function isLoopback(url: string): boolean {
+  const { hostname } = new URL(url);
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+}
+
 const configSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -22,8 +29,14 @@ const configSchema = z
   })
   .superRefine((env, ctx) => {
     // The backend receives account passwords and JWTs, so production must
-    // reach it over TLS (WEB-B1). Local development keeps plain http.
-    if (env.NODE_ENV === "production" && !env.JOBTRIGGER_BACKEND_URL.startsWith("https://")) {
+    // reach it over TLS (WEB-B1). Local development keeps plain http, and so
+    // does a loopback address in production (a production build tested
+    // against a local or fake backend), where nothing crosses a network.
+    if (
+      env.NODE_ENV === "production" &&
+      !env.JOBTRIGGER_BACKEND_URL.startsWith("https://") &&
+      !isLoopback(env.JOBTRIGGER_BACKEND_URL)
+    ) {
       ctx.addIssue({
         code: "custom",
         path: ["JOBTRIGGER_BACKEND_URL"],

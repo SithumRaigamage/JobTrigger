@@ -27,6 +27,14 @@ export default defineConfig({
     command: `npm run build && npm run start -- --port ${port}`,
     url: `http://localhost:${port}`,
     reuseExistingServer: false,
+    // Test-only values, passed here rather than through an env file. The
+    // backend URL is a port nothing listens on until a spec starts its own
+    // fake backend there; the session secret is a fixed test string.
+    env: {
+      JOBTRIGGER_BACKEND_URL: "http://127.0.0.1:5999",
+      SESSION_SECRET: "e2e-session-secret-0123456789abcdef",
+      SITE_URL: `http://localhost:${port}`,
+    },
     timeout: 180_000,
   },
 });

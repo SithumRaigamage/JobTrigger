@@ -3,4 +3,5 @@
 export const publicPages = [
   { path: "/", title: "JobTrigger" },
   { path: "/features", title: "Features · JobTrigger" },
+  { path: "/integrations", title: "Integrations · JobTrigger" },
 ] as const;

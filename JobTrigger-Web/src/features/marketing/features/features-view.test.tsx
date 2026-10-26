@@ -1,23 +1,22 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { FeatureStatus } from "@/content/feature-status";
+import type { FeatureId, FeatureStatus } from "@/content/feature-status";
 
 import { FeaturesView } from "./features-view";
 
-let githubRuns: FeatureStatus = "beta";
+const overrides: Partial<Record<FeatureId, FeatureStatus>> = {};
 
 vi.mock("@/content/feature-status", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/content/feature-status")>();
   return {
     ...actual,
-    statusOf: (id: Parameters<typeof actual.statusOf>[0]) =>
-      id === "github-runs" ? githubRuns : actual.statusOf(id),
+    statusOf: (id: FeatureId) => overrides[id] ?? actual.statusOf(id),
   };
 });
 
 afterEach(() => {
-  githubRuns = "beta";
+  for (const key of Object.keys(overrides)) delete overrides[key as FeatureId];
 });
 
 describe("FeaturesView", () => {
@@ -36,8 +35,9 @@ describe("FeaturesView", () => {
     expect(screen.getByText(/Anything still on the way is marked/)).toBeInTheDocument();
   });
 
-  it("drops the beta marks once GitHub runs are live", () => {
-    githubRuns = "live";
+  it("drops the beta marks once GitHub Actions and its runs are live", () => {
+    overrides["github-actions"] = "live";
+    overrides["github-runs"] = "live";
     render(<FeaturesView />);
 
     expect(screen.queryByText("Beta")).not.toBeInTheDocument();

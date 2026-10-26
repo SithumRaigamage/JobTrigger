@@ -110,6 +110,10 @@ app/ (routes) → features/ (views + server actions) → server/ (backend)
   via `GET`.
 - **Signed-in responses send `Cache-Control: no-store`** (see "Security
   headers").
+- **A page that calls the backend awaits `connection()` first.** Layouts
+  and pages render concurrently, so the root layout's `connection()` does
+  not stop `next build` from running a page body; without it the build
+  calls the backend with no runtime config (found in P15-08).
 
 ### Errors
 

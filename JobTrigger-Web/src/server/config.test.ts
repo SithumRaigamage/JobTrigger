@@ -29,6 +29,26 @@ describe("parseConfig", () => {
     ).toThrow("JOBTRIGGER_BACKEND_URL: must be https:// in production");
   });
 
+  it.each(["http://127.0.0.1:5001", "http://localhost:5001", "http://[::1]:5001"])(
+    "allows plain http to a loopback backend in production: %s",
+    (url) => {
+      expect(
+        parseConfig({ NODE_ENV: "production", JOBTRIGGER_BACKEND_URL: url, SESSION_SECRET: secret })
+          .backendUrl,
+      ).toBe(url);
+    },
+  );
+
+  it("still rejects http to a private-network host in production", () => {
+    expect(() =>
+      parseConfig({
+        NODE_ENV: "production",
+        JOBTRIGGER_BACKEND_URL: "http://backend:5001",
+        SESSION_SECRET: secret,
+      }),
+    ).toThrow("must be https:// in production");
+  });
+
   it("accepts an https backend in production", () => {
     const config = parseConfig({
       NODE_ENV: "production",

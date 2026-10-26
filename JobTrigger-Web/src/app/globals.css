@@ -143,6 +143,8 @@
   /* Floating illustration pieces on dark sections. */
   --shadow-float: 0 20px 40px rgb(0 0 0 / 0.4);
   --shadow-device: 0 40px 80px rgb(0 0 0 / 0.5);
+  /* A card lifted off a light page (Integrations tool cards). */
+  --shadow-lift: 0 20px 40px rgb(15 23 42 / 0.12);
 }
 
 /* Dot-grid backdrop for dark sections: 1px dots on a 28px grid. */

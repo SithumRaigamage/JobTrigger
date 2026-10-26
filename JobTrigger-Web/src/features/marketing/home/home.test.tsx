@@ -66,7 +66,7 @@ describe("ToolStrip", () => {
 
   it("drops badges and 'More planned' as features ship", () => {
     Object.assign(overrides, {
-      "github-runs": "live",
+      "github-actions": "live",
       "sonarqube-insights": "live",
       "gitlab-ci": "live",
       circleci: "live",

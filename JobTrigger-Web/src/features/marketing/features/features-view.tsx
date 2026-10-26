@@ -184,7 +184,7 @@ export function FeaturesView() {
               <span className="rounded-full bg-fg px-3 py-1.25 text-[0.8125rem] font-bold text-page">
                 GitHub Actions
               </span>{" "}
-              <StatusBadge feature="github-runs" size="md" />
+              <StatusBadge feature="github-actions" size="md" />
             </p>
             <h2 id="github-heading" className="text-h2">
               Jenkins and GitHub, side by side.

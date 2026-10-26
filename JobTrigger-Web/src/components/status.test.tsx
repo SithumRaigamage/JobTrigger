@@ -13,7 +13,7 @@ describe("StatusBadge", () => {
   });
 
   it.each([
-    ["github-runs", "Beta", "bg-running-bg"],
+    ["github-actions", "Beta", "bg-running-bg"],
     ["web-test-connection", "Coming soon", "bg-neutral-bg"],
     ["gitlab-ci", "Planned", "border-dashed"],
   ] as const)("%s reads %s", (feature, label, tone) => {
@@ -26,7 +26,7 @@ describe("StatusBadge", () => {
 describe("FeatureAction", () => {
   it("renders the real action for a usable feature", () => {
     render(
-      <FeatureAction feature="github-runs" label="View runs">
+      <FeatureAction feature="github-actions" label="View runs">
         <Button href="/servers">View runs</Button>
       </FeatureAction>,
     );

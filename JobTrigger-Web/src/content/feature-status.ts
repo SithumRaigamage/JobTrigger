@@ -44,11 +44,17 @@ export const features = {
     status: "live",
     source: "P8 GH-CRED + GH-REPO done",
   },
-  "github-runs": {
-    // The epic lists runs/logs as not shipped but shows GitHub as Beta:
-    // the badge is what visitors see (owner decision 2026-10-26).
-    label: "GitHub: runs, logs, history",
+  "github-actions": {
+    // The tool as a whole: what its badges show. Usable today (accounts,
+    // repos, workflows) but not complete, hence beta (P15-08: split out of
+    // github-runs so runs/logs aren't presented as usable).
+    label: "GitHub Actions (the tool)",
     status: "beta",
+    source: "P8 GH-CRED + GH-REPO done; runs pending",
+  },
+  "github-runs": {
+    label: "GitHub: runs, logs, history",
+    status: "soon",
     source: "P8 in progress (11 of 28)",
   },
   "sonarqube-save": {

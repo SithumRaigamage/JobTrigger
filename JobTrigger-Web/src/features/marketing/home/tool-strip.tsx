@@ -20,7 +20,7 @@ export function ToolStrip() {
         </span>
         <span className="flex items-center gap-2.5">
           <ToolTile tool="github" />
-          GitHub Actions <StatusBadge feature="github-runs" />
+          GitHub Actions <StatusBadge feature="github-actions" />
         </span>
         <span className="flex items-center gap-2.5">
           <ToolTile tool="sonarqube" />
