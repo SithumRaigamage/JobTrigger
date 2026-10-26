@@ -6,6 +6,7 @@ import { failureMessage, type AppFailure } from "@/domain/app-failure";
 import type { Credential } from "@/domain/credentials";
 import { credentialAddress, credentialName, toolNames, tools } from "@/domain/tools";
 
+import { MakeActiveButton } from "./make-active-button";
 import { addServerHref, editServerHref } from "./server-links";
 
 function PlusIcon() {
@@ -115,10 +116,16 @@ function ServerTable({ servers }: { servers: Credential[] }) {
                   )}
                 </td>
                 <td className="px-5 py-4">
-                  {server.isDefault && (
+                  {server.isDefault ? (
                     <span className="rounded-full bg-success-bg px-2.5 py-1 text-xs font-bold text-success-fg">
                       ✓ Active
                     </span>
+                  ) : (
+                    <MakeActiveButton
+                      tool={server.tool}
+                      id={server.id}
+                      name={credentialName(server)}
+                    />
                   )}
                 </td>
                 <td className="px-5 py-4 text-right">

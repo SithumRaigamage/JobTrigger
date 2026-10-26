@@ -54,3 +54,24 @@ test("saved servers are listed with masked tokens only", async ({ page }) => {
   expect(html).not.toContain(JENKINS_TOKEN);
   expect(html).not.toContain(GITHUB_TOKEN);
 });
+
+test("Make active moves the tool's default (US-WEB-18)", async ({ page }) => {
+  const email = await signUp(page);
+  const token = await backendToken(email, PASSWORD);
+  const server = (name: string, isDefault: boolean) => ({
+    serverName: name,
+    jenkinsURL: `https://${name.toLowerCase().replace(" ", "-")}.example`,
+    username: "sam",
+    password: JENKINS_TOKEN,
+    isDefault,
+  });
+  await seed(token, "/api/credentials", server("Acme production", true));
+  await seed(token, "/api/credentials", server("Home lab", false));
+
+  await page.goto("/servers");
+  await page.getByRole("button", { name: "Make active Home lab" }).click();
+
+  const row = (name: string) => page.getByRole("row").filter({ hasText: name });
+  await expect(row("Home lab").getByText("✓ Active")).toBeVisible();
+  await expect(row("Acme production").getByRole("button", { name: /Make active/ })).toBeVisible();
+});
