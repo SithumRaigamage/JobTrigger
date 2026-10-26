@@ -53,7 +53,7 @@ pastes connection strings.
 - [x] P17-03 Backend: fast `serverSelectionTimeoutMS` and a clear startup
       message when Atlas is unreachable (IP not allowed, bad credentials,
       paused cluster), with tests.
-- [ ] P17-04 Remove the local MongoDB: the compose service, `USE_DOCKER`
+- [x] P17-04 Remove the local MongoDB: the compose service, `USE_DOCKER`
       in `setup-dev.sh` / `stop-dev.sh`, and every doc
       that describes a local database; the seed guard change of decision 6.
 - [ ] P17-05 `docs/deployment.md` "Database": the production checklist

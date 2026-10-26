@@ -95,17 +95,12 @@ Open `JobTrigger-Backend/.env` yourself and set:
 MONGODB_URI=mongodb+srv://jobtrigger-dev-app:PASSWORD@jobtrigger-dev.abcde.mongodb.net/jobtrigger?retryWrites=true&w=majority&appName=jobtrigger-dev
 ```
 
-Leave every other line as it is. In particular **don't change
-`CREDENTIALS_ENCRYPTION_KEY`**: the Jenkins, GitHub and SonarQube secrets
-copied from your old database are encrypted with it, and a new key would
+Leave every other line as it is. In particular **keep
+`CREDENTIALS_ENCRYPTION_KEY` stable** from now on: every Jenkins, GitHub and
+SonarQube secret saved in Atlas is encrypted with it, and a new key would
 make all of them unreadable (`docs/deployment.md`, "Backend secrets at
 rest"). `.env` is git-ignored; never commit it or paste it into a chat,
 issue or PR.
-
-> **Copying your existing data?** Do the one-time copy
-> (`scripts/copy-local-db-to-atlas.sh`, P17-02) **before** running
-> `./setup-dev.sh`. The setup script seeds a dev account, and the copy
-> refuses a database that already has data in it.
 
 ## 6. Check the connection
 
@@ -122,6 +117,10 @@ Success is these two log lines (one JSON object per line):
 ```
 
 and `curl http://127.0.0.1:5001/healthz` answers `{"status":"ok"}`.
+
+Then stop it (`Ctrl+C`) and run `./setup-dev.sh` from the repository root:
+it seeds the dev account and sample servers into Atlas and starts the
+backend again ([Dev Setup](./dev-setup.md)).
 
 ## 7. Troubleshooting
 

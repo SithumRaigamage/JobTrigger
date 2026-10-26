@@ -16,8 +16,8 @@ runs on the exact same simulator you test on manually.
    ```bash
    ./setup-dev.sh
    ```
-   (or `USE_DOCKER=true ./setup-dev.sh` for local MongoDB — see
-   [Dev Setup](./dev-setup.md))
+   against the Atlas dev cluster ([Dev Setup](./dev-setup.md),
+   [Atlas setup](./mongodb-cloud-setup.md))
 2. A connected simulator/device (`flutter devices` to check)
 
 ## Running

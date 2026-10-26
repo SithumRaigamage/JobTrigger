@@ -40,89 +40,44 @@ log_step() {
 # Start
 log_header "🚀 JobTrigger Development Setup"
 
-# Check if using MongoDB Cloud or Local
-USE_DOCKER=${USE_DOCKER:-false}
+# Phase 17: the database is MongoDB Atlas, always. There is no local
+# MongoDB; docs/mongodb-cloud-setup.md sets up the dev cluster.
+log_info "Database: MongoDB Atlas (docs/mongodb-cloud-setup.md)"
 
-log_info "Environment: $([ "$USE_DOCKER" = "true" ] && echo "Docker MongoDB" || echo "MongoDB Cloud (Atlas)")"
-
-if [ "$USE_DOCKER" = "true" ]; then
-  # Step 1: Start MongoDB via Docker
-  log_step "Starting MongoDB via Docker"
-  log_info "Running: docker compose up -d"
-  docker compose up -d
-  log_success "Docker container started"
-
-  # Step 2: Wait for MongoDB to be ready
-  log_step "Waiting for MongoDB to become ready"
-  sleep 2
-  log_info "Checking MongoDB connection on localhost:27017..."
-
-  # Retry logic for MongoDB
-  MONGO_READY=false
-  for i in {1..30}; do
-    if nc -z localhost 27017 2>/dev/null; then
-      log_success "MongoDB is ready (attempt $i/30)"
-      MONGO_READY=true
-      break
-    fi
-    echo -ne "${YELLOW}  Attempt $i/30...${NC}\r"
-    sleep 1
-  done
-
-  if [ "$MONGO_READY" = false ]; then
-    log_error "MongoDB failed to start after 30 attempts"
-    exit 1
-  fi
+# Step 1: Check the connection string is there (never printed: it holds
+# the database password)
+log_step "Checking the Atlas connection string"
+if grep -qE "^MONGODB_URI=[\"']?mongodb\+srv://" JobTrigger-Backend/.env 2>/dev/null; then
+  log_success "MONGODB_URI found in JobTrigger-Backend/.env"
 else
-  # Using MongoDB Cloud
-  log_step "Verifying MongoDB Cloud connection"
-  log_info "Checking for connection string in JobTrigger-Backend/.env..."
-
-  if grep -q "mongodb+srv://" JobTrigger-Backend/.env 2>/dev/null; then
-    log_success "MongoDB Cloud connection string found in .env"
-  else
-    log_error "MongoDB Cloud URI not found in JobTrigger-Backend/.env"
-    log_info "Please add your connection string:"
-    echo -e "  ${YELLOW}MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/jobtrigger${NC}"
-    echo ""
-    exit 1
-  fi
+  log_error "No Atlas MONGODB_URI in JobTrigger-Backend/.env"
+  log_info "Set it up with docs/mongodb-cloud-setup.md, then add:"
+  echo -e "  ${YELLOW}MONGODB_URI=mongodb+srv://USER:PASSWORD@CLUSTER.mongodb.net/jobtrigger${NC}"
+  echo ""
+  exit 1
 fi
 
-# Step 3: Run database migrations & seed data
-log_step "Running database migrations"
-log_info "Setting up collections, users, and Jenkins credentials..."
-
-# AUD-58: the seed script refuses non-local databases unless told
-# --allow-remote, since it writes a test account whose password is in the
-# README. Against Atlas, seeding is opt-in (SEED_REMOTE=true); otherwise
-# the existing data is used and the backend still starts.
-MIGRATION_ARGS=()
-SKIP_MIGRATIONS=false
-if [ "$USE_DOCKER" != "true" ]; then
-  if [ "${SEED_REMOTE:-false}" = "true" ]; then
-    log_warning "SEED_REMOTE=true: seeding the cloud database (never use on production)"
-    MIGRATION_ARGS+=(--allow-remote)
-  else
-    SKIP_MIGRATIONS=true
-    log_warning "Skipping migrations: the cloud database is used as it is"
-    log_info "To seed it with the test account: SEED_REMOTE=true ./setup-dev.sh"
-  fi
-fi
-
-if [ "$SKIP_MIGRATIONS" = "true" ]; then
-  :
-elif [ -f "JobTrigger-Backend/scripts/setup-migrations.js" ]; then
+# Step 2: Seed the dev data
+# AUD-58: setup-migrations.js writes a test account whose password is in
+# the README, so it refuses a remote database unless --allow-remote. It
+# still refuses NODE_ENV=production and any URI that names production
+# ("prod" in its user, cluster, database or appName), forced or not.
+# Seeding is safe to repeat. SEED_REMOTE=false skips it.
+log_step "Seeding the Atlas dev database"
+if [ "${SEED_REMOTE:-true}" = "false" ]; then
+  SEEDED=false
+  log_warning "SEED_REMOTE=false: the database is used as it is"
+else
+  SEEDED=true
+  log_info "Dev account, sample Jenkins servers, app info (existing ones are kept)"
   # Checked with `if`, not `$?`: under `set -e` a failing command would
   # end the script before its exit code could be read.
-  if (cd JobTrigger-Backend && node scripts/setup-migrations.js "${MIGRATION_ARGS[@]}"); then
-    log_success "Database migrations completed successfully"
+  if (cd JobTrigger-Backend && node scripts/setup-migrations.js --allow-remote); then
+    log_success "Seeding completed"
   else
-    log_error "Database migrations failed (see the error above); the backend was not started"
+    log_error "Seeding failed (see the error above); the backend was not started"
     exit 1
   fi
-else
-  log_warning "Migration script not found, skipping"
 fi
 
 # Step 4: Summary
@@ -130,9 +85,9 @@ echo ""
 log_header "✨ Setup Complete!"
 log_success "Development environment ready"
 log_info "Backend will run on: http://127.0.0.1:5001"
-log_info "MongoDB: $([ "$USE_DOCKER" = "true" ] && echo "Docker (localhost:27017)" || echo "Atlas Cloud")"
-if [ "$SKIP_MIGRATIONS" = "true" ]; then
-  LOGIN_HINT="an account that already exists in the cloud database"
+log_info "Database: MongoDB Atlas"
+if [ "$SEEDED" = "false" ]; then
+  LOGIN_HINT="an account that already exists in the Atlas database"
 else
   LOGIN_HINT="developer@jobtrigger.app / SecurePassword123!"
   log_info "Seeded Jenkins servers: Production CI, Staging Pipeline, Development Build"
@@ -153,6 +108,6 @@ log_info "The backend is up when you see \"server.listening\" with port 5001 bel
 log_info "It keeps running in this terminal (restarting on file changes); press Ctrl+C to stop it."
 echo ""
 
-# Step 5: Start backend
+# Step 3: Start backend
 cd JobTrigger-Backend
 npm run dev
