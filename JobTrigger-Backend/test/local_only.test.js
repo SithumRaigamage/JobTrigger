@@ -11,10 +11,10 @@ describe('Development scripts stay local (AUD-58)', function() {
     remoteDatabaseProblem(uri, { env, argv });
 
   it('reads the hosts out of a MongoDB URI', function() {
-    expect(mongoHosts('mongodb://u:p@a.example:27017,b.example/db?x=1'))
+    expect(mongoHosts('mongodb://u:<p>@a.example:27017,b.example/db?x=1'))
       .to.deep.equal(['a.example', 'b.example']);
-    expect(mongoHosts('mongodb+srv://cluster0.abc.mongodb.net/')).to.deep.equal([
-      'cluster0.abc.mongodb.net',
+    expect(mongoHosts('mongodb+srv://cluster0.abc.example.net/')).to.deep.equal([
+      'cluster0.abc.example.net',
     ]);
     expect(mongoHosts('mongodb://[::1]:27017')).to.deep.equal(['[::1]']);
   });
@@ -34,8 +34,8 @@ describe('Development scripts stay local (AUD-58)', function() {
   });
 
   it('refuses a remote database unless explicitly forced', function() {
-    const atlas = 'mongodb+srv://user:secret@cluster0.abc.mongodb.net/';
-    expect(check(atlas)).to.match(/non-local database \(cluster0\.abc\.mongodb\.net\)/);
+    const atlas = 'mongodb+srv://user:<secret>@cluster0.abc.example.net/';
+    expect(check(atlas)).to.match(/non-local database \(cluster0\.abc\.example\.net\)/);
     expect(check(atlas)).to.not.include('secret');
     expect(check(atlas, { argv: ['--allow-remote'] })).to.equal(null);
   });
@@ -50,7 +50,7 @@ describe('Development scripts stay local (AUD-58)', function() {
 
   describe('a URI that names production (P17-04)', function() {
     const devAtlas =
-      'mongodb+srv://jobtrigger-dev-app:pw@jobtrigger-dev.abc.mongodb.net/jobtrigger?appName=jobtrigger-dev';
+      'mongodb+srv://jobtrigger-dev-app:<pw>@jobtrigger-dev.abc.example.net/jobtrigger?appName=jobtrigger-dev';
 
     it('allows the Atlas dev cluster when forced, as setup-dev.sh does', function() {
       expect(check(devAtlas, { argv: ['--allow-remote'] })).to.equal(null);
@@ -58,19 +58,19 @@ describe('Development scripts stay local (AUD-58)', function() {
 
     it('refuses "prod" in the user, cluster, database or appName, even forced', function() {
       for (const uri of [
-        'mongodb+srv://jobtrigger-prod-app:pw@cluster.abc.mongodb.net/jobtrigger',
-        'mongodb+srv://app:pw@jobtrigger-prod.abc.mongodb.net/jobtrigger',
-        'mongodb+srv://app:pw@cluster.abc.mongodb.net/jobtrigger_production',
-        'mongodb+srv://app:pw@cluster.abc.mongodb.net/jobtrigger?appName=Prod',
+        'mongodb+srv://jobtrigger-prod-app:<pw>@cluster.abc.example.net/jobtrigger',
+        'mongodb+srv://app:<pw>@jobtrigger-prod.abc.example.net/jobtrigger',
+        'mongodb+srv://app:<pw>@cluster.abc.example.net/jobtrigger_production',
+        'mongodb+srv://app:<pw>@cluster.abc.example.net/jobtrigger?appName=Prod',
       ]) {
         expect(check(uri, { argv: ['--allow-remote'] }), uri).to.match(/names production/);
       }
     });
 
     it('ignores the password, and never repeats it', function() {
-      const uri = 'mongodb+srv://app:Reproduce9@jobtrigger-dev.abc.mongodb.net/';
+      const uri = 'mongodb+srv://app:<Reproduce9>@jobtrigger-dev.abc.example.net/';
       expect(looksLikeProduction(uri)).to.equal(false);
-      const prodUri = 'mongodb+srv://app:S3cret@jobtrigger-prod.abc.mongodb.net/';
+      const prodUri = 'mongodb+srv://app:<S3cret>@jobtrigger-prod.abc.example.net/';
       expect(check(prodUri, { argv: ['--allow-remote'] })).to.not.include('S3cret');
     });
   });

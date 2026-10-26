@@ -52,7 +52,7 @@ if grep -qE "^MONGODB_URI=[\"']?mongodb\+srv://" JobTrigger-Backend/.env 2>/dev/
 else
   log_error "No Atlas MONGODB_URI in JobTrigger-Backend/.env"
   log_info "Set it up with docs/mongodb-cloud-setup.md, then add:"
-  echo -e "  ${YELLOW}MONGODB_URI=mongodb+srv://USER:PASSWORD@CLUSTER.mongodb.net/jobtrigger${NC}"
+  echo -e "  ${YELLOW}MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.<id>.mongodb.net/jobtrigger${NC}"
   echo ""
   exit 1
 fi

@@ -69,7 +69,7 @@ describe('Database connection (P17-03)', function() {
     });
 
     it('never repeats the connection string it was given', function() {
-      const uri = 'mongodb+srv://app:S3cretPassw0rd@cluster.example.mongodb.net/jobtrigger';
+      const uri = 'mongodb+srv://app:<S3cretPassw0rd>@cluster.example.net/jobtrigger';
       const err = driverError(`bad auth for ${uri}`, { code: 18 });
       expect(connectionHint(err)).to.not.include('S3cretPassw0rd');
     });

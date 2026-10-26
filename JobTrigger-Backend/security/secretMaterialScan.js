@@ -15,6 +15,9 @@
  *   credential-value   a credential-shaped key bound to such a value
  *   basic-auth-header  a token-shaped part inside a Basic Authorization
  *   bearer-token       a token-shaped Bearer Authorization
+ *   mongodb-uri        a MongoDB connection string with a real-looking
+ *                      password (`mongodb[+srv]://user:pass@host`); the
+ *                      backend's MONGODB_URI is MongoDB Atlas (Phase 17)
  *
  * The rules are deliberately narrow. The tree is full of 40-character
  * git SHAs (Riverpod provider hashes, pub lock hashes, pinned action
@@ -84,6 +87,13 @@ const BASIC_HEADER = /Basic\s+([A-Za-z0-9+/]{12,}={0,2})/g;
 
 // `Authorization: Bearer <token>`.
 const BEARER_HEADER = /Bearer\s+([A-Za-z0-9._-]{16,})/g;
+
+// `mongodb://<user>:<password>@<host>` or `mongodb+srv://…`: the password.
+const MONGODB_URI = /mongodb(?:\+srv)?:\/\/[^:@/\s'"`]+:([^@/\s'"`]+)@/g;
+
+// A password that is obviously a placeholder: `<password>`, `${DB_PASS}`,
+// `***`. Docs and tests write these; anything else is treated as real.
+const PLACEHOLDER_PASSWORD = /^(<[^<>]*>|\$\{[^{}]*\}|\*+)$/;
 
 /**
  * Paths this scan never reads.
@@ -240,6 +250,18 @@ function findSecretMaterial(text, relativePath, literalAllowed = false) {
           file: relativePath,
           line: index + 1,
           key: 'authorization',
+        });
+      }
+    }
+
+    MONGODB_URI.lastIndex = 0;
+    while ((match = MONGODB_URI.exec(line)) !== null) {
+      if (!PLACEHOLDER_PASSWORD.test(match[1])) {
+        findings.push({
+          rule: 'mongodb-uri',
+          file: relativePath,
+          line: index + 1,
+          key: 'password',
         });
       }
     }

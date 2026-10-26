@@ -78,6 +78,34 @@ describe('The repository carries no credential material (AUD-66)', function() {
         .to.include('credential-value');
     });
 
+    describe('MongoDB connection strings (Phase 17)', function() {
+      // Assembled at runtime, like SAMPLE: this file is scanned too, and no
+      // credential-bearing URI may be written into it. The values are made up.
+      const uri = (password, scheme = 'mongodb+srv') =>
+        [scheme, '://', 'app', ':', password, '@', 'db.example.net/jobtrigger'].join('');
+
+      it('flags a connection string with a real-looking password', function() {
+        for (const text of [uri('hunter2x'), uri('hunter2x', 'mongodb')]) {
+          expect(findingsIn(`MONGODB_URI=${text}`).map((f) => f.rule)).to.include('mongodb-uri');
+        }
+      });
+
+      it('allows placeholder passwords in docs and tests', function() {
+        for (const password of ['<password>', '<db_password>', '${DB_PASSWORD}', '***']) {
+          expect(findingsIn(`MONGODB_URI=${uri(password)}`), password).to.have.lengthOf(0);
+        }
+      });
+
+      it('allows a connection string without credentials', function() {
+        expect(findingsIn('MONGODB_URI=mongodb://localhost:27017/jobtrigger')).to.have.lengthOf(0);
+      });
+
+      it('never returns the password', function() {
+        const findings = findingsIn(uri('hunter2x'));
+        expect(JSON.stringify(findings)).to.not.include('hunter2x');
+      });
+    });
+
     it('never returns the value it found', function() {
       const findings = findingsIn(`{"password": "${SAMPLE}"}`);
       expect(JSON.stringify(findings)).to.not.include(SAMPLE);

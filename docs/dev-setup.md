@@ -109,7 +109,7 @@ how to reach a Jenkins running on this Mac from the phone.
 
 ```env
 # MongoDB Atlas dev cluster (docs/mongodb-cloud-setup.md)
-MONGODB_URI=mongodb+srv://USER:PASSWORD@CLUSTER.mongodb.net/jobtrigger
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.<id>.mongodb.net/jobtrigger
 
 # Server port
 PORT=5001

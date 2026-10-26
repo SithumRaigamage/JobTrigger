@@ -72,16 +72,17 @@ between the internet and the database.
 2. Copy the string. It looks like:
 
    ```text
-   mongodb+srv://jobtrigger-dev-app:<db_password>@jobtrigger-dev.abcde.mongodb.net/?retryWrites=true&w=majority&appName=jobtrigger-dev
+   mongodb+srv://jobtrigger-dev-app:<db_password>@jobtrigger-dev.<id>.mongodb.net/?retryWrites=true&w=majority&appName=jobtrigger-dev
    ```
 
-3. Replace `<db_password>` with the password from step 2. If it contains
+3. Replace `<db_password>` with the password from step 2 (`<id>` is your
+   cluster's own code, already filled in by Atlas). If it contains
    any of `@ : / ? # [ ] %`, URL-encode those characters (`@` → `%40`,
    `:` → `%3A`, `/` → `%2F`, `%` → `%25`, and so on).
 4. Add the database name after the host, before the `?`:
 
    ```text
-   mongodb+srv://jobtrigger-dev-app:PASSWORD@jobtrigger-dev.abcde.mongodb.net/jobtrigger?retryWrites=true&w=majority&appName=jobtrigger-dev
+   mongodb+srv://jobtrigger-dev-app:<password>@jobtrigger-dev.<id>.mongodb.net/jobtrigger?retryWrites=true&w=majority&appName=jobtrigger-dev
    ```
 
    The backend and its scripts select `jobtrigger` themselves, so this is
@@ -92,7 +93,7 @@ between the internet and the database.
 Open `JobTrigger-Backend/.env` yourself and set:
 
 ```env
-MONGODB_URI=mongodb+srv://jobtrigger-dev-app:PASSWORD@jobtrigger-dev.abcde.mongodb.net/jobtrigger?retryWrites=true&w=majority&appName=jobtrigger-dev
+MONGODB_URI=mongodb+srv://jobtrigger-dev-app:<password>@jobtrigger-dev.<id>.mongodb.net/jobtrigger?retryWrites=true&w=majority&appName=jobtrigger-dev
 ```
 
 Leave every other line as it is. In particular **keep
