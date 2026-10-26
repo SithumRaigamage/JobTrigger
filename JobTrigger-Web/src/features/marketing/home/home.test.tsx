@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { FeatureId, FeatureStatus } from "@/content/feature-status";
 
 import { Hero } from "./hero";
+import { Timeline } from "./timeline";
 import { ToolStrip } from "./tool-strip";
 
 const overrides: Partial<Record<FeatureId, FeatureStatus>> = {};
@@ -73,5 +74,21 @@ describe("ToolStrip", () => {
     expect(screen.queryByText("Beta")).not.toBeInTheDocument();
     expect(screen.queryByText("Coming soon")).not.toBeInTheDocument();
     expect(screen.queryByText("More planned")).not.toBeInTheDocument();
+  });
+});
+
+describe("Timeline", () => {
+  it("is an ordered list of four steps, each with a heading and one described illustration", () => {
+    render(<Timeline />);
+
+    const steps = screen.getAllByRole("listitem");
+    expect(steps).toHaveLength(4);
+    expect(screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual([
+      "Start any job, with the right inputs.",
+      "Logs that stream as fast as the build.",
+      "See why it went red in seconds.",
+      "Stop refreshing. We’ll tell you.",
+    ]);
+    expect(screen.getAllByRole("img")).toHaveLength(4);
   });
 });
