@@ -56,7 +56,7 @@ Source drawings in [`UI-UX/brand/`](../UI-UX/brand/), on a 128-unit grid:
       (`launch_background.xml`, `-v21`) and iOS (`LaunchScreen`).
 - [x] P16-04 `AppLogo` draws the B mark (hairline outline in dark mode),
       widget test; login and app info screens unchanged.
-- [ ] P16-05 Website: `BrandMark`, `icon.png`, `apple-icon.png`,
+- [x] P16-05 Website: `BrandMark`, `icon.png`, `apple-icon.png`,
       `opengraph-image.tsx`.
 
 ## Out of scope
@@ -64,3 +64,19 @@ Source drawings in [`UI-UX/brand/`](../UI-UX/brand/), on a 128-unit grid:
 - Changing the theme accent or any brand colour beyond the mark itself.
 - Store listing artwork (screenshots, feature graphic). The 512 px Play
   Store icon and 1024 px App Store icon come from the same export.
+
+## Outcome (2026-10-26)
+
+P16-00…P16-05 built on `feat/brand-logo-b`, one commit per task, each
+reviewed and approved by the owner before its commit.
+
+- **Seen running:** the iOS icon and navy splash on the iPhone Air
+  simulator; the adaptive icon and the Android 12+ system splash on a
+  Pixel 10 Pro emulator (API 37); the website header, sign-in band,
+  footer and link-preview image on a production build.
+- **Not run on a device:** the Android 7–11 splash
+  (`launch_background.xml`), checked by the build only.
+- **Owner decision during the phase:** the wide login screen's blue panel
+  shows `AppLogo(size: 44)` instead of its own play tile (P16-04).
+- **Local screenshot tests** in `test/_shots/` (untracked) hold the old
+  logo; refresh them with `--update-goldens`.

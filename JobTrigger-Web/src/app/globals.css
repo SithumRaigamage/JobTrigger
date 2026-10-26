@@ -37,6 +37,9 @@
   --running-fg: #1d4ed8;
   --neutral-bg: #f1f5f9;
   --neutral-fg: #334155;
+
+  /* The logo's tile needs no edge on a light surface. */
+  --logo-outline: transparent;
 }
 
 [data-surface="dark"] {
@@ -66,6 +69,10 @@
   --running-fg: #93c5fd;
   --neutral-bg: #1e293b;
   --neutral-fg: #cbd5e1;
+
+  /* A hairline keeps the logo's navy tile off a dark surface (the app's
+     dark mode does the same, P16-04). */
+  --logo-outline: #1f2a3d;
 }
 
 @theme inline {
@@ -108,6 +115,13 @@
   --color-brand-jenkins: #d33833;
   --color-brand-sonarqube: #126ed3;
   --color-on-brand: #ffffff;
+  /* The JobTrigger logo, Concept B (Phase 16; UI-UX/brand/mark.svg). Fixed
+     on both surfaces and never used for UI: the accent stays the accent. */
+  --color-logo-tile: #0f172a;
+  --color-logo-stage: #93c5fd;
+  --color-logo-connector: #60a5fa;
+  --color-logo-run: #4ade80;
+  --color-logo-outline: var(--logo-outline);
   --color-live-dot: #22c55e;
   /* Behind modal dialogs: ::backdrop doesn't inherit a section's tokens. */
   --color-scrim: rgb(11 17 32 / 0.6);
