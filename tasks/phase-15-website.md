@@ -52,7 +52,7 @@ runs are the merge gate.
 - [x] P15-02 Design tokens (light/dark), Inter + JetBrains Mono via
       `next/font`, root layout, base primitives (`Button`, `Card`,
       `Container`).
-- [ ] P15-03 Security baseline (WEB-B1–B3): HSTS, strict CSP,
+- [x] P15-03 Security baseline (WEB-B1–B3): HSTS, strict CSP,
       `frame-ancestors 'none'`, `no-store` on portal routes, no secrets in
       logs or URLs.
 - [ ] P15-04 Feature-status list `src/content/feature-status.ts`

@@ -1,9 +1,13 @@
 import type { NextConfig } from "next";
 
+import { staticSecurityHeaders } from "./src/security-headers";
+
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // No cacheComponents / partialPrefetching: Partial Prerendering can't
+  // carry a per-request CSP nonce, so the strict CSP (WEB-B2) needs every
+  // page rendered per request. Measured 2026-10-26; see
+  // docs/web-architecture.md "Security headers".
+  poweredByHeader: false,
   turbopack: {
     rules: {
       "*.css": {
@@ -11,6 +15,9 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  async headers() {
+    return [{ source: "/:path*", headers: staticSecurityHeaders() }];
   },
 };
 

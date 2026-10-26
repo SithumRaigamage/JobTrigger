@@ -77,6 +77,8 @@ JobTrigger-Web/
     server/                `import "server-only"` — backend client, session,
                            refresh, masking, config. The ONLY backend caller.
     content/               feature-status.ts (US-WEB-22), changelog entries
+    proxy.ts               Per-request CSP nonce + no-store (headers only)
+    security-headers.ts    Header builders shared with next.config.ts
   tests/e2e/               Playwright specs + fake backend
 ```
 
@@ -106,7 +108,8 @@ app/ (routes) → features/ (views + server actions) → server/ (backend)
   handler), validated with `zod` on the server, protected by the
   `SameSite` cookie plus Next's server-action origin check. No mutations
   via `GET`.
-- **Signed-in responses send `Cache-Control: no-store`.**
+- **Signed-in responses send `Cache-Control: no-store`** (see "Security
+  headers").
 
 ### Errors
 
@@ -147,6 +150,48 @@ go to server logs only (NFR-SEC-04).
   failure keeps the session (NFR-SEC-07), as in the app.
 - Idle timeout (US-WEB-20): the session stores a last-activity time;
   after 30 minutes the next request redirects to `/sign-in`.
+
+### Security headers (P15-03, WEB-B1–B3)
+
+One strict policy on every page (owner decision 2026-10-26):
+
+- **CSP with a per-request nonce** (`src/proxy.ts`): `script-src 'self'
+  'nonce-…' 'strict-dynamic'`, `style-src 'self' 'nonce-…'`, no
+  `'unsafe-inline'`, `frame-ancestors 'none'`, `form-action 'self'`,
+  `object-src 'none'`, `upgrade-insecure-requests` in production.
+  `'unsafe-eval'` in `next dev` only.
+- **Static headers on every response** (`next.config.ts`): HSTS two years
+  with `includeSubDomains` (no `preload` — a separate domain decision),
+  `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`,
+  `Permissions-Policy`, `Cross-Origin-Opener-Policy`; no `X-Powered-By`.
+- **`no-store`** explicitly on `/sign-in`, `/sign-up`, `/servers`,
+  `/account` (`NO_STORE_PATH_PREFIXES` in `src/security-headers.ts`; add
+  new portal paths there).
+- The header builders live in `src/security-headers.ts`, outside
+  `server/`, because `next.config.ts` can't import `server-only`.
+
+**Why every page renders per request, and `cacheComponents` is off.** The
+App Router emits inline scripts on every page, so a CSP without
+`'unsafe-inline'` needs a nonce, and a nonce must be new per response.
+Measured on 2026-10-26 (production build, Chromium):
+
+| Setup | CSP violations | Page hydrates |
+|---|---|---|
+| Experimental SRI, `script-src 'self'`, static | 13 | no |
+| Nonce, `cacheComponents` on, static | 21 | no |
+| Nonce, `cacheComponents` on, dynamic part in `<Suspense>` | 10 | no |
+| **Nonce, `cacheComponents` off, root layout awaits `connection()`** | **0** | **yes** |
+
+Consequences: no static pages or ISR, and Next sends `Cache-Control:
+private, no-store` on every page — correct, since a cached page would
+replay its nonce. Don't re-enable `cacheComponents` or add `'unsafe-inline'`
+without revisiting this table; `tests/e2e/security-headers.spec.ts` fails
+on any CSP violation.
+
+**WEB-B3 (no secrets in URLs or logs).** Secrets travel only in
+server-action bodies, never query strings or route params; `server/`
+never logs request bodies, tokens or backend responses; error pages show
+`AppFailure` copy only. Enforced by tests from P15-13 on.
 
 ## 6. Styling
 
