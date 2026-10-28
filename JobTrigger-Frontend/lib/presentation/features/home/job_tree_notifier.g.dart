@@ -33,7 +33,7 @@ final class JobTreeNotifierProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'jobTreeNotifierProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -48,7 +48,7 @@ final class JobTreeNotifierProvider
   JobTreeNotifier create() => JobTreeNotifier();
 }
 
-String _$jobTreeNotifierHash() => r'd366ad898da3471d24a16e9e4fabfc546a6cfe77';
+String _$jobTreeNotifierHash() => r'0b349f96bc4c032e85297c82c0e3f4a0867d221a';
 
 /// The recursive crawl of the active server (6 folder levels) — standard
 /// shape from `docs/architecture.md §4`. Since P11-05 it backs only

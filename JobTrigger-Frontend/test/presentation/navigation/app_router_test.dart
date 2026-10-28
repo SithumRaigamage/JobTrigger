@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:job_trigger/presentation/features/home/reachability_watcher.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/github_repository_impl.dart';
@@ -107,7 +108,11 @@ void main() {
       );
       final repo = _FakeJenkinsRepository([folder]);
       final container = ProviderContainer(
-        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+        overrides: [
+          jenkinsRepositoryProvider.overrideWithValue(repo),
+          // No 30 s timer left pending when the test ends.
+          reachabilityWatcherProvider.overrideWith((ref) {}),
+        ],
       );
       addTearDown(container.dispose);
       // Keep authNotifierProvider alive across the gap between setSession

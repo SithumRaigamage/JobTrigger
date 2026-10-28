@@ -88,9 +88,19 @@ their screen under `presentation/features/<feature>/`.
   whole-tree download on load (AUD-19/20).
 - **Offline (US-JX-20):** a successful `FolderContentsNotifier` listing
   is saved to `JobTreeCache` (platform cache dir, per server and folder).
-  On `NetworkFailure` the saved listing is served, and
-  `OfflineSnapshotNotifier` (keepAlive, `DateTime?`) holds its save time
-  for Home's banner. The cache is cleared on logout and server delete.
+  When the server is unreachable (`AppFailure.isUnreachable`:
+  `NetworkFailure`, or 502/503/504 from a proxy) the saved listing is
+  served, and `OfflineSnapshotNotifier` (keepAlive, `DateTime?`) holds its
+  save time for Home's banner. The cache is cleared on logout and server
+  delete. `reachabilityWatcher` (a void provider `HomeScreen` watches,
+  P11-29) calls `FolderContentsNotifier.recheck()` every 30 s and on app
+  resume, so an outage is noticed while a listing is already on screen.
+  Jenkins data providers use `@Riverpod(retry: noRetry)` so a down
+  server errors at once instead of spinning through Riverpod's retries,
+  `JobTreeNotifier` reloads itself when the server returns, and Home
+  shows a "Back online" toast (P11-30). The `ProviderScope` sets
+  `retry: noRetry` app-wide, and `ActiveServerGate` covers the gap before
+  the active server resolves.
 - `JobTreeNotifier` (`AsyncNotifier<List<JenkinsJob>>`) is the 6-level
   recursive crawl. It's used only for cross-folder search and the global
   history timeline, and is first fetched when one of those is opened.

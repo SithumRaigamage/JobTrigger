@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/error/no_retry.dart';
 import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
@@ -10,7 +11,7 @@ part 'job_history_notifier.g.dart';
 /// `GlobalHistoryNotifier`, this needs its own fetch
 /// (`JenkinsRepository.fetchJobHistory`) since the tree/detail fetches
 /// don't carry a job's full `builds[]` list — see `docs/api-reference.md`.
-@riverpod
+@Riverpod(retry: noRetry)
 class JobHistoryNotifier extends _$JobHistoryNotifier {
   @override
   Future<List<JenkinsBuild>> build(String jobUrl) async {

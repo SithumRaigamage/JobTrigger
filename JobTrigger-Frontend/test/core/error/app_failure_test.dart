@@ -200,4 +200,21 @@ void main() {
       expect(failure.requestId, isNull);
     });
   });
+
+  group('isUnreachable', () {
+    test('is true for connection failures and gateway errors', () {
+      expect(const NetworkFailure().isUnreachable, isTrue);
+      for (final code in [502, 503, 504]) {
+        expect(ServerFailure(code).isUnreachable, isTrue, reason: '$code');
+      }
+    });
+
+    test('is false for everything else', () {
+      expect(const ServerFailure(500).isUnreachable, isFalse);
+      expect(const AuthFailure().isUnreachable, isFalse);
+      expect(const PermissionFailure().isUnreachable, isFalse);
+      expect(const NotFoundFailure().isUnreachable, isFalse);
+      expect(const UnknownFailure().isUnreachable, isFalse);
+    });
+  });
 }

@@ -30,7 +30,7 @@ final class JobHistoryNotifierProvider
     required JobHistoryNotifierFamily super.from,
     required String super.argument,
   }) : super(
-         retry: null,
+         retry: noRetry,
          name: r'jobHistoryNotifierProvider',
          isAutoDispose: true,
          dependencies: null,
@@ -63,7 +63,7 @@ final class JobHistoryNotifierProvider
 }
 
 String _$jobHistoryNotifierHash() =>
-    r'd8317e76c30074c47a21ef00595d5d6f89734ceb';
+    r'eaddc158a6827d1d900d309e73fd74893308719e';
 
 /// Last 20 builds for one job — family-keyed by the job's URL. Unlike
 /// `GlobalHistoryNotifier`, this needs its own fetch
@@ -81,7 +81,7 @@ final class JobHistoryNotifierFamily extends $Family
         > {
   JobHistoryNotifierFamily._()
     : super(
-        retry: null,
+        retry: noRetry,
         name: r'jobHistoryNotifierProvider',
         dependencies: null,
         $allTransitiveDependencies: null,

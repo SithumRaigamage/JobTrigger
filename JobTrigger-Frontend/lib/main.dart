@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/config/app_config.dart';
+import 'core/error/no_retry.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_notifier.dart';
 import 'presentation/common_widgets/toast_view.dart';
@@ -19,7 +20,8 @@ void main() {
   // rather than at the first backend call.
   AppConfig.fromEnvironment();
   _registerFontLicenses();
-  runApp(const ProviderScope(child: MyApp()));
+  // No automatic retries: a failed load shows its error, not a spinner.
+  runApp(const ProviderScope(retry: noRetry, child: MyApp()));
 }
 
 /// P14-02: the bundled typefaces are SIL OFL 1.1, which asks for the
