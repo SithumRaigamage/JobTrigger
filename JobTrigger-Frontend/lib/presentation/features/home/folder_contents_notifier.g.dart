@@ -21,8 +21,10 @@ part of 'folder_contents_notifier.dart';
 /// `jenkinsRepositoryProvider`.
 ///
 /// US-JX-20: every successful listing is saved to [JobTreeCache]; on a
-/// `NetworkFailure` the last saved listing is served instead, and
-/// [OfflineSnapshotNotifier] records how old it is for Home's banner.
+/// unreachable server (`AppFailure.isUnreachable`) the last saved listing
+/// is served instead, and [OfflineSnapshotNotifier] records how old it is
+/// for Home's banner. [recheck] lets the app notice an outage while a
+/// listing is already on screen.
 
 @ProviderFor(FolderContentsNotifier)
 final folderContentsNotifierProvider = FolderContentsNotifierFamily._();
@@ -40,8 +42,10 @@ final folderContentsNotifierProvider = FolderContentsNotifierFamily._();
 /// `jenkinsRepositoryProvider`.
 ///
 /// US-JX-20: every successful listing is saved to [JobTreeCache]; on a
-/// `NetworkFailure` the last saved listing is served instead, and
-/// [OfflineSnapshotNotifier] records how old it is for Home's banner.
+/// unreachable server (`AppFailure.isUnreachable`) the last saved listing
+/// is served instead, and [OfflineSnapshotNotifier] records how old it is
+/// for Home's banner. [recheck] lets the app notice an outage while a
+/// listing is already on screen.
 final class FolderContentsNotifierProvider
     extends $AsyncNotifierProvider<FolderContentsNotifier, List<JenkinsJob>> {
   /// One folder's direct children, fetched on demand (P11-05) — [folderUrl]
@@ -57,13 +61,15 @@ final class FolderContentsNotifierProvider
   /// `jenkinsRepositoryProvider`.
   ///
   /// US-JX-20: every successful listing is saved to [JobTreeCache]; on a
-  /// `NetworkFailure` the last saved listing is served instead, and
-  /// [OfflineSnapshotNotifier] records how old it is for Home's banner.
+  /// unreachable server (`AppFailure.isUnreachable`) the last saved listing
+  /// is served instead, and [OfflineSnapshotNotifier] records how old it is
+  /// for Home's banner. [recheck] lets the app notice an outage while a
+  /// listing is already on screen.
   FolderContentsNotifierProvider._({
     required FolderContentsNotifierFamily super.from,
     required String super.argument,
   }) : super(
-         retry: null,
+         retry: noRetry,
          name: r'folderContentsNotifierProvider',
          isAutoDispose: true,
          dependencies: null,
@@ -97,7 +103,7 @@ final class FolderContentsNotifierProvider
 }
 
 String _$folderContentsNotifierHash() =>
-    r'd08e379aa71b9fb833e5cd33ba08fb9996be4f4e';
+    r'289ce6249f1de1244aa137c2317676eda9738977';
 
 /// One folder's direct children, fetched on demand (P11-05) — [folderUrl]
 /// is [rootFolderKey] for the server root. Home browses with this instead
@@ -112,8 +118,10 @@ String _$folderContentsNotifierHash() =>
 /// `jenkinsRepositoryProvider`.
 ///
 /// US-JX-20: every successful listing is saved to [JobTreeCache]; on a
-/// `NetworkFailure` the last saved listing is served instead, and
-/// [OfflineSnapshotNotifier] records how old it is for Home's banner.
+/// unreachable server (`AppFailure.isUnreachable`) the last saved listing
+/// is served instead, and [OfflineSnapshotNotifier] records how old it is
+/// for Home's banner. [recheck] lets the app notice an outage while a
+/// listing is already on screen.
 
 final class FolderContentsNotifierFamily extends $Family
     with
@@ -126,7 +134,7 @@ final class FolderContentsNotifierFamily extends $Family
         > {
   FolderContentsNotifierFamily._()
     : super(
-        retry: null,
+        retry: noRetry,
         name: r'folderContentsNotifierProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
@@ -146,8 +154,10 @@ final class FolderContentsNotifierFamily extends $Family
   /// `jenkinsRepositoryProvider`.
   ///
   /// US-JX-20: every successful listing is saved to [JobTreeCache]; on a
-  /// `NetworkFailure` the last saved listing is served instead, and
-  /// [OfflineSnapshotNotifier] records how old it is for Home's banner.
+  /// unreachable server (`AppFailure.isUnreachable`) the last saved listing
+  /// is served instead, and [OfflineSnapshotNotifier] records how old it is
+  /// for Home's banner. [recheck] lets the app notice an outage while a
+  /// listing is already on screen.
 
   FolderContentsNotifierProvider call(String folderUrl) =>
       FolderContentsNotifierProvider._(argument: folderUrl, from: this);
@@ -169,8 +179,10 @@ final class FolderContentsNotifierFamily extends $Family
 /// `jenkinsRepositoryProvider`.
 ///
 /// US-JX-20: every successful listing is saved to [JobTreeCache]; on a
-/// `NetworkFailure` the last saved listing is served instead, and
-/// [OfflineSnapshotNotifier] records how old it is for Home's banner.
+/// unreachable server (`AppFailure.isUnreachable`) the last saved listing
+/// is served instead, and [OfflineSnapshotNotifier] records how old it is
+/// for Home's banner. [recheck] lets the app notice an outage while a
+/// listing is already on screen.
 
 abstract class _$FolderContentsNotifier
     extends $AsyncNotifier<List<JenkinsJob>> {

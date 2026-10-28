@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/error/no_retry.dart';
 import '../../../domain/jenkins/history_entry.dart';
 import '../../../domain/jenkins/history_filter.dart';
 import '../home/job_tree_notifier.dart';
@@ -9,7 +10,7 @@ part 'global_history_notifier.g.dart';
 /// Traverses the already-fetched job tree (`JobTreeNotifier`) to build the
 /// cross-job top-50 timeline — no separate fetch, per
 /// `docs/state-management.md`.
-@riverpod
+@Riverpod(retry: noRetry)
 class GlobalHistoryNotifier extends _$GlobalHistoryNotifier {
   @override
   Future<List<HistoryEntry>> build() async {

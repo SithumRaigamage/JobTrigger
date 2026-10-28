@@ -9,7 +9,7 @@ import '../../../domain/jenkins/history_entry.dart';
 import '../../../domain/jenkins/history_filter.dart';
 import '../../../domain/jenkins/relative_time.dart';
 import '../../common_widgets/connection_error_view.dart';
-import '../../common_widgets/no_active_server_view.dart';
+import '../../common_widgets/active_server_gate.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
 import '../../navigation/app_routes.dart';
@@ -37,7 +37,7 @@ class GlobalHistoryScreen extends ConsumerWidget {
     final activeServer = ref.watch(activeServerNotifierProvider);
     if (activeServer == null) {
       return const Scaffold(
-        body: SafeArea(child: Center(child: NoActiveServerView())),
+        body: SafeArea(child: Center(child: ActiveServerGate())),
       );
     }
 

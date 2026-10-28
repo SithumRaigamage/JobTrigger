@@ -24,12 +24,13 @@ import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/inline_alert.dart';
-import '../../common_widgets/no_active_server_view.dart';
+import '../../common_widgets/active_server_gate.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_indicator.dart';
 import '../../common_widgets/status_pill.dart';
 import '../../common_widgets/status_tile.dart';
+import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'folder_breadcrumb_notifier.dart';
@@ -37,6 +38,7 @@ import 'folder_contents_notifier.dart';
 import 'job_search_notifier.dart';
 import 'multibranch_notifiers.dart';
 import 'pinned_jobs_notifier.dart';
+import 'reachability_watcher.dart';
 import 'server_status_provider.dart';
 import 'views_notifier.dart';
 import 'visible_jobs_provider.dart';
@@ -65,10 +67,23 @@ class HomeScreen extends ConsumerWidget {
     final activeServer = ref.watch(activeServerNotifierProvider);
     if (activeServer == null) {
       return const Scaffold(
-        body: SafeArea(child: Center(child: NoActiveServerView())),
+        body: SafeArea(child: Center(child: ActiveServerGate())),
       );
     }
 
+    ref.watch(reachabilityWatcherProvider);
+    ref.listen(offlineSnapshotNotifierProvider, (previous, next) {
+      if (previous != null && next == null) {
+        // The app's own toast (themed, shown over any tab), not a snackbar.
+        ref
+            .read(toastControllerProvider)
+            .show(
+              type: ToastType.success,
+              title: 'Back online',
+              message: 'Jenkins is reachable again.',
+            );
+      }
+    });
     final visibleJobs = ref.watch(visibleJobsProvider);
     final breadcrumb = ref.watch(folderBreadcrumbNotifierProvider);
     final query = ref.watch(jobSearchNotifierProvider);

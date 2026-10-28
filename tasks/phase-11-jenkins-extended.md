@@ -557,3 +557,47 @@ their approvals don't block the rest.
       DTOs). The notifier sections were added to `state-management.md` with
       each task. Phase 11 is marked done in `tasks/README.md`, with P11-03
       still blocked on a device.
+- [x] P11-29 **US-JX-20 follow-up: notice an outage while Home is open.**
+      Found on a device 2026-10-29: stopping Jenkins left the job tree on
+      screen with no offline banner, because nothing refetched, so no
+      failure was ever produced.
+      - **Probe:** `reachabilityWatcher` (watched by `HomeScreen`) calls
+        `FolderContentsNotifier.recheck()` every 30 s and when the app
+        returns to the foreground. Unreachable flips the banner on over the
+        current list; reachable again reloads live data. Skipped while
+        searching (the recursive crawl is too heavy to probe with).
+      - **Unreachable:** `AppFailure.isUnreachable` is true for
+        `NetworkFailure` and for 502/503/504, so a Jenkins behind a reverse
+        proxy or tunnel counts too.
+      - **Fallback:** if the disk cache can't be read, the last live
+        listing is served instead of an error.
+      - **Tests:** 5 new (`offline_tree_test.dart`, `app_failure_test.dart`).
+- [x] P11-30 **Offline follow-ups, from the P11-29 device check
+      (2026-10-29).** History sat on a spinner while Jenkins was down, and
+      nothing said when it came back.
+      - **No endless spinner:** Riverpod retries a failed provider up to
+        ten times and reads as *loading* meanwhile. `FolderContentsNotifier`,
+        `JobTreeNotifier` (History and search) and the two job-history
+        notifiers now use `@Riverpod(retry: noRetry)`
+        (`core/error/no_retry.dart`), so a down server shows the error view
+        (with retry) within one timeout.
+      - **Auto-reload:** a failed `JobTreeNotifier` reloads itself when the
+        server is back (`OfflineSnapshotNotifier` goes offline → live).
+      - **"Back online":** Home shows the app's themed success toast
+        (`toastControllerProvider`, 3.5 s) on that transition. A first
+        version used a default snackbar, which ignored the theme.
+      - **Not done:** History has no offline cache or banner. Its data is a
+        derived crawl, and Home's banner text ("showing data from HH:MM")
+        would be wrong there. It shows the connection error with retry.
+      - **Second pass (same day, after a device re-check):** History still
+        spun because `GlobalHistoryNotifier`, which sits on the job tree,
+        still retried. The app's `ProviderScope` now sets
+        `retry: noRetry` for every provider, and the history notifiers keep
+        the per-provider setting too.
+      - **No false "No Jenkins Server":** the active server only exists once
+        the saved-server list has loaded from the backend, so Home and
+        History showed "no server" at start. `ActiveServerGate` shows a
+        spinner while that loads, the error with retry if it fails, and "No
+        Jenkins Server" only for an empty list.
+      - **Tests:** 7 new (`offline_tree_test.dart`,
+        `active_server_gate_test.dart`).
