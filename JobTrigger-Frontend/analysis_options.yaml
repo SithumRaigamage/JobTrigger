@@ -24,6 +24,10 @@ analyzer:
     # useful to lint.
     - "**/*.g.dart"
     - "**/*.freezed.dart"
+    - build/**
+    - android/**
+    - ios/**
+    - macos/**
 
 linter:
   # The lint rules applied to this project can be customized in the
