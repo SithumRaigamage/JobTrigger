@@ -79,7 +79,8 @@ Phase 0–6 task without first moving the item here into an actual phase file
   task names it; flagged during P6-03 rather than built silently.
 - Android "share a Jenkins link into JobTrigger" (US-JX-19). Needs a
   share-intent plugin such as `receive_sharing_intent`, which isn't in
-  `CLAUDE.md` §3. The `jobtrigger://` scheme and the in-app "Open Jenkins
-  link…" paste action cover the need in P11-22. Also: a deep link opened
+  `CLAUDE.md` §3. The `jobtrigger://` scheme covers the need (P11-22; its in-app paste
+  action was removed in P19-06 — Home's "Open Jenkins link" now opens the
+  server in the browser). Also: a deep link opened
   while signed out is dropped at login; resuming it after sign-in is a
   small follow-up.

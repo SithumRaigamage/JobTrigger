@@ -31,7 +31,9 @@ Each is planned, approved and committed one at a time.
       fetch and both providers use `noRetry`. Follow-up, not done: 
       `stage_steps_notifiers.dart` (`_refreshWhileLive`, 2s) has the same
       timer-before-fetch shape.
-- [ ] P19-06 The "three dots" menu should open the selected server's URL,
-      but it asks to paste one.
+- [x] P19-06 The three-dots "Open Jenkins link" asked for a pasted URL.
+      It now opens the active server's page (or the folder being browsed)
+      in the browser at once. The paste dialog is gone; the `jobtrigger://`
+      deep link and `OpenLinkScreen` stay.
 - [ ] P19-07 The server drop-down at the top of Home navigates to Settings
       instead of switching the active server.

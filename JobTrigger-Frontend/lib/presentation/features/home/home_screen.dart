@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,6 +12,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../data/credentials/active_server_notifier.dart';
 import '../../../data/credentials/credentials_notifier.dart';
 import '../../../domain/credential/jenkins_server.dart';
+import '../../../domain/credential/server_links.dart';
 import '../../../domain/jenkins/branch_kind.dart';
 import '../../../domain/jenkins/build_progress.dart';
 import '../../../domain/jenkins/history_filter.dart';
@@ -23,6 +23,7 @@ import '../../../domain/jenkins/job_status_summary.dart';
 import '../../../domain/jenkins/relative_time.dart';
 import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/external_link.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/inline_alert.dart';
 import '../../common_widgets/no_active_server_view.dart';
@@ -31,6 +32,7 @@ import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_indicator.dart';
 import '../../common_widgets/status_pill.dart';
 import '../../common_widgets/status_tile.dart';
+import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'folder_breadcrumb_notifier.dart';
@@ -191,7 +193,10 @@ class _Header extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
               ],
-              _MoreMenu(withShortcuts: folder != null),
+              _MoreMenu(
+                withShortcuts: folder != null,
+                webUrl: jenkinsWebUrl(folder?.url ?? server.jenkinsURL),
+              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -331,25 +336,41 @@ class _HeaderButton extends StatelessWidget {
 /// US-JX-19 (open a pasted Jenkins link) — plus, inside a folder where the
 /// header has room only for the scan actions, the queue and nodes
 /// (US-JX-09 / US-JX-12).
-class _MoreMenu extends StatelessWidget {
-  const _MoreMenu({required this.withShortcuts});
+/// The overflow menu. "Open Jenkins link" opens [webUrl] — the server, or
+/// the folder being browsed — in the browser (P19-06); shortcuts to the
+/// queue and nodes join it inside a folder, where the header buttons don't.
+class _MoreMenu extends ConsumerWidget {
+  const _MoreMenu({required this.withShortcuts, required this.webUrl});
 
   final bool withShortcuts;
+  final Uri? webUrl;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return PopupMenuButton<String>(
       tooltip: 'More',
       icon: const Icon(Icons.more_vert_rounded),
-      onSelected: (route) => route == _openLinkAction
-          ? _promptForLink(context)
-          : context.push(route),
+      onSelected: (value) {
+        if (value != _openLinkAction) {
+          unawaited(context.push(value));
+        } else if (webUrl case final uri?) {
+          unawaited(openExternalLink(ref, uri));
+        } else {
+          ref
+              .read(toastControllerProvider)
+              .show(
+                type: ToastType.error,
+                title: "Couldn't open link",
+                message: 'This server’s address isn’t a valid web link.',
+              );
+        }
+      },
       itemBuilder: (context) => [
         const PopupMenuItem(
           value: _openLinkAction,
           child: ListTile(
-            leading: Icon(Icons.link_rounded),
-            title: Text('Open Jenkins link…'),
+            leading: Icon(Icons.open_in_browser_rounded),
+            title: Text('Open Jenkins link'),
           ),
         ),
         if (withShortcuts) ...const [
@@ -372,6 +393,8 @@ class _MoreMenu extends StatelessWidget {
     );
   }
 }
+
+const _openLinkAction = 'open-link';
 
 class _SearchField extends ConsumerWidget {
   const _SearchField();
@@ -1109,76 +1132,6 @@ class _ViewPickerTitle extends ConsumerWidget {
     if (chosen != null) {
       await ref.read(selectedViewNotifierProvider.notifier).select(chosen);
     }
-  }
-}
-
-const _openLinkAction = 'open-link';
-
-/// US-JX-19: asks for a Jenkins URL, offering the clipboard's when it
-/// holds one, then opens it through the same path as a deep link.
-Future<void> _promptForLink(BuildContext context) async {
-  final clipboard = (await Clipboard.getData(
-    Clipboard.kTextPlain,
-  ))?.text?.trim();
-  final suggestion =
-      clipboard != null && clipboard.startsWith(RegExp('https?://'))
-      ? clipboard
-      : '';
-  if (!context.mounted) return;
-  final link = await showDialog<String>(
-    context: context,
-    builder: (context) => _OpenLinkDialog(initial: suggestion),
-  );
-  if (link == null || link.isEmpty || !context.mounted) return;
-  unawaited(
-    context.push(
-      Uri(path: AppRoutes.openLink, queryParameters: {'url': link}).toString(),
-    ),
-  );
-}
-
-class _OpenLinkDialog extends StatefulWidget {
-  const _OpenLinkDialog({required this.initial});
-
-  final String initial;
-
-  @override
-  State<_OpenLinkDialog> createState() => _OpenLinkDialogState();
-}
-
-class _OpenLinkDialogState extends State<_OpenLinkDialog> {
-  late final _controller = TextEditingController(text: widget.initial);
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Open Jenkins link'),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        keyboardType: TextInputType.url,
-        autocorrect: false,
-        decoration: const InputDecoration(
-          hintText: 'https://jenkins.example.com/job/…',
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
-          child: const Text('Open'),
-        ),
-      ],
-    );
   }
 }
 

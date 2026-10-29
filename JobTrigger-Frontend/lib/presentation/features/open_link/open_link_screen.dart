@@ -19,8 +19,8 @@ import '../../navigation/app_routes.dart';
 import '../../../data/credentials/active_server_notifier.dart';
 import '../../../data/credentials/credentials_notifier.dart';
 
-/// US-JX-19: opens a Jenkins URL (from `jobtrigger://app/open?url=…` or the
-/// "Open Jenkins link" action) on the matching job, build, or console.
+/// US-JX-19: opens a Jenkins URL (from `jobtrigger://app/open?url=…`) on the
+/// matching job, build, or console.
 ///
 /// Only saved servers are ever contacted: a link can't point the app at a
 /// new host, and a URL carrying credentials is refused. If the link belongs
