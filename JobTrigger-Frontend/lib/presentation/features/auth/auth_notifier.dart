@@ -21,6 +21,11 @@ part 'auth_notifier.g.dart';
 
 const _cachedUserKey = 'cached_user';
 
+/// P19-01: whether the session outlives an app restart — the "Remember me"
+/// checkbox. A missing key means `true`, so sessions that predate the flag
+/// aren't signed out by the update.
+const _keepSignedInKey = 'keep_signed_in';
+
 /// Holds the app-wide session — `go_router`'s redirect
 /// (`presentation/navigation/app_router.dart`) watches this.
 ///
@@ -48,6 +53,12 @@ class AuthNotifier extends _$AuthNotifier {
     final token = await secureStorage.readToken();
     if (token == null) return const Unauthenticated();
 
+    // P19-01: an unticked "Remember me" session ends with the app.
+    if (!await _readKeepSignedIn()) {
+      await _wipeLocalSession();
+      return const Unauthenticated();
+    }
+
     final cachedUser = await _readCachedUser();
     if (cachedUser == null) {
       // A token with no cached user is an inconsistent local state (e.g.
@@ -61,10 +72,14 @@ class AuthNotifier extends _$AuthNotifier {
 
   /// Called by `LoginNotifier`/`SignupNotifier` on a successful auth call —
   /// see `docs/state-management.md`'s "Feature: auth" section.
+  ///
+  /// [keepSignedIn] (P19-01) is whether the session survives an app
+  /// restart; null leaves the stored choice alone, as `changePassword` does.
   Future<void> setSession(
     User user,
     String token, {
     String? refreshToken,
+    bool? keepSignedIn,
   }) async {
     final secureStorage = ref.read(secureStorageProvider);
     await secureStorage.saveToken(token);
@@ -72,6 +87,7 @@ class AuthNotifier extends _$AuthNotifier {
       await secureStorage.saveRefreshToken(refreshToken);
     }
     await _writeCachedUser(user);
+    if (keepSignedIn != null) await _writeKeepSignedIn(keepSignedIn);
     state = AsyncData(Authenticated(user));
   }
 
@@ -141,9 +157,17 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   Future<void> logout() async {
+    await _wipeLocalSession();
+    state = const AsyncData(Unauthenticated());
+  }
+
+  /// Everything [logout] clears on this device, without touching [state] —
+  /// [build] uses it too, where setting state isn't allowed.
+  Future<void> _wipeLocalSession() async {
     final secureStorage = ref.read(secureStorageProvider);
     await secureStorage.clear();
     await _clearCachedUser();
+    await _clearKeepSignedIn();
     // US-JX-20: job names and URLs can be sensitive; don't leave them for
     // the next person to sign in on this device.
     try {
@@ -158,7 +182,21 @@ class AuthNotifier extends _$AuthNotifier {
     // Reloads the (now empty) watches, which also cancels the background
     // check.
     ref.invalidate(buildWatchNotifierProvider);
-    state = const AsyncData(Unauthenticated());
+  }
+
+  Future<bool> _readKeepSignedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keepSignedInKey) ?? true;
+  }
+
+  Future<void> _writeKeepSignedIn(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keepSignedInKey, value);
+  }
+
+  Future<void> _clearKeepSignedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keepSignedInKey);
   }
 
   Future<User?> _readCachedUser() async {

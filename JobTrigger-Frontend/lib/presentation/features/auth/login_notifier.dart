@@ -50,6 +50,7 @@ class LoginNotifier extends _$LoginNotifier {
               value.user,
               value.token,
               refreshToken: value.refreshToken,
+              keepSignedIn: rememberMe,
             );
         final rememberedEmail = ref.read(
           rememberedEmailNotifierProvider.notifier,

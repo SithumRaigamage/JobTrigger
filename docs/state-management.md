@@ -32,6 +32,14 @@ their screen under `presentation/features/<feature>/`.
   (AUD-01). Its `build()` also deletes the legacy `login_saved_password`
   key that builds before AUD-01 wrote.
 
+- **Remember me (P19-01):** the checkbox decides whether the session
+  outlives an app restart. `setSession(..., keepSignedIn:)` stores the
+  choice as `keep_signed_in` in `shared_preferences` (`null` leaves it
+  alone, as `changePassword` does; signup passes `true`). `build()` on a
+  cold start wipes an unticked session's tokens, cached user and
+  user-scoped prefs and returns `Unauthenticated`. A missing key means
+  keep, so sessions from before the flag survive the update. `logout()`
+  removes the key.
 - **Sessions (AUD-26):** `setSession(user, token, refreshToken:)` keeps
   both tokens in secure storage. The backend `Dio` interceptor renews an
   expired access token itself, so no notifier sees that 401. Only a failed

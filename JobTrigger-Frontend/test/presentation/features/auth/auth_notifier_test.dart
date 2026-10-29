@@ -84,4 +84,83 @@ void main() {
       expect((state as Authenticated).user.email, 'existing@b.com');
     },
   );
+
+  // P19-01: "Remember me" decides whether the session outlives a restart.
+  group('keepSignedIn across a restart', () {
+    Future<AuthState?> restartAfterSession({bool? keepSignedIn}) async {
+      final first = ProviderContainer();
+      await first.read(authNotifierProvider.future);
+      await first
+          .read(authNotifierProvider.notifier)
+          .setSession(
+            const User(id: 'u3', email: 'c@b.com'),
+            'jwt-3',
+            refreshToken: 'refresh-3',
+            keepSignedIn: keepSignedIn,
+          );
+      first.dispose();
+
+      final second = ProviderContainer();
+      addTearDown(second.dispose);
+      return second.read(authNotifierProvider.future);
+    }
+
+    test('true keeps the session', () async {
+      expect(
+        await restartAfterSession(keepSignedIn: true),
+        isA<Authenticated>(),
+      );
+    });
+
+    test('false discards the session and its tokens', () async {
+      expect(
+        await restartAfterSession(keepSignedIn: false),
+        isA<Unauthenticated>(),
+      );
+      final storage = SecureStorageService(const FlutterSecureStorage());
+      expect(await storage.readToken(), isNull);
+    });
+
+    test('unset keeps the session (sessions from before the flag)', () async {
+      expect(await restartAfterSession(), isA<Authenticated>());
+    });
+
+    test('a later setSession without a choice leaves it alone', () async {
+      final first = ProviderContainer();
+      await first.read(authNotifierProvider.future);
+      final notifier = first.read(authNotifierProvider.notifier);
+      const user = User(id: 'u4', email: 'd@b.com');
+      await notifier.setSession(user, 'jwt-a', keepSignedIn: false);
+      // What changePassword does: a fresh token, no stated choice.
+      await notifier.setSession(user, 'jwt-b');
+      first.dispose();
+
+      final second = ProviderContainer();
+      addTearDown(second.dispose);
+
+      expect(
+        await second.read(authNotifierProvider.future),
+        isA<Unauthenticated>(),
+      );
+    });
+
+    test('logout forgets the choice', () async {
+      final first = ProviderContainer();
+      await first.read(authNotifierProvider.future);
+      final notifier = first.read(authNotifierProvider.notifier);
+      const user = User(id: 'u5', email: 'e@b.com');
+      await notifier.setSession(user, 'jwt-a', keepSignedIn: false);
+      await notifier.logout();
+      await notifier.setSession(user, 'jwt-b');
+      first.dispose();
+
+      final second = ProviderContainer();
+      addTearDown(second.dispose);
+
+      expect(
+        await second.read(authNotifierProvider.future),
+        isA<Authenticated>(),
+      );
+    });
+  });
 }
