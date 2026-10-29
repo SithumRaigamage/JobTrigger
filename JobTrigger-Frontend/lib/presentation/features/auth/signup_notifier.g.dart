@@ -39,7 +39,7 @@ final class SignupNotifierProvider
   SignupNotifier create() => SignupNotifier();
 }
 
-String _$signupNotifierHash() => r'ba1ffe9a96b727e993c5c7e8234d2b44e5be9182';
+String _$signupNotifierHash() => r'31bb634033514bd073fe54c874c7d802252dc4c3';
 
 /// Same shape as `LoginNotifier`, plus the signup-specific
 /// password-length/confirm-match rules — ported from `SignupViewModel.swift`.
