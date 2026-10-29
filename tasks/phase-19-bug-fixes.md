@@ -23,8 +23,14 @@ Each is planned, approved and committed one at a time.
       it?", which is US-AUTH-08 (reset by email). That stays in
       `backlog.md`: it needs an email provider and backend work, both
       owner decisions.
-- [ ] P19-05 Home screen: the two buttons show a loading spinner while
-      Jenkins is offline.
+- [x] P19-05 Home → Build queue / Nodes spun forever while Jenkins was
+      offline. Their refresh timer (5s / 10s) started before the fetch, so
+      it restarted any request slower than that (an unreachable server
+      takes the 15s connect timeout) before it could fail; Riverpod's
+      retry hid the error too. Now the timer starts after a successful
+      fetch and both providers use `noRetry`. Follow-up, not done: 
+      `stage_steps_notifiers.dart` (`_refreshWhileLive`, 2s) has the same
+      timer-before-fetch shape.
 - [ ] P19-06 The "three dots" menu should open the selected server's URL,
       but it asks to paste one.
 - [ ] P19-07 The server drop-down at the top of Home navigates to Settings

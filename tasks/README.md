@@ -32,7 +32,7 @@ check "where are we."
 | 16 — Brand logo (Concept B) | `phase-16-brand-logo.md` | done 2026-10-26 (P16-00..05, merged to `develop` via PR #51) | none — chosen and approved by the owner 2026-10-26 |
 | 17 — Cloud database (MongoDB Atlas) | `phase-17-cloud-database.md` | done 2026-10-26 (P17-00..05, P17-02 dropped: no local data; merged to `develop` via PR #53). Production cluster waits for the backend host | none — Atlas dev cluster set up by the owner 2026-10-26 |
 | 18 — iPhone testing on the local network | `phase-18-iphone-lan-testing.md` | done 2026-10-26 (P18-01..03; 01..02 merged via PR #54, 03 on `docs/iphone-wireless`). Guide: `IPHONE.md` | none — requested by the owner 2026-10-26 |
-| 19 — Bug fixes and improvements (epic FIX) | `phase-19-bug-fixes.md` | in-progress (P19-01..04 of 7) | none — found testing on a real iPhone 2026-10-29 |
+| 19 — Bug fixes and improvements (epic FIX) | `phase-19-bug-fixes.md` | in-progress (P19-01..05 of 7) | none — found testing on a real iPhone 2026-10-29 |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." A handful

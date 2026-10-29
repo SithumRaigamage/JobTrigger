@@ -24,7 +24,7 @@ final class NodesNotifierProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'nodesNotifierProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -39,7 +39,7 @@ final class NodesNotifierProvider
   NodesNotifier create() => NodesNotifier();
 }
 
-String _$nodesNotifierHash() => r'62f0bc60ee787321a7d1b3017ef4a9c0ce8399ad';
+String _$nodesNotifierHash() => r'40bc61bc11ee205cb7c844f73f795285c3f00ed9';
 
 /// US-JX-12: nodes and their executors, refreshed every [_refreshEvery]
 /// while the screen is open. The timer is cancelled on dispose.

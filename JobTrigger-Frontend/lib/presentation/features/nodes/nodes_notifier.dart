@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/app_failure.dart';
 import '../../../core/error/result.dart';
+import '../../../core/network/no_retry.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_node.dart';
 import '../../common_widgets/toast_controller.dart';
@@ -24,18 +25,26 @@ class NodesState {
 
 /// US-JX-12: nodes and their executors, refreshed every [_refreshEvery]
 /// while the screen is open. The timer is cancelled on dispose.
-@riverpod
+@Riverpod(retry: noRetry)
 class NodesNotifier extends _$NodesNotifier {
   static const _refreshEvery = Duration(seconds: 10);
   bool _canToggle = true;
 
   @override
   Future<NodesState> build() async {
-    final timer = Timer(_refreshEvery, ref.invalidateSelf);
-    ref.onDispose(timer.cancel);
     final result = await ref.watch(jenkinsRepositoryProvider).fetchNodes();
     final nodes = result.fold((nodes) => nodes, (failure) => throw failure);
+    _refreshLater();
     return NodesState(nodes: nodes, canToggle: _canToggle);
+  }
+
+  /// P19-05: timed from a *successful* fetch, so a slow or unreachable
+  /// server can't have its request restarted before it fails; see
+  /// `QueueNotifier`.
+  void _refreshLater() {
+    if (!ref.mounted) return;
+    final timer = Timer(_refreshEvery, ref.invalidateSelf);
+    ref.onDispose(timer.cancel);
   }
 
   /// Takes [node] temporarily offline (with [reason]) or brings it back.

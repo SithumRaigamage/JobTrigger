@@ -62,7 +62,14 @@ Riverpod retries a failed provider up to 10 times and shows it as loading
 meanwhile, which hides the error and its Retry button. Providers whose
 failure the user can act on opt out with `@Riverpod(retry: noRetry)`
 (`core/network/no_retry.dart`): the job tree, global history, job history
-and job history paging. Add it to others the same way.
+and job history paging, plus the build queue and nodes. Add it to others
+the same way.
+
+Auto-refreshing providers (`QueueNotifier` every 5s, `NodesNotifier` every
+10s) start their timer **after a successful fetch**, never before it: a
+timer shorter than the request timeout restarts a slow or unreachable
+request forever, so the failure never shows. After a failure they stay
+quiet until Retry.
 
 ## Feature: history — paging (P11-10)
 

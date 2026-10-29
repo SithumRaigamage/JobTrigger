@@ -9,25 +9,22 @@ part of 'queue_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// US-JX-09: the server-wide build queue, refreshed every [_refreshEvery]
-/// while the queue screen is open. The timer is cancelled on dispose; a
-/// failed refresh keeps the last list rather than blanking the screen.
+/// while the queue screen is open. The timer is cancelled on dispose.
 
 @ProviderFor(QueueNotifier)
 final queueNotifierProvider = QueueNotifierProvider._();
 
 /// US-JX-09: the server-wide build queue, refreshed every [_refreshEvery]
-/// while the queue screen is open. The timer is cancelled on dispose; a
-/// failed refresh keeps the last list rather than blanking the screen.
+/// while the queue screen is open. The timer is cancelled on dispose.
 final class QueueNotifierProvider
     extends $AsyncNotifierProvider<QueueNotifier, List<QueueEntry>> {
   /// US-JX-09: the server-wide build queue, refreshed every [_refreshEvery]
-  /// while the queue screen is open. The timer is cancelled on dispose; a
-  /// failed refresh keeps the last list rather than blanking the screen.
+  /// while the queue screen is open. The timer is cancelled on dispose.
   QueueNotifierProvider._()
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'queueNotifierProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -42,11 +39,10 @@ final class QueueNotifierProvider
   QueueNotifier create() => QueueNotifier();
 }
 
-String _$queueNotifierHash() => r'9d372fe6dac90b1aeaacffaf616788b1976e1996';
+String _$queueNotifierHash() => r'44eaa9e03d213c6ce25600b0939a315bb332410e';
 
 /// US-JX-09: the server-wide build queue, refreshed every [_refreshEvery]
-/// while the queue screen is open. The timer is cancelled on dispose; a
-/// failed refresh keeps the last list rather than blanking the screen.
+/// while the queue screen is open. The timer is cancelled on dispose.
 
 abstract class _$QueueNotifier extends $AsyncNotifier<List<QueueEntry>> {
   FutureOr<List<QueueEntry>> build();
