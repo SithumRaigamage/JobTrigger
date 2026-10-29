@@ -56,6 +56,14 @@ their screen under `presentation/features/<feature>/`.
   `HomeServerNone` only when the loaded list is empty. `HomeScreen` reads it
   only while no server is active.
 
+## Retries (P19-03)
+
+Riverpod retries a failed provider up to 10 times and shows it as loading
+meanwhile, which hides the error and its Retry button. Providers whose
+failure the user can act on opt out with `@Riverpod(retry: noRetry)`
+(`core/network/no_retry.dart`): the job tree, global history, job history
+and job history paging. Add it to others the same way.
+
 ## Feature: history — paging (P11-10)
 
 - `JobHistoryPagesNotifier(jobUrl)` (`AsyncNotifier<HistoryPages>`) loads

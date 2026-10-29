@@ -11,7 +11,11 @@ Each is planned, approved and committed one at a time.
       error with Retry if they fail, and "no server" only when there are
       none. (The "offline" banner is the US-JX-20 cache, not a bug: Jenkins
       was unreachable from the phone.)
-- [ ] P19-03 History screen stays on its loading spinner.
+- [x] P19-03 History screen stayed on its loading spinner. Riverpod's
+      default retry made a failed Jenkins fetch read as "loading" for
+      minutes. The job tree and the three history providers now opt out
+      (`@Riverpod(retry: noRetry)`), so the error and its Retry button show
+      at once. Other screens may be masked the same way (see P19-05).
 - [ ] P19-04 Profile → Change password: confirm the current password is
       required (the notifier already requires it; check the screen).
 - [ ] P19-05 Home screen: the two buttons show a loading spinner while
