@@ -35,5 +35,7 @@ Each is planned, approved and committed one at a time.
       It now opens the active server's page (or the folder being browsed)
       in the browser at once. The paste dialog is gone; the `jobtrigger://`
       deep link and `OpenLinkScreen` stay.
-- [ ] P19-07 The server drop-down at the top of Home navigates to Settings
-      instead of switching the active server.
+- [x] P19-07 The server chip on Home jumped to Settings. It now drops down
+      the saved servers: pick one to switch in place (a check marks the
+      active one, a note flags a server whose secret needs re-entering),
+      or "Manage servers…" to reach Settings.

@@ -28,6 +28,7 @@ import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/inline_alert.dart';
 import '../../common_widgets/no_active_server_view.dart';
 import '../../common_widgets/responsive_center.dart';
+import '../../common_widgets/secret_reentry_notice.dart';
 import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_indicator.dart';
 import '../../common_widgets/status_pill.dart';
@@ -239,8 +240,9 @@ class _Header extends ConsumerWidget {
   }
 }
 
-/// The active server, with a dot for whether it's reachable. Servers are
-/// switched in Settings, so that's where it leads.
+/// The active server, with a dot for whether it's reachable. Tapping it
+/// drops down the saved servers to switch between (P19-07); "Manage
+/// servers…" leads on to Settings, where they're added, edited and removed.
 class _ServerChip extends ConsumerWidget {
   const _ServerChip({required this.server});
 
@@ -250,6 +252,11 @@ class _ServerChip extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppTokens.of(context);
     final offline = ref.watch(offlineSnapshotNotifierProvider) != null;
+    // Until the saved list loads, the active server is the only choice.
+    final saved = ref.watch(credentialsNotifierProvider).value;
+    final servers = saved == null || !saved.any((s) => s.id == server.id)
+        ? [server, ...?saved]
+        : saved;
     return Semantics(
       button: true,
       label:
@@ -259,9 +266,40 @@ class _ServerChip extends ConsumerWidget {
       child: Material(
         color: t.card,
         shape: StadiumBorder(side: BorderSide(color: t.cardBorder)),
-        child: InkWell(
-          customBorder: const StadiumBorder(),
-          onTap: () => context.go(AppRoutes.settings),
+        child: PopupMenuButton<String>(
+          position: PopupMenuPosition.under,
+          borderRadius: BorderRadius.circular(22),
+          onSelected: (id) {
+            if (id == _manageServersAction) {
+              context.go(AppRoutes.settings);
+              return;
+            }
+            final chosen = servers.firstWhere((s) => s.id == id);
+            if (chosen.id == server.id) return;
+            unawaited(
+              ref
+                  .read(activeServerNotifierProvider.notifier)
+                  .setActiveServer(chosen),
+            );
+          },
+          itemBuilder: (context) => [
+            for (final option in servers)
+              PopupMenuItem(
+                value: option.id,
+                child: _ServerOption(
+                  server: option,
+                  isActive: option.id == server.id,
+                ),
+              ),
+            const PopupMenuDivider(),
+            const PopupMenuItem(
+              value: _manageServersAction,
+              child: ListTile(
+                leading: Icon(Icons.settings_outlined),
+                title: Text('Manage servers…'),
+              ),
+            ),
+          ],
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 44),
             child: Padding(
@@ -297,6 +335,57 @@ class _ServerChip extends ConsumerWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+const _manageServersAction = 'manage-servers';
+
+/// One saved server in the chip's menu: a check on the active one, its
+/// name, its address, and a note when its secret has to be entered again.
+class _ServerOption extends StatelessWidget {
+  const _ServerOption({required this.server, required this.isActive});
+
+  final JenkinsServer server;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    return Semantics(
+      selected: isActive,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 28,
+            child: isActive
+                ? Icon(Icons.check_rounded, size: 20, color: t.success.dot)
+                : null,
+          ),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  server.serverName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodyMedium,
+                ),
+                Text(
+                  server.jenkinsURL,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodySmall?.copyWith(color: t.textMuted),
+                ),
+                if (server.needsReentry) const SecretReentryNotice(),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

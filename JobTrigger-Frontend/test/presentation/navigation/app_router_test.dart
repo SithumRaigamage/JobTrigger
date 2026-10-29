@@ -108,7 +108,11 @@ void main() {
       );
       final repo = _FakeJenkinsRepository([folder]);
       final container = ProviderContainer(
-        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+        overrides: [
+          jenkinsRepositoryProvider.overrideWithValue(repo),
+          // Home's server chip reads the saved servers (P19-07).
+          credentialsNotifierProvider.overrideWith(_NoCredentials.new),
+        ],
       );
       addTearDown(container.dispose);
       // Keep authNotifierProvider alive across the gap between setSession
