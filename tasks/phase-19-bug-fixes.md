@@ -16,8 +16,13 @@ Each is planned, approved and committed one at a time.
       minutes. The job tree and the three history providers now opt out
       (`@Riverpod(retry: noRetry)`), so the error and its Retry button show
       at once. Other screens may be masked the same way (see P19-05).
-- [ ] P19-04 Profile → Change password: confirm the current password is
-      required (the notifier already requires it; check the screen).
+- [x] P19-04 Profile → Change password: verified, no code change. The
+      current password is already required by the dialog, by
+      `AuthNotifier.changePassword` (empty is rejected) and by the backend
+      (`reauthenticate`). The real question raised was "what if I forget
+      it?", which is US-AUTH-08 (reset by email). That stays in
+      `backlog.md`: it needs an email provider and backend work, both
+      owner decisions.
 - [ ] P19-05 Home screen: the two buttons show a loading spinner while
       Jenkins is offline.
 - [ ] P19-06 The "three dots" menu should open the selected server's URL,
