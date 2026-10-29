@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +11,7 @@ import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifier.dart';
 import 'package:job_trigger/presentation/features/home/home_screen.dart';
 import 'package:job_trigger/data/credentials/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/credentials_notifier.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 import '../../../support/fake_jenkins_repository.dart';
 
@@ -99,9 +102,12 @@ void main() {
         ),
       );
       await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
+      // Not pumpAndSettle: with no server yet Home shows a spinner
+      // (P19-02), which animates forever.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
-      // HomeScreen shows a "no server" empty state until one is active --
+      // HomeScreen shows a loading state until one is active --
       // set it only once mounted and watching, same auto-dispose pitfall
       // as the breadcrumb notifier below.
       await container
@@ -164,7 +170,10 @@ void main() {
       ),
     );
     await tester.tap(find.byType(ElevatedButton));
-    await tester.pumpAndSettle();
+    // Not pumpAndSettle: with no server yet Home shows a spinner (P19-02),
+    // which animates forever.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
     await container
         .read(activeServerNotifierProvider.notifier)
@@ -183,4 +192,59 @@ void main() {
     expect(find.byType(HomeScreen), findsNothing);
     expect(find.text('go'), findsOneWidget);
   });
+
+  // P19-02: Home used to show "No Jenkins Server" while the saved servers
+  // were still being fetched, and only the real answer after a tab switch.
+  group('before a server is active', () {
+    Future<void> pumpHome(
+      WidgetTester tester,
+      Future<List<JenkinsServer>> Function() load,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            credentialsNotifierProvider.overrideWith(() => _Credentials(load)),
+          ],
+          child: const MaterialApp(home: HomeScreen()),
+        ),
+      );
+    }
+
+    testWidgets('shows a spinner, not "no server", while loading', (
+      tester,
+    ) async {
+      final pending = Completer<List<JenkinsServer>>();
+      await pumpHome(tester, () => pending.future);
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('No Jenkins Server'), findsNothing);
+    });
+
+    testWidgets('shows "no server" once the list loads empty', (tester) async {
+      await pumpHome(tester, () async => const []);
+      await tester.pumpAndSettle();
+
+      expect(find.text('No Jenkins Server'), findsOneWidget);
+    });
+
+    testWidgets('shows the error with Retry when the list fails to load', (
+      tester,
+    ) async {
+      await pumpHome(tester, () async => throw const NetworkFailure());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Retry Connection'), findsOneWidget);
+      expect(find.text('No Jenkins Server'), findsNothing);
+    });
+  });
+}
+
+class _Credentials extends CredentialsNotifier {
+  _Credentials(this._load);
+
+  final Future<List<JenkinsServer>> Function() _load;
+
+  @override
+  Future<List<JenkinsServer>> build() => _load();
 }

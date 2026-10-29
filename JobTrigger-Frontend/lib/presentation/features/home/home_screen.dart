@@ -11,6 +11,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/credentials/active_server_notifier.dart';
+import '../../../data/credentials/credentials_notifier.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import '../../../domain/jenkins/branch_kind.dart';
 import '../../../domain/jenkins/build_progress.dart';
@@ -34,6 +35,7 @@ import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'folder_breadcrumb_notifier.dart';
 import 'folder_contents_notifier.dart';
+import 'home_server_gate_provider.dart';
 import 'job_search_notifier.dart';
 import 'multibranch_notifiers.dart';
 import 'pinned_jobs_notifier.dart';
@@ -64,8 +66,20 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final activeServer = ref.watch(activeServerNotifierProvider);
     if (activeServer == null) {
-      return const Scaffold(
-        body: SafeArea(child: Center(child: NoActiveServerView())),
+      // P19-02: "no server yet" is not "no server saved".
+      final body = switch (ref.watch(homeServerGateProvider)) {
+        HomeServerNone() => const NoActiveServerView(),
+        HomeServerFailed(:final error) => ConnectionErrorView(
+          message: describeError(error),
+          onRetry: () {
+            ref.invalidate(credentialsNotifierProvider);
+            ref.invalidate(activeServerNotifierProvider);
+          },
+        ),
+        HomeServerLoading() => const CircularProgressIndicator(),
+      };
+      return Scaffold(
+        body: SafeArea(child: Center(child: body)),
       );
     }
 

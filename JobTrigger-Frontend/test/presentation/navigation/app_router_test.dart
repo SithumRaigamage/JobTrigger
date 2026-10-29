@@ -20,6 +20,7 @@ import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifie
 import 'package:job_trigger/presentation/features/home/home_screen.dart';
 import 'package:job_trigger/data/credentials/active_github_credential_notifier.dart';
 import 'package:job_trigger/data/credentials/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/credentials_notifier.dart';
 import 'package:job_trigger/presentation/features/tool_selection/active_tool_notifier.dart';
 import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
 import 'package:job_trigger/presentation/navigation/app_router.dart';
@@ -259,7 +260,11 @@ void main() {
   testWidgets('an extra-only route opened from outside lands on Home', (
     tester,
   ) async {
-    final container = ProviderContainer();
+    // Home reads the saved servers (P19-02); none, rather than a real fetch
+    // that fails and leaves a retry timer behind.
+    final container = ProviderContainer(
+      overrides: [credentialsNotifierProvider.overrideWith(_NoCredentials.new)],
+    );
     addTearDown(container.dispose);
     container.listen(authNotifierProvider, (_, _) {});
     await container
@@ -296,4 +301,9 @@ void main() {
     expect(find.text('That link didn’t lead anywhere'), findsOneWidget);
     expect(find.text('Go to Home'), findsOneWidget);
   });
+}
+
+class _NoCredentials extends CredentialsNotifier {
+  @override
+  Future<List<JenkinsServer>> build() async => const [];
 }

@@ -47,6 +47,15 @@ their screen under `presentation/features/<feature>/`.
   `AppFailure` when the server couldn't be reached, leaving the user
   signed in to retry.
 
+## Feature: home — before a server is active (P19-02)
+
+- `homeServerGateProvider` (`Provider<HomeServerGate>`) explains a `null`
+  `activeServerNotifierProvider`: `HomeServerLoading` while the saved
+  servers load (or the active one is being chosen), `HomeServerFailed` with
+  the error when they can't be loaded (Home offers Retry), and
+  `HomeServerNone` only when the loaded list is empty. `HomeScreen` reads it
+  only while no server is active.
+
 ## Feature: history — paging (P11-10)
 
 - `JobHistoryPagesNotifier(jobUrl)` (`AsyncNotifier<HistoryPages>`) loads
