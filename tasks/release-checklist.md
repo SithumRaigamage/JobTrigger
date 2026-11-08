@@ -21,8 +21,10 @@ only tracks what's left and why.
       fixture confirms `ListView.builder` actually virtualizes (well under
       200 live widgets, not 5,000) and doesn't throw/hang — evidence the
       mechanism is sound, not a substitute for real on-device scroll
-      measurement. No Android device/emulator was available in this
-      environment.
+      measurement. Update 2026-11-08: an emulator (Medium_Phone_API_37.0)
+      and the fixture Jenkins `big-log` job (50,000 lines) are now ready, and
+      a 50,000-line host test passes. Remaining: build the profile APK on a
+      fast connection, scroll the `big-log` build, record frame times.
 - [ ] App icons, splash screens, store screenshots for both platforms
       (source: `phase-6-polish-release.md` P6-07). The original SwiftUI app
       never shipped real artwork to port from. Needs real source artwork
