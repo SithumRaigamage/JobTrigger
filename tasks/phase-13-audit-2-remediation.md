@@ -81,7 +81,7 @@ is green on the commit that closes it, not just a local run.
 
 ## Not code (tracked, not done here)
 
-- **AUD-66, owner action: revoke the Jenkins API token.** A local Jenkins
+- **AUD-66, owner action: revoke the Jenkins API token (done 2026-11-08).** A local Jenkins
   API token from the SwiftUI era was committed to this repository's public
   history, and a second one appeared in a curl example that has since been
   deleted. The files are gone from the tree and the history is not
@@ -109,6 +109,6 @@ Flutter 784 passing, `flutter analyze` clean, no codegen drift.
   the app by #39.
 - **Deferred, not fixed:** password *reset* (US-AUTH-08, part of AUD-48 /
   P13-07) — needs an email provider; in `backlog.md`.
-- **Open, owner action:** AUD-66 — revoke the leaked Jenkins API token in
-  that Jenkins (above). Code can't close it; treat the token as live until
-  it is revoked.
+- **Closed 2026-11-08, owner action:** AUD-66 — the owner confirmed the
+  leaked Jenkins API token is revoked (it had already expired). Nothing
+  left to do.
