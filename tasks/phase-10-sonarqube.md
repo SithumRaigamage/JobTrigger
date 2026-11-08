@@ -105,16 +105,26 @@ would be unrelated scope creep for this phase.
 
 ## SQ-PROJ — Project Browsing
 
-- [ ] P10-07 `SonarQubeProject` domain type + DTO
+- [x] P10-07 `SonarQubeProject` domain type + DTO
       (`data/models/sonarqube/sonarqube_project_dto.dart`) — `key`, `name`,
       `lastAnalysisDate` (nullable — a project can exist with no analysis
       yet, per `US-SQ-PROJ-01`).
-- [ ] P10-08 `SonarQubeRepository.fetchProjects()` — `GET api/projects/search`,
+      **Done 2026-11-08.** `domain/sonarqube/sonarqube_project.dart` +
+      freezed DTO; a project name falls back to its key, and an unreadable
+      `lastAnalysisDate` is "no date" rather than a crash.
+- [x] P10-08 `SonarQubeRepository.fetchProjects()` — `GET api/projects/search`,
       optionally with `?organization=` when the active credential's
       `defaultOrganization` is set; surfaces a distinct message for a
       wrong/missing SonarCloud organization key (404) vs. a generic load
       failure, per `US-SQ-PROJ-01`'s flagged scenario.
-- [ ] P10-09 `SonarQubeProjectScreen` — mirrors `GitHubRepoScreen`'s
+      **Done 2026-11-08 (implemented and unit-tested; real-server check
+      pending).** `SonarQubeRepositoryImpl.fetchProjects` sends
+      `organization` only when the credential has a non-blank one, first
+      page at `ps=500` (the API maximum). A 404 *with* an organization
+      becomes the new `SonarQubeOrganizationNotFoundFailure` ("SonarCloud
+      doesn't know that organization…"); without one it stays a plain
+      not-found.
+- [x] P10-09 `SonarQubeProjectScreen` — mirrors `GitHubRepoScreen`'s
       glass-card list/search/pull-to-refresh structure, gated on
       `activeSonarQubeCredentialNotifierProvider` via a new
       `NoActiveSonarQubeCredentialView`. This is the task that flips
@@ -125,6 +135,14 @@ would be unrelated scope creep for this phase.
       task's plan/design checkpoint with the same weight P8-11 (GH's
       equivalent routing task) got.
 
+      **Done 2026-11-08.** `SonarQubeProjectScreen` (account label,
+      search by name or key, glass cards with key and "Analyzed 3h ago" /
+      "Never analyzed", pull-to-refresh, empty and error-with-retry states),
+      gated by `NoActiveSonarQubeCredentialView`. `CiTool.sonarqube` is now
+      available and the Home tab routes to it. The History tab shows an
+      explicit "SonarQube has no run history" message instead of falling
+      through to Jenkins' history. Project cards are inert until the
+      quality screens (P10-10..12).
 ## SQ-QUALITY — Quality Gate, Measures, and Issues
 
 - [ ] P10-10 `SonarQubeQualityGateStatus` domain type + DTO +

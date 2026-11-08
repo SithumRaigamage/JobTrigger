@@ -83,6 +83,9 @@ sealed class AppFailure {
       "The server sent a response the app didn't understand. Check that "
           'the server URL is correct — not a login page or proxy.',
     RejectedRequestFailure(:final serverMessage) => serverMessage,
+    SonarQubeOrganizationNotFoundFailure() =>
+      "SonarCloud doesn't know that organization. Check the organization "
+          'key in this credential in Settings.',
     UnknownFailure() => 'Something unexpected happened. Please try again.',
   };
 }
@@ -165,4 +168,10 @@ final class UnknownFailure extends AppFailure {
   const UnknownFailure([this.debugMessage]);
 
   final String? debugMessage;
+}
+
+/// SonarCloud answered 404 to a request carrying an organization key: the
+/// key is wrong or missing (`US-SQ-PROJ-01`). SonarQube-only.
+final class SonarQubeOrganizationNotFoundFailure extends AppFailure {
+  const SonarQubeOrganizationNotFoundFailure();
 }

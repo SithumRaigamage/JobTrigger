@@ -17,6 +17,7 @@ import '../common_widgets/pinned_footer_layout.dart';
 import '../features/build_detail/build_detail_screen.dart';
 import '../features/build_log/build_log_screen.dart';
 import '../features/github/github_repo_screen.dart';
+import '../features/sonarqube/sonarqube_project_screen.dart';
 import '../features/github/github_workflow_list_screen.dart';
 import '../features/history/global_history_screen.dart';
 import '../features/history/job_history_screen.dart';
@@ -81,6 +82,7 @@ class _ToolAwareHomeScreen extends ConsumerWidget {
     final activeTool = ref.watch(activeToolNotifierProvider);
     return switch (activeTool) {
       CiTool.githubActions => const GitHubRepoScreen(),
+      CiTool.sonarqube => const SonarQubeProjectScreen(),
       _ => const HomeScreen(),
     };
   }
@@ -102,6 +104,7 @@ class _ToolAwareHistoryScreen extends ConsumerWidget {
     final activeTool = ref.watch(activeToolNotifierProvider);
     return switch (activeTool) {
       CiTool.githubActions => const _GitHubHistoryUnavailableScreen(),
+      CiTool.sonarqube => const _SonarQubeHistoryUnavailableScreen(),
       _ => const GlobalHistoryScreen(),
     };
   }
@@ -119,6 +122,26 @@ class _GitHubHistoryUnavailableScreen extends StatelessWidget {
       mark: const Icon(Icons.history_rounded, size: 56),
       title: 'History',
       message: 'GitHub Actions run history is coming soon',
+      actionLabel: 'Switch CI tool',
+      onAction: () => context.go(AppRoutes.toolSelection),
+    );
+  }
+}
+
+/// SonarQube has no runs to list: it reports on code, not builds (Phase 10
+/// has no history epic). An explicit message beats falling through to
+/// Jenkins' history while SonarQube is the selected tool.
+class _SonarQubeHistoryUnavailableScreen extends StatelessWidget {
+  const _SonarQubeHistoryUnavailableScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return _MessageScreen(
+      mark: const Icon(Icons.history_rounded, size: 56),
+      title: 'History',
+      message:
+          'SonarQube shows code quality, not builds, so there is no run '
+          'history here.',
       actionLabel: 'Switch CI tool',
       onAction: () => context.go(AppRoutes.toolSelection),
     );
