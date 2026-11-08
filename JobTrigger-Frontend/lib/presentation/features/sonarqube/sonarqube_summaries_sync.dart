@@ -16,8 +16,14 @@ void sonarQubeSummariesSync(Ref ref) {
   ref.listen(sonarQubeSummariesNotifierProvider, (_, _) {});
   ref.listen(sonarQubeProjectsNotifierProvider, (_, next) {
     final keys = next.value?.projects.map((p) => p.key).toList();
-    if (keys != null) {
-      ref.read(sonarQubeSummariesNotifierProvider.notifier).ensure(keys);
-    }
+    if (keys == null) return;
+    // Not synchronously: `fireImmediately` runs this while this provider is
+    // still being built, and a provider may not change another one then
+    // (Riverpod asserts, which a Retry that rebuilds this one would hit).
+    Future.microtask(() {
+      if (ref.mounted) {
+        ref.read(sonarQubeSummariesNotifierProvider.notifier).ensure(keys);
+      }
+    });
   }, fireImmediately: true);
 }

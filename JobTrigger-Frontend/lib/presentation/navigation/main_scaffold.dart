@@ -20,9 +20,17 @@ import '../common_widgets/glass_surface.dart';
 /// holds no state of its own; `navigationShell.currentIndex` and each
 /// branch's navigation history are already owned by go_router.
 class MainScaffold extends StatelessWidget {
-  const MainScaffold({required this.navigationShell, super.key});
+  const MainScaffold({
+    required this.navigationShell,
+    this.overviewTab = false,
+    super.key,
+  });
 
   final StatefulNavigationShell navigationShell;
+
+  /// SonarQube reports on code, not builds, so it has no run history: its
+  /// second tab is an overview instead. Off for every other tool.
+  final bool overviewTab;
 
   @override
   Widget build(BuildContext context) {
@@ -57,23 +65,29 @@ class MainScaffold extends StatelessWidget {
             ),
             // P14-02: the redesign's outline icon set (UI-UX/screens/05);
             // the selected tab gets the accent pill from AppTheme.
-            destinations: const [
-              NavigationDestination(
+            destinations: [
+              const NavigationDestination(
                 icon: Icon(Icons.home_outlined),
                 selectedIcon: Icon(Icons.home_rounded),
                 label: 'Home',
               ),
               NavigationDestination(
-                icon: Icon(Icons.schedule_outlined),
-                selectedIcon: Icon(Icons.schedule),
-                label: 'History',
+                icon: Icon(
+                  overviewTab
+                      ? Icons.dashboard_outlined
+                      : Icons.schedule_outlined,
+                ),
+                selectedIcon: Icon(
+                  overviewTab ? Icons.dashboard_rounded : Icons.schedule,
+                ),
+                label: overviewTab ? 'Overview' : 'History',
               ),
-              NavigationDestination(
+              const NavigationDestination(
                 icon: Icon(Icons.tune_outlined),
                 selectedIcon: Icon(Icons.tune),
                 label: 'Settings',
               ),
-              NavigationDestination(
+              const NavigationDestination(
                 icon: Icon(Icons.person_outline_rounded),
                 selectedIcon: Icon(Icons.person_rounded),
                 label: 'Profile',
