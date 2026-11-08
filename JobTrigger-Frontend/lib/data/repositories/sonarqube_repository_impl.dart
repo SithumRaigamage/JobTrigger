@@ -28,33 +28,80 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
   final String? _organization;
 
   @override
-  Future<Result<List<SonarQubeProject>, AppFailure>> fetchProjects() =>
-      guardRequest(
-        () async {
-          final response = await _dio.get<Map<String, dynamic>>(
-            '/api/projects/search',
-            queryParameters: {
-              'ps': sonarQubeProjectsPageSize,
-              'organization': ?_organization,
-            },
-          );
-          final components =
-              response.data?['components'] as List<dynamic>? ?? const [];
-          return components
-              .map(
-                (json) => SonarQubeProjectDto.fromJson(
-                  json as Map<String, dynamic>,
-                ).toDomain(),
-              )
-              .toList();
+  Future<Result<SonarQubeProjectsPage, AppFailure>> fetchProjects({
+    int page = 1,
+    int pageSize = sonarQubeProjectsPageSize,
+  }) async {
+    // The call SonarQube's own Projects page uses: any user with Browse
+    // access may call it.
+    final primary = await _projectsVia(
+      '/api/components/search_projects',
+      page,
+      pageSize,
+    );
+    // A server that doesn't have it (404 or 400) gets the administrator-only
+    // call earlier versions of the app used, so a setup that worked before
+    // keeps working. A refusal (403) is final: that call is stricter.
+    if (primary is Err<SonarQubeProjectsPage, AppFailure> &&
+        _lacksEndpoint(primary.error)) {
+      return _projectsVia('/api/projects/search', page, pageSize);
+    }
+    return primary;
+  }
+
+  static bool _lacksEndpoint(AppFailure failure) =>
+      failure is NotFoundFailure ||
+      (failure is ServerFailure && failure.statusCode == 400);
+
+  Future<Result<SonarQubeProjectsPage, AppFailure>> _projectsVia(
+    String path,
+    int page,
+    int pageSize,
+  ) => guardRequest(
+    () async {
+      final response = await _dio.get<Map<String, dynamic>>(
+        path,
+        queryParameters: {
+          'ps': pageSize,
+          'p': page,
+          'organization': ?_organization,
         },
-        // A 404 with an organization set means SonarCloud doesn't know that
-        // key: say so, instead of the generic "couldn't be found".
-        recover: (exception) =>
-            exception.response?.statusCode == 404 && _organization != null
-            ? const Err(SonarQubeOrganizationNotFoundFailure())
-            : null,
       );
+      final data = response.data ?? const <String, dynamic>{};
+      final components = data['components'] as List<dynamic>? ?? const [];
+      final projects = components
+          .map(
+            (json) => SonarQubeProjectDto.fromJson(
+              json as Map<String, dynamic>,
+            ).toDomain(),
+          )
+          .toList();
+      final total =
+          (data['paging'] as Map<String, dynamic>?)?['total'] as int? ??
+          projects.length;
+      return SonarQubeProjectsPage(projects: projects, total: total);
+    },
+    // A 404 with an organization set means SonarCloud doesn't know that
+    // key: say so, instead of the generic "couldn't be found".
+    recover: (exception) {
+      final status = exception.response?.statusCode;
+      if (status == 403) return const Err(SonarQubeAccessDeniedFailure());
+      if (status == 404 && _organization != null) {
+        return const Err(SonarQubeOrganizationNotFoundFailure());
+      }
+      return null;
+    },
+  );
+
+  /// SonarQube-specific wording for the two refusals that mean something
+  /// particular here, for calls about one project. Everything else keeps the
+  /// shared mapping.
+  static Result<T, AppFailure>? _projectRecover<T>(DioException exception) =>
+      switch (exception.response?.statusCode) {
+        403 => const Err(SonarQubeAccessDeniedFailure()),
+        404 => const Err(SonarQubeProjectNotFoundFailure()),
+        _ => null,
+      };
 
   @override
   Future<Result<SonarQubeQualityGate, AppFailure>> fetchQualityGate(
@@ -81,7 +128,7 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
           ),
       ],
     );
-  });
+  }, recover: _projectRecover);
 
   @override
   Future<Result<Map<String, String>, AppFailure>> fetchMeasures(
@@ -100,7 +147,7 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
       for (final m in measures.cast<Map<String, dynamic>>())
         if (m['value'] is String) m['metric'] as String: m['value'] as String,
     };
-  });
+  }, recover: _projectRecover);
 
   @override
   Future<Result<SonarQubeIssuePage, AppFailure>> fetchIssues(
@@ -148,7 +195,7 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
           ),
       ],
     );
-  });
+  }, recover: _projectRecover);
 
   static String? _fileOf(String? component, String projectKey) {
     // An issue on the project itself has the project as its component.
@@ -189,7 +236,7 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
       ),
     );
     return result;
-  });
+  }, recover: _projectRecover);
 }
 
 @riverpod
@@ -199,4 +246,32 @@ SonarQubeRepository sonarQubeRepository(Ref ref) {
     ref.watch(sonarQubeClientProvider),
     organization: credential?.defaultOrganization,
   );
+}
+
+/// "Test connection", second half (`US-SQ-CRED-04`): after the token is
+/// accepted, try to list one project the way the app will. A token can be
+/// valid and still be refused here (its user can't browse projects), and
+/// that is better learned at setup than after saving.
+///
+/// [dio] is for tests; by default a throwaway client is built and closed,
+/// never the active credential's, as for the token check.
+Future<Result<void, AppFailure>> checkSonarQubeProjectAccess({
+  required String baseUrl,
+  required String token,
+  String? organization,
+  Dio? dio,
+}) async {
+  final client = dio ?? buildSonarQubeDio(baseUrl: baseUrl, token: token);
+  try {
+    final result = await SonarQubeRepositoryImpl(
+      client,
+      organization: organization,
+    ).fetchProjects(pageSize: 1);
+    return switch (result) {
+      Ok() => const Ok(null),
+      Err(:final error) => Err(error),
+    };
+  } finally {
+    if (dio == null) client.close();
+  }
 }

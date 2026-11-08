@@ -27,9 +27,17 @@ class _Repo implements SonarQubeRepository {
   int calls = 0;
 
   @override
-  Future<Result<List<SonarQubeProject>, AppFailure>> fetchProjects() async {
+  Future<Result<SonarQubeProjectsPage, AppFailure>> fetchProjects({
+    int page = 1,
+    int pageSize = sonarQubeProjectsPageSize,
+  }) async {
     calls++;
-    return result;
+    return switch (result) {
+      Ok(:final value) => Ok(
+        SonarQubeProjectsPage(projects: value, total: value.length),
+      ),
+      Err(:final error) => Err(error),
+    };
   }
 
   @override

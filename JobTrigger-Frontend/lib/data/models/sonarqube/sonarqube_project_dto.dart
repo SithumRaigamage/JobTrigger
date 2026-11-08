@@ -11,6 +11,9 @@ abstract class SonarQubeProjectDto with _$SonarQubeProjectDto {
   const factory SonarQubeProjectDto({
     required String key,
     @Default('') String name,
+    // `api/components/search_projects` calls it analysisDate;
+    // `api/projects/search` calls it lastAnalysisDate.
+    String? analysisDate,
     String? lastAnalysisDate,
   }) = _SonarQubeProjectDto;
 
@@ -24,9 +27,9 @@ extension SonarQubeProjectDtoX on SonarQubeProjectDto {
     // A project always has a name; fall back to the key rather than show a
     // blank row if the server ever omits it.
     name: name.isEmpty ? key : name,
-    lastAnalysisDate: lastAnalysisDate == null
+    lastAnalysisDate: (analysisDate ?? lastAnalysisDate) == null
         ? null
-        : _parseSonarDate(lastAnalysisDate!),
+        : _parseSonarDate((analysisDate ?? lastAnalysisDate)!),
   );
 }
 

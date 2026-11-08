@@ -8,23 +8,20 @@ part of 'sonarqube_projects_notifier.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The active credential's projects (`US-SQ-PROJ-01`).
+/// The active credential's projects, a page at a time.
 /// `sonarQubeRepositoryProvider` rebuilds when the active credential
 /// changes, so switching credentials refetches on its own.
 
 @ProviderFor(SonarQubeProjectsNotifier)
 final sonarQubeProjectsNotifierProvider = SonarQubeProjectsNotifierProvider._();
 
-/// The active credential's projects (`US-SQ-PROJ-01`).
+/// The active credential's projects, a page at a time.
 /// `sonarQubeRepositoryProvider` rebuilds when the active credential
 /// changes, so switching credentials refetches on its own.
 final class SonarQubeProjectsNotifierProvider
     extends
-        $AsyncNotifierProvider<
-          SonarQubeProjectsNotifier,
-          List<SonarQubeProject>
-        > {
-  /// The active credential's projects (`US-SQ-PROJ-01`).
+        $AsyncNotifierProvider<SonarQubeProjectsNotifier, SonarQubeProjects> {
+  /// The active credential's projects, a page at a time.
   /// `sonarQubeRepositoryProvider` rebuilds when the active credential
   /// changes, so switching credentials refetches on its own.
   SonarQubeProjectsNotifierProvider._()
@@ -47,29 +44,25 @@ final class SonarQubeProjectsNotifierProvider
 }
 
 String _$sonarQubeProjectsNotifierHash() =>
-    r'f646e60f0bbda80655f954b8acb9113aa6787a81';
+    r'2e25cb8fb5eef6a30cae55b221fa3277e313d161';
 
-/// The active credential's projects (`US-SQ-PROJ-01`).
+/// The active credential's projects, a page at a time.
 /// `sonarQubeRepositoryProvider` rebuilds when the active credential
 /// changes, so switching credentials refetches on its own.
 
 abstract class _$SonarQubeProjectsNotifier
-    extends $AsyncNotifier<List<SonarQubeProject>> {
-  FutureOr<List<SonarQubeProject>> build();
+    extends $AsyncNotifier<SonarQubeProjects> {
+  FutureOr<SonarQubeProjects> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final ref =
-        this.ref
-            as $Ref<AsyncValue<List<SonarQubeProject>>, List<SonarQubeProject>>;
+        this.ref as $Ref<AsyncValue<SonarQubeProjects>, SonarQubeProjects>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<
-                AsyncValue<List<SonarQubeProject>>,
-                List<SonarQubeProject>
-              >,
-              AsyncValue<List<SonarQubeProject>>,
+              AnyNotifier<AsyncValue<SonarQubeProjects>, SonarQubeProjects>,
+              AsyncValue<SonarQubeProjects>,
               Object?,
               Object?
             >;
@@ -136,12 +129,12 @@ abstract class _$SonarQubeProjectSearch extends $Notifier<String> {
   }
 }
 
-/// Projects matching the search, by name or key, case-insensitively.
+/// Loaded projects matching the search, by name or key, case-insensitively.
 
 @ProviderFor(filteredSonarQubeProjects)
 final filteredSonarQubeProjectsProvider = FilteredSonarQubeProjectsProvider._();
 
-/// Projects matching the search, by name or key, case-insensitively.
+/// Loaded projects matching the search, by name or key, case-insensitively.
 
 final class FilteredSonarQubeProjectsProvider
     extends
@@ -151,7 +144,7 @@ final class FilteredSonarQubeProjectsProvider
           List<SonarQubeProject>
         >
     with $Provider<List<SonarQubeProject>> {
-  /// Projects matching the search, by name or key, case-insensitively.
+  /// Loaded projects matching the search, by name or key, case-insensitively.
   FilteredSonarQubeProjectsProvider._()
     : super(
         from: null,
@@ -187,4 +180,4 @@ final class FilteredSonarQubeProjectsProvider
 }
 
 String _$filteredSonarQubeProjectsHash() =>
-    r'da02834b9813bd92c628c4953f1e69ee0030641a';
+    r'c68a598bada5de3486b91186122c7cb5b6b884d3';

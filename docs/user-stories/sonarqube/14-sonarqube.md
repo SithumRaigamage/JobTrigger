@@ -233,11 +233,13 @@ So that I can find the one I want to check the quality status of
 **Acceptance Criteria**
 - Scenario: Successful load against SonarCloud
   Given an active SonarCloud credential with an organization set
-  Then `GET api/projects/search?organization=...` is called and the
+  Then `GET api/components/search_projects?organization=...` is called (any
+  user with Browse access may; `api/projects/search` is administrator-only and
+  is used only as a fallback for a server that lacks it) and the
   project list renders — `key`, `name`, `lastAnalysisDate`
 - Scenario: Successful load against self-hosted Server
   Given an active self-hosted credential with no organization set
-  Then `GET api/projects/search` is called without the `organization`
+  Then `GET api/components/search_projects` is called without the `organization`
   param
 - Scenario: No active credential
   Given no SonarQube credential is active

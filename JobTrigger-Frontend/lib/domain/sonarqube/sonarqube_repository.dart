@@ -10,12 +10,17 @@ import 'sonarqube_quality_gate.dart';
 /// code-quality viewer, with nothing to trigger or cancel. Grown one method
 /// per SQ task, as `GitHubRepository` was.
 abstract class SonarQubeRepository {
-  /// `GET api/projects/search` (`US-SQ-PROJ-01`). Sends `organization` when
-  /// the active credential has one (SonarCloud); self-hosted servers don't.
-  /// A SonarCloud organization key that doesn't exist comes back as
-  /// [SonarQubeOrganizationNotFoundFailure], distinct from a generic 404.
-  /// First page only ([sonarQubeProjectsPageSize], the API's maximum).
-  Future<Result<List<SonarQubeProject>, AppFailure>> fetchProjects();
+  /// The projects the credential's user can browse (`US-SQ-PROJ-01`), one
+  /// [page] (1-based) of [pageSize] at a time. Uses `api/components/
+  /// search_projects`, which any user with Browse access may call; a server
+  /// without it falls back to the administrator-only `api/projects/search`.
+  /// Sends `organization` when the credential has one (SonarCloud). A
+  /// refusal is [SonarQubeAccessDeniedFailure]; a SonarCloud organization
+  /// that doesn't exist is [SonarQubeOrganizationNotFoundFailure].
+  Future<Result<SonarQubeProjectsPage, AppFailure>> fetchProjects({
+    int page = 1,
+    int pageSize = sonarQubeProjectsPageSize,
+  });
 
   /// `GET api/qualitygates/project_status?projectKey=` (`US-SQ-QUALITY-01`).
   Future<Result<SonarQubeQualityGate, AppFailure>> fetchQualityGate(
