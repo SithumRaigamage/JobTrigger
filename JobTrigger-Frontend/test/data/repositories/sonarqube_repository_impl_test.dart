@@ -268,7 +268,9 @@ void main() {
       expect(adapter.last?.queryParameters['component'], 'acme:api');
       expect(
         adapter.last?.queryParameters['metricKeys'],
-        'coverage,bugs,vulnerabilities,code_smells,duplicated_lines_density,ncloc',
+        // The six headline measures, then the ratings and the technical debt.
+        'coverage,bugs,vulnerabilities,code_smells,duplicated_lines_density,'
+        'ncloc,reliability_rating,security_rating,sqale_rating,sqale_index',
       );
       final measures = (result as Ok<Map<String, String>, AppFailure>).value;
       expect(measures, {'bugs': '3', 'coverage': '71.4', 'ncloc': '12345'});

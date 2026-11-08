@@ -8,7 +8,18 @@ const sonarQubeMeasureKeys = [
   'ncloc',
 ];
 
+/// Further measures shown when the server has them (`US-SQ-QUALITY-05`):
+/// the three A–E ratings and the technical debt in minutes. Asked for in the
+/// same request, and left out of the page when not computed.
+const sonarQubeExtraMeasureKeys = [
+  'reliability_rating',
+  'security_rating',
+  'sqale_rating',
+  'sqale_index',
+];
+
 const _labels = {
+  'sqale_index': 'Technical debt',
   'coverage': 'Coverage',
   'bugs': 'Bugs',
   'vulnerabilities': 'Vulnerabilities',
@@ -55,6 +66,7 @@ String formatSonarQubeValue(String key, String? value) {
   if (value == null || value.isEmpty) return '—';
   final number = double.tryParse(value);
   if (number == null) return value;
+  if (key == 'sqale_index') return formatTechnicalDebt(number.round());
   if (_isRating(key)) {
     // SonarQube sends ratings as 1.0 … 5.0.
     final index = number.round() - 1;
@@ -76,4 +88,19 @@ String _withSeparators(String digits) {
     out.write(body[i]);
   }
   return negative ? '-$out' : out.toString();
+}
+
+/// Technical debt from minutes, the way SonarQube writes it: a working day
+/// is 8 hours. `45min`, `3h 20min`, `2d 3h`; nothing at all is `0min`.
+String formatTechnicalDebt(int minutes) {
+  if (minutes <= 0) return '0min';
+  if (minutes < 60) return '${minutes}min';
+  final hours = minutes ~/ 60;
+  final restMinutes = minutes % 60;
+  if (hours < 8) {
+    return restMinutes == 0 ? '${hours}h' : '${hours}h ${restMinutes}min';
+  }
+  final days = hours ~/ 8;
+  final restHours = hours % 8;
+  return restHours == 0 ? '${days}d' : '${days}d ${restHours}h';
 }

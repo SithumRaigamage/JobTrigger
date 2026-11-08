@@ -200,7 +200,10 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
       '/api/measures/component',
       queryParameters: {
         'component': projectKey,
-        'metricKeys': sonarQubeMeasureKeys.join(','),
+        'metricKeys': [
+          ...sonarQubeMeasureKeys,
+          ...sonarQubeExtraMeasureKeys,
+        ].join(','),
       },
     );
     final component = response.data?['component'] as Map<String, dynamic>?;
