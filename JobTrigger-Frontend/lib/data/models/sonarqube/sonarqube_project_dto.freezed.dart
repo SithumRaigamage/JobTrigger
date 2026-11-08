@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SonarQubeProjectDto {
 
- String get key; String get name; String? get lastAnalysisDate;
+ String get key; String get name; String? get analysisDate; String? get lastAnalysisDate;
 /// Create a copy of SonarQubeProjectDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SonarQubeProjectDtoCopyWith<SonarQubeProjectDto> get copyWith => _$SonarQubePro
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SonarQubeProjectDto&&(identical(other.key, key) || other.key == key)&&(identical(other.name, name) || other.name == name)&&(identical(other.lastAnalysisDate, lastAnalysisDate) || other.lastAnalysisDate == lastAnalysisDate));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SonarQubeProjectDto&&(identical(other.key, key) || other.key == key)&&(identical(other.name, name) || other.name == name)&&(identical(other.analysisDate, analysisDate) || other.analysisDate == analysisDate)&&(identical(other.lastAnalysisDate, lastAnalysisDate) || other.lastAnalysisDate == lastAnalysisDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,key,name,lastAnalysisDate);
+int get hashCode => Object.hash(runtimeType,key,name,analysisDate,lastAnalysisDate);
 
 @override
 String toString() {
-  return 'SonarQubeProjectDto(key: $key, name: $name, lastAnalysisDate: $lastAnalysisDate)';
+  return 'SonarQubeProjectDto(key: $key, name: $name, analysisDate: $analysisDate, lastAnalysisDate: $lastAnalysisDate)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SonarQubeProjectDtoCopyWith<$Res>  {
   factory $SonarQubeProjectDtoCopyWith(SonarQubeProjectDto value, $Res Function(SonarQubeProjectDto) _then) = _$SonarQubeProjectDtoCopyWithImpl;
 @useResult
 $Res call({
- String key, String name, String? lastAnalysisDate
+ String key, String name, String? analysisDate, String? lastAnalysisDate
 });
 
 
@@ -65,11 +65,12 @@ class _$SonarQubeProjectDtoCopyWithImpl<$Res>
 
 /// Create a copy of SonarQubeProjectDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? key = null,Object? name = null,Object? lastAnalysisDate = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? key = null,Object? name = null,Object? analysisDate = freezed,Object? lastAnalysisDate = freezed,}) {
   return _then(_self.copyWith(
 key: null == key ? _self.key : key // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,lastAnalysisDate: freezed == lastAnalysisDate ? _self.lastAnalysisDate : lastAnalysisDate // ignore: cast_nullable_to_non_nullable
+as String,analysisDate: freezed == analysisDate ? _self.analysisDate : analysisDate // ignore: cast_nullable_to_non_nullable
+as String?,lastAnalysisDate: freezed == lastAnalysisDate ? _self.lastAnalysisDate : lastAnalysisDate // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -155,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String key,  String name,  String? lastAnalysisDate)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String key,  String name,  String? analysisDate,  String? lastAnalysisDate)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SonarQubeProjectDto() when $default != null:
-return $default(_that.key,_that.name,_that.lastAnalysisDate);case _:
+return $default(_that.key,_that.name,_that.analysisDate,_that.lastAnalysisDate);case _:
   return orElse();
 
 }
@@ -176,10 +177,10 @@ return $default(_that.key,_that.name,_that.lastAnalysisDate);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String key,  String name,  String? lastAnalysisDate)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String key,  String name,  String? analysisDate,  String? lastAnalysisDate)  $default,) {final _that = this;
 switch (_that) {
 case _SonarQubeProjectDto():
-return $default(_that.key,_that.name,_that.lastAnalysisDate);case _:
+return $default(_that.key,_that.name,_that.analysisDate,_that.lastAnalysisDate);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -196,10 +197,10 @@ return $default(_that.key,_that.name,_that.lastAnalysisDate);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String key,  String name,  String? lastAnalysisDate)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String key,  String name,  String? analysisDate,  String? lastAnalysisDate)?  $default,) {final _that = this;
 switch (_that) {
 case _SonarQubeProjectDto() when $default != null:
-return $default(_that.key,_that.name,_that.lastAnalysisDate);case _:
+return $default(_that.key,_that.name,_that.analysisDate,_that.lastAnalysisDate);case _:
   return null;
 
 }
@@ -211,11 +212,12 @@ return $default(_that.key,_that.name,_that.lastAnalysisDate);case _:
 @JsonSerializable()
 
 class _SonarQubeProjectDto implements SonarQubeProjectDto {
-  const _SonarQubeProjectDto({required this.key, this.name = '', this.lastAnalysisDate});
+  const _SonarQubeProjectDto({required this.key, this.name = '', this.analysisDate, this.lastAnalysisDate});
   factory _SonarQubeProjectDto.fromJson(Map<String, dynamic> json) => _$SonarQubeProjectDtoFromJson(json);
 
 @override final  String key;
 @override@JsonKey() final  String name;
+@override final  String? analysisDate;
 @override final  String? lastAnalysisDate;
 
 /// Create a copy of SonarQubeProjectDto
@@ -231,16 +233,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SonarQubeProjectDto&&(identical(other.key, key) || other.key == key)&&(identical(other.name, name) || other.name == name)&&(identical(other.lastAnalysisDate, lastAnalysisDate) || other.lastAnalysisDate == lastAnalysisDate));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SonarQubeProjectDto&&(identical(other.key, key) || other.key == key)&&(identical(other.name, name) || other.name == name)&&(identical(other.analysisDate, analysisDate) || other.analysisDate == analysisDate)&&(identical(other.lastAnalysisDate, lastAnalysisDate) || other.lastAnalysisDate == lastAnalysisDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,key,name,lastAnalysisDate);
+int get hashCode => Object.hash(runtimeType,key,name,analysisDate,lastAnalysisDate);
 
 @override
 String toString() {
-  return 'SonarQubeProjectDto(key: $key, name: $name, lastAnalysisDate: $lastAnalysisDate)';
+  return 'SonarQubeProjectDto(key: $key, name: $name, analysisDate: $analysisDate, lastAnalysisDate: $lastAnalysisDate)';
 }
 
 
@@ -251,7 +253,7 @@ abstract mixin class _$SonarQubeProjectDtoCopyWith<$Res> implements $SonarQubePr
   factory _$SonarQubeProjectDtoCopyWith(_SonarQubeProjectDto value, $Res Function(_SonarQubeProjectDto) _then) = __$SonarQubeProjectDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String key, String name, String? lastAnalysisDate
+ String key, String name, String? analysisDate, String? lastAnalysisDate
 });
 
 
@@ -268,11 +270,12 @@ class __$SonarQubeProjectDtoCopyWithImpl<$Res>
 
 /// Create a copy of SonarQubeProjectDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? key = null,Object? name = null,Object? lastAnalysisDate = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? key = null,Object? name = null,Object? analysisDate = freezed,Object? lastAnalysisDate = freezed,}) {
   return _then(_SonarQubeProjectDto(
 key: null == key ? _self.key : key // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,lastAnalysisDate: freezed == lastAnalysisDate ? _self.lastAnalysisDate : lastAnalysisDate // ignore: cast_nullable_to_non_nullable
+as String,analysisDate: freezed == analysisDate ? _self.analysisDate : analysisDate // ignore: cast_nullable_to_non_nullable
+as String?,lastAnalysisDate: freezed == lastAnalysisDate ? _self.lastAnalysisDate : lastAnalysisDate // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

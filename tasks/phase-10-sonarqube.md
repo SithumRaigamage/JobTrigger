@@ -213,6 +213,29 @@ would be unrelated scope creep for this phase.
       credentials; the SonarQube client never carries the backend token.
       Still open: the live check against a real SonarQube, which needs a real
       server and token.
+- [x] P10-16 **Fixes and improvements after the owner's local-server test
+      (2026-11-08).** The owner tested every SonarQube screen against a local
+      server. Four changes, none touching Jenkins or GitHub behaviour:
+      - **Project list endpoint.** `api/projects/search` needs administrator
+        rights (stated by SonarQube's docs; not confirmed against the
+        owner's server). The list now uses `api/components/search_projects`,
+        which needs only Browse access and is what SonarQube's own Projects
+        page calls. A server without it (404 or 400) falls back to the old
+        call, so a setup that worked keeps working. A 403 is final.
+      - **Connection test also lists one project,** so a token that is valid
+        but whose user can't browse is caught when adding the credential.
+      - **More than 500 projects.** The list pages (`p`), shows "Showing N of
+        M projects" with a Load more button, loads more on scroll, and says
+        when a search only covers the loaded projects.
+      - **SonarQube wording.** New `SonarQubeAccessDeniedFailure` (403) and
+        `SonarQubeProjectNotFoundFailure` (404 on a project) replace the
+        generic "You don't have permission to do this on this server" for
+        SonarQube only; the shared failures' text is unchanged (guarded by
+        `test/core/error/shared_failure_copy_test.dart`).
+      Existing tests were only changed where behaviour changed on purpose:
+      the project list's return type, its endpoint path, and the two 403 and
+      one project-404 expectations. Not verified against a real server:
+      `search_projects`'s response shape comes from SonarQube's documentation.
 - [ ] P10-15 Full real-server verification pass: every SQ-CRED/PROJ/QUALITY
       task above manually verified against a real SonarCloud organization
       and a real self-hosted SonarQube Server instance (both flavors, per

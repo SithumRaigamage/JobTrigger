@@ -98,6 +98,12 @@ sealed class AppFailure {
       detail == null
           ? _dispatchRejected
           : '$_dispatchRejected GitHub said: $detail',
+    SonarQubeAccessDeniedFailure() =>
+      "Your SonarQube user isn't allowed to see this. Use a token for a user "
+          'who can browse the projects, then try again.',
+    SonarQubeProjectNotFoundFailure() =>
+      "SonarQube doesn't have that project any more. Go back and refresh "
+          'the list.',
     SonarQubeOrganizationNotFoundFailure() =>
       "SonarCloud doesn't know that organization. Check the organization "
           'key in this credential in Settings.',
@@ -204,4 +210,18 @@ const _dispatchRejected =
 /// key is wrong or missing (`US-SQ-PROJ-01`). SonarQube-only.
 final class SonarQubeOrganizationNotFoundFailure extends AppFailure {
   const SonarQubeOrganizationNotFoundFailure();
+}
+
+/// SonarQube answered 403: the token is valid, but its user may not browse
+/// this (`US-SQ-PROJ-01`). Distinct from [AuthFailure] (a rejected token) and
+/// from the shared [PermissionFailure], whose copy fits Jenkins, not this.
+/// SonarQube-only.
+final class SonarQubeAccessDeniedFailure extends AppFailure {
+  const SonarQubeAccessDeniedFailure();
+}
+
+/// SonarQube answered 404 for a project that was in the list: it was
+/// deleted or renamed since. SonarQube-only.
+final class SonarQubeProjectNotFoundFailure extends AppFailure {
+  const SonarQubeProjectNotFoundFailure();
 }

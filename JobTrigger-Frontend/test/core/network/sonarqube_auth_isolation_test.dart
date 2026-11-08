@@ -90,14 +90,20 @@ void main() {
     expect(await storage.readToken(), 'backend-access');
   });
 
-  test('a SonarQube 403 (no permission) is not an auth failure', () async {
-    final result = await SonarQubeRepositoryImpl(
-      sonar(_StatusAdapter(403)),
-    ).fetchProjects();
+  test(
+    'a SonarQube 403 (not allowed to browse) is not an auth failure',
+    () async {
+      final result = await SonarQubeRepositoryImpl(
+        sonar(_StatusAdapter(403)),
+      ).fetchProjects();
 
-    expect((result as Err).error, isA<PermissionFailure>());
-    expect(container.read(sessionSignalProvider), 0);
-  });
+      // A 403 is "this user may not browse", not a rejected token: it must
+      // never read as an auth failure (and so never logs anyone out).
+      expect((result as Err).error, isA<SonarQubeAccessDeniedFailure>());
+      expect((result as Err).error, isNot(isA<AuthFailure>()));
+      expect(container.read(sessionSignalProvider), 0);
+    },
+  );
 
   test('the backend losing its session does not disturb the SonarQube, '
       'GitHub or Jenkins clients', () async {

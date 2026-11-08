@@ -10,6 +10,7 @@ _SonarQubeProjectDto _$SonarQubeProjectDtoFromJson(Map<String, dynamic> json) =>
     _SonarQubeProjectDto(
       key: json['key'] as String,
       name: json['name'] as String? ?? '',
+      analysisDate: json['analysisDate'] as String?,
       lastAnalysisDate: json['lastAnalysisDate'] as String?,
     );
 
@@ -18,5 +19,6 @@ Map<String, dynamic> _$SonarQubeProjectDtoToJson(
 ) => <String, dynamic>{
   'key': instance.key,
   'name': instance.name,
+  'analysisDate': instance.analysisDate,
   'lastAnalysisDate': instance.lastAnalysisDate,
 };

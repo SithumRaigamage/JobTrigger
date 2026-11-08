@@ -60,7 +60,8 @@ void main() {
         _dio(adapter),
       ).fetchProjects();
 
-      final projects = (result as Ok<List<SonarQubeProject>, AppFailure>).value;
+      final projects =
+          (result as Ok<SonarQubeProjectsPage, AppFailure>).value.projects;
       expect(projects.map((p) => p.key), ['acme:api', 'acme:web']);
       expect(
         projects[0].lastAnalysisDate?.toUtc(),
@@ -77,7 +78,7 @@ void main() {
           _dio(cloud),
           organization: ' acme-org ',
         ).fetchProjects();
-        expect(cloud.last?.path, '/api/projects/search');
+        expect(cloud.last?.path, '/api/components/search_projects');
         expect(cloud.last?.queryParameters['organization'], 'acme-org');
         expect(cloud.last?.queryParameters['ps'], 500);
 
@@ -106,7 +107,7 @@ void main() {
         organization: 'nope',
       ).fetchProjects();
 
-      final failure = (result as Err<List<SonarQubeProject>, AppFailure>).error;
+      final failure = (result as Err<SonarQubeProjectsPage, AppFailure>).error;
       expect(failure, isA<SonarQubeOrganizationNotFoundFailure>());
       expect(failure.message, contains('organization'));
     });
@@ -117,27 +118,30 @@ void main() {
       ).fetchProjects();
 
       expect(
-        (result as Err<List<SonarQubeProject>, AppFailure>).error,
+        (result as Err<SonarQubeProjectsPage, AppFailure>).error,
         isA<NotFoundFailure>(),
       );
     });
 
-    test('401 and 403 keep their usual meanings', () async {
-      final unauthorized = await SonarQubeRepositoryImpl(
-        _dio(_Adapter(401, <String, dynamic>{})),
-      ).fetchProjects();
-      expect(
-        (unauthorized as Err<List<SonarQubeProject>, AppFailure>).error,
-        isA<AuthFailure>(),
-      );
-      final forbidden = await SonarQubeRepositoryImpl(
-        _dio(_Adapter(403, <String, dynamic>{})),
-      ).fetchProjects();
-      expect(
-        (forbidden as Err<List<SonarQubeProject>, AppFailure>).error,
-        isA<PermissionFailure>(),
-      );
-    });
+    test(
+      '401 stays an auth failure; 403 is SonarQube\'s own access-denied',
+      () async {
+        final unauthorized = await SonarQubeRepositoryImpl(
+          _dio(_Adapter(401, <String, dynamic>{})),
+        ).fetchProjects();
+        expect(
+          (unauthorized as Err<SonarQubeProjectsPage, AppFailure>).error,
+          isA<AuthFailure>(),
+        );
+        final forbidden = await SonarQubeRepositoryImpl(
+          _dio(_Adapter(403, <String, dynamic>{})),
+        ).fetchProjects();
+        expect(
+          (forbidden as Err<SonarQubeProjectsPage, AppFailure>).error,
+          isA<SonarQubeAccessDeniedFailure>(),
+        );
+      },
+    );
 
     test(
       'a name-less project falls back to its key; a bad date is no date',
@@ -152,8 +156,10 @@ void main() {
           ),
         ).fetchProjects();
 
-        final p =
-            (result as Ok<List<SonarQubeProject>, AppFailure>).value.single;
+        final p = (result as Ok<SonarQubeProjectsPage, AppFailure>)
+            .value
+            .projects
+            .single;
         expect(p.name, 'only-key');
         expect(p.lastAnalysisDate, isNull);
       },
@@ -166,7 +172,7 @@ void main() {
       final result = await SonarQubeRepositoryImpl(dio).fetchProjects();
 
       expect(
-        (result as Err<List<SonarQubeProject>, AppFailure>).error,
+        (result as Err<SonarQubeProjectsPage, AppFailure>).error,
         isA<UnexpectedResponseFailure>(),
       );
     });
@@ -228,14 +234,14 @@ void main() {
       expect(gate.state, QualityGateState.none);
     });
 
-    test('an unknown project is a not-found', () async {
+    test('an unknown project says the project is gone', () async {
       final result = await SonarQubeRepositoryImpl(
         _dio(_Adapter(404, <String, dynamic>{})),
       ).fetchQualityGate('missing');
 
       expect(
         (result as Err<SonarQubeQualityGate, AppFailure>).error,
-        isA<NotFoundFailure>(),
+        isA<SonarQubeProjectNotFoundFailure>(),
       );
     });
   });
@@ -388,6 +394,245 @@ void main() {
       );
     });
   });
+
+  group('project list endpoint and fallback (A)', () {
+    test(
+      'uses search_projects, reads analysisDate and the paging total',
+      () async {
+        final adapter = _PathAdapter({
+          '/api/components/search_projects': (
+            200,
+            {
+              'paging': {'pageIndex': 2, 'pageSize': 500, 'total': 1203},
+              'components': [
+                {
+                  'key': 'acme:api',
+                  'name': 'API',
+                  'analysisDate': '2026-11-08T10:30:00+0000',
+                },
+              ],
+            },
+          ),
+        });
+        final result = await SonarQubeRepositoryImpl(
+          Dio(BaseOptions(baseUrl: 'https://sonar.test'))
+            ..httpClientAdapter = adapter,
+        ).fetchProjects(page: 2);
+
+        final page = (result as Ok<SonarQubeProjectsPage, AppFailure>).value;
+        expect(page.total, 1203);
+        expect(
+          page.projects.single.lastAnalysisDate?.toUtc(),
+          DateTime.utc(2026, 11, 8, 10, 30),
+        );
+        expect(adapter.paths, ['/api/components/search_projects']);
+        expect(adapter.queries.single['p'], 2);
+        expect(adapter.queries.single['ps'], 500);
+      },
+    );
+
+    for (final status in [404, 400]) {
+      test('a server without search_projects ($status) falls back to the '
+          'older call that already worked', () async {
+        final adapter = _PathAdapter({
+          '/api/components/search_projects': (status, <String, dynamic>{}),
+          '/api/projects/search': (
+            200,
+            {
+              'components': [
+                {
+                  'key': 'acme:web',
+                  'name': 'Web',
+                  'lastAnalysisDate': '2026-10-01T08:00:00+0000',
+                },
+              ],
+            },
+          ),
+        });
+        final result = await SonarQubeRepositoryImpl(
+          Dio(BaseOptions(baseUrl: 'https://sonar.test'))
+            ..httpClientAdapter = adapter,
+        ).fetchProjects();
+
+        final page = (result as Ok<SonarQubeProjectsPage, AppFailure>).value;
+        expect(page.projects.single.key, 'acme:web');
+        expect(page.projects.single.lastAnalysisDate, isNotNull);
+        // No paging block: the total is what came back.
+        expect(page.total, 1);
+        expect(adapter.paths, [
+          '/api/components/search_projects',
+          '/api/projects/search',
+        ]);
+      });
+    }
+
+    test('a refusal (403) is final: the stricter call is not tried', () async {
+      final adapter = _PathAdapter({
+        '/api/components/search_projects': (403, <String, dynamic>{}),
+      });
+      final result = await SonarQubeRepositoryImpl(
+        Dio(BaseOptions(baseUrl: 'https://sonar.test'))
+          ..httpClientAdapter = adapter,
+      ).fetchProjects();
+
+      expect(
+        (result as Err<SonarQubeProjectsPage, AppFailure>).error,
+        isA<SonarQubeAccessDeniedFailure>(),
+      );
+      expect(adapter.paths, ['/api/components/search_projects']);
+    });
+
+    test('a wrong SonarCloud organization is reported, not retried', () async {
+      final adapter = _PathAdapter({
+        '/api/components/search_projects': (404, <String, dynamic>{}),
+      });
+      final result = await SonarQubeRepositoryImpl(
+        Dio(BaseOptions(baseUrl: 'https://sonar.test'))
+          ..httpClientAdapter = adapter,
+        organization: 'nope',
+      ).fetchProjects();
+
+      expect(
+        (result as Err<SonarQubeProjectsPage, AppFailure>).error,
+        isA<SonarQubeOrganizationNotFoundFailure>(),
+      );
+      expect(adapter.paths, hasLength(1));
+      expect(adapter.queries.single['organization'], 'nope');
+    });
+
+    test('both calls missing is a plain not-found', () async {
+      final adapter = _PathAdapter({
+        '/api/components/search_projects': (404, <String, dynamic>{}),
+        '/api/projects/search': (404, <String, dynamic>{}),
+      });
+      final result = await SonarQubeRepositoryImpl(
+        Dio(BaseOptions(baseUrl: 'https://sonar.test'))
+          ..httpClientAdapter = adapter,
+      ).fetchProjects();
+
+      expect(
+        (result as Err<SonarQubeProjectsPage, AppFailure>).error,
+        isA<NotFoundFailure>(),
+      );
+    });
+  });
+
+  group('SonarQube-specific refusals on project calls (D)', () {
+    SonarQubeRepositoryImpl repo(int status) => SonarQubeRepositoryImpl(
+      Dio(BaseOptions(baseUrl: 'https://sonar.test'))
+        ..httpClientAdapter = _Adapter(status, <String, dynamic>{}),
+    );
+
+    test('403 on measures, issues and history is access-denied', () async {
+      for (final result in [
+        await repo(403).fetchMeasures('k'),
+        await repo(403).fetchIssues('k'),
+        await repo(403).fetchAnalysisHistory('k'),
+        await repo(403).fetchQualityGate('k'),
+      ]) {
+        expect((result as Err).error, isA<SonarQubeAccessDeniedFailure>());
+      }
+    });
+
+    test('404 on a project call says the project is gone', () async {
+      for (final result in [
+        await repo(404).fetchMeasures('k'),
+        await repo(404).fetchAnalysisHistory('k'),
+      ]) {
+        expect((result as Err).error, isA<SonarQubeProjectNotFoundFailure>());
+      }
+    });
+
+    test('other statuses keep the shared wording', () async {
+      expect(
+        (await repo(401).fetchMeasures('k') as Err).error,
+        isA<AuthFailure>(),
+      );
+      expect(
+        (await repo(500).fetchMeasures('k') as Err).error,
+        isA<ServerFailure>(),
+      );
+    });
+  });
+
+  group('checkSonarQubeProjectAccess (B)', () {
+    Dio dioFor(_PathAdapter a) =>
+        Dio(BaseOptions(baseUrl: 'https://sonar.test'))..httpClientAdapter = a;
+
+    test(
+      'succeeds when one project can be listed, asking for just one',
+      () async {
+        final adapter = _PathAdapter({
+          '/api/components/search_projects': (
+            200,
+            {
+              'components': <dynamic>[],
+              'paging': {'total': 0},
+            },
+          ),
+        });
+
+        final result = await checkSonarQubeProjectAccess(
+          baseUrl: 'https://sonar.test',
+          token: 't',
+          organization: 'acme',
+          dio: dioFor(adapter),
+        );
+
+        expect(result, isA<Ok<void, AppFailure>>());
+        expect(adapter.queries.single['ps'], 1);
+        expect(adapter.queries.single['organization'], 'acme');
+      },
+    );
+
+    test('a valid token whose user may not browse says so', () async {
+      final result = await checkSonarQubeProjectAccess(
+        baseUrl: 'https://sonar.test',
+        token: 't',
+        dio: dioFor(
+          _PathAdapter({
+            '/api/components/search_projects': (403, <String, dynamic>{}),
+          }),
+        ),
+      );
+
+      final failure = (result as Err<void, AppFailure>).error;
+      expect(failure, isA<SonarQubeAccessDeniedFailure>());
+      expect(failure.message, contains('browse'));
+    });
+  });
+}
+
+/// Answers per request path, so a call that falls back to another endpoint
+/// can be scripted and its requests checked.
+class _PathAdapter implements HttpClientAdapter {
+  _PathAdapter(this.responses);
+
+  final Map<String, (int, dynamic)> responses;
+  final List<String> paths = [];
+  final List<Map<String, dynamic>> queries = [];
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    paths.add(options.path);
+    queries.add(options.queryParameters);
+    final (status, body) =
+        responses[options.path] ?? (404, <String, dynamic>{});
+    return ResponseBody.fromString(
+      jsonEncode(body),
+      status,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
 }
 
 class _HtmlAdapter implements HttpClientAdapter {

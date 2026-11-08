@@ -59,7 +59,7 @@ final class TestSonarQubeConnectionNotifierProvider
 }
 
 String _$testSonarQubeConnectionNotifierHash() =>
-    r'5fec28afe2a94f3a6ba5b8353589c048f4277ee8';
+    r'e9e62b7b5ba7f335b4cf7876995535928e6a2a70';
 
 /// "Test connection" (`US-SQ-CRED-04`) state — mirrors
 /// `TestGitHubConnectionNotifier`'s shape: `state.value` is `null` before

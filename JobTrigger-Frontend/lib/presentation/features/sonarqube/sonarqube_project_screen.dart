@@ -106,8 +106,13 @@ class _ProjectList extends ConsumerWidget {
     final projects = ref.watch(filteredSonarQubeProjectsProvider);
     final query = ref.watch(sonarQubeProjectSearchProvider);
     final t = AppTokens.of(context);
+    final loaded = ref.watch(sonarQubeProjectsNotifierProvider).value;
+    final notifier = ref.read(sonarQubeProjectsNotifierProvider.notifier);
 
     if (projects.isEmpty) {
+      // A search that finds nothing among the loaded projects may still have
+      // a match on a page that isn't loaded yet.
+      final moreToSearch = query.isNotEmpty && (loaded?.hasMore ?? false);
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -120,25 +125,104 @@ class _ProjectList extends ConsumerWidget {
                 context,
               ).textTheme.bodyMedium?.copyWith(color: t.textMuted),
             ),
+            if (moreToSearch) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Only ${loaded!.projects.length} of ${loaded.total} projects '
+                'are loaded.',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: t.textMuted),
+              ),
+              TextButton(
+                onPressed: notifier.loadMore,
+                child: const Text('Load more'),
+              ),
+            ],
           ],
         ),
       );
     }
 
     return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(sonarQubeProjectsNotifierProvider.notifier).refresh(),
-      child: ListView.separated(
-        padding: EdgeInsets.fromLTRB(
-          20,
-          14,
-          20,
-          16 + glassNavBarClearance(context),
+      onRefresh: notifier.refresh,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (n) {
+          if (n.metrics.extentAfter < 400) notifier.loadMore();
+          return false;
+        },
+        child: ListView.separated(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            14,
+            20,
+            16 + glassNavBarClearance(context),
+          ),
+          itemCount: projects.length + 1,
+          itemBuilder: (context, index) => index < projects.length
+              ? _ProjectTile(project: projects[index])
+              : _Footer(
+                  loaded: loaded,
+                  searching: query.isNotEmpty,
+                  onLoadMore: notifier.loadMore,
+                ),
+          separatorBuilder: (_, _) => const SizedBox(height: 10),
         ),
-        itemCount: projects.length,
-        itemBuilder: (context, index) => _ProjectTile(project: projects[index]),
-        separatorBuilder: (_, _) => const SizedBox(height: 10),
       ),
+    );
+  }
+}
+
+/// What the list did not show: that more projects exist, that loading them
+/// failed, or that the search only covers what is loaded.
+class _Footer extends StatelessWidget {
+  const _Footer({
+    required this.loaded,
+    required this.searching,
+    required this.onLoadMore,
+  });
+
+  final SonarQubeProjects? loaded;
+  final bool searching;
+  final VoidCallback onLoadMore;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = loaded;
+    if (state == null) return const SizedBox.shrink();
+    final t = AppTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    if (state.isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (state.loadMoreFailure != null) {
+      return Column(
+        children: [
+          Text(
+            describeError(state.loadMoreFailure!),
+            textAlign: TextAlign.center,
+            style: textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+          TextButton(onPressed: onLoadMore, child: const Text('Load more')),
+        ],
+      );
+    }
+    if (!state.hasMore) return const SizedBox(height: 8);
+    return Column(
+      children: [
+        Text(
+          'Showing ${state.projects.length} of ${state.total} projects'
+          '${searching ? '. Search covers only these.' : ''}',
+          textAlign: TextAlign.center,
+          style: textTheme.bodySmall?.copyWith(color: t.textMuted),
+        ),
+        TextButton(onPressed: onLoadMore, child: const Text('Load more')),
+      ],
     );
   }
 }

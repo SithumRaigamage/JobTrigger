@@ -182,6 +182,7 @@ class _SonarQubeCredentialEditBottomSheetState
         .test(
           baseUrl: _baseUrlController.text.trim(),
           token: _tokenController.text.trim(),
+          organization: _defaultOrganizationController.text.trim(),
         );
   }
 

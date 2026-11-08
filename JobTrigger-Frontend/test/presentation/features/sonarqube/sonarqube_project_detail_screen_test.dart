@@ -49,8 +49,10 @@ class _Repo implements SonarQubeRepository {
   }) => throw UnimplementedError();
 
   @override
-  Future<Result<List<SonarQubeProject>, AppFailure>> fetchProjects() =>
-      throw UnimplementedError();
+  Future<Result<SonarQubeProjectsPage, AppFailure>> fetchProjects({
+    int page = 1,
+    int pageSize = sonarQubeProjectsPageSize,
+  }) => throw UnimplementedError();
 }
 
 const _project = SonarQubeProject(

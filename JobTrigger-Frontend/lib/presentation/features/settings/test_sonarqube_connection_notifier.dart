@@ -1,6 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/error/app_failure.dart';
 import '../../../core/error/result.dart';
+import '../../../data/repositories/sonarqube_repository_impl.dart';
 import '../../../data/datasources/sonarqube_client_factory.dart';
 import '../../../domain/auth/auth_validation.dart';
 import '../../../domain/credential/sonarqube_url.dart';
@@ -21,7 +23,11 @@ class TestSonarQubeConnectionNotifier
   @override
   FutureOr<bool?> build() => null;
 
-  Future<void> test({required String baseUrl, required String token}) async {
+  Future<void> test({
+    required String baseUrl,
+    required String token,
+    String? organization,
+  }) async {
     // AUD-52: the token is never sent to an unusable URL.
     final urlProblem = sonarQubeUrlProblem(baseUrl);
     if (urlProblem != null) {
@@ -33,7 +39,17 @@ class TestSonarQubeConnectionNotifier
       baseUrl: normalizeServerUrl(baseUrl),
       token: token,
     );
-    state = switch (result) {
+    if (result is Err<void, AppFailure>) {
+      state = AsyncError(result.error, StackTrace.current);
+      return;
+    }
+    // The token is valid; now check it can do what the app needs.
+    final access = await checkSonarQubeProjectAccess(
+      baseUrl: normalizeServerUrl(baseUrl),
+      token: token,
+      organization: organization,
+    );
+    state = switch (access) {
       Ok() => const AsyncData(true),
       Err(:final error) => AsyncError(error, StackTrace.current),
     };
