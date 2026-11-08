@@ -131,6 +131,44 @@ curl http://localhost:5001/api/appinfo
 
 ---
 
+## 🔍 Scanning the code with a local SonarQube
+
+`scripts/sonar-scan.sh` scans this repo with your own SonarQube so it appears
+as the project `JobTrigger` at <http://localhost:9000>. This is the repo's
+own code-quality check; it is separate from the in-app SonarQube feature,
+which is about connecting the app to a SonarQube server.
+
+**Prerequisites:** `brew install sonar-scanner`, a SonarQube running on
+`localhost:9000`, and a user token (SonarQube → avatar → My Account →
+Security → Generate Tokens → *User Token*).
+
+Put the token where the script can find it, either in the git-ignored `.env`
+at the repo root (or `JobTrigger-Backend/.env`) as one line:
+
+```
+SONAR_TOKEN=<your token>
+```
+
+or exported in your shell. Then run:
+
+```bash
+scripts/sonar-scan.sh
+```
+
+Only the `SONAR_TOKEN` line is read from `.env`; the file is never loaded as
+a whole, so its other values stay out of the scan.
+
+The script checks the server and token, scans using `sonar-project.properties`
+for sources and exclusions (so there is one definition; the SonarCloud key and
+organization in that file are left alone), waits for SonarQube to finish
+processing, then prints the dashboard link and quality gate result.
+
+Optional: `WITH_COVERAGE=1` runs the backend tests with coverage first,
+`SONAR_PROJECT_KEY` / `SONAR_PROJECT_NAME` change how the project is listed,
+and `SONAR_HOST_URL` points at a different SonarQube. The Flutter app is
+scanned for size and duplication only: SonarQube Community has no Dart
+analyzer, so Dart gets no language rules.
+
 ## 📱 Running on a Physical iPhone
 
 See **[IPHONE.md](../IPHONE.md)** in the repository root: the phone setup,
