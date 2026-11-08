@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -11,12 +12,13 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/no_active_sonarqube_credential_view.dart';
 import '../../common_widgets/responsive_center.dart';
+import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'sonarqube_projects_notifier.dart';
 
 /// The Home tab while SonarQube is the active tool (`US-SQ-PROJ-01/02`): a
-/// searchable list of the credential's projects. Read-only; opening a
-/// project's quality gate, measures and issues is the next SQ-QUALITY slice.
+/// searchable list of the credential's projects; a tap opens the project's
+/// quality gate and measures.
 class SonarQubeProjectScreen extends ConsumerWidget {
   const SonarQubeProjectScreen({super.key});
 
@@ -141,8 +143,8 @@ class _ProjectList extends ConsumerWidget {
   }
 }
 
-/// One project: its name, its key, and when it was last analysed. Inert
-/// until the quality screens exist (P10-10..12).
+/// One project: its name, its key, and when it was last analysed. Tapping
+/// opens its quality gate and measures.
 class _ProjectTile extends StatelessWidget {
   const _ProjectTile({required this.project});
 
@@ -161,6 +163,7 @@ class _ProjectTile extends StatelessWidget {
       excludeSemantics: true,
       child: GlassSurface.card(
         padding: const EdgeInsets.all(14),
+        onTap: () => context.push(AppRoutes.sonarqubeProject, extra: project),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

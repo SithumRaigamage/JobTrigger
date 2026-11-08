@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/auth/auth_state.dart';
 import '../../domain/github/github_repo.dart';
+import '../../domain/sonarqube/sonarqube_project.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../features/app_info/app_info_screen.dart';
@@ -17,6 +18,7 @@ import '../common_widgets/pinned_footer_layout.dart';
 import '../features/build_detail/build_detail_screen.dart';
 import '../features/build_log/build_log_screen.dart';
 import '../features/github/github_repo_screen.dart';
+import '../features/sonarqube/sonarqube_project_detail_screen.dart';
 import '../features/sonarqube/sonarqube_project_screen.dart';
 import '../features/github/github_workflow_list_screen.dart';
 import '../features/history/global_history_screen.dart';
@@ -59,6 +61,7 @@ final Map<String, bool Function(Object? extra)> _extraRoutes = {
   AppRoutes.buildLog: (extra) => extra is JenkinsBuild,
   AppRoutes.buildDetail: (extra) => extra is JenkinsBuild,
   AppRoutes.githubWorkflows: (extra) => extra is GitHubRepo,
+  AppRoutes.sonarqubeProject: (extra) => extra is SonarQubeProject,
 };
 
 /// Module-level (not inside `appRouter`) so identity is stable across
@@ -332,6 +335,13 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.appInfo,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AppInfoScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeProject,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => SonarQubeProjectDetailScreen(
+          project: state.extra! as SonarQubeProject,
+        ),
       ),
       GoRoute(
         path: AppRoutes.githubWorkflows,

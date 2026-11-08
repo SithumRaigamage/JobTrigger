@@ -145,15 +145,31 @@ would be unrelated scope creep for this phase.
       quality screens (P10-10..12).
 ## SQ-QUALITY — Quality Gate, Measures, and Issues
 
-- [ ] P10-10 `SonarQubeQualityGateStatus` domain type + DTO +
+- [x] P10-10 `SonarQubeQualityGateStatus` domain type + DTO +
       `SonarQubeRepository.fetchQualityGateStatus(projectKey)` — `GET
       api/qualitygates/project_status`, including the per-condition
       breakdown (metric/comparator/threshold/actual value) for a failing
       gate, per `US-SQ-QUALITY-01`.
-- [ ] P10-11 Measures grid — `SonarQubeRepository.fetchMeasures(projectKey)`
+      **Done 2026-11-08 (implemented and unit-tested; real-server check
+      pending).** `SonarQubeQualityGate` (passed / warning / failed / none;
+      anything unrecognised is "none", never a guessed pass) with its
+      conditions. Only failing conditions are listed, each as "Coverage on
+      new code: 62.1%" plus "Fails when below 80%" (SonarQube's comparator
+      is the failure direction, so LT reads "below"). A never-analysed
+      project says "Not yet analyzed".
+- [x] P10-11 Measures grid — `SonarQubeRepository.fetchMeasures(projectKey)`
       (`GET api/measures/component` for coverage/bugs/vulnerabilities/
       code_smells/duplicated_lines_density/ncloc) + a glass-card stat-tile
       grid UI, per `US-SQ-QUALITY-02`.
+      **Done 2026-11-08 (implemented and unit-tested; real-server check
+      pending).** Six measures in a glass-card grid on
+      `SonarQubeProjectDetailScreen` (opened by tapping a project). A metric
+      the server didn't compute shows "—", not 0. Percentages keep one
+      decimal, counts get separators, ratings become A–E
+      (`domain/sonarqube/sonarqube_metrics.dart`). Gate and measures load
+      and fail independently, each with its own retry. The gate and measures
+      calls send no `organization`: a project key is unique and neither
+      endpoint documents the parameter.
 - [ ] P10-12 Issues list — `SonarQubeRepository.fetchIssues(projectKey,
       {types, severities, page})` (`GET api/issues/search`, server-side
       filtered/paginated per `US-SQ-QUALITY-03`, not client-side like the

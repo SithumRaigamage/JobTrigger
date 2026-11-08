@@ -7,6 +7,7 @@ import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 
 class _Adapter implements HttpClientAdapter {
   _Adapter(this.status, this.body);
@@ -166,6 +167,103 @@ void main() {
         (result as Err<List<SonarQubeProject>, AppFailure>).error,
         isA<UnexpectedResponseFailure>(),
       );
+    });
+  });
+
+  group('fetchQualityGate (US-SQ-QUALITY-01)', () {
+    test('a failing gate lists its conditions', () async {
+      final adapter = _Adapter(200, {
+        'projectStatus': {
+          'status': 'ERROR',
+          'conditions': [
+            {
+              'status': 'ERROR',
+              'metricKey': 'new_coverage',
+              'comparator': 'LT',
+              'errorThreshold': '80',
+              'actualValue': '62.1',
+            },
+            {
+              'status': 'OK',
+              'metricKey': 'new_bugs',
+              'comparator': 'GT',
+              'errorThreshold': '0',
+              'actualValue': '0',
+            },
+          ],
+        },
+      });
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+        organization: 'acme',
+      ).fetchQualityGate('acme:api');
+
+      expect(adapter.last?.path, '/api/qualitygates/project_status');
+      expect(adapter.last?.queryParameters['projectKey'], 'acme:api');
+      expect(
+        adapter.last?.queryParameters.containsKey('organization'),
+        isFalse,
+      );
+      final gate = (result as Ok<SonarQubeQualityGate, AppFailure>).value;
+      expect(gate.state, QualityGateState.failed);
+      expect(gate.conditions, hasLength(2));
+      expect(gate.failing.single.metricKey, 'new_coverage');
+      expect(gate.failing.single.actual, '62.1');
+      expect(gate.failing.single.threshold, '80');
+    });
+
+    test('a project never analysed has no verdict', () async {
+      final result = await SonarQubeRepositoryImpl(
+        _dio(
+          _Adapter(200, {
+            'projectStatus': {'status': 'NONE', 'conditions': <dynamic>[]},
+          }),
+        ),
+      ).fetchQualityGate('k');
+
+      final gate = (result as Ok<SonarQubeQualityGate, AppFailure>).value;
+      expect(gate.state, QualityGateState.none);
+    });
+
+    test('an unknown project is a not-found', () async {
+      final result = await SonarQubeRepositoryImpl(
+        _dio(_Adapter(404, <String, dynamic>{})),
+      ).fetchQualityGate('missing');
+
+      expect(
+        (result as Err<SonarQubeQualityGate, AppFailure>).error,
+        isA<NotFoundFailure>(),
+      );
+    });
+  });
+
+  group('fetchMeasures (US-SQ-QUALITY-02)', () {
+    test('asks for the six measures and omits uncomputed ones', () async {
+      final adapter = _Adapter(200, {
+        'component': {
+          'key': 'acme:api',
+          'measures': [
+            {'metric': 'bugs', 'value': '3'},
+            {'metric': 'coverage', 'value': '71.4'},
+            {'metric': 'ncloc', 'value': '12345'},
+          ],
+        },
+      });
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchMeasures('acme:api');
+
+      expect(adapter.last?.path, '/api/measures/component');
+      expect(adapter.last?.queryParameters['component'], 'acme:api');
+      expect(
+        adapter.last?.queryParameters['metricKeys'],
+        'coverage,bugs,vulnerabilities,code_smells,duplicated_lines_density,ncloc',
+      );
+      final measures = (result as Ok<Map<String, String>, AppFailure>).value;
+      expect(measures, {'bugs': '3', 'coverage': '71.4', 'ncloc': '12345'});
+      expect(measures.containsKey('vulnerabilities'), isFalse);
     });
   });
 }

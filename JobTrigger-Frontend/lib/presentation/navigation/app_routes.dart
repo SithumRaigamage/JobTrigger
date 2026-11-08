@@ -19,6 +19,7 @@ abstract class AppRoutes {
   /// US-JX-19: `jobtrigger://app/open?url=<Jenkins URL>` lands here.
   static const openLink = '/open';
   static const globalHistory = '/history';
+  static const sonarqubeProject = '/sonarqube/project';
   static const githubWorkflows = '/github/repos/workflows';
   // Add/edit server is a modal bottom sheet (ServerEditBottomSheet), not a
   // route — see presentation/features/settings/server_edit_bottom_sheet.dart.

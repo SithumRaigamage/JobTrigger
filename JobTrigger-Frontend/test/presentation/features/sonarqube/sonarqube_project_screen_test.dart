@@ -8,6 +8,7 @@ import 'package:job_trigger/data/credentials/active_sonarqube_credential_notifie
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_project_screen.dart';
 import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
@@ -23,6 +24,16 @@ class _Repo implements SonarQubeRepository {
     calls++;
     return result;
   }
+
+  @override
+  Future<Result<SonarQubeQualityGate, AppFailure>> fetchQualityGate(
+    String projectKey,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<Result<Map<String, String>, AppFailure>> fetchMeasures(
+    String projectKey,
+  ) => throw UnimplementedError();
 }
 
 class _Credential extends ActiveSonarQubeCredentialNotifier {
