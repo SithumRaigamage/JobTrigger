@@ -14,6 +14,29 @@ const _repoName = 'hello-world';
 
 class _FakeGitHubRepository implements GitHubRepository {
   @override
+  Future<Result<void, AppFailure>> triggerRun(
+    String owner,
+    String repo,
+    int workflowId, {
+    required String ref,
+    Map<String, String> inputs = const {},
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Result<GitHubWorkflowRun, AppFailure>> fetchRun(
+    String owner,
+    String repo,
+    int runId,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<Result<void, AppFailure>> cancelRun(
+    String owner,
+    String repo,
+    int runId,
+  ) => throw UnimplementedError();
+
+  @override
   Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRuns(
     String owner,
     String repo,

@@ -34,4 +34,32 @@ abstract class GitHubRepository {
     String repo,
     int workflowId,
   );
+
+  /// `POST .../workflows/{workflow_id}/dispatches` (`US-GH-RUN-02`). GitHub
+  /// answers 204 with no run id, so there is nothing to track: callers
+  /// refresh the runs list instead. A 422 becomes [DispatchRejectedFailure].
+  /// [inputs] are untyped key/value pairs — GitHub's API doesn't expose a
+  /// workflow's declared input schema.
+  Future<Result<void, AppFailure>> triggerRun(
+    String owner,
+    String repo,
+    int workflowId, {
+    required String ref,
+    Map<String, String> inputs = const {},
+  });
+
+  /// `GET /repos/{owner}/{repo}/actions/runs/{run_id}` (`US-GH-RUN-03`).
+  Future<Result<GitHubWorkflowRun, AppFailure>> fetchRun(
+    String owner,
+    String repo,
+    int runId,
+  );
+
+  /// `POST .../runs/{run_id}/cancel` (`US-GH-RUN-04`). 202 Accepted: the
+  /// cancel is asynchronous, so success means *requested*, not *stopped*.
+  Future<Result<void, AppFailure>> cancelRun(
+    String owner,
+    String repo,
+    int runId,
+  );
 }

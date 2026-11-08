@@ -10,6 +10,29 @@ import 'package:job_trigger/domain/github/github_workflow_run.dart';
 import 'package:job_trigger/presentation/features/github/github_runs_notifier.dart';
 
 class _Fake implements GitHubRepository {
+  @override
+  Future<Result<void, AppFailure>> triggerRun(
+    String owner,
+    String repo,
+    int workflowId, {
+    required String ref,
+    Map<String, String> inputs = const {},
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Result<GitHubWorkflowRun, AppFailure>> fetchRun(
+    String owner,
+    String repo,
+    int runId,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<Result<void, AppFailure>> cancelRun(
+    String owner,
+    String repo,
+    int runId,
+  ) => throw UnimplementedError();
+
   Result<List<GitHubWorkflowRun>, AppFailure> result = const Ok([]);
   int calls = 0;
   (String, String, int)? last;

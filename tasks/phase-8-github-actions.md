@@ -308,29 +308,50 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       workflow tile (route `AppRoutes.githubRuns`, `extra` is
       `(GitHubRepo, GitHubWorkflow)`). Run tiles are inert until the run
       detail screen (P8-17).
-- [ ] P8-14 `GitHubRepository.triggerRun(owner, repo, workflowId, {ref,
+- [x] P8-14 `GitHubRepository.triggerRun(owner, repo, workflowId, {ref,
       inputs})` — `POST .../dispatches`; 204 response carries no run ID
       (unlike Jenkins' `Location`-header queue tracking, `US-PIPE-01`) —
       the notifier refreshes the runs list rather than tracking the new
       run directly; a 422 (workflow has no `workflow_dispatch` trigger)
       maps to a specific, clear `AppFailure` message, not a generic
       server error (`US-GH-RUN-02`).
-- [ ] P8-15 `GitHubRepository.fetchRun(owner, repo, runId)` +
+      **Done 2026-11-08 (implemented and unit-tested; `NFR-TEST-03`
+      real-repository check pending).** `triggerRun` POSTs `ref` and
+      `inputs` as a JSON object (never string-built). A 422 becomes the new
+      `DispatchRejectedFailure`, whose copy names the three possible causes
+      (no `workflow_dispatch` trigger, bad branch, bad inputs) and appends
+      GitHub's own message. `GitHubTriggerNotifier` toasts, then refreshes
+      the runs list now and again after 3s, since 204 carries no run id.
+- [x] P8-15 `GitHubRepository.fetchRun(owner, repo, runId)` +
       `GitHubRunPollingNotifier` — 5s polling while not `completed`, same
       timer/`ref.onDispose` discipline as `BuildStatusPollingNotifier`;
       stops on a rate-limit response with a clear message rather than
       retrying into a worse state (`US-GH-RUN-03`).
-- [ ] P8-16 `GitHubRepository.cancelRun(owner, repo, runId)` — `POST
+      **Done 2026-11-08.** `fetchRun` + `GitHubRunNotifier` +
+      `GitHubRunPollingNotifier` (5s while not `completed`, timer cancelled
+      in `ref.onDispose`). A `RateLimitFailure` stops polling and the screen
+      shows its message over the last known state; other errors keep
+      polling so a dropped connection recovers.
+- [x] P8-16 `GitHubRepository.cancelRun(owner, repo, runId)` — `POST
       .../cancel` (202 Accepted, genuinely async — no optimistic
       `cancelled` flip like Jenkins' `US-JOB-05`, a "cancelling…"
       transitional state instead, corrected by the next poll)
       (`US-GH-RUN-04`).
-- [ ] P8-17 Workflow-run detail screen: trigger form (ref field defaulting
+      **Done 2026-11-08.** `cancelRun` + `GitHubCancelNotifier`: success
+      only records that a cancel was *requested*; the run is never flipped
+      to cancelled locally. A failure changes nothing and toasts.
+- [x] P8-17 Workflow-run detail screen: trigger form (ref field defaulting
       to the repo's default branch, untyped key/value inputs list — no
       typed `ParameterForm` equivalent is possible here, GitHub's API
       doesn't expose a workflow's declared input schema, `US-GH-RUN-02`'s
       flagged gap), confirm-before-trigger and confirm-before-cancel
       dialogs, live status display.
+      **Done 2026-11-08.** `showGitHubTriggerSheet` (branch field
+      defaulting to the repo's default branch, untyped name/value inputs,
+      blank/duplicate input validation in `domain/github/workflow_inputs.dart`),
+      confirm dialogs for trigger and cancel, `GitHubRunDetailScreen` (live
+      status, "Cancelling…" until the poll shows the real conclusion).
+      Reached by tapping a run (`AppRoutes.githubRunDetail`).
 - [ ] P8-18 `GitHubJob` domain type + DTO (`id,name,status,conclusion,
       steps[]`) + `GitHubRepository.fetchJobs(owner, repo, runId)` — `GET
       .../runs/{run_id}/jobs` (`US-GH-RUN-05`).

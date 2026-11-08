@@ -17,6 +17,8 @@ import '../../common_widgets/status_pill.dart';
 import '../../common_widgets/status_tile.dart';
 import '../../navigation/main_scaffold.dart';
 import 'github_runs_notifier.dart';
+import 'github_trigger_sheet.dart';
+import '../../navigation/app_routes.dart';
 
 /// A workflow's recent runs (`US-GH-RUN-01`), read-only for now: trigger,
 /// live status and cancel land with P8-14..17. Pushed from
@@ -78,12 +80,27 @@ class GitHubRunsScreen extends ConsumerWidget {
                         style: textTheme.headlineMedium,
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: FilledButton.icon(
+                        onPressed: () => showGitHubTriggerSheet(
+                          context,
+                          repo: repo,
+                          workflow: workflow,
+                        ),
+                        icon: const Icon(Icons.play_arrow_rounded),
+                        label: const Text('Run workflow'),
+                      ),
+                    ),
                   ],
                 ),
               ),
               Expanded(
                 child: runsAsync.when(
                   data: (runs) => _RunListView(
+                    repo: repo,
+                    workflow: workflow,
                     runs: runs,
                     onRefresh: () => ref.read(provider.notifier).refresh(),
                   ),
@@ -106,8 +123,15 @@ class GitHubRunsScreen extends ConsumerWidget {
 }
 
 class _RunListView extends StatelessWidget {
-  const _RunListView({required this.runs, required this.onRefresh});
+  const _RunListView({
+    required this.repo,
+    required this.workflow,
+    required this.runs,
+    required this.onRefresh,
+  });
 
+  final GitHubRepo repo;
+  final GitHubWorkflow workflow;
   final List<GitHubWorkflowRun> runs;
   final Future<void> Function() onRefresh;
 
@@ -137,7 +161,13 @@ class _RunListView extends StatelessWidget {
               ),
               sliver: SliverList.separated(
                 itemCount: runs.length,
-                itemBuilder: (context, index) => _RunTile(run: runs[index]),
+                itemBuilder: (context, index) => _RunTile(
+                  run: runs[index],
+                  onTap: () => context.push(
+                    AppRoutes.githubRunDetail,
+                    extra: (repo, workflow, runs[index]),
+                  ),
+                ),
                 separatorBuilder: (_, _) => const Divider(),
               ),
             ),
@@ -196,11 +226,12 @@ IconData _iconFor(GitHubRunOutcome outcome) => switch (outcome) {
 };
 
 /// One run: title, `#number · event · branch · age`, and a status pill.
-/// Inert for now — the run detail screen is P8-17.
+/// Tapping opens the live run detail.
 class _RunTile extends StatelessWidget {
-  const _RunTile({required this.run});
+  const _RunTile({required this.run, required this.onTap});
 
   final GitHubWorkflowRun run;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -218,42 +249,48 @@ class _RunTile extends StatelessWidget {
     return Semantics(
       label: '${run.title}, ${run.label}, $details',
       excludeSemantics: true,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: [
-            StatusTile(
-              tone: toneForRunOutcome(outcome),
-              icon: _iconFor(outcome),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    run.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    details,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.mono(
-                      textTheme.bodySmall,
-                    ).copyWith(fontSize: 12, color: t.textMuted),
-                  ),
-                ],
+      button: true,
+      onTap: onTap,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              StatusTile(
+                tone: toneForRunOutcome(outcome),
+                icon: _iconFor(outcome),
               ),
-            ),
-            const SizedBox(width: 8),
-            StatusPill(label: run.label, tone: toneForRunOutcome(outcome)),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      run.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      details,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.mono(
+                        textTheme.bodySmall,
+                      ).copyWith(fontSize: 12, color: t.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              StatusPill(label: run.label, tone: toneForRunOutcome(outcome)),
+            ],
+          ),
         ),
       ),
     );

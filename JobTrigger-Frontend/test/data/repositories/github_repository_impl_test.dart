@@ -220,4 +220,91 @@ void main() {
       );
     });
   });
+
+  group(
+    'GitHubRepositoryImpl trigger / fetchRun / cancel (US-GH-RUN-02..04)',
+    () {
+      Dio dioWith(_FixedResponseAdapter a) =>
+          Dio(BaseOptions(baseUrl: 'https://api.github.com'))
+            ..httpClientAdapter = a;
+
+      test('triggerRun POSTs ref and inputs as a JSON object', () async {
+        final adapter = _FixedResponseAdapter(204, null);
+
+        final result = await GitHubRepositoryImpl(
+          dioWith(adapter),
+        ).triggerRun('o', 'r', 42, ref: 'main', inputs: {'env': 'a"b'});
+
+        expect(result, isA<Ok<void, AppFailure>>());
+        expect(adapter.lastRequest?.method, 'POST');
+        expect(
+          adapter.lastRequest?.path,
+          '/repos/o/r/actions/workflows/42/dispatches',
+        );
+        expect(adapter.lastRequest?.data, {
+          'ref': 'main',
+          'inputs': {'env': 'a"b'},
+        });
+      });
+
+      test('triggerRun omits inputs when there are none', () async {
+        final adapter = _FixedResponseAdapter(204, null);
+
+        await GitHubRepositoryImpl(
+          dioWith(adapter),
+        ).triggerRun('o', 'r', 1, ref: 'main');
+
+        expect(adapter.lastRequest?.data, {'ref': 'main'});
+      });
+
+      test(
+        'a 422 becomes DispatchRejectedFailure with GitHub detail',
+        () async {
+          final adapter = _FixedResponseAdapter(422, {
+            'message': "Workflow does not have 'workflow_dispatch' trigger",
+          });
+
+          final result = await GitHubRepositoryImpl(
+            dioWith(adapter),
+          ).triggerRun('o', 'r', 1, ref: 'main');
+
+          final failure = (result as Err<void, AppFailure>).error;
+          expect(failure, isA<DispatchRejectedFailure>());
+          expect(failure.message, contains('workflow_dispatch'));
+          expect(failure.message, contains('GitHub said'));
+        },
+      );
+
+      test('fetchRun GETs one run', () async {
+        final adapter = _FixedResponseAdapter(200, {
+          'id': 5,
+          'run_number': 5,
+          'display_title': 'Go',
+          'status': 'in_progress',
+          'conclusion': null,
+        });
+
+        final result = await GitHubRepositoryImpl(
+          dioWith(adapter),
+        ).fetchRun('o', 'r', 5);
+
+        expect(adapter.lastRequest?.path, '/repos/o/r/actions/runs/5');
+        final run = (result as Ok<GitHubWorkflowRun, AppFailure>).value;
+        expect(run.status, 'in_progress');
+        expect(run.isActive, isTrue);
+      });
+
+      test('cancelRun POSTs to .../cancel and accepts 202', () async {
+        final adapter = _FixedResponseAdapter(202, null);
+
+        final result = await GitHubRepositoryImpl(
+          dioWith(adapter),
+        ).cancelRun('o', 'r', 5);
+
+        expect(result, isA<Ok<void, AppFailure>>());
+        expect(adapter.lastRequest?.method, 'POST');
+        expect(adapter.lastRequest?.path, '/repos/o/r/actions/runs/5/cancel');
+      });
+    },
+  );
 }
