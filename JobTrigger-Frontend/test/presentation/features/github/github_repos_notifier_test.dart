@@ -52,8 +52,9 @@ class _FakeGitHubRepository implements GitHubRepository {
   Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRuns(
     String owner,
     String repo,
-    int workflowId,
-  ) => throw UnimplementedError();
+    int workflowId, {
+    int page = 1,
+  }) => throw UnimplementedError();
 
   Result<List<GitHubRepo>, AppFailure> fetchReposResult = const Ok([]);
   int fetchReposCallCount = 0;

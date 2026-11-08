@@ -56,8 +56,9 @@ class _Fake implements GitHubRepository {
   Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRuns(
     String owner,
     String repo,
-    int workflowId,
-  ) async {
+    int workflowId, {
+    int page = 1,
+  }) async {
     calls++;
     last = (owner, repo, workflowId);
     return result;

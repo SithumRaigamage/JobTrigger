@@ -200,6 +200,19 @@ void main() {
       },
     );
 
+    test('asks for the requested page', () async {
+      final adapter = _FixedResponseAdapter(200, {
+        'workflow_runs': <dynamic>[],
+      });
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.github.com'))
+        ..httpClientAdapter = adapter;
+
+      await GitHubRepositoryImpl(dio).fetchRuns('o', 'r', 1, page: 3);
+
+      expect(adapter.lastRequest?.queryParameters['page'], 3);
+      expect(adapter.lastRequest?.queryParameters['per_page'], 30);
+    });
+
     test('falls back to the workflow name, then a numbered title', () async {
       final adapter = _FixedResponseAdapter(200, {
         'workflow_runs': [

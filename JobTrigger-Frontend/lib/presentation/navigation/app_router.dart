@@ -21,6 +21,7 @@ import '../features/build_detail/build_detail_screen.dart';
 import '../features/build_log/build_log_screen.dart';
 import '../features/github/github_job_log_screen.dart';
 import '../features/github/github_repo_screen.dart';
+import '../features/github/github_run_history_screen.dart';
 import '../features/github/github_run_detail_screen.dart';
 import '../features/github/github_runs_screen.dart';
 import '../features/github/github_workflow_list_screen.dart';
@@ -65,6 +66,7 @@ final Map<String, bool Function(Object? extra)> _extraRoutes = {
   AppRoutes.buildDetail: (extra) => extra is JenkinsBuild,
   AppRoutes.githubWorkflows: (extra) => extra is GitHubRepo,
   AppRoutes.githubRuns: (extra) => extra is (GitHubRepo, GitHubWorkflow),
+  AppRoutes.githubHistory: (extra) => extra is (GitHubRepo, GitHubWorkflow),
   AppRoutes.githubRunDetail: (extra) =>
       extra is (GitHubRepo, GitHubWorkflow, GitHubWorkflowRun),
   AppRoutes.githubJobLog: (extra) => extra is (GitHubRepo, int, GitHubJob),
@@ -332,6 +334,14 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) {
           final (repo, workflow) = state.extra! as (GitHubRepo, GitHubWorkflow);
           return GitHubRunsScreen(repo: repo, workflow: workflow);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.githubHistory,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final (repo, workflow) = state.extra! as (GitHubRepo, GitHubWorkflow);
+          return GitHubRunHistoryScreen(repo: repo, workflow: workflow);
         },
       ),
       GoRoute(

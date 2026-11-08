@@ -418,10 +418,17 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       job never fetches, copy/share disabled before load, retry.
 ## GH-HIST — Run history
 
-- [ ] P8-24 Per-workflow history screen reusing `HistoryTile`'s visual
+- [x] P8-24 Per-workflow history screen reusing `HistoryTile`'s visual
       pattern (adapted for `GitHubWorkflowRun`) — this is the same data
       P8-13 already fetches, just a fuller-page presentation
       (`US-GH-HIST-01`).
+      **Done 2026-11-08 (implemented and unit-tested; `NFR-TEST-03`
+      real-repository check pending).** `fetchRuns` takes a `page`
+      (30 runs a page); `GitHubRunHistoryNotifier` loads pages like the
+      Jenkins job history (a short page is the end; a failed page keeps the
+      list and offers a retry). `GitHubRunHistoryScreen` mirrors
+      `HistoryTile`'s look, loads more on scroll, and is opened from the
+      new History button on the runs screen. Tapping a row opens the run.
 - [ ] P8-25 Global cross-repo history feed (`Could` priority — genuinely
       optional, do last, revisit whether it's worth the rate-limit cost
       before starting): fans out one runs-fetch per accessible repo,

@@ -68,11 +68,12 @@ class GitHubRepositoryImpl implements GitHubRepository {
   Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRuns(
     String owner,
     String repo,
-    int workflowId,
-  ) => guardRequest(() async {
+    int workflowId, {
+    int page = 1,
+  }) => guardRequest(() async {
     final response = await _dio.get<Map<String, dynamic>>(
       '/repos/$owner/$repo/actions/workflows/$workflowId/runs',
-      queryParameters: {'per_page': 30},
+      queryParameters: {'per_page': gitHubRunsPageSize, 'page': page},
     );
     final runsJson =
         response.data?['workflow_runs'] as List<dynamic>? ?? const [];

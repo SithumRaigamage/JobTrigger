@@ -18,6 +18,9 @@ class FakeGitHubRepository implements GitHubRepository {
   int fetchJobsCalls = 0;
   int fetchJobLogCalls = 0;
 
+  /// Per-page overrides for [runsResult] (1-based), for paging tests.
+  final Map<int, Result<List<GitHubWorkflowRun>, AppFailure>> runsPages = {};
+  final List<int> requestedPages = [];
   int fetchRunsCalls = 0;
   int fetchRunCalls = 0;
   int triggerCalls = 0;
@@ -29,10 +32,12 @@ class FakeGitHubRepository implements GitHubRepository {
   Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRuns(
     String owner,
     String repo,
-    int workflowId,
-  ) async {
+    int workflowId, {
+    int page = 1,
+  }) async {
     fetchRunsCalls++;
-    return runsResult;
+    requestedPages.add(page);
+    return runsPages[page] ?? runsResult;
   }
 
   @override

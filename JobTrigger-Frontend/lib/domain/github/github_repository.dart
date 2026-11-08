@@ -12,6 +12,9 @@ import 'github_workflow_run.dart';
 /// landing, rather than declared upfront in full — avoids a large
 /// interface change rippling through every fake implementation each time
 /// (the exact cost Phase 7's Jenkins interface changes kept hitting).
+/// Runs per page of `GET .../workflows/{id}/runs`.
+const gitHubRunsPageSize = 30;
+
 abstract class GitHubRepository {
   /// `GET /user/repos` (`US-GH-REPO-01`). Currently fetches only the
   /// first page (100 repos, GitHub's max `per_page`) — true incremental
@@ -27,14 +30,14 @@ abstract class GitHubRepository {
   );
 
   /// `GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`
-  /// (`US-GH-RUN-01`). Newest first, first page only (30 runs): the list
-  /// is context before triggering, and full history paging belongs to
-  /// GH-HIST (P8-24).
+  /// (`US-GH-RUN-01`). Newest first, [gitHubRunsPageSize] runs per [page]
+  /// (1-based). A short page is the end of history (`US-GH-HIST-01`).
   Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRuns(
     String owner,
     String repo,
-    int workflowId,
-  );
+    int workflowId, {
+    int page = 1,
+  });
 
   /// `POST .../workflows/{workflow_id}/dispatches` (`US-GH-RUN-02`). GitHub
   /// answers 204 with no run id, so there is nothing to track: callers

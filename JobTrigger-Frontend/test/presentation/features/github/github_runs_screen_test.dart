@@ -90,8 +90,9 @@ class _Runs implements GitHubRepository {
   Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRuns(
     String owner,
     String repo,
-    int workflowId,
-  ) async {
+    int workflowId, {
+    int page = 1,
+  }) async {
     calls++;
     lastWorkflowId = workflowId;
     return result;

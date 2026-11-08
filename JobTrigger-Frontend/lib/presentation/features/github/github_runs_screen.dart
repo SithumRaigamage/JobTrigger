@@ -81,17 +81,28 @@ class GitHubRunsScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: FilledButton.icon(
-                        onPressed: () => showGitHubTriggerSheet(
-                          context,
-                          repo: repo,
-                          workflow: workflow,
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        FilledButton.icon(
+                          onPressed: () => showGitHubTriggerSheet(
+                            context,
+                            repo: repo,
+                            workflow: workflow,
+                          ),
+                          icon: const Icon(Icons.play_arrow_rounded),
+                          label: const Text('Run workflow'),
                         ),
-                        icon: const Icon(Icons.play_arrow_rounded),
-                        label: const Text('Run workflow'),
-                      ),
+                        OutlinedButton.icon(
+                          onPressed: () => context.push(
+                            AppRoutes.githubHistory,
+                            extra: (repo, workflow),
+                          ),
+                          icon: const Icon(Icons.history_rounded),
+                          label: const Text('History'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
