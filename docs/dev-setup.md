@@ -134,7 +134,7 @@ curl http://localhost:5001/api/appinfo
 ## 🔍 Scanning the code with a local SonarQube
 
 `scripts/sonar-scan.sh` scans this repo with your own SonarQube so it appears
-as the project `jobtrigger` at <http://localhost:9000>. This is the repo's
+as the project `JobTrigger` at <http://localhost:9000>. This is the repo's
 own code-quality check; it is separate from the in-app SonarQube feature,
 which is about connecting the app to a SonarQube server.
 

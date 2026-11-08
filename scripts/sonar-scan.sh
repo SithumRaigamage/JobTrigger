@@ -16,14 +16,17 @@
 #      stopped `sonarqube` / `sonarqube-db` containers if they exist);
 #   2. checks the token works;
 #   3. runs the scan with the repo's sonar-project.properties (sources,
-#      exclusions, tests) but as the local project `jobtrigger`, leaving the
+#      exclusions, tests) but as the local project `JobTrigger`, leaving the
 #      SonarCloud key/organization in that file alone;
 #   4. waits until SonarQube has finished processing the report, then prints
 #      the dashboard link and the quality gate result.
 #
 # Optional environment variables:
 #   SONAR_HOST_URL=http://localhost:9000   the SonarQube to scan into
-#   SONAR_PROJECT_KEY=jobtrigger           the project key it appears under
+#   SONAR_PROJECT_KEY=JobTrigger           the project key it appears under
+#                                          (case matters; a project-scoped
+#                                          analysis token only works for its
+#                                          own key)
 #   SONAR_PROJECT_NAME=JobTrigger          the name shown in the list
 #   WITH_COVERAGE=1                        run the backend tests with
 #                                          coverage first, so the backend's
@@ -35,7 +38,7 @@ set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 HOST="${SONAR_HOST_URL:-http://localhost:9000}"
 HOST="${HOST%/}"
-KEY="${SONAR_PROJECT_KEY:-jobtrigger}"
+KEY="${SONAR_PROJECT_KEY:-JobTrigger}"
 NAME="${SONAR_PROJECT_NAME:-JobTrigger}"
 WAIT_SECONDS="${WAIT_SECONDS:-300}"
 
@@ -157,7 +160,7 @@ step "Scanning (project key: $KEY)…"
     -Dsonar.host.url="$HOST" \
     -Dsonar.projectKey="$KEY" \
     -Dsonar.projectName="$NAME"
-)
+) || fail "The scan failed. If it says you are 'not authorized to analyze this project', the token's user cannot analyse or create the project '$KEY': a Project Analysis Token only works for its own project key, and a normal user needs the Create Projects / Execute Analysis permission. Try SONAR_PROJECT_KEY=<the key the token was made for>, or a User Token from an admin."
 
 # --- 5. Wait for SonarQube to finish processing -----------------------------
 task_file="$REPO/.scannerwork/report-task.txt"
