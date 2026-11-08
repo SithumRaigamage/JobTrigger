@@ -10,6 +10,8 @@ import '../../domain/github/github_repository.dart';
 import '../../domain/github/github_workflow.dart';
 import '../models/github/github_repo_dto.dart';
 import '../models/github/github_workflow_dto.dart';
+import '../models/github/github_workflow_run_dto.dart';
+import '../../domain/github/github_workflow_run.dart';
 
 part 'github_repository_impl.g.dart';
 
@@ -54,6 +56,27 @@ class GitHubRepositoryImpl implements GitHubRepository {
         )
         .toList();
     return workflows;
+  }, mapDioException: AppFailure.fromGitHubException);
+
+  @override
+  Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRuns(
+    String owner,
+    String repo,
+    int workflowId,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/repos/$owner/$repo/actions/workflows/$workflowId/runs',
+      queryParameters: {'per_page': 30},
+    );
+    final runsJson =
+        response.data?['workflow_runs'] as List<dynamic>? ?? const [];
+    return runsJson
+        .map(
+          (json) => GitHubWorkflowRunDto.fromJson(
+            json as Map<String, dynamic>,
+          ).toDomain(),
+        )
+        .toList();
   }, mapDioException: AppFailure.fromGitHubException);
 }
 

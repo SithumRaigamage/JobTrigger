@@ -3,12 +3,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/github_repository_impl.dart';
+import 'package:job_trigger/domain/github/github_workflow_run.dart';
 import 'package:job_trigger/domain/github/github_repo.dart';
 import 'package:job_trigger/domain/github/github_repository.dart';
 import 'package:job_trigger/domain/github/github_workflow.dart';
 import 'package:job_trigger/presentation/features/github/github_repos_notifier.dart';
 
 class _FakeGitHubRepository implements GitHubRepository {
+  @override
+  Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRuns(
+    String owner,
+    String repo,
+    int workflowId,
+  ) => throw UnimplementedError();
+
   Result<List<GitHubRepo>, AppFailure> fetchReposResult = const Ok([]);
   int fetchReposCallCount = 0;
 

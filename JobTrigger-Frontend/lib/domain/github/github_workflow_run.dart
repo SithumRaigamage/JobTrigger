@@ -1,0 +1,103 @@
+/// One run of a GitHub Actions workflow (`US-GH-RUN-01`) —
+/// `GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`.
+///
+/// Unlike Jenkins' single `result` string, GitHub reports **two** fields:
+/// [status] (where the run is) and [conclusion] (how it ended, only once
+/// `completed`). Both are kept as GitHub sends them so values GitHub adds
+/// later still round-trip; [label] and [outcome] collapse the pair into the
+/// single status language the UI already uses.
+class GitHubWorkflowRun {
+  const GitHubWorkflowRun({
+    required this.id,
+    required this.runNumber,
+    required this.title,
+    required this.event,
+    required this.status,
+    required this.conclusion,
+    required this.branch,
+    required this.createdAt,
+    required this.htmlUrl,
+  });
+
+  final int id;
+  final int runNumber;
+
+  /// The commit message / PR title GitHub shows for the run (`display_title`).
+  final String title;
+
+  /// What started it: `push` | `pull_request` | `workflow_dispatch` | …
+  final String event;
+
+  /// `queued` | `in_progress` | `completed` | `waiting` | `requested` |
+  /// `pending` | others GitHub may add.
+  final String status;
+
+  /// `success` | `failure` | `cancelled` | `skipped` | `timed_out` |
+  /// `action_required` | `neutral` | `stale` | `startup_failure`; `null`
+  /// until the run completes.
+  final String? conclusion;
+
+  final String? branch;
+  final DateTime? createdAt;
+  final String htmlUrl;
+
+  bool get isCompleted => status == 'completed';
+
+  /// Not finished: the run is still moving, so live status matters.
+  bool get isActive => !isCompleted;
+
+  /// The pair as one outcome for display; see [GitHubRunOutcome].
+  GitHubRunOutcome get outcome {
+    if (!isCompleted) {
+      return switch (status) {
+        'in_progress' => GitHubRunOutcome.running,
+        // queued / waiting / requested / pending — not running yet.
+        _ => GitHubRunOutcome.queued,
+      };
+    }
+    return switch (conclusion) {
+      'success' => GitHubRunOutcome.success,
+      'failure' || 'timed_out' || 'startup_failure' => GitHubRunOutcome.failure,
+      'action_required' => GitHubRunOutcome.attention,
+      // cancelled / skipped / neutral / stale / null / anything new.
+      _ => GitHubRunOutcome.neutral,
+    };
+  }
+
+  /// Human copy for [outcome]'s underlying state.
+  String get label {
+    if (!isCompleted) {
+      return switch (status) {
+        'in_progress' => 'In progress',
+        'queued' => 'Queued',
+        'waiting' => 'Waiting',
+        'requested' => 'Requested',
+        'pending' => 'Pending',
+        final other => _humanize(other),
+      };
+    }
+    return switch (conclusion) {
+      'success' => 'Success',
+      'failure' => 'Failed',
+      'cancelled' => 'Cancelled',
+      'skipped' => 'Skipped',
+      'timed_out' => 'Timed out',
+      'action_required' => 'Action required',
+      'neutral' => 'Neutral',
+      'stale' => 'Stale',
+      'startup_failure' => 'Startup failure',
+      null => 'Completed',
+      final other => _humanize(other),
+    };
+  }
+
+  static String _humanize(String raw) {
+    final words = raw.replaceAll('_', ' ').trim();
+    if (words.isEmpty) return 'Unknown';
+    return words[0].toUpperCase() + words.substring(1);
+  }
+}
+
+/// [GitHubWorkflowRun.status] + `conclusion` as one visual state, so the UI
+/// teaches one status model across Jenkins and GitHub (`US-GH-RUN-01`).
+enum GitHubRunOutcome { success, failure, running, queued, attention, neutral }

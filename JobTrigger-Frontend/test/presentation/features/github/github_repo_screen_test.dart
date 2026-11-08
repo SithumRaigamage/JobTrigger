@@ -7,6 +7,7 @@ import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/data/credentials/active_github_credential_notifier.dart';
 import 'package:job_trigger/data/repositories/github_repository_impl.dart';
 import 'package:job_trigger/domain/credential/github_credential.dart';
+import 'package:job_trigger/domain/github/github_workflow_run.dart';
 import 'package:job_trigger/domain/github/github_repo.dart';
 import 'package:job_trigger/domain/github/github_repository.dart';
 import 'package:job_trigger/domain/github/github_workflow.dart';
@@ -43,6 +44,13 @@ class _Repos implements GitHubRepository {
   Future<Result<List<GitHubWorkflow>, AppFailure>> fetchWorkflows(
     String owner,
     String repo,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRuns(
+    String owner,
+    String repo,
+    int workflowId,
   ) => throw UnimplementedError();
 }
 

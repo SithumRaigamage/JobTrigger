@@ -2,6 +2,7 @@ import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
 import 'github_repo.dart';
 import 'github_workflow.dart';
+import 'github_workflow_run.dart';
 
 /// GitHub Actions data access — the GitHub-side equivalent of
 /// `JenkinsRepository`, entirely independent (no shared code, per
@@ -22,5 +23,15 @@ abstract class GitHubRepository {
   Future<Result<List<GitHubWorkflow>, AppFailure>> fetchWorkflows(
     String owner,
     String repo,
+  );
+
+  /// `GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`
+  /// (`US-GH-RUN-01`). Newest first, first page only (30 runs): the list
+  /// is context before triggering, and full history paging belongs to
+  /// GH-HIST (P8-24).
+  Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRuns(
+    String owner,
+    String repo,
+    int workflowId,
   );
 }

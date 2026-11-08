@@ -289,12 +289,25 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
 
 ## GH-RUN — Workflow runs: view, trigger, live status, cancel, steps
 
-- [ ] P8-12 `GitHubWorkflowRun` domain type + DTO — **two separate
+- [x] P8-12 `GitHubWorkflowRun` domain type + DTO — **two separate
       fields**, `status` and `conclusion` (not one `result` string like
       Jenkins), per the verified API shape.
-- [ ] P8-13 `GitHubRepository.fetchRuns(owner, repo, workflowId)` — `GET
+      **Done 2026-11-08.** `domain/github/github_workflow_run.dart` keeps
+      both fields as GitHub sends them and collapses the pair into one
+      `GitHubRunOutcome` (success/failure/running/queued/attention/neutral)
+      plus a label, so the UI shows one status language. Unknown values
+      GitHub adds later fall back to neutral/queued with a humanized label.
+- [x] P8-13 `GitHubRepository.fetchRuns(owner, repo, workflowId)` — `GET
       /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`
       (`US-GH-RUN-01`).
+      **Done 2026-11-08 (implemented and unit-tested; the `NFR-TEST-03`
+      real-repository check is still pending).** First page only
+      (`per_page=30`, paging is GH-HIST P8-24). `GitHubRunsNotifier`
+      family keyed by `(owner, repo, workflowId)`; `GitHubRunsScreen` shows
+      recent runs with loading/empty/error+retry, opened by tapping a
+      workflow tile (route `AppRoutes.githubRuns`, `extra` is
+      `(GitHubRepo, GitHubWorkflow)`). Run tiles are inert until the run
+      detail screen (P8-17).
 - [ ] P8-14 `GitHubRepository.triggerRun(owner, repo, workflowId, {ref,
       inputs})` — `POST .../dispatches`; 204 response carries no run ID
       (unlike Jenkins' `Location`-header queue tracking, `US-PIPE-01`) —
@@ -326,7 +339,8 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       similar) so both Jenkins pipeline stages (`US-PIPE-04`) and GitHub
       job steps reuse the same rendering — do this as part of P8-18/20's
       UI work, not a separate unrelated refactor commit.
-- [ ] P8-20 Unit tests: all new repository methods against mocked
+- [ ] P8-20 (partly covered by P8-12/13: parsing, empty, 404, screen and
+      notifier tests exist; trigger/cancel/polling tests remain) Unit tests: all new repository methods against mocked
       responses (status/conclusion parsing, 422-on-dispatch mapping,
       pagination via `Link` header, rate-limit mid-poll handling); polling
       notifier timer/dispose tests mirroring
