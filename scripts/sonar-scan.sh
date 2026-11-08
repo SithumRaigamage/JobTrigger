@@ -2,12 +2,14 @@
 # Scans this repo with your local SonarQube so the project shows up at
 # http://localhost:9000 when the scan finishes.
 #
-#   export SONAR_TOKEN=<a SonarQube user token>
 #   scripts/sonar-scan.sh
 #
-# Create the token once in SonarQube: avatar (top right) → My Account →
-# Security → Generate Tokens → type "User Token". The token is read from the
-# environment only; this script never stores or prints it.
+# with SONAR_TOKEN (a SonarQube user token) either exported in your shell or
+# as a `SONAR_TOKEN=...` line in the git-ignored .env at the repo root (or in
+# JobTrigger-Backend/.env). Only that one line is read from the file; it is
+# never sourced. Create the token once in SonarQube: avatar (top right) → My
+# Account → Security → Generate Tokens → type "User Token". The script never
+# stores or prints the token.
 #
 # What it does:
 #   1. checks sonar-scanner is installed and SonarQube is up (starting the
@@ -84,12 +86,38 @@ fi
 echo "✓ SonarQube is up at $HOST"
 
 # --- 2. Token ---------------------------------------------------------------
+# Prefer the environment. Otherwise take ONLY the SONAR_TOKEN line from a
+# git-ignored .env (repo root first, then the backend's). The file is never
+# sourced, so none of its other values (JWT secret, database URI…) reach the
+# scanner or this script.
+if [ -z "${SONAR_TOKEN:-}" ]; then
+  for env_file in "$REPO/.env" "$REPO/JobTrigger-Backend/.env"; do
+    [ -f "$env_file" ] || continue
+    candidate="$(sed -n 's/^[[:space:]]*\(export[[:space:]]\{1,\}\)\{0,1\}SONAR_TOKEN=//p' "$env_file" | tail -n 1)"
+    # Drop surrounding quotes and a trailing carriage return.
+    candidate="${candidate%$'\r'}"
+    candidate="${candidate#\"}"
+    candidate="${candidate%\"}"
+    candidate="${candidate#\'}"
+    candidate="${candidate%\'}"
+    if [ -n "$candidate" ]; then
+      SONAR_TOKEN="$candidate"
+      echo "✓ Using SONAR_TOKEN from ${env_file#"$REPO"/}"
+      break
+    fi
+  done
+fi
 if [ -z "${SONAR_TOKEN:-}" ]; then
   cat >&2 <<MSG
 ✗ SONAR_TOKEN is not set.
 
 Create a token in SonarQube (avatar → My Account → Security → Generate
-Tokens, type "User Token"), then run:
+Tokens, type "User Token"), then either add this line to .env in the repo
+root (git-ignored):
+
+  SONAR_TOKEN=<your token>
+
+or export it for this shell:
 
   export SONAR_TOKEN=<your token>
   scripts/sonar-scan.sh

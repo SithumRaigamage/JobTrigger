@@ -142,10 +142,21 @@ which is about connecting the app to a SonarQube server.
 `localhost:9000`, and a user token (SonarQube → avatar → My Account →
 Security → Generate Tokens → *User Token*).
 
+Put the token where the script can find it, either in the git-ignored `.env`
+at the repo root (or `JobTrigger-Backend/.env`) as one line:
+
+```
+SONAR_TOKEN=<your token>
+```
+
+or exported in your shell. Then run:
+
 ```bash
-export SONAR_TOKEN=<your token>   # never commit it
 scripts/sonar-scan.sh
 ```
+
+Only the `SONAR_TOKEN` line is read from `.env`; the file is never loaded as
+a whole, so its other values stay out of the scan.
 
 The script checks the server and token, scans using `sonar-project.properties`
 for sources and exclusions (so there is one definition; the SonarCloud key and
