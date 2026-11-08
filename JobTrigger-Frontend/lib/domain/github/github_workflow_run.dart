@@ -1,3 +1,7 @@
+import 'github_status.dart';
+
+export 'github_status.dart';
+
 /// One run of a GitHub Actions workflow (`US-GH-RUN-01`) —
 /// `GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`.
 ///
@@ -47,57 +51,8 @@ class GitHubWorkflowRun {
   bool get isActive => !isCompleted;
 
   /// The pair as one outcome for display; see [GitHubRunOutcome].
-  GitHubRunOutcome get outcome {
-    if (!isCompleted) {
-      return switch (status) {
-        'in_progress' => GitHubRunOutcome.running,
-        // queued / waiting / requested / pending — not running yet.
-        _ => GitHubRunOutcome.queued,
-      };
-    }
-    return switch (conclusion) {
-      'success' => GitHubRunOutcome.success,
-      'failure' || 'timed_out' || 'startup_failure' => GitHubRunOutcome.failure,
-      'action_required' => GitHubRunOutcome.attention,
-      // cancelled / skipped / neutral / stale / null / anything new.
-      _ => GitHubRunOutcome.neutral,
-    };
-  }
+  GitHubRunOutcome get outcome => githubOutcome(status, conclusion);
 
-  /// Human copy for [outcome]'s underlying state.
-  String get label {
-    if (!isCompleted) {
-      return switch (status) {
-        'in_progress' => 'In progress',
-        'queued' => 'Queued',
-        'waiting' => 'Waiting',
-        'requested' => 'Requested',
-        'pending' => 'Pending',
-        final other => _humanize(other),
-      };
-    }
-    return switch (conclusion) {
-      'success' => 'Success',
-      'failure' => 'Failed',
-      'cancelled' => 'Cancelled',
-      'skipped' => 'Skipped',
-      'timed_out' => 'Timed out',
-      'action_required' => 'Action required',
-      'neutral' => 'Neutral',
-      'stale' => 'Stale',
-      'startup_failure' => 'Startup failure',
-      null => 'Completed',
-      final other => _humanize(other),
-    };
-  }
-
-  static String _humanize(String raw) {
-    final words = raw.replaceAll('_', ' ').trim();
-    if (words.isEmpty) return 'Unknown';
-    return words[0].toUpperCase() + words.substring(1);
-  }
+  /// Human copy for the underlying state.
+  String get label => githubLabel(status, conclusion);
 }
-
-/// [GitHubWorkflowRun.status] + `conclusion` as one visual state, so the UI
-/// teaches one status model across Jenkins and GitHub (`US-GH-RUN-01`).
-enum GitHubRunOutcome { success, failure, running, queued, attention, neutral }

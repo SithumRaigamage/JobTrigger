@@ -1,6 +1,7 @@
 import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
 import 'github_repo.dart';
+import 'github_job.dart';
 import 'github_workflow.dart';
 import 'github_workflow_run.dart';
 
@@ -58,6 +59,14 @@ abstract class GitHubRepository {
   /// `POST .../runs/{run_id}/cancel` (`US-GH-RUN-04`). 202 Accepted: the
   /// cancel is asynchronous, so success means *requested*, not *stopped*.
   Future<Result<void, AppFailure>> cancelRun(
+    String owner,
+    String repo,
+    int runId,
+  );
+
+  /// `GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs`
+  /// (`US-GH-RUN-05`): each job with its steps.
+  Future<Result<List<GitHubJob>, AppFailure>> fetchJobs(
     String owner,
     String repo,
     int runId,

@@ -7,6 +7,7 @@ import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/data/credentials/active_github_credential_notifier.dart';
 import 'package:job_trigger/data/repositories/github_repository_impl.dart';
 import 'package:job_trigger/domain/credential/github_credential.dart';
+import 'package:job_trigger/domain/github/github_job.dart';
 import 'package:job_trigger/domain/github/github_workflow_run.dart';
 import 'package:job_trigger/domain/github/github_repo.dart';
 import 'package:job_trigger/domain/github/github_repository.dart';
@@ -22,6 +23,13 @@ class _Credential extends ActiveGitHubCredentialNotifier {
 }
 
 class _Repos implements GitHubRepository {
+  @override
+  Future<Result<List<GitHubJob>, AppFailure>> fetchJobs(
+    String owner,
+    String repo,
+    int runId,
+  ) => throw UnimplementedError();
+
   @override
   Future<Result<void, AppFailure>> triggerRun(
     String owner,

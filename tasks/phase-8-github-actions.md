@@ -352,14 +352,26 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       confirm dialogs for trigger and cancel, `GitHubRunDetailScreen` (live
       status, "Cancelling…" until the poll shows the real conclusion).
       Reached by tapping a run (`AppRoutes.githubRunDetail`).
-- [ ] P8-18 `GitHubJob` domain type + DTO (`id,name,status,conclusion,
+- [x] P8-18 `GitHubJob` domain type + DTO (`id,name,status,conclusion,
       steps[]`) + `GitHubRepository.fetchJobs(owner, repo, runId)` — `GET
       .../runs/{run_id}/jobs` (`US-GH-RUN-05`).
-- [ ] P8-19 Promote `_StageChipRow` out of `job_detail_screen.dart` into a
+      **Done 2026-11-08 (implemented and unit-tested; `NFR-TEST-03`
+      real-repository check pending).** `GitHubJob`/`GitHubStep` +
+      `fetchJobs` (`per_page=100`) + `GitHubJobsNotifier`, refreshed on the
+      run's 5s tick. Status + conclusion logic for runs, jobs and steps now
+      lives in one place (`domain/github/github_status.dart`).
+- [x] P8-19 Promote `_StageChipRow` out of `job_detail_screen.dart` into a
       shared widget (`presentation/common_widgets/stage_chip_row.dart` or
       similar) so both Jenkins pipeline stages (`US-PIPE-04`) and GitHub
       job steps reuse the same rendering — do this as part of P8-18/20's
       UI work, not a separate unrelated refactor commit.
+      **Done 2026-11-08.** The task text names `_StageChipRow`, but the P14
+      redesign had already made it the public `StageChipRow` with Jenkins
+      logic baked in. The reusable part is now
+      `common_widgets/segment_row.dart` (`SegmentRow`/`SegmentItem`);
+      `StageChipRow` builds its items and is otherwise unchanged (71 job
+      detail tests still pass). GitHub steps use the same widget, shown per
+      job on the run detail screen.
 - [ ] P8-20 (partly covered by P8-12/13: parsing, empty, 404, screen and
       notifier tests exist; trigger/cancel/polling tests remain) Unit tests: all new repository methods against mocked
       responses (status/conclusion parsing, 422-on-dispatch mapping,

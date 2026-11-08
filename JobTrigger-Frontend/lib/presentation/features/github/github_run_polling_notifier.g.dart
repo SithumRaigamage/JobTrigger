@@ -90,7 +90,7 @@ final class GitHubRunPollingNotifierProvider
 }
 
 String _$gitHubRunPollingNotifierHash() =>
-    r'065eeddf20e41758fb646186cd5f528596b3a6c8';
+    r'92b254a981e066ad41eb4ac11adc466a7efca09c';
 
 /// Side-effect-only notifier (`US-GH-RUN-03`): while the run isn't
 /// `completed`, invalidates [GitHubRunNotifier] every 5s, same cadence and

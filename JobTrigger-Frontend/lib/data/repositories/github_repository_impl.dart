@@ -9,7 +9,9 @@ import '../../domain/github/github_repo.dart';
 import '../../domain/github/github_repository.dart';
 import '../../domain/github/github_workflow.dart';
 import '../models/github/github_repo_dto.dart';
+import '../models/github/github_job_dto.dart';
 import '../models/github/github_workflow_dto.dart';
+import '../../domain/github/github_job.dart';
 import '../models/github/github_workflow_run_dto.dart';
 import '../../domain/github/github_workflow_run.dart';
 
@@ -126,6 +128,25 @@ class GitHubRepositoryImpl implements GitHubRepository {
     int runId,
   ) => guardRequest<void>(() async {
     await _dio.post<void>('/repos/$owner/$repo/actions/runs/$runId/cancel');
+  }, mapDioException: AppFailure.fromGitHubException);
+
+  @override
+  Future<Result<List<GitHubJob>, AppFailure>> fetchJobs(
+    String owner,
+    String repo,
+    int runId,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/repos/$owner/$repo/actions/runs/$runId/jobs',
+      queryParameters: {'per_page': 100},
+    );
+    final jobsJson = response.data?['jobs'] as List<dynamic>? ?? const [];
+    return jobsJson
+        .map(
+          (json) =>
+              GitHubJobDto.fromJson(json as Map<String, dynamic>).toDomain(),
+        )
+        .toList();
   }, mapDioException: AppFailure.fromGitHubException);
 }
 

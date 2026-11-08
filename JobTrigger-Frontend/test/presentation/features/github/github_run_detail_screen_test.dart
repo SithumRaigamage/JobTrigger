@@ -5,6 +5,7 @@ import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/data/repositories/github_repository_impl.dart';
+import 'package:job_trigger/domain/github/github_job.dart';
 import 'package:job_trigger/domain/github/github_repo.dart';
 import 'package:job_trigger/domain/github/github_workflow.dart';
 import 'package:job_trigger/presentation/features/github/github_run_detail_screen.dart';
@@ -52,6 +53,63 @@ Future<void> _settle(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('shows each job as a group with its steps', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final fake = FakeGitHubRepository()
+      ..runResult = Ok(testRun(7, status: 'in_progress', conclusion: null))
+      ..jobsResult = const Ok([
+        GitHubJob(
+          id: 1,
+          name: 'build (ubuntu)',
+          status: 'in_progress',
+          conclusion: null,
+          steps: [
+            GitHubStep(
+              number: 1,
+              name: 'Checkout',
+              status: 'completed',
+              conclusion: 'success',
+            ),
+            GitHubStep(
+              number: 2,
+              name: 'Test',
+              status: 'in_progress',
+              conclusion: null,
+            ),
+          ],
+        ),
+        GitHubJob(
+          id: 2,
+          name: 'lint',
+          status: 'completed',
+          conclusion: 'failure',
+          steps: [],
+        ),
+      ]);
+
+    await _pump(tester, fake);
+
+    expect(find.text('build (ubuntu)'), findsOneWidget);
+    expect(find.text('Checkout'), findsOneWidget);
+    expect(find.text('Test'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Step Checkout, Success')), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Step Test, In progress')), findsOneWidget);
+    expect(find.text('lint'), findsOneWidget);
+    expect(find.text('No steps reported.'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    semantics.dispose();
+  });
+
+  testWidgets('a run with no jobs yet says so', (tester) async {
+    final fake = FakeGitHubRepository()
+      ..runResult = Ok(testRun(7, status: 'queued', conclusion: null));
+
+    await _pump(tester, fake);
+
+    expect(find.textContaining('No jobs yet'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('an active run shows live status and a Cancel run action', (
     tester,
   ) async {

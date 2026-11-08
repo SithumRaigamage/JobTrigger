@@ -1,5 +1,6 @@
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
+import 'package:job_trigger/domain/github/github_job.dart';
 import 'package:job_trigger/domain/github/github_repo.dart';
 import 'package:job_trigger/domain/github/github_repository.dart';
 import 'package:job_trigger/domain/github/github_workflow.dart';
@@ -12,6 +13,8 @@ class FakeGitHubRepository implements GitHubRepository {
   Result<GitHubWorkflowRun, AppFailure>? runResult;
   Result<void, AppFailure> triggerResult = const Ok(null);
   Result<void, AppFailure> cancelResult = const Ok(null);
+  Result<List<GitHubJob>, AppFailure> jobsResult = const Ok([]);
+  int fetchJobsCalls = 0;
 
   int fetchRunsCalls = 0;
   int fetchRunCalls = 0;
@@ -62,6 +65,16 @@ class FakeGitHubRepository implements GitHubRepository {
   ) async {
     cancelCalls++;
     return cancelResult;
+  }
+
+  @override
+  Future<Result<List<GitHubJob>, AppFailure>> fetchJobs(
+    String owner,
+    String repo,
+    int runId,
+  ) async {
+    fetchJobsCalls++;
+    return jobsResult;
   }
 
   @override

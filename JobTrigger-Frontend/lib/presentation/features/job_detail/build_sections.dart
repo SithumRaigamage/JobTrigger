@@ -17,6 +17,7 @@ import '../../../domain/jenkins/scm_change.dart';
 import '../../../domain/jenkins/test_report.dart';
 import '../../../domain/jenkins/upstream_cause.dart';
 import '../../common_widgets/confirmation_dialog.dart';
+import '../../common_widgets/segment_row.dart';
 import '../../navigation/app_routes.dart';
 import 'artifact_download_notifier.dart';
 import 'stage_detail_sheet.dart';
@@ -77,35 +78,31 @@ class StageChipRow extends StatelessWidget {
   final List<PipelineStage> stages;
   final VoidCallback? onViewLog;
 
-  static const _maxFitted = 5;
-
   @override
   Widget build(BuildContext context) {
     final nodes = groupParallelStages(stages);
-    final segments = [
-      for (final node in nodes)
-        _StageSegment(node: node, onTap: () => _open(context, node)),
-    ];
-    if (nodes.length <= _maxFitted) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final (i, segment) in segments.indexed) ...[
-            if (i > 0) const SizedBox(width: 6),
-            Expanded(child: segment),
-          ],
-        ],
-      );
-    }
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: segments.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 6),
-        itemBuilder: (context, index) =>
-            SizedBox(width: 76, child: segments[index]),
-      ),
+    return SegmentRow(
+      items: [
+        for (final node in nodes)
+          () {
+            final status = node.status.toUpperCase();
+            return SegmentItem(
+              label: node.branches.isEmpty
+                  ? node.stage.name
+                  : '${node.stage.name} ⫽${node.branches.length}',
+              // Status in words, never colour alone (NFR-A11Y-03).
+              semanticsLabel:
+                  'Stage ${node.stage.name}, ${labelForStageStatus(node.status)}',
+              color: colorForStageStatus(context, status),
+              emphasis: status == 'NOT_EXECUTED'
+                  ? SegmentEmphasis.notRun
+                  : status == 'IN_PROGRESS'
+                  ? SegmentEmphasis.running
+                  : SegmentEmphasis.normal,
+              onTap: () => _open(context, node),
+            );
+          }(),
+      ],
     );
   }
 
@@ -125,66 +122,6 @@ class StageChipRow extends StatelessWidget {
                 },
         ),
       );
-}
-
-class _StageSegment extends StatelessWidget {
-  const _StageSegment({required this.node, required this.onTap});
-
-  final StageNode node;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppTokens.of(context);
-    final status = node.status.toUpperCase();
-    final notRun = status == 'NOT_EXECUTED';
-    final running = status == 'IN_PROGRESS';
-    final name = node.branches.isEmpty
-        ? node.stage.name
-        : '${node.stage.name} ⫽${node.branches.length}';
-    return Semantics(
-      button: true,
-      // Status in words, never colour alone (NFR-A11Y-03).
-      label: 'Stage ${node.stage.name}, ${labelForStageStatus(node.status)}',
-      excludeSemantics: true,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(6),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 6,
-                decoration: BoxDecoration(
-                  color: notRun
-                      ? t.raised
-                      : colorForStageStatus(context, status),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontSize: 11,
-                  fontWeight: running ? FontWeight.w600 : FontWeight.w500,
-                  color: running
-                      ? t.running.foreground
-                      : notRun
-                      ? t.textMuted
-                      : t.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// US-PIPE-06: a compact pass/fail/skip summary; tapping it when there are

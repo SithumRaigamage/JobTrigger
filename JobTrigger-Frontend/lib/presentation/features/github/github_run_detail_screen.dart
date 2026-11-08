@@ -11,7 +11,11 @@ import '../../../domain/github/github_workflow_run.dart';
 import '../../../domain/jenkins/relative_time.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/status_pill.dart';
+import '../../common_widgets/segment_row.dart';
+import '../../common_widgets/section_label.dart';
+import '../../../domain/github/github_job.dart';
 import 'github_cancel_notifier.dart';
+import 'github_jobs_notifier.dart';
 import 'github_run_notifier.dart';
 import 'github_run_polling_notifier.dart';
 import 'github_runs_screen.dart' show toneForRunOutcome;
@@ -39,6 +43,9 @@ class GitHubRunDetailScreen extends ConsumerWidget {
     ref.watch(gitHubRunPollingNotifierProvider(owner, name, run.id));
     final runAsync = ref.watch(gitHubRunNotifierProvider(owner, name, run.id));
     final current = runAsync.value ?? run;
+    final jobsAsync = ref.watch(
+      gitHubJobsNotifierProvider(owner, name, run.id),
+    );
     final cancelRequested =
         ref.watch(gitHubCancelNotifierProvider(owner, name, run.id)).value ??
         false;
@@ -127,6 +134,21 @@ class GitHubRunDetailScreen extends ConsumerWidget {
                         child: const Text('Refresh'),
                       ),
                     ],
+                    const SizedBox(height: 24),
+                    const SectionLabel('Jobs'),
+                    const SizedBox(height: 8),
+                    _JobsSection(
+                      jobsAsync: jobsAsync,
+                      onRetry: () => ref
+                          .read(
+                            gitHubJobsNotifierProvider(
+                              owner,
+                              name,
+                              run.id,
+                            ).notifier,
+                          )
+                          .refresh(),
+                    ),
                     if (current.isActive) ...[
                       const SizedBox(height: 24),
                       OutlinedButton(
@@ -176,5 +198,105 @@ class GitHubRunDetailScreen extends ConsumerWidget {
           gitHubCancelNotifierProvider(repo.owner, repo.name, run.id).notifier,
         )
         .cancel(runNumber: current.runNumber);
+  }
+}
+
+/// Each job as its own group — name, status pill, then its steps as the
+/// shared segment bar (`US-GH-RUN-05`).
+class _JobsSection extends StatelessWidget {
+  const _JobsSection({required this.jobsAsync, required this.onRetry});
+
+  final AsyncValue<List<GitHubJob>> jobsAsync;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    return jobsAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            describeError(error),
+            style: textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+          TextButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
+      ),
+      data: (jobs) {
+        if (jobs.isEmpty) {
+          return Text(
+            'No jobs yet. They appear once GitHub starts the run.',
+            style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final job in jobs)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            job.name,
+                            style: textTheme.titleSmall,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        StatusPill(
+                          label: job.label,
+                          tone: toneForRunOutcome(job.outcome),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (job.steps.isEmpty)
+                      Text(
+                        'No steps reported.',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: t.textMuted,
+                        ),
+                      )
+                    else
+                      SegmentRow(
+                        items: [
+                          for (final step in job.steps)
+                            SegmentItem(
+                              label: step.name,
+                              // Status in words, never colour alone.
+                              semanticsLabel:
+                                  'Step ${step.name}, ${step.label}',
+                              color: t
+                                  .status(toneForRunOutcome(step.outcome))
+                                  .dot,
+                              emphasis: switch (step.outcome) {
+                                GitHubRunOutcome.running =>
+                                  SegmentEmphasis.running,
+                                GitHubRunOutcome.queued =>
+                                  SegmentEmphasis.notRun,
+                                _ => SegmentEmphasis.normal,
+                              },
+                            ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        );
+      },
+    );
   }
 }

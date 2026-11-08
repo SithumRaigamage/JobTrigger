@@ -8,6 +8,7 @@ import 'package:job_trigger/data/repositories/github_repository_impl.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/auth/user.dart';
 import 'package:job_trigger/domain/credential/github_credential.dart';
+import 'package:job_trigger/domain/github/github_job.dart';
 import 'package:job_trigger/domain/github/github_workflow_run.dart';
 import 'package:job_trigger/domain/github/github_repo.dart';
 import 'package:job_trigger/domain/github/github_repository.dart';
@@ -37,6 +38,13 @@ const _fakeGitHubCredential = GitHubCredential(
 
 /// Reused fake from `filtered_github_repos_provider_test.dart`'s pattern.
 class _FakeGitHubRepository implements GitHubRepository {
+  @override
+  Future<Result<List<GitHubJob>, AppFailure>> fetchJobs(
+    String owner,
+    String repo,
+    int runId,
+  ) => throw UnimplementedError();
+
   @override
   Future<Result<void, AppFailure>> triggerRun(
     String owner,

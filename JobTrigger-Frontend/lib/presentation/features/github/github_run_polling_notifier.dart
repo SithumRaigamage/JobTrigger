@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/app_failure.dart';
+import 'github_jobs_notifier.dart';
 import 'github_run_notifier.dart';
 
 part 'github_run_polling_notifier.g.dart';
@@ -35,6 +36,8 @@ class GitHubRunPollingNotifier extends _$GitHubRunPollingNotifier {
       if (!(next.value?.isActive ?? false)) return;
       _timer = Timer(const Duration(seconds: 5), () {
         ref.invalidate(gitHubRunNotifierProvider(owner, repo, runId));
+        // Steps move on the same tick as the run (US-GH-RUN-05).
+        ref.invalidate(gitHubJobsNotifierProvider(owner, repo, runId));
       });
     }, fireImmediately: true);
   }

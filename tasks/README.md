@@ -21,7 +21,7 @@ check "where are we."
 | 6 — Polish + release | `phase-6-polish-release.md` | done | Phase 5 (can start early on some items) |
 | Release | `release-checklist.md` | pending | Phase 6 |
 | 7 — Pipeline & build insights (epic PIPE) | `phase-7-pipeline-insights.md` | done | none — new scope, not required for parity |
-| 8 — GitHub Actions integration (epic GH) | `phase-8-github-actions.md` | in-progress (Backend + GH-CRED + GH-REPO done, plus runs, trigger, live status and cancel P8-12..17; P8-00..17 of 28) | none — second CI tool, promoted from `backlog.md` |
+| 8 — GitHub Actions integration (epic GH) | `phase-8-github-actions.md` | in-progress (Backend + GH-CRED + GH-REPO done, plus runs, trigger, live status, cancel, jobs and steps P8-12..19; P8-00..19 of 28) | none — second CI tool, promoted from `backlog.md` |
 | 9 — Testing, CI/CD hardening, dev tooling (epic HARDEN) | `phase-9-testing-cicd-hardening.md` | done | none — dev/QA/tooling work, promoted from a direct user request 2026-09-15 |
 | 10 — SonarQube integration (epic SQ) | `phase-10-sonarqube.md` | in-progress (Backend + SQ-CRED done, P10-00..06 of 16) | none — fourth CI tool, promoted from `backlog.md` |
 | 11 — Jenkins extended capabilities (epic JX) | `phase-11-jenkins-extended.md` | done 2026-09-30 (P11-01..28; P11-27 closed as won't-do by its verification gate). Only P11-03 is open, **blocked** on a physical Android device and tracked in `release-checklist.md` | P12-04 (shared repository guard); P11-01 fixture Jenkins for verification |

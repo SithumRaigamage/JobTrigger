@@ -7,6 +7,7 @@ import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/github_repository_impl.dart';
 import 'package:job_trigger/domain/github/github_repo.dart';
+import 'package:job_trigger/domain/github/github_job.dart';
 import 'package:job_trigger/domain/github/github_workflow.dart';
 import 'package:job_trigger/domain/github/github_workflow_run.dart';
 
@@ -307,4 +308,74 @@ void main() {
       });
     },
   );
+
+  group('GitHubRepositoryImpl.fetchJobs (US-GH-RUN-05)', () {
+    test(
+      'parses jobs with their steps, keeping status and conclusion',
+      () async {
+        final adapter = _FixedResponseAdapter(200, {
+          'total_count': 2,
+          'jobs': [
+            {
+              'id': 11,
+              'name': 'build (ubuntu)',
+              'status': 'completed',
+              'conclusion': 'failure',
+              'steps': [
+                {
+                  'number': 1,
+                  'name': 'Checkout',
+                  'status': 'completed',
+                  'conclusion': 'success',
+                },
+                {
+                  'number': 2,
+                  'name': 'Test',
+                  'status': 'completed',
+                  'conclusion': 'failure',
+                },
+                {
+                  'number': 3,
+                  'name': 'Upload',
+                  'status': 'completed',
+                  'conclusion': 'skipped',
+                },
+              ],
+            },
+            {'id': 12, 'name': 'lint', 'status': 'queued'},
+          ],
+        });
+        final dio = Dio(BaseOptions(baseUrl: 'https://api.github.com'))
+          ..httpClientAdapter = adapter;
+
+        final result = await GitHubRepositoryImpl(dio).fetchJobs('o', 'r', 5);
+
+        expect(adapter.lastRequest?.path, '/repos/o/r/actions/runs/5/jobs');
+        final jobs = (result as Ok<List<GitHubJob>, AppFailure>).value;
+        expect(jobs.map((j) => j.name), ['build (ubuntu)', 'lint']);
+        expect(jobs[0].steps.map((s) => s.name), [
+          'Checkout',
+          'Test',
+          'Upload',
+        ]);
+        expect(jobs[0].steps[1].conclusion, 'failure');
+        expect(jobs[0].steps[2].label, 'Skipped');
+        // A job GitHub hasn't started has no steps yet.
+        expect(jobs[1].steps, isEmpty);
+        expect(jobs[1].conclusion, isNull);
+      },
+    );
+
+    test('a 403 with no rate-limit header is a permission failure', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.github.com'))
+        ..httpClientAdapter = _FixedResponseAdapter(403, {'message': 'x'});
+
+      final result = await GitHubRepositoryImpl(dio).fetchJobs('o', 'r', 5);
+
+      expect(
+        (result as Err<List<GitHubJob>, AppFailure>).error,
+        isA<PermissionFailure>(),
+      );
+    });
+  });
 }
