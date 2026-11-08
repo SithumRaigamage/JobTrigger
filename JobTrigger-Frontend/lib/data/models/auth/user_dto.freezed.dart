@@ -281,8 +281,7 @@ as String,
 /// @nodoc
 mixin _$AuthResponseDto {
 
- String get token; UserDto get user;// AUD-26. Optional so an older backend without refresh still parses.
- String? get refreshToken;
+ String get token; UserDto get user; String? get refreshToken;
 /// Create a copy of AuthResponseDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -492,7 +491,6 @@ class _AuthResponseDto implements AuthResponseDto {
 
 @override final  String token;
 @override final  UserDto user;
-// AUD-26. Optional so an older backend without refresh still parses.
 @override final  String? refreshToken;
 
 /// Create a copy of AuthResponseDto

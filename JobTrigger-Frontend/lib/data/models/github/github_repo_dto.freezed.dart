@@ -15,10 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GitHubRepoDto {
 
- int get id; String get name;// GitHub's JSON is snake_case (`full_name`, `default_branch`) --
-// json_serializable doesn't infer this automatically per-field the
-// way some generators do, so each needs an explicit @JsonKey.
-@JsonKey(name: 'full_name') String get fullName; GitHubRepoOwnerDto get owner; bool get private;@JsonKey(name: 'default_branch') String get defaultBranch;
+ int get id; String get name;@JsonKey(name: 'full_name') String get fullName; GitHubRepoOwnerDto get owner; bool get private;@JsonKey(name: 'default_branch') String get defaultBranch;
 /// Create a copy of GitHubRepoDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -231,9 +228,6 @@ class _GitHubRepoDto implements GitHubRepoDto {
 
 @override final  int id;
 @override final  String name;
-// GitHub's JSON is snake_case (`full_name`, `default_branch`) --
-// json_serializable doesn't infer this automatically per-field the
-// way some generators do, so each needs an explicit @JsonKey.
 @override@JsonKey(name: 'full_name') final  String fullName;
 @override final  GitHubRepoOwnerDto owner;
 @override@JsonKey() final  bool private;

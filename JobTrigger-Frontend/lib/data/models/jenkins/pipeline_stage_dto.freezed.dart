@@ -284,9 +284,7 @@ as List<PipelineStageDto>,
 /// @nodoc
 mixin _$PipelineStageDto {
 
- String get id; String get name; String get status; int? get durationMillis; int? get startTimeMillis; PipelineErrorDto? get error;// Present on `execution/node/{id}/wfapi/describe`, absent on the
-// build-level describe.
- List<PipelineStepDto> get stageFlowNodes;
+ String get id; String get name; String get status; int? get durationMillis; int? get startTimeMillis; PipelineErrorDto? get error; List<PipelineStepDto> get stageFlowNodes;
 /// Create a copy of PipelineStageDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -507,11 +505,7 @@ class _PipelineStageDto implements PipelineStageDto {
 @override final  int? durationMillis;
 @override final  int? startTimeMillis;
 @override final  PipelineErrorDto? error;
-// Present on `execution/node/{id}/wfapi/describe`, absent on the
-// build-level describe.
  final  List<PipelineStepDto> _stageFlowNodes;
-// Present on `execution/node/{id}/wfapi/describe`, absent on the
-// build-level describe.
 @override@JsonKey() List<PipelineStepDto> get stageFlowNodes {
   if (_stageFlowNodes is EqualUnmodifiableListView) return _stageFlowNodes;
   // ignore: implicit_dynamic_type

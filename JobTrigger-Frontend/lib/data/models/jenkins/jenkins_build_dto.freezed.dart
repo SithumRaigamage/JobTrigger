@@ -15,38 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$JenkinsBuildDto {
 
- int get number; String get url; String? get result;// SUCCESS | FAILURE | ABORTED | UNSTABLE | null (building)
- double get timestamp;// epoch ms
- double? get duration; double? get estimatedDuration; bool get building; String? get displayName;// US-PIPE-02: Jenkins' `actions` array is polymorphic -- only some
-// entries are a `hudson.model.CauseAction` carrying `causes`, and the
-// tree query (`actions[causes[shortDescription]]`) still returns every
-// action entry, just pruned to that one field where present. Flatten
-// straight to the description strings we actually render rather than
-// modeling the full heterogeneous `actions` shape.
-@JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false) List<String> get causes;// US-PIPE-09: same source (`actions[causes[...]]`) as `causes` above,
-// pulled out as a second field rather than folded into a richer
-// `causes` element type -- keeps `causes`'s already-shipped shape
-// (`List<String>`) untouched. Both fields target the same JSON key,
-// so both need `includeToJson: false` (this DTO is response-only and
-// never re-encoded anyway).
-@JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) UpstreamCause? get upstreamCause;// US-JX-06 "started by me": `userId` of each UserIdCause.
-@JsonKey(name: 'actions', fromJson: _startedByUserIdsFromJson, includeToJson: false) List<String> get startedByUserIds;// US-JX-14; only requested by the build detail query.
- String? get description; bool? get keepLog;// US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
-// `items` (each `{msg, author: {fullName}}`) is requested/parsed;
-// `kind` isn't rendered anywhere so it's left off the tree query.
-// `ScmChange` isn't JSON-serializable itself (no toJson) -- fine, since
-// this DTO is response-only and never re-encoded; `includeToJson:
-// false` tells json_serializable not to try.
-@JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) List<ScmChange> get changes;// US-PIPE-07: `artifacts[]` is a flat, non-polymorphic array directly
-// on the build resource -- unlike causes/changes above, no custom
-// unwrapper needed, just a nested DTO.
- List<BuildArtifactDto> get artifacts;// US-PIPE-08: a third field sourced from `actions` (alongside causes/
-// upstreamCause above) -- this build's *actual recorded* parameter
-// values (`hudson.model.ParametersAction`), distinct from the job's
-// currently-declared defaults (`property[parameterDefinitions[...]]`,
-// already parsed elsewhere for US-JOB-03). Always stringified, same
-// convention as `parameter_form.dart`'s submitted values.
-@JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false) Map<String, String> get parameterValues;
+ int get number; String get url; String? get result; double get timestamp; double? get duration; double? get estimatedDuration; bool get building; String? get displayName;@JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false) List<String> get causes;@JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) UpstreamCause? get upstreamCause;@JsonKey(name: 'actions', fromJson: _startedByUserIdsFromJson, includeToJson: false) List<String> get startedByUserIds; String? get description; bool? get keepLog;@JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) List<ScmChange> get changes; List<BuildArtifactDto> get artifacts;@JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false) Map<String, String> get parameterValues;
 /// Create a copy of JenkinsBuildDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -261,96 +230,43 @@ class _JenkinsBuildDto implements JenkinsBuildDto {
 @override final  int number;
 @override final  String url;
 @override final  String? result;
-// SUCCESS | FAILURE | ABORTED | UNSTABLE | null (building)
 @override final  double timestamp;
-// epoch ms
 @override final  double? duration;
 @override final  double? estimatedDuration;
 @override@JsonKey() final  bool building;
 @override final  String? displayName;
-// US-PIPE-02: Jenkins' `actions` array is polymorphic -- only some
-// entries are a `hudson.model.CauseAction` carrying `causes`, and the
-// tree query (`actions[causes[shortDescription]]`) still returns every
-// action entry, just pruned to that one field where present. Flatten
-// straight to the description strings we actually render rather than
-// modeling the full heterogeneous `actions` shape.
  final  List<String> _causes;
-// US-PIPE-02: Jenkins' `actions` array is polymorphic -- only some
-// entries are a `hudson.model.CauseAction` carrying `causes`, and the
-// tree query (`actions[causes[shortDescription]]`) still returns every
-// action entry, just pruned to that one field where present. Flatten
-// straight to the description strings we actually render rather than
-// modeling the full heterogeneous `actions` shape.
 @override@JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false) List<String> get causes {
   if (_causes is EqualUnmodifiableListView) return _causes;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_causes);
 }
 
-// US-PIPE-09: same source (`actions[causes[...]]`) as `causes` above,
-// pulled out as a second field rather than folded into a richer
-// `causes` element type -- keeps `causes`'s already-shipped shape
-// (`List<String>`) untouched. Both fields target the same JSON key,
-// so both need `includeToJson: false` (this DTO is response-only and
-// never re-encoded anyway).
 @override@JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) final  UpstreamCause? upstreamCause;
-// US-JX-06 "started by me": `userId` of each UserIdCause.
  final  List<String> _startedByUserIds;
-// US-JX-06 "started by me": `userId` of each UserIdCause.
 @override@JsonKey(name: 'actions', fromJson: _startedByUserIdsFromJson, includeToJson: false) List<String> get startedByUserIds {
   if (_startedByUserIds is EqualUnmodifiableListView) return _startedByUserIds;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_startedByUserIds);
 }
 
-// US-JX-14; only requested by the build detail query.
 @override final  String? description;
 @override final  bool? keepLog;
-// US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
-// `items` (each `{msg, author: {fullName}}`) is requested/parsed;
-// `kind` isn't rendered anywhere so it's left off the tree query.
-// `ScmChange` isn't JSON-serializable itself (no toJson) -- fine, since
-// this DTO is response-only and never re-encoded; `includeToJson:
-// false` tells json_serializable not to try.
  final  List<ScmChange> _changes;
-// US-PIPE-03: `changeSet` is `{"items": [...], "kind": "..."}` — only
-// `items` (each `{msg, author: {fullName}}`) is requested/parsed;
-// `kind` isn't rendered anywhere so it's left off the tree query.
-// `ScmChange` isn't JSON-serializable itself (no toJson) -- fine, since
-// this DTO is response-only and never re-encoded; `includeToJson:
-// false` tells json_serializable not to try.
 @override@JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) List<ScmChange> get changes {
   if (_changes is EqualUnmodifiableListView) return _changes;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_changes);
 }
 
-// US-PIPE-07: `artifacts[]` is a flat, non-polymorphic array directly
-// on the build resource -- unlike causes/changes above, no custom
-// unwrapper needed, just a nested DTO.
  final  List<BuildArtifactDto> _artifacts;
-// US-PIPE-07: `artifacts[]` is a flat, non-polymorphic array directly
-// on the build resource -- unlike causes/changes above, no custom
-// unwrapper needed, just a nested DTO.
 @override@JsonKey() List<BuildArtifactDto> get artifacts {
   if (_artifacts is EqualUnmodifiableListView) return _artifacts;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_artifacts);
 }
 
-// US-PIPE-08: a third field sourced from `actions` (alongside causes/
-// upstreamCause above) -- this build's *actual recorded* parameter
-// values (`hudson.model.ParametersAction`), distinct from the job's
-// currently-declared defaults (`property[parameterDefinitions[...]]`,
-// already parsed elsewhere for US-JOB-03). Always stringified, same
-// convention as `parameter_form.dart`'s submitted values.
  final  Map<String, String> _parameterValues;
-// US-PIPE-08: a third field sourced from `actions` (alongside causes/
-// upstreamCause above) -- this build's *actual recorded* parameter
-// values (`hudson.model.ParametersAction`), distinct from the job's
-// currently-declared defaults (`property[parameterDefinitions[...]]`,
-// already parsed elsewhere for US-JOB-03). Always stringified, same
-// convention as `parameter_form.dart`'s submitted values.
 @override@JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false) Map<String, String> get parameterValues {
   if (_parameterValues is EqualUnmodifiableMapView) return _parameterValues;
   // ignore: implicit_dynamic_type

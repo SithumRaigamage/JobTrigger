@@ -15,9 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ParameterDefinitionDto {
 
- String get name; String get type;// StringParameterDefinition | ChoiceParameterDefinition | BooleanParameterDefinition
- String? get description; List<String>? get choices;@JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) dynamic get defaultValue;// RunParameterDefinition only (US-JX-02).
- String? get projectName;
+ String get name; String get type; String? get description; List<String>? get choices;@JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) dynamic get defaultValue; String? get projectName;
 /// Create a copy of ParameterDefinitionDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -221,7 +219,6 @@ class _ParameterDefinitionDto implements ParameterDefinitionDto {
 
 @override final  String name;
 @override final  String type;
-// StringParameterDefinition | ChoiceParameterDefinition | BooleanParameterDefinition
 @override final  String? description;
  final  List<String>? _choices;
 @override List<String>? get choices {
@@ -233,7 +230,6 @@ class _ParameterDefinitionDto implements ParameterDefinitionDto {
 }
 
 @override@JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) final  dynamic defaultValue;
-// RunParameterDefinition only (US-JX-02).
 @override final  String? projectName;
 
 /// Create a copy of ParameterDefinitionDto
