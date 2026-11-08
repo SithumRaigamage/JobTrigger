@@ -161,7 +161,30 @@ run, test or verify something, write the steps for the iPhone:
   such as SonarQube's) stay Mac steps; say so, then say what to do on the
   phone afterwards.
 
-## 11. Current status
+## 11. Earlier development must keep working (strict)
+
+Work that is already built and verified must not stop working when you add
+or change something. Jenkins is complete: treat it as frozen, and change it
+only to fix a reported bug.
+
+- **Run the whole suite before every PR**, not only the tests for what you
+  touched: `flutter analyze` and `flutter test` in `JobTrigger-Frontend/`,
+  and `npm test` in `JobTrigger-Backend/` when the backend changed. Both
+  must be clean.
+- **Shared code is shared by every tool.** `core/error/app_failure.dart`,
+  the router, the theme, `common_widgets/` and the repository fakes in
+  `test/` serve Jenkins, GitHub Actions and SonarQube alike. A change there
+  must leave the other tools' behaviour and copy exactly as they were:
+  add a tool-specific case instead of changing a shared one.
+- **Never delete or weaken a test to make a change pass.** Update an
+  existing test only when the behaviour was changed on purpose, and say so
+  in the commit and the PR. A failing old test means something broke.
+- **When merging branches, re-run everything on the merged result.** Two
+  branches that each pass can still fail together.
+- **Say what you could not verify.** If something can only be checked on a
+  real server or device, mark it unverified instead of calling it done.
+
+## 12. Current status
 
 Tracked in `tasks/README.md`. Update the phase status table there whenever a
 task moves state — this file doesn't duplicate that tracker.
