@@ -7,6 +7,7 @@ import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/data/credentials/active_sonarqube_credential_notifier.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
@@ -24,6 +25,13 @@ class _Repo implements SonarQubeRepository {
     calls++;
     return result;
   }
+
+  @override
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchIssues(
+    String projectKey, {
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  }) => throw UnimplementedError();
 
   @override
   Future<Result<SonarQubeQualityGate, AppFailure>> fetchQualityGate(

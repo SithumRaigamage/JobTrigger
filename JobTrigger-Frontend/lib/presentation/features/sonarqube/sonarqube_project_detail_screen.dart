@@ -14,6 +14,7 @@ import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_pill.dart';
+import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'sonarqube_quality_notifiers.dart';
 
@@ -87,6 +88,22 @@ class SonarQubeProjectDetailScreen extends ConsumerWidget {
                       ),
                       data: (gate) => _GateCard(gate: gate),
                     ),
+                const SizedBox(height: 24),
+                GlassSurface.card(
+                  padding: const EdgeInsets.all(16),
+                  onTap: () =>
+                      context.push(AppRoutes.sonarqubeIssues, extra: project),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.bug_report_outlined),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text('Issues', style: textTheme.titleSmall),
+                      ),
+                      Icon(Icons.chevron_right_rounded, color: t.textMuted),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 24),
                 const SectionLabel('Measures'),
                 const SizedBox(height: 8),

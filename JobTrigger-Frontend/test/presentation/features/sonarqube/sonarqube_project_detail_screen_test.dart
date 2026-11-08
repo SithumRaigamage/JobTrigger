@@ -5,6 +5,7 @@ import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
@@ -33,6 +34,13 @@ class _Repo implements SonarQubeRepository {
     measuresCalls++;
     return measures;
   }
+
+  @override
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchIssues(
+    String projectKey, {
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  }) => throw UnimplementedError();
 
   @override
   Future<Result<List<SonarQubeProject>, AppFailure>> fetchProjects() =>

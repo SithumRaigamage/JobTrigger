@@ -1,5 +1,6 @@
 import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
+import 'sonarqube_issue.dart';
 import 'sonarqube_project.dart';
 import 'sonarqube_quality_gate.dart';
 
@@ -26,6 +27,16 @@ abstract class SonarQubeRepository {
   Future<Result<Map<String, String>, AppFailure>> fetchMeasures(
     String projectKey,
   );
+
+  /// `GET api/issues/search` (`US-SQ-QUALITY-03`), unresolved issues only,
+  /// filtered and paged by the server. [page] is 1-based;
+  /// [sonarQubeIssuesPageSize] per page. SonarQube refuses to page past
+  /// 10,000 results, so the list ends there however large [total] is.
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchIssues(
+    String projectKey, {
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  });
 }
 
 /// `ps` for `api/projects/search`; 500 is SonarQube's maximum.

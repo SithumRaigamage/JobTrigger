@@ -170,10 +170,21 @@ would be unrelated scope creep for this phase.
       and fail independently, each with its own retry. The gate and measures
       calls send no `organization`: a project key is unique and neither
       endpoint documents the parameter.
-- [ ] P10-12 Issues list — `SonarQubeRepository.fetchIssues(projectKey,
+- [x] P10-12 Issues list — `SonarQubeRepository.fetchIssues(projectKey,
       {types, severities, page})` (`GET api/issues/search`, server-side
       filtered/paginated per `US-SQ-QUALITY-03`, not client-side like the
       project list) + a filterable list UI.
+      **Done 2026-11-08 (implemented and unit-tested; real-server check
+      pending).** `fetchIssues` sends `componentKeys`, `resolved=false`,
+      `ps=50`, `p`, and `types`/`severities` from the filter, in display
+      order. `SonarQubeIssuesScreen`: type and severity filter chips (each
+      change re-queries from page one), a total count, rows with type icon,
+      message, `file:line` and a severity pill (words, not only colour),
+      load-more on scroll, and a retry that keeps the loaded list on a failed
+      page. Two empty states: "No issues found" vs "No issues match these
+      filters". SonarQube refuses to page past 10,000 results, so paging
+      stops there with a note to narrow the filters. Reached from the new
+      Issues row on the project detail screen.
 - [ ] P10-13 Analysis history (`Could` priority, do last) —
       `SonarQubeRepository.fetchAnalysisHistory(projectKey)` (`GET
       api/project_analyses/search`) + a simple timestamped list, per

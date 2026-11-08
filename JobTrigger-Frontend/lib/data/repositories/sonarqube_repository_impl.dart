@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../core/error/app_failure.dart';
 import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
+import '../../domain/sonarqube/sonarqube_issue.dart';
 import '../../domain/sonarqube/sonarqube_metrics.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
 import '../../domain/sonarqube/sonarqube_quality_gate.dart';
@@ -99,6 +100,65 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
         if (m['value'] is String) m['metric'] as String: m['value'] as String,
     };
   });
+
+  @override
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchIssues(
+    String projectKey, {
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  }) => guardRequest(() async {
+    // Order matters only for a stable request; the server treats these as
+    // sets.
+    String join(Set<String> values, List<String> order) => ([
+      ...order.where(values.contains),
+      ...values.where((v) => !order.contains(v)),
+    ]).join(',');
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/issues/search',
+      queryParameters: {
+        'componentKeys': projectKey,
+        'resolved': 'false',
+        'ps': sonarQubeIssuesPageSize,
+        'p': page,
+        if (filter.types.isNotEmpty)
+          'types': join(filter.types, sonarQubeIssueTypes),
+        if (filter.severities.isNotEmpty)
+          'severities': join(filter.severities, sonarQubeIssueSeverities),
+      },
+    );
+    final data = response.data ?? const <String, dynamic>{};
+    final issues = data['issues'] as List<dynamic>? ?? const [];
+    final total =
+        (data['paging'] as Map<String, dynamic>?)?['total'] as int? ??
+        issues.length;
+    return SonarQubeIssuePage(
+      total: total,
+      issues: [
+        for (final i in issues.cast<Map<String, dynamic>>())
+          SonarQubeIssue(
+            key: i['key'] as String? ?? '',
+            type: i['type'] as String? ?? '',
+            severity: i['severity'] as String? ?? '',
+            message: i['message'] as String? ?? '',
+            // `component` is `projectKey:path/to/File`; the project's own
+            // key adds nothing to a file inside it.
+            file: _fileOf(i['component'] as String?, projectKey),
+            line: i['line'] as int?,
+          ),
+      ],
+    );
+  });
+
+  static String? _fileOf(String? component, String projectKey) {
+    // An issue on the project itself has the project as its component.
+    if (component == null || component.isEmpty || component == projectKey) {
+      return null;
+    }
+    final prefix = '$projectKey:';
+    return component.startsWith(prefix)
+        ? component.substring(prefix.length)
+        : component;
+  }
 }
 
 @riverpod

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 
@@ -264,6 +265,80 @@ void main() {
       final measures = (result as Ok<Map<String, String>, AppFailure>).value;
       expect(measures, {'bugs': '3', 'coverage': '71.4', 'ncloc': '12345'});
       expect(measures.containsKey('vulnerabilities'), isFalse);
+    });
+  });
+
+  group('fetchIssues (US-SQ-QUALITY-03)', () {
+    test(
+      'filters and pages on the server and trims the project prefix',
+      () async {
+        final adapter = _Adapter(200, {
+          'paging': {'pageIndex': 2, 'pageSize': 50, 'total': 73},
+          'issues': [
+            {
+              'key': 'i1',
+              'type': 'BUG',
+              'severity': 'CRITICAL',
+              'message': 'Null dereference',
+              'component': 'acme:api:src/Foo.java',
+              'line': 42,
+            },
+            {
+              'key': 'i2',
+              'type': 'CODE_SMELL',
+              'severity': 'MINOR',
+              'message': 'Rename this',
+              'component': 'acme:api:src/Bar.java',
+            },
+            {
+              'key': 'i3',
+              'type': 'CODE_SMELL',
+              'severity': 'INFO',
+              'message': 'Project level',
+              'component': 'acme:api',
+            },
+          ],
+        });
+
+        final result = await SonarQubeRepositoryImpl(_dio(adapter)).fetchIssues(
+          'acme:api',
+          filter: const SonarQubeIssueFilter(
+            types: {'CODE_SMELL', 'BUG'},
+            severities: {'MINOR', 'BLOCKER'},
+          ),
+          page: 2,
+        );
+
+        final q = adapter.last!.queryParameters;
+        expect(adapter.last?.path, '/api/issues/search');
+        expect(q['componentKeys'], 'acme:api');
+        expect(q['resolved'], 'false');
+        expect(q['ps'], 50);
+        expect(q['p'], 2);
+        // Sent in display order, whatever order they were picked in.
+        expect(q['types'], 'BUG,CODE_SMELL');
+        expect(q['severities'], 'BLOCKER,MINOR');
+        final page = (result as Ok<SonarQubeIssuePage, AppFailure>).value;
+        expect(page.total, 73);
+        expect(page.issues[0].location, 'src/Foo.java:42');
+        expect(page.issues[1].location, 'src/Bar.java');
+        expect(page.issues[2].location, isNull);
+      },
+    );
+
+    test('no filter sends no types or severities', () async {
+      final adapter = _Adapter(200, {'issues': <dynamic>[]});
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchIssues('k');
+
+      expect(adapter.last?.queryParameters.containsKey('types'), isFalse);
+      expect(adapter.last?.queryParameters.containsKey('severities'), isFalse);
+      expect(adapter.last?.queryParameters['p'], 1);
+      final page = (result as Ok<SonarQubeIssuePage, AppFailure>).value;
+      expect(page.issues, isEmpty);
+      expect(page.total, 0);
     });
   });
 }
