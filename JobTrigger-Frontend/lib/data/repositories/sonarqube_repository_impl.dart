@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../core/error/app_failure.dart';
 import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
+import '../../domain/sonarqube/sonarqube_analysis.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
 import '../../domain/sonarqube/sonarqube_metrics.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
@@ -159,6 +160,36 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
         ? component.substring(prefix.length)
         : component;
   }
+
+  @override
+  Future<Result<List<SonarQubeAnalysis>, AppFailure>> fetchAnalysisHistory(
+    String projectKey,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/project_analyses/search',
+      queryParameters: {'project': projectKey, 'ps': sonarQubeAnalysesLimit},
+    );
+    final analyses = response.data?['analyses'] as List<dynamic>? ?? const [];
+    final result = [
+      for (final a in analyses.cast<Map<String, dynamic>>())
+        SonarQubeAnalysis(
+          key: a['key'] as String? ?? '',
+          date: a['date'] == null
+              ? null
+              : DateTime.tryParse(a['date'] as String),
+          projectVersion: (a['projectVersion'] as String?)?.isEmpty ?? true
+              ? null
+              : a['projectVersion'] as String,
+        ),
+    ];
+    // Newest first, whatever order the server used; undated ones last.
+    result.sort(
+      (a, b) => (b.date ?? DateTime.fromMillisecondsSinceEpoch(0)).compareTo(
+        a.date ?? DateTime.fromMillisecondsSinceEpoch(0),
+      ),
+    );
+    return result;
+  });
 }
 
 @riverpod

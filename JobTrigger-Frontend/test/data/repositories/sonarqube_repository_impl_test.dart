@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
@@ -339,6 +340,52 @@ void main() {
       final page = (result as Ok<SonarQubeIssuePage, AppFailure>).value;
       expect(page.issues, isEmpty);
       expect(page.total, 0);
+    });
+  });
+
+  group('fetchAnalysisHistory (US-SQ-QUALITY-04)', () {
+    test('parses analyses newest first, tolerating missing fields', () async {
+      final adapter = _Adapter(200, {
+        'paging': {'total': 3},
+        'analyses': [
+          {
+            'key': 'a-old',
+            'date': '2026-10-01T08:00:00+0000',
+            'projectVersion': '1.0',
+          },
+          {
+            'key': 'a-new',
+            'date': '2026-11-08T10:00:00+0000',
+            'projectVersion': '',
+          },
+          {'key': 'a-undated'},
+        ],
+      });
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchAnalysisHistory('acme:api');
+
+      expect(adapter.last?.path, '/api/project_analyses/search');
+      expect(adapter.last?.queryParameters['project'], 'acme:api');
+      expect(adapter.last?.queryParameters['ps'], 50);
+      final analyses =
+          (result as Ok<List<SonarQubeAnalysis>, AppFailure>).value;
+      expect(analyses.map((a) => a.key), ['a-new', 'a-old', 'a-undated']);
+      expect(analyses[0].projectVersion, isNull);
+      expect(analyses[1].projectVersion, '1.0');
+      expect(analyses[2].date, isNull);
+    });
+
+    test('a project with no analyses is an empty list', () async {
+      final result = await SonarQubeRepositoryImpl(
+        _dio(_Adapter(200, {'analyses': <dynamic>[]})),
+      ).fetchAnalysisHistory('k');
+
+      expect(
+        (result as Ok<List<SonarQubeAnalysis>, AppFailure>).value,
+        isEmpty,
+      );
     });
   });
 }

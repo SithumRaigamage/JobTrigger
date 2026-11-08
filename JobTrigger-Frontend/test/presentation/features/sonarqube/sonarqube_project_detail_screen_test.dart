@@ -5,6 +5,7 @@ import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
@@ -12,6 +13,11 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_project_detail_screen.dart';
 
 class _Repo implements SonarQubeRepository {
+  @override
+  Future<Result<List<SonarQubeAnalysis>, AppFailure>> fetchAnalysisHistory(
+    String projectKey,
+  ) => throw UnimplementedError();
+
   Result<SonarQubeQualityGate, AppFailure> gate = const Ok(
     SonarQubeQualityGate(state: QualityGateState.passed, conditions: []),
   );
@@ -54,6 +60,11 @@ const _project = SonarQubeProject(
 );
 
 Future<void> _pump(WidgetTester tester, _Repo repo) async {
+  // Tall enough for the whole page: a lazy list only builds what's on
+  // screen, and the measures sit below the gate and the navigation rows.
+  tester.view.physicalSize = const Size(800, 2400);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
   await tester.pumpWidget(
     ProviderScope(
       retry: (retryCount, error) => null,

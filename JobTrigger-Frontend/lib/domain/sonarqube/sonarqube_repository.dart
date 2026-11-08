@@ -1,5 +1,6 @@
 import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
+import 'sonarqube_analysis.dart';
 import 'sonarqube_issue.dart';
 import 'sonarqube_project.dart';
 import 'sonarqube_quality_gate.dart';
@@ -37,6 +38,12 @@ abstract class SonarQubeRepository {
     SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
     int page = 1,
   });
+
+  /// `GET api/project_analyses/search?project=` (`US-SQ-QUALITY-04`): the
+  /// latest [sonarQubeAnalysesLimit] analyses, newest first.
+  Future<Result<List<SonarQubeAnalysis>, AppFailure>> fetchAnalysisHistory(
+    String projectKey,
+  );
 }
 
 /// `ps` for `api/projects/search`; 500 is SonarQube's maximum.

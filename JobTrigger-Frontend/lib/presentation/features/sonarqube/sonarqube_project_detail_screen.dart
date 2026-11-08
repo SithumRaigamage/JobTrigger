@@ -104,6 +104,25 @@ class SonarQubeProjectDetailScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+                const SizedBox(height: 10),
+                GlassSurface.card(
+                  padding: const EdgeInsets.all(16),
+                  onTap: () =>
+                      context.push(AppRoutes.sonarqubeAnalyses, extra: project),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.analytics_outlined),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Analysis history',
+                          style: textTheme.titleSmall,
+                        ),
+                      ),
+                      Icon(Icons.chevron_right_rounded, color: t.textMuted),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 24),
                 const SectionLabel('Measures'),
                 const SizedBox(height: 8),

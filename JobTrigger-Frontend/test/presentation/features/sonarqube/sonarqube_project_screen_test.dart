@@ -7,6 +7,7 @@ import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/data/credentials/active_sonarqube_credential_notifier.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
@@ -15,6 +16,11 @@ import 'package:job_trigger/presentation/features/sonarqube/sonarqube_project_sc
 import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
 
 class _Repo implements SonarQubeRepository {
+  @override
+  Future<Result<List<SonarQubeAnalysis>, AppFailure>> fetchAnalysisHistory(
+    String projectKey,
+  ) => throw UnimplementedError();
+
   _Repo(this.result);
 
   Result<List<SonarQubeProject>, AppFailure> result;

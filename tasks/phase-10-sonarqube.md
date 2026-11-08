@@ -185,11 +185,19 @@ would be unrelated scope creep for this phase.
       filters". SonarQube refuses to page past 10,000 results, so paging
       stops there with a note to narrow the filters. Reached from the new
       Issues row on the project detail screen.
-- [ ] P10-13 Analysis history (`Could` priority, do last) —
+- [x] P10-13 Analysis history (`Could` priority, do last) —
       `SonarQubeRepository.fetchAnalysisHistory(projectKey)` (`GET
       api/project_analyses/search`) + a simple timestamped list, per
       `US-SQ-QUALITY-04`.
 
+      **Done 2026-11-08 (implemented and unit-tested; real-server check
+      pending).** `fetchAnalysisHistory` (latest 50, sorted newest first,
+      undated last). `SonarQubeAnalysisScreen` is a timestamped list with
+      "2h ago" and the project version when the build set one. A single
+      analysis shows "Not enough history yet", and none shows "has not been
+      analyzed yet", rather than a bare list. Rows open nothing: an analysis
+      is a snapshot, not a run. Reached from a new Analysis history row on
+      the project detail screen.
 ## Cross-cutting
 
 - [ ] P10-14 `NFR-SEC-03` verification: a live test confirming a SonarQube

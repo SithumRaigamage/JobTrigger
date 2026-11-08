@@ -20,6 +20,7 @@ abstract class AppRoutes {
   static const openLink = '/open';
   static const globalHistory = '/history';
   static const sonarqubeProject = '/sonarqube/project';
+  static const sonarqubeAnalyses = '/sonarqube/project/analyses';
   static const sonarqubeIssues = '/sonarqube/project/issues';
   static const githubWorkflows = '/github/repos/workflows';
   // Add/edit server is a modal bottom sheet (ServerEditBottomSheet), not a

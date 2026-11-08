@@ -5,6 +5,7 @@ import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
@@ -13,6 +14,11 @@ import 'package:job_trigger/presentation/features/sonarqube/sonarqube_issues_not
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_issues_screen.dart';
 
 class _Repo implements SonarQubeRepository {
+  @override
+  Future<Result<List<SonarQubeAnalysis>, AppFailure>> fetchAnalysisHistory(
+    String projectKey,
+  ) => throw UnimplementedError();
+
   /// Total issues on the "server"; pages are sliced from it. A filter with
   /// types narrows it to that many bugs.
   int total = 120;
