@@ -15,14 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$JenkinsJobDto {
 
- String get name; String get url;// Jenkins always emits `_class`; it identifies folders, multibranch
-// projects, and organization folders (P11-05, US-JX-03).
-@JsonKey(name: '_class') String? get jobClass; String? get displayName; String? get description; bool? get buildable; String? get color; List<JenkinsJobDto>? get jobs;// nested folders — see the null-vs-[] note above
- JenkinsBuildDto? get lastBuild;// US-JX-05; only requested by the job detail query.
- JenkinsBuildDto? get lastSuccessfulBuild; JenkinsBuildDto? get lastFailedBuild; List<HealthReportDto>? get healthReport; List<JobPropertyDto>? get property;// holds parameterDefinitions
- List<JenkinsBuildDto>? get builds;// US-PIPE-09: flat, non-polymorphic array directly on the job
-// resource, same reasoning as `BuildArtifactDto` on `JenkinsBuildDto`.
- List<DownstreamProjectDto>? get downstreamProjects;
+ String get name; String get url;@JsonKey(name: '_class') String? get jobClass; String? get displayName; String? get description; bool? get buildable; String? get color; List<JenkinsJobDto>? get jobs; JenkinsBuildDto? get lastBuild; JenkinsBuildDto? get lastSuccessfulBuild; JenkinsBuildDto? get lastFailedBuild; List<HealthReportDto>? get healthReport; List<JobPropertyDto>? get property; List<JenkinsBuildDto>? get builds; List<DownstreamProjectDto>? get downstreamProjects;
 /// Create a copy of JenkinsJobDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -271,8 +264,6 @@ class _JenkinsJobDto implements JenkinsJobDto {
 
 @override final  String name;
 @override final  String url;
-// Jenkins always emits `_class`; it identifies folders, multibranch
-// projects, and organization folders (P11-05, US-JX-03).
 @override@JsonKey(name: '_class') final  String? jobClass;
 @override final  String? displayName;
 @override final  String? description;
@@ -287,9 +278,7 @@ class _JenkinsJobDto implements JenkinsJobDto {
   return EqualUnmodifiableListView(value);
 }
 
-// nested folders — see the null-vs-[] note above
 @override final  JenkinsBuildDto? lastBuild;
-// US-JX-05; only requested by the job detail query.
 @override final  JenkinsBuildDto? lastSuccessfulBuild;
 @override final  JenkinsBuildDto? lastFailedBuild;
  final  List<HealthReportDto>? _healthReport;
@@ -310,9 +299,7 @@ class _JenkinsJobDto implements JenkinsJobDto {
   return EqualUnmodifiableListView(value);
 }
 
-// holds parameterDefinitions
  final  List<JenkinsBuildDto>? _builds;
-// holds parameterDefinitions
 @override@JsonKey() List<JenkinsBuildDto>? get builds {
   final value = _builds;
   if (value == null) return null;
@@ -321,11 +308,7 @@ class _JenkinsJobDto implements JenkinsJobDto {
   return EqualUnmodifiableListView(value);
 }
 
-// US-PIPE-09: flat, non-polymorphic array directly on the job
-// resource, same reasoning as `BuildArtifactDto` on `JenkinsBuildDto`.
  final  List<DownstreamProjectDto>? _downstreamProjects;
-// US-PIPE-09: flat, non-polymorphic array directly on the job
-// resource, same reasoning as `BuildArtifactDto` on `JenkinsBuildDto`.
 @override@JsonKey() List<DownstreamProjectDto>? get downstreamProjects {
   final value = _downstreamProjects;
   if (value == null) return null;

@@ -592,8 +592,6 @@ $PendingInputParameterDefinitionDtoCopyWith<$Res>? get definition {
 /// @nodoc
 mixin _$PendingInputParameterDefinitionDto {
 
-// Polymorphic (string/bool/number) by parameter type, like
-// `ParameterDefinitionDto.defaultValue`.
  dynamic get defaultVal; List<String>? get choices;
 /// Create a copy of PendingInputParameterDefinitionDto
 /// with the given fields replaced by the non-null parameter values.
@@ -792,8 +790,6 @@ class _PendingInputParameterDefinitionDto implements PendingInputParameterDefini
   const _PendingInputParameterDefinitionDto({this.defaultVal, final  List<String>? choices}): _choices = choices;
   factory _PendingInputParameterDefinitionDto.fromJson(Map<String, dynamic> json) => _$PendingInputParameterDefinitionDtoFromJson(json);
 
-// Polymorphic (string/bool/number) by parameter type, like
-// `ParameterDefinitionDto.defaultValue`.
 @override final  dynamic defaultVal;
  final  List<String>? _choices;
 @override List<String>? get choices {

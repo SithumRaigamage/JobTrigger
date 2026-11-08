@@ -15,9 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GitHubWorkflowRunDto {
 
- int get id;@JsonKey(name: 'run_number') int get runNumber;// `display_title` is the commit message / PR title; `name` is the
-// workflow's own name and the fallback for older responses.
-@JsonKey(name: 'display_title') String? get displayTitle; String? get name; String get event; String get status; String? get conclusion;@JsonKey(name: 'head_branch') String? get headBranch;@JsonKey(name: 'created_at') String? get createdAt;@JsonKey(name: 'html_url') String get htmlUrl;@JsonKey(name: 'workflow_id') int? get workflowId;
+ int get id;@JsonKey(name: 'run_number') int get runNumber;@JsonKey(name: 'display_title') String? get displayTitle; String? get name; String get event; String get status; String? get conclusion;@JsonKey(name: 'head_branch') String? get headBranch;@JsonKey(name: 'created_at') String? get createdAt;@JsonKey(name: 'html_url') String get htmlUrl;@JsonKey(name: 'workflow_id') int? get workflowId;
 /// Create a copy of GitHubWorkflowRunDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -226,8 +224,6 @@ class _GitHubWorkflowRunDto implements GitHubWorkflowRunDto {
 
 @override final  int id;
 @override@JsonKey(name: 'run_number') final  int runNumber;
-// `display_title` is the commit message / PR title; `name` is the
-// workflow's own name and the fallback for older responses.
 @override@JsonKey(name: 'display_title') final  String? displayTitle;
 @override final  String? name;
 @override@JsonKey() final  String event;

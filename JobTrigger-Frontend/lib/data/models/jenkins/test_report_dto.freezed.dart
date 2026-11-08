@@ -15,11 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TestReportDto {
 
- int get passCount; int get failCount; int get skipCount;// `suites[].cases[]` is polymorphic-in-depth (nested test suites, each
-// holding individual cases) -- flatten straight to the
-// `ClassName.testName` strings actually rendered, same reasoning as
-// `causes`/`changes` on `JenkinsBuildDto`.
-@JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) List<FailingTest> get failingTests;
+ int get passCount; int get failCount; int get skipCount;@JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) List<FailingTest> get failingTests;
 /// Create a copy of TestReportDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -222,15 +218,7 @@ class _TestReportDto implements TestReportDto {
 @override@JsonKey() final  int passCount;
 @override@JsonKey() final  int failCount;
 @override@JsonKey() final  int skipCount;
-// `suites[].cases[]` is polymorphic-in-depth (nested test suites, each
-// holding individual cases) -- flatten straight to the
-// `ClassName.testName` strings actually rendered, same reasoning as
-// `causes`/`changes` on `JenkinsBuildDto`.
  final  List<FailingTest> _failingTests;
-// `suites[].cases[]` is polymorphic-in-depth (nested test suites, each
-// holding individual cases) -- flatten straight to the
-// `ClassName.testName` strings actually rendered, same reasoning as
-// `causes`/`changes` on `JenkinsBuildDto`.
 @override@JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) List<FailingTest> get failingTests {
   if (_failingTests is EqualUnmodifiableListView) return _failingTests;
   // ignore: implicit_dynamic_type
