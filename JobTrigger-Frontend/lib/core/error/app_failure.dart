@@ -98,6 +98,9 @@ sealed class AppFailure {
       detail == null
           ? _dispatchRejected
           : '$_dispatchRejected GitHub said: $detail',
+    SonarQubeOrganizationNotFoundFailure() =>
+      "SonarCloud doesn't know that organization. Check the organization "
+          'key in this credential in Settings.',
     UnknownFailure() => 'Something unexpected happened. Please try again.',
   };
 }
@@ -196,3 +199,9 @@ const _dispatchRejected =
     "GitHub didn't accept the trigger. The workflow may not allow manual "
     'runs (it needs a workflow_dispatch trigger), or the branch or inputs '
     'are invalid.';
+
+/// SonarCloud answered 404 to a request carrying an organization key: the
+/// key is wrong or missing (`US-SQ-PROJ-01`). SonarQube-only.
+final class SonarQubeOrganizationNotFoundFailure extends AppFailure {
+  const SonarQubeOrganizationNotFoundFailure();
+}

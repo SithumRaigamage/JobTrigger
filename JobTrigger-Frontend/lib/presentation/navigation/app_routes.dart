@@ -19,6 +19,9 @@ abstract class AppRoutes {
   /// US-JX-19: `jobtrigger://app/open?url=<Jenkins URL>` lands here.
   static const openLink = '/open';
   static const globalHistory = '/history';
+  static const sonarqubeProject = '/sonarqube/project';
+  static const sonarqubeAnalyses = '/sonarqube/project/analyses';
+  static const sonarqubeIssues = '/sonarqube/project/issues';
   static const githubWorkflows = '/github/repos/workflows';
   static const githubRuns = '/github/repos/workflows/runs';
   static const githubGlobalHistory = '/github/history';

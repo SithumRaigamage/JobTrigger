@@ -45,9 +45,11 @@ extension CiToolX on CiTool {
     CiTool.circleci => AppColors.ciToolCircleci,
   };
 
-  /// Jenkins and GitHub Actions are available (`Phase 8`, GH-REPO onward).
-  /// The others aren't built, so the tool-selection screen doesn't show
-  /// them (see `tasks/backlog.md`'s "More CI/CD tools").
+  /// Jenkins, GitHub Actions (`Phase 8`) and SonarQube (`Phase 10`, from
+  /// SQ-PROJ) are available. The others aren't built, so the tool-selection
+  /// screen doesn't show them (see `tasks/backlog.md`'s "More CI/CD tools").
   bool get isAvailable =>
-      this == CiTool.jenkins || this == CiTool.githubActions;
+      this == CiTool.jenkins ||
+      this == CiTool.githubActions ||
+      this == CiTool.sonarqube;
 }

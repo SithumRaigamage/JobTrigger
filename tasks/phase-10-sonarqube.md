@@ -105,16 +105,26 @@ would be unrelated scope creep for this phase.
 
 ## SQ-PROJ — Project Browsing
 
-- [ ] P10-07 `SonarQubeProject` domain type + DTO
+- [x] P10-07 `SonarQubeProject` domain type + DTO
       (`data/models/sonarqube/sonarqube_project_dto.dart`) — `key`, `name`,
       `lastAnalysisDate` (nullable — a project can exist with no analysis
       yet, per `US-SQ-PROJ-01`).
-- [ ] P10-08 `SonarQubeRepository.fetchProjects()` — `GET api/projects/search`,
+      **Done 2026-11-08.** `domain/sonarqube/sonarqube_project.dart` +
+      freezed DTO; a project name falls back to its key, and an unreadable
+      `lastAnalysisDate` is "no date" rather than a crash.
+- [x] P10-08 `SonarQubeRepository.fetchProjects()` — `GET api/projects/search`,
       optionally with `?organization=` when the active credential's
       `defaultOrganization` is set; surfaces a distinct message for a
       wrong/missing SonarCloud organization key (404) vs. a generic load
       failure, per `US-SQ-PROJ-01`'s flagged scenario.
-- [ ] P10-09 `SonarQubeProjectScreen` — mirrors `GitHubRepoScreen`'s
+      **Done 2026-11-08 (implemented and unit-tested; real-server check
+      pending).** `SonarQubeRepositoryImpl.fetchProjects` sends
+      `organization` only when the credential has a non-blank one, first
+      page at `ps=500` (the API maximum). A 404 *with* an organization
+      becomes the new `SonarQubeOrganizationNotFoundFailure` ("SonarCloud
+      doesn't know that organization…"); without one it stays a plain
+      not-found.
+- [x] P10-09 `SonarQubeProjectScreen` — mirrors `GitHubRepoScreen`'s
       glass-card list/search/pull-to-refresh structure, gated on
       `activeSonarQubeCredentialNotifierProvider` via a new
       `NoActiveSonarQubeCredentialView`. This is the task that flips
@@ -125,32 +135,84 @@ would be unrelated scope creep for this phase.
       task's plan/design checkpoint with the same weight P8-11 (GH's
       equivalent routing task) got.
 
+      **Done 2026-11-08.** `SonarQubeProjectScreen` (account label,
+      search by name or key, glass cards with key and "Analyzed 3h ago" /
+      "Never analyzed", pull-to-refresh, empty and error-with-retry states),
+      gated by `NoActiveSonarQubeCredentialView`. `CiTool.sonarqube` is now
+      available and the Home tab routes to it. The History tab shows an
+      explicit "SonarQube has no run history" message instead of falling
+      through to Jenkins' history. Project cards are inert until the
+      quality screens (P10-10..12).
 ## SQ-QUALITY — Quality Gate, Measures, and Issues
 
-- [ ] P10-10 `SonarQubeQualityGateStatus` domain type + DTO +
+- [x] P10-10 `SonarQubeQualityGateStatus` domain type + DTO +
       `SonarQubeRepository.fetchQualityGateStatus(projectKey)` — `GET
       api/qualitygates/project_status`, including the per-condition
       breakdown (metric/comparator/threshold/actual value) for a failing
       gate, per `US-SQ-QUALITY-01`.
-- [ ] P10-11 Measures grid — `SonarQubeRepository.fetchMeasures(projectKey)`
+      **Done 2026-11-08 (implemented and unit-tested; real-server check
+      pending).** `SonarQubeQualityGate` (passed / warning / failed / none;
+      anything unrecognised is "none", never a guessed pass) with its
+      conditions. Only failing conditions are listed, each as "Coverage on
+      new code: 62.1%" plus "Fails when below 80%" (SonarQube's comparator
+      is the failure direction, so LT reads "below"). A never-analysed
+      project says "Not yet analyzed".
+- [x] P10-11 Measures grid — `SonarQubeRepository.fetchMeasures(projectKey)`
       (`GET api/measures/component` for coverage/bugs/vulnerabilities/
       code_smells/duplicated_lines_density/ncloc) + a glass-card stat-tile
       grid UI, per `US-SQ-QUALITY-02`.
-- [ ] P10-12 Issues list — `SonarQubeRepository.fetchIssues(projectKey,
+      **Done 2026-11-08 (implemented and unit-tested; real-server check
+      pending).** Six measures in a glass-card grid on
+      `SonarQubeProjectDetailScreen` (opened by tapping a project). A metric
+      the server didn't compute shows "—", not 0. Percentages keep one
+      decimal, counts get separators, ratings become A–E
+      (`domain/sonarqube/sonarqube_metrics.dart`). Gate and measures load
+      and fail independently, each with its own retry. The gate and measures
+      calls send no `organization`: a project key is unique and neither
+      endpoint documents the parameter.
+- [x] P10-12 Issues list — `SonarQubeRepository.fetchIssues(projectKey,
       {types, severities, page})` (`GET api/issues/search`, server-side
       filtered/paginated per `US-SQ-QUALITY-03`, not client-side like the
       project list) + a filterable list UI.
-- [ ] P10-13 Analysis history (`Could` priority, do last) —
+      **Done 2026-11-08 (implemented and unit-tested; real-server check
+      pending).** `fetchIssues` sends `componentKeys`, `resolved=false`,
+      `ps=50`, `p`, and `types`/`severities` from the filter, in display
+      order. `SonarQubeIssuesScreen`: type and severity filter chips (each
+      change re-queries from page one), a total count, rows with type icon,
+      message, `file:line` and a severity pill (words, not only colour),
+      load-more on scroll, and a retry that keeps the loaded list on a failed
+      page. Two empty states: "No issues found" vs "No issues match these
+      filters". SonarQube refuses to page past 10,000 results, so paging
+      stops there with a note to narrow the filters. Reached from the new
+      Issues row on the project detail screen.
+- [x] P10-13 Analysis history (`Could` priority, do last) —
       `SonarQubeRepository.fetchAnalysisHistory(projectKey)` (`GET
       api/project_analyses/search`) + a simple timestamped list, per
       `US-SQ-QUALITY-04`.
 
+      **Done 2026-11-08 (implemented and unit-tested; real-server check
+      pending).** `fetchAnalysisHistory` (latest 50, sorted newest first,
+      undated last). `SonarQubeAnalysisScreen` is a timestamped list with
+      "2h ago" and the project version when the build set one. A single
+      analysis shows "Not enough history yet", and none shows "has not been
+      analyzed yet", rather than a bare list. Rows open nothing: an analysis
+      is a snapshot, not a run. Reached from a new Analysis history row on
+      the project detail screen.
 ## Cross-cutting
 
 - [ ] P10-14 `NFR-SEC-03` verification: a live test confirming a SonarQube
       401 never triggers Jenkins/GitHub's auth handling or the backend's
       global logout, and vice versa — four independent auth failure
       domains, not two or three.
+      **Partly done 2026-11-08 (left unchecked).** Automated evidence in
+      `test/core/network/sonarqube_auth_isolation_test.dart` (real client
+      factories, scripted adapters): a SonarQube 401 is only an
+      `AuthFailure` (no `SessionSignal`, backend tokens kept); a 403 is a
+      permission failure, not an auth one; the backend losing its session
+      leaves the SonarQube, GitHub and Jenkins clients working with their own
+      credentials; the SonarQube client never carries the backend token.
+      Still open: the live check against a real SonarQube, which needs a real
+      server and token.
 - [ ] P10-15 Full real-server verification pass: every SQ-CRED/PROJ/QUALITY
       task above manually verified against a real SonarCloud organization
       and a real self-hosted SonarQube Server instance (both flavors, per
