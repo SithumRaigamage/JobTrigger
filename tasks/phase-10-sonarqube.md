@@ -236,6 +236,37 @@ would be unrelated scope creep for this phase.
       the project list's return type, its endpoint path, and the two 403 and
       one project-404 expectations. Not verified against a real server:
       `search_projects`'s response shape comes from SonarQube's documentation.
+- [x] P10-17 **SonarQube polish after the second owner test (2026-11-08):**
+      five fixes and the features the owner approved (US-SQ-PROJ-03,
+      US-SQ-OVERVIEW-01, US-SQ-QUALITY-05/06, US-SQ-LINK-01). Jenkins is
+      untouched; GitHub gets only the first-open fix below.
+      - **First-open flash.** The active credential is null while the saved
+        list loads, so "No credential" showed until Settings reloaded it. A
+        shared `CredentialLoadGate` (spinner while loading, the error with a
+        retry, "no credential" only when the list is empty) is used on the
+        SonarQube **and GitHub** Home screens: the same fix Jenkins got in
+        P19-02.
+      - **"Never analyzed".** The owner's server returns no `analysisDate`
+        from `search_projects` unless `f=analysisDate` is sent (seen in a
+        real reply). It is now sent, and a project still without a date
+        looks up its newest analysis first.
+      - **History tab.** SonarQube's second tab is an Overview (counts, totals,
+        projects needing attention). `MainScaffold` got an optional
+        `overviewTab` flag, off by default, set by the router; Jenkins and
+        GitHub keep "History", proved through the real router.
+      - **Cards.** The uneven tiles came from the shared card shrinking to its
+        content; tiles now fill their width. Project cards show the gate
+        verdict and numbers (one `api/measures/search` call per 100
+        projects), with sort and a failing-only filter.
+      - **Project page.** Redesigned: ratings, technical debt, gate-failed
+        measures marked, last-analysed header, Explore card, Open in
+        SonarQube. **Issue page:** rule, facts, and the code around it.
+      Found by the tests along the way and fixed: a summaries notifier that
+      could be disposed while its request ran, a provider modified during
+      its own build, and a stray `#` on every link.
+      Not verified on a real server: `api/measures/search`,
+      `api/sources/show` (response shape) and `api/rules/show` follow
+      SonarQube's documentation; the owner's iPhone test is the check.
 - [ ] P10-15 Full real-server verification pass: every SQ-CRED/PROJ/QUALITY
       task above manually verified against a real SonarCloud organization
       and a real self-hosted SonarQube Server instance (both flavors, per

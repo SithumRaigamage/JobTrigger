@@ -1,36 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
-import '../../../domain/jenkins/relative_time.dart';
-import '../../../domain/sonarqube/sonarqube_project.dart';
 import '../../common_widgets/connection_error_view.dart';
-import '../../common_widgets/glass_surface.dart';
-import '../../common_widgets/no_active_sonarqube_credential_view.dart';
 import '../../common_widgets/responsive_center.dart';
-import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
+import 'sonarqube_credential_gate.dart';
+import 'sonarqube_project_card.dart';
 import 'sonarqube_projects_notifier.dart';
+import 'sonarqube_summaries_notifier.dart';
+import 'sonarqube_summaries_sync.dart';
 
-/// The Home tab while SonarQube is the active tool (`US-SQ-PROJ-01/02`): a
-/// searchable list of the credential's projects; a tap opens the project's
-/// quality gate and measures.
+/// The Home tab while SonarQube is the active tool (`US-SQ-PROJ-01..03`): a
+/// searchable, sortable list of the credential's projects, each with its
+/// quality-gate verdict and headline numbers; a tap opens the project.
 class SonarQubeProjectScreen extends ConsumerWidget {
   const SonarQubeProjectScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final credential = ref.watch(activeSonarQubeCredentialNotifierProvider);
-    if (credential == null) {
-      return const Scaffold(
-        body: SafeArea(child: Center(child: NoActiveSonarQubeCredentialView())),
-      );
-    }
+    if (credential == null) return const SonarQubeCredentialGate();
 
+    // Loads the cards' numbers as projects arrive.
+    ref.watch(sonarQubeSummariesSyncProvider);
     final projectsAsync = ref.watch(sonarQubeProjectsNotifierProvider);
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
@@ -72,6 +67,8 @@ class SonarQubeProjectScreen extends ConsumerWidget {
                             .setQuery(query),
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    const _Controls(),
                   ],
                 ),
               ),
@@ -98,6 +95,56 @@ class SonarQubeProjectScreen extends ConsumerWidget {
   }
 }
 
+/// "Failing only" and the sort order.
+class _Controls extends ConsumerWidget {
+  const _Controls();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final failingOnly = ref.watch(sonarQubeFailingOnlyProvider);
+    final sort = ref.watch(sonarQubeProjectSortNotifierProvider);
+    final t = AppTokens.of(context);
+    return Row(
+      children: [
+        FilterChip(
+          label: const Text('Failing only'),
+          selected: failingOnly,
+          onSelected: (_) =>
+              ref.read(sonarQubeFailingOnlyProvider.notifier).toggle(),
+        ),
+        const Spacer(),
+        PopupMenuButton<SonarQubeProjectSort>(
+          tooltip: 'Sort projects',
+          initialValue: sort,
+          onSelected: (value) => ref
+              .read(sonarQubeProjectSortNotifierProvider.notifier)
+              .set(value),
+          itemBuilder: (_) => [
+            for (final option in SonarQubeProjectSort.values)
+              PopupMenuItem(value: option, child: Text(option.label)),
+          ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.sort_rounded, size: 18, color: t.textSecondary),
+                const SizedBox(width: 6),
+                Text(
+                  'Sort: ${sort.label}',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(color: t.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ProjectList extends ConsumerWidget {
   const _ProjectList();
 
@@ -105,6 +152,8 @@ class _ProjectList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final projects = ref.watch(filteredSonarQubeProjectsProvider);
     final query = ref.watch(sonarQubeProjectSearchProvider);
+    final failingOnly = ref.watch(sonarQubeFailingOnlyProvider);
+    final summaries = ref.watch(sonarQubeSummariesNotifierProvider);
     final t = AppTokens.of(context);
     final loaded = ref.watch(sonarQubeProjectsNotifierProvider).value;
     final notifier = ref.read(sonarQubeProjectsNotifierProvider.notifier);
@@ -113,6 +162,11 @@ class _ProjectList extends ConsumerWidget {
       // A search that finds nothing among the loaded projects may still have
       // a match on a page that isn't loaded yet.
       final moreToSearch = query.isNotEmpty && (loaded?.hasMore ?? false);
+      final message = failingOnly && query.isEmpty
+          ? (summaries.isLoading
+                ? 'Checking quality gates…'
+                : 'No projects are failing their quality gate')
+          : (query.isEmpty ? 'No projects found' : 'No results for "$query"');
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -120,7 +174,7 @@ class _ProjectList extends ConsumerWidget {
             Icon(Icons.folder_open_outlined, size: 40, color: t.textMuted),
             const SizedBox(height: 12),
             Text(
-              query.isEmpty ? 'No projects found' : 'No results for "$query"',
+              message,
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: t.textMuted),
@@ -160,7 +214,7 @@ class _ProjectList extends ConsumerWidget {
           ),
           itemCount: projects.length + 1,
           itemBuilder: (context, index) => index < projects.length
-              ? _ProjectTile(project: projects[index])
+              ? SonarQubeProjectCard(project: projects[index])
               : _Footer(
                   loaded: loaded,
                   searching: query.isNotEmpty,
@@ -223,61 +277,6 @@ class _Footer extends StatelessWidget {
         ),
         TextButton(onPressed: onLoadMore, child: const Text('Load more')),
       ],
-    );
-  }
-}
-
-/// One project: its name, its key, and when it was last analysed. Tapping
-/// opens its quality gate and measures.
-class _ProjectTile extends StatelessWidget {
-  const _ProjectTile({required this.project});
-
-  final SonarQubeProject project;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppTokens.of(context);
-    final textTheme = Theme.of(context).textTheme;
-    final analysed = project.lastAnalysisDate;
-    final when = analysed == null
-        ? 'Never analyzed'
-        : 'Analyzed ${relativeTime(analysed)}';
-    return Semantics(
-      label: '${project.name}, ${project.key}, $when',
-      excludeSemantics: true,
-      child: GlassSurface.card(
-        padding: const EdgeInsets.all(14),
-        onTap: () => context.push(AppRoutes.sonarqubeProject, extra: project),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(project.name, style: textTheme.titleSmall),
-            const SizedBox(height: 4),
-            Text(
-              project.key,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.mono(
-                textTheme.bodySmall,
-              ).copyWith(fontSize: 12, color: t.textMuted),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Icon(Icons.schedule_rounded, size: 14, color: t.textMuted),
-                const SizedBox(width: 6),
-                Text(
-                  when,
-                  style: textTheme.bodySmall?.copyWith(
-                    fontSize: 12,
-                    color: t.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

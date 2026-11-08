@@ -3,6 +3,7 @@ import '../../core/error/result.dart';
 import 'sonarqube_analysis.dart';
 import 'sonarqube_issue.dart';
 import 'sonarqube_project.dart';
+import 'sonarqube_project_summary.dart';
 import 'sonarqube_quality_gate.dart';
 
 /// SonarQube data access — independent of the Jenkins and GitHub
@@ -48,6 +49,21 @@ abstract class SonarQubeRepository {
   /// latest [sonarQubeAnalysesLimit] analyses, newest first.
   Future<Result<List<SonarQubeAnalysis>, AppFailure>> fetchAnalysisHistory(
     String projectKey,
+  );
+
+  /// `GET api/measures/search` (`US-SQ-PROJ-03`): the headline numbers and
+  /// gate verdict for many projects in one request per
+  /// [sonarQubeSummaryBatchSize]. Every key asked for is in the result; one
+  /// with no gate result is [QualityGateState.none].
+  Future<Result<Map<String, SonarQubeProjectSummary>, AppFailure>>
+  fetchProjectSummaries(List<String> projectKeys);
+
+  /// What an issue's page shows besides the issue (`US-SQ-QUALITY-06`): the
+  /// rule's name (`api/rules/show`) and the code around it
+  /// (`api/sources/show`), fetched together. One failing leaves the other; if
+  /// both fail the failure is returned.
+  Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
+    SonarQubeIssue issue,
   );
 }
 

@@ -8,6 +8,7 @@ import '../../domain/github/github_job.dart';
 import '../../domain/github/github_repo.dart';
 import '../../domain/github/github_workflow.dart';
 import '../../domain/github/github_workflow_run.dart';
+import '../../domain/sonarqube/sonarqube_issue.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
@@ -27,7 +28,9 @@ import '../features/github/github_run_history_screen.dart';
 import '../features/github/github_run_detail_screen.dart';
 import '../features/github/github_runs_screen.dart';
 import '../features/sonarqube/sonarqube_analysis_screen.dart';
+import '../features/sonarqube/sonarqube_issue_screen.dart';
 import '../features/sonarqube/sonarqube_issues_screen.dart';
+import '../features/sonarqube/sonarqube_overview_screen.dart';
 import '../features/sonarqube/sonarqube_project_detail_screen.dart';
 import '../features/sonarqube/sonarqube_project_screen.dart';
 import '../features/github/github_workflow_list_screen.dart';
@@ -78,6 +81,8 @@ final Map<String, bool Function(Object? extra)> _extraRoutes = {
   AppRoutes.githubJobLog: (extra) => extra is (GitHubRepo, int, GitHubJob),
   AppRoutes.sonarqubeProject: (extra) => extra is SonarQubeProject,
   AppRoutes.sonarqubeIssues: (extra) => extra is SonarQubeProject,
+  AppRoutes.sonarqubeIssue: (extra) =>
+      extra is (SonarQubeProject, SonarQubeIssue),
   AppRoutes.sonarqubeAnalyses: (extra) => extra is SonarQubeProject,
 };
 
@@ -124,29 +129,9 @@ class _ToolAwareHistoryScreen extends ConsumerWidget {
     final activeTool = ref.watch(activeToolNotifierProvider);
     return switch (activeTool) {
       CiTool.githubActions => const GitHubGlobalHistoryScreen(isTab: true),
-      CiTool.sonarqube => const _SonarQubeHistoryUnavailableScreen(),
+      CiTool.sonarqube => const SonarQubeOverviewScreen(),
       _ => const GlobalHistoryScreen(),
     };
-  }
-}
-
-/// SonarQube has no runs to list: it reports on code, not builds (Phase 10
-/// has no history epic). An explicit message beats falling through to
-/// Jenkins' history while SonarQube is the selected tool.
-class _SonarQubeHistoryUnavailableScreen extends StatelessWidget {
-  const _SonarQubeHistoryUnavailableScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return _MessageScreen(
-      mark: const Icon(Icons.history_rounded, size: 56),
-      title: 'History',
-      message:
-          'SonarQube shows code quality, not builds, so there is no run '
-          'history here.',
-      actionLabel: 'Switch CI tool',
-      onAction: () => context.go(AppRoutes.toolSelection),
-    );
   }
 }
 
@@ -343,6 +328,15 @@ GoRouter appRouter(Ref ref) {
         ),
       ),
       GoRoute(
+        path: AppRoutes.sonarqubeIssue,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final (project, issue) =
+              state.extra! as (SonarQubeProject, SonarQubeIssue);
+          return SonarQubeIssueScreen(project: project, issue: issue);
+        },
+      ),
+      GoRoute(
         path: AppRoutes.sonarqubeAnalyses,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) =>
@@ -406,8 +400,14 @@ GoRouter appRouter(Ref ref) {
       // Persistent bottom tab bar (P6-14) — Home/History/Settings/Profile.
       // See main_scaffold.dart.
       StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) =>
-            MainScaffold(navigationShell: navigationShell),
+        builder: (context, state, navigationShell) => Consumer(
+          builder: (context, ref, _) => MainScaffold(
+            navigationShell: navigationShell,
+            // SonarQube has no run history; its second tab is an overview.
+            overviewTab:
+                ref.watch(activeToolNotifierProvider) == CiTool.sonarqube,
+          ),
+        ),
         branches: [
           StatefulShellBranch(
             routes: [

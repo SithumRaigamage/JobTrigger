@@ -5,8 +5,10 @@ import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/data/credentials/active_sonarqube_credential_notifier.dart';
+import 'package:job_trigger/data/credentials/sonarqube_credentials_notifier.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_project_summary.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
@@ -17,14 +19,42 @@ import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
 
 class _Repo implements SonarQubeRepository {
   @override
+  Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
+    SonarQubeIssue issue,
+  ) => throw UnimplementedError();
+
+  /// What the headline-numbers call answers, by project key; a key with no
+  /// entry gets none (its card shows no numbers).
+  final Map<String, SonarQubeProjectSummary> summaries = {};
+  int summaryCalls = 0;
+
+  @override
+  Future<Result<Map<String, SonarQubeProjectSummary>, AppFailure>>
+  fetchProjectSummaries(List<String> projectKeys) async {
+    summaryCalls++;
+    return Ok({
+      for (final key in projectKeys)
+        if (summaries.containsKey(key)) key: summaries[key]!,
+    });
+  }
+
+  @override
   Future<Result<List<SonarQubeAnalysis>, AppFailure>> fetchAnalysisHistory(
     String projectKey,
-  ) => throw UnimplementedError();
+  ) async {
+    historyAsked.add(projectKey);
+    return history;
+  }
 
   _Repo(this.result);
 
   Result<List<SonarQubeProject>, AppFailure> result;
   int calls = 0;
+
+  /// What the per-project history lookup answers (a project whose list entry
+  /// has no date). Empty by default: genuinely never analysed.
+  Result<List<SonarQubeAnalysis>, AppFailure> history = const Ok([]);
+  final List<String> historyAsked = [];
 
   @override
   Future<Result<SonarQubeProjectsPage, AppFailure>> fetchProjects({
@@ -73,6 +103,12 @@ class _NoCredential extends ActiveSonarQubeCredentialNotifier {
   SonarQubeCredential? build() => null;
 }
 
+/// The saved list, loaded and empty: there really is no credential.
+class _NoSavedCredentials extends SonarQubeCredentialsNotifier {
+  @override
+  Future<List<SonarQubeCredential>> build() async => const [];
+}
+
 Future<void> _pump(
   WidgetTester tester,
   _Repo repo, {
@@ -84,6 +120,9 @@ Future<void> _pump(
       overrides: [
         activeSonarQubeCredentialNotifierProvider.overrideWith(
           credential ? _Credential.new : _NoCredential.new,
+        ),
+        sonarQubeCredentialsNotifierProvider.overrideWith(
+          _NoSavedCredentials.new,
         ),
         sonarQubeRepositoryProvider.overrideWithValue(repo),
       ],
@@ -175,5 +214,61 @@ void main() {
 
     expect(find.text('No SonarQube Credential'), findsOneWidget);
     expect(repo.calls, 0);
+  });
+
+  group('last analysis when the list has no date', () {
+    testWidgets('is taken from the analysis history, not called "never"', (
+      tester,
+    ) async {
+      final repo =
+          _Repo(
+              const Ok([
+                SonarQubeProject(
+                  key: 'k',
+                  name: 'Silent',
+                  lastAnalysisDate: null,
+                ),
+              ]),
+            )
+            ..history = Ok([
+              SonarQubeAnalysis(
+                key: 'a',
+                date: DateTime.now().subtract(const Duration(hours: 2)),
+                projectVersion: null,
+              ),
+            ]);
+
+      await _pump(tester, repo);
+
+      expect(find.text('Analyzed 2h ago'), findsOneWidget);
+      expect(find.text('Never analyzed'), findsNothing);
+      expect(repo.historyAsked, ['k']);
+    });
+
+    testWidgets('a project that has a date does not ask for the history', (
+      tester,
+    ) async {
+      final repo = _Repo(Ok(_projects));
+
+      await _pump(tester, repo);
+
+      // Only the one without a date is looked up.
+      expect(repo.historyAsked, ['acme:web']);
+    });
+
+    testWidgets('a failed lookup says it is unknown, not "never analyzed"', (
+      tester,
+    ) async {
+      final repo = _Repo(
+        const Ok([
+          SonarQubeProject(key: 'k', name: 'Silent', lastAnalysisDate: null),
+        ]),
+      )..history = const Err(NetworkFailure());
+
+      await _pump(tester, repo);
+
+      expect(find.text('Last analysis unknown'), findsOneWidget);
+      expect(find.text('Never analyzed'), findsNothing);
+    });
   });
 }

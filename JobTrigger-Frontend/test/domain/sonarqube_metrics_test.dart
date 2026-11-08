@@ -76,4 +76,31 @@ void main() {
       expect(gate.conditions.last.failsWhen, 'above');
     });
   });
+
+  group('technical debt', () {
+    test('is written the way SonarQube writes it, with an 8-hour day', () {
+      expect(formatTechnicalDebt(0), '0min');
+      expect(formatTechnicalDebt(45), '45min');
+      expect(formatTechnicalDebt(60), '1h');
+      expect(formatTechnicalDebt(200), '3h 20min');
+      expect(formatTechnicalDebt(8 * 60), '1d');
+      expect(formatTechnicalDebt(2 * 8 * 60 + 3 * 60), '2d 3h');
+    });
+
+    test('is picked out of the measure values', () {
+      expect(formatSonarQubeValue('sqale_index', '1560'), '3d 2h');
+      expect(formatSonarQubeValue('sqale_index', null), '—');
+      expect(sonarQubeMetricLabel('sqale_index'), 'Technical debt');
+    });
+
+    test('ratings are asked for alongside the headline measures', () {
+      expect(sonarQubeExtraMeasureKeys, [
+        'reliability_rating',
+        'security_rating',
+        'sqale_rating',
+        'sqale_index',
+      ]);
+      expect(formatSonarQubeValue('sqale_rating', '2.0'), 'B');
+    });
+  });
 }

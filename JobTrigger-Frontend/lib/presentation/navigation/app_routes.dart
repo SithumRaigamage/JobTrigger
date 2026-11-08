@@ -20,6 +20,7 @@ abstract class AppRoutes {
   static const openLink = '/open';
   static const globalHistory = '/history';
   static const sonarqubeProject = '/sonarqube/project';
+  static const sonarqubeIssue = '/sonarqube/project/issues/detail';
   static const sonarqubeAnalyses = '/sonarqube/project/analyses';
   static const sonarqubeIssues = '/sonarqube/project/issues';
   static const githubWorkflows = '/github/repos/workflows';

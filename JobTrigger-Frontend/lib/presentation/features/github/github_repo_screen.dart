@@ -7,12 +7,14 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../domain/github/github_repo.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/credential_load_gate.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/no_active_github_credential_view.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../../../data/credentials/active_github_credential_notifier.dart';
+import '../../../data/credentials/github_credentials_notifier.dart';
 import 'filtered_github_repos_provider.dart';
 import 'github_repo_search_notifier.dart';
 import 'github_repos_notifier.dart';
@@ -34,8 +36,21 @@ class GitHubRepoScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final activeCredential = ref.watch(activeGitHubCredentialNotifierProvider);
     if (activeCredential == null) {
-      return const Scaffold(
-        body: SafeArea(child: Center(child: NoActiveGitHubCredentialView())),
+      // Not "no credential" until the saved list says so: it may still be
+      // loading, or have failed to load.
+      return Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: CredentialLoadGate(
+              saved: ref.watch(gitHubCredentialsNotifierProvider),
+              none: const NoActiveGitHubCredentialView(),
+              onRetry: () {
+                ref.invalidate(gitHubCredentialsNotifierProvider);
+                ref.invalidate(activeGitHubCredentialNotifierProvider);
+              },
+            ),
+          ),
+        ),
       );
     }
 

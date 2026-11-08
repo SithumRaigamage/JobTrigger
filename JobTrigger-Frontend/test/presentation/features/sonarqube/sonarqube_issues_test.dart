@@ -5,6 +5,7 @@ import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_project_summary.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
@@ -14,6 +15,15 @@ import 'package:job_trigger/presentation/features/sonarqube/sonarqube_issues_not
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_issues_screen.dart';
 
 class _Repo implements SonarQubeRepository {
+  @override
+  Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
+    SonarQubeIssue issue,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<Result<Map<String, SonarQubeProjectSummary>, AppFailure>>
+  fetchProjectSummaries(List<String> projectKeys) => throw UnimplementedError();
+
   @override
   Future<Result<List<SonarQubeAnalysis>, AppFailure>> fetchAnalysisHistory(
     String projectKey,

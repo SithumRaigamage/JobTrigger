@@ -12,6 +12,7 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/status_pill.dart';
+import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'sonarqube_issues_notifier.dart';
 
@@ -87,6 +88,7 @@ class SonarQubeIssuesScreen extends ConsumerWidget {
                     ),
                   ),
                   data: (issues) => _IssueList(
+                    project: project,
                     issues: issues,
                     filtered: !filter.isEmpty,
                     onRefresh: () =>
@@ -148,12 +150,14 @@ class _FilterBar extends StatelessWidget {
 
 class _IssueList extends StatelessWidget {
   const _IssueList({
+    required this.project,
     required this.issues,
     required this.filtered,
     required this.onRefresh,
     required this.onLoadMore,
   });
 
+  final SonarQubeProject project;
   final SonarQubeIssues issues;
   final bool filtered;
   final Future<void> Function() onRefresh;
@@ -194,7 +198,8 @@ class _IssueList extends StatelessWidget {
                 style: textTheme.bodySmall?.copyWith(color: t.textMuted),
               ),
             ),
-            for (final issue in issues.issues) _IssueTile(issue: issue),
+            for (final issue in issues.issues)
+              _IssueTile(project: project, issue: issue),
             _Footer(issues: issues, onLoadMore: onLoadMore),
           ],
         ),
@@ -268,8 +273,9 @@ IconData _iconForType(String type) => switch (type) {
 /// One issue: type icon, the message, where it is, and its severity — as
 /// words as well as colour (NFR-A11Y-03).
 class _IssueTile extends StatelessWidget {
-  const _IssueTile({required this.issue});
+  const _IssueTile({required this.project, required this.issue});
 
+  final SonarQubeProject project;
   final SonarQubeIssue issue;
 
   @override
@@ -288,6 +294,8 @@ class _IssueTile extends StatelessWidget {
         excludeSemantics: true,
         child: GlassSurface.card(
           padding: const EdgeInsets.all(14),
+          onTap: () =>
+              context.push(AppRoutes.sonarqubeIssue, extra: (project, issue)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
