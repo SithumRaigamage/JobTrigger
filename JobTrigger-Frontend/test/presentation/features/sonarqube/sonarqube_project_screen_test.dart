@@ -5,6 +5,7 @@ import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/data/credentials/active_sonarqube_credential_notifier.dart';
+import 'package:job_trigger/data/credentials/sonarqube_credentials_notifier.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
@@ -73,6 +74,12 @@ class _NoCredential extends ActiveSonarQubeCredentialNotifier {
   SonarQubeCredential? build() => null;
 }
 
+/// The saved list, loaded and empty: there really is no credential.
+class _NoSavedCredentials extends SonarQubeCredentialsNotifier {
+  @override
+  Future<List<SonarQubeCredential>> build() async => const [];
+}
+
 Future<void> _pump(
   WidgetTester tester,
   _Repo repo, {
@@ -84,6 +91,9 @@ Future<void> _pump(
       overrides: [
         activeSonarQubeCredentialNotifierProvider.overrideWith(
           credential ? _Credential.new : _NoCredential.new,
+        ),
+        sonarQubeCredentialsNotifierProvider.overrideWith(
+          _NoSavedCredentials.new,
         ),
         sonarQubeRepositoryProvider.overrideWithValue(repo),
       ],

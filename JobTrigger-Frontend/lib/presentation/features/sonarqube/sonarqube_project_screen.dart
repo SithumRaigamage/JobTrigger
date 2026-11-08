@@ -6,9 +6,11 @@ import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../../data/credentials/sonarqube_credentials_notifier.dart';
 import '../../../domain/jenkins/relative_time.dart';
 import '../../../domain/sonarqube/sonarqube_project.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/credential_load_gate.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/no_active_sonarqube_credential_view.dart';
 import '../../common_widgets/responsive_center.dart';
@@ -26,8 +28,21 @@ class SonarQubeProjectScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final credential = ref.watch(activeSonarQubeCredentialNotifierProvider);
     if (credential == null) {
-      return const Scaffold(
-        body: SafeArea(child: Center(child: NoActiveSonarQubeCredentialView())),
+      // Not "no credential" until the saved list says so: it may still be
+      // loading, or have failed to load.
+      return Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: CredentialLoadGate(
+              saved: ref.watch(sonarQubeCredentialsNotifierProvider),
+              none: const NoActiveSonarQubeCredentialView(),
+              onRetry: () {
+                ref.invalidate(sonarQubeCredentialsNotifierProvider);
+                ref.invalidate(activeSonarQubeCredentialNotifierProvider);
+              },
+            ),
+          ),
+        ),
       );
     }
 
