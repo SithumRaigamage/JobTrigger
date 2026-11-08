@@ -94,6 +94,10 @@ sealed class AppFailure {
       "The server sent a response the app didn't understand. Check that "
           'the server URL is correct — not a login page or proxy.',
     RejectedRequestFailure(:final serverMessage) => serverMessage,
+    DispatchRejectedFailure(:final detail) =>
+      detail == null
+          ? _dispatchRejected
+          : '$_dispatchRejected GitHub said: $detail',
     UnknownFailure() => 'Something unexpected happened. Please try again.',
   };
 }
@@ -177,3 +181,18 @@ final class UnknownFailure extends AppFailure {
 
   final String? debugMessage;
 }
+
+/// GitHub answered a `workflow_dispatch` with 422 (`US-GH-RUN-02`): the
+/// workflow has no `workflow_dispatch` trigger, or the ref or inputs were
+/// rejected. The REST API can't say which ahead of time, so the copy names
+/// all three and appends GitHub's own [detail] when it sent one. GitHub-only.
+final class DispatchRejectedFailure extends AppFailure {
+  const DispatchRejectedFailure([this.detail]);
+
+  final String? detail;
+}
+
+const _dispatchRejected =
+    "GitHub didn't accept the trigger. The workflow may not allow manual "
+    'runs (it needs a workflow_dispatch trigger), or the branch or inputs '
+    'are invalid.';

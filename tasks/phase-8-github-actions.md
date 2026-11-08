@@ -289,44 +289,91 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
 
 ## GH-RUN — Workflow runs: view, trigger, live status, cancel, steps
 
-- [ ] P8-12 `GitHubWorkflowRun` domain type + DTO — **two separate
+- [x] P8-12 `GitHubWorkflowRun` domain type + DTO — **two separate
       fields**, `status` and `conclusion` (not one `result` string like
       Jenkins), per the verified API shape.
-- [ ] P8-13 `GitHubRepository.fetchRuns(owner, repo, workflowId)` — `GET
+      **Done 2026-11-08.** `domain/github/github_workflow_run.dart` keeps
+      both fields as GitHub sends them and collapses the pair into one
+      `GitHubRunOutcome` (success/failure/running/queued/attention/neutral)
+      plus a label, so the UI shows one status language. Unknown values
+      GitHub adds later fall back to neutral/queued with a humanized label.
+- [x] P8-13 `GitHubRepository.fetchRuns(owner, repo, workflowId)` — `GET
       /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`
       (`US-GH-RUN-01`).
-- [ ] P8-14 `GitHubRepository.triggerRun(owner, repo, workflowId, {ref,
+      **Done 2026-11-08 (implemented and unit-tested; the `NFR-TEST-03`
+      real-repository check is still pending).** First page only
+      (`per_page=30`, paging is GH-HIST P8-24). `GitHubRunsNotifier`
+      family keyed by `(owner, repo, workflowId)`; `GitHubRunsScreen` shows
+      recent runs with loading/empty/error+retry, opened by tapping a
+      workflow tile (route `AppRoutes.githubRuns`, `extra` is
+      `(GitHubRepo, GitHubWorkflow)`). Run tiles are inert until the run
+      detail screen (P8-17).
+- [x] P8-14 `GitHubRepository.triggerRun(owner, repo, workflowId, {ref,
       inputs})` — `POST .../dispatches`; 204 response carries no run ID
       (unlike Jenkins' `Location`-header queue tracking, `US-PIPE-01`) —
       the notifier refreshes the runs list rather than tracking the new
       run directly; a 422 (workflow has no `workflow_dispatch` trigger)
       maps to a specific, clear `AppFailure` message, not a generic
       server error (`US-GH-RUN-02`).
-- [ ] P8-15 `GitHubRepository.fetchRun(owner, repo, runId)` +
+      **Done 2026-11-08 (implemented and unit-tested; `NFR-TEST-03`
+      real-repository check pending).** `triggerRun` POSTs `ref` and
+      `inputs` as a JSON object (never string-built). A 422 becomes the new
+      `DispatchRejectedFailure`, whose copy names the three possible causes
+      (no `workflow_dispatch` trigger, bad branch, bad inputs) and appends
+      GitHub's own message. `GitHubTriggerNotifier` toasts, then refreshes
+      the runs list now and again after 3s, since 204 carries no run id.
+- [x] P8-15 `GitHubRepository.fetchRun(owner, repo, runId)` +
       `GitHubRunPollingNotifier` — 5s polling while not `completed`, same
       timer/`ref.onDispose` discipline as `BuildStatusPollingNotifier`;
       stops on a rate-limit response with a clear message rather than
       retrying into a worse state (`US-GH-RUN-03`).
-- [ ] P8-16 `GitHubRepository.cancelRun(owner, repo, runId)` — `POST
+      **Done 2026-11-08.** `fetchRun` + `GitHubRunNotifier` +
+      `GitHubRunPollingNotifier` (5s while not `completed`, timer cancelled
+      in `ref.onDispose`). A `RateLimitFailure` stops polling and the screen
+      shows its message over the last known state; other errors keep
+      polling so a dropped connection recovers.
+- [x] P8-16 `GitHubRepository.cancelRun(owner, repo, runId)` — `POST
       .../cancel` (202 Accepted, genuinely async — no optimistic
       `cancelled` flip like Jenkins' `US-JOB-05`, a "cancelling…"
       transitional state instead, corrected by the next poll)
       (`US-GH-RUN-04`).
-- [ ] P8-17 Workflow-run detail screen: trigger form (ref field defaulting
+      **Done 2026-11-08.** `cancelRun` + `GitHubCancelNotifier`: success
+      only records that a cancel was *requested*; the run is never flipped
+      to cancelled locally. A failure changes nothing and toasts.
+- [x] P8-17 Workflow-run detail screen: trigger form (ref field defaulting
       to the repo's default branch, untyped key/value inputs list — no
       typed `ParameterForm` equivalent is possible here, GitHub's API
       doesn't expose a workflow's declared input schema, `US-GH-RUN-02`'s
       flagged gap), confirm-before-trigger and confirm-before-cancel
       dialogs, live status display.
-- [ ] P8-18 `GitHubJob` domain type + DTO (`id,name,status,conclusion,
+      **Done 2026-11-08.** `showGitHubTriggerSheet` (branch field
+      defaulting to the repo's default branch, untyped name/value inputs,
+      blank/duplicate input validation in `domain/github/workflow_inputs.dart`),
+      confirm dialogs for trigger and cancel, `GitHubRunDetailScreen` (live
+      status, "Cancelling…" until the poll shows the real conclusion).
+      Reached by tapping a run (`AppRoutes.githubRunDetail`).
+- [x] P8-18 `GitHubJob` domain type + DTO (`id,name,status,conclusion,
       steps[]`) + `GitHubRepository.fetchJobs(owner, repo, runId)` — `GET
       .../runs/{run_id}/jobs` (`US-GH-RUN-05`).
-- [ ] P8-19 Promote `_StageChipRow` out of `job_detail_screen.dart` into a
+      **Done 2026-11-08 (implemented and unit-tested; `NFR-TEST-03`
+      real-repository check pending).** `GitHubJob`/`GitHubStep` +
+      `fetchJobs` (`per_page=100`) + `GitHubJobsNotifier`, refreshed on the
+      run's 5s tick. Status + conclusion logic for runs, jobs and steps now
+      lives in one place (`domain/github/github_status.dart`).
+- [x] P8-19 Promote `_StageChipRow` out of `job_detail_screen.dart` into a
       shared widget (`presentation/common_widgets/stage_chip_row.dart` or
       similar) so both Jenkins pipeline stages (`US-PIPE-04`) and GitHub
       job steps reuse the same rendering — do this as part of P8-18/20's
       UI work, not a separate unrelated refactor commit.
-- [ ] P8-20 Unit tests: all new repository methods against mocked
+      **Done 2026-11-08.** The task text names `_StageChipRow`, but the P14
+      redesign had already made it the public `StageChipRow` with Jenkins
+      logic baked in. The reusable part is now
+      `common_widgets/segment_row.dart` (`SegmentRow`/`SegmentItem`);
+      `StageChipRow` builds its items and is otherwise unchanged (71 job
+      detail tests still pass). GitHub steps use the same widget, shown per
+      job on the run detail screen.
+- [ ] P8-20 (partly covered by P8-12/13: parsing, empty, 404, screen and
+      notifier tests exist; trigger/cancel/polling tests remain) Unit tests: all new repository methods against mocked
       responses (status/conclusion parsing, 422-on-dispatch mapping,
       pagination via `Link` header, rate-limit mid-poll handling); polling
       notifier timer/dispose tests mirroring
@@ -334,7 +381,7 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
 
 ## GH-LOG — Job log viewing
 
-- [ ] P8-21 `GitHubRepository.fetchJobLog(owner, repo, jobId)` — `GET
+- [x] P8-21 `GitHubRepository.fetchJobLog(owner, repo, jobId)` — `GET
       .../jobs/{job_id}/logs`, follows the 302 redirect and fetches the
       plain-text body as one atomic operation (the redirect URL itself
       never reaches the UI or gets cached — it expires in ~1 minute per
@@ -344,27 +391,60 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       flagged in the epic doc — don't try to work around it with naive
       full-redownload polling, that was explicitly rejected as a design
       option).
-- [ ] P8-22 `GitHubJobLogScreen` — reuses `ConsoleLogViewer` unmodified
+      **Done 2026-11-08 (implemented and unit-tested; `NFR-TEST-03`
+      real-repository check pending).** The 302 is followed by hand: hop 1
+      carries the Bearer token to `api.github.com`; hop 2 uses a bare client
+      so the token never reaches the signed storage URL, which stays inside
+      the method. Tested with a recording adapter (storage request has no
+      `Authorization`). `GitHubJobLogNotifier` is a one-shot fetch.
+- [x] P8-22 `GitHubJobLogScreen` — reuses `ConsoleLogViewer` unmodified
       for rendering (`US-LOG-01`'s virtualized list); a manual "check now"
       refresh action instead of automatic polling while a job is still
       running; copy/share via the same `share_plus` pattern as
       `BuildLogScreen` (`US-GH-LOG-02`).
-- [ ] P8-23 Unit tests: redirect-following log fetch against a mocked
+      **Done 2026-11-08.** `GitHubJobLogScreen` uses the shared
+      `ConsoleLogViewer` unchanged. A job that hasn't completed never
+      fetches: it shows "available once this job finishes" and a Check now
+      button (refreshes the jobs; the screen switches to the log when the
+      job completes). Copy and share use the whole downloaded text, enabled
+      only after a log loads. The Jenkins log screen shows no first-share
+      secret notice either, so none was added here; if wanted, add it to
+      both.
+- [x] P8-23 Unit tests: redirect-following log fetch against a mocked
       302 → text sequence; in-progress-job "not available yet" state.
 
+      **Done 2026-11-08.** Redirect sequence (token not sent to storage),
+      direct 200, missing Location, 404, expired signed URL, in-progress
+      job never fetches, copy/share disabled before load, retry.
 ## GH-HIST — Run history
 
-- [ ] P8-24 Per-workflow history screen reusing `HistoryTile`'s visual
+- [x] P8-24 Per-workflow history screen reusing `HistoryTile`'s visual
       pattern (adapted for `GitHubWorkflowRun`) — this is the same data
       P8-13 already fetches, just a fuller-page presentation
       (`US-GH-HIST-01`).
-- [ ] P8-25 Global cross-repo history feed (`Could` priority — genuinely
+      **Done 2026-11-08 (implemented and unit-tested; `NFR-TEST-03`
+      real-repository check pending).** `fetchRuns` takes a `page`
+      (30 runs a page); `GitHubRunHistoryNotifier` loads pages like the
+      Jenkins job history (a short page is the end; a failed page keeps the
+      list and offers a retry). `GitHubRunHistoryScreen` mirrors
+      `HistoryTile`'s look, loads more on scroll, and is opened from the
+      new History button on the runs screen. Tapping a row opens the run.
+- [x] P8-25 Global cross-repo history feed (`Could` priority — genuinely
       optional, do last, revisit whether it's worth the rate-limit cost
       before starting): fans out one runs-fetch per accessible repo,
       capped to the N most-recently-updated repos rather than exhausting
       GitHub's 5,000/hr rate limit on one screen (`US-GH-HIST-02`'s
       explicit scope-down).
 
+      **Done 2026-11-08 (implemented and unit-tested; `NFR-TEST-03`
+      real-repository check pending).** Worth the rate-limit cost with a
+      cap: `GitHubGlobalHistoryNotifier` asks the 8 most recently updated
+      repos (5 runs each, one `GET .../actions/runs?per_page=5` per repo,
+      so about 8 requests per open against the 5,000/hour limit), merges by
+      date and keeps 50. One repo failing doesn't hide the rest; all failing
+      is an error. The screen states how many repos were left out or
+      unreadable, so a short list isn't mistaken for a complete one. Opened
+      from the history icon on the repositories screen.
 ## Cross-cutting
 
 - [ ] P8-26 `NFR-SEC-03` verification: a live test confirming a GitHub

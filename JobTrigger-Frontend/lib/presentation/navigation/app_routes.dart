@@ -20,6 +20,11 @@ abstract class AppRoutes {
   static const openLink = '/open';
   static const globalHistory = '/history';
   static const githubWorkflows = '/github/repos/workflows';
+  static const githubRuns = '/github/repos/workflows/runs';
+  static const githubGlobalHistory = '/github/history';
+  static const githubHistory = '/github/repos/workflows/history';
+  static const githubRunDetail = '/github/repos/workflows/runs/detail';
+  static const githubJobLog = '/github/repos/workflows/runs/detail/log';
   // Add/edit server is a modal bottom sheet (ServerEditBottomSheet), not a
   // route — see presentation/features/settings/server_edit_bottom_sheet.dart.
   static const settings = '/settings';

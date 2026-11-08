@@ -13,6 +13,7 @@ import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_pill.dart';
 import '../../common_widgets/status_tile.dart';
 import '../../common_widgets/responsive_center.dart';
+import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'github_workflows_notifier.dart';
 
@@ -21,12 +22,8 @@ import 'github_workflows_notifier.dart';
 /// navigator like `JobDetailScreen`/`BuildLogScreen` -- a drill-down, not
 /// a tab-shell root.
 ///
-/// Tiles are deliberately inert (no tap action): GH-RUN, the run list/
-/// trigger flow a tap would lead to, doesn't exist yet
-/// (`tasks/phase-8-github-actions.md`'s GH-RUN section). Wiring a tap here
-/// with nowhere real to go would be a dead end, not a feature. So the P14
-/// design's "Run" buttons and recent runs (`UI-UX/screens/18-github-
-/// workflows`) wait for GH-RUN too; the rest of its look is here.
+/// A tile opens the workflow's recent runs (`US-GH-RUN-01`). The P14
+/// design's "Run" buttons wait for the trigger flow (P8-14/17).
 class GitHubWorkflowListScreen extends ConsumerWidget {
   const GitHubWorkflowListScreen({required this.repo, super.key});
 
@@ -141,8 +138,13 @@ class _WorkflowListView extends ConsumerWidget {
               ),
               sliver: SliverList.separated(
                 itemCount: workflows.length,
-                itemBuilder: (context, index) =>
-                    _WorkflowTile(workflow: workflows[index]),
+                itemBuilder: (context, index) => _WorkflowTile(
+                  workflow: workflows[index],
+                  onTap: () => context.push(
+                    AppRoutes.githubRuns,
+                    extra: (repo, workflows[index]),
+                  ),
+                ),
                 separatorBuilder: (_, _) => const Divider(),
               ),
             ),
@@ -180,12 +182,14 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-/// One workflow: its name, its file, and whether it's disabled. Inert for
-/// now — see [GitHubWorkflowListScreen].
+/// One workflow: its name, its file, and whether it's disabled. Tapping
+/// opens its recent runs (`US-GH-RUN-01`), disabled workflows included —
+/// their history is still worth reading.
 class _WorkflowTile extends StatelessWidget {
-  const _WorkflowTile({required this.workflow});
+  const _WorkflowTile({required this.workflow, required this.onTap});
 
   final GitHubWorkflow workflow;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -193,42 +197,46 @@ class _WorkflowTile extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     // AUD-62's rule: availability is shown by the tile and the pill, never
     // by fading the text below its contrast floor.
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Row(
-        children: [
-          StatusTile(
-            tone: workflow.isActive ? StatusTone.running : StatusTone.neutral,
-            icon: Icons.bolt_rounded,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  workflow.name,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  workflow.path,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.mono(
-                    textTheme.bodySmall,
-                  ).copyWith(fontSize: 12, color: t.textMuted),
-                ),
-              ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            StatusTile(
+              tone: workflow.isActive ? StatusTone.running : StatusTone.neutral,
+              icon: Icons.bolt_rounded,
             ),
-          ),
-          if (!workflow.isActive) ...[
-            const SizedBox(width: 8),
-            const StatusPill(label: 'Disabled', tone: StatusTone.neutral),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    workflow.name,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    workflow.path,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.mono(
+                      textTheme.bodySmall,
+                    ).copyWith(fontSize: 12, color: t.textMuted),
+                  ),
+                ],
+              ),
+            ),
+            if (!workflow.isActive) ...[
+              const SizedBox(width: 8),
+              const StatusPill(label: 'Disabled', tone: StatusTone.neutral),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

@@ -9,6 +9,8 @@ import 'package:job_trigger/data/repositories/github_repository_impl.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/auth/user.dart';
 import 'package:job_trigger/domain/credential/github_credential.dart';
+import 'package:job_trigger/domain/github/github_job.dart';
+import 'package:job_trigger/domain/github/github_workflow_run.dart';
 import 'package:job_trigger/domain/github/github_repo.dart';
 import 'package:job_trigger/domain/github/github_repository.dart';
 import 'package:job_trigger/domain/github/github_workflow.dart';
@@ -38,6 +40,58 @@ const _fakeGitHubCredential = GitHubCredential(
 
 /// Reused fake from `filtered_github_repos_provider_test.dart`'s pattern.
 class _FakeGitHubRepository implements GitHubRepository {
+  @override
+  Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRepoRuns(
+    String owner,
+    String repo, {
+    int limit = 5,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Result<String, AppFailure>> fetchJobLog(
+    String owner,
+    String repo,
+    int jobId,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<Result<List<GitHubJob>, AppFailure>> fetchJobs(
+    String owner,
+    String repo,
+    int runId,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<Result<void, AppFailure>> triggerRun(
+    String owner,
+    String repo,
+    int workflowId, {
+    required String ref,
+    Map<String, String> inputs = const {},
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Result<GitHubWorkflowRun, AppFailure>> fetchRun(
+    String owner,
+    String repo,
+    int runId,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<Result<void, AppFailure>> cancelRun(
+    String owner,
+    String repo,
+    int runId,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRuns(
+    String owner,
+    String repo,
+    int workflowId, {
+    int page = 1,
+  }) => throw UnimplementedError();
+
   _FakeGitHubRepository(this._repos, this._workflows);
 
   final List<GitHubRepo> _repos;
