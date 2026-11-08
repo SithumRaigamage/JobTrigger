@@ -143,7 +143,48 @@ flutter run -d <device>
    from §5 where one exists. Include the real author/co-author trailer on
    every commit — never omit attribution.
 
-## 10. Current status
+## 10. Instructions for the owner target the iPhone (strict)
+
+The owner tests on a physical **iPhone**. Whenever you tell the owner how to
+run, test or verify something, write the steps for the iPhone:
+
+- Install and run with `scripts/run-on-iphone.sh` (a profile build; the
+  setup is in `IPHONE.md`). Don't give simulator or Android-emulator steps
+  unless the owner asks for them.
+- Anything the phone connects to (the backend, Jenkins, SonarQube) is
+  reached at the **Mac's Wi-Fi address** (`ipconfig getifaddr en0`), never
+  `localhost`, `127.0.0.1` or `10.0.2.2`, which on the phone mean the phone
+  itself. Give the real address, not a placeholder, when you can read it.
+- Write in-app steps as taps on the phone, using the labels the app really
+  shows (check the code, don't guess).
+- Steps that can only happen on the Mac (running a script, Docker, a web UI
+  such as SonarQube's) stay Mac steps; say so, then say what to do on the
+  phone afterwards.
+
+## 11. Earlier development must keep working (strict)
+
+Work that is already built and verified must not stop working when you add
+or change something. Jenkins is complete: treat it as frozen, and change it
+only to fix a reported bug.
+
+- **Run the whole suite before every PR**, not only the tests for what you
+  touched: `flutter analyze` and `flutter test` in `JobTrigger-Frontend/`,
+  and `npm test` in `JobTrigger-Backend/` when the backend changed. Both
+  must be clean.
+- **Shared code is shared by every tool.** `core/error/app_failure.dart`,
+  the router, the theme, `common_widgets/` and the repository fakes in
+  `test/` serve Jenkins, GitHub Actions and SonarQube alike. A change there
+  must leave the other tools' behaviour and copy exactly as they were:
+  add a tool-specific case instead of changing a shared one.
+- **Never delete or weaken a test to make a change pass.** Update an
+  existing test only when the behaviour was changed on purpose, and say so
+  in the commit and the PR. A failing old test means something broke.
+- **When merging branches, re-run everything on the merged result.** Two
+  branches that each pass can still fail together.
+- **Say what you could not verify.** If something can only be checked on a
+  real server or device, mark it unverified instead of calling it done.
+
+## 12. Current status
 
 Tracked in `tasks/README.md`. Update the phase status table there whenever a
 task moves state — this file doesn't duplicate that tracker.
