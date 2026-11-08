@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/error/app_failure.dart';
+import '../../../core/error/no_retry.dart';
 import '../../../core/error/result.dart';
 import '../../../data/cache/job_tree_cache.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
@@ -28,10 +28,18 @@ const rootFolderKey = '';
 /// `jenkinsRepositoryProvider`.
 ///
 /// US-JX-20: every successful listing is saved to [JobTreeCache]; on a
-/// `NetworkFailure` the last saved listing is served instead, and
-/// [OfflineSnapshotNotifier] records how old it is for Home's banner.
-@riverpod
+/// unreachable server (`AppFailure.isUnreachable`) the last saved listing
+/// is served instead, and [OfflineSnapshotNotifier] records how old it is
+/// for Home's banner. [recheck] lets the app notice an outage while a
+/// listing is already on screen.
+@Riverpod(retry: noRetry)
 class FolderContentsNotifier extends _$FolderContentsNotifier {
+  /// The last listing fetched live, and when — the fallback when the disk
+  /// cache can't be read, and the age shown if the server goes away while
+  /// this listing is on screen.
+  List<JenkinsJob>? _lastListing;
+  DateTime? _lastLoadedAt;
+
   @override
   Future<List<JenkinsJob>> build(String folderUrl) async {
     final serverId =
@@ -46,21 +54,51 @@ class FolderContentsNotifier extends _$FolderContentsNotifier {
 
     switch (result) {
       case Ok(:final value):
+        _lastListing = value;
+        _lastLoadedAt = DateTime.now();
         _markOnline();
         // Saved in the background: the listing is already in hand.
         unawaited(_bestEffort(() => cache.write(serverId, folderUrl, value)));
         return value;
-      case Err(:final error) when error is NetworkFailure:
+      case Err(:final error) when error.isUnreachable:
         final cached = await _bestEffort(() => cache.read(serverId, folderUrl));
-        if (cached == null) throw error;
+        final jobs = cached?.jobs ?? _lastListing;
+        final savedAt = cached?.savedAt ?? _lastLoadedAt;
+        if (jobs == null || savedAt == null) throw error;
         if (ref.mounted) {
           ref
               .read(offlineSnapshotNotifierProvider.notifier)
-              .markOffline(cached.savedAt);
+              .markOffline(savedAt);
         }
-        return cached.jobs;
+        return jobs;
       case Err(:final error):
         throw error;
+    }
+  }
+
+  /// A quiet reachability probe for a listing that's already on screen:
+  /// nothing refetches while Home sits open, so a stopped server would
+  /// otherwise go unnoticed. Unreachable flips the offline banner on over
+  /// the current list; reachable again, after being offline, reloads live
+  /// data. Any other failure is left for the next real fetch to report.
+  Future<void> recheck() async {
+    final result = await ref
+        .read(jenkinsRepositoryProvider)
+        .fetchFolder(folderUrl == rootFolderKey ? null : folderUrl);
+    if (!ref.mounted) return;
+    final offline = ref.read(offlineSnapshotNotifierProvider) != null;
+    switch (result) {
+      case Ok() when offline:
+        ref.invalidateSelf();
+      case Err(:final error) when error.isUnreachable && !offline:
+        final shownSince = _lastLoadedAt;
+        if (shownSince != null) {
+          ref
+              .read(offlineSnapshotNotifierProvider.notifier)
+              .markOffline(shownSince);
+        }
+      default:
+        break;
     }
   }
 

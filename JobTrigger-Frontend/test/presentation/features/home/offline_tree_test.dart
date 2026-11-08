@@ -9,8 +9,11 @@ import 'package:job_trigger/data/cache/job_tree_cache.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
+import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
 import 'package:job_trigger/presentation/features/home/folder_contents_notifier.dart';
 import 'package:job_trigger/presentation/features/home/home_screen.dart';
+import 'package:job_trigger/presentation/features/home/job_tree_notifier.dart';
+import 'package:job_trigger/presentation/features/home/reachability_watcher.dart';
 import 'package:job_trigger/data/credentials/active_server_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,12 +33,25 @@ class _Server extends ActiveServerNotifier {
 class _Repo extends FakeJenkinsRepository {
   bool online = true;
 
+  /// Returned while not [online]; a stopped server by default.
+  AppFailure failure = const NetworkFailure();
+
+  int treeFetches = 0;
+
+  @override
+  Future<Result<List<JenkinsJob>, AppFailure>> fetchJobTree() async {
+    treeFetches++;
+    return online
+        ? const Ok([JenkinsJob(name: 'api', url: 'https://ci/job/api/')])
+        : Err(failure);
+  }
+
   @override
   Future<Result<List<JenkinsJob>, AppFailure>> fetchFolder(
     String? folderUrl,
   ) async => online
       ? const Ok([JenkinsJob(name: 'api', url: 'https://ci/job/api/')])
-      : const Err(NetworkFailure());
+      : Err(failure);
 }
 
 void main() {
@@ -86,6 +102,122 @@ void main() {
       expect(c.read(offlineSnapshotNotifierProvider), isNull);
     },
   );
+
+  test(
+    'recheck flags an outage under a live list, and clears it on return',
+    () async {
+      final repo = _Repo();
+      final c = container(repo);
+      final key = folderContentsNotifierProvider(rootFolderKey);
+      await c.read(key.future);
+      expect(c.read(offlineSnapshotNotifierProvider), isNull);
+
+      repo.online = false;
+      await c.read(key.notifier).recheck();
+      // The list stays; only the offline flag changes.
+      expect(c.read(offlineSnapshotNotifierProvider), isNotNull);
+      expect(c.read(key).value?.single.name, 'api');
+
+      repo.online = true;
+      await c.read(key.notifier).recheck();
+      await c.read(key.future);
+      expect(c.read(offlineSnapshotNotifierProvider), isNull);
+    },
+  );
+
+  test('a gateway error (502) from a proxy counts as offline', () async {
+    final repo = _Repo();
+    final c = container(repo);
+    final key = folderContentsNotifierProvider(rootFolderKey);
+    await c.read(key.future);
+
+    repo
+      ..online = false
+      ..failure = const ServerFailure(502);
+    await c.read(key.notifier).recheck();
+    expect(c.read(offlineSnapshotNotifierProvider), isNotNull);
+  });
+
+  test('recheck ignores failures that aren\'t about reachability', () async {
+    final repo = _Repo();
+    final c = container(repo);
+    final key = folderContentsNotifierProvider(rootFolderKey);
+    await c.read(key.future);
+
+    repo
+      ..online = false
+      ..failure = const AuthFailure();
+    await c.read(key.notifier).recheck();
+    expect(c.read(offlineSnapshotNotifierProvider), isNull);
+  });
+
+  test('the job tree fails at once offline instead of retrying', () async {
+    final repo = _Repo()..online = false;
+    final c = container(repo);
+    c.listen(jobTreeNotifierProvider, (_, _) {});
+    for (var i = 0; i < 20; i++) {
+      if (c.read(jobTreeNotifierProvider).hasError) break;
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(c.read(jobTreeNotifierProvider).error, isA<NetworkFailure>());
+    // Riverpod's default retry would have fetched again by now.
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    expect(repo.treeFetches, 1);
+  });
+
+  test('a failed job tree reloads when the server is back', () async {
+    final repo = _Repo()..online = false;
+    final c = container(repo);
+    c.listen(jobTreeNotifierProvider, (_, _) {});
+    for (var i = 0; i < 20; i++) {
+      if (c.read(jobTreeNotifierProvider).hasError) break;
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    c
+        .read(offlineSnapshotNotifierProvider.notifier)
+        .markOffline(DateTime.now());
+
+    repo.online = true;
+    c.read(offlineSnapshotNotifierProvider.notifier).markOnline();
+    final jobs = await c.read(jobTreeNotifierProvider.future);
+    expect(jobs.single.name, 'api');
+  });
+
+  testWidgets('Home says "Back online" when the server returns', (
+    tester,
+  ) async {
+    final repo = _Repo();
+    final c = ProviderContainer(
+      overrides: [
+        jenkinsRepositoryProvider.overrideWithValue(repo),
+        activeServerNotifierProvider.overrideWith(_Server.new),
+        jobTreeCacheProvider.overrideWithValue(_MemoryCache()),
+        reachabilityWatcherProvider.overrideWith((ref) {}),
+      ],
+    );
+    addTearDown(c.dispose);
+    // The app's `ToastOverlay` is what keeps this alive.
+    c.listen(currentToastProvider, (_, _) {});
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: c,
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(c.read(currentToastProvider), isNull);
+
+    c
+        .read(offlineSnapshotNotifierProvider.notifier)
+        .markOffline(DateTime.now());
+    await tester.pump();
+    c.read(offlineSnapshotNotifierProvider.notifier).markOnline();
+    await tester.pump();
+    final toast = c.read(currentToastProvider);
+    expect(toast?.type, ToastType.success);
+    expect(toast?.title, 'Back online');
+    c.read(toastControllerProvider).dismiss();
+  });
 
   test('offline with nothing cached is still an error, not empty', () async {
     final c = container(_Repo()..online = false);

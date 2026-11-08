@@ -42,6 +42,17 @@ sealed class AppFailure {
     }
   }
 
+  /// The server can't be reached right now: a connection failure, or a
+  /// gateway answering for a stopped Jenkins (502/503/504 from a reverse
+  /// proxy or tunnel). Callers use it to fall back to cached data instead
+  /// of showing an error.
+  bool get isUnreachable => switch (this) {
+    NetworkFailure() => true,
+    ServerFailure(:final statusCode) =>
+      statusCode == 502 || statusCode == 503 || statusCode == 504,
+    _ => false,
+  };
+
   /// GitHub-specific: a 403 with `X-RateLimit-Remaining: 0` means the
   /// request was rejected for exceeding GitHub's rate limit, not because
   /// the credential was rejected — a real API behavior Jenkins/the backend

@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/network/no_retry.dart';
+import '../../../core/error/no_retry.dart';
 import '../../../domain/jenkins/history_entry.dart';
 import '../../../domain/jenkins/history_filter.dart';
 import '../home/job_tree_notifier.dart';

@@ -10,6 +10,7 @@ import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifier.dart';
 import 'package:job_trigger/presentation/features/home/home_screen.dart';
+import 'package:job_trigger/presentation/features/home/reachability_watcher.dart';
 import 'package:job_trigger/data/credentials/active_server_notifier.dart';
 import 'package:job_trigger/data/credentials/credentials_notifier.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
@@ -22,6 +23,13 @@ const _fakeServer = JenkinsServer(
   username: 'user',
   secret: 'secret',
 );
+
+/// The saved-server list loaded, and empty: Home shows "no server" until
+/// the test sets one.
+class _NoSavedServers extends CredentialsNotifier {
+  @override
+  Future<List<JenkinsServer>> build() async => const [];
+}
 
 class _FakeJenkinsRepository extends FakeJenkinsRepository {
   _FakeJenkinsRepository(this._jobs);
@@ -71,7 +79,12 @@ void main() {
       );
       final repo = _FakeJenkinsRepository([folder]);
       final container = ProviderContainer(
-        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+        overrides: [
+          jenkinsRepositoryProvider.overrideWithValue(repo),
+          // No 30 s timer left pending when the test ends.
+          reachabilityWatcherProvider.overrideWith((ref) {}),
+          credentialsNotifierProvider.overrideWith(_NoSavedServers.new),
+        ],
       );
       addTearDown(container.dispose);
 
@@ -144,7 +157,12 @@ void main() {
   ) async {
     final repo = _FakeJenkinsRepository(const []);
     final container = ProviderContainer(
-      overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        jenkinsRepositoryProvider.overrideWithValue(repo),
+        // No 30 s timer left pending when the test ends.
+        reachabilityWatcherProvider.overrideWith((ref) {}),
+        credentialsNotifierProvider.overrideWith(_NoSavedServers.new),
+      ],
     );
     addTearDown(container.dispose);
 

@@ -9,6 +9,7 @@ import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
 import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
+import 'package:job_trigger/presentation/features/home/reachability_watcher.dart';
 import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifier.dart';
 import 'package:job_trigger/presentation/features/home/home_screen.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
@@ -61,6 +62,8 @@ void main() {
   }) async {
     final container = ProviderContainer(
       overrides: [
+        // No 30 s outage-check timer left pending when the test ends.
+        reachabilityWatcherProvider.overrideWith((ref) {}),
         jenkinsRepositoryProvider.overrideWithValue(_Repository()),
         credentialsNotifierProvider.overrideWith(
           () => _Credentials([_server(serverUrl)]),

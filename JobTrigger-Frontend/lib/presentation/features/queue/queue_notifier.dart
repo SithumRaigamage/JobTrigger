@@ -4,7 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/app_failure.dart';
 import '../../../core/error/result.dart';
-import '../../../core/network/no_retry.dart';
+import '../../../core/error/no_retry.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/queue_entry.dart';
 import '../../common_widgets/toast_controller.dart';
