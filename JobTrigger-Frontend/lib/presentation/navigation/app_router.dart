@@ -114,27 +114,9 @@ class _ToolAwareHistoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final activeTool = ref.watch(activeToolNotifierProvider);
     return switch (activeTool) {
-      CiTool.githubActions => const _GitHubHistoryUnavailableScreen(),
+      CiTool.githubActions => const GitHubGlobalHistoryScreen(isTab: true),
       _ => const GlobalHistoryScreen(),
     };
-  }
-}
-
-/// Placeholder shown for the History tab while GitHub Actions is active --
-/// `GH-HIST` doesn't exist yet, so this is an explicit "not built" state
-/// rather than silently showing Jenkins data or a dead screen.
-class _GitHubHistoryUnavailableScreen extends StatelessWidget {
-  const _GitHubHistoryUnavailableScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return _MessageScreen(
-      mark: const Icon(Icons.history_rounded, size: 56),
-      title: 'History',
-      message: 'GitHub Actions run history is coming soon',
-      actionLabel: 'Switch CI tool',
-      onAction: () => context.go(AppRoutes.toolSelection),
-    );
   }
 }
 

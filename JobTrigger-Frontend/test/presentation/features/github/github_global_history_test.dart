@@ -149,6 +149,29 @@ void main() {
       expect(find.textContaining('1 could not be read'), findsOneWidget);
     });
 
+    testWidgets('as the History tab root it has no back button', (
+      tester,
+    ) async {
+      final fake = FakeGitHubRepository()
+        ..reposResult = Ok([_repo('api')])
+        ..repoRuns['api'] = Ok([testRun(1, createdAt: _at(1))]);
+      await tester.pumpWidget(
+        ProviderScope(
+          retry: (retryCount, error) => null,
+          overrides: [gitHubRepositoryProvider.overrideWithValue(fake)],
+          child: MaterialApp(
+            theme: AppTheme.dark(),
+            home: const GitHubGlobalHistoryScreen(isTab: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Recent activity'), findsOneWidget);
+      expect(find.byTooltip('Back'), findsNothing);
+      expect(find.textContaining('acme/api'), findsWidgets);
+    });
+
     testWidgets('an empty feed says so', (tester) async {
       await pump(tester, FakeGitHubRepository()..reposResult = const Ok([]));
 

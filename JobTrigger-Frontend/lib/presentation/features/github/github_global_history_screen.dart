@@ -17,7 +17,11 @@ import 'github_run_history_screen.dart' show GitHubRunHistoryTile;
 /// [globalHistoryRepoCap] repos and merges the answers; the screen says
 /// plainly how many repos it left out or couldn't read.
 class GitHubGlobalHistoryScreen extends ConsumerWidget {
-  const GitHubGlobalHistoryScreen({super.key});
+  /// [isTab] is true when this is the History tab's root: there is nothing
+  /// to go back to, so no back button.
+  const GitHubGlobalHistoryScreen({this.isTab = false, super.key});
+
+  final bool isTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,19 +36,20 @@ class GitHubGlobalHistoryScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    icon: const Icon(Icons.chevron_left_rounded, size: 28),
-                    tooltip: 'Back',
-                    onPressed: () => context.pop(),
+              if (!isTab)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      icon: const Icon(Icons.chevron_left_rounded, size: 28),
+                      tooltip: 'Back',
+                      onPressed: () => context.pop(),
+                    ),
                   ),
                 ),
-              ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                padding: EdgeInsets.fromLTRB(20, isTab ? 16 : 4, 20, 8),
                 child: Semantics(
                   header: true,
                   child: Text(
