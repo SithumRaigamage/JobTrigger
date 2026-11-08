@@ -204,6 +204,15 @@ would be unrelated scope creep for this phase.
       401 never triggers Jenkins/GitHub's auth handling or the backend's
       global logout, and vice versa — four independent auth failure
       domains, not two or three.
+      **Partly done 2026-11-08 (left unchecked).** Automated evidence in
+      `test/core/network/sonarqube_auth_isolation_test.dart` (real client
+      factories, scripted adapters): a SonarQube 401 is only an
+      `AuthFailure` (no `SessionSignal`, backend tokens kept); a 403 is a
+      permission failure, not an auth one; the backend losing its session
+      leaves the SonarQube, GitHub and Jenkins clients working with their own
+      credentials; the SonarQube client never carries the backend token.
+      Still open: the live check against a real SonarQube, which needs a real
+      server and token.
 - [ ] P10-15 Full real-server verification pass: every SQ-CRED/PROJ/QUALITY
       task above manually verified against a real SonarCloud organization
       and a real self-hosted SonarQube Server instance (both flavors, per
