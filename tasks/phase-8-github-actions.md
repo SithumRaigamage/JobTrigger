@@ -371,6 +371,15 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       401 never triggers Jenkins' per-server auth handling or the
       backend's global logout, and vice versa — three independent auth
       failure domains, not two.
+      **Partly done 2026-11-08 (left unchecked).** Automated evidence in
+      `test/core/network/auth_domain_isolation_test.dart` runs the real
+      client factories against scripted adapters: a GitHub or Jenkins 401
+      is only an `AuthFailure` (no `SessionSignal`, backend tokens kept);
+      a GitHub rate limit is not an auth failure; the backend losing its
+      session leaves the GitHub and Jenkins clients working with their own
+      credentials; neither client carries the other's token. Still open: the
+      live check against a real GitHub account, which needs the owner's
+      token.
 - [ ] P8-27 Full `NFR-TEST-03` pass: every GH-CRED/REPO/RUN/LOG/HIST task
       above manually verified against a real GitHub repository with real
       Actions workflows (including at least one with `workflow_dispatch`
