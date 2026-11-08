@@ -38,6 +38,8 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
       '/api/components/search_projects',
       page,
       pageSize,
+      // This call leaves the analysis date out unless it is asked for.
+      fields: 'analysisDate',
     );
     // A server that doesn't have it (404 or 400) gets the administrator-only
     // call earlier versions of the app used, so a setup that worked before
@@ -56,14 +58,16 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
   Future<Result<SonarQubeProjectsPage, AppFailure>> _projectsVia(
     String path,
     int page,
-    int pageSize,
-  ) => guardRequest(
+    int pageSize, {
+    String? fields,
+  }) => guardRequest(
     () async {
       final response = await _dio.get<Map<String, dynamic>>(
         path,
         queryParameters: {
           'ps': pageSize,
           'p': page,
+          'f': ?fields,
           'organization': ?_organization,
         },
       );

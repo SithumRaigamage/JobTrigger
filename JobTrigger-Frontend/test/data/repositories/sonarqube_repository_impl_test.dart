@@ -431,6 +431,25 @@ void main() {
       },
     );
 
+    test(
+      'asks search_projects for the analysis date, and only that call',
+      () async {
+        final adapter = _PathAdapter({
+          '/api/components/search_projects': (404, <String, dynamic>{}),
+          '/api/projects/search': (200, {'components': <dynamic>[]}),
+        });
+        await SonarQubeRepositoryImpl(
+          Dio(BaseOptions(baseUrl: 'https://sonar.test'))
+            ..httpClientAdapter = adapter,
+        ).fetchProjects();
+
+        // The date is left out unless asked for (seen on a real server).
+        expect(adapter.queries[0]['f'], 'analysisDate');
+        // The fallback call already includes it and takes no such parameter.
+        expect(adapter.queries[1].containsKey('f'), isFalse);
+      },
+    );
+
     for (final status in [404, 400]) {
       test('a server without search_projects ($status) falls back to the '
           'older call that already worked', () async {

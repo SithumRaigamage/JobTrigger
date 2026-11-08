@@ -7,7 +7,6 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../../data/credentials/sonarqube_credentials_notifier.dart';
-import '../../../domain/jenkins/relative_time.dart';
 import '../../../domain/sonarqube/sonarqube_project.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/credential_load_gate.dart';
@@ -16,6 +15,7 @@ import '../../common_widgets/no_active_sonarqube_credential_view.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
+import 'sonarqube_last_analysis.dart';
 import 'sonarqube_projects_notifier.dart';
 
 /// The Home tab while SonarQube is the active tool (`US-SQ-PROJ-01/02`): a
@@ -253,12 +253,8 @@ class _ProjectTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppTokens.of(context);
     final textTheme = Theme.of(context).textTheme;
-    final analysed = project.lastAnalysisDate;
-    final when = analysed == null
-        ? 'Never analyzed'
-        : 'Analyzed ${relativeTime(analysed)}';
     return Semantics(
-      label: '${project.name}, ${project.key}, $when',
+      label: '${project.name}, ${project.key}',
       excludeSemantics: true,
       child: GlassSurface.card(
         padding: const EdgeInsets.all(14),
@@ -281,8 +277,8 @@ class _ProjectTile extends StatelessWidget {
               children: [
                 Icon(Icons.schedule_rounded, size: 14, color: t.textMuted),
                 const SizedBox(width: 6),
-                Text(
-                  when,
+                LastAnalysisText(
+                  project: project,
                   style: textTheme.bodySmall?.copyWith(
                     fontSize: 12,
                     color: t.textSecondary,
