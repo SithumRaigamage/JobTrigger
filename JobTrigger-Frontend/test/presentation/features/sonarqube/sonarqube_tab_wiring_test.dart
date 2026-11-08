@@ -31,6 +31,11 @@ import 'package:job_trigger/presentation/navigation/app_routes.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
 class _Repo implements SonarQubeRepository {
+  @override
+  Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
+    SonarQubeIssue issue,
+  ) => throw UnimplementedError();
+
   _Repo(this.projects);
 
   final List<SonarQubeProject> projects;

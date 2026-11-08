@@ -728,6 +728,186 @@ void main() {
       },
     );
   });
+
+  group('issue details (US-SQ-QUALITY-06)', () {
+    Dio dioFor(_PathAdapter a) =>
+        Dio(BaseOptions(baseUrl: 'https://sonar.test'))..httpClientAdapter = a;
+
+    const issue = SonarQubeIssue(
+      key: 'AX-1',
+      type: 'CODE_SMELL',
+      severity: 'MAJOR',
+      message: 'Remove this',
+      file: 'src/Foo.java',
+      line: 10,
+      component: 'acme:src/Foo.java',
+      rule: 'java:S1135',
+    );
+
+    test('fetchIssues carries the rule, effort, tags, author, status and '
+        'date', () async {
+      final adapter = _PathAdapter({
+        '/api/issues/search': (
+          200,
+          {
+            'paging': {'total': 1},
+            'issues': [
+              {
+                'key': 'AX-1',
+                'type': 'BUG',
+                'severity': 'MAJOR',
+                'message': 'm',
+                'component': 'acme:src/Foo.java',
+                'line': 10,
+                'rule': 'java:S1135',
+                'effort': '15min',
+                'tags': ['cwe', 'security'],
+                'author': 'dev@example.com',
+                'status': 'OPEN',
+                'creationDate': '2026-11-08T10:30:00+0000',
+              },
+            ],
+          },
+        ),
+      });
+
+      final result = await SonarQubeRepositoryImpl(
+        dioFor(adapter),
+      ).fetchIssues('acme');
+
+      final got =
+          (result as Ok<SonarQubeIssuePage, AppFailure>).value.issues.single;
+      expect(got.rule, 'java:S1135');
+      expect(got.effort, '15min');
+      expect(got.tags, ['cwe', 'security']);
+      expect(got.author, 'dev@example.com');
+      expect(got.status, 'OPEN');
+      expect(got.creationDate?.toUtc(), DateTime.utc(2026, 11, 8, 10, 30));
+      expect(got.component, 'acme:src/Foo.java');
+    });
+
+    test(
+      'the context has the rule name and plain code around the line',
+      () async {
+        final adapter = _PathAdapter({
+          '/api/rules/show': (
+            200,
+            {
+              'rule': {'key': 'java:S1135', 'name': 'Track uses of TODO tags'},
+            },
+          ),
+          '/api/sources/show': (
+            200,
+            {
+              'sources': [
+                [8, '<span class="k">int</span> a = 1;'],
+                [9, ''],
+                [10, '<span class="k">if</span> (a &lt; b &amp;&amp; c) {'],
+              ],
+            },
+          ),
+        });
+
+        final result = await SonarQubeRepositoryImpl(
+          dioFor(adapter),
+        ).fetchIssueContext(issue);
+
+        final ctx = (result as Ok<SonarQubeIssueContext, AppFailure>).value;
+        expect(ctx.ruleName, 'Track uses of TODO tags');
+        expect(ctx.snippet.map((l) => l.number), [8, 9, 10]);
+        expect(ctx.snippet[0].code, 'int a = 1;');
+        expect(ctx.snippet[2].code, 'if (a < b && c) {');
+        final source = adapter.paths.indexOf('/api/sources/show');
+        expect(adapter.queries[source]['key'], 'acme:src/Foo.java');
+        expect(adapter.queries[source]['from'], 6);
+        expect(adapter.queries[source]['to'], 14);
+      },
+    );
+
+    test('near the top of a file the snippet starts at line 1', () async {
+      final adapter = _PathAdapter({
+        '/api/rules/show': (200, {'rule': <String, dynamic>{}}),
+        '/api/sources/show': (200, {'sources': <dynamic>[]}),
+      });
+      const early = SonarQubeIssue(
+        key: 'k',
+        type: 'BUG',
+        severity: 'MAJOR',
+        message: 'm',
+        file: 'f',
+        line: 2,
+        component: 'p:f',
+        rule: 'r',
+      );
+
+      await SonarQubeRepositoryImpl(dioFor(adapter)).fetchIssueContext(early);
+
+      final source = adapter.paths.indexOf('/api/sources/show');
+      expect(adapter.queries[source]['from'], 1);
+    });
+
+    test('one failing leaves the other', () async {
+      final adapter = _PathAdapter({
+        '/api/rules/show': (
+          200,
+          {
+            'rule': {'name': 'Named'},
+          },
+        ),
+        '/api/sources/show': (403, <String, dynamic>{}),
+      });
+
+      final result = await SonarQubeRepositoryImpl(
+        dioFor(adapter),
+      ).fetchIssueContext(issue);
+
+      final ctx = (result as Ok<SonarQubeIssueContext, AppFailure>).value;
+      expect(ctx.ruleName, 'Named');
+      expect(ctx.snippet, isEmpty);
+    });
+
+    test('both failing is the failure', () async {
+      final result = await SonarQubeRepositoryImpl(
+        dioFor(
+          _PathAdapter({
+            '/api/rules/show': (403, <String, dynamic>{}),
+            '/api/sources/show': (403, <String, dynamic>{}),
+          }),
+        ),
+      ).fetchIssueContext(issue);
+
+      expect(
+        (result as Err<SonarQubeIssueContext, AppFailure>).error,
+        isA<SonarQubeAccessDeniedFailure>(),
+      );
+    });
+
+    test('an issue on a whole project (no line) asks for no code', () async {
+      final adapter = _PathAdapter({
+        '/api/rules/show': (
+          200,
+          {
+            'rule': {'name': 'N'},
+          },
+        ),
+      });
+      const projectLevel = SonarQubeIssue(
+        key: 'k',
+        type: 'CODE_SMELL',
+        severity: 'INFO',
+        message: 'm',
+        file: null,
+        line: null,
+        rule: 'r',
+      );
+
+      await SonarQubeRepositoryImpl(
+        dioFor(adapter),
+      ).fetchIssueContext(projectLevel);
+
+      expect(adapter.paths, ['/api/rules/show']);
+    });
+  });
 }
 
 /// Answers per request path, so a call that falls back to another endpoint

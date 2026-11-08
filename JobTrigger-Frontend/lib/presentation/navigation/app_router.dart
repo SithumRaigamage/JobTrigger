@@ -8,6 +8,7 @@ import '../../domain/github/github_job.dart';
 import '../../domain/github/github_repo.dart';
 import '../../domain/github/github_workflow.dart';
 import '../../domain/github/github_workflow_run.dart';
+import '../../domain/sonarqube/sonarqube_issue.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
@@ -27,6 +28,7 @@ import '../features/github/github_run_history_screen.dart';
 import '../features/github/github_run_detail_screen.dart';
 import '../features/github/github_runs_screen.dart';
 import '../features/sonarqube/sonarqube_analysis_screen.dart';
+import '../features/sonarqube/sonarqube_issue_screen.dart';
 import '../features/sonarqube/sonarqube_issues_screen.dart';
 import '../features/sonarqube/sonarqube_overview_screen.dart';
 import '../features/sonarqube/sonarqube_project_detail_screen.dart';
@@ -79,6 +81,8 @@ final Map<String, bool Function(Object? extra)> _extraRoutes = {
   AppRoutes.githubJobLog: (extra) => extra is (GitHubRepo, int, GitHubJob),
   AppRoutes.sonarqubeProject: (extra) => extra is SonarQubeProject,
   AppRoutes.sonarqubeIssues: (extra) => extra is SonarQubeProject,
+  AppRoutes.sonarqubeIssue: (extra) =>
+      extra is (SonarQubeProject, SonarQubeIssue),
   AppRoutes.sonarqubeAnalyses: (extra) => extra is SonarQubeProject,
 };
 
@@ -322,6 +326,15 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => SonarQubeProjectDetailScreen(
           project: state.extra! as SonarQubeProject,
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeIssue,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final (project, issue) =
+              state.extra! as (SonarQubeProject, SonarQubeIssue);
+          return SonarQubeIssueScreen(project: project, issue: issue);
+        },
       ),
       GoRoute(
         path: AppRoutes.sonarqubeAnalyses,

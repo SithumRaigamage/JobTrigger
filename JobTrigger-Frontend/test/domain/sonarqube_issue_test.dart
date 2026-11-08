@@ -63,4 +63,46 @@ void main() {
     );
     expect(none.location, isNull);
   });
+
+  group('source code from SonarQube', () {
+    test('highlight tags are removed and entities decoded', () {
+      expect(
+        sonarQubeCodeToText('<span class="k">if</span> (a &lt; b)'),
+        'if (a < b)',
+      );
+      expect(sonarQubeCodeToText('x &amp;&amp; y'), 'x && y');
+      expect(sonarQubeCodeToText('say &quot;hi&quot;&#39;s'), 'say "hi"\'s');
+      expect(sonarQubeCodeToText('a&nbsp;b'), 'a b');
+    });
+
+    test('an escaped entity is decoded once, not twice', () {
+      expect(sonarQubeCodeToText('&amp;lt;'), '&lt;');
+    });
+
+    test('plain code and empty lines are left alone', () {
+      expect(sonarQubeCodeToText('int a = 1;'), 'int a = 1;');
+      expect(sonarQubeCodeToText(''), '');
+    });
+  });
+
+  test('an issue is identified by its key, so a reloaded one is the same', () {
+    const a = SonarQubeIssue(
+      key: 'k',
+      type: 'BUG',
+      severity: 'MAJOR',
+      message: 'one',
+      file: null,
+      line: null,
+    );
+    const b = SonarQubeIssue(
+      key: 'k',
+      type: 'BUG',
+      severity: 'MINOR',
+      message: 'two',
+      file: null,
+      line: null,
+    );
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+  });
 }

@@ -19,6 +19,11 @@ import 'package:job_trigger/presentation/features/sonarqube/sonarqube_projects_n
 /// Serves projects `p0…p(total-1)` in pages of [size], so paging can be
 /// followed request by request.
 class _Repo implements SonarQubeRepository {
+  @override
+  Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
+    SonarQubeIssue issue,
+  ) => throw UnimplementedError();
+
   /// What the headline-numbers call answers, by project key; a key with no
   /// entry gets none (its card shows no numbers).
   final Map<String, SonarQubeProjectSummary> summaries = {};

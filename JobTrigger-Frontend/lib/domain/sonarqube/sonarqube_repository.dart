@@ -57,6 +57,14 @@ abstract class SonarQubeRepository {
   /// with no gate result is [QualityGateState.none].
   Future<Result<Map<String, SonarQubeProjectSummary>, AppFailure>>
   fetchProjectSummaries(List<String> projectKeys);
+
+  /// What an issue's page shows besides the issue (`US-SQ-QUALITY-06`): the
+  /// rule's name (`api/rules/show`) and the code around it
+  /// (`api/sources/show`), fetched together. One failing leaves the other; if
+  /// both fail the failure is returned.
+  Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
+    SonarQubeIssue issue,
+  );
 }
 
 /// `ps` for `api/projects/search`; 500 is SonarQube's maximum.

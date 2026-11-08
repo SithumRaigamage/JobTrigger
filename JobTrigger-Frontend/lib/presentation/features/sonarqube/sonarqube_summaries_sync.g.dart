@@ -59,4 +59,4 @@ final class SonarQubeSummariesSyncProvider
 }
 
 String _$sonarQubeSummariesSyncHash() =>
-    r'955b3adf6ebbc2374c178d8b72cfc216f533b285';
+    r'1000636bb0ffd334d0181b14b3677153605b613a';

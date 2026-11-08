@@ -16,6 +16,11 @@ import 'package:job_trigger/presentation/features/sonarqube/sonarqube_issues_scr
 
 class _Repo implements SonarQubeRepository {
   @override
+  Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
+    SonarQubeIssue issue,
+  ) => throw UnimplementedError();
+
+  @override
   Future<Result<Map<String, SonarQubeProjectSummary>, AppFailure>>
   fetchProjectSummaries(List<String> projectKeys) => throw UnimplementedError();
 

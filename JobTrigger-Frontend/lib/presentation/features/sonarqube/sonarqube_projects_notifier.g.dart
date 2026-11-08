@@ -298,4 +298,4 @@ final class FilteredSonarQubeProjectsProvider
 }
 
 String _$filteredSonarQubeProjectsHash() =>
-    r'805bc2ab53fec46c8fdbb6b8c3a7826b7fd0ed49';
+    r'820b98f9aab310d505fe022ae7a9c6c979d70763';

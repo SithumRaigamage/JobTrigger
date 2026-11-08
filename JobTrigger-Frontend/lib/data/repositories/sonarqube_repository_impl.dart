@@ -257,9 +257,86 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
             // key adds nothing to a file inside it.
             file: _fileOf(i['component'] as String?, projectKey),
             line: i['line'] as int?,
+            component: i['component'] as String?,
+            rule: i['rule'] as String?,
+            effort: i['effort'] as String?,
+            tags: [...(i['tags'] as List<dynamic>? ?? const []).cast<String>()],
+            author: (i['author'] as String?)?.isEmpty ?? true
+                ? null
+                : i['author'] as String?,
+            status: i['status'] as String?,
+            creationDate: i['creationDate'] == null
+                ? null
+                : DateTime.tryParse(i['creationDate'] as String),
           ),
       ],
     );
+  }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
+    SonarQubeIssue issue,
+  ) async {
+    final line = issue.line;
+    final component = issue.component;
+    final rule = issue.rule;
+    final results = await Future.wait([
+      rule == null || rule.isEmpty
+          ? Future.value(const Ok<String?, AppFailure>(null))
+          : _ruleName(rule),
+      component == null || line == null
+          ? Future.value(const Ok<List<SonarQubeSourceLine>, AppFailure>([]))
+          : _snippet(component, line),
+    ]);
+    final name = results[0] as Result<String?, AppFailure>;
+    final lines = results[1] as Result<List<SonarQubeSourceLine>, AppFailure>;
+    // Both missing for the same reason means the request itself failed.
+    if (name is Err<String?, AppFailure> &&
+        lines is Err<List<SonarQubeSourceLine>, AppFailure>) {
+      return Err(name.error);
+    }
+    return Ok(
+      SonarQubeIssueContext(
+        ruleName: name is Ok<String?, AppFailure> ? name.value : null,
+        snippet: lines is Ok<List<SonarQubeSourceLine>, AppFailure>
+            ? lines.value
+            : const [],
+      ),
+    );
+  }
+
+  Future<Result<String?, AppFailure>> _ruleName(String rule) =>
+      guardRequest(() async {
+        final response = await _dio.get<Map<String, dynamic>>(
+          '/api/rules/show',
+          queryParameters: {'key': rule},
+        );
+        return (response.data?['rule'] as Map<String, dynamic>?)?['name']
+            as String?;
+      }, recover: _projectRecover);
+
+  Future<Result<List<SonarQubeSourceLine>, AppFailure>> _snippet(
+    String component,
+    int line,
+  ) => guardRequest(() async {
+    final from = (line - sonarQubeSnippetContext).clamp(1, line);
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/sources/show',
+      queryParameters: {
+        'key': component,
+        'from': from,
+        'to': line + sonarQubeSnippetContext,
+      },
+    );
+    final sources = response.data?['sources'] as List<dynamic>? ?? const [];
+    return [
+      for (final pair in sources.whereType<List<dynamic>>())
+        if (pair.length >= 2 && pair[0] is int && pair[1] is String)
+          SonarQubeSourceLine(
+            number: pair[0] as int,
+            code: sonarQubeCodeToText(pair[1] as String),
+          ),
+    ];
   }, recover: _projectRecover);
 
   static String? _fileOf(String? component, String projectKey) {

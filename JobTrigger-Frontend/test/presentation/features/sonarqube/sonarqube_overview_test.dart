@@ -19,6 +19,11 @@ import 'package:job_trigger/presentation/features/sonarqube/sonarqube_overview_s
 import 'package:job_trigger/presentation/navigation/main_scaffold.dart';
 
 class _Repo implements SonarQubeRepository {
+  @override
+  Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
+    SonarQubeIssue issue,
+  ) => throw UnimplementedError();
+
   _Repo(this.projects, {this.total});
 
   final List<SonarQubeProject> projects;
