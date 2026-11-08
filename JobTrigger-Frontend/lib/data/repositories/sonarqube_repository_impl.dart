@@ -8,6 +8,7 @@ import '../../domain/sonarqube/sonarqube_analysis.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
 import '../../domain/sonarqube/sonarqube_metrics.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
+import '../../domain/sonarqube/sonarqube_project_summary.dart';
 import '../../domain/sonarqube/sonarqube_quality_gate.dart';
 import '../../domain/sonarqube/sonarqube_repository.dart';
 import '../credentials/active_sonarqube_credential_notifier.dart';
@@ -96,6 +97,63 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
       return null;
     },
   );
+
+  @override
+  Future<Result<Map<String, SonarQubeProjectSummary>, AppFailure>>
+  fetchProjectSummaries(List<String> projectKeys) async {
+    if (projectKeys.isEmpty) return const Ok({});
+    final batches = [
+      for (var i = 0; i < projectKeys.length; i += sonarQubeSummaryBatchSize)
+        projectKeys.sublist(
+          i,
+          (i + sonarQubeSummaryBatchSize).clamp(0, projectKeys.length),
+        ),
+    ];
+    final results = await Future.wait(batches.map(_summariesFor));
+    final all = <String, SonarQubeProjectSummary>{};
+    for (final result in results) {
+      switch (result) {
+        case Ok(:final value):
+          all.addAll(value);
+        case Err(:final error):
+          return Err(error);
+      }
+    }
+    return Ok(all);
+  }
+
+  Future<Result<Map<String, SonarQubeProjectSummary>, AppFailure>>
+  _summariesFor(List<String> keys) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/measures/search',
+      queryParameters: {
+        'projectKeys': keys.join(','),
+        'metricKeys': sonarQubeSummaryMetricKeys.join(','),
+      },
+    );
+    final measures = response.data?['measures'] as List<dynamic>? ?? const [];
+    // component -> metric -> value
+    final byComponent = <String, Map<String, String>>{};
+    for (final m in measures.cast<Map<String, dynamic>>()) {
+      final component = m['component'] as String?;
+      final metric = m['metric'] as String?;
+      final value = m['value'];
+      if (component == null || metric == null || value is! String) continue;
+      (byComponent[component] ??= {})[metric] = value;
+    }
+    return {
+      for (final key in keys)
+        key: SonarQubeProjectSummary(
+          gate: QualityGateState.parse(byComponent[key]?['alert_status']),
+          bugs: int.tryParse(byComponent[key]?['bugs'] ?? ''),
+          vulnerabilities: int.tryParse(
+            byComponent[key]?['vulnerabilities'] ?? '',
+          ),
+          codeSmells: int.tryParse(byComponent[key]?['code_smells'] ?? ''),
+          coverage: double.tryParse(byComponent[key]?['coverage'] ?? ''),
+        ),
+    };
+  }, recover: _projectRecover);
 
   /// SonarQube-specific wording for the two refusals that mean something
   /// particular here, for calls about one project. Everything else keeps the

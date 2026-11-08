@@ -7,6 +7,7 @@ import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/data/credentials/active_sonarqube_credential_notifier.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_project_summary.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
@@ -18,6 +19,21 @@ import 'package:job_trigger/presentation/features/sonarqube/sonarqube_projects_n
 /// Serves projects `p0…p(total-1)` in pages of [size], so paging can be
 /// followed request by request.
 class _Repo implements SonarQubeRepository {
+  /// What the headline-numbers call answers, by project key; a key with no
+  /// entry gets none (its card shows no numbers).
+  final Map<String, SonarQubeProjectSummary> summaries = {};
+  int summaryCalls = 0;
+
+  @override
+  Future<Result<Map<String, SonarQubeProjectSummary>, AppFailure>>
+  fetchProjectSummaries(List<String> projectKeys) async {
+    summaryCalls++;
+    return Ok({
+      for (final key in projectKeys)
+        if (summaries.containsKey(key)) key: summaries[key]!,
+    });
+  }
+
   _Repo({this.total = 5});
 
   int total;

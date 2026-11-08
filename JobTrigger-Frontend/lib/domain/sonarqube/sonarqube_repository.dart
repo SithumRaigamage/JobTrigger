@@ -3,6 +3,7 @@ import '../../core/error/result.dart';
 import 'sonarqube_analysis.dart';
 import 'sonarqube_issue.dart';
 import 'sonarqube_project.dart';
+import 'sonarqube_project_summary.dart';
 import 'sonarqube_quality_gate.dart';
 
 /// SonarQube data access — independent of the Jenkins and GitHub
@@ -49,6 +50,13 @@ abstract class SonarQubeRepository {
   Future<Result<List<SonarQubeAnalysis>, AppFailure>> fetchAnalysisHistory(
     String projectKey,
   );
+
+  /// `GET api/measures/search` (`US-SQ-PROJ-03`): the headline numbers and
+  /// gate verdict for many projects in one request per
+  /// [sonarQubeSummaryBatchSize]. Every key asked for is in the result; one
+  /// with no gate result is [QualityGateState.none].
+  Future<Result<Map<String, SonarQubeProjectSummary>, AppFailure>>
+  fetchProjectSummaries(List<String> projectKeys);
 }
 
 /// `ps` for `api/projects/search`; 500 is SonarQube's maximum.

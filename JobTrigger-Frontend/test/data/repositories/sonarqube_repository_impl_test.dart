@@ -9,6 +9,7 @@ import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_project_summary.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 
 class _Adapter implements HttpClientAdapter {
@@ -619,6 +620,111 @@ void main() {
       expect(failure, isA<SonarQubeAccessDeniedFailure>());
       expect(failure.message, contains('browse'));
     });
+  });
+
+  group('fetchProjectSummaries (US-SQ-PROJ-03)', () {
+    Dio dioFor(_PathAdapter a) =>
+        Dio(BaseOptions(baseUrl: 'https://sonar.test'))..httpClientAdapter = a;
+
+    test('reads the gate and headline numbers per project', () async {
+      final adapter = _PathAdapter({
+        '/api/measures/search': (
+          200,
+          {
+            'measures': [
+              {'metric': 'alert_status', 'value': 'ERROR', 'component': 'a'},
+              {'metric': 'bugs', 'value': '3', 'component': 'a'},
+              {'metric': 'vulnerabilities', 'value': '1', 'component': 'a'},
+              {'metric': 'code_smells', 'value': '20', 'component': 'a'},
+              {'metric': 'coverage', 'value': '71.4', 'component': 'a'},
+              {'metric': 'alert_status', 'value': 'OK', 'component': 'b'},
+              {'metric': 'bugs', 'value': '0', 'component': 'b'},
+            ],
+          },
+        ),
+      });
+
+      final result = await SonarQubeRepositoryImpl(
+        dioFor(adapter),
+      ).fetchProjectSummaries(['a', 'b', 'c']);
+
+      final summaries =
+          (result as Ok<Map<String, SonarQubeProjectSummary>, AppFailure>)
+              .value;
+      expect(summaries.keys, ['a', 'b', 'c']);
+      expect(summaries['a']!.gate, QualityGateState.failed);
+      expect(summaries['a']!.bugs, 3);
+      expect(summaries['a']!.vulnerabilities, 1);
+      expect(summaries['a']!.codeSmells, 20);
+      expect(summaries['a']!.coverage, 71.4);
+      expect(summaries['a']!.needsAttention, isTrue);
+      expect(summaries['a']!.severityScore, 4);
+      expect(summaries['b']!.gate, QualityGateState.passed);
+      expect(summaries['b']!.codeSmells, isNull);
+      expect(summaries['b']!.coverage, isNull);
+      // No measures at all: not analysed, never an invented pass.
+      expect(summaries['c']!.gate, QualityGateState.none);
+      expect(summaries['c']!.isAnalysed, isFalse);
+      expect(adapter.queries.single['projectKeys'], 'a,b,c');
+      expect(
+        adapter.queries.single['metricKeys'],
+        'alert_status,bugs,vulnerabilities,code_smells,coverage',
+      );
+    });
+
+    test('asks 100 projects at a time', () async {
+      final adapter = _PathAdapter({
+        '/api/measures/search': (200, {'measures': <dynamic>[]}),
+      });
+      final keys = [for (var i = 0; i < 250; i++) 'p$i'];
+
+      final result = await SonarQubeRepositoryImpl(
+        dioFor(adapter),
+      ).fetchProjectSummaries(keys);
+
+      expect(adapter.paths, hasLength(3));
+      expect(
+        adapter.queries.map(
+          (q) => (q['projectKeys'] as String).split(',').length,
+        ),
+        containsAll([100, 50]),
+      );
+      expect(
+        (result as Ok<Map<String, SonarQubeProjectSummary>, AppFailure>).value,
+        hasLength(250),
+      );
+    });
+
+    test('no keys means no request', () async {
+      final adapter = _PathAdapter({});
+
+      final result = await SonarQubeRepositoryImpl(
+        dioFor(adapter),
+      ).fetchProjectSummaries([]);
+
+      expect(adapter.paths, isEmpty);
+      expect(
+        (result as Ok<Map<String, SonarQubeProjectSummary>, AppFailure>).value,
+        isEmpty,
+      );
+    });
+
+    test(
+      'a refusal is access-denied; any failed batch fails the lot',
+      () async {
+        final result = await SonarQubeRepositoryImpl(
+          dioFor(
+            _PathAdapter({'/api/measures/search': (403, <String, dynamic>{})}),
+          ),
+        ).fetchProjectSummaries(['a']);
+
+        expect(
+          (result as Err<Map<String, SonarQubeProjectSummary>, AppFailure>)
+              .error,
+          isA<SonarQubeAccessDeniedFailure>(),
+        );
+      },
+    );
   });
 }
 

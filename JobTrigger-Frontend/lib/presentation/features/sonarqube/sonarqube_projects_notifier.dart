@@ -3,6 +3,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/error/result.dart';
 import '../../../data/repositories/sonarqube_repository_impl.dart';
 import '../../../domain/sonarqube/sonarqube_project.dart';
+import 'sonarqube_gate_style.dart';
+import 'sonarqube_summaries_notifier.dart';
 
 part 'sonarqube_projects_notifier.g.dart';
 
@@ -105,7 +107,38 @@ class SonarQubeProjectsNotifier extends _$SonarQubeProjectsNotifier {
     );
   }
 
-  Future<void> refresh() async => ref.invalidateSelf();
+  Future<void> refresh() async {
+    // The numbers on the cards are as old as the list; reload both.
+    ref.invalidate(sonarQubeSummariesNotifierProvider);
+    ref.invalidateSelf();
+  }
+}
+
+/// How the project list is ordered (`US-SQ-PROJ-03`).
+enum SonarQubeProjectSort {
+  name('Name'),
+  lastAnalysed('Last analysed'),
+  gate('Quality gate');
+
+  const SonarQubeProjectSort(this.label);
+  final String label;
+}
+
+@riverpod
+class SonarQubeProjectSortNotifier extends _$SonarQubeProjectSortNotifier {
+  @override
+  SonarQubeProjectSort build() => SonarQubeProjectSort.name;
+
+  void set(SonarQubeProjectSort sort) => state = sort;
+}
+
+/// "Failing only": narrow the list to projects whose gate failed or warns.
+@riverpod
+class SonarQubeFailingOnly extends _$SonarQubeFailingOnly {
+  @override
+  bool build() => false;
+
+  void toggle() => state = !state;
 }
 
 /// The search box's text (`US-SQ-PROJ-02`).
@@ -117,19 +150,55 @@ class SonarQubeProjectSearch extends _$SonarQubeProjectSearch {
   void setQuery(String query) => state = query;
 }
 
-/// Loaded projects matching the search, by name or key, case-insensitively.
+/// Loaded projects matching the search, narrowed by "failing only" and
+/// ordered by the chosen sort.
 @riverpod
 List<SonarQubeProject> filteredSonarQubeProjects(Ref ref) {
   final projects =
       ref.watch(sonarQubeProjectsNotifierProvider).value?.projects ??
       const <SonarQubeProject>[];
   final query = ref.watch(sonarQubeProjectSearchProvider).trim().toLowerCase();
-  if (query.isEmpty) return projects;
-  return projects
-      .where(
-        (p) =>
-            p.name.toLowerCase().contains(query) ||
-            p.key.toLowerCase().contains(query),
-      )
-      .toList();
+  final failingOnly = ref.watch(sonarQubeFailingOnlyProvider);
+  final sort = ref.watch(sonarQubeProjectSortNotifierProvider);
+  final summaries = ref.watch(sonarQubeSummariesNotifierProvider).byKey;
+
+  var shown = query.isEmpty
+      ? [...projects]
+      : projects
+            .where(
+              (p) =>
+                  p.name.toLowerCase().contains(query) ||
+                  p.key.toLowerCase().contains(query),
+            )
+            .toList();
+  if (failingOnly) {
+    shown = shown
+        .where((p) => summaries[p.key]?.needsAttention ?? false)
+        .toList();
+  }
+
+  int byName(SonarQubeProject a, SonarQubeProject b) =>
+      a.name.toLowerCase().compareTo(b.name.toLowerCase());
+  switch (sort) {
+    case SonarQubeProjectSort.name:
+      shown.sort(byName);
+    case SonarQubeProjectSort.lastAnalysed:
+      shown.sort((a, b) {
+        final da = a.lastAnalysisDate;
+        final db = b.lastAnalysisDate;
+        if (da == null && db == null) return byName(a, b);
+        if (da == null) return 1; // undated last
+        if (db == null) return -1;
+        final c = db.compareTo(da); // newest first
+        return c != 0 ? c : byName(a, b);
+      });
+    case SonarQubeProjectSort.gate:
+      shown.sort((a, b) {
+        final c = gateRank(
+          summaries[a.key]?.gate,
+        ).compareTo(gateRank(summaries[b.key]?.gate));
+        return c != 0 ? c : byName(a, b);
+      });
+  }
+  return shown;
 }
