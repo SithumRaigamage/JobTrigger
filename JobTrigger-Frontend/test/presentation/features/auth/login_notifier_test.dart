@@ -120,4 +120,41 @@ void main() {
 
     expect(container.read(loginNotifierProvider).error, isA<AppFailure>());
   });
+
+  // P19-01: the checkbox decides whether the session survives a restart.
+  for (final rememberMe in [true, false]) {
+    test(
+      'login with rememberMe=$rememberMe '
+      '${rememberMe ? 'keeps' : 'drops'} the session after a restart',
+      () async {
+        final repo = _FakeAuthRepository()
+          ..loginResult = const Ok((
+            user: User(id: 'u1', email: 'a@b.com'),
+            token: 'jwt-abc',
+            refreshToken: 'refresh-abc',
+          ));
+        final container = ProviderContainer(
+          overrides: [authRepositoryProvider.overrideWithValue(repo)],
+        );
+        container.listen(authNotifierProvider, (_, _) {});
+        await container
+            .read(loginNotifierProvider.notifier)
+            .login(
+              email: 'a@b.com',
+              password: 'password',
+              rememberMe: rememberMe,
+            );
+        container.dispose();
+
+        final restarted = ProviderContainer();
+        addTearDown(restarted.dispose);
+        final state = await restarted.read(authNotifierProvider.future);
+
+        expect(
+          state,
+          rememberMe ? isA<Authenticated>() : isA<Unauthenticated>(),
+        );
+      },
+    );
+  }
 }

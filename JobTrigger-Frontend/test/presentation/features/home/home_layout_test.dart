@@ -121,7 +121,7 @@ void main() {
     expect(find.text('Failed'), findsWidgets);
   });
 
-  testWidgets('the server chip names the server and leads to Settings', (
+  testWidgets('the server chip names the server and opens a menu', (
     tester,
   ) async {
     await _pumpHome(tester);
@@ -130,6 +130,8 @@ void main() {
     expect(chip, findsOneWidget);
     await tester.tap(chip);
     await _settle(tester);
-    expect(find.text('settings'), findsOneWidget);
+    // P19-07: it used to jump to Settings; now it drops down the servers.
+    expect(find.text('settings'), findsNothing);
+    expect(find.text('Manage servers…'), findsOneWidget);
   });
 }

@@ -57,6 +57,8 @@ class SignupNotifier extends _$SignupNotifier {
               value.user,
               value.token,
               refreshToken: value.refreshToken,
+              // No checkbox on signup; a new account stays signed in.
+              keepSignedIn: true,
             );
         state = const AsyncData(null);
       case Err(:final error):

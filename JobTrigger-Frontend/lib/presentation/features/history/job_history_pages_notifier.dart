@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/network/no_retry.dart';
 import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/history_filter.dart';
@@ -36,7 +37,7 @@ class HistoryPages {
 /// back. The first page loads with the screen; [loadMore] appends the next.
 /// (`JobHistoryNotifier` stays as the simple first-page source for the Run
 /// parameter picker.)
-@riverpod
+@Riverpod(retry: noRetry)
 class JobHistoryPagesNotifier extends _$JobHistoryPagesNotifier {
   @override
   Future<HistoryPages> build(String jobUrl) async {

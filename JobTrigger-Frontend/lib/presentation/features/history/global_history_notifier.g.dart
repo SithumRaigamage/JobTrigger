@@ -27,7 +27,7 @@ final class GlobalHistoryNotifierProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'globalHistoryNotifierProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -43,7 +43,7 @@ final class GlobalHistoryNotifierProvider
 }
 
 String _$globalHistoryNotifierHash() =>
-    r'741ccd1d6f6aa786263c8774b9d938428c6e1af0';
+    r'c0fb3ce86adf10ccce72c6cbfc0b745ed85e74e4';
 
 /// Traverses the already-fetched job tree (`JobTreeNotifier`) to build the
 /// cross-job top-50 timeline — no separate fetch, per

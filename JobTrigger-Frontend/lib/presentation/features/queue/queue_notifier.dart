@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/app_failure.dart';
 import '../../../core/error/result.dart';
+import '../../../core/network/no_retry.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/queue_entry.dart';
 import '../../common_widgets/toast_controller.dart';
@@ -12,18 +13,27 @@ import '../app_lock/app_lock_notifier.dart';
 part 'queue_notifier.g.dart';
 
 /// US-JX-09: the server-wide build queue, refreshed every [_refreshEvery]
-/// while the queue screen is open. The timer is cancelled on dispose; a
-/// failed refresh keeps the last list rather than blanking the screen.
-@riverpod
+/// while the queue screen is open. The timer is cancelled on dispose.
+@Riverpod(retry: noRetry)
 class QueueNotifier extends _$QueueNotifier {
   static const _refreshEvery = Duration(seconds: 5);
 
   @override
   Future<List<QueueEntry>> build() async {
+    final result = await ref.watch(jenkinsRepositoryProvider).fetchQueue();
+    final items = result.fold((items) => items, (failure) => throw failure);
+    _refreshLater();
+    return items;
+  }
+
+  /// P19-05: the next refresh is timed from a *successful* fetch. Started
+  /// before it, a 5s timer restarted any request slower than that (an
+  /// unreachable server takes the full connect timeout), so the screen never
+  /// got to show the failure. After a failure it stays quiet until Retry.
+  void _refreshLater() {
+    if (!ref.mounted) return;
     final timer = Timer(_refreshEvery, ref.invalidateSelf);
     ref.onDispose(timer.cancel);
-    final result = await ref.watch(jenkinsRepositoryProvider).fetchQueue();
-    return result.fold((items) => items, (failure) => throw failure);
   }
 
   /// Cancels a queued item: removed from the list at once, then confirmed

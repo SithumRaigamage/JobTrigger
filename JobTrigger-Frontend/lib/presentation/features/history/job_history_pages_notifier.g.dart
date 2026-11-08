@@ -30,7 +30,7 @@ final class JobHistoryPagesNotifierProvider
     required JobHistoryPagesNotifierFamily super.from,
     required String super.argument,
   }) : super(
-         retry: null,
+         retry: noRetry,
          name: r'jobHistoryPagesNotifierProvider',
          isAutoDispose: true,
          dependencies: null,
@@ -64,7 +64,7 @@ final class JobHistoryPagesNotifierProvider
 }
 
 String _$jobHistoryPagesNotifierHash() =>
-    r'db60b7d9d6e17f4f112f3e52a42830b28f84f573';
+    r'0847457dbc25a72cd6d965af63ef9a180a6c3fc4';
 
 /// US-JX-06: job history, [historyPageSize] builds at a time, all the way
 /// back. The first page loads with the screen; [loadMore] appends the next.
@@ -82,7 +82,7 @@ final class JobHistoryPagesNotifierFamily extends $Family
         > {
   JobHistoryPagesNotifierFamily._()
     : super(
-        retry: null,
+        retry: noRetry,
         name: r'jobHistoryPagesNotifierProvider',
         dependencies: null,
         $allTransitiveDependencies: null,

@@ -99,6 +99,13 @@ on external device access, not on more development work.
       or hang. That's evidence the mechanism is sound, not a substitute for
       the device test — leaving this box unchecked rather than claiming
       something not verified.
+      **Update 2026-11-08:** added a 50,000-line ANSI test
+      (`console_log_viewer_50k_test.dart`, same shape as the fixture
+      Jenkins `big-log` pipeline): decode under 5 s, under 200 live
+      `RichText` after 20 flings, `jumpToLine` reaches the error marker.
+      Passes on the host. Still unchecked: the Android emulator is set up
+      (Medium_Phone_API_37.0) but the profile-mode APK build was cancelled
+      on a slow network, so no frame-time measurement exists yet.
 
 ## History
 

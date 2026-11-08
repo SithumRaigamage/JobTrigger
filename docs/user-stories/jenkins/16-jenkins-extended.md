@@ -815,9 +815,10 @@ So that I land on the job or build screen directly
 - Scenario: Custom scheme
   Given a link `jobtrigger://open?url=<encoded Jenkins URL>`
   Then the app opens the matching job or build screen
-- Scenario: Share into app / paste
-  Given I share a Jenkins URL to JobTrigger (Android share intent, iOS paste
-  from Home's "Open link…" action)
+- Scenario: Share into app
+  Given I share a Jenkins URL to JobTrigger (Android share intent; the
+  in-app paste action was removed in P19-06, and Home's "Open Jenkins link"
+  now opens the active server in the browser)
   Then the URL is matched against configured servers by host and path
   prefix, the matching server is activated after confirmation if it isn't
   active, and the job or build opens
