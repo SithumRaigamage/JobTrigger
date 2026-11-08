@@ -21,6 +21,8 @@ class GitHubWorkflowRun {
     required this.branch,
     required this.createdAt,
     required this.htmlUrl,
+    this.workflowId,
+    this.workflowName,
   });
 
   final int id;
@@ -44,6 +46,11 @@ class GitHubWorkflowRun {
   final String? branch;
   final DateTime? createdAt;
   final String htmlUrl;
+
+  /// The workflow this run belongs to. Needed where runs of many workflows
+  /// are mixed (the cross-repo feed); null if GitHub didn't send them.
+  final int? workflowId;
+  final String? workflowName;
 
   bool get isCompleted => status == 'completed';
 

@@ -198,6 +198,27 @@ class GitHubRepositoryImpl implements GitHubRepository {
       if (_downloadDio == null) download.close();
     }
   }, mapDioException: AppFailure.fromGitHubException);
+
+  @override
+  Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRepoRuns(
+    String owner,
+    String repo, {
+    int limit = 5,
+  }) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/repos/$owner/$repo/actions/runs',
+      queryParameters: {'per_page': limit},
+    );
+    final runsJson =
+        response.data?['workflow_runs'] as List<dynamic>? ?? const [];
+    return runsJson
+        .map(
+          (json) => GitHubWorkflowRunDto.fromJson(
+            json as Map<String, dynamic>,
+          ).toDomain(),
+        )
+        .toList();
+  }, mapDioException: AppFailure.fromGitHubException);
 }
 
 @riverpod

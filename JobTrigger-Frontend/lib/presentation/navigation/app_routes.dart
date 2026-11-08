@@ -21,6 +21,7 @@ abstract class AppRoutes {
   static const globalHistory = '/history';
   static const githubWorkflows = '/github/repos/workflows';
   static const githubRuns = '/github/repos/workflows/runs';
+  static const githubGlobalHistory = '/github/history';
   static const githubHistory = '/github/repos/workflows/history';
   static const githubRunDetail = '/github/repos/workflows/runs/detail';
   static const githubJobLog = '/github/repos/workflows/runs/detail/log';

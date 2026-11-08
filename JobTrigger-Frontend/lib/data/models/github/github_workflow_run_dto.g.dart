@@ -19,6 +19,7 @@ _GitHubWorkflowRunDto _$GitHubWorkflowRunDtoFromJson(
   headBranch: json['head_branch'] as String?,
   createdAt: json['created_at'] as String?,
   htmlUrl: json['html_url'] as String? ?? '',
+  workflowId: (json['workflow_id'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$GitHubWorkflowRunDtoToJson(
@@ -34,4 +35,5 @@ Map<String, dynamic> _$GitHubWorkflowRunDtoToJson(
   'head_branch': instance.headBranch,
   'created_at': instance.createdAt,
   'html_url': instance.htmlUrl,
+  'workflow_id': instance.workflowId,
 };

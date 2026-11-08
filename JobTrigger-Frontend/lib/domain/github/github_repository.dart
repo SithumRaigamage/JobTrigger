@@ -85,4 +85,12 @@ abstract class GitHubRepository {
     String repo,
     int jobId,
   );
+
+  /// `GET /repos/{owner}/{repo}/actions/runs?per_page=[limit]`: the latest
+  /// runs of every workflow in one repo (`US-GH-HIST-02`'s per-repo call).
+  Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRepoRuns(
+    String owner,
+    String repo, {
+    int limit = 5,
+  });
 }

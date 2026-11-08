@@ -18,6 +18,11 @@ class FakeGitHubRepository implements GitHubRepository {
   int fetchJobsCalls = 0;
   int fetchJobLogCalls = 0;
 
+  /// For the cross-repo feed: the repo list, and runs keyed by repo name.
+  Result<List<GitHubRepo>, AppFailure>? reposResult;
+  final Map<String, Result<List<GitHubWorkflowRun>, AppFailure>> repoRuns = {};
+  final List<String> repoRunsRequested = [];
+
   /// Per-page overrides for [runsResult] (1-based), for paging tests.
   final Map<int, Result<List<GitHubWorkflowRun>, AppFailure>> runsPages = {};
   final List<int> requestedPages = [];
@@ -95,8 +100,18 @@ class FakeGitHubRepository implements GitHubRepository {
   }
 
   @override
-  Future<Result<List<GitHubRepo>, AppFailure>> fetchRepos() =>
-      throw UnimplementedError();
+  Future<Result<List<GitHubRepo>, AppFailure>> fetchRepos() async =>
+      reposResult ?? (throw UnimplementedError());
+
+  @override
+  Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRepoRuns(
+    String owner,
+    String repo, {
+    int limit = 5,
+  }) async {
+    repoRunsRequested.add(repo);
+    return repoRuns[repo] ?? const Ok([]);
+  }
 
   @override
   Future<Result<List<GitHubWorkflow>, AppFailure>> fetchWorkflows(
@@ -109,6 +124,7 @@ GitHubWorkflowRun testRun(
   int id, {
   String status = 'completed',
   String? conclusion = 'success',
+  DateTime? createdAt,
 }) => GitHubWorkflowRun(
   id: id,
   runNumber: id,
@@ -117,6 +133,8 @@ GitHubWorkflowRun testRun(
   status: status,
   conclusion: conclusion,
   branch: 'main',
-  createdAt: null,
+  createdAt: createdAt,
   htmlUrl: '',
+  workflowId: 42,
+  workflowName: 'CI',
 );

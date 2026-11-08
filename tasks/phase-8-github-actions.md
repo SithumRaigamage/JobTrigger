@@ -429,13 +429,22 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       list and offers a retry). `GitHubRunHistoryScreen` mirrors
       `HistoryTile`'s look, loads more on scroll, and is opened from the
       new History button on the runs screen. Tapping a row opens the run.
-- [ ] P8-25 Global cross-repo history feed (`Could` priority — genuinely
+- [x] P8-25 Global cross-repo history feed (`Could` priority — genuinely
       optional, do last, revisit whether it's worth the rate-limit cost
       before starting): fans out one runs-fetch per accessible repo,
       capped to the N most-recently-updated repos rather than exhausting
       GitHub's 5,000/hr rate limit on one screen (`US-GH-HIST-02`'s
       explicit scope-down).
 
+      **Done 2026-11-08 (implemented and unit-tested; `NFR-TEST-03`
+      real-repository check pending).** Worth the rate-limit cost with a
+      cap: `GitHubGlobalHistoryNotifier` asks the 8 most recently updated
+      repos (5 runs each, one `GET .../actions/runs?per_page=5` per repo,
+      so about 8 requests per open against the 5,000/hour limit), merges by
+      date and keeps 50. One repo failing doesn't hide the rest; all failing
+      is an error. The screen states how many repos were left out or
+      unreadable, so a short list isn't mistaken for a complete one. Opened
+      from the history icon on the repositories screen.
 ## Cross-cutting
 
 - [ ] P8-26 `NFR-SEC-03` verification: a live test confirming a GitHub

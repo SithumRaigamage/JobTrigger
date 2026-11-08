@@ -17,7 +17,7 @@ mixin _$GitHubWorkflowRunDto {
 
  int get id;@JsonKey(name: 'run_number') int get runNumber;// `display_title` is the commit message / PR title; `name` is the
 // workflow's own name and the fallback for older responses.
-@JsonKey(name: 'display_title') String? get displayTitle; String? get name; String get event; String get status; String? get conclusion;@JsonKey(name: 'head_branch') String? get headBranch;@JsonKey(name: 'created_at') String? get createdAt;@JsonKey(name: 'html_url') String get htmlUrl;
+@JsonKey(name: 'display_title') String? get displayTitle; String? get name; String get event; String get status; String? get conclusion;@JsonKey(name: 'head_branch') String? get headBranch;@JsonKey(name: 'created_at') String? get createdAt;@JsonKey(name: 'html_url') String get htmlUrl;@JsonKey(name: 'workflow_id') int? get workflowId;
 /// Create a copy of GitHubWorkflowRunDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,16 +30,16 @@ $GitHubWorkflowRunDtoCopyWith<GitHubWorkflowRunDto> get copyWith => _$GitHubWork
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitHubWorkflowRunDto&&(identical(other.id, id) || other.id == id)&&(identical(other.runNumber, runNumber) || other.runNumber == runNumber)&&(identical(other.displayTitle, displayTitle) || other.displayTitle == displayTitle)&&(identical(other.name, name) || other.name == name)&&(identical(other.event, event) || other.event == event)&&(identical(other.status, status) || other.status == status)&&(identical(other.conclusion, conclusion) || other.conclusion == conclusion)&&(identical(other.headBranch, headBranch) || other.headBranch == headBranch)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.htmlUrl, htmlUrl) || other.htmlUrl == htmlUrl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitHubWorkflowRunDto&&(identical(other.id, id) || other.id == id)&&(identical(other.runNumber, runNumber) || other.runNumber == runNumber)&&(identical(other.displayTitle, displayTitle) || other.displayTitle == displayTitle)&&(identical(other.name, name) || other.name == name)&&(identical(other.event, event) || other.event == event)&&(identical(other.status, status) || other.status == status)&&(identical(other.conclusion, conclusion) || other.conclusion == conclusion)&&(identical(other.headBranch, headBranch) || other.headBranch == headBranch)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.htmlUrl, htmlUrl) || other.htmlUrl == htmlUrl)&&(identical(other.workflowId, workflowId) || other.workflowId == workflowId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,runNumber,displayTitle,name,event,status,conclusion,headBranch,createdAt,htmlUrl);
+int get hashCode => Object.hash(runtimeType,id,runNumber,displayTitle,name,event,status,conclusion,headBranch,createdAt,htmlUrl,workflowId);
 
 @override
 String toString() {
-  return 'GitHubWorkflowRunDto(id: $id, runNumber: $runNumber, displayTitle: $displayTitle, name: $name, event: $event, status: $status, conclusion: $conclusion, headBranch: $headBranch, createdAt: $createdAt, htmlUrl: $htmlUrl)';
+  return 'GitHubWorkflowRunDto(id: $id, runNumber: $runNumber, displayTitle: $displayTitle, name: $name, event: $event, status: $status, conclusion: $conclusion, headBranch: $headBranch, createdAt: $createdAt, htmlUrl: $htmlUrl, workflowId: $workflowId)';
 }
 
 
@@ -50,7 +50,7 @@ abstract mixin class $GitHubWorkflowRunDtoCopyWith<$Res>  {
   factory $GitHubWorkflowRunDtoCopyWith(GitHubWorkflowRunDto value, $Res Function(GitHubWorkflowRunDto) _then) = _$GitHubWorkflowRunDtoCopyWithImpl;
 @useResult
 $Res call({
- int id,@JsonKey(name: 'run_number') int runNumber,@JsonKey(name: 'display_title') String? displayTitle, String? name, String event, String status, String? conclusion,@JsonKey(name: 'head_branch') String? headBranch,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'html_url') String htmlUrl
+ int id,@JsonKey(name: 'run_number') int runNumber,@JsonKey(name: 'display_title') String? displayTitle, String? name, String event, String status, String? conclusion,@JsonKey(name: 'head_branch') String? headBranch,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'html_url') String htmlUrl,@JsonKey(name: 'workflow_id') int? workflowId
 });
 
 
@@ -67,7 +67,7 @@ class _$GitHubWorkflowRunDtoCopyWithImpl<$Res>
 
 /// Create a copy of GitHubWorkflowRunDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? runNumber = null,Object? displayTitle = freezed,Object? name = freezed,Object? event = null,Object? status = null,Object? conclusion = freezed,Object? headBranch = freezed,Object? createdAt = freezed,Object? htmlUrl = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? runNumber = null,Object? displayTitle = freezed,Object? name = freezed,Object? event = null,Object? status = null,Object? conclusion = freezed,Object? headBranch = freezed,Object? createdAt = freezed,Object? htmlUrl = null,Object? workflowId = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,runNumber: null == runNumber ? _self.runNumber : runNumber // ignore: cast_nullable_to_non_nullable
@@ -79,7 +79,8 @@ as String,conclusion: freezed == conclusion ? _self.conclusion : conclusion // i
 as String?,headBranch: freezed == headBranch ? _self.headBranch : headBranch // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,htmlUrl: null == htmlUrl ? _self.htmlUrl : htmlUrl // ignore: cast_nullable_to_non_nullable
-as String,
+as String,workflowId: freezed == workflowId ? _self.workflowId : workflowId // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 
@@ -164,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'run_number')  int runNumber, @JsonKey(name: 'display_title')  String? displayTitle,  String? name,  String event,  String status,  String? conclusion, @JsonKey(name: 'head_branch')  String? headBranch, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'html_url')  String htmlUrl)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'run_number')  int runNumber, @JsonKey(name: 'display_title')  String? displayTitle,  String? name,  String event,  String status,  String? conclusion, @JsonKey(name: 'head_branch')  String? headBranch, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'html_url')  String htmlUrl, @JsonKey(name: 'workflow_id')  int? workflowId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GitHubWorkflowRunDto() when $default != null:
-return $default(_that.id,_that.runNumber,_that.displayTitle,_that.name,_that.event,_that.status,_that.conclusion,_that.headBranch,_that.createdAt,_that.htmlUrl);case _:
+return $default(_that.id,_that.runNumber,_that.displayTitle,_that.name,_that.event,_that.status,_that.conclusion,_that.headBranch,_that.createdAt,_that.htmlUrl,_that.workflowId);case _:
   return orElse();
 
 }
@@ -185,10 +186,10 @@ return $default(_that.id,_that.runNumber,_that.displayTitle,_that.name,_that.eve
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'run_number')  int runNumber, @JsonKey(name: 'display_title')  String? displayTitle,  String? name,  String event,  String status,  String? conclusion, @JsonKey(name: 'head_branch')  String? headBranch, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'html_url')  String htmlUrl)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'run_number')  int runNumber, @JsonKey(name: 'display_title')  String? displayTitle,  String? name,  String event,  String status,  String? conclusion, @JsonKey(name: 'head_branch')  String? headBranch, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'html_url')  String htmlUrl, @JsonKey(name: 'workflow_id')  int? workflowId)  $default,) {final _that = this;
 switch (_that) {
 case _GitHubWorkflowRunDto():
-return $default(_that.id,_that.runNumber,_that.displayTitle,_that.name,_that.event,_that.status,_that.conclusion,_that.headBranch,_that.createdAt,_that.htmlUrl);case _:
+return $default(_that.id,_that.runNumber,_that.displayTitle,_that.name,_that.event,_that.status,_that.conclusion,_that.headBranch,_that.createdAt,_that.htmlUrl,_that.workflowId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +206,10 @@ return $default(_that.id,_that.runNumber,_that.displayTitle,_that.name,_that.eve
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id, @JsonKey(name: 'run_number')  int runNumber, @JsonKey(name: 'display_title')  String? displayTitle,  String? name,  String event,  String status,  String? conclusion, @JsonKey(name: 'head_branch')  String? headBranch, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'html_url')  String htmlUrl)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id, @JsonKey(name: 'run_number')  int runNumber, @JsonKey(name: 'display_title')  String? displayTitle,  String? name,  String event,  String status,  String? conclusion, @JsonKey(name: 'head_branch')  String? headBranch, @JsonKey(name: 'created_at')  String? createdAt, @JsonKey(name: 'html_url')  String htmlUrl, @JsonKey(name: 'workflow_id')  int? workflowId)?  $default,) {final _that = this;
 switch (_that) {
 case _GitHubWorkflowRunDto() when $default != null:
-return $default(_that.id,_that.runNumber,_that.displayTitle,_that.name,_that.event,_that.status,_that.conclusion,_that.headBranch,_that.createdAt,_that.htmlUrl);case _:
+return $default(_that.id,_that.runNumber,_that.displayTitle,_that.name,_that.event,_that.status,_that.conclusion,_that.headBranch,_that.createdAt,_that.htmlUrl,_that.workflowId);case _:
   return null;
 
 }
@@ -220,7 +221,7 @@ return $default(_that.id,_that.runNumber,_that.displayTitle,_that.name,_that.eve
 @JsonSerializable()
 
 class _GitHubWorkflowRunDto implements GitHubWorkflowRunDto {
-  const _GitHubWorkflowRunDto({required this.id, @JsonKey(name: 'run_number') this.runNumber = 0, @JsonKey(name: 'display_title') this.displayTitle, this.name, this.event = '', this.status = '', this.conclusion, @JsonKey(name: 'head_branch') this.headBranch, @JsonKey(name: 'created_at') this.createdAt, @JsonKey(name: 'html_url') this.htmlUrl = ''});
+  const _GitHubWorkflowRunDto({required this.id, @JsonKey(name: 'run_number') this.runNumber = 0, @JsonKey(name: 'display_title') this.displayTitle, this.name, this.event = '', this.status = '', this.conclusion, @JsonKey(name: 'head_branch') this.headBranch, @JsonKey(name: 'created_at') this.createdAt, @JsonKey(name: 'html_url') this.htmlUrl = '', @JsonKey(name: 'workflow_id') this.workflowId});
   factory _GitHubWorkflowRunDto.fromJson(Map<String, dynamic> json) => _$GitHubWorkflowRunDtoFromJson(json);
 
 @override final  int id;
@@ -235,6 +236,7 @@ class _GitHubWorkflowRunDto implements GitHubWorkflowRunDto {
 @override@JsonKey(name: 'head_branch') final  String? headBranch;
 @override@JsonKey(name: 'created_at') final  String? createdAt;
 @override@JsonKey(name: 'html_url') final  String htmlUrl;
+@override@JsonKey(name: 'workflow_id') final  int? workflowId;
 
 /// Create a copy of GitHubWorkflowRunDto
 /// with the given fields replaced by the non-null parameter values.
@@ -249,16 +251,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitHubWorkflowRunDto&&(identical(other.id, id) || other.id == id)&&(identical(other.runNumber, runNumber) || other.runNumber == runNumber)&&(identical(other.displayTitle, displayTitle) || other.displayTitle == displayTitle)&&(identical(other.name, name) || other.name == name)&&(identical(other.event, event) || other.event == event)&&(identical(other.status, status) || other.status == status)&&(identical(other.conclusion, conclusion) || other.conclusion == conclusion)&&(identical(other.headBranch, headBranch) || other.headBranch == headBranch)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.htmlUrl, htmlUrl) || other.htmlUrl == htmlUrl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitHubWorkflowRunDto&&(identical(other.id, id) || other.id == id)&&(identical(other.runNumber, runNumber) || other.runNumber == runNumber)&&(identical(other.displayTitle, displayTitle) || other.displayTitle == displayTitle)&&(identical(other.name, name) || other.name == name)&&(identical(other.event, event) || other.event == event)&&(identical(other.status, status) || other.status == status)&&(identical(other.conclusion, conclusion) || other.conclusion == conclusion)&&(identical(other.headBranch, headBranch) || other.headBranch == headBranch)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.htmlUrl, htmlUrl) || other.htmlUrl == htmlUrl)&&(identical(other.workflowId, workflowId) || other.workflowId == workflowId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,runNumber,displayTitle,name,event,status,conclusion,headBranch,createdAt,htmlUrl);
+int get hashCode => Object.hash(runtimeType,id,runNumber,displayTitle,name,event,status,conclusion,headBranch,createdAt,htmlUrl,workflowId);
 
 @override
 String toString() {
-  return 'GitHubWorkflowRunDto(id: $id, runNumber: $runNumber, displayTitle: $displayTitle, name: $name, event: $event, status: $status, conclusion: $conclusion, headBranch: $headBranch, createdAt: $createdAt, htmlUrl: $htmlUrl)';
+  return 'GitHubWorkflowRunDto(id: $id, runNumber: $runNumber, displayTitle: $displayTitle, name: $name, event: $event, status: $status, conclusion: $conclusion, headBranch: $headBranch, createdAt: $createdAt, htmlUrl: $htmlUrl, workflowId: $workflowId)';
 }
 
 
@@ -269,7 +271,7 @@ abstract mixin class _$GitHubWorkflowRunDtoCopyWith<$Res> implements $GitHubWork
   factory _$GitHubWorkflowRunDtoCopyWith(_GitHubWorkflowRunDto value, $Res Function(_GitHubWorkflowRunDto) _then) = __$GitHubWorkflowRunDtoCopyWithImpl;
 @override @useResult
 $Res call({
- int id,@JsonKey(name: 'run_number') int runNumber,@JsonKey(name: 'display_title') String? displayTitle, String? name, String event, String status, String? conclusion,@JsonKey(name: 'head_branch') String? headBranch,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'html_url') String htmlUrl
+ int id,@JsonKey(name: 'run_number') int runNumber,@JsonKey(name: 'display_title') String? displayTitle, String? name, String event, String status, String? conclusion,@JsonKey(name: 'head_branch') String? headBranch,@JsonKey(name: 'created_at') String? createdAt,@JsonKey(name: 'html_url') String htmlUrl,@JsonKey(name: 'workflow_id') int? workflowId
 });
 
 
@@ -286,7 +288,7 @@ class __$GitHubWorkflowRunDtoCopyWithImpl<$Res>
 
 /// Create a copy of GitHubWorkflowRunDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? runNumber = null,Object? displayTitle = freezed,Object? name = freezed,Object? event = null,Object? status = null,Object? conclusion = freezed,Object? headBranch = freezed,Object? createdAt = freezed,Object? htmlUrl = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? runNumber = null,Object? displayTitle = freezed,Object? name = freezed,Object? event = null,Object? status = null,Object? conclusion = freezed,Object? headBranch = freezed,Object? createdAt = freezed,Object? htmlUrl = null,Object? workflowId = freezed,}) {
   return _then(_GitHubWorkflowRunDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,runNumber: null == runNumber ? _self.runNumber : runNumber // ignore: cast_nullable_to_non_nullable
@@ -298,7 +300,8 @@ as String,conclusion: freezed == conclusion ? _self.conclusion : conclusion // i
 as String?,headBranch: freezed == headBranch ? _self.headBranch : headBranch // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,htmlUrl: null == htmlUrl ? _self.htmlUrl : htmlUrl // ignore: cast_nullable_to_non_nullable
-as String,
+as String,workflowId: freezed == workflowId ? _self.workflowId : workflowId // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

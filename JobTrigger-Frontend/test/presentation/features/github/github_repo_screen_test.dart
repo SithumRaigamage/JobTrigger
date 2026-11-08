@@ -24,6 +24,13 @@ class _Credential extends ActiveGitHubCredentialNotifier {
 
 class _Repos implements GitHubRepository {
   @override
+  Future<Result<List<GitHubWorkflowRun>, AppFailure>> fetchRepoRuns(
+    String owner,
+    String repo, {
+    int limit = 5,
+  }) => throw UnimplementedError();
+
+  @override
   Future<Result<String, AppFailure>> fetchJobLog(
     String owner,
     String repo,

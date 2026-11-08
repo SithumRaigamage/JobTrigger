@@ -19,6 +19,7 @@ import '../../core/theme/app_typography.dart';
 import '../common_widgets/pinned_footer_layout.dart';
 import '../features/build_detail/build_detail_screen.dart';
 import '../features/build_log/build_log_screen.dart';
+import '../features/github/github_global_history_screen.dart';
 import '../features/github/github_job_log_screen.dart';
 import '../features/github/github_repo_screen.dart';
 import '../features/github/github_run_history_screen.dart';
@@ -335,6 +336,11 @@ GoRouter appRouter(Ref ref) {
           final (repo, workflow) = state.extra! as (GitHubRepo, GitHubWorkflow);
           return GitHubRunsScreen(repo: repo, workflow: workflow);
         },
+      ),
+      GoRoute(
+        path: AppRoutes.githubGlobalHistory,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const GitHubGlobalHistoryScreen(),
       ),
       GoRoute(
         path: AppRoutes.githubHistory,

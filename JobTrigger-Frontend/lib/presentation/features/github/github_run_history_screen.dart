@@ -213,9 +213,18 @@ class _Footer extends StatelessWidget {
 /// [GitHubWorkflowRun] — status tile, "title #n", the state in its status
 /// colour with event and branch, and when it started.
 class GitHubRunHistoryTile extends StatelessWidget {
-  const GitHubRunHistoryTile({required this.run, this.onTap, super.key});
+  const GitHubRunHistoryTile({
+    required this.run,
+    this.repoLabel,
+    this.onTap,
+    super.key,
+  });
 
   final GitHubWorkflowRun run;
+
+  /// `owner/repo`, shown ahead of the title where runs of several repos are
+  /// mixed (the cross-repo feed); omitted in a single workflow's history.
+  final String? repoLabel;
   final VoidCallback? onTap;
 
   @override
@@ -235,7 +244,8 @@ class GitHubRunHistoryTile extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Semantics(
         button: true,
-        label: '${run.title}, run ${run.runNumber}, $detail',
+        label:
+            '${repoLabel == null ? '' : '$repoLabel, '}${run.title}, run ${run.runNumber}, $detail',
         excludeSemantics: true,
         child: GlassSurface.card(
           onTap: onTap,
@@ -252,6 +262,11 @@ class GitHubRunHistoryTile extends StatelessWidget {
                       Text.rich(
                         TextSpan(
                           children: [
+                            if (repoLabel != null)
+                              TextSpan(
+                                text: '$repoLabel ',
+                                style: TextStyle(color: t.textMuted),
+                              ),
                             TextSpan(text: '${run.title} '),
                             TextSpan(
                               text: '#${run.runNumber}',

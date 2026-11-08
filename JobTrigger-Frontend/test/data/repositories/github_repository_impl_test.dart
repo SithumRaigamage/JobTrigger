@@ -516,4 +516,35 @@ void main() {
       },
     );
   });
+
+  group('GitHubRepositoryImpl.fetchRepoRuns (US-GH-HIST-02)', () {
+    test('GETs a repo\'s runs across workflows with a small page', () async {
+      final adapter = _FixedResponseAdapter(200, {
+        'workflow_runs': [
+          {
+            'id': 1,
+            'run_number': 4,
+            'name': 'CI',
+            'display_title': 'Fix',
+            'workflow_id': 42,
+            'status': 'completed',
+            'conclusion': 'success',
+          },
+        ],
+      });
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.github.com'))
+        ..httpClientAdapter = adapter;
+
+      final result = await GitHubRepositoryImpl(
+        dio,
+      ).fetchRepoRuns('o', 'r', limit: 5);
+
+      expect(adapter.lastRequest?.path, '/repos/o/r/actions/runs');
+      expect(adapter.lastRequest?.queryParameters['per_page'], 5);
+      final runs = (result as Ok<List<GitHubWorkflowRun>, AppFailure>).value;
+      expect(runs.single.title, 'Fix');
+      expect(runs.single.workflowId, 42);
+      expect(runs.single.workflowName, 'CI');
+    });
+  });
 }

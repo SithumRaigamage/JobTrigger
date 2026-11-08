@@ -22,6 +22,7 @@ abstract class GitHubWorkflowRunDto with _$GitHubWorkflowRunDto {
     @JsonKey(name: 'head_branch') String? headBranch,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'html_url') @Default('') String htmlUrl,
+    @JsonKey(name: 'workflow_id') int? workflowId,
   }) = _GitHubWorkflowRunDto;
 
   factory GitHubWorkflowRunDto.fromJson(Map<String, dynamic> json) =>
@@ -39,5 +40,7 @@ extension GitHubWorkflowRunDtoX on GitHubWorkflowRunDto {
     branch: headBranch,
     createdAt: createdAt == null ? null : DateTime.tryParse(createdAt!),
     htmlUrl: htmlUrl,
+    workflowId: workflowId,
+    workflowName: name,
   );
 }

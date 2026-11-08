@@ -54,9 +54,17 @@ class GitHubRepoScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: _AccountChip(label: activeCredential.label),
+                    Row(
+                      children: [
+                        _AccountChip(label: activeCredential.label),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.history_rounded),
+                          tooltip: 'Recent activity',
+                          onPressed: () =>
+                              context.push(AppRoutes.githubGlobalHistory),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 14),
                     Semantics(
