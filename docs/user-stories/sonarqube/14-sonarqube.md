@@ -272,6 +272,37 @@ So that I can find the one I want to check the quality status of
 
 ---
 
+### US-SQ-PROJ-03 — See each project's health in the list
+
+**Priority:** Should
+**Source:** owner's local-server test, 2026-11-08
+**Dependencies:** US-SQ-PROJ-01
+
+As a user
+I want each project card to show its quality-gate verdict and headline
+numbers, and to sort and filter the list by them
+So that I can find what needs attention without opening every project
+
+**Acceptance Criteria**
+- Scenario: Card numbers
+  Given the project list has loaded
+  Then each card shows its gate verdict (Passed / Failed / Warning / Not
+  analyzed) and its bugs, vulnerabilities, code smells and coverage, loaded
+  with one `GET api/measures/search` request per 100 projects, never one per
+  project. A figure the server did not compute is "—", not 0
+- Scenario: Sort and filter
+  Given the list is shown
+  Then it can be sorted by name, last analysed or quality gate (failing
+  first), and narrowed to projects whose gate failed or warns
+- Scenario: The numbers cannot be loaded
+  Given that request fails
+  Then the list still works, without the badges, and nothing is called
+  passing
+- Scenario: Last analysed
+  Given `api/components/search_projects` leaves the date out unless asked
+  Then the list asks for `f=analysisDate`, and a project still without a date
+  looks up its newest analysis before being called "Never analyzed"
+
 ## Epic SQ-QUALITY — Quality Gate, Measures, and Issues
 
 The core of this integration — everything a user actually wants to know
@@ -421,3 +452,82 @@ So that I can tell whether the quality data I'm looking at is current
 - Genuinely optional (`Could` priority) — the quality gate + measures
   views (`US-SQ-QUALITY-01`/`02`) already cover the primary use case;
   history is a nice-to-have, not do this before those are solid.
+
+### US-SQ-QUALITY-05 — Ratings and technical debt
+
+**Priority:** Should
+**Source:** owner's local-server test, 2026-11-08
+**Dependencies:** US-SQ-QUALITY-02
+
+As a user
+I want the reliability, security and maintainability ratings and the
+technical debt
+So that I can judge a project beyond its raw counts
+
+**Acceptance Criteria**
+- Scenario: Computed
+  Then the project page shows each rating as A–E and the debt as SonarQube
+  writes it (an 8-hour day: `2d 3h`), and marks any measure the quality gate
+  failed on
+- Scenario: Not computed
+  Then no empty tile is drawn for it
+
+### US-SQ-QUALITY-06 — Issue detail
+
+**Priority:** Should
+**Source:** owner's local-server test, 2026-11-08
+**Dependencies:** US-SQ-QUALITY-03
+
+As a user
+I want to open an issue and see why it was raised and where
+So that I can act on it from my phone
+
+**Acceptance Criteria**
+- Scenario: Detail
+  Then the page shows type, severity, message, rule key and name
+  (`api/rules/show`), file and line, effort to fix, status, author, when it
+  was raised and tags, and the code around the issue
+  (`api/sources/show`, markup removed) with the issue's line marked
+- Scenario: Part of it fails
+  Then what loaded is shown; if both the rule and the code fail, the reason
+  and a retry
+
+### US-SQ-OVERVIEW-01 — Overview tab (in place of History)
+
+**Priority:** Should
+**Source:** owner's local-server test, 2026-11-08
+**Dependencies:** US-SQ-PROJ-03
+
+As a user
+I want one screen showing how all my projects are doing
+So that SonarQube's second tab is useful, since it has no run history
+
+**Acceptance Criteria**
+- Scenario: The tab
+  Given SonarQube is the active tool
+  Then the second tab is "Overview", and Jenkins and GitHub Actions keep
+  "History"
+- Scenario: Content
+  Then it shows counts of failing, warning, passing and not-analyzed
+  projects, the totals of bugs, vulnerabilities and code smells, and the
+  projects that need attention (failed before warning, worst first)
+- Scenario: Honesty
+  Then it never says all is well while verdicts are loading or failed to
+  load, and says when it is based on only part of the project list
+
+### US-SQ-LINK-01 — Open in SonarQube
+
+**Priority:** Could
+**Source:** owner's local-server test, 2026-11-08
+**Dependencies:** US-SQ-QUALITY-03
+
+As a user
+I want to open a project or an issue in SonarQube's own web UI
+So that I can see more than the app shows
+
+**Acceptance Criteria**
+- Scenario: Link
+  Then a project opens `{base}/dashboard?id=KEY` and an issue opens
+  `{base}/project/issues?id=KEY&issues=ISSUE&open=ISSUE`, in the browser,
+  with a server path (`/sonar`) kept and keys encoded
+
