@@ -71,4 +71,15 @@ abstract class GitHubRepository {
     String repo,
     int runId,
   );
+
+  /// `GET /repos/{owner}/{repo}/actions/jobs/{job_id}/logs` (`US-GH-LOG-01`):
+  /// the whole log as plain text. GitHub answers 302 to a short-lived
+  /// signed URL; following it is part of this one call, and that URL never
+  /// leaves the data layer. Only meaningful once the job has completed:
+  /// GitHub has no offset or tail to poll a partial log safely.
+  Future<Result<String, AppFailure>> fetchJobLog(
+    String owner,
+    String repo,
+    int jobId,
+  );
 }

@@ -38,6 +38,30 @@ class _FixedResponseAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+/// Serves a scripted response per host, recording every request, so a
+/// redirect from `api.github.com` to a storage host can be followed.
+class _HostAdapter implements HttpClientAdapter {
+  _HostAdapter(this.responses);
+
+  /// host -> (status, body, headers)
+  final Map<String, (int, String, Map<String, List<String>>)> responses;
+  final List<RequestOptions> requests = [];
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    requests.add(options);
+    final (status, body, headers) = responses[options.uri.host]!;
+    return ResponseBody.fromString(body, status, headers: headers);
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 void main() {
   group('GitHubRepositoryImpl.fetchRepos (US-GH-REPO-01)', () {
     test('GETs /user/repos and parses the array', () async {
@@ -377,5 +401,106 @@ void main() {
         isA<PermissionFailure>(),
       );
     });
+  });
+
+  group('GitHubRepositoryImpl.fetchJobLog (US-GH-LOG-01)', () {
+    const signed = 'https://logs.example-storage.test/blob/1?sig=SECRET';
+
+    test('follows the 302 by hand and never sends the token to the storage '
+        'host', () async {
+      final apiAdapter = _HostAdapter({
+        'api.github.com': (
+          302,
+          '',
+          {
+            'location': [signed],
+          },
+        ),
+      });
+      final api = Dio(BaseOptions(baseUrl: 'https://api.github.com'))
+        ..options.headers['Authorization'] = 'Bearer ghp_TOKEN'
+        ..httpClientAdapter = apiAdapter;
+      final storageAdapter = _HostAdapter({
+        'logs.example-storage.test': (200, 'line one\nline two\n', {}),
+      });
+      final storage = Dio()..httpClientAdapter = storageAdapter;
+
+      final result = await GitHubRepositoryImpl(
+        api,
+        downloadDio: storage,
+      ).fetchJobLog('o', 'r', 9);
+
+      expect((result as Ok<String, AppFailure>).value, 'line one\nline two\n');
+      expect(apiAdapter.requests, hasLength(1));
+      expect(apiAdapter.requests.single.path, '/repos/o/r/actions/jobs/9/logs');
+      expect(apiAdapter.requests.single.followRedirects, isFalse);
+      expect(storageAdapter.requests, hasLength(1));
+      expect(storageAdapter.requests.single.uri.toString(), signed);
+      expect(
+        storageAdapter.requests.single.headers.containsKey('Authorization'),
+        isFalse,
+      );
+    });
+
+    test('a log returned directly (no redirect) is used as is', () async {
+      final api = Dio(BaseOptions(baseUrl: 'https://api.github.com'))
+        ..httpClientAdapter = _HostAdapter({
+          'api.github.com': (200, 'inline log', {}),
+        });
+
+      final result = await GitHubRepositoryImpl(api).fetchJobLog('o', 'r', 9);
+
+      expect((result as Ok<String, AppFailure>).value, 'inline log');
+    });
+
+    test('a redirect with no Location is an unexpected response', () async {
+      final api = Dio(BaseOptions(baseUrl: 'https://api.github.com'))
+        ..httpClientAdapter = _HostAdapter({'api.github.com': (302, '', {})});
+
+      final result = await GitHubRepositoryImpl(api).fetchJobLog('o', 'r', 9);
+
+      expect(
+        (result as Err<String, AppFailure>).error,
+        isA<UnexpectedResponseFailure>(),
+      );
+    });
+
+    test('logs that are gone or expired map to NotFoundFailure', () async {
+      final api = Dio(BaseOptions(baseUrl: 'https://api.github.com'))
+        ..httpClientAdapter = _HostAdapter({
+          'api.github.com': (404, '{"message":"Not Found"}', {}),
+        });
+
+      final result = await GitHubRepositoryImpl(api).fetchJobLog('o', 'r', 9);
+
+      expect((result as Err<String, AppFailure>).error, isA<NotFoundFailure>());
+    });
+
+    test(
+      'an expired signed URL (storage 403/404) is a failure, not text',
+      () async {
+        final api = Dio(BaseOptions(baseUrl: 'https://api.github.com'))
+          ..httpClientAdapter = _HostAdapter({
+            'api.github.com': (
+              302,
+              '',
+              {
+                'location': [signed],
+              },
+            ),
+          });
+        final storage = Dio()
+          ..httpClientAdapter = _HostAdapter({
+            'logs.example-storage.test': (404, 'expired', {}),
+          });
+
+        final result = await GitHubRepositoryImpl(
+          api,
+          downloadDio: storage,
+        ).fetchJobLog('o', 'r', 9);
+
+        expect(result, isA<Err<String, AppFailure>>());
+      },
+    );
   });
 }

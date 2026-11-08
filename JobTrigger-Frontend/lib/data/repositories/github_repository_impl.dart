@@ -18,9 +18,13 @@ import '../../domain/github/github_workflow_run.dart';
 part 'github_repository_impl.g.dart';
 
 class GitHubRepositoryImpl implements GitHubRepository {
-  GitHubRepositoryImpl(this._dio);
+  /// [downloadDio] fetches the signed log URL GitHub redirects to. It must
+  /// carry no credentials, so the default is a bare client built on demand;
+  /// tests inject one with a fake adapter.
+  GitHubRepositoryImpl(this._dio, {this._downloadDio});
 
   final Dio _dio;
+  final Dio? _downloadDio;
 
   @override
   Future<Result<List<GitHubRepo>, AppFailure>> fetchRepos() => guardRequest(
@@ -147,6 +151,51 @@ class GitHubRepositoryImpl implements GitHubRepository {
               GitHubJobDto.fromJson(json as Map<String, dynamic>).toDomain(),
         )
         .toList();
+  }, mapDioException: AppFailure.fromGitHubException);
+
+  @override
+  Future<Result<String, AppFailure>> fetchJobLog(
+    String owner,
+    String repo,
+    int jobId,
+  ) => guardRequest(() async {
+    // Hop 1, with the Bearer token: GitHub replies 302 + a signed URL.
+    // Redirects are followed by hand so the token is never sent to the
+    // storage host, and so the URL stays in this method (it expires in
+    // about a minute, so it must not be kept or reused).
+    final first = await _dio.get<String>(
+      '/repos/$owner/$repo/actions/jobs/$jobId/logs',
+      options: Options(
+        followRedirects: false,
+        responseType: ResponseType.plain,
+        validateStatus: (status) => status != null && status < 400,
+      ),
+    );
+    final status = first.statusCode ?? 200;
+    if (status < 300) return first.data ?? '';
+
+    final location = first.headers.value('location');
+    if (location == null || location.isEmpty) {
+      throw const FormatException('Log redirect had no Location header');
+    }
+    final download =
+        _downloadDio ??
+        Dio(
+          BaseOptions(
+            connectTimeout: const Duration(seconds: 15),
+            receiveTimeout: const Duration(seconds: 60),
+          ),
+        );
+    try {
+      // Hop 2, with no credentials.
+      final second = await download.get<String>(
+        location,
+        options: Options(responseType: ResponseType.plain),
+      );
+      return second.data ?? '';
+    } finally {
+      if (_downloadDio == null) download.close();
+    }
   }, mapDioException: AppFailure.fromGitHubException);
 }
 

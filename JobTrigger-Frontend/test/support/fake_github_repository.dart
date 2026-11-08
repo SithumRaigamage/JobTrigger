@@ -14,7 +14,9 @@ class FakeGitHubRepository implements GitHubRepository {
   Result<void, AppFailure> triggerResult = const Ok(null);
   Result<void, AppFailure> cancelResult = const Ok(null);
   Result<List<GitHubJob>, AppFailure> jobsResult = const Ok([]);
+  Result<String, AppFailure> logResult = const Ok('');
   int fetchJobsCalls = 0;
+  int fetchJobLogCalls = 0;
 
   int fetchRunsCalls = 0;
   int fetchRunCalls = 0;
@@ -75,6 +77,16 @@ class FakeGitHubRepository implements GitHubRepository {
   ) async {
     fetchJobsCalls++;
     return jobsResult;
+  }
+
+  @override
+  Future<Result<String, AppFailure>> fetchJobLog(
+    String owner,
+    String repo,
+    int jobId,
+  ) async {
+    fetchJobLogCalls++;
+    return logResult;
   }
 
   @override

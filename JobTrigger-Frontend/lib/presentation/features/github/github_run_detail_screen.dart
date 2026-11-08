@@ -12,6 +12,7 @@ import '../../../domain/jenkins/relative_time.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/status_pill.dart';
 import '../../common_widgets/segment_row.dart';
+import '../../navigation/app_routes.dart';
 import '../../common_widgets/section_label.dart';
 import '../../../domain/github/github_job.dart';
 import 'github_cancel_notifier.dart';
@@ -139,6 +140,10 @@ class GitHubRunDetailScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     _JobsSection(
                       jobsAsync: jobsAsync,
+                      onOpenLog: (job) => context.push(
+                        AppRoutes.githubJobLog,
+                        extra: (repo, run.id, job),
+                      ),
                       onRetry: () => ref
                           .read(
                             gitHubJobsNotifierProvider(
@@ -204,9 +209,14 @@ class GitHubRunDetailScreen extends ConsumerWidget {
 /// Each job as its own group — name, status pill, then its steps as the
 /// shared segment bar (`US-GH-RUN-05`).
 class _JobsSection extends StatelessWidget {
-  const _JobsSection({required this.jobsAsync, required this.onRetry});
+  const _JobsSection({
+    required this.jobsAsync,
+    required this.onRetry,
+    required this.onOpenLog,
+  });
 
   final AsyncValue<List<GitHubJob>> jobsAsync;
+  final void Function(GitHubJob job) onOpenLog;
   final VoidCallback onRetry;
 
   @override
@@ -246,20 +256,37 @@ class _JobsSection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            job.name,
-                            style: textTheme.titleSmall,
-                            overflow: TextOverflow.ellipsis,
+                    InkWell(
+                      onTap: () => onOpenLog(job),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Semantics(
+                        button: true,
+                        label: 'Open log for job ${job.name}, ${job.label}',
+                        excludeSemantics: true,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  job.name,
+                                  style: textTheme.titleSmall,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              StatusPill(
+                                label: job.label,
+                                tone: toneForRunOutcome(job.outcome),
+                              ),
+                              Icon(
+                                Icons.chevron_right_rounded,
+                                size: 20,
+                                color: t.textMuted,
+                              ),
+                            ],
                           ),
                         ),
-                        StatusPill(
-                          label: job.label,
-                          tone: toneForRunOutcome(job.outcome),
-                        ),
-                      ],
+                      ),
                     ),
                     const SizedBox(height: 8),
                     if (job.steps.isEmpty)

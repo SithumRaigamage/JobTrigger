@@ -12,6 +12,13 @@ import 'package:job_trigger/presentation/features/github/github_runs_notifier.da
 
 class _Fake implements GitHubRepository {
   @override
+  Future<Result<String, AppFailure>> fetchJobLog(
+    String owner,
+    String repo,
+    int jobId,
+  ) => throw UnimplementedError();
+
+  @override
   Future<Result<List<GitHubJob>, AppFailure>> fetchJobs(
     String owner,
     String repo,

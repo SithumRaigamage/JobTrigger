@@ -92,8 +92,14 @@ void main() {
     expect(find.text('build (ubuntu)'), findsOneWidget);
     expect(find.text('Checkout'), findsOneWidget);
     expect(find.text('Test'), findsOneWidget);
-    expect(find.bySemanticsLabel(RegExp('Step Checkout, Success')), findsOneWidget);
-    expect(find.bySemanticsLabel(RegExp('Step Test, In progress')), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(RegExp('Step Checkout, Success')),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel(RegExp('Step Test, In progress')),
+      findsOneWidget,
+    );
     expect(find.text('lint'), findsOneWidget);
     expect(find.text('No steps reported.'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());

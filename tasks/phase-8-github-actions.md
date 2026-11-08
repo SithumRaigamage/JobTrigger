@@ -381,7 +381,7 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
 
 ## GH-LOG — Job log viewing
 
-- [ ] P8-21 `GitHubRepository.fetchJobLog(owner, repo, jobId)` — `GET
+- [x] P8-21 `GitHubRepository.fetchJobLog(owner, repo, jobId)` — `GET
       .../jobs/{job_id}/logs`, follows the 302 redirect and fetches the
       plain-text body as one atomic operation (the redirect URL itself
       never reaches the UI or gets cached — it expires in ~1 minute per
@@ -391,14 +391,31 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       flagged in the epic doc — don't try to work around it with naive
       full-redownload polling, that was explicitly rejected as a design
       option).
-- [ ] P8-22 `GitHubJobLogScreen` — reuses `ConsoleLogViewer` unmodified
+      **Done 2026-11-08 (implemented and unit-tested; `NFR-TEST-03`
+      real-repository check pending).** The 302 is followed by hand: hop 1
+      carries the Bearer token to `api.github.com`; hop 2 uses a bare client
+      so the token never reaches the signed storage URL, which stays inside
+      the method. Tested with a recording adapter (storage request has no
+      `Authorization`). `GitHubJobLogNotifier` is a one-shot fetch.
+- [x] P8-22 `GitHubJobLogScreen` — reuses `ConsoleLogViewer` unmodified
       for rendering (`US-LOG-01`'s virtualized list); a manual "check now"
       refresh action instead of automatic polling while a job is still
       running; copy/share via the same `share_plus` pattern as
       `BuildLogScreen` (`US-GH-LOG-02`).
-- [ ] P8-23 Unit tests: redirect-following log fetch against a mocked
+      **Done 2026-11-08.** `GitHubJobLogScreen` uses the shared
+      `ConsoleLogViewer` unchanged. A job that hasn't completed never
+      fetches: it shows "available once this job finishes" and a Check now
+      button (refreshes the jobs; the screen switches to the log when the
+      job completes). Copy and share use the whole downloaded text, enabled
+      only after a log loads. The Jenkins log screen shows no first-share
+      secret notice either, so none was added here; if wanted, add it to
+      both.
+- [x] P8-23 Unit tests: redirect-following log fetch against a mocked
       302 → text sequence; in-progress-job "not available yet" state.
 
+      **Done 2026-11-08.** Redirect sequence (token not sent to storage),
+      direct 200, missing Location, 404, expired signed URL, in-progress
+      job never fetches, copy/share disabled before load, retry.
 ## GH-HIST — Run history
 
 - [ ] P8-24 Per-workflow history screen reusing `HistoryTile`'s visual

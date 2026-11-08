@@ -39,6 +39,13 @@ const _fakeGitHubCredential = GitHubCredential(
 /// Reused fake from `filtered_github_repos_provider_test.dart`'s pattern.
 class _FakeGitHubRepository implements GitHubRepository {
   @override
+  Future<Result<String, AppFailure>> fetchJobLog(
+    String owner,
+    String repo,
+    int jobId,
+  ) => throw UnimplementedError();
+
+  @override
   Future<Result<List<GitHubJob>, AppFailure>> fetchJobs(
     String owner,
     String repo,
