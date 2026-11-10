@@ -50,7 +50,7 @@ dependencies:
   shared_preferences: ^2.5.6
   share_plus: ^13.3.1
   package_info_plus: ^10.2.2
-  url_launcher: ^6.3.2
+  url_launcher: ^6.3.3
   simple_icons: ^16.23.0
   dio_cookie_manager: ^3.5.0
   cookie_jar: ^4.0.9
