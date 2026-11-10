@@ -40,8 +40,8 @@ dependencies:
   # (riverpod_generator >=4.0.6 wants analyzer ^13, freezed's latest stable
   # wants <11) so `flutter pub upgrade` will happily break codegen. Bump this
   # whole group together deliberately, re-resolving all five at once.
-  flutter_riverpod: 3.3.1
-  riverpod_annotation: 4.0.2
+  flutter_riverpod: 3.5.0
+  riverpod_annotation: 4.0.8
   dio: ^5.11.1
   go_router: ^18.1.1
   freezed_annotation: ^3.1.0
@@ -73,10 +73,10 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-  build_runner: ^2.15.1
-  freezed: 3.2.6-dev.1
+  build_runner: ^2.17.1
+  freezed: 4.0.3
   json_serializable: 6.15.2
-  riverpod_generator: 4.0.4-dev.1
+  riverpod_generator: 4.0.10
   shared_preferences_platform_interface: ^2.4.2
 
 # For information on the generic Dart part of this file, see the
