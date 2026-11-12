@@ -11,6 +11,8 @@ process.env.REFRESH_RATE_LIMIT = '10000';
 process.env.PASSWORD_RESET_RATE_LIMIT = '10000';
 process.env.PASSWORD_RESET_EMAIL_RATE_LIMIT = '10000';
 process.env.PASSWORD_RESET_CONFIRM_RATE_LIMIT = '10000';
+process.env.SUBSCRIPTION_REFRESH_RATE_LIMIT = '10000';
+process.env.BILLING_WEBHOOK_RATE_LIMIT = '10000';
 // AUD-03: a throwaway key per run; secrets are encrypted at rest.
 process.env.CREDENTIALS_ENCRYPTION_KEY = require('crypto').randomBytes(32).toString('base64');
 // P20-72/73/78: optional features configured in a developer's .env (SMTP,
@@ -20,6 +22,8 @@ process.env.CREDENTIALS_ENCRYPTION_KEY = require('crypto').randomBytes(32).toStr
 for (const name of [
   'SMTP_HOST', 'SMTP_PORT', 'SMTP_SECURE', 'SMTP_USER', 'SMTP_PASS', 'MAIL_FROM',
   'RESET_PASSWORD_URL', 'UMAMI_URL', 'UMAMI_WEBSITE_ID',
+  // P20-17: billing is off in the suites unless a test turns it on.
+  'BILLING_ENABLED', 'REVENUECAT_SECRET_API_KEY', 'REVENUECAT_WEBHOOK_AUTH',
 ]) {
   process.env[name] = '';
 }

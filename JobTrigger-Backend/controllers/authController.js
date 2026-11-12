@@ -4,6 +4,10 @@ const JenkinsCredential = require('../models/JenkinsCredential');
 const GitHubCredential = require('../models/GitHubCredential');
 const SonarQubeCredential = require('../models/SonarQubeCredential');
 const PasswordResetToken = require('../models/PasswordResetToken');
+const Subscription = require('../models/Subscription');
+const revenueCat = require('../billing/revenuecatClient');
+const { revenueCatConfig } = require('../config/env');
+const { logger } = require('../lib/logger');
 const { issueTokens, verifyToken, isCurrent } = require('../security/tokens');
 
 // AUD-26: kept in step with the client's AuthValidation
@@ -193,11 +197,19 @@ exports.deleteAccount = async (req, res, next) => {
     if (!user) return;
 
     await Promise.all(
-      [JenkinsCredential, GitHubCredential, SonarQubeCredential, PasswordResetToken].map((Model) =>
+      [JenkinsCredential, GitHubCredential, SonarQubeCredential, PasswordResetToken, Subscription].map((Model) =>
         Model.deleteMany({ userId: user._id }),
       ),
     );
     await User.deleteOne({ _id: user._id });
+    // P20-18: RevenueCat's copy of the customer goes too. Best effort: the
+    // account is already gone, so a RevenueCat outage is logged, not
+    // surfaced. Deleting doesn't cancel a store subscription (US-SUB-07).
+    if (revenueCatConfig()) {
+      revenueCat.deleteSubscriber(String(user._id)).catch((err) => {
+        logger.warn('billing.delete_subscriber_failed', { requestId: req.requestId, error: err.message });
+      });
+    }
     res.json({ message: 'Account deleted' });
   } catch (err) {
     next(err);

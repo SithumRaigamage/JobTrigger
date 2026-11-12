@@ -1,7 +1,8 @@
 # Phase 20 — Subscriptions (epic SUB)
 
-**Status:** todo — proposed 2026-11-12, **not approved**. Nothing below
-starts until P20-00 is signed off (CLAUDE.md §9: plan → approval → build).
+**Status:** in-progress — P20-00 approved by the owner 2026-11-12. Backend
+track (P20-10..19) built on `feat/subscription-billing`, switched off
+(`BILLING_ENABLED` unset). Backend deployment and the stores are on hold.
 
 Docs: [`docs/subscription/`](../docs/subscription/README.md) ·
 Stories: [`docs/user-stories/billing/18-subscriptions.md`](../docs/user-stories/billing/18-subscriptions.md).
@@ -12,7 +13,7 @@ task where a track is large). Commits reference the task id, e.g.
 
 ## A. Decisions (owner)
 
-- [ ] P20-00 Approve the plan: Free/Pro split and limits
+- [x] P20-00 Approved 2026-11-12, all as written. Approve the plan: Free/Pro split and limits
       (business model §2–3), prices and trial (§4), RevenueCat
       (§5), `purchases_flutter` as a new dependency (add a row to
       CLAUDE.md §3), and the new backend endpoints (technical design §3).
@@ -39,31 +40,37 @@ task where a track is large). Commits reference the task id, e.g.
 
 ## C. Backend (backend track — per-item approval)
 
-- [ ] P20-10 `billing/plans.js` + `billing/entitlements.js` with
+- [x] P20-10 `billing/plans.js` + `billing/entitlements.js` with
       `BILLING_ENABLED` (default off → everyone Pro); unit tests for every
       status/date case.
-- [ ] P20-11 `Subscription` and `BillingEvent` models with indexes
+- [x] P20-11 `Subscription` and `BillingEvent` models with indexes
       (unique `userId`, unique `eventId`, TTL on events).
-- [ ] P20-12 Plan check in `makeCredentialController` (`{ tool }` arg;
+- [x] P20-12 Plan check in `makeCredentialController` (`{ tool }` arg;
       `tool` added to `CREDENTIAL_TARGETS`); `403 PLAN_LIMIT` body;
       tests per tool, multi-tool rule, edit/delete never limited.
-- [ ] P20-13 `locked` flag on credential lists; `setDefault` refuses a
+- [x] P20-13 `locked` flag on credential lists; `setDefault` refuses a
       locked credential; `POST /api/subscription/primary/:id` with a 24 h
       cooldown; tests.
-- [ ] P20-14 `GET /api/subscription`, `POST /api/subscription/refresh`
+- [x] P20-14 `GET /api/subscription`, `POST /api/subscription/refresh`
       (rate-limited); tests.
-- [ ] P20-15 `billing/revenuecatClient.js` (built-in `fetch`, injectable
+- [x] P20-15 `billing/revenuecatClient.js` (built-in `fetch`, injectable
       fake) + `syncSubscription.js`.
-- [ ] P20-16 `POST /api/billing/revenuecat`: constant-time auth check,
+- [x] P20-16 `POST /api/billing/revenuecat`: constant-time auth check,
       idempotency, re-read subscriber, never log the body; tests for bad
       auth, duplicates, out-of-order, upstream failure → 500.
-- [ ] P20-17 `config/env.js`: new variables, refuse to start half-configured
+- [x] P20-17 `config/env.js`: new variables, refuse to start half-configured
       when billing is enabled; `.env.example` names (no values).
-- [ ] P20-18 Account deletion removes the subscription + RevenueCat
+- [x] P20-18 Account deletion removes the subscription + RevenueCat
       customer (best effort, logged).
-- [ ] P20-19 `scripts/grant-plan.js` (local-only guard) for admin/promo
+- [x] P20-19 `scripts/grant-plan.js` (local-only guard) for admin/promo
       grants; `docs/api-reference.md` and `docs/database-migrations.md`
       updated.
+
+Backend track notes (2026-11-12): tests in `test/billing.test.js`; the
+database-backed ones run on the Mac. New optional variables (add the
+names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
+`REVENUECAT_SECRET_API_KEY`, `REVENUECAT_WEBHOOK_AUTH`,
+`SUBSCRIPTION_REFRESH_RATE_LIMIT`, `BILLING_WEBHOOK_RATE_LIMIT`.
 
 ## D. Mobile app
 

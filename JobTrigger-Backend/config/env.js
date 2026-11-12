@@ -73,6 +73,23 @@ function mailProblem(env = process.env) {
   return null;
 }
 
+/**
+ * P20-10: whether plans apply. Off (the default) means everyone gets Pro:
+ * development, beta, and every deployment until the stores are live.
+ */
+function billingEnabled(env = process.env) {
+  return env.BILLING_ENABLED === 'true';
+}
+
+/** P20-15/16: RevenueCat's server key and webhook secret, or null. */
+function revenueCatConfig(env = process.env) {
+  if (blank(env.REVENUECAT_SECRET_API_KEY) || blank(env.REVENUECAT_WEBHOOK_AUTH)) return null;
+  return {
+    secretApiKey: env.REVENUECAT_SECRET_API_KEY.trim(),
+    webhookAuth: env.REVENUECAT_WEBHOOK_AUTH.trim(),
+  };
+}
+
 /** P20-78: Umami settings, or null when analytics is off. */
 function analyticsConfig(env = process.env) {
   if (blank(env.UMAMI_URL) || blank(env.UMAMI_WEBSITE_ID)) return null;
@@ -102,6 +119,14 @@ function invalidConfig(env = process.env) {
   }
   const mail = mailProblem(env);
   if (mail) return mail;
+  if (!blank(env.BILLING_ENABLED) && !['true', 'false'].includes(env.BILLING_ENABLED)) {
+    return 'BILLING_ENABLED must be true or false';
+  }
+  // P20-17: plans with no way to learn about purchases would lock paying
+  // users out, so refuse to start half-configured.
+  if (billingEnabled(env) && !revenueCatConfig(env)) {
+    return 'BILLING_ENABLED=true needs REVENUECAT_SECRET_API_KEY and REVENUECAT_WEBHOOK_AUTH';
+  }
   if (!blank(env.RESET_PASSWORD_URL) && !/^https?:\/\/[^\s?#]+$/.test(env.RESET_PASSWORD_URL.trim())) {
     return 'RESET_PASSWORD_URL must be an http(s) URL without a query string';
   }
@@ -134,4 +159,6 @@ module.exports = {
   mailConfig,
   analyticsConfig,
   resetPasswordUrl,
+  billingEnabled,
+  revenueCatConfig,
 };

@@ -97,8 +97,23 @@ const passwordResetConfirmLimiter = authLimiter({
   limit: fromEnv('PASSWORD_RESET_CONFIRM_RATE_LIMIT', 10),
 });
 
+/** P20-14: a re-sync calls RevenueCat; per user, not per IP. */
+const subscriptionRefreshLimiter = authLimiter({
+  windowMs: 10 * MINUTE,
+  limit: fromEnv('SUBSCRIPTION_REFRESH_RATE_LIMIT', 10),
+  keyGenerator: (req) => `user:${req.user?.id ?? ipKeyGenerator(req.ip)}`,
+});
+
+/** P20-16: generous; RevenueCat delivers from a few IPs in bursts. */
+const billingWebhookLimiter = authLimiter({
+  windowMs: MINUTE,
+  limit: fromEnv('BILLING_WEBHOOK_RATE_LIMIT', 120),
+});
+
 module.exports = {
   authLimiter,
+  billingWebhookLimiter,
+  subscriptionRefreshLimiter,
   passwordResetConfirmLimiter,
   passwordResetEmailLimiter,
   passwordResetLimiter,
