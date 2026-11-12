@@ -10,6 +10,7 @@
  *   device, AUD-26) and deletes the user's remaining tokens.
  */
 const crypto = require('crypto');
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const PasswordResetToken = require('../models/PasswordResetToken');
 const { newPasswordProblem, MAX_EMAIL_LENGTH } = require('./authController');
@@ -97,8 +98,15 @@ exports.confirm = async (req, res, next) => {
     if (problem) return res.status(400).json({ message: problem });
 
     // Atomic: two requests with the same token can't both succeed.
+    // `sanitizeFilter` (AUD-04, server.js) neutralises query operators so
+    // request data can't inject them; this `$gt` is ours, not the client's,
+    // so it is marked trusted. Every other value here is a string we built.
     const record = await PasswordResetToken.findOneAndUpdate(
-      { tokenHash: hashToken(token), usedAt: null, expiresAt: { $gt: new Date() } },
+      {
+        tokenHash: hashToken(token),
+        usedAt: null,
+        expiresAt: mongoose.trusted({ $gt: new Date() }),
+      },
       { $set: { usedAt: new Date() } },
     );
     if (!record) return res.status(400).json({ message: INVALID_LINK });

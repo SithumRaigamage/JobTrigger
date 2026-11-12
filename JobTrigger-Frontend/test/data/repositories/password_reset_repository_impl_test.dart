@@ -66,7 +66,8 @@ void main() {
 
   test('an expired link surfaces the backend\'s own words', () async {
     final adapter = _JsonAdapter(400, {
-      'message': 'This reset link is invalid or has expired. Ask for a new one.',
+      'message':
+          'This reset link is invalid or has expired. Ask for a new one.',
     });
     final result = await _repo(
       adapter,
@@ -85,6 +86,9 @@ void main() {
       'message': 'Too many attempts. Please wait a few minutes and try again.',
     });
     final result = await _repo(adapter).requestReset(email: 'a@b.com');
-    expect((result as Err<void, AppFailure>).error, isNot(isA<RejectedRequestFailure>()));
+    expect(
+      (result as Err<void, AppFailure>).error,
+      isNot(isA<RejectedRequestFailure>()),
+    );
   });
 }

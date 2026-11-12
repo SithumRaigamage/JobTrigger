@@ -31,9 +31,9 @@ class ActiveToolNotifier extends _$ActiveToolNotifier {
     // P20-76: which tools people use decides what's built next. Anonymous,
     // fire-and-forget; a no-op when analytics isn't configured.
     unawaited(
-      ref
-          .read(analyticsServiceProvider)
-          .track(AnalyticsEvent.toolSelected, {'tool': tool.name}),
+      ref.read(analyticsServiceProvider).track(AnalyticsEvent.toolSelected, {
+        'tool': tool.name,
+      }),
     );
   }
 }

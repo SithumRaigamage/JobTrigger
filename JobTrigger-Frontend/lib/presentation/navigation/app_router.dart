@@ -294,8 +294,9 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.resetPassword,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) =>
-            ResetPasswordScreen(token: state.uri.queryParameters['token'] ?? ''),
+        builder: (context, state) => ResetPasswordScreen(
+          token: state.uri.queryParameters['token'] ?? '',
+        ),
       ),
       GoRoute(
         path: AppRoutes.toolSelection,

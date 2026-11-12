@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -107,10 +106,7 @@ void main() {
   });
 
   test('uses a browser-like User-Agent so Umami keeps the event', () {
-    expect(
-      analyticsUserAgent(TargetPlatform.iOS),
-      startsWith('Mozilla/5.0'),
-    );
+    expect(analyticsUserAgent(TargetPlatform.iOS), startsWith('Mozilla/5.0'));
   });
 
   test('the shared preference defaults to sharing', () async {

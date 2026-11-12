@@ -24,7 +24,10 @@ class NoopAnalyticsService implements AnalyticsService {
   const NoopAnalyticsService();
 
   @override
-  Future<void> track(AnalyticsEvent event, [Map<String, Object?>? data]) async {}
+  Future<void> track(
+    AnalyticsEvent event, [
+    Map<String, Object?>? data,
+  ]) async {}
 }
 
 /// Up to ten entries whose keys are identifiers and whose values are
@@ -54,14 +57,14 @@ Map<String, Object>? cleanAnalyticsData(Map<String, Object?>? data) {
 /// and a slow Umami can't hold up backend calls.
 class UmamiAnalyticsService implements AnalyticsService {
   UmamiAnalyticsService({
-    required Dio dio,
+    required this.dio,
     required this.websiteId,
     required this.platform,
     Future<bool> Function()? isAllowed,
-  }) : _dio = dio,
-       _isAllowed = isAllowed ?? _userAllows;
+  }) : _isAllowed = isAllowed ?? _userAllows;
 
-  final Dio _dio;
+  /// Umami's own client, never the backend's.
+  final Dio dio;
   final String websiteId;
   final String platform;
   final Future<bool> Function() _isAllowed;
@@ -76,7 +79,7 @@ class UmamiAnalyticsService implements AnalyticsService {
     try {
       if (!await _isAllowed()) return;
       final cleaned = cleanAnalyticsData({'platform': platform, ...?data});
-      await _dio.post<void>(
+      await dio.post<void>(
         '/api/send',
         data: {
           'type': 'event',
@@ -85,7 +88,7 @@ class UmamiAnalyticsService implements AnalyticsService {
             'hostname': 'app.jobtrigger.local',
             'url': '/app',
             'name': event.wireName,
-            if (cleaned != null) 'data': cleaned,
+            'data': ?cleaned,
           },
         },
       );
