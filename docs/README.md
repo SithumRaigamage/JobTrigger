@@ -38,6 +38,10 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 
 - **[Competitive analysis — 2026-10-24](./market/competitive-analysis.md)** — Mobile CI/CD apps on the App Store and Google Play (Jenkins, GitHub Actions, multi-tool, SonarQube), feature matrix, where JobTrigger wins, risks, pricing and messaging recommendations, what to monitor
 
+## 💳 Subscriptions (proposal)
+
+- **[Subscription plan — 2026-11-12](./subscription/README.md)** — Workspace analysis, Free/Pro business model, technical design (backend plan checks, RevenueCat, app gates, website), stories (epic SUB) and Phase 20 tasks. Waiting for owner approval
+
 ## 📦 Release
 
 - **[Deployment](./deployment.md)** — App Store / Play Store submission process, CI/CD tooling options, what's blocked on store accounts vs. code

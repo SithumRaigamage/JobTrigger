@@ -33,6 +33,7 @@ check "where are we."
 | 17 — Cloud database (MongoDB Atlas) | `phase-17-cloud-database.md` | done 2026-10-26 (P17-00..05, P17-02 dropped: no local data; merged to `develop` via PR #53). Production cluster waits for the backend host | none — Atlas dev cluster set up by the owner 2026-10-26 |
 | 18 — iPhone testing on the local network | `phase-18-iphone-lan-testing.md` | done 2026-10-26 (P18-01..03; 01..02 merged via PR #54, 03 on `docs/iphone-wireless`). Guide: `IPHONE.md` | none — requested by the owner 2026-10-26 |
 | 19 — Bug fixes and improvements (epic FIX) | `phase-19-bug-fixes.md` | done 2026-10-29 (P19-01..07) | none — found testing on a real iPhone 2026-10-29 |
+| 20 — Subscriptions (epic SUB) | `phase-20-subscriptions.md` | todo — proposed 2026-11-12, waiting for owner approval (P20-00). Plan: `docs/subscription/` | Launch prerequisites: backend deployed (P15-22), store accounts (`release-checklist.md`), P8-26/27 and P10-14/15 |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." A handful
