@@ -13,6 +13,16 @@ process.env.PASSWORD_RESET_EMAIL_RATE_LIMIT = '10000';
 process.env.PASSWORD_RESET_CONFIRM_RATE_LIMIT = '10000';
 // AUD-03: a throwaway key per run; secrets are encrypted at rest.
 process.env.CREDENTIALS_ENCRYPTION_KEY = require('crypto').randomBytes(32).toString('base64');
+// P20-72/73/78: optional features configured in a developer's .env (SMTP,
+// reset link, Umami) must not leak into the suites. dotenv never overrides
+// a variable that is already set, so blank ones here keep them out; the
+// suites that need these features inject fakes instead.
+for (const name of [
+  'SMTP_HOST', 'SMTP_PORT', 'SMTP_SECURE', 'SMTP_USER', 'SMTP_PASS', 'MAIL_FROM',
+  'RESET_PASSWORD_URL', 'UMAMI_URL', 'UMAMI_WEBSITE_ID',
+]) {
+  process.env[name] = '';
+}
 // §19: the server logs a line per request; the suites make hundreds of
 // requests, so the log is off unless a test asks for it.
 process.env.LOG_LEVEL = 'silent';

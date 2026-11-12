@@ -34,7 +34,15 @@ describe("robots and sitemap", () => {
   it("keep crawlers out of every portal path", () => {
     const rules = robots().rules as { disallow: string[] };
 
-    expect(rules.disallow).toEqual(["/sign-in", "/sign-up", "/servers", "/account"]);
+    // Changed on purpose (P20-74): the password reset pages are portal pages too.
+    expect(rules.disallow).toEqual([
+      "/sign-in",
+      "/sign-up",
+      "/forgot-password",
+      "/reset-password",
+      "/servers",
+      "/account",
+    ]);
   });
 
   it("list every public page and nothing from the portal", () => {
