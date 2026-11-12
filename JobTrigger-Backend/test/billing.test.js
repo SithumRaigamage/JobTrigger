@@ -243,8 +243,9 @@ describe('GET /api/subscription and refresh (P20-14, US-SUB-01)', function() {
     expect(res.headers['cache-control']).to.equal('no-store');
     expect(res.body).to.include({ plan: 'pro', billingEnabled: false });
     expect(res.body).to.have.keys(
+      // Changed on purpose (web checkout): `manageOnWeb` added.
       'plan', 'billingEnabled', 'status', 'source', 'productId', 'periodEnd', 'willRenew',
-      'limits', 'features', 'primaryCredentialId',
+      'manageOnWeb', 'limits', 'features', 'primaryCredentialId',
     );
   });
 

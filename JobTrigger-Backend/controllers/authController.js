@@ -6,7 +6,8 @@ const SonarQubeCredential = require('../models/SonarQubeCredential');
 const PasswordResetToken = require('../models/PasswordResetToken');
 const Subscription = require('../models/Subscription');
 const revenueCat = require('../billing/revenuecatClient');
-const { revenueCatConfig } = require('../config/env');
+const paddle = require('../billing/paddleClient');
+const { revenueCatConfig, paddleConfig } = require('../config/env');
 const { logger } = require('../lib/logger');
 const { issueTokens, verifyToken, isCurrent } = require('../security/tokens');
 
@@ -195,6 +196,10 @@ exports.deleteAccount = async (req, res, next) => {
   try {
     const user = await reauthenticate(req, res, req.body?.password);
     if (!user) return;
+    // Read before the delete: a web subscription is cancelled below so a
+    // deleted account isn't charged again. Store subscriptions can only be
+    // cancelled by the user in their store (US-SUB-07).
+    const subscription = await Subscription.findOne({ userId: user._id }).lean();
 
     await Promise.all(
       [JenkinsCredential, GitHubCredential, SonarQubeCredential, PasswordResetToken, Subscription].map((Model) =>
@@ -208,6 +213,12 @@ exports.deleteAccount = async (req, res, next) => {
     if (revenueCatConfig()) {
       revenueCat.deleteSubscriber(String(user._id)).catch((err) => {
         logger.warn('billing.delete_subscriber_failed', { requestId: req.requestId, error: err.message });
+      });
+    }
+    const webSub = subscription?.web;
+    if (paddleConfig() && webSub?.paddleSubscriptionId && webSub.plan === 'pro' && webSub.willRenew) {
+      paddle.cancelSubscription({ subscriptionId: webSub.paddleSubscriptionId }).catch((err) => {
+        logger.warn('billing.paddle_cancel_failed', { requestId: req.requestId, error: err.message });
       });
     }
     res.json({ message: 'Account deleted' });

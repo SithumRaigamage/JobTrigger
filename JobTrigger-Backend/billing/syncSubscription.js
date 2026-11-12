@@ -3,9 +3,8 @@
  * signal; the truth is the subscriber record fetched again here, so
  * duplicated or out-of-order events can't leave a wrong plan.
  */
-const Subscription = require('../models/Subscription');
 const { PRO_ENTITLEMENT } = require('./plans');
-const { isPro } = require('./entitlements');
+const { writeSource } = require('./combine');
 const revenueCat = require('./revenuecatClient');
 
 const date = (value) => (value ? new Date(value) : null);
@@ -72,24 +71,14 @@ function fromSubscriber(subscriber, now = new Date()) {
 }
 
 /**
- * Re-reads [userId] from RevenueCat and stores the result. An active
- * admin or promo grant (scripts/grant-plan.js) is kept while RevenueCat
- * has nothing better. The Free-plan primary choice is never touched.
+ * Re-reads [userId] from RevenueCat into the `store` source and recomputes
+ * the plan (billing/combine.js): a web subscription or a manual grant is
+ * never overwritten by an empty store record. The Free-plan primary choice
+ * is never touched.
  */
 async function syncSubscription(userId, { now = new Date() } = {}) {
   const { subscriber } = await revenueCat.getSubscriber(String(userId));
-  const fields = fromSubscriber(subscriber, now);
-  const current = await Subscription.findOne({ userId }).lean();
-  const keepGrant = current?.source === 'admin' && isPro(current, now) && fields.plan !== 'pro';
-  if (keepGrant) {
-    await Subscription.updateOne({ userId }, { $set: { lastSyncedAt: now } });
-    return current;
-  }
-  return Subscription.findOneAndUpdate(
-    { userId },
-    { $set: { ...fields, lastSyncedAt: now } },
-    { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
-  ).lean();
+  return writeSource(userId, 'store', fromSubscriber(subscriber, now), { now });
 }
 
 module.exports = { fromSubscriber, syncSubscription };

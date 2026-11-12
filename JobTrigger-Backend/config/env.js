@@ -90,6 +90,27 @@ function revenueCatConfig(env = process.env) {
   };
 }
 
+const PADDLE_VARS = [
+  'PADDLE_API_KEY', 'PADDLE_WEBHOOK_SECRET', 'PADDLE_PRICE_MONTHLY', 'PADDLE_PRICE_YEARLY',
+];
+
+/**
+ * Website checkout (Paddle Billing, merchant of record), or null when not
+ * set up. `PADDLE_ENV` picks sandbox (default) or production; the API key
+ * must match it. Price ids are Paddle's `pri_…` for Pro monthly/yearly.
+ */
+function paddleConfig(env = process.env) {
+  if (PADDLE_VARS.some((name) => blank(env[name]))) return null;
+  const production = env.PADDLE_ENV === 'production';
+  return {
+    apiKey: env.PADDLE_API_KEY.trim(),
+    webhookSecret: env.PADDLE_WEBHOOK_SECRET.trim(),
+    prices: { monthly: env.PADDLE_PRICE_MONTHLY.trim(), yearly: env.PADDLE_PRICE_YEARLY.trim() },
+    environment: production ? 'production' : 'sandbox',
+    apiBase: production ? 'https://api.paddle.com' : 'https://sandbox-api.paddle.com',
+  };
+}
+
 /** P20-78: Umami settings, or null when analytics is off. */
 function analyticsConfig(env = process.env) {
   if (blank(env.UMAMI_URL) || blank(env.UMAMI_WEBSITE_ID)) return null;
@@ -122,10 +143,18 @@ function invalidConfig(env = process.env) {
   if (!blank(env.BILLING_ENABLED) && !['true', 'false'].includes(env.BILLING_ENABLED)) {
     return 'BILLING_ENABLED must be true or false';
   }
+  if (!blank(env.PADDLE_ENV) && !['sandbox', 'production'].includes(env.PADDLE_ENV)) {
+    return 'PADDLE_ENV must be sandbox or production';
+  }
+  const paddleSet = PADDLE_VARS.filter((name) => !blank(env[name]));
+  if (paddleSet.length > 0 && paddleSet.length < PADDLE_VARS.length) {
+    return `Paddle needs all of ${PADDLE_VARS.join(', ')}`;
+  }
   // P20-17: plans with no way to learn about purchases would lock paying
   // users out, so refuse to start half-configured.
-  if (billingEnabled(env) && !revenueCatConfig(env)) {
-    return 'BILLING_ENABLED=true needs REVENUECAT_SECRET_API_KEY and REVENUECAT_WEBHOOK_AUTH';
+  if (billingEnabled(env) && !revenueCatConfig(env) && !paddleConfig(env)) {
+    return 'BILLING_ENABLED=true needs RevenueCat (REVENUECAT_SECRET_API_KEY, '
+      + 'REVENUECAT_WEBHOOK_AUTH) or Paddle (PADDLE_API_KEY, PADDLE_WEBHOOK_SECRET, prices)';
   }
   if (!blank(env.RESET_PASSWORD_URL) && !/^https?:\/\/[^\s?#]+$/.test(env.RESET_PASSWORD_URL.trim())) {
     return 'RESET_PASSWORD_URL must be an http(s) URL without a query string';
@@ -161,4 +190,5 @@ module.exports = {
   resetPasswordUrl,
   billingEnabled,
   revenueCatConfig,
+  paddleConfig,
 };

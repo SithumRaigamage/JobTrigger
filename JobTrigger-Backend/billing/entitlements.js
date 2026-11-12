@@ -28,6 +28,10 @@ function describe(sub, { enabled, now = new Date() }) {
     productId: sub?.productId ?? null,
     periodEnd: sub?.periodEnd ? new Date(sub.periodEnd).toISOString() : null,
     willRenew: Boolean(sub?.willRenew),
+    // Web checkout: the user has a Paddle customer, so the website can
+    // open Paddle's portal (change card, cancel). Store subscriptions are
+    // managed in the App Store / Google Play instead.
+    manageOnWeb: Boolean(sub?.web?.paddleCustomerId),
     limits: { ...plan.limits },
     features: { ...plan.features },
   };

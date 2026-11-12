@@ -181,7 +181,34 @@ needs its plan approved before code (CLAUDE.md §9).
       app's `PrivacyInfo.xcprivacy` is unchanged: the app collects no new
       data. (Store privacy answers stay as they were.)
 
-## Later (not this phase)
+## J. Website checkout with Paddle (US-SUB-10, promoted 2026-11-12)
 
-- Phase 21 — web checkout through a merchant of record (US-SUB-10).
+Owner decision 2026-11-12: people can subscribe in the app (App Store /
+Google Play via RevenueCat) **or** on the website (Paddle, merchant of
+record: Stripe doesn't accept Sri Lanka-based businesses, Paddle does and
+pays out by wire or Payoneer). The backend owns the plan, so either way
+the app and site see the same Pro.
+
+- [x] P20-80 Subscription sources: `store`, `web`, `grant` kept apart,
+      plan derived as the best of them (`billing/combine.js`), so a store
+      sync can't cancel a web subscription or the reverse.
+- [x] P20-81 Paddle config (`PADDLE_API_KEY`, `PADDLE_WEBHOOK_SECRET`,
+      `PADDLE_PRICE_MONTHLY`, `PADDLE_PRICE_YEARLY`, `PADDLE_ENV`),
+      `billing/paddleClient.js`, `billing/paddle.js` (signature, mapping).
+- [x] P20-82 `POST /api/billing/paddle/webhook` (raw body, signature,
+      once per event, stale events ignored), `/checkout` (server-set
+      user id, 409 when already Pro), `/portal`; deleting an account
+      cancels a renewing web subscription. Tests: `test/paddle.test.js`.
+- [ ] P20-83 Website: `/pricing`, account billing page (plan, Upgrade →
+      Paddle.js overlay, Manage → portal), CSP allowance for Paddle on
+      the billing page only, zod-parsed BFF calls.
+- [ ] P20-84 App: show a web subscription as Pro and hide the store
+      purchase for it (with P20-23/24).
+- [ ] P20-85 Owner: Paddle sandbox account, Pro product with monthly and
+      yearly prices, default payment link domain approved, notification
+      destination → `/api/billing/paddle/webhook` (subscription events),
+      client-side token for the website. Then live account verification
+      and payout details (wire or Payoneer).
+
+## Later (not this phase)
 - Team plan (US-SUB-11), its own phase and audit.

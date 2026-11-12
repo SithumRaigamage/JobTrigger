@@ -24,6 +24,7 @@ for (const name of [
   'RESET_PASSWORD_URL', 'UMAMI_URL', 'UMAMI_WEBSITE_ID',
   // P20-17: billing is off in the suites unless a test turns it on.
   'BILLING_ENABLED', 'REVENUECAT_SECRET_API_KEY', 'REVENUECAT_WEBHOOK_AUTH',
+  'PADDLE_API_KEY', 'PADDLE_WEBHOOK_SECRET', 'PADDLE_PRICE_MONTHLY', 'PADDLE_PRICE_YEARLY', 'PADDLE_ENV',
 ]) {
   process.env[name] = '';
 }

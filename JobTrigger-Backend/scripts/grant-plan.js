@@ -12,7 +12,7 @@ const mongoose = require('mongoose');
 const { connectDatabase } = require('../lib/database');
 const { requireLocalDatabase } = require('./localOnly');
 const User = require('../models/User');
-const Subscription = require('../models/Subscription');
+const { writeSource } = require('../billing/combine');
 
 function parseArgs(argv) {
   const [email] = argv.filter((a) => !a.startsWith('--'));
@@ -47,7 +47,7 @@ async function main() {
           periodEnd: days ? new Date(Date.now() + days * 24 * 60 * 60 * 1000) : null,
           willRenew: false,
         };
-    await Subscription.updateOne({ userId: user._id }, { $set: fields }, { upsert: true, setDefaultsOnInsert: true });
+    await writeSource(user._id, 'grant', fields);
     console.log(revoke ? 'Back to Free.' : `Pro granted${days ? ` for ${days} days` : ''}.`);
   } finally {
     await mongoose.disconnect();

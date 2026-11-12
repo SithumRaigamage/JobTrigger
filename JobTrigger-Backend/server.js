@@ -40,6 +40,9 @@ app.use(requestLogger);
 app.use(helmet());
 const origins = corsOrigins();
 app.use(cors({ origin: origins.length > 0 ? origins : false }));
+// Paddle signs the exact bytes it sends, so its webhook gets the raw body.
+// Registered first: express.json() then leaves that request alone.
+app.use('/api/billing/paddle/webhook', express.raw({ type: '*/*', limit: '1mb' }));
 app.use(express.json());
 
 // Routes
