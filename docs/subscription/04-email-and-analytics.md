@@ -155,6 +155,25 @@ GlitchTip (open-source, Sentry-compatible) as a lab service reusing
 website. Not built now: it adds two dependencies and another always-on
 service; it matters once there are testers.
 
-## 7. Tasks
+## 7. Backend configuration (P20-72, P20-73, P20-78)
+
+All optional. Missing values switch the feature off; a half-set or
+malformed value stops the server at startup (`config/env.js`,
+`invalidConfig`). Add the **names** to `JobTrigger-Backend/.env.example`
+by hand (agents don't open env files, CLAUDE.md §8).
+
+| Variable | Development (lab) | Meaning |
+|---|---|---|
+| `SMTP_HOST` | `localhost` | Mail is off when unset (`mail.disabled` is logged) |
+| `SMTP_PORT` | `1025` | Default 587 |
+| `SMTP_SECURE` | `false` | `true` for implicit TLS (port 465) |
+| `SMTP_USER`, `SMTP_PASS` | unset | Set both or neither |
+| `MAIL_FROM` | `JobTrigger <no-reply@jobtrigger.local>` | Sender |
+| `RESET_PASSWORD_URL` | `http://localhost:3000/reset-password` once the web page exists | Web link base; unset means the email has only the app link |
+| `UMAMI_URL` | `http://localhost:3004` | Analytics off when unset |
+| `UMAMI_WEBSITE_ID` | from Umami → Settings → Websites | Website "JobTrigger backend" |
+| `PASSWORD_RESET_RATE_LIMIT`, `PASSWORD_RESET_EMAIL_RATE_LIMIT`, `PASSWORD_RESET_CONFIRM_RATE_LIMIT` | defaults 5 / 3 / 10 | Limiter overrides |
+
+## 8. Tasks
 
 Added to Phase 20 as P20-70 … P20-79.

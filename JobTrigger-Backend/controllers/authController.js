@@ -3,6 +3,7 @@ const User = require('../models/User');
 const JenkinsCredential = require('../models/JenkinsCredential');
 const GitHubCredential = require('../models/GitHubCredential');
 const SonarQubeCredential = require('../models/SonarQubeCredential');
+const PasswordResetToken = require('../models/PasswordResetToken');
 const { issueTokens, verifyToken, isCurrent } = require('../security/tokens');
 
 // AUD-26: kept in step with the client's AuthValidation
@@ -192,7 +193,7 @@ exports.deleteAccount = async (req, res, next) => {
     if (!user) return;
 
     await Promise.all(
-      [JenkinsCredential, GitHubCredential, SonarQubeCredential].map((Model) =>
+      [JenkinsCredential, GitHubCredential, SonarQubeCredential, PasswordResetToken].map((Model) =>
         Model.deleteMany({ userId: user._id }),
       ),
     );
@@ -202,3 +203,8 @@ exports.deleteAccount = async (req, res, next) => {
     next(err);
   }
 };
+
+// Shared with passwordResetController (US-AUTH-08): one set of rules for
+// every new password.
+exports.newPasswordProblem = newPasswordProblem;
+exports.MAX_EMAIL_LENGTH = MAX_EMAIL_LENGTH;

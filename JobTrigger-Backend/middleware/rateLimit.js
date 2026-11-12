@@ -75,8 +75,33 @@ const refreshLimiter = authLimiter({
   keyGenerator: refreshKey,
 });
 
+/**
+ * US-AUTH-08: reset requests send email, so they're limited per IP and per
+ * address (the same key as AUD-55), counting every request: a 202 is
+ * returned whether or not the account exists.
+ */
+const passwordResetLimiter = authLimiter({
+  windowMs: 15 * MINUTE,
+  limit: fromEnv('PASSWORD_RESET_RATE_LIMIT', 5),
+});
+
+const passwordResetEmailLimiter = authLimiter({
+  windowMs: 60 * MINUTE,
+  limit: fromEnv('PASSWORD_RESET_EMAIL_RATE_LIMIT', 3),
+  keyGenerator: loginEmailKey,
+});
+
+/** Guessing a 256-bit token is hopeless, but cap the attempts anyway. */
+const passwordResetConfirmLimiter = authLimiter({
+  windowMs: 15 * MINUTE,
+  limit: fromEnv('PASSWORD_RESET_CONFIRM_RATE_LIMIT', 10),
+});
+
 module.exports = {
   authLimiter,
+  passwordResetConfirmLimiter,
+  passwordResetEmailLimiter,
+  passwordResetLimiter,
   loginEmailKey,
   loginEmailLimiter,
   loginLimiter,

@@ -8,6 +8,9 @@ process.env.LOGIN_RATE_LIMIT = '10000';
 process.env.LOGIN_EMAIL_RATE_LIMIT = '10000';
 process.env.SIGNUP_RATE_LIMIT = '10000';
 process.env.REFRESH_RATE_LIMIT = '10000';
+process.env.PASSWORD_RESET_RATE_LIMIT = '10000';
+process.env.PASSWORD_RESET_EMAIL_RATE_LIMIT = '10000';
+process.env.PASSWORD_RESET_CONFIRM_RATE_LIMIT = '10000';
 // AUD-03: a throwaway key per run; secrets are encrypted at rest.
 process.env.CREDENTIALS_ENCRYPTION_KEY = require('crypto').randomBytes(32).toString('base64');
 // §19: the server logs a line per request; the suites make hundreds of

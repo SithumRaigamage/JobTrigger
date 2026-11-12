@@ -142,20 +142,26 @@ needs its plan approved before code (CLAUDE.md §9).
 - [x] P20-70 Lab services: Umami (`analytics/`, port 3004, data in the lab
       Postgres) and Mailpit (`mailpit/`, SMTP 1025, inbox 8025) added to
       `custom-devops-stack` by its rules. Not yet started on the Mac.
-- [ ] P20-71 Approve `nodemailer` (backend) — CLAUDE.md §3 row.
-- [ ] P20-72 Backend mailer (`lib/mailer.js`, SMTP config, disabled when
-      unset, `jsonTransport` in tests).
-- [ ] P20-73 Password reset endpoints + `PasswordResetToken` model
+- [x] P20-71 Approve `nodemailer` (backend) — approved by the owner
+      2026-11-12; CLAUDE.md §3 row added.
+- [x] P20-72 Backend mailer (`lib/mailer.js`, SMTP config validated in
+      `config/env.js`, disabled when unset, fake transport in tests).
+      Done 2026-11-12 on `feat/password-reset-email`.
+- [x] P20-73 Password reset endpoints + `PasswordResetToken` model
       (US-AUTH-08): no enumeration, 15-minute single-use hashed tokens,
-      rate limits, `tokenVersion` bump; tests.
+      rate limits, `tokenVersion` bump; `test/password_reset.test.js`.
+      **Unverified:** the database-backed suite needs `npm install` and
+      `npm test` on the Mac (in-memory MongoDB couldn't download here).
 - [ ] P20-74 Forgot/reset password screens: app (login link, deep link)
       and website (`/forgot-password`, `/reset-password`).
 - [ ] P20-75 Event catalogue as code (one list per project, tested).
+      Backend part done (`lib/analyticsEvents.js`); app and web to come.
 - [ ] P20-76 App `AnalyticsService` (no-op + Umami over `dio`), config
       keys, Profile "Share anonymous usage" toggle.
 - [ ] P20-77 Website `server/analytics.ts` from server actions (no browser
       script, CSP unchanged).
-- [ ] P20-78 Backend `lib/analytics.js` for webhook/auth events.
+- [x] P20-78 Backend `lib/analytics.js` for webhook/auth events (no-op
+      without Umami config, fire-and-forget, catalogue only). Tested.
 - [ ] P20-79 Privacy policy, App Privacy, Data safety and
       `PrivacyInfo.xcprivacy` updated for anonymous usage data.
 
