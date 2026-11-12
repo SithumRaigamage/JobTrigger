@@ -1,4 +1,5 @@
 {
   "ENVIRONMENT": "prod",
-  "BACKEND_BASE_URL": "https://api.jobtrigger.app"
+  "BACKEND_BASE_URL": "https://api.jobtrigger.app",
+  "WEBSITE_BASE_URL": "https://jobtrigger.app"
 }

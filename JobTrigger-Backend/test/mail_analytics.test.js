@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { invalidConfig, mailConfig, analyticsConfig } = require('../config/env');
+const { invalidConfig, mailConfig, analyticsConfig, resetPasswordUrl } = require('../config/env');
 const { track, setSenderForTests, cleanData } = require('../lib/analytics');
 const { passwordResetEmail } = require('../emails/passwordReset');
 
@@ -19,6 +19,23 @@ describe('Mail and analytics configuration (P20-72, P20-78)', function() {
     expect(invalidConfig({ SMTP_HOST: 'h', SMTP_USER: 'u' })).to.match(/set together/);
     expect(invalidConfig({ SMTP_HOST: 'h', SMTP_PORT: 'abc' })).to.match(/port number/);
     expect(invalidConfig({ SMTP_HOST: 'h', SMTP_SECURE: 'yes' })).to.match(/true or false/);
+  });
+
+  it('points reset links at the local website unless configured', function() {
+    expect(resetPasswordUrl({})).to.equal('http://localhost:3000/reset-password');
+    expect(resetPasswordUrl({ RESET_PASSWORD_URL: ' https://jobtrigger.app/reset-password ' }))
+      .to.equal('https://jobtrigger.app/reset-password');
+  });
+
+  it('requires an https reset page in production when mail is on', function() {
+    const prod = { NODE_ENV: 'production', SMTP_HOST: 'smtp.example.com' };
+    expect(invalidConfig(prod)).to.match(/RESET_PASSWORD_URL is required/);
+    expect(invalidConfig({ ...prod, RESET_PASSWORD_URL: 'http://jobtrigger.app/reset-password' }))
+      .to.match(/https/);
+    expect(invalidConfig({ ...prod, RESET_PASSWORD_URL: 'https://jobtrigger.app/reset-password' }))
+      .to.equal(null);
+    // Mail off in production: no link is ever sent, nothing to require.
+    expect(invalidConfig({ NODE_ENV: 'production' })).to.equal(null);
   });
 
   it('checks the reset link base and the Umami URL', function() {
@@ -68,21 +85,15 @@ describe('Analytics events (P20-75, P20-78)', function() {
 });
 
 describe('Password reset email', function() {
-  it('includes both links when the website is configured, escaped in HTML', function() {
+  it('has one link, to the website, escaped in HTML', function() {
     const email = passwordResetEmail({
-      webUrl: 'http://localhost:3000/reset-password?token=ab"c',
-      appUrl: 'jobtrigger://app/reset-password?token=abc',
+      resetUrl: 'http://localhost:3000/reset-password?token=ab"c',
       minutes: 15,
     });
     expect(email.text).to.include('http://localhost:3000/reset-password?token=ab"c');
     expect(email.text).to.include('expires in 15 minutes');
+    expect(email.text).to.not.include('jobtrigger://');
     expect(email.html).to.include('token=ab&quot;c');
     expect(email.html).to.not.include('<img');
-  });
-
-  it('has only the app link without a website', function() {
-    const email = passwordResetEmail({ webUrl: null, appUrl: 'jobtrigger://x', minutes: 15 });
-    expect(email.text).to.not.include('browser');
-    expect(email.text).to.include('jobtrigger://x');
   });
 });

@@ -11,9 +11,10 @@ import { LegalSection, LegalShell } from "./legal-shell";
 
 // US-WEB-06: must match what the backend actually stores (User,
 // JenkinsCredential, GitHubCredential, SonarQubeCredential,
-// PasswordResetToken models), the anonymous usage events of P20-75..77
-// (self-hosted Umami, off in the app's Profile), and that there is still no
-// crash reporting or ad identifier (backlog P6-08).
+// PasswordResetToken models), the anonymous server-side usage events of
+// P20-75/77/78 (self-hosted Umami; website and backend only, the app sends
+// none), and that there is still no crash reporting or ad identifier
+// (backlog P6-08).
 const glance = [
   {
     label: "We store",
@@ -28,7 +29,7 @@ const glance = [
   {
     label: "No ad tracking",
     tone: "bg-unstable-bg text-unstable-fg",
-    text: "Anonymous usage counts only, which you can turn off. No ad identifiers.",
+    text: "Anonymous usage counts from the website only. No ad identifiers.",
   },
 ];
 
@@ -100,19 +101,20 @@ export function PrivacyView() {
 
       <LegalSection id="usage" title="Anonymous usage data">
         <p>
-          The app and this website count a few anonymous events — for example which CI tool is
-          chosen, or that a server was added — to decide what to build next. They never include your
-          email, account, server addresses, job or repository names, or tokens, and they aren&apos;t
-          linked to your account. They go to an analytics service we run ourselves, not to an
-          advertising or analytics company. Turn this off in the app under Profile → Share anonymous
-          usage.
+          This website and our server count a few anonymous events — for example that an account was
+          created, a server was added, or a password reset was asked for — to decide what to build
+          next. They never include your email, account, server addresses, repository names or
+          tokens, and they aren&apos;t linked to your account. No tracking script or cookie is used
+          for this: the counts are sent from our server to an analytics service we run ourselves,
+          not to an advertising or analytics company. The mobile app sends no usage data.
         </p>
       </LegalSection>
 
       <LegalSection id="email" title="Email">
         <p>
-          We email you only about your account, such as a password reset link you asked for. A reset
-          link works once and expires after 15 minutes. We don&apos;t send marketing email.
+          We email you only about your account, such as a password reset link you asked for. A
+          password is reset on this website: the link opens it, works once and expires after 15
+          minutes. We don&apos;t send marketing email.
         </p>
       </LegalSection>
 

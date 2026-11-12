@@ -1,12 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'core/analytics/analytics_event.dart';
-import 'core/analytics/analytics_service.dart';
 import 'core/config/app_config.dart';
 import 'core/error/no_retry.dart';
 import 'core/theme/app_theme.dart';
@@ -20,19 +16,12 @@ import 'presentation/features/notifications/build_watch_notifier.dart';
 import 'presentation/features/open_link/open_link_location.dart';
 
 void main() {
-  // The launch event below reads shared_preferences before runApp.
-  WidgetsFlutterBinding.ensureInitialized();
   // AUD-43: a release build without its config fails here, at launch,
   // rather than at the first backend call.
   AppConfig.fromEnvironment();
   _registerFontLicenses();
   // No automatic retries: a failed load shows its error, not a spinner.
-  final container = ProviderContainer(retry: noRetry);
-  // P20-76: one anonymous `app_open` per launch (no-op without Umami).
-  unawaited(
-    container.read(analyticsServiceProvider).track(AnalyticsEvent.appOpen),
-  );
-  runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
+  runApp(const ProviderScope(retry: noRetry, child: MyApp()));
 }
 
 /// P14-02: the bundled typefaces are SIL OFL 1.1, which asks for the

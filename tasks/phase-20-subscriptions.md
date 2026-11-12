@@ -152,30 +152,27 @@ needs its plan approved before code (CLAUDE.md §9).
       rate limits, `tokenVersion` bump; `test/password_reset.test.js`.
       **Unverified:** the database-backed suite needs `npm install` and
       `npm test` on the Mac (in-memory MongoDB couldn't download here).
-- [x] P20-74 Forgot/reset password screens. App: "Forgot password?" on
-      login, `/forgot-password`, `/reset-password` (public routes, opened by
-      `jobtrigger://app/reset-password?token=…`), `PasswordResetRepository`.
+- [x] P20-74 Password reset is **web only** (owner decision 2026-11-12).
       Website: `/forgot-password`, `/reset-password` (no-store,
       `no-referrer`); the sign-in "Forgot?" link and support FAQ switch to
-      them when `password-reset` turns `live`. Done 2026-11-12.
+      them when `password-reset` turns `live`. App: no reset screens; the
+      login screen's "Forgot password? Reset it on the web" opens
+      `<WEBSITE_BASE_URL>/forgot-password` in the browser (new
+      `WEBSITE_BASE_URL` config key; `run-on-iphone.sh` writes the Mac's
+      address). The email has one link, to the website.
 - [x] P20-75 Event catalogue as code: backend `lib/analyticsEvents.js`,
-      app `core/analytics/analytics_event.dart`, web
-      `domain/analytics-events.ts`. Same names and data rules.
-- [x] P20-76 App `AnalyticsService` (no-op + Umami over its own `dio`),
-      `UMAMI_URL`/`UMAMI_WEBSITE_ID` config keys (also written by
-      `run-on-iphone.sh`), Profile → Privacy → "Share anonymous usage".
-      Events wired: `app_open`, `tool_selected`. Jenkins events
-      (`server_added`, `build_triggered`) are **not** wired: Jenkins is
-      frozen (CLAUDE.md §11); add them with the next Jenkins bug fix or an
-      approved change.
+      web `domain/analytics-events.ts`. Same names and data rules.
+- [x] P20-76 ~~App analytics~~ **Dropped** (owner decision 2026-11-12):
+      analytics is website and backend only; the mobile app sends no usage
+      data. The app code built for it was removed again.
 - [x] P20-77 Website `server/analytics.ts` from server actions (no browser
       script, CSP unchanged). Events wired: `signup`, `server_added`.
 - [x] P20-78 Backend `lib/analytics.js` for webhook/auth events (no-op
       without Umami config, fire-and-forget, catalogue only). Tested.
-- [ ] P20-79 Privacy policy (website: done), `PrivacyInfo.xcprivacy`
-      (Product Interaction, not linked, analytics: done). **Owner, at store
-      submission:** App Store "App Privacy" and Play "Data safety" answers
-      to match (stores on hold).
+- [x] P20-79 Privacy policy on the website: anonymous server-side usage
+      counts (website only, the app sends none) and account email. The
+      app's `PrivacyInfo.xcprivacy` is unchanged: the app collects no new
+      data. (Store privacy answers stay as they were.)
 
 ## Later (not this phase)
 

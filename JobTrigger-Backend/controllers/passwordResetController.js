@@ -16,7 +16,7 @@ const PasswordResetToken = require('../models/PasswordResetToken');
 const { newPasswordProblem, MAX_EMAIL_LENGTH } = require('./authController');
 const { sendMail } = require('../lib/mailer');
 const { track } = require('../lib/analytics');
-const { resetLinkConfig } = require('../config/env');
+const { resetPasswordUrl } = require('../config/env');
 const { passwordResetEmail } = require('../emails/passwordReset');
 const { logger } = require('../lib/logger');
 
@@ -36,14 +36,8 @@ async function whenIdle() {
   while (inFlight.size > 0) await Promise.allSettled([...inFlight]);
 }
 
-function linksFor(token) {
-  const { webUrl, appUrl } = resetLinkConfig();
-  const query = `token=${token}`;
-  return {
-    webUrl: webUrl ? `${webUrl}?${query}` : null,
-    appUrl: `${appUrl}?${query}`,
-  };
-}
+/** The website's reset page for [token] (US-AUTH-08: web only). */
+const resetUrlFor = (token) => `${resetPasswordUrl()}?token=${token}`;
 
 /** The lookup, token and email for [email]. Never throws. */
 async function processRequest(email, requestId) {
@@ -61,7 +55,7 @@ async function processRequest(email, requestId) {
       tokenHash: hashToken(token),
       expiresAt: new Date(Date.now() + TOKEN_MINUTES * 60 * 1000),
     });
-    const message = passwordResetEmail({ ...linksFor(token), minutes: TOKEN_MINUTES });
+    const message = passwordResetEmail({ resetUrl: resetUrlFor(token), minutes: TOKEN_MINUTES });
     await sendMail({ to: user.email, ...message, kind: 'password_reset' });
     log.info('password_reset.requested');
     track('password_reset_requested');

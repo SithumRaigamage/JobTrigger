@@ -1,4 +1,5 @@
 {
   "ENVIRONMENT": "staging",
-  "BACKEND_BASE_URL": "https://api-staging.jobtrigger.app"
+  "BACKEND_BASE_URL": "https://api-staging.jobtrigger.app",
+  "WEBSITE_BASE_URL": "https://staging.jobtrigger.app"
 }

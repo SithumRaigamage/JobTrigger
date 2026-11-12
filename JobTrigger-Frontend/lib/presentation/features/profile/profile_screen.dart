@@ -14,7 +14,6 @@ import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../auth/auth_notifier.dart';
-import 'usage_sharing_section.dart';
 import '../../../data/credentials/active_github_credential_notifier.dart';
 import '../../../data/credentials/active_server_notifier.dart';
 import '../../../data/credentials/credentials_notifier.dart';
@@ -124,8 +123,6 @@ class ProfileScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               const AppLockSettingsSection(),
-              const SizedBox(height: 16),
-              const UsageSharingSection(),
               const SizedBox(height: 16),
               const GroupHeader(title: 'Account'),
               GroupedCard(

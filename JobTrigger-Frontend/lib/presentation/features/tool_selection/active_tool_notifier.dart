@@ -1,9 +1,5 @@
-import 'dart:async';
-
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/analytics/analytics_event.dart';
-import '../../../core/analytics/analytics_service.dart';
 import 'ci_tool.dart';
 
 part 'active_tool_notifier.g.dart';
@@ -26,14 +22,5 @@ class ActiveToolNotifier extends _$ActiveToolNotifier {
   @override
   CiTool? build() => null;
 
-  void setActiveTool(CiTool tool) {
-    state = tool;
-    // P20-76: which tools people use decides what's built next. Anonymous,
-    // fire-and-forget; a no-op when analytics isn't configured.
-    unawaited(
-      ref.read(analyticsServiceProvider).track(AnalyticsEvent.toolSelected, {
-        'tool': tool.name,
-      }),
-    );
-  }
+  void setActiveTool(CiTool tool) => state = tool;
 }

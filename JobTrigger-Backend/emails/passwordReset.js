@@ -1,6 +1,7 @@
 /**
- * The password reset email (US-AUTH-08). Plain text first; the HTML part
- * has no images, tracking pixels or remote content.
+ * The password reset email (US-AUTH-08). One link, to the website: a
+ * password is reset on the web only, never in the app. Plain text first;
+ * the HTML part has no images, tracking pixels or remote content.
  */
 const escapeHtml = (value) =>
   String(value)
@@ -10,34 +11,26 @@ const escapeHtml = (value) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
-/**
- * [webUrl] (may be null when the website isn't configured) and [appUrl]
- * already carry the token. [minutes] is how long they stay valid.
- */
-function passwordResetEmail({ webUrl, appUrl, minutes }) {
+/** [resetUrl] already carries the token; [minutes] is how long it works. */
+function passwordResetEmail({ resetUrl, minutes }) {
   const subject = 'Reset your JobTrigger password';
-  const lines = [
+  const text = [
     'Someone asked to reset the password for your JobTrigger account.',
     '',
-    ...(webUrl ? ['Reset it in your browser:', webUrl, ''] : []),
-    'Or open this link on the phone where JobTrigger is installed:',
-    appUrl,
+    'Choose a new password on the JobTrigger website:',
+    resetUrl,
     '',
     `The link works once and expires in ${minutes} minutes.`,
-    'Resetting signs you out on every device.',
+    'Resetting signs you out on every device, including the app.',
     '',
     "If you didn't ask for this, ignore this email. Your password stays the same.",
-  ];
-  const text = lines.join('\n');
+  ].join('\n');
 
-  const link = (url, label) =>
-    `<p><a href="${escapeHtml(url)}">${escapeHtml(label)}</a></p>`;
   const html = [
     '<!doctype html><html><body style="font-family:sans-serif;line-height:1.5">',
     '<p>Someone asked to reset the password for your JobTrigger account.</p>',
-    ...(webUrl ? [link(webUrl, 'Reset your password')] : []),
-    `<p>On the phone where JobTrigger is installed:</p>${link(appUrl, 'Open in the JobTrigger app')}`,
-    `<p>The link works once and expires in ${minutes} minutes. Resetting signs you out on every device.</p>`,
+    `<p><a href="${escapeHtml(resetUrl)}">Choose a new password</a></p>`,
+    `<p>The link works once and expires in ${minutes} minutes. Resetting signs you out on every device, including the app.</p>`,
     "<p>If you didn't ask for this, ignore this email. Your password stays the same.</p>",
     '</body></html>',
   ].join('\n');

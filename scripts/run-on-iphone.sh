@@ -42,26 +42,18 @@ backend="http://$host:$port"
 
 # 2. The build config. `release` builds refuse http (AUD-43), so this is
 # only for debug and profile.
-# P20-76: anonymous usage events go to the DevOps lab's Umami only when
-# UMAMI_WEBSITE_ID is given (Umami → Settings → Websites → "JobTrigger app").
-# The lab must publish Umami on the network: UMAMI_BIND=0.0.0.0 in
-# analytics/.env. Without it, analytics stays off.
-analytics=""
-umami=""
-if [ -n "${UMAMI_WEBSITE_ID:-}" ]; then
-  umami="http://$host:${UMAMI_PORT:-3004}"
-  analytics=",
-  \"UMAMI_URL\": \"$umami\",
-  \"UMAMI_WEBSITE_ID\": \"$UMAMI_WEBSITE_ID\""
-fi
+# US-AUTH-08: "Forgot password?" opens the website (JobTrigger-Web,
+# `npm run dev`) on this Mac. The phone reaches it at this Mac's address.
+website="http://$host:${WEBSITE_PORT:-3000}"
 cat >"$CONFIG" <<EOF
 {
   "ENVIRONMENT": "dev",
-  "BACKEND_BASE_URL": "$backend"$analytics
+  "BACKEND_BASE_URL": "$backend",
+  "WEBSITE_BASE_URL": "$website"
 }
 EOF
 echo "✓ config/device.json → $backend"
-if [ -n "$umami" ]; then echo "✓ analytics → $umami"; fi
+echo "✓ website (password reset) → $website"
 echo "  In the app, a Jenkins server on this Mac is http://$host:<its port>, never localhost."
 
 [ "${1:-}" = "--config-only" ] && exit 0

@@ -12,9 +12,10 @@ describe("PrivacyView", () => {
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Privacy policy");
     expect(screen.getByText(/hashed password and your encrypted server details/)).toBeVisible();
-    // Changed on purpose (P20-79): anonymous usage events now exist.
+    // Changed on purpose (P20-79): anonymous usage events now exist, sent
+    // from the website's server only; the app sends none.
     expect(
-      screen.getByText("Anonymous usage counts only, which you can turn off. No ad identifiers."),
+      screen.getByText("Anonymous usage counts from the website only. No ad identifiers."),
     ).toBeVisible();
     expect(screen.getByRole("heading", { name: "Anonymous usage data" })).toBeVisible();
   });

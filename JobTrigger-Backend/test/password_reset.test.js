@@ -63,7 +63,9 @@ describe('Password reset by email (US-AUTH-08)', function() {
 
     const message = transport.sent[0];
     expect(message.subject).to.equal('Reset your JobTrigger password');
-    expect(message.text).to.include('jobtrigger://app/reset-password?token=');
+    // Web only (US-AUTH-08): one link, to the website, none into the app.
+    expect(message.text).to.include('http://localhost:3000/reset-password?token=');
+    expect(message.text).to.not.include('jobtrigger://');
     const token = tokenFrom(message);
 
     const stored = await PasswordResetToken.find({ userId: me.user._id });

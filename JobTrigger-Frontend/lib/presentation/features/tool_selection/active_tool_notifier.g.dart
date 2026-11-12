@@ -81,7 +81,7 @@ final class ActiveToolNotifierProvider
 }
 
 String _$activeToolNotifierHash() =>
-    r'05a173ed2f746d6b08c617f463602cee06688166';
+    r'6b90ba983df72f58b2539051686d31da752287f6';
 
 /// Which CI/CD tool the session is using: it picks what the Home and
 /// History tabs show and which credentials Settings and Profile manage.

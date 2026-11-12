@@ -68,27 +68,34 @@ enumeration, `tokenVersion` bump on reset.
 - Token: 32 random bytes, sent once in the email; only its SHA-256 is
   stored in `PasswordResetToken { userId, tokenHash, expiresAt, usedAt }`
   with a TTL index. A new request replaces older tokens.
-- Email link: `https://<site>/reset-password?token=…` (website page), plus
-  the app deep link `jobtrigger://app/reset-password?token=…`.
+- Email link: one link, to the website's `/reset-password?token=…`
+  (`RESET_PASSWORD_URL`; `http://localhost:3000/reset-password` when
+  unset; required and `https://` in production when mail is on). No app
+  deep link: a password is reset on the web only.
 - `POST /api/auth/password-reset/confirm { token, newPassword }` → checks
   hash, expiry and unused, applies the existing password rules, saves,
   bumps `tokenVersion` (signs out every device), deletes the user's tokens.
-- App: "Forgot password?" on the login screen → email form → "Check your
-  inbox". Web: `/forgot-password` and `/reset-password` pages (server
-  actions, zod, no-store).
+- Web: `/forgot-password` and `/reset-password` pages (server actions,
+  zod, no-store, no-referrer). App: the login screen's "Forgot password?
+  Reset it on the web" opens `<WEBSITE_BASE_URL>/forgot-password` in the
+  browser; nothing else in the app.
 - Later (Phase 20 billing): trial-ending and billing-issue notices reuse
   the mailer.
 
 ### 3.3 Testing on the iPhone
 
-Mac steps: start Mailpit, run the backend. Phone: Login → **Forgot
-password?** → enter the account email → **Send link**. Mac: open
-http://localhost:8025, open the email, copy the link. The deep-link path
-is tested by opening the `jobtrigger://` link in Safari on the phone.
+Mac: start Mailpit (`make up S=mailpit` in the lab), the backend (with
+`SMTP_HOST=localhost`, `SMTP_PORT=1025`) and the website
+(`npm run dev -- -H 0.0.0.0` in `JobTrigger-Web/`, so the phone can reach
+it), then `scripts/run-on-iphone.sh`. Phone: Login → **Forgot password?
+Reset it on the web** → Safari opens the website → enter the email →
+**Send reset link**. Mac: open http://localhost:8025 and the email; open
+its link (on the Mac, or on the phone after replacing `localhost` with the
+Mac's address), choose a new password. Back in the app, log in with it.
 
 ## 4. Analytics
 
-### 4.1 Event catalogue (one list, shared by app, website and backend)
+### 4.1 Event catalogue (website and backend; the app sends none)
 
 | Event | Where | Data (no personal data) |
 |---|---|---|
@@ -110,18 +117,10 @@ anonymous and not linked to the account.
 
 ### 4.2 App
 
-- `core/analytics/analytics_service.dart` — interface `track(name, data)`;
-  `NoopAnalyticsService` when not configured.
-- `core/analytics/umami_analytics_service.dart` — its own `dio` instance
-  (same package, so no second HTTP client per CLAUDE.md §3) posting to
-  `<umamiUrl>/api/send` with a browser-like `User-Agent`, fire-and-forget,
-  never surfaces an error to the UI.
-- Config via `config/*.json`: `umamiUrl`, `umamiWebsiteId`. For the iPhone,
-  `umamiUrl` is the Mac's Wi-Fi address on port 3004, with
-  `UMAMI_BIND=0.0.0.0` in the lab's `analytics/.env`.
-- Profile → **Share anonymous usage** toggle (on by default, stored in
-  `shared_preferences`), explained in the privacy policy.
-- Calls come from notifiers, never widgets (CLAUDE.md §5).
+None (owner decision 2026-11-12). The app-only rows in the catalogue
+above (`app_open`, `tool_selected`, `build_triggered`, paywall and
+purchase events) are not sent. Purchase outcomes are still counted on the
+backend from the store webhooks.
 
 ### 4.3 Website
 

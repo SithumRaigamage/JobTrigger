@@ -13,9 +13,7 @@ import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../features/app_info/app_info_screen.dart';
 import '../features/auth/auth_notifier.dart';
-import '../features/auth/forgot_password_screen.dart';
 import '../features/auth/login_screen.dart';
-import '../features/auth/reset_password_screen.dart';
 import '../features/auth/signup_screen.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../core/theme/app_typography.dart';
@@ -61,10 +59,6 @@ class _AuthRefreshListenable extends ChangeNotifier {
 }
 
 const _authRoutes = {AppRoutes.login, AppRoutes.signup};
-
-/// US-AUTH-08: open to everyone. A reset link must work whether or not
-/// this device is signed in, so neither redirect below applies.
-const _publicRoutes = {AppRoutes.forgotPassword, AppRoutes.resetPassword};
 
 /// AUD-51: drill-down routes that only work with an in-app `extra` object.
 /// Deep linking is on for the whole router (US-JX-19), so any app or web
@@ -259,7 +253,6 @@ GoRouter appRouter(Ref ref) {
       // Still rehydrating from secure storage (P2-04) — don't redirect yet;
       // `refreshListenable` fires again once this resolves.
       if (authAsync.isLoading) return null;
-      if (_publicRoutes.contains(state.matchedLocation)) return null;
 
       final isAuthenticated = authAsync.value is Authenticated;
       final onAuthRoute = _authRoutes.contains(state.matchedLocation);
@@ -283,20 +276,6 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.signup,
         builder: (context, state) => const SignupScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.forgotPassword,
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => ForgotPasswordScreen(
-          initialEmail: state.extra is String ? state.extra! as String : null,
-        ),
-      ),
-      GoRoute(
-        path: AppRoutes.resetPassword,
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => ResetPasswordScreen(
-          token: state.uri.queryParameters['token'] ?? '',
-        ),
       ),
       GoRoute(
         path: AppRoutes.toolSelection,

@@ -7,11 +7,6 @@ abstract class AppRoutes {
 
   static const login = '/login';
   static const signup = '/signup';
-
-  /// US-AUTH-08. Public: reachable signed in or out. `resetPassword` is
-  /// opened by the emailed `jobtrigger://app/reset-password?token=…`.
-  static const forgotPassword = '/forgot-password';
-  static const resetPassword = '/reset-password';
   static const toolSelection = '/tools';
   static const home = '/home';
   static const jobDetail = '/home/job';

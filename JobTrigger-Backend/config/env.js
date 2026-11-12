@@ -79,15 +79,16 @@ function analyticsConfig(env = process.env) {
   return { url: env.UMAMI_URL.trim().replace(/\/+$/, ''), websiteId: env.UMAMI_WEBSITE_ID.trim() };
 }
 
+const DEV_RESET_PASSWORD_URL = 'http://localhost:3000/reset-password';
+
 /**
- * P20-73: where reset links point. The website page is optional (the app
- * deep link is always included); unset means the email has no web link.
+ * P20-73: the website page reset links point to. A password is reset on
+ * the web only (US-AUTH-08), so this is the email's one link. Unset means
+ * the local website (`npm run dev` in JobTrigger-Web); production must set
+ * it whenever mail is on (invalidConfig).
  */
-function resetLinkConfig(env = process.env) {
-  return {
-    webUrl: blank(env.RESET_PASSWORD_URL) ? null : env.RESET_PASSWORD_URL.trim(),
-    appUrl: 'jobtrigger://app/reset-password',
-  };
+function resetPasswordUrl(env = process.env) {
+  return blank(env.RESET_PASSWORD_URL) ? DEV_RESET_PASSWORD_URL : env.RESET_PASSWORD_URL.trim();
 }
 
 /**
@@ -103,6 +104,15 @@ function invalidConfig(env = process.env) {
   if (mail) return mail;
   if (!blank(env.RESET_PASSWORD_URL) && !/^https?:\/\/[^\s?#]+$/.test(env.RESET_PASSWORD_URL.trim())) {
     return 'RESET_PASSWORD_URL must be an http(s) URL without a query string';
+  }
+  // Emails with a localhost link would reach real people from production.
+  if (env.NODE_ENV === 'production' && !blank(env.SMTP_HOST)) {
+    if (blank(env.RESET_PASSWORD_URL)) {
+      return 'RESET_PASSWORD_URL is required in production when SMTP_HOST is set';
+    }
+    if (!env.RESET_PASSWORD_URL.trim().startsWith('https://')) {
+      return 'RESET_PASSWORD_URL must be https:// in production';
+    }
   }
   if (!blank(env.UMAMI_URL) && !/^https?:\/\/\S+$/.test(env.UMAMI_URL.trim())) {
     return 'UMAMI_URL must be an http(s) URL';
@@ -123,5 +133,5 @@ module.exports = {
   trustProxyHops,
   mailConfig,
   analyticsConfig,
-  resetLinkConfig,
+  resetPasswordUrl,
 };

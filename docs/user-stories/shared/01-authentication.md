@@ -328,12 +328,14 @@ So that whoever has it, and every device signed in with it, is locked out
 
 ---
 
-### US-AUTH-08 — Reset a forgotten password (deferred to backlog)
+### US-AUTH-08 — Reset a forgotten password (on the website)
 
 **Priority:** Should
-**Source:** AUD-48. **Not implemented — deferred to `tasks/backlog.md`
-(2026-10-23):** it needs an email provider for the backend, a product
-decision outside the current architecture.
+**Source:** AUD-48. Deferred 2026-10-23 (no email provider); **built in
+Phase 20, P20-72..74 (2026-11-12)**. Owner decision 2026-11-12: the reset
+happens **on the website only**. The app's login screen links to the
+website's `/forgot-password`; it has no reset screens and the email has no
+app link.
 
 As a user who forgot my password
 I want to reset it by email
@@ -343,3 +345,6 @@ So that I don't lose my saved servers
 - A single-use token valid for 15 minutes is emailed; the response is the
   same whether or not the email exists (no enumeration); a successful
   reset bumps `tokenVersion`.
+- The app's login screen shows "Forgot password? Reset it on the web",
+  which opens the website's reset page in the browser; the emailed link
+  opens the website's `/reset-password`.
