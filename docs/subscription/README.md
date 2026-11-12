@@ -16,7 +16,9 @@ Read in this order:
    layers and gates, website changes, store setup, tests, rollout.
 4. **[User stories — epic SUB](../user-stories/billing/18-subscriptions.md)**
    — US-SUB-01 … 11 with acceptance criteria.
-5. **[Tasks — Phase 20](../../tasks/phase-20-subscriptions.md)** — the
+5. **[Email and analytics](04-email-and-analytics.md)** — Umami and
+   Mailpit from the DevOps lab, password reset, event catalogue.
+6. **[Tasks — Phase 20](../../tasks/phase-20-subscriptions.md)** — the
    build checklist, P20-00 … P20-63.
 
 ## The plan in brief

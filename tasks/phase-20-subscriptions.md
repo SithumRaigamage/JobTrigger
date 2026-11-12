@@ -16,10 +16,14 @@ task where a track is large). Commits reference the task id, e.g.
       (business model §2–3), prices and trial (§4), RevenueCat
       (§5), `purchases_flutter` as a new dependency (add a row to
       CLAUDE.md §3), and the new backend endpoints (technical design §3).
-- [ ] P20-01 Choose the analytics / crash tool (unblocks gap G3; moves
-      the `backlog.md` crash-reporting item into scope).
-- [ ] P20-02 Choose an email provider; promote US-AUTH-08 password reset
-      out of `backlog.md` (gaps G2, G5). Paid users can't be left locked out.
+- [x] P20-01 Analytics tool: **Umami**, self-hosted in the DevOps lab
+      (`analytics/`), events sent server-side / over HTTP, no SDK. Crash
+      reporting (GlitchTip) stays a separate decision. Decided 2026-11-12;
+      plan in `docs/subscription/04-email-and-analytics.md`.
+- [x] P20-02 Email: **Mailpit** for development (lab `mailpit/`),
+      `nodemailer` over SMTP (needs approval); production provider chosen
+      when the backend deploys. US-AUTH-08 password reset promoted as the
+      first use (P20-72..74). Decided 2026-11-12.
 - [ ] P20-03 RevenueCat "transfer behaviour" when one store account
       restores onto a second JobTrigger account (US-SUB-03).
 
@@ -27,7 +31,9 @@ task where a track is large). Commits reference the task id, e.g.
 
 - [ ] P20-05 Backend deployed at a public `https://` URL with a
       production Atlas cluster (Phase 15 owner actions, Phase 17).
+      **On hold** (owner, 2026-11-12): still in development.
 - [ ] P20-06 Store accounts, signing and artwork (`release-checklist.md`).
+      **On hold** (owner, 2026-11-12): still in development.
 - [ ] P20-07 GitHub and SonarQube real-server checks (P8-26/27,
       P10-14/15) — these are the tools Pro sells.
 
@@ -127,6 +133,31 @@ task where a track is large). Commits reference the task id, e.g.
       pricing status to live, announce in the changelog.
 - [ ] P20-63 After ~200 paywall views: review conversion and price
       (business model §4, §7).
+
+## I. Email and analytics (plan: `docs/subscription/04-email-and-analytics.md`)
+
+Local development first (backend and stores on hold). Each item still
+needs its plan approved before code (CLAUDE.md §9).
+
+- [x] P20-70 Lab services: Umami (`analytics/`, port 3004, data in the lab
+      Postgres) and Mailpit (`mailpit/`, SMTP 1025, inbox 8025) added to
+      `custom-devops-stack` by its rules. Not yet started on the Mac.
+- [ ] P20-71 Approve `nodemailer` (backend) — CLAUDE.md §3 row.
+- [ ] P20-72 Backend mailer (`lib/mailer.js`, SMTP config, disabled when
+      unset, `jsonTransport` in tests).
+- [ ] P20-73 Password reset endpoints + `PasswordResetToken` model
+      (US-AUTH-08): no enumeration, 15-minute single-use hashed tokens,
+      rate limits, `tokenVersion` bump; tests.
+- [ ] P20-74 Forgot/reset password screens: app (login link, deep link)
+      and website (`/forgot-password`, `/reset-password`).
+- [ ] P20-75 Event catalogue as code (one list per project, tested).
+- [ ] P20-76 App `AnalyticsService` (no-op + Umami over `dio`), config
+      keys, Profile "Share anonymous usage" toggle.
+- [ ] P20-77 Website `server/analytics.ts` from server actions (no browser
+      script, CSP unchanged).
+- [ ] P20-78 Backend `lib/analytics.js` for webhook/auth events.
+- [ ] P20-79 Privacy policy, App Privacy, Data safety and
+      `PrivacyInfo.xcprivacy` updated for anonymous usage data.
 
 ## Later (not this phase)
 
