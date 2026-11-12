@@ -47,9 +47,10 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
   if (isSignedIn(session)) redirect(safeNext(next));
 
   const notice = typeof params.notice === "string" ? (notices[params.notice] ?? null) : null;
-  // No reset flow yet (US-AUTH-08): "Forgot?" leads to the support answer.
+  // US-AUTH-08: built (P20-74); "Forgot?" opens it once the feature is
+  // live, and until then leads to the support answer.
   const forgotHref =
-    statusOf("password-reset") === "live" ? "/reset-password" : `${routes.support}#faq-account`;
+    statusOf("password-reset") === "live" ? "/forgot-password" : `${routes.support}#faq-account`;
 
   return (
     <AuthShell

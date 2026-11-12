@@ -12,7 +12,11 @@ describe("PrivacyView", () => {
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Privacy policy");
     expect(screen.getByText(/hashed password and your encrypted server details/)).toBeVisible();
-    expect(screen.getByText("No analytics, crash reports or ad identifiers today.")).toBeVisible();
+    // Changed on purpose (P20-79): anonymous usage events now exist.
+    expect(
+      screen.getByText("Anonymous usage counts only, which you can turn off. No ad identifiers."),
+    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Anonymous usage data" })).toBeVisible();
   });
 
   it("marks itself as the current legal page and keeps placeholders as text", () => {

@@ -98,6 +98,29 @@ export function isPortalConfigured(): boolean {
   }
 }
 
+export type AnalyticsConfig = { url: string; websiteId: string };
+
+const analyticsSchema = z.object({
+  UMAMI_URL: z.url().refine((url) => /^https?:\/\//.test(url), "must be http(s)"),
+  UMAMI_WEBSITE_ID: z.string().trim().min(1),
+});
+
+/**
+ * P20-77: the self-hosted Umami that receives the site's anonymous events,
+ * or null — analytics is off unless both are set and valid. Kept apart
+ * from getConfig() so a missing or bad value never takes the portal down.
+ */
+export function getAnalyticsConfig(
+  env: Record<string, string | undefined> = process.env,
+): AnalyticsConfig | null {
+  const result = analyticsSchema.safeParse(env);
+  if (!result.success) return null;
+  return {
+    url: result.data.UMAMI_URL.replace(/\/+$/, ""),
+    websiteId: result.data.UMAMI_WEBSITE_ID,
+  };
+}
+
 const siteUrlSchema = z.url().default("http://localhost:3000");
 
 /**

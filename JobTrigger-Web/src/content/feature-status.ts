@@ -97,7 +97,9 @@ export const features = {
   "password-reset": {
     label: "Password reset",
     status: "soon",
-    source: "Deferred, US-AUTH-08 in tasks/backlog.md",
+    // Built 2026-11-12 (backend P20-73, app and web P20-74). Stays "soon"
+    // until the backend is deployed with a real mail provider.
+    source: "US-AUTH-08 built in Phase 20; waits for the backend deployment",
     changelog: ["Password reset by email"],
   },
   "gitlab-ci": {

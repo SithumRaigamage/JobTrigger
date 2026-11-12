@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { failureMessage } from "@/domain/app-failure";
 import { isValidEmail, newPasswordProblem } from "@/domain/auth-validation";
+import { track } from "@/server/analytics";
 import { login, signup } from "@/server/auth-api";
 import { getSession, setTokens } from "@/server/session";
 
@@ -73,6 +74,7 @@ export async function signUpAction(
 
   const result = await signup(email, password);
   if (!result.ok) return { error: failureMessage(result.failure), email };
+  void track("signup"); // P20-77: anonymous, fire-and-forget.
 
   const session = await getSession();
   setTokens(session, result.value);

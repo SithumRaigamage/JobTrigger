@@ -9,7 +9,14 @@
 type Header = { key: string; value: string };
 
 /** Paths whose responses must never be cached (US-WEB-11: `no-store`). */
-export const NO_STORE_PATH_PREFIXES = ["/sign-in", "/sign-up", "/servers", "/account"] as const;
+export const NO_STORE_PATH_PREFIXES = [
+  "/sign-in",
+  "/sign-up",
+  "/forgot-password",
+  "/reset-password",
+  "/servers",
+  "/account",
+] as const;
 
 export function isNoStorePath(pathname: string): boolean {
   return NO_STORE_PATH_PREFIXES.some(

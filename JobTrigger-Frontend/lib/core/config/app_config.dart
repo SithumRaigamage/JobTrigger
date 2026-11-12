@@ -13,7 +13,12 @@ const _devBackendBaseUrl = 'http://127.0.0.1:5001';
 /// see `config/README.md`. Nothing in the app should read
 /// `String.fromEnvironment` directly outside this file.
 class AppConfig {
-  const AppConfig({required this.environment, required this.backendBaseUrl});
+  const AppConfig({
+    required this.environment,
+    required this.backendBaseUrl,
+    this.umamiUrl,
+    this.umamiWebsiteId,
+  });
 
   /// AUD-43: a release build without its config used to fall back to the
   /// dev backend (`http://127.0.0.1:5001`) and fail silently at the first
@@ -23,6 +28,8 @@ class AppConfig {
   factory AppConfig.fromEnvironment({bool isRelease = kReleaseMode}) {
     const environmentName = String.fromEnvironment('ENVIRONMENT');
     const backendBaseUrl = String.fromEnvironment('BACKEND_BASE_URL');
+    const umamiUrl = String.fromEnvironment('UMAMI_URL');
+    const umamiWebsiteId = String.fromEnvironment('UMAMI_WEBSITE_ID');
     if (isRelease) {
       final problem = releaseConfigProblem(
         environmentName: environmentName,
@@ -38,11 +45,21 @@ class AppConfig {
       backendBaseUrl: backendBaseUrl.isEmpty
           ? _devBackendBaseUrl
           : backendBaseUrl,
+      umamiUrl: umamiUrl.isEmpty ? null : umamiUrl,
+      umamiWebsiteId: umamiWebsiteId.isEmpty ? null : umamiWebsiteId,
     );
   }
 
   final AppEnvironment environment;
   final String backendBaseUrl;
+
+  /// P20-76: the self-hosted Umami that receives anonymous usage events,
+  /// and the app's website id in it. Both null (the default) turns
+  /// analytics off — `analyticsServiceProvider` is then a no-op.
+  final String? umamiUrl;
+  final String? umamiWebsiteId;
+
+  bool get analyticsConfigured => umamiUrl != null && umamiWebsiteId != null;
 
   /// Jenkins versions older than this get an informational "consider
   /// upgrading" note in Settings (US-JX-18). Roughly a year of LTS lines

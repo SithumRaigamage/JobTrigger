@@ -89,6 +89,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         onRememberMeChanged: (value) => setState(() => _rememberMe = value),
         error: error,
         onSubmit: _submit,
+        onForgotPassword: () => context.push(
+          AppRoutes.forgotPassword,
+          extra: _emailController.text.trim(),
+        ),
         showLogo: showLogo,
       ),
       footer: _LoginActions(
@@ -273,6 +277,7 @@ class _LoginForm extends StatelessWidget {
     required this.onRememberMeChanged,
     required this.error,
     required this.onSubmit,
+    required this.onForgotPassword,
     required this.showLogo,
   });
 
@@ -286,6 +291,9 @@ class _LoginForm extends StatelessWidget {
   /// The last attempt's failure, already worded for the user.
   final String? error;
   final VoidCallback onSubmit;
+
+  /// US-AUTH-08: opens the reset-by-email screen.
+  final VoidCallback onForgotPassword;
   final bool showLogo;
 
   @override
@@ -356,6 +364,15 @@ class _LoginForm extends StatelessWidget {
           title: const Text('Remember my email'),
           value: rememberMe,
           onChanged: onRememberMeChanged,
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            key: const Key('login_forgot_password'),
+            onPressed: onForgotPassword,
+            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+            child: const Text('Forgot password?'),
+          ),
         ),
       ],
     );

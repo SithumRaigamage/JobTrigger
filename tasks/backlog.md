@@ -62,9 +62,11 @@ Phase 0–6 task without first moving the item here into an actual phase file
 - Website launch date in the download section (epic WEB). The site says
   "Coming soon" with no date until a release date is committed in
   `release-checklist.md`; then flip the `app-store` status (US-WEB-22).
-- Password reset by email (US-AUTH-08, from AUD-48 / P13-07). Deferred
-  2026-10-23: the backend has no email provider, and choosing one is a
-  product decision. Needs a provider, single-use 15-minute tokens, no
+- ~~Password reset by email (US-AUTH-08, from AUD-48 / P13-07).~~
+  Promoted 2026-11-12 → `phase-20-subscriptions.md` P20-72..74 (Mailpit in
+  development; production provider when the backend deploys). Original
+  note: deferred 2026-10-23: the backend has no email provider, and
+  choosing one is a product decision. Needs a provider, single-use 15-minute tokens, no
   account enumeration, and a `tokenVersion` bump on reset — see the story
   in `docs/user-stories/shared/01-authentication.md`.
 - Crash reporting / analytics tool selection (flagged in P6-08 — pick a

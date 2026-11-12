@@ -95,3 +95,25 @@ export async function deleteAccount(
     message,
   );
 }
+
+/**
+ * Asks the backend to email a reset link (US-AUTH-08). Answers the same
+ * whether or not the email has an account.
+ */
+export async function requestPasswordReset(email: string): Promise<Result<unknown>> {
+  return callBackend(
+    { method: "POST", path: "/api/auth/password-reset/request", body: { email } },
+    message,
+  );
+}
+
+/** Sets a new password from an emailed link; signs out every session. */
+export async function confirmPasswordReset(
+  token: string,
+  newPassword: string,
+): Promise<Result<unknown>> {
+  return callBackend(
+    { method: "POST", path: "/api/auth/password-reset/confirm", body: { token, newPassword } },
+    message,
+  );
+}
