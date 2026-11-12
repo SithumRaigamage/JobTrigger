@@ -13,6 +13,7 @@ import {
   createJenkins,
   createSonarQube,
   deleteCredential,
+  revealSecret,
   setDefaultCredential,
   updateGitHub,
   updateJenkins,
@@ -138,4 +139,23 @@ export async function deleteServerAction(
 
   revalidatePath("/servers");
   redirect("/servers");
+}
+
+export type RevealState = { secret?: string; error?: string };
+
+/**
+ * Returns the saved token in full, only when the owner taps the eye on the
+ * edit page. The token is never rendered into the page; it is not logged.
+ */
+export async function revealSecretAction(target: { tool: Tool; id: string }): Promise<RevealState> {
+  const session = await requireSession();
+  const checked = makeActiveForm.safeParse(target);
+  if (!checked.success) return { error: "That server couldn't be found." };
+
+  const result = await authed(session, (token) =>
+    revealSecret(token, checked.data.tool, checked.data.id),
+  );
+  if (!result.ok) return { error: failureMessage(result.failure) };
+  if (!result.value) return { error: "The saved token can't be read. Paste it again." };
+  return { secret: result.value };
 }

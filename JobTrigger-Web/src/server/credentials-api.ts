@@ -287,3 +287,39 @@ export async function setDefaultCredential(
     () => null,
   );
 }
+
+/**
+ * The one place a saved secret leaves this file in full: the owner asked to
+ * see it (edit page eye button). Fetched on demand, never cached or logged;
+ * null when it isn't there or can't be decrypted (AUD-63).
+ */
+export async function revealSecret(
+  accessToken: string,
+  tool: Tool,
+  id: string,
+): Promise<Result<string | null>> {
+  const find = <T extends { _id: string; needsReentry: boolean }>(
+    rows: T[],
+    pick: (row: T) => string | null | undefined,
+  ) => {
+    const row = rows.find((candidate) => candidate._id === id);
+    return row && !row.needsReentry ? (pick(row) ?? null) : null;
+  };
+  switch (tool) {
+    case "jenkins":
+      return map(
+        await callBackend({ path: paths.jenkins, accessToken }, z.array(jenkinsDto)),
+        (rows) => find(rows, (row) => row.password),
+      );
+    case "github":
+      return map(
+        await callBackend({ path: paths.github, accessToken }, z.array(githubDto)),
+        (rows) => find(rows, (row) => row.token),
+      );
+    case "sonarqube":
+      return map(
+        await callBackend({ path: paths.sonarqube, accessToken }, z.array(sonarDto)),
+        (rows) => find(rows, (row) => row.token),
+      );
+  }
+}

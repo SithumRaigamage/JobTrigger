@@ -4,8 +4,9 @@ import { ToolTile } from "@/components/tool-tile";
 import type { Credential } from "@/domain/credentials";
 import { credentialName, toolNames } from "@/domain/tools";
 
-import { deleteServerAction, updateServerAction } from "./actions";
+import { deleteServerAction, revealSecretAction, updateServerAction } from "./actions";
 import { DeleteServer } from "./delete-server";
+import { RevealToken } from "./reveal-token";
 import { ServerForm, type ServerFormValues } from "./server-form";
 
 const formValues = (credential: Credential): ServerFormValues => ({
@@ -85,8 +86,13 @@ export function EditServerView({ credential }: { credential: Credential }) {
               </span>
             ) : (
               <>
-                <span className="font-mono text-[0.9375rem]">{credential.secretMask}</span>
-                <span className="text-muted">Stored encrypted. Never shown in full.</span>
+                <RevealToken
+                  mask={credential.secretMask ?? ""}
+                  action={revealSecretAction.bind(null, target)}
+                />
+                <span className="text-muted">
+                  Stored encrypted. Shown in full only when you tap the eye.
+                </span>
               </>
             )}
           </div>
