@@ -332,7 +332,7 @@ hardening below narrows it instead.
 already manages GitHub credentials. Nothing to hide behind "Coming soon".
 Left:
 
-- [ ] PE-40 P8-20: the missing GH-RUN tests that P8-12/13 didn't cover.
+- [x] PE-40 (2026-11-14) P8-20: the missing GH-RUN tests that P8-12/13 didn't cover. Added repository failure mapping for all five GH-RUN calls (rate limit vs. permission, 401, 404, 5xx, offline, 422 with and without detail, 409 on cancel), notifier refresh/polling/delayed-refresh tests, and `testGitHubConnection` (given an optional `dio` seam, as SonarQube's check has).
 - [ ] PE-41 P8-26 (`NFR-SEC-03`): live check that a GitHub token is never
       sent to Jenkins or the backend, and vice versa. **Owner action:** a
       real GitHub token (fine-grained, read + Actions write, one test repo).
