@@ -23,12 +23,12 @@ Base URL from `core/config/app_config.dart`, e.g. `https://api.jobtrigger.app`
 | `/api/auth/account` | DELETE | Token | `{ password }` | `{ message }` | AUD-48. Re-checks the password (**400** when wrong), then deletes every Jenkins, GitHub, and SonarQube credential of the user and the user itself |
 | `/api/auth/password-reset/request` | POST | Public | `{ email }` (string) | `{ message }` | US-AUTH-08. **Always 202** with the same body, whether or not the account exists; the lookup and email happen after the response, so timing doesn't reveal accounts either. Emails one single-use link, to the website: `RESET_PASSWORD_URL?token=…` (default `http://localhost:3000/reset-password`; required and https in production when mail is on), valid 15 minutes. A password is reset on the web only, never in the app; a new request replaces older links. Non-string email: 400. **429** after 5 requests per IP in 15 min or 3 per email per hour |
 | `/api/auth/password-reset/confirm` | POST | Public | `{ token, newPassword }` (strings) | `{ message }` | US-AUTH-08. Bad, used or expired token: **400** "This reset link is invalid or has expired. Ask for a new one." A new password breaking signup's rules is a 400 that leaves the link usable. Success bumps `tokenVersion` (every session on every device is signed out) and deletes the user's other links; the client then signs in. 10 attempts per IP in 15 min |
-| `/api/credentials` | GET | `x-auth-token` | — | `Credential[]` | Each credential carries `locked` (P20-13): `true` when it's beyond the user's plan after a downgrade. Locked credentials are listed, editable and deletable, but can't be made active. Same on the GitHub and SonarQube lists |
+| `/api/credentials` | GET | `x-auth-token` | — | `Credential[]` | No `password` or `paramToken`: `secretMask` and `hasParamToken` instead (E4, below). Each credential carries `locked` (P20-13): `true` when it's beyond the user's plan after a downgrade. Locked credentials are listed, editable and deletable, but can't be made active. Same on the GitHub and SonarQube lists |
 | `/api/credentials` | POST | `x-auth-token` | `Credential` (minus id) | `Credential` | **403** `{ message, code: "PLAN_LIMIT", limit }` past the plan (P20-12): `limit` is `maxCredentialsTotal`, `maxCredentialsPerTool` or `multiTool`. Same on the GitHub and SonarQube creates. Never while `BILLING_ENABLED` is off |
 | `/api/credentials/:id` | PUT | `x-auth-token` | Partial `Credential` | `Credential` | |
 | `/api/credentials/:id` | DELETE | `x-auth-token` | — | `{ success }` | If deleting the active server, client must fall back to another `isDefault`/first server |
 | `/api/credentials/switch/:id` | POST | `x-auth-token` | — | `Credential` | Backend flips `isDefault`; client also updates `ActiveServerNotifier` locally for instant UI feedback. A locked credential: **403** `PLAN_LIMIT`, `limit: "locked"` |
-| `/api/sonarqube-credentials` | GET | `x-auth-token` | — | `SonarQubeCredential[]` | |
+| `/api/sonarqube-credentials` | GET | `x-auth-token` | — | `SonarQubeCredential[]` | Masked, no `token` (E4) |
 | `/api/sonarqube-credentials` | POST | `x-auth-token` | `SonarQubeCredential` (minus id) | `SonarQubeCredential` | |
 | `/api/sonarqube-credentials/:id` | PUT | `x-auth-token` | Partial `SonarQubeCredential` | `SonarQubeCredential` | |
 | `/api/sonarqube-credentials/:id` | DELETE | `x-auth-token` | — | `{ message }` | |
@@ -77,6 +77,26 @@ One unreadable credential no longer fails the whole list, and no other
 credential is affected. The client should prompt for the secret again and
 `PUT` it back — a `PUT` that supplies a new secret clears the flag. Fields:
 `password` (Jenkins), `token` (GitHub), `token` (SonarQube).
+
+**Secrets are masked in every response (E4, PE-32).** The credential list,
+create, update and switch responses carry **no secret field**. Instead:
+`secretMask` (`••••` plus the last 4 characters; `••••` alone under 8
+characters; `null` when unreadable) and, for Jenkins, `hasParamToken`
+(boolean). `needsReentry` means the same as above, with `secretMask: null`.
+The decrypted values come from one endpoint, which only the phone app calls
+(it needs them to reach Jenkins, GitHub and SonarQube directly); the website
+never does:
+
+| Path | Method | Auth | Response | Notes |
+|---|---|---|---|---|
+| `/api/credentials/:id/secret` | GET | `x-auth-token` | `{ password, paramToken, needsReentry, version }` | Owner only: another user's id is **404**. `Cache-Control: no-store`. 30 per **user** per 10 min (`CREDENTIAL_SECRET_RATE_LIMIT`), then **429**. A locked credential: **403** `PLAN_LIMIT`, `limit: "locked"` |
+| `/api/github-credentials/:id/secret` | GET | `x-auth-token` | `{ token, needsReentry, version }` | Same rules |
+| `/api/sonarqube-credentials/:id/secret` | GET | `x-auth-token` | `{ token, needsReentry, version }` | Same rules |
+
+`version` is the credential's `updatedAt` (ISO). The app keeps the secret in
+`flutter_secure_storage` with that version and fetches again when the listed
+`updatedAt` differs; logout clears the store. No log line from any
+credential route carries a secret (`test/credential_secret.test.js`).
 
 ## 2. Jenkins API (direct, per-server Basic Auth)
 

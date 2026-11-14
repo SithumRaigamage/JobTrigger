@@ -302,23 +302,23 @@ hardening below narrows it instead.
       `node scripts/encrypt-credentials.js --dry-run` and then without
       `--dry-run` on the production database. Confirm the startup audit
       reports no unreadable key ids.
-- [ ] PE-32 **Decision:** list responses return metadata and a masked
+- [x] PE-32 (2026-11-14; routes are `GET /api/credentials|github-credentials|sonarqube-credentials/:id/secret`; every other credential response carries `secretMask` and no secret; existing response tests changed on purpose) **Decision:** list responses return metadata and a masked
       secret only. Add `GET /api/<tool>/credentials/:id/secret` (owner-only,
       rate-limited, `Cache-Control: no-store`) for the decrypted value.
       Existing list tests change on purpose, and the commit says so
       (`CLAUDE.md` §11).
-- [ ] PE-33 A test that no log line from any credential route contains a
+- [x] PE-33 (2026-11-14, in `test/credential_secret.test.js` (new file rather than an extension of `credential_resilience.test.js`)) A test that no log line from any credential route contains a
       secret (extend `credential_resilience.test.js`).
 
 *App* (only if PE-32 is approved)
-- [ ] PE-34 Credential repositories fetch the secret through the new
+- [x] PE-34 (2026-11-14; resolved in each repository's data layer (`CredentialSecrets`), for every listed credential, so Jenkins screens and behaviour are unchanged; unverified against a real Jenkins) Credential repositories fetch the secret through the new
       endpoint when a server becomes active, keep it in
       `flutter_secure_storage` only, and drop it on logout. Add a
       tool-specific case for each repository. Jenkins changes only in its
       credential data source; its screens and behaviour stay as they are.
 
 *Website* (only if PE-32 is approved)
-- [ ] PE-35 The portal uses the masked value from the list response and
+- [x] PE-35 (2026-11-14; a test fails if the portal ever requests a `/secret` URL, and the e2e fake backend answers it with 418) The portal uses the masked value from the list response and
       never calls the secret endpoint.
 
 **Verify:** after PE-31, a document read straight from MongoDB shows
