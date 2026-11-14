@@ -154,3 +154,6 @@ tools/jenkins-fixture/.fixture-credentials.tmp
 
 # SonarQube scanner working directory (scripts/sonar-scan.sh)
 .scannerwork/
+
+# E3: unsent crash reports waiting for the reporting host (scrubbed, mode 600)
+crash-outbox/

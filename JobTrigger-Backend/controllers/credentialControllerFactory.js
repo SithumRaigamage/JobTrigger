@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { createProblem, sendPlanLimit, unlockedIds, MESSAGES } = require('../billing/limits');
 
 /**
  * AUD-31: one implementation of the credential CRUD that the Jenkins,
@@ -14,9 +15,14 @@ const mongoose = require('mongoose');
  * - AUD-24: switching the default is one ordered `bulkWrite` (unset all,
  *   then set one): a single round trip instead of two separate requests.
  *
+ * - P20-12/13: [tool] names the CI tool for plan limits. Saving a new
+ *   credential past the plan answers 403 `PLAN_LIMIT`; editing and
+ *   deleting are never limited. Lists mark credentials beyond the plan
+ *   `locked` (US-SUB-05) — nothing is deleted on a downgrade.
+ *
  * Unexpected errors go to the central handler (AUD-06).
  */
-function makeCredentialController(Model, fields) {
+function makeCredentialController(Model, fields, { tool }) {
   // Only the fields the client sent; absent ones stay unchanged on update.
   const pick = (body) =>
     Object.fromEntries(
@@ -40,10 +46,16 @@ function makeCredentialController(Model, fields) {
 
   return {
     async list(req, res) {
-      res.json(await Model.find({ userId: req.user.id }));
+      const [docs, unlocked] = await Promise.all([
+        Model.find({ userId: req.user.id }),
+        unlockedIds(req.user.id),
+      ]);
+      res.json(docs.map((doc) => ({ ...doc.toJSON(), locked: !unlocked.has(String(doc._id)) })));
     },
 
     async create(req, res) {
+      const problem = await createProblem(req.user.id, tool);
+      if (problem) return sendPlanLimit(res, problem.limit, problem.message);
       const credential = new Model({
         ...pick(req.body ?? {}),
         userId: req.user.id,
@@ -114,6 +126,9 @@ function makeCredentialController(Model, fields) {
       if (!mongoose.Types.ObjectId.isValid(id)) return invalidId(res);
       const exists = await Model.exists({ _id: id, userId: req.user.id });
       if (!exists) return notFound(res);
+      if (!(await unlockedIds(req.user.id)).has(String(id))) {
+        return sendPlanLimit(res, 'locked', MESSAGES.locked);
+      }
       await makeDefault(req.user.id, id);
       res.json(await Model.findById(id));
     },

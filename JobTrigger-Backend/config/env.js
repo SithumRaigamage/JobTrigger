@@ -36,13 +36,154 @@ function trustProxyHops(env = process.env) {
   return /^[1-9][0-9]?$/.test(raw) ? Number(raw) : undefined;
 }
 
+const blank = (value) => !value || !String(value).trim();
+
+/**
+ * P20-72: SMTP settings, or null when mail is off (SMTP_HOST unset).
+ * Development uses the lab's Mailpit: SMTP_HOST=localhost, SMTP_PORT=1025.
+ */
+function mailConfig(env = process.env) {
+  if (blank(env.SMTP_HOST)) return null;
+  return {
+    host: env.SMTP_HOST.trim(),
+    port: Number(env.SMTP_PORT) || 587,
+    secure: env.SMTP_SECURE === 'true',
+    user: blank(env.SMTP_USER) ? null : env.SMTP_USER,
+    pass: blank(env.SMTP_PASS) ? null : env.SMTP_PASS,
+    from: blank(env.MAIL_FROM) ? 'JobTrigger <no-reply@jobtrigger.local>' : env.MAIL_FROM.trim(),
+  };
+}
+
+/** Why the SMTP settings can't be used, or null. */
+function mailProblem(env = process.env) {
+  const others = ['SMTP_PORT', 'SMTP_SECURE', 'SMTP_USER', 'SMTP_PASS', 'MAIL_FROM'];
+  if (blank(env.SMTP_HOST)) {
+    const set = others.filter((name) => !blank(env[name]));
+    return set.length > 0 ? `SMTP_HOST is required when ${set.join(', ')} is set` : null;
+  }
+  if (!blank(env.SMTP_PORT) && !/^[1-9][0-9]{0,4}$/.test(env.SMTP_PORT.trim())) {
+    return 'SMTP_PORT must be a port number';
+  }
+  if (!blank(env.SMTP_SECURE) && !['true', 'false'].includes(env.SMTP_SECURE)) {
+    return 'SMTP_SECURE must be true or false';
+  }
+  if (blank(env.SMTP_USER) !== blank(env.SMTP_PASS)) {
+    return 'SMTP_USER and SMTP_PASS must be set together';
+  }
+  return null;
+}
+
+/**
+ * P20-10: whether plans apply. Off (the default) means everyone gets Pro:
+ * development, beta, and every deployment until the stores are live.
+ */
+function billingEnabled(env = process.env) {
+  return env.BILLING_ENABLED === 'true';
+}
+
+/** P20-15/16: RevenueCat's server key and webhook secret, or null. */
+function revenueCatConfig(env = process.env) {
+  if (blank(env.REVENUECAT_SECRET_API_KEY) || blank(env.REVENUECAT_WEBHOOK_AUTH)) return null;
+  return {
+    secretApiKey: env.REVENUECAT_SECRET_API_KEY.trim(),
+    webhookAuth: env.REVENUECAT_WEBHOOK_AUTH.trim(),
+  };
+}
+
+const PADDLE_VARS = [
+  'PADDLE_API_KEY', 'PADDLE_WEBHOOK_SECRET', 'PADDLE_PRICE_MONTHLY', 'PADDLE_PRICE_YEARLY',
+];
+
+/**
+ * Website checkout (Paddle Billing, merchant of record), or null when not
+ * set up. `PADDLE_ENV` picks sandbox (default) or production; the API key
+ * must match it. Price ids are Paddle's `pri_…` for Pro monthly/yearly.
+ */
+function paddleConfig(env = process.env) {
+  if (PADDLE_VARS.some((name) => blank(env[name]))) return null;
+  const production = env.PADDLE_ENV === 'production';
+  return {
+    apiKey: env.PADDLE_API_KEY.trim(),
+    webhookSecret: env.PADDLE_WEBHOOK_SECRET.trim(),
+    prices: { monthly: env.PADDLE_PRICE_MONTHLY.trim(), yearly: env.PADDLE_PRICE_YEARLY.trim() },
+    environment: production ? 'production' : 'sandbox',
+    apiBase: production ? 'https://api.paddle.com' : 'https://sandbox-api.paddle.com',
+  };
+}
+
+/** P20-78: Umami settings, or null when analytics is off. */
+function analyticsConfig(env = process.env) {
+  if (blank(env.UMAMI_URL) || blank(env.UMAMI_WEBSITE_ID)) return null;
+  return { url: env.UMAMI_URL.trim().replace(/\/+$/, ''), websiteId: env.UMAMI_WEBSITE_ID.trim() };
+}
+
+const DEV_RESET_PASSWORD_URL = 'http://localhost:3000/reset-password';
+const DEV_SITE_URL = 'http://localhost:3000';
+
+/**
+ * PE-01: the website's base address, for the links the app opens from
+ * About JobTrigger (privacy policy, terms). Unset means the local website
+ * (`npm run dev` in JobTrigger-Web); `scripts/seedAppInfo.js` refuses that
+ * default in production. No trailing slash.
+ */
+function siteUrl(env = process.env) {
+  return blank(env.SITE_URL) ? DEV_SITE_URL : env.SITE_URL.trim().replace(/\/+$/, '');
+}
+
+/**
+ * P20-73: the website page reset links point to. A password is reset on
+ * the web only (US-AUTH-08), so this is the email's one link. Unset means
+ * the local website (`npm run dev` in JobTrigger-Web); production must set
+ * it whenever mail is on (invalidConfig).
+ */
+function resetPasswordUrl(env = process.env) {
+  return blank(env.RESET_PASSWORD_URL) ? DEV_RESET_PASSWORD_URL : env.RESET_PASSWORD_URL.trim();
+}
+
 /**
  * A problem with configuration that is present but unusable, or null:
- * the encryption keys (AUD-03), or `TRUST_PROXY` (AUD-44).
+ * the encryption keys (AUD-03), `TRUST_PROXY` (AUD-44), SMTP (P20-72),
+ * or the reset link base (P20-73).
  */
 function invalidConfig(env = process.env) {
   if (trustProxyHops(env) === undefined) {
     return 'TRUST_PROXY must be the number of proxy hops in front of the server (e.g. 1)';
+  }
+  const mail = mailProblem(env);
+  if (mail) return mail;
+  if (!blank(env.BILLING_ENABLED) && !['true', 'false'].includes(env.BILLING_ENABLED)) {
+    return 'BILLING_ENABLED must be true or false';
+  }
+  if (!blank(env.PADDLE_ENV) && !['sandbox', 'production'].includes(env.PADDLE_ENV)) {
+    return 'PADDLE_ENV must be sandbox or production';
+  }
+  const paddleSet = PADDLE_VARS.filter((name) => !blank(env[name]));
+  if (paddleSet.length > 0 && paddleSet.length < PADDLE_VARS.length) {
+    return `Paddle needs all of ${PADDLE_VARS.join(', ')}`;
+  }
+  // P20-17: plans with no way to learn about purchases would lock paying
+  // users out, so refuse to start half-configured.
+  if (billingEnabled(env) && !revenueCatConfig(env) && !paddleConfig(env)) {
+    return 'BILLING_ENABLED=true needs RevenueCat (REVENUECAT_SECRET_API_KEY, '
+      + 'REVENUECAT_WEBHOOK_AUTH) or Paddle (PADDLE_API_KEY, PADDLE_WEBHOOK_SECRET, prices)';
+  }
+  if (!blank(env.RESET_PASSWORD_URL) && !/^https?:\/\/[^\s?#]+$/.test(env.RESET_PASSWORD_URL.trim())) {
+    return 'RESET_PASSWORD_URL must be an http(s) URL without a query string';
+  }
+  // Emails with a localhost link would reach real people from production.
+  if (env.NODE_ENV === 'production' && !blank(env.SMTP_HOST)) {
+    if (blank(env.RESET_PASSWORD_URL)) {
+      return 'RESET_PASSWORD_URL is required in production when SMTP_HOST is set';
+    }
+    if (!env.RESET_PASSWORD_URL.trim().startsWith('https://')) {
+      return 'RESET_PASSWORD_URL must be https:// in production';
+    }
+  }
+  if (!blank(env.SITE_URL) && !/^https?:\/\/[^\s/?#]+\/*$/.test(env.SITE_URL.trim())) {
+    return 'SITE_URL must be an http(s) origin, e.g. https://jobtrigger.app (no path or query)';
+  }
+  if (!blank(env.UMAMI_URL) && !/^https?:\/\/\S+$/.test(env.UMAMI_URL.trim())) {
+    return 'UMAMI_URL must be an http(s) URL';
   }
   if (!env.CREDENTIALS_ENCRYPTION_KEY) return null; // Reported as missing.
   try {
@@ -53,4 +194,34 @@ function invalidConfig(env = process.env) {
   }
 }
 
-module.exports = { missingConfig, invalidConfig, corsOrigins, trustProxyHops };
+/**
+ * E3 / PE-20: crash reporting (GlitchTip through the Sentry SDK), or null
+ * when SENTRY_DSN is unset (off: tests and local development send nothing).
+ * `environment` is `production` or `development`; `release` is the
+ * package version, or SENTRY_RELEASE when the deploy sets one.
+ */
+function errorReportingConfig(env = process.env) {
+  if (blank(env.SENTRY_DSN)) return null;
+  const environment = blank(env.SENTRY_ENVIRONMENT)
+    ? env.NODE_ENV === 'production' ? 'production' : 'development'
+    : env.SENTRY_ENVIRONMENT.trim();
+  const release = blank(env.SENTRY_RELEASE)
+    ? `${require('../package.json').version}`
+    : env.SENTRY_RELEASE.trim();
+  return { dsn: env.SENTRY_DSN.trim(), environment, release };
+}
+
+module.exports = {
+  errorReportingConfig,
+  missingConfig,
+  invalidConfig,
+  corsOrigins,
+  trustProxyHops,
+  mailConfig,
+  analyticsConfig,
+  resetPasswordUrl,
+  siteUrl,
+  billingEnabled,
+  revenueCatConfig,
+  paddleConfig,
+};

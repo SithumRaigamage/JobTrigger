@@ -75,8 +75,48 @@ const refreshLimiter = authLimiter({
   keyGenerator: refreshKey,
 });
 
+/**
+ * US-AUTH-08: reset requests send email, so they're limited per IP and per
+ * address (the same key as AUD-55), counting every request: a 202 is
+ * returned whether or not the account exists.
+ */
+const passwordResetLimiter = authLimiter({
+  windowMs: 15 * MINUTE,
+  limit: fromEnv('PASSWORD_RESET_RATE_LIMIT', 5),
+});
+
+const passwordResetEmailLimiter = authLimiter({
+  windowMs: 60 * MINUTE,
+  limit: fromEnv('PASSWORD_RESET_EMAIL_RATE_LIMIT', 3),
+  keyGenerator: loginEmailKey,
+});
+
+/** Guessing a 256-bit token is hopeless, but cap the attempts anyway. */
+const passwordResetConfirmLimiter = authLimiter({
+  windowMs: 15 * MINUTE,
+  limit: fromEnv('PASSWORD_RESET_CONFIRM_RATE_LIMIT', 10),
+});
+
+/** P20-14: a re-sync calls RevenueCat; per user, not per IP. */
+const subscriptionRefreshLimiter = authLimiter({
+  windowMs: 10 * MINUTE,
+  limit: fromEnv('SUBSCRIPTION_REFRESH_RATE_LIMIT', 10),
+  keyGenerator: (req) => `user:${req.user?.id ?? ipKeyGenerator(req.ip)}`,
+});
+
+/** P20-16: generous; RevenueCat delivers from a few IPs in bursts. */
+const billingWebhookLimiter = authLimiter({
+  windowMs: MINUTE,
+  limit: fromEnv('BILLING_WEBHOOK_RATE_LIMIT', 120),
+});
+
 module.exports = {
   authLimiter,
+  billingWebhookLimiter,
+  subscriptionRefreshLimiter,
+  passwordResetConfirmLimiter,
+  passwordResetEmailLimiter,
+  passwordResetLimiter,
   loginEmailKey,
   loginEmailLimiter,
   loginLimiter,

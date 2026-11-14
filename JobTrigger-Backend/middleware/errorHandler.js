@@ -1,4 +1,5 @@
 const { logger } = require('../lib/logger');
+const errorReporting = require('../lib/errorReporting');
 
 /**
  * AUD-06: the one place an unexpected error becomes a response. Details go
@@ -47,6 +48,12 @@ function errorHandler(err, req, res, next) {
     error: err.name,
     message: err.message,
     stack: err.stack,
+  });
+  // E3: unexpected (5xx) errors only; every 4xx above returned already.
+  errorReporting.captureServerError(err, {
+    requestId: req.requestId,
+    method: req.method,
+    path: req.logPath ?? req.path,
   });
   res.status(500).json({
     message: 'Server error',

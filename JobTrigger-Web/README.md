@@ -34,6 +34,8 @@ Read and validated only in `src/server/config.ts`, on first use.
 | `JOBTRIGGER_BACKEND_URL` | For the portal | `http://127.0.0.1:5001` | `https://` in production, except loopback and container service names (`http://backend:5001`)                            |
 | `SESSION_SECRET`         | For the portal | 32+ random characters   | Encrypts the session cookie. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"` |
 | `SITE_URL`               | No             | `http://localhost:3000` | Canonical URL for link previews and the sitemap                                                                          |
+| `UMAMI_URL`              | No             | —                       | Self-hosted Umami for anonymous events (P20-77), e.g. `http://localhost:3004`; off when unset                              |
+| `UMAMI_WEBSITE_ID`       | No             | —                       | The "JobTrigger web" website id in Umami                                                                                 |
 
 Set them in your shell or your hosting provider's settings. Nothing
 secret is ever `NEXT_PUBLIC_*`.

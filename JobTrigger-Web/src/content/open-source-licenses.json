@@ -1,0 +1,242 @@
+{
+  "app": [
+    {
+      "name": "cookie_jar",
+      "version": "4.0.9",
+      "license": "MIT",
+      "url": "https://pub.dev/packages/cookie_jar/license"
+    },
+    {
+      "name": "cupertino_icons",
+      "version": "2.0.0",
+      "license": "MIT",
+      "url": "https://pub.dev/packages/cupertino_icons/license"
+    },
+    {
+      "name": "dio",
+      "version": "5.11.1",
+      "license": "MIT",
+      "url": "https://pub.dev/packages/dio/license"
+    },
+    {
+      "name": "dio_cookie_manager",
+      "version": "3.5.0",
+      "license": "MIT",
+      "url": "https://pub.dev/packages/dio_cookie_manager/license"
+    },
+    {
+      "name": "file_picker",
+      "version": "13.1.0",
+      "license": "MIT",
+      "url": "https://pub.dev/packages/file_picker/license"
+    },
+    {
+      "name": "flutter_local_notifications",
+      "version": "22.3.2",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/flutter_local_notifications/license"
+    },
+    {
+      "name": "flutter_riverpod",
+      "version": "3.3.1",
+      "license": "MIT",
+      "url": "https://pub.dev/packages/flutter_riverpod/license"
+    },
+    {
+      "name": "flutter_secure_storage",
+      "version": "11.0.0",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/flutter_secure_storage/license"
+    },
+    {
+      "name": "freezed_annotation",
+      "version": "3.1.0",
+      "license": "MIT",
+      "url": "https://pub.dev/packages/freezed_annotation/license"
+    },
+    {
+      "name": "go_router",
+      "version": "18.1.1",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/go_router/license"
+    },
+    {
+      "name": "home_widget",
+      "version": "0.10.0",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/home_widget/license"
+    },
+    {
+      "name": "json_annotation",
+      "version": "4.12.0",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/json_annotation/license"
+    },
+    {
+      "name": "local_auth",
+      "version": "3.0.2",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/local_auth/license"
+    },
+    {
+      "name": "package_info_plus",
+      "version": "10.2.2",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/package_info_plus/license"
+    },
+    {
+      "name": "path_provider",
+      "version": "2.1.6",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/path_provider/license"
+    },
+    {
+      "name": "riverpod_annotation",
+      "version": "4.0.2",
+      "license": "MIT",
+      "url": "https://pub.dev/packages/riverpod_annotation/license"
+    },
+    {
+      "name": "sentry_flutter",
+      "version": "10.4.0",
+      "license": "MIT",
+      "url": "https://pub.dev/packages/sentry_flutter/license"
+    },
+    {
+      "name": "share_plus",
+      "version": "13.3.1",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/share_plus/license"
+    },
+    {
+      "name": "shared_preferences",
+      "version": "2.5.6",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/shared_preferences/license"
+    },
+    {
+      "name": "simple_icons",
+      "version": "16.23.0",
+      "license": "CC0-1.0",
+      "url": "https://pub.dev/packages/simple_icons/license"
+    },
+    {
+      "name": "url_launcher",
+      "version": "6.3.2",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/url_launcher/license"
+    },
+    {
+      "name": "workmanager",
+      "version": "0.10.10",
+      "license": "MIT",
+      "url": "https://pub.dev/packages/workmanager/license"
+    }
+  ],
+  "website": [
+    {
+      "name": "@sentry/nextjs",
+      "version": "11.12.0",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/@sentry/nextjs"
+    },
+    {
+      "name": "iron-session",
+      "version": "9.0.1",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/iron-session"
+    },
+    {
+      "name": "next",
+      "version": "16.4.3",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/next"
+    },
+    {
+      "name": "react",
+      "version": "19.3.0",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/react"
+    },
+    {
+      "name": "react-dom",
+      "version": "19.3.0",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/react-dom"
+    },
+    {
+      "name": "server-only",
+      "version": "0.0.1",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/server-only"
+    },
+    {
+      "name": "zod",
+      "version": "4.6.7",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/zod"
+    }
+  ],
+  "backend": [
+    {
+      "name": "@sentry/node",
+      "version": "11.12.0",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/@sentry/node"
+    },
+    {
+      "name": "bcrypt",
+      "version": "6.0.0",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/bcrypt"
+    },
+    {
+      "name": "cors",
+      "version": "2.8.6",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/cors"
+    },
+    {
+      "name": "dotenv",
+      "version": "18.0.9",
+      "license": "BSD-2-Clause",
+      "url": "https://www.npmjs.com/package/dotenv"
+    },
+    {
+      "name": "express",
+      "version": "5.3.0",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/express"
+    },
+    {
+      "name": "express-rate-limit",
+      "version": "8.7.2",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/express-rate-limit"
+    },
+    {
+      "name": "helmet",
+      "version": "8.3.0",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/helmet"
+    },
+    {
+      "name": "jsonwebtoken",
+      "version": "9.0.3",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/jsonwebtoken"
+    },
+    {
+      "name": "mongoose",
+      "version": "9.11.4",
+      "license": "MIT",
+      "url": "https://www.npmjs.com/package/mongoose"
+    },
+    {
+      "name": "nodemailer",
+      "version": "10.5.0",
+      "license": "MIT-0",
+      "url": "https://www.npmjs.com/package/nodemailer"
+    }
+  ]
+}

@@ -21,6 +21,7 @@ import '../../../data/credentials/github_credentials_notifier.dart';
 import '../tool_selection/active_tool_notifier.dart';
 import '../tool_selection/ci_tool.dart';
 import '../app_lock/app_lock_settings_section.dart';
+import 'crash_reports_settings_section.dart';
 import 'account_dialogs.dart';
 
 /// Ported from `ProfileView.swift`, laid out to the P14 design
@@ -123,6 +124,8 @@ class ProfileScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               const AppLockSettingsSection(),
+              const SizedBox(height: 16),
+              const CrashReportsSettingsSection(),
               const SizedBox(height: 16),
               const GroupHeader(title: 'Account'),
               GroupedCard(

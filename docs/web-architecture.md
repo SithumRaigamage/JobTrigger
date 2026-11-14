@@ -52,6 +52,7 @@ because the app needs them. So:
 | End-to-end | Playwright | Against a fake backend, never a real one |
 | Lint / format | ESLint (`eslint-config-next`), Prettier + `prettier-plugin-tailwindcss` | |
 | Runtime | Node 24, npm | Same as the backend; pinned in `.nvmrc` and `engines` |
+| Crash reporting | `@sentry/nextjs` → self-hosted GlitchTip | E3: errors only, scrubbed in `beforeSend`; see `docs/error-reporting.md` |
 | Hosting | Vercel first, Docker (`output: "standalone"`) later | P15-22, P15-23 |
 
 No second HTTP client (use the built-in `fetch`), no client-side data
@@ -80,6 +81,8 @@ JobTrigger-Web/
     proxy.ts               Per-request CSP nonce; portal: no-store, noindex, session upkeep
     session-upkeep.ts      Token renewal + idle timeout for the proxy
     security-headers.ts    Header builders shared with next.config.ts
+    error-reporting/       Crash reporting (E3): scrubber, config, server init, offline outbox
+    instrumentation*.ts    Next.js hooks that start crash reporting (server / browser)
   tests/e2e/               Playwright specs + fake backend
 ```
 
@@ -263,6 +266,7 @@ fails at startup if anything is missing. Nothing secret is ever
 | `JOBTRIGGER_BACKEND_URL` | Backend base URL (`http://127.0.0.1:5001` locally); in production `https://`, except loopback and single-label container service names such as `http://backend:5001` (P15-23) |
 | `SESSION_SECRET` | `iron-session` encryption key, 32+ characters |
 | `SITE_URL` | Canonical URL for link previews and the sitemap (US-WEB-07); defaults to `http://localhost:3000` |
+| `UMAMI_URL`, `UMAMI_WEBSITE_ID` | Optional (P20-77). Anonymous events from server actions to the self-hosted Umami (`server/analytics.ts`, `getAnalyticsConfig()`); both unset or invalid means analytics is off, never an error. No tracker script, so the CSP is unchanged |
 
 All three are read at runtime on the server. `SITE_URL` alone is also available through `getSiteUrl()`, which metadata, `robots.txt` and the sitemap use, so marketing pages work on a deploy without the portal's secrets. `SITE_URL` is deliberately
 not `NEXT_PUBLIC_*`: those are inlined at build time, which would tie one

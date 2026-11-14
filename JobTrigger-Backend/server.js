@@ -4,7 +4,14 @@ const cors = require('cors');
 const helmet = require('helmet');
 require('dotenv').config();
 
-const { corsOrigins, invalidConfig, missingConfig, trustProxyHops } = require('./config/env');
+const {
+  corsOrigins,
+  errorReportingConfig,
+  invalidConfig,
+  missingConfig,
+  trustProxyHops,
+} = require('./config/env');
+const errorReporting = require('./lib/errorReporting');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 const requestId = require('./middleware/requestId');
 const requestLogger = require('./middleware/requestLogger');
@@ -17,6 +24,9 @@ const CREDENTIAL_TARGETS = require('./models/credentialTargets');
 // `$`-operators as literal values, so `{"$gt": ""}` can't match every row
 // even if a handler forgets a type check.
 mongoose.set('sanitizeFilter', true);
+
+// E3 / PE-20: before anything that can fail. A no-op without SENTRY_DSN.
+errorReporting.init(errorReportingConfig());
 
 const app = express();
 
@@ -40,6 +50,9 @@ app.use(requestLogger);
 app.use(helmet());
 const origins = corsOrigins();
 app.use(cors({ origin: origins.length > 0 ? origins : false }));
+// Paddle signs the exact bytes it sends, so its webhook gets the raw body.
+// Registered first: express.json() then leaves that request alone.
+app.use('/api/billing/paddle/webhook', express.raw({ type: '*/*', limit: '1mb' }));
 app.use(express.json());
 
 // Routes
@@ -48,6 +61,8 @@ app.use('/api/credentials', require('./routes/credentialRoutes'));
 app.use('/api/github-credentials', require('./routes/githubCredentialRoutes'));
 app.use('/api/sonarqube-credentials', require('./routes/sonarqubeCredentialRoutes'));
 app.use('/api/appinfo', require('./routes/appInfoRoutes'));
+app.use('/api/subscription', require('./routes/subscriptionRoutes'));
+app.use('/api/billing', require('./routes/billingRoutes'));
 
 app.get('/', (req, res) => {
   res.json({ message: 'JobTrigger Backend API is running' });

@@ -10,6 +10,25 @@ typed config object by `core/config/app_config.dart` (Phase 1).
 | `prod.json` | Production | `BACKEND_BASE_URL` is a placeholder (`https://api.jobtrigger.app`, matching the example in `docs/api-reference.md`) — update when the backend is actually deployed. |
 | `device.json` | A physical iPhone (machine-local) | **Git-ignored, not committed.** Written by `scripts/run-on-iphone.sh` with this Mac's Wi-Fi IP (`http://<IP>:5001`), since `127.0.0.1` on a phone is the phone. See [`IPHONE.md`](../../IPHONE.md). |
 
+## `WEBSITE_BASE_URL`
+
+The JobTrigger website. The login screen's "Forgot password? Reset it on
+the web" opens `<WEBSITE_BASE_URL>/forgot-password` in the browser: a
+password is reset on the website only, never in the app (US-AUTH-08).
+`dev.json` uses `http://localhost:3000` (`npm run dev` in `JobTrigger-Web/`);
+`scripts/run-on-iphone.sh` writes this Mac's Wi-Fi address instead. A
+non-dev build without it hides the link.
+
+## `SENTRY_DSN`
+
+Where crash reports go (E3): a GlitchTip DSN for the `jobtrigger-app`
+project. **Not committed** in `dev.json`, `staging.json` or `prod.json`.
+Leave it out and reporting is off (tests, CI, a plain `flutter run`). Give it
+with a second define file, e.g. a git-ignored `config/sentry.json`
+(`{"SENTRY_DSN": "…"}`) added as
+`--dart-define-from-file=config/sentry.json`, or for the iPhone run
+`SENTRY_DSN_APP=… scripts/run-on-iphone.sh`. See `docs/error-reporting.md`.
+
 ## Usage
 
 ```bash

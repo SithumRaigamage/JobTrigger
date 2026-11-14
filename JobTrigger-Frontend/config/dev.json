@@ -1,4 +1,5 @@
 {
   "ENVIRONMENT": "dev",
-  "BACKEND_BASE_URL": "http://127.0.0.1:5001"
+  "BACKEND_BASE_URL": "http://127.0.0.1:5001",
+  "WEBSITE_BASE_URL": "http://localhost:3000"
 }

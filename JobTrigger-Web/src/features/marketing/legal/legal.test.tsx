@@ -3,16 +3,29 @@ import { describe, expect, it } from "vitest";
 
 import { SupportView } from "../support/support-view";
 
+import { LicensesView } from "./licenses-view";
 import { PrivacyView } from "./privacy-view";
 import { TermsView } from "./terms-view";
 
 describe("PrivacyView", () => {
+  it("describes crash reporting and how to turn it off (E3)", () => {
+    render(<PrivacyView />);
+
+    expect(screen.getByRole("heading", { level: 2, name: "Crash reports" })).toBeInTheDocument();
+    expect(screen.getByText(/Send crash reports/)).toBeInTheDocument();
+  });
+
   it("states what is stored and that nothing is tracked", () => {
     render(<PrivacyView />);
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Privacy policy");
     expect(screen.getByText(/hashed password and your encrypted server details/)).toBeVisible();
-    expect(screen.getByText("No analytics, crash reports or ad identifiers today.")).toBeVisible();
+    // Changed on purpose (P20-79): anonymous usage events now exist, sent
+    // from the website's server only; the app sends none.
+    expect(
+      screen.getByText("Anonymous usage counts from the website only. No ad identifiers."),
+    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Anonymous usage data" })).toBeVisible();
   });
 
   it("marks itself as the current legal page and keeps placeholders as text", () => {
@@ -40,6 +53,29 @@ describe("TermsView", () => {
     expect(within(nav).getByRole("link", { name: "Terms of use" })).toHaveAttribute(
       "href",
       "/terms",
+    );
+  });
+});
+
+describe("LicensesView", () => {
+  it("lists every project's packages with a link to each licence", () => {
+    render(<LicensesView />);
+
+    const nav = screen.getByRole("navigation", { name: "Legal pages" });
+    expect(within(nav).getByRole("link", { name: "Open-source licenses" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    for (const name of ["Mobile app", "Website", "Backend"]) {
+      expect(screen.getByRole("heading", { level: 2, name })).toBeVisible();
+    }
+    expect(screen.getByRole("link", { name: "next" })).toHaveAttribute(
+      "href",
+      "https://www.npmjs.com/package/next",
+    );
+    expect(screen.getByRole("link", { name: "dio" })).toHaveAttribute(
+      "href",
+      "https://pub.dev/packages/dio/license",
     );
   });
 });

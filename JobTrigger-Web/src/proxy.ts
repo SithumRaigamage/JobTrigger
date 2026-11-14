@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { reportingOrigin } from "./error-reporting/config";
 import {
   contentSecurityPolicy,
   createNonce,
@@ -39,7 +40,11 @@ export async function proxy(request: NextRequest) {
   }
 
   const nonce = createNonce();
-  const csp = contentSecurityPolicy(nonce, process.env.NODE_ENV === "development");
+  const csp = contentSecurityPolicy(
+    nonce,
+    process.env.NODE_ENV === "development",
+    reportingOrigin(process.env.NEXT_PUBLIC_SENTRY_DSN),
+  );
 
   // Next.js reads the nonce from the request's CSP header while rendering
   // and stamps it on its own scripts and styles.

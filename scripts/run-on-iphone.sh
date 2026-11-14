@@ -42,13 +42,25 @@ backend="http://$host:$port"
 
 # 2. The build config. `release` builds refuse http (AUD-43), so this is
 # only for debug and profile.
+# US-AUTH-08: "Forgot password?" opens the website (JobTrigger-Web,
+# `npm run dev`) on this Mac. The phone reaches it at this Mac's address.
+website="http://$host:${WEBSITE_PORT:-3000}"
+# E3: crash reports go to GlitchTip only when you give this run a DSN, e.g.
+#   SENTRY_DSN_APP=http://<key>@<mac-ip>:3005/<project> scripts/run-on-iphone.sh
+# (never commit a DSN; device.json is git-ignored). Without it, reporting is off.
+sentry_line=""
+if [ -n "${SENTRY_DSN_APP:-}" ]; then
+  sentry_line=$',\n  "SENTRY_DSN": "'"$SENTRY_DSN_APP"'"'
+fi
 cat >"$CONFIG" <<EOF
 {
   "ENVIRONMENT": "dev",
-  "BACKEND_BASE_URL": "$backend"
+  "BACKEND_BASE_URL": "$backend",
+  "WEBSITE_BASE_URL": "$website"$sentry_line
 }
 EOF
 echo "✓ config/device.json → $backend"
+echo "✓ website (password reset) → $website"
 echo "  In the app, a Jenkins server on this Mac is http://$host:<its port>, never localhost."
 
 [ "${1:-}" = "--config-only" ] && exit 0

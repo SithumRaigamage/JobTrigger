@@ -81,6 +81,7 @@ export function SiteFooter() {
               { href: routes.security, label: "Security" },
               { href: routes.privacy, label: "Privacy policy" },
               { href: routes.terms, label: "Terms of use" },
+              { href: routes.licenses, label: "Open-source licenses" },
             ]}
           />
           <LinkGroup

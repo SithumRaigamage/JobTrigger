@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../common_widgets/app_logo.dart';
+import '../../common_widgets/external_link.dart';
 import '../../common_widgets/inline_alert.dart';
 import '../../common_widgets/labeled_field.dart';
 import '../../common_widgets/loading_overlay.dart';
@@ -77,6 +79,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       AsyncError(:final error) => describeError(error),
       _ => null,
     };
+    // US-AUTH-08: a forgotten password is reset on the website only.
+    final forgotPasswordUri = ref.watch(appConfigProvider).forgotPasswordUri;
 
     Widget form({required bool showLogo}) => PinnedFooterLayout(
       body: _LoginForm(
@@ -89,6 +93,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         onRememberMeChanged: (value) => setState(() => _rememberMe = value),
         error: error,
         onSubmit: _submit,
+        onForgotPassword: forgotPasswordUri == null
+            ? null
+            : () => unawaited(openExternalLink(ref, forgotPasswordUri)),
         showLogo: showLogo,
       ),
       footer: _LoginActions(
@@ -273,6 +280,7 @@ class _LoginForm extends StatelessWidget {
     required this.onRememberMeChanged,
     required this.error,
     required this.onSubmit,
+    required this.onForgotPassword,
     required this.showLogo,
   });
 
@@ -286,6 +294,10 @@ class _LoginForm extends StatelessWidget {
   /// The last attempt's failure, already worded for the user.
   final String? error;
   final VoidCallback onSubmit;
+
+  /// Opens the website's reset page in the browser (US-AUTH-08); null
+  /// hides the link (no website configured for this build).
+  final VoidCallback? onForgotPassword;
   final bool showLogo;
 
   @override
@@ -357,6 +369,19 @@ class _LoginForm extends StatelessWidget {
           value: rememberMe,
           onChanged: onRememberMeChanged,
         ),
+        if (onForgotPassword != null)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              key: const Key('login_forgot_password'),
+              onPressed: onForgotPassword,
+              style: TextButton.styleFrom(padding: EdgeInsets.zero),
+              // The icon says it leaves the app; the label is what a screen
+              // reader announces, so it says so too.
+              icon: const Icon(Icons.open_in_new_rounded, size: 16),
+              label: const Text('Forgot password? Reset it on the web'),
+            ),
+          ),
       ],
     );
   }

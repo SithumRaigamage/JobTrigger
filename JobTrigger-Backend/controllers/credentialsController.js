@@ -2,7 +2,7 @@ const JenkinsCredential = require('../models/JenkinsCredential');
 const { makeCredentialController } = require('./credentialControllerFactory');
 
 // The user's Jenkins servers (AUD-31: shared implementation).
-const controller = makeCredentialController(JenkinsCredential, ['serverName', 'jenkinsURL', 'username', 'password', 'paramToken']);
+const controller = makeCredentialController(JenkinsCredential, ['serverName', 'jenkinsURL', 'username', 'password', 'paramToken'], { tool: 'jenkins' });
 
 module.exports = {
   getCredentials: controller.list,

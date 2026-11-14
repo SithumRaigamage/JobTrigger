@@ -10,6 +10,7 @@ export const routes = {
   support: "/support",
   privacy: "/privacy",
   terms: "/terms",
+  licenses: "/licenses",
   signIn: "/sign-in",
   addServer: "/servers/new",
   account: "/account",

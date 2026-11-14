@@ -10,8 +10,11 @@ import { routes } from "../site-links";
 import { LegalSection, LegalShell } from "./legal-shell";
 
 // US-WEB-06: must match what the backend actually stores (User,
-// JenkinsCredential, GitHubCredential, SonarQubeCredential models) and that
-// the app has no analytics or crash reporting today (backlog P6-08).
+// JenkinsCredential, GitHubCredential, SonarQubeCredential,
+// PasswordResetToken models), the anonymous server-side usage events of
+// P20-75/77/78 (self-hosted Umami; website and backend only, the app sends
+// none), and that there is still no crash reporting or ad identifier
+// (backlog P6-08).
 const glance = [
   {
     label: "We store",
@@ -24,9 +27,9 @@ const glance = [
     text: "Your builds, logs or code. The app talks to your CI directly.",
   },
   {
-    label: "No tracking",
+    label: "No ad tracking",
     tone: "bg-unstable-bg text-unstable-fg",
-    text: "No analytics, crash reports or ad identifiers today.",
+    text: "Anonymous usage counts from the website only. No ad identifiers.",
   },
 ];
 
@@ -34,6 +37,9 @@ const toc = [
   { id: "summary", label: "At a glance" },
   { id: "collect", label: "What we store" },
   { id: "use", label: "How it's used" },
+  { id: "usage", label: "Anonymous usage data" },
+  { id: "crash", label: "Crash reports" },
+  { id: "email", label: "Email" },
   { id: "delete", label: "Deleting your data" },
   { id: "contact", label: "Contact" },
 ];
@@ -80,6 +86,10 @@ export function PrivacyView() {
           <li>
             <strong className="text-fg">Which server is active</strong> for each tool.
           </li>
+          <li>
+            <strong className="text-fg">A pending password reset</strong>, if you asked for one:
+            only a fingerprint of the link, deleted once used or after 15 minutes.
+          </li>
         </ul>
       </LegalSection>
 
@@ -87,6 +97,38 @@ export function PrivacyView() {
         <p>
           Only to sign you in and hand your saved servers to your own phone. Build notifications are
           created on your phone, not sent by us. We don&apos;t sell or share your data.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="usage" title="Anonymous usage data">
+        <p>
+          This website and our server count a few anonymous events — for example that an account was
+          created, a server was added, or a password reset was asked for — to decide what to build
+          next. They never include your email, account, server addresses, repository names or
+          tokens, and they aren&apos;t linked to your account. No tracking script or cookie is used
+          for this: the counts are sent from our server to an analytics service we run ourselves,
+          not to an advertising or analytics company. The mobile app sends no usage data.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="crash" title="Crash reports">
+        <p>
+          When the app or this website hits an unexpected error, it can send a crash report so we
+          can fix the problem. A report holds the error, where in the code it happened, the app or
+          site version and the type of phone or browser. It never holds passwords, tokens, what you
+          typed, request contents or the address of your CI server: those are removed before a
+          report leaves your device, and a report that can&apos;t be cleaned is not sent. Reports go
+          to a service we run ourselves, not to an advertising or analytics company, and aren&apos;t
+          linked to your email. In the app, turn this off under Profile → Privacy → Send crash
+          reports; turning it off also deletes reports that were waiting to be sent.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="email" title="Email">
+        <p>
+          We email you only about your account, such as a password reset link you asked for. A
+          password is reset on this website: the link opens it, works once and expires after 15
+          minutes. We don&apos;t send marketing email.
         </p>
       </LegalSection>
 

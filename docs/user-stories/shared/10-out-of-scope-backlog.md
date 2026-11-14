@@ -28,6 +28,13 @@ genuinely separate integration surface.
 this item for actual implementation until separately promoted the way GH
 and SQ were.
 
+**Further tools proposed 2026-11-14** (not part of the original
+`BACKLOG-01` list, so each needs scope approval under `CLAUDE.md` §7
+before promotion): Azure DevOps ([19-azure-devops.md](../azure-devops/19-azure-devops.md)),
+Argo CD ([20-argocd.md](../argocd/20-argocd.md)),
+Bitrise ([21-bitrise.md](../bitrise/21-bitrise.md)),
+Codemagic ([22-codemagic.md](../codemagic/22-codemagic.md)).
+
 ### BACKLOG-02 — Push notifications for build completion
 **Partially promoted 2026-09-29:** on-device *local* notifications (app-alive polling + best-effort background checks) are `US-JX-10` in `jenkins/16-jenkins-extended.md`. True server push stays deferred here for the reason below.
 **Reason deferred:** requires a push infrastructure decision (APNs/FCM,

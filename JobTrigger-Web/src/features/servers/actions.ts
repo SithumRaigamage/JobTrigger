@@ -7,6 +7,7 @@ import { z } from "zod";
 import { failureMessage } from "@/domain/app-failure";
 import type { Credential, Tool } from "@/domain/credentials";
 import type { Result } from "@/domain/result";
+import { track } from "@/server/analytics";
 import { authed } from "@/server/authed";
 import {
   createGitHub,
@@ -82,6 +83,7 @@ export async function addServerAction(
     }
   });
   if (!result.ok) return { error: failureMessage(result.failure) };
+  void track("server_added", { tool: parsed.tool, source: "web" }); // P20-77
 
   revalidatePath("/servers");
   redirect(`/servers/saved?tool=${parsed.tool}&id=${encodeURIComponent(result.value.id)}`);

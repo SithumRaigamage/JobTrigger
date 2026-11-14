@@ -9,7 +9,14 @@
 type Header = { key: string; value: string };
 
 /** Paths whose responses must never be cached (US-WEB-11: `no-store`). */
-export const NO_STORE_PATH_PREFIXES = ["/sign-in", "/sign-up", "/servers", "/account"] as const;
+export const NO_STORE_PATH_PREFIXES = [
+  "/sign-in",
+  "/sign-up",
+  "/forgot-password",
+  "/reset-password",
+  "/servers",
+  "/account",
+] as const;
 
 export function isNoStorePath(pathname: string): boolean {
   return NO_STORE_PATH_PREFIXES.some(
@@ -36,14 +43,19 @@ export function createNonce(): string {
  * style runs unless Next.js rendered it for this request. 'unsafe-eval'
  * only in `next dev`, where React needs it for server error stacks.
  */
-export function contentSecurityPolicy(nonce: string, isDev: boolean): string {
+export function contentSecurityPolicy(
+  nonce: string,
+  isDev: boolean,
+  /** E3: where crash reports are sent (the DSN's origin), if reporting is on. */
+  reportingOrigin: string | null = null,
+): string {
   const directives = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
     `style-src 'self' 'nonce-${nonce}'`,
     "img-src 'self' data: blob:",
     "font-src 'self'",
-    "connect-src 'self'",
+    `connect-src 'self'${reportingOrigin ? ` ${reportingOrigin}` : ""}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
