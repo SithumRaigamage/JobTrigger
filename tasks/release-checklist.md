@@ -59,3 +59,37 @@ only tracks what's left and why.
       and the "Send crash reports" switch clearing the cache have not been run on a phone.
       Also owed: the App Store privacy answers (Data Types: Diagnostics → Crash Data,
       not linked, not tracking) and Google Play's Data safety form (crash logs, optional).
+
+## App Review notes: how to open the demo (PE-18)
+
+Paste this into App Store Connect → App Review Information → Notes (and the
+Play Console equivalent). The review account's password goes only into the
+store's own fields, never into this repository.
+
+> JobTrigger controls the reviewer's own CI servers, so a reviewer without
+> one would see an empty app. To see everything without an account or a
+> server: on the sign-in screen tap **Try the demo**. The app then runs on
+> sample data built into it and sends no network requests.
+>
+> - Jenkins: browse the folders, open `demo-app` → `main`, and tap **Build
+>   now**. The run goes through its stages and the log streams to SUCCESS in
+>   about 20 seconds. Open `demo-app` → `feature-login` for a failed build
+>   with its log and test report.
+> - GitHub Actions and SonarQube: choose them under **Profile → CI tool**.
+>   SonarQube has a project that fails its quality gate.
+> - Other actions (cancel, replay, edit credentials, account changes) show
+>   "Not available in demo".
+> - **Exit demo** in the banner at the top returns to sign-in.
+>
+> To check the real sign-in flow, use the review account below.
+> Email: `<review account email>`; password: in the Password field of this
+> form.
+
+- [ ] **Owner:** create the review account on the production backend (a
+      normal account, with no saved servers) and enter its email and
+      password in App Store Connect. Needed before store submission.
+- [ ] **Owner:** add one line to each store description: "Try the in-app demo
+      without an account or a server." (PE-17).
+- [ ] **On the iPhone** (unverified until run): sign-in → **Try the demo** →
+      the walkthrough above, then **Exit demo**. See `phase-emergency.md` E2
+      "Verify".
