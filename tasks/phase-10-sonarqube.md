@@ -271,3 +271,50 @@ would be unrelated scope creep for this phase.
       task above manually verified against a real SonarCloud organization
       and a real self-hosted SonarQube Server instance (both flavors, per
       the epic's own scope note) before this phase is marked done.
+
+## Planned batches (documented 2026-11-09, none started)
+
+Listed for the owner on 2026-11-08 and written up as user stories on
+2026-11-09 under "Planned work" in
+`docs/user-stories/sonarqube/14-sonarqube.md`. One task per batch. **None
+starts until the owner picks it and approves its plan** (`CLAUDE.md` §9).
+Suggested order: P10-18, then P10-19, then as picked. Every batch ends with
+the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
+
+- [ ] P10-18 **Batch 1: understand why a gate fails, and what is mine.**
+      `US-SQ-ISSUES-01` (my issues across projects), `US-SQ-CE-01`
+      (analysis running, queued or failed), `US-SQ-QUALITY-07` (all gate
+      conditions), `US-SQ-QUALITY-08` (new code vs overall; **check how the
+      owner's server reports new-code values first**),
+      `US-SQ-QUALITY-09` (compare with the previous analysis). Read-only.
+- [ ] P10-19 **Batch 2: alerts.** `US-SQ-WATCH-01` (notify when a watched
+      project fails its gate). Local notifications and a best-effort
+      background check, reusing the Jenkins watch; no new dependency. Only
+      verifiable on a real device with a real analysis.
+- [ ] P10-20 **Batch 3: deeper project views.** `US-SQ-QUALITY-10` (branch
+      and pull request picker; **edition-dependent, hidden when the server
+      lists only the main branch**), `US-SQ-HOTSPOT-01`,
+      `US-SQ-QUALITY-11` (trends; **needs a decision on the chart: custom
+      painter or a flagged dependency**), `US-SQ-QUALITY-12`,
+      `US-SQ-QUALITY-13`, `US-SQ-ISSUES-02`. Read-only; any can be taken
+      alone.
+- [ ] P10-21 **Batch 4: across projects and the server.**
+      `US-SQ-ISSUES-03` (search issues), `US-SQ-SERVER-01` (version and
+      status), `US-SQ-OVERVIEW-02` (failing-projects trend, from the app's
+      own device-side snapshots). Read-only.
+- [ ] P10-22 **Batch 5: shortcuts and offline.** `US-SQ-PIN-01` (local pins),
+      `US-SQ-WIDGET-01` (home-screen widget; native work on both platforms,
+      device-only check), `US-SQ-OFFLINE-01`, `US-SQ-LINK-02` (deep links),
+      `US-SQ-ISSUES-04` (copy and share). Reuses plumbing from Phase 11.
+- [ ] P10-23 **Batch 6: connecting the tools.** `US-SQ-XTOOL-01..03`
+      (Jenkins build or GitHub run beside the SonarQube gate; scan from
+      Jenkins). **Edits Jenkins and GitHub screens**, so it needs the
+      owner's explicit go-ahead and the diff shown first; Jenkins is frozen
+      except for bug fixes. The link between a job or repo and a project is
+      stored on the device only; credentials are never shared between tools.
+- [ ] P10-24 **Batch 7: changing data on the server.** `US-SQ-WRITE-01..04`
+      (assign, change status, comment, review a hotspot). **The first writes
+      in this epic**, so it is last and needs its own approval; needs a token
+      whose user may modify issues; every action confirms and nothing changes
+      on screen before the server answers.
+

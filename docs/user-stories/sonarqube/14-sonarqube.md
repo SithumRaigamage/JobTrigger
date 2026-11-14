@@ -42,6 +42,9 @@ every sub-epic below:
 - **Read-only, full stop.** Every story below is a `GET`. This is the
   first CI-tool epic in this app with zero mutating (`POST`/write) API
   calls.
+  *(Note, 2026-11-09: true of everything built so far. Batch 7 under
+  "Planned work" proposes this epic's first writes, with its own explicit
+  approval; it is not started.)*
 
 **Auth**: SonarQube's Web API uses `Authorization: Bearer <token>` — the
 same header shape as GitHub, but a different *kind* of token (a SonarQube
@@ -530,4 +533,630 @@ So that I can see more than the app shows
   Then a project opens `{base}/dashboard?id=KEY` and an issue opens
   `{base}/project/issues?id=KEY&issues=ISSUE&open=ISSUE`, in the browser,
   with a server path (`/sonar`) kept and keys encoded
+
+---
+
+## Planned work — documented 2026-11-09
+
+Everything below is **proposed and not started**. It was listed for the owner
+on 2026-11-08, after the first SonarQube build-out (`P10-07`…`P10-17`) was
+tested on the iPhone, and is recorded here on 2026-11-09 so it is not lost. Each
+batch becomes a task in `tasks/phase-10-sonarqube.md` (`P10-18`…`P10-24`).
+Nothing starts until the owner picks a batch and approves its plan
+(`CLAUDE.md` §9).
+
+**Verification status, stated once.** The endpoints named in these stories
+come from SonarQube's Web API documentation. Only the calls already built
+(`P10-07`…`P10-17`) have run against a real server, and only the owner's
+local Community Build 26.1. Anything here that depends on a response shape
+says so, and the plan for its batch checks it against the owner's server
+first. The owner has said they test on a physical iPhone; see `CLAUDE.md` §10.
+
+| Batch | Theme | Stories | Kind |
+|---|---|---|---|
+| 1 | Understand why a gate fails, and what is mine | US-SQ-ISSUES-01, US-SQ-CE-01, US-SQ-QUALITY-07, US-SQ-QUALITY-08, US-SQ-QUALITY-09 | read-only |
+| 2 | Alerts | US-SQ-WATCH-01 | local notifications |
+| 3 | Deeper project views | US-SQ-QUALITY-10, US-SQ-HOTSPOT-01, US-SQ-QUALITY-11, US-SQ-QUALITY-12, US-SQ-QUALITY-13, US-SQ-ISSUES-02 | read-only |
+| 4 | Across projects and the server | US-SQ-ISSUES-03, US-SQ-SERVER-01, US-SQ-OVERVIEW-02 | read-only |
+| 5 | Shortcuts and offline | US-SQ-PIN-01, US-SQ-WIDGET-01, US-SQ-OFFLINE-01, US-SQ-LINK-02, US-SQ-ISSUES-04 | device-side |
+| 6 | Connecting the tools | US-SQ-XTOOL-01, US-SQ-XTOOL-02, US-SQ-XTOOL-03 | cross-tool |
+| 7 | Changing data on the server | US-SQ-WRITE-01, US-SQ-WRITE-02, US-SQ-WRITE-03, US-SQ-WRITE-04 | writes |
+
+**Suggested order** (the 2026-11-08 recommendation): batch 1, then batch 2, then the rest as the owner picks. Batch 1 comes first because the quality gate is judged on **new code**, which the app does not show yet. Batch 6 edits Jenkins and GitHub screens and batch 7 writes to the server, so each needs a separate go-ahead.
+
+## Batch 1 — Understand why a gate fails, and what is mine (2026-11-09)
+
+First in line (recommended to the owner on 2026-11-08). All five are `GET`s over data the app already reaches, and the quality gate is judged on **new code**, which the app does not show yet.
+
+### US-SQ-ISSUES-01 — My issues across every project
+
+**Batch:** 1 · **Priority:** Should · **Effort:** M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-03, US-SQ-OVERVIEW-01
+
+As a user
+I want to see the open issues assigned to me, across all projects
+So that I know what is mine to fix without opening each project
+
+**Acceptance Criteria**
+- Scenario: Assigned to me
+  Given I am signed in with a user token
+  Then `GET api/issues/search?assignees=__me__&resolved=false` is called with no `componentKeys`, and the issues render in the same rows as the project issues list, each with its project name
+- Scenario: Filter and page
+  Given the list is large
+  Then the type and severity filters re-query the server and "Load more" pages it, as in `US-SQ-QUALITY-03`
+- Scenario: Nothing assigned
+  Then "Nothing is assigned to you" is shown, not an empty list
+
+**Notes**
+- Lives as a section of the Overview tab or a screen reached from it; the choice is made in the batch's plan.
+- SonarQube stops paging at 10,000 results; the existing cap and note apply.
+- `__me__` as an assignee value is from the Web API docs; not yet checked against the owner's server.
+
+### US-SQ-CE-01 — Analysis status: running, queued or failed
+
+**Batch:** 1 · **Priority:** Should · **Effort:** S–M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-04
+
+As a user
+I want to see when a project is being analysed, is waiting, or its last analysis failed
+So that I don't mistake a stale result for a current one
+
+**Acceptance Criteria**
+- Scenario: In progress
+  Given a scan is running or queued
+  Then `GET api/ce/component?component=KEY` shows it, and the project page and its card say "Analysing…" or "Queued"
+- Scenario: Last analysis failed
+  Given the newest background task failed
+  Then the page says so, with the time, so the gate shown is understood to be from an older analysis
+- Scenario: Quiet
+  Given nothing is pending and the last task succeeded
+  Then nothing extra is drawn
+
+**Notes**
+- No polling: checked when the page opens and on pull-to-refresh, as for the rest of the epic.
+- Requires Browse permission on the project.
+
+### US-SQ-QUALITY-07 — All gate conditions, passing ones too
+
+**Batch:** 1 · **Priority:** Should · **Effort:** S
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-01
+
+As a user
+I want to see every condition of the quality gate with its threshold and my value
+So that I know how close a passing project is to failing
+
+**Acceptance Criteria**
+- Scenario: List
+  Given the gate result has conditions
+  Then each is listed with its metric, threshold, actual value and an OK or failed mark, failed ones first
+- Scenario: No conditions
+  Then "This gate has no conditions" is shown
+
+**Notes**
+- The conditions already arrive in `api/qualitygates/project_status`; this only stops hiding the passing ones.
+- Today only failing conditions are listed, under "What failed"; that block stays.
+
+### US-SQ-QUALITY-08 — New code versus overall code
+
+**Batch:** 1 · **Priority:** Should · **Effort:** M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-02
+
+As a user
+I want to switch the measures between new code and overall code
+So that I see the numbers the quality gate is actually judged on
+
+**Acceptance Criteria**
+- Scenario: Switch
+  Given a project page
+  Then a switch shows Overall (today's view) or New code (`new_bugs`, `new_vulnerabilities`, `new_code_smells`, `new_coverage`, `new_duplicated_lines_density`, `new_lines`)
+- Scenario: No new-code period
+  Given the project has no new-code period or no new code
+  Then the switch says so instead of showing zeros
+
+**Notes**
+- How `api/measures/component` reports new-code values (a `period` object) varies by SonarQube version: **to be checked against the owner's server before the plan is final.**
+- Measures stay labelled; a zero is never invented for a metric the server did not compute (see `US-SQ-QUALITY-02`).
+
+### US-SQ-QUALITY-09 — Compare with the previous analysis
+
+**Batch:** 1 · **Priority:** Could · **Effort:** M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-04
+
+As a user
+I want to see what changed since the previous analysis
+So that I notice a regression right away
+
+**Acceptance Criteria**
+- Scenario: Delta
+  Given at least two analyses
+  Then each headline measure shows its change since the previous one (for example "+2 bugs", "coverage −1%"), worse in the failure colour
+- Scenario: One analysis
+  Then no change is shown, and "Not enough history yet" applies
+
+**Notes**
+- `GET api/measures/search_history?component=KEY&metrics=...&ps=2`.
+- Direction of "worse" depends on the metric (more bugs is worse, more coverage is better).
+
+## Batch 2 — Alerts (2026-11-09)
+
+After batch 1. This is what makes the app useful when it is closed. It reuses the Jenkins build watch (`US-JX-10`): local notifications and a best-effort periodic check, with no push server.
+
+### US-SQ-WATCH-01 — Notify me when a gate fails after a new scan
+
+**Batch:** 2 · **Priority:** Should · **Effort:** M–L
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-CE-01, `US-JX-10`'s watch plumbing
+
+As a user
+I want to be told when a project I watch fails its quality gate
+So that I hear about a regression without opening the app
+
+**Acceptance Criteria**
+- Scenario: Watch a project
+  Given I open a project
+  Then I can turn on "Notify me when the gate fails"; it is stored on the device
+- Scenario: Notified
+  Given a watched project's newest analysis fails its gate
+  Then one local notification names the project and what failed, once per analysis
+- Scenario: Honest limits
+  Given iOS decides when background work runs
+  Then the screen says checks are best-effort and also run when the app is opened
+- Scenario: Off
+  Given I turn the last watch off
+  Then the background check is unregistered
+
+**Notes**
+- Uses `flutter_local_notifications` and `workmanager`, both already approved in `CLAUDE.md` §3 (P11-24); no new dependency.
+- The check reads the gate and the analysis date only, and holds no credential beyond what the app already stores.
+- Cannot be verified in a test environment: needs a real device and a real analysis.
+
+## Batch 3 — Deeper project views (2026-11-09)
+
+Read-only depth for one project. Independent of each other; any can be taken alone.
+
+### US-SQ-QUALITY-10 — Branch and pull request picker
+
+**Batch:** 3 · **Priority:** Could · **Effort:** M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-02
+
+As a user
+I want to see the gate and measures for a branch or pull request
+So that I can check a change before it merges
+
+**Acceptance Criteria**
+- Scenario: Choose
+  Given the server lists more than the main branch (`GET api/project_branches/list`, `api/project_pull_requests/list`)
+  Then a picker switches the page to that branch or pull request
+- Scenario: Main only
+  Given the server lists only the main branch
+  Then no picker is shown
+
+**Notes**
+- **Edition-dependent**: SonarQube Community Build may only analyse the main branch; branches and pull requests need an edition that supports them. Hide the picker rather than show a dead one.
+- Every project call then carries a `branch` or `pullRequest` parameter.
+
+### US-SQ-HOTSPOT-01 — Security hotspots
+
+**Batch:** 3 · **Priority:** Should · **Effort:** M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-03
+
+As a user
+I want to see a project's security hotspots and their review status
+So that I know which security-sensitive code still needs a review
+
+**Acceptance Criteria**
+- Scenario: List
+  Given a project
+  Then `GET api/hotspots/search?project=KEY` lists hotspots, filterable by status (to review, reviewed), with file and line
+- Scenario: Detail
+  Given I open one
+  Then its rule, vulnerability probability and the code around it are shown, as for an issue
+
+**Notes**
+- Reviewing a hotspot is a write and is `US-SQ-WRITE-04`, not this story.
+- `api/hotspots/show` for the detail.
+
+### US-SQ-QUALITY-11 — Trends over time
+
+**Batch:** 3 · **Priority:** Could · **Effort:** M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-04
+
+As a user
+I want to see how coverage, bugs and debt moved over time
+So that I can tell whether the project is getting better
+
+**Acceptance Criteria**
+- Scenario: Chart
+  Given a project with several analyses
+  Then a simple line chart of a chosen measure is drawn from `api/measures/search_history`, with the value of the touched point readable
+- Scenario: Too little data
+  Then "Not enough history yet" is shown
+
+**Notes**
+- No chart library is in the locked stack (`CLAUDE.md` §3): either a small custom painter, or a flagged dependency request. **Decide in the plan, don't add silently.**
+- The chart must also be readable without colour (labels, not only a line).
+
+### US-SQ-QUALITY-12 — Worst files
+
+**Batch:** 3 · **Priority:** Could · **Effort:** M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-03
+
+As a user
+I want to see the files with the most issues, the least coverage or the most duplication
+So that I know where to start
+
+**Acceptance Criteria**
+- Scenario: Ranking
+  Given a project and a chosen measure
+  Then `GET api/measures/component_tree` (file level, sorted by that measure) lists the ten worst files with their values
+- Scenario: Open a file
+  Then a tap shows that file's issues
+
+**Notes**
+- Uses `strategy=leaves`, `qualifiers=FIL`, `s=metric`, `metricSort`, `ps=10`.
+
+### US-SQ-QUALITY-13 — Language breakdown
+
+**Batch:** 3 · **Priority:** Could · **Effort:** S
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-02
+
+As a user
+I want to see how the lines of code split by language
+So that I understand what the project is made of
+
+**Acceptance Criteria**
+- Scenario: Breakdown
+  Given the metric `ncloc_language_distribution` (for example `java=1200;js=340`)
+  Then a list or bar shows each language with its lines and share
+- Scenario: Missing
+  Then the section is left out
+
+**Notes**
+- The metric is a `;`-separated string and needs parsing; keep that in the domain layer with tests.
+
+### US-SQ-ISSUES-02 — Group issues by file, rule or severity
+
+**Batch:** 3 · **Priority:** Could · **Effort:** S–M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-03
+
+As a user
+I want to group a project's issues
+So that a long list becomes something I can scan
+
+**Acceptance Criteria**
+- Scenario: Group
+  Given the issues list
+  Then a control groups it by file, rule or severity, each group showing its count
+- Scenario: Server side
+  Then grouping uses the server's facets (`facets=files,rules,severities`) so counts are right beyond the first page
+
+**Notes**
+- Keeps the server-side filtering and paging of `US-SQ-QUALITY-03`.
+
+## Batch 4 — Across projects and the server (2026-11-09)
+
+Read-only views that span projects, plus the server itself.
+
+### US-SQ-ISSUES-03 — Search issues across projects
+
+**Batch:** 4 · **Priority:** Could · **Effort:** M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-ISSUES-01
+
+As a user
+I want to search issues by text or rule across every project
+So that I can find a known problem wherever it is
+
+**Acceptance Criteria**
+- Scenario: Search
+  Given a search term or rule
+  Then `GET api/issues/search` with the matching parameters lists results across projects, server-filtered and paged
+- Scenario: None
+  Then "No issues match" is shown
+
+**Notes**
+- The exact text-search parameter is confirmed against the owner's server in the plan; not assumed here.
+
+### US-SQ-SERVER-01 — Server health and version
+
+**Batch:** 4 · **Priority:** Could · **Effort:** S
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-CRED-04
+
+As a user
+I want to see my SonarQube server's version and status
+So that I can tell a server problem from an app problem
+
+**Acceptance Criteria**
+- Scenario: Info
+  Given an active credential
+  Then the version (`api/server/version`) and status (`api/system/status`, for example UP or STARTING) are shown, with an edition hint where the server reports one
+- Scenario: Unreachable
+  Then the same error view as elsewhere, with a retry
+
+**Notes**
+- `api/system/health` and the background-task queue need administrator rights; shown only if the token allows it, never required.
+
+### US-SQ-OVERVIEW-02 — Overview trend: are more projects failing?
+
+**Batch:** 4 · **Priority:** Could · **Effort:** M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-OVERVIEW-01
+
+As a user
+I want to see whether the number of failing projects is going up or down
+So that I see the direction, not only today's count
+
+**Acceptance Criteria**
+- Scenario: Trend
+  Given the Overview has been opened on different days
+  Then it shows the change in failing projects since the last snapshot
+- Scenario: First time
+  Then no trend is shown, with a note that it starts now
+
+**Notes**
+- SonarQube has no portfolio-level history for this, so the app would **store its own small snapshots on the device** (counts only, no secrets, in `shared_preferences`). Honest label: "since you last looked", not "over time".
+- The alternative is computing it from each project's history, which costs one request per project; rejected for the rate-limit-style reasons of `US-GH-HIST-02`.
+
+## Batch 5 — Shortcuts and offline (2026-11-09)
+
+Convenience that mostly reuses plumbing the Jenkins work already built.
+
+### US-SQ-PIN-01 — Pin projects
+
+**Batch:** 5 · **Priority:** Should · **Effort:** S–M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-PROJ-03
+
+As a user
+I want to pin the projects I care about
+So that they sit at the top of the list and the Overview
+
+**Acceptance Criteria**
+- Scenario: Pin
+  Given a project card or page
+  Then I can pin or unpin it; pinned projects sort first
+- Scenario: Kept
+  Then pins are remembered on the device per credential
+
+**Notes**
+- Pins are **local**, not SonarQube's server-side favourites (`api/favorites/*` would write to the server and is a `US-SQ-WRITE-*` concern). The plan may offer the server favourites later.
+- Mirrors Jenkins pinned jobs (`US-JX-23`).
+
+### US-SQ-WIDGET-01 — Home-screen widget for pinned projects
+
+**Batch:** 5 · **Priority:** Could · **Effort:** L
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-PIN-01, `US-JX-23`'s widget plumbing
+
+As a user
+I want to see my pinned projects' gate status on my home screen
+So that I check them without opening the app
+
+**Acceptance Criteria**
+- Scenario: Widget
+  Given pinned projects
+  Then the widget lists each with its gate verdict and the time it was last updated
+- Scenario: No credentials
+  Then the widget holds no credential and never calls SonarQube itself; it shows a snapshot the app wrote
+
+**Notes**
+- Reuses the `home_widget` plumbing (iOS WidgetKit extension and the Android provider), approved in `CLAUDE.md` §3 (P11-26). Needs native work on both platforms, hence L.
+- Only verifiable on a real device.
+
+### US-SQ-OFFLINE-01 — Offline copy of the last data
+
+**Batch:** 5 · **Priority:** Could · **Effort:** M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-PROJ-03
+
+As a user
+I want to see the last data I loaded when I have no connection
+So that I can still check a project on the train
+
+**Acceptance Criteria**
+- Scenario: Cached
+  Given I have loaded the project list and a project
+  Then with no connection they show the saved copy, marked "Saved 2h ago"
+- Scenario: Never secrets
+  Then only non-secret project data is cached, in the same place and the same way as the Jenkins tree cache (`US-JX-20`), and is cleared on sign-out
+
+**Notes**
+- Reuses `path_provider` and the Jenkins cache pattern (`P11-23`).
+
+### US-SQ-LINK-02 — Deep links to a project
+
+**Batch:** 5 · **Priority:** Could · **Effort:** S
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-LINK-01
+
+As a user
+I want to open a project in the app from a link
+So that a teammate's message can take me straight to it
+
+**Acceptance Criteria**
+- Scenario: Open
+  Given `jobtrigger://app/sonarqube/project?key=KEY`
+  Then the app opens that project when SonarQube credentials exist, else explains what is missing
+- Scenario: Guarded
+  Then a link without a valid key lands on Home, like the other extra-only routes (AUD-51)
+
+**Notes**
+- Must not let a link choose the server or carry a token: the key only.
+
+### US-SQ-ISSUES-04 — Copy and share an issue
+
+**Batch:** 5 · **Priority:** Could · **Effort:** S
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-06
+
+As a user
+I want to copy or share an issue's details
+So that I can send it to a teammate
+
+**Acceptance Criteria**
+- Scenario: Share
+  Given an issue page
+  Then Copy and Share send the message, rule, location and the link from `US-SQ-LINK-01`
+- Scenario: No secrets
+  Then the text never contains a token
+
+**Notes**
+- Uses `share_plus`, already in the stack (P5-12).
+
+## Batch 6 — Connecting the tools (2026-11-09)
+
+Touches the Jenkins and GitHub screens, so it needs the owner's explicit go-ahead and `CLAUDE.md` §11 care: Jenkins is frozen except for bug fixes, and each tool is its own auth domain (`NFR-SEC-03`). The link between a Jenkins job (or GitHub repo) and a SonarQube project is **stored on the device, not on any server**, and never shares credentials between tools.
+
+### US-SQ-XTOOL-01 — Show a project's SonarQube gate on a Jenkins build
+
+**Batch:** 6 · **Priority:** Could · **Effort:** M–L
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-PROJ-01, a Jenkins build page
+
+As a user
+I want to see the quality gate for the SonarQube project linked to a Jenkins job
+So that I know whether a build also passed its quality gate
+
+**Acceptance Criteria**
+- Scenario: Link
+  Given a Jenkins job
+  Then I can link it to a SonarQube project once, on the device
+- Scenario: Show
+  Given a linked job
+  Then its build page shows the gate verdict using the SonarQube credential, with a tap through to the project
+- Scenario: Separate
+  Given no SonarQube credential
+  Then nothing is shown and Jenkins behaves exactly as before
+
+**Notes**
+- A change to the Jenkins build page is the one place this batch edits frozen Jenkins code; the plan must show the diff first.
+
+### US-SQ-XTOOL-02 — Scan from Jenkins
+
+**Batch:** 6 · **Priority:** Could · **Effort:** L
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-XTOOL-01
+
+As a user
+I want to run the Jenkins job that scans a project, then watch the SonarQube result
+So that a re-scan is one flow on my phone
+
+**Acceptance Criteria**
+- Scenario: Run
+  Given a linked job
+  Then "Scan now" uses the existing Jenkins trigger and confirmation flow
+- Scenario: Follow
+  Then the project page shows `US-SQ-CE-01`'s analysis status until the new result arrives
+
+**Notes**
+- Reuses Jenkins trigger and watch as they are; does not change them.
+
+### US-SQ-XTOOL-03 — Show the gate beside a GitHub workflow run
+
+**Batch:** 6 · **Priority:** Could · **Effort:** M–L
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-PROJ-01, GitHub run detail
+
+As a user
+I want to see the SonarQube gate for the repository's linked project on a workflow run
+So that I see build and quality together
+
+**Acceptance Criteria**
+- Scenario: Link and show
+  Given a GitHub repo linked to a SonarQube project on the device
+  Then a run's page shows the gate verdict, and nothing changes for an unlinked repo
+
+**Notes**
+- Same separation rules as `US-SQ-XTOOL-01`.
+
+## Batch 7 — Changing data on the server (2026-11-09)
+
+**The first writes in this epic.** The epic's stories so far are all `GET`s (see "Read-only, full stop" above, as built); this batch is where that stops being true, so it is last and needs its own explicit approval. A token whose user may modify issues is required; a 403 is reported with `SonarQubeAccessDeniedFailure`'s wording. Every action asks for confirmation, like Jenkins trigger and cancel, and none changes the screen before the server answers.
+
+### US-SQ-WRITE-01 — Assign an issue
+
+**Batch:** 7 · **Priority:** Could · **Effort:** M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-06
+
+As a user
+I want to assign an issue to someone, or to myself
+So that it has an owner
+
+**Acceptance Criteria**
+- Scenario: Assign
+  Given an issue page
+  Then I can choose an assignee (`POST api/issues/assign`), confirm, and see it applied only after the server accepts it
+- Scenario: Refused
+  Given the token cannot modify issues
+  Then the reason is shown and nothing changes
+
+**Notes**
+- Looking up assignable users (`api/users/search`) may need extra permission; the plan handles its absence.
+
+### US-SQ-WRITE-02 — Change an issue's status
+
+**Batch:** 7 · **Priority:** Could · **Effort:** M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-06
+
+As a user
+I want to confirm an issue, mark it a false positive, accept it or reopen it
+So that the list reflects my decision
+
+**Acceptance Criteria**
+- Scenario: Transition
+  Given an issue
+  Then only the transitions the server offers (`POST api/issues/do_transition`: confirm, unconfirm, reopen, resolve, falsepositive, wontfix/accept) are shown, each with a confirmation
+
+**Notes**
+- The offered transitions come from the issue itself (`transitions`), never a fixed list in the app.
+
+### US-SQ-WRITE-03 — Comment on an issue
+
+**Batch:** 7 · **Priority:** Could · **Effort:** S–M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-QUALITY-06
+
+As a user
+I want to add a comment to an issue
+So that I can leave context for the team
+
+**Acceptance Criteria**
+- Scenario: Comment
+  Given an issue page
+  Then I can write a comment (`POST api/issues/add_comment`); it is sent as a form value, never built into a URL by hand, and shown once saved
+
+**Notes**
+- Comments are visible to others: the field says so before sending.
+
+### US-SQ-WRITE-04 — Review a security hotspot
+
+**Batch:** 7 · **Priority:** Could · **Effort:** M
+**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Dependencies:** US-SQ-HOTSPOT-01
+
+As a user
+I want to mark a hotspot safe, or fixed
+So that the review queue shrinks
+
+**Acceptance Criteria**
+- Scenario: Review
+  Given a hotspot
+  Then I can set its status and resolution (`POST api/hotspots/change_status`) after a confirmation, with an optional comment
+
+**Notes**
+- Needs the permission to review hotspots on that project.
 
