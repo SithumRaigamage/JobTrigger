@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'sonarqube_credential_dto.dart';
@@ -9,6 +9,7 @@ part of 'sonarqube_credential_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -35,16 +36,21 @@ $SonarQubeCredentialDtoCopyWith<SonarQubeCredentialDto> get copyWith => _$SonarQ
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SonarQubeCredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.token, token) || other.token == token)&&(identical(other.secretMask, secretMask) || other.secretMask == secretMask)&&(identical(other.defaultOrganization, defaultOrganization) || other.defaultOrganization == defaultOrganization)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.needsReentry, needsReentry) || other.needsReentry == needsReentry)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  final _this = this as SonarQubeCredentialDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SonarQubeCredentialDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.baseUrl, _this.baseUrl) || other.baseUrl == _this.baseUrl)&&(identical(other.token, _this.token) || other.token == _this.token)&&(identical(other.secretMask, _this.secretMask) || other.secretMask == _this.secretMask)&&(identical(other.defaultOrganization, _this.defaultOrganization) || other.defaultOrganization == _this.defaultOrganization)&&(identical(other.isDefault, _this.isDefault) || other.isDefault == _this.isDefault)&&(identical(other.needsReentry, _this.needsReentry) || other.needsReentry == _this.needsReentry)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,baseUrl,token,secretMask,defaultOrganization,isDefault,needsReentry,createdAt,updatedAt);
+int get hashCode {
+  final _this = this as SonarQubeCredentialDto;
+  return Object.hash(runtimeType,_this.id,_this.label,_this.baseUrl,_this.token,_this.secretMask,_this.defaultOrganization,_this.isDefault,_this.needsReentry,_this.createdAt,_this.updatedAt);
+}
 
 @override
 String toString() {
-  return 'SonarQubeCredentialDto(id: $id, label: $label, baseUrl: $baseUrl, token: $token, secretMask: $secretMask, defaultOrganization: $defaultOrganization, isDefault: $isDefault, needsReentry: $needsReentry, createdAt: $createdAt, updatedAt: $updatedAt)';
+  final _this = this as SonarQubeCredentialDto;
+  return 'SonarQubeCredentialDto(id: ${_this.id}, label: ${_this.label}, baseUrl: ${_this.baseUrl}, token: ${_this.token}, secretMask: ${_this.secretMask}, defaultOrganization: ${_this.defaultOrganization}, isDefault: ${_this.isDefault}, needsReentry: ${_this.needsReentry}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt})';
 }
 
 
@@ -73,7 +79,7 @@ class _$SonarQubeCredentialDtoCopyWithImpl<$Res>
 /// Create a copy of SonarQubeCredentialDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? baseUrl = null,Object? token = freezed,Object? secretMask = freezed,Object? defaultOrganization = freezed,Object? isDefault = null,Object? needsReentry = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SonarQubeCredentialDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,baseUrl: null == baseUrl ? _self.baseUrl : baseUrl // ignore: cast_nullable_to_non_nullable
@@ -259,16 +265,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SonarQubeCredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.token, token) || other.token == token)&&(identical(other.secretMask, secretMask) || other.secretMask == secretMask)&&(identical(other.defaultOrganization, defaultOrganization) || other.defaultOrganization == defaultOrganization)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.needsReentry, needsReentry) || other.needsReentry == needsReentry)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SonarQubeCredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.token, token) || other.token == token)&&(identical(other.secretMask, secretMask) || other.secretMask == secretMask)&&(identical(other.defaultOrganization, defaultOrganization) || other.defaultOrganization == defaultOrganization)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.needsReentry, needsReentry) || other.needsReentry == needsReentry)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,baseUrl,token,secretMask,defaultOrganization,isDefault,needsReentry,createdAt,updatedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,label,baseUrl,token,secretMask,defaultOrganization,isDefault,needsReentry,createdAt,updatedAt);
+}
 
 @override
 String toString() {
-  return 'SonarQubeCredentialDto(id: $id, label: $label, baseUrl: $baseUrl, token: $token, secretMask: $secretMask, defaultOrganization: $defaultOrganization, isDefault: $isDefault, needsReentry: $needsReentry, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'SonarQubeCredentialDto(id: $id, label: $label, baseUrl: $baseUrl, token: $token, secretMask: $secretMask, defaultOrganization: $defaultOrganization, isDefault: $isDefault, needsReentry: $needsReentry, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 

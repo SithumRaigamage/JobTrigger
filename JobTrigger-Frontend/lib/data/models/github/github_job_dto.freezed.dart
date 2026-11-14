@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'github_job_dto.dart';
@@ -9,6 +9,7 @@ part of 'github_job_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $GitHubJobDtoCopyWith<GitHubJobDto> get copyWith => _$GitHubJobDtoCopyWithImpl<G
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitHubJobDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.conclusion, conclusion) || other.conclusion == conclusion)&&const DeepCollectionEquality().equals(other.steps, steps));
+  final _this = this as GitHubJobDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitHubJobDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.conclusion, _this.conclusion) || other.conclusion == _this.conclusion)&&const DeepCollectionEquality().equals(other.steps, _this.steps));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,status,conclusion,const DeepCollectionEquality().hash(steps));
+int get hashCode {
+  final _this = this as GitHubJobDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.status,_this.conclusion,const DeepCollectionEquality().hash(_this.steps));
+}
 
 @override
 String toString() {
-  return 'GitHubJobDto(id: $id, name: $name, status: $status, conclusion: $conclusion, steps: $steps)';
+  final _this = this as GitHubJobDto;
+  return 'GitHubJobDto(id: ${_this.id}, name: ${_this.name}, status: ${_this.status}, conclusion: ${_this.conclusion}, steps: ${_this.steps})';
 }
 
 
@@ -66,7 +72,7 @@ class _$GitHubJobDtoCopyWithImpl<$Res>
 /// Create a copy of GitHubJobDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? status = null,Object? conclusion = freezed,Object? steps = null,}) {
-  return _then(_self.copyWith(
+  return _then(GitHubJobDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -213,7 +219,7 @@ return $default(_that.id,_that.name,_that.status,_that.conclusion,_that.steps);c
 @JsonSerializable()
 
 class _GitHubJobDto implements GitHubJobDto {
-  const _GitHubJobDto({required this.id, this.name = '', this.status = '', this.conclusion, final  List<GitHubStepDto> steps = const <GitHubStepDto>[]}): _steps = steps;
+  const _GitHubJobDto({required this.id, this.name = '', this.status = '', this.conclusion,  List<GitHubStepDto> steps = const <GitHubStepDto>[]}): _steps = steps;
   factory _GitHubJobDto.fromJson(Map<String, dynamic> json) => _$GitHubJobDtoFromJson(json);
 
 @override final  int id;
@@ -241,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitHubJobDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.conclusion, conclusion) || other.conclusion == conclusion)&&const DeepCollectionEquality().equals(other._steps, _steps));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitHubJobDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.conclusion, conclusion) || other.conclusion == conclusion)&&const DeepCollectionEquality().equals(other.steps, _steps));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,status,conclusion,const DeepCollectionEquality().hash(_steps));
+int get hashCode {
+    return Object.hash(runtimeType,id,name,status,conclusion,const DeepCollectionEquality().hash(_steps));
+}
 
 @override
 String toString() {
-  return 'GitHubJobDto(id: $id, name: $name, status: $status, conclusion: $conclusion, steps: $steps)';
+    return 'GitHubJobDto(id: $id, name: $name, status: $status, conclusion: $conclusion, steps: $steps)';
 }
 
 
@@ -309,16 +317,21 @@ $GitHubStepDtoCopyWith<GitHubStepDto> get copyWith => _$GitHubStepDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitHubStepDto&&(identical(other.number, number) || other.number == number)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.conclusion, conclusion) || other.conclusion == conclusion));
+  final _this = this as GitHubStepDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitHubStepDto&&(identical(other.number, _this.number) || other.number == _this.number)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.conclusion, _this.conclusion) || other.conclusion == _this.conclusion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,number,name,status,conclusion);
+int get hashCode {
+  final _this = this as GitHubStepDto;
+  return Object.hash(runtimeType,_this.number,_this.name,_this.status,_this.conclusion);
+}
 
 @override
 String toString() {
-  return 'GitHubStepDto(number: $number, name: $name, status: $status, conclusion: $conclusion)';
+  final _this = this as GitHubStepDto;
+  return 'GitHubStepDto(number: ${_this.number}, name: ${_this.name}, status: ${_this.status}, conclusion: ${_this.conclusion})';
 }
 
 
@@ -347,7 +360,7 @@ class _$GitHubStepDtoCopyWithImpl<$Res>
 /// Create a copy of GitHubStepDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? number = null,Object? name = null,Object? status = null,Object? conclusion = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(GitHubStepDto(
 number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -514,16 +527,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitHubStepDto&&(identical(other.number, number) || other.number == number)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.conclusion, conclusion) || other.conclusion == conclusion));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitHubStepDto&&(identical(other.number, number) || other.number == number)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.conclusion, conclusion) || other.conclusion == conclusion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,number,name,status,conclusion);
+int get hashCode {
+    return Object.hash(runtimeType,number,name,status,conclusion);
+}
 
 @override
 String toString() {
-  return 'GitHubStepDto(number: $number, name: $name, status: $status, conclusion: $conclusion)';
+    return 'GitHubStepDto(number: $number, name: $name, status: $status, conclusion: $conclusion)';
 }
 
 

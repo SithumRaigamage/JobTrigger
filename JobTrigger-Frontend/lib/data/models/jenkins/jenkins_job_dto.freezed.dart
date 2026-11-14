@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'jenkins_job_dto.dart';
@@ -9,6 +9,7 @@ part of 'jenkins_job_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $JenkinsJobDtoCopyWith<JenkinsJobDto> get copyWith => _$JenkinsJobDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsJobDto&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url)&&(identical(other.jobClass, jobClass) || other.jobClass == jobClass)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.description, description) || other.description == description)&&(identical(other.buildable, buildable) || other.buildable == buildable)&&(identical(other.color, color) || other.color == color)&&const DeepCollectionEquality().equals(other.jobs, jobs)&&(identical(other.lastBuild, lastBuild) || other.lastBuild == lastBuild)&&(identical(other.lastSuccessfulBuild, lastSuccessfulBuild) || other.lastSuccessfulBuild == lastSuccessfulBuild)&&(identical(other.lastFailedBuild, lastFailedBuild) || other.lastFailedBuild == lastFailedBuild)&&const DeepCollectionEquality().equals(other.healthReport, healthReport)&&const DeepCollectionEquality().equals(other.property, property)&&const DeepCollectionEquality().equals(other.builds, builds)&&const DeepCollectionEquality().equals(other.downstreamProjects, downstreamProjects));
+  final _this = this as JenkinsJobDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsJobDto&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.jobClass, _this.jobClass) || other.jobClass == _this.jobClass)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.buildable, _this.buildable) || other.buildable == _this.buildable)&&(identical(other.color, _this.color) || other.color == _this.color)&&const DeepCollectionEquality().equals(other.jobs, _this.jobs)&&(identical(other.lastBuild, _this.lastBuild) || other.lastBuild == _this.lastBuild)&&(identical(other.lastSuccessfulBuild, _this.lastSuccessfulBuild) || other.lastSuccessfulBuild == _this.lastSuccessfulBuild)&&(identical(other.lastFailedBuild, _this.lastFailedBuild) || other.lastFailedBuild == _this.lastFailedBuild)&&const DeepCollectionEquality().equals(other.healthReport, _this.healthReport)&&const DeepCollectionEquality().equals(other.property, _this.property)&&const DeepCollectionEquality().equals(other.builds, _this.builds)&&const DeepCollectionEquality().equals(other.downstreamProjects, _this.downstreamProjects));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,url,jobClass,displayName,description,buildable,color,const DeepCollectionEquality().hash(jobs),lastBuild,lastSuccessfulBuild,lastFailedBuild,const DeepCollectionEquality().hash(healthReport),const DeepCollectionEquality().hash(property),const DeepCollectionEquality().hash(builds),const DeepCollectionEquality().hash(downstreamProjects));
+int get hashCode {
+  final _this = this as JenkinsJobDto;
+  return Object.hash(runtimeType,_this.name,_this.url,_this.jobClass,_this.displayName,_this.description,_this.buildable,_this.color,const DeepCollectionEquality().hash(_this.jobs),_this.lastBuild,_this.lastSuccessfulBuild,_this.lastFailedBuild,const DeepCollectionEquality().hash(_this.healthReport),const DeepCollectionEquality().hash(_this.property),const DeepCollectionEquality().hash(_this.builds),const DeepCollectionEquality().hash(_this.downstreamProjects));
+}
 
 @override
 String toString() {
-  return 'JenkinsJobDto(name: $name, url: $url, jobClass: $jobClass, displayName: $displayName, description: $description, buildable: $buildable, color: $color, jobs: $jobs, lastBuild: $lastBuild, lastSuccessfulBuild: $lastSuccessfulBuild, lastFailedBuild: $lastFailedBuild, healthReport: $healthReport, property: $property, builds: $builds, downstreamProjects: $downstreamProjects)';
+  final _this = this as JenkinsJobDto;
+  return 'JenkinsJobDto(name: ${_this.name}, url: ${_this.url}, jobClass: ${_this.jobClass}, displayName: ${_this.displayName}, description: ${_this.description}, buildable: ${_this.buildable}, color: ${_this.color}, jobs: ${_this.jobs}, lastBuild: ${_this.lastBuild}, lastSuccessfulBuild: ${_this.lastSuccessfulBuild}, lastFailedBuild: ${_this.lastFailedBuild}, healthReport: ${_this.healthReport}, property: ${_this.property}, builds: ${_this.builds}, downstreamProjects: ${_this.downstreamProjects})';
 }
 
 
@@ -66,7 +72,7 @@ class _$JenkinsJobDtoCopyWithImpl<$Res>
 /// Create a copy of JenkinsJobDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? url = null,Object? jobClass = freezed,Object? displayName = freezed,Object? description = freezed,Object? buildable = freezed,Object? color = freezed,Object? jobs = freezed,Object? lastBuild = freezed,Object? lastSuccessfulBuild = freezed,Object? lastFailedBuild = freezed,Object? healthReport = freezed,Object? property = freezed,Object? builds = freezed,Object? downstreamProjects = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(JenkinsJobDto(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,jobClass: freezed == jobClass ? _self.jobClass : jobClass // ignore: cast_nullable_to_non_nullable
@@ -259,7 +265,7 @@ return $default(_that.name,_that.url,_that.jobClass,_that.displayName,_that.desc
 @JsonSerializable()
 
 class _JenkinsJobDto implements JenkinsJobDto {
-  const _JenkinsJobDto({required this.name, required this.url, @JsonKey(name: '_class') this.jobClass, this.displayName, this.description, this.buildable, this.color, final  List<JenkinsJobDto>? jobs, this.lastBuild, this.lastSuccessfulBuild, this.lastFailedBuild, final  List<HealthReportDto>? healthReport = const [], final  List<JobPropertyDto>? property = const [], final  List<JenkinsBuildDto>? builds = const [], final  List<DownstreamProjectDto>? downstreamProjects = const []}): _jobs = jobs,_healthReport = healthReport,_property = property,_builds = builds,_downstreamProjects = downstreamProjects;
+  const _JenkinsJobDto({required this.name, required this.url, @JsonKey(name: '_class') this.jobClass, this.displayName, this.description, this.buildable, this.color,  List<JenkinsJobDto>? jobs, this.lastBuild, this.lastSuccessfulBuild, this.lastFailedBuild,  List<HealthReportDto>? healthReport = const [],  List<JobPropertyDto>? property = const [],  List<JenkinsBuildDto>? builds = const [],  List<DownstreamProjectDto>? downstreamProjects = const []}): _jobs = jobs,_healthReport = healthReport,_property = property,_builds = builds,_downstreamProjects = downstreamProjects;
   factory _JenkinsJobDto.fromJson(Map<String, dynamic> json) => _$JenkinsJobDtoFromJson(json);
 
 @override final  String name;
@@ -331,16 +337,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsJobDto&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url)&&(identical(other.jobClass, jobClass) || other.jobClass == jobClass)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.description, description) || other.description == description)&&(identical(other.buildable, buildable) || other.buildable == buildable)&&(identical(other.color, color) || other.color == color)&&const DeepCollectionEquality().equals(other._jobs, _jobs)&&(identical(other.lastBuild, lastBuild) || other.lastBuild == lastBuild)&&(identical(other.lastSuccessfulBuild, lastSuccessfulBuild) || other.lastSuccessfulBuild == lastSuccessfulBuild)&&(identical(other.lastFailedBuild, lastFailedBuild) || other.lastFailedBuild == lastFailedBuild)&&const DeepCollectionEquality().equals(other._healthReport, _healthReport)&&const DeepCollectionEquality().equals(other._property, _property)&&const DeepCollectionEquality().equals(other._builds, _builds)&&const DeepCollectionEquality().equals(other._downstreamProjects, _downstreamProjects));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsJobDto&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url)&&(identical(other.jobClass, jobClass) || other.jobClass == jobClass)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.description, description) || other.description == description)&&(identical(other.buildable, buildable) || other.buildable == buildable)&&(identical(other.color, color) || other.color == color)&&const DeepCollectionEquality().equals(other.jobs, _jobs)&&(identical(other.lastBuild, lastBuild) || other.lastBuild == lastBuild)&&(identical(other.lastSuccessfulBuild, lastSuccessfulBuild) || other.lastSuccessfulBuild == lastSuccessfulBuild)&&(identical(other.lastFailedBuild, lastFailedBuild) || other.lastFailedBuild == lastFailedBuild)&&const DeepCollectionEquality().equals(other.healthReport, _healthReport)&&const DeepCollectionEquality().equals(other.property, _property)&&const DeepCollectionEquality().equals(other.builds, _builds)&&const DeepCollectionEquality().equals(other.downstreamProjects, _downstreamProjects));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,url,jobClass,displayName,description,buildable,color,const DeepCollectionEquality().hash(_jobs),lastBuild,lastSuccessfulBuild,lastFailedBuild,const DeepCollectionEquality().hash(_healthReport),const DeepCollectionEquality().hash(_property),const DeepCollectionEquality().hash(_builds),const DeepCollectionEquality().hash(_downstreamProjects));
+int get hashCode {
+    return Object.hash(runtimeType,name,url,jobClass,displayName,description,buildable,color,const DeepCollectionEquality().hash(_jobs),lastBuild,lastSuccessfulBuild,lastFailedBuild,const DeepCollectionEquality().hash(_healthReport),const DeepCollectionEquality().hash(_property),const DeepCollectionEquality().hash(_builds),const DeepCollectionEquality().hash(_downstreamProjects));
+}
 
 @override
 String toString() {
-  return 'JenkinsJobDto(name: $name, url: $url, jobClass: $jobClass, displayName: $displayName, description: $description, buildable: $buildable, color: $color, jobs: $jobs, lastBuild: $lastBuild, lastSuccessfulBuild: $lastSuccessfulBuild, lastFailedBuild: $lastFailedBuild, healthReport: $healthReport, property: $property, builds: $builds, downstreamProjects: $downstreamProjects)';
+    return 'JenkinsJobDto(name: $name, url: $url, jobClass: $jobClass, displayName: $displayName, description: $description, buildable: $buildable, color: $color, jobs: $jobs, lastBuild: $lastBuild, lastSuccessfulBuild: $lastSuccessfulBuild, lastFailedBuild: $lastFailedBuild, healthReport: $healthReport, property: $property, builds: $builds, downstreamProjects: $downstreamProjects)';
 }
 
 
@@ -445,16 +453,21 @@ $DownstreamProjectDtoCopyWith<DownstreamProjectDto> get copyWith => _$Downstream
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownstreamProjectDto&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url));
+  final _this = this as DownstreamProjectDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownstreamProjectDto&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.url, _this.url) || other.url == _this.url));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,url);
+int get hashCode {
+  final _this = this as DownstreamProjectDto;
+  return Object.hash(runtimeType,_this.name,_this.url);
+}
 
 @override
 String toString() {
-  return 'DownstreamProjectDto(name: $name, url: $url)';
+  final _this = this as DownstreamProjectDto;
+  return 'DownstreamProjectDto(name: ${_this.name}, url: ${_this.url})';
 }
 
 
@@ -483,7 +496,7 @@ class _$DownstreamProjectDtoCopyWithImpl<$Res>
 /// Create a copy of DownstreamProjectDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? url = null,}) {
-  return _then(_self.copyWith(
+  return _then(DownstreamProjectDto(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,
@@ -646,16 +659,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownstreamProjectDto&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownstreamProjectDto&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,url);
+int get hashCode {
+    return Object.hash(runtimeType,name,url);
+}
 
 @override
 String toString() {
-  return 'DownstreamProjectDto(name: $name, url: $url)';
+    return 'DownstreamProjectDto(name: $name, url: $url)';
 }
 
 

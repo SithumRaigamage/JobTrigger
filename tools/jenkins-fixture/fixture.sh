@@ -9,6 +9,8 @@
 #   ./fixture.sh reset   stop and delete all data and generated credentials
 set -euo pipefail
 
+# Absolute, before the cd: "$0" is relative to where it was started from.
+SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 cd "$(dirname "$0")"
 CREDS_FILE=".fixture-credentials" # git-ignored
 URL="http://localhost:8090"
@@ -70,7 +72,11 @@ seed_builds() {
   for job in freestyle-simple pipeline-stages junit-report artifacts upstream-freestyle upstream-pipeline; do
     post "job/$job/build"
   done
-  post "job/params-all/buildWithParameters?BRANCH=seeded"
+  # history_paging_fixture_test pages through two full pages of this job; a
+  # different BRANCH each time, so Jenkins does not fold them into one.
+  for i in $(seq 1 12); do
+    post "job/params-all/buildWithParameters?BRANCH=seeded-$i"
+  done
 }
 
 case "${1:-}" in
@@ -81,7 +87,7 @@ case "${1:-}" in
     wait_ready
     store_tokens
     seed_builds
-    "$0" creds
+    "$SELF" creds
     ;;
   seed)
     load_creds
@@ -111,7 +117,7 @@ case "${1:-}" in
     rm -f "$CREDS_FILE"
     ;;
   *)
-    sed -n '2,10p' "$0"
+    sed -n '2,10p' "$SELF"
     exit 1
     ;;
 esac

@@ -117,7 +117,7 @@ abstract class _$GitHubCancelNotifier extends $AsyncNotifier<bool> {
   FutureOr<bool> build(String owner, String repo, int runId);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<bool>, bool>;
     final element =
         ref.element
@@ -127,6 +127,9 @@ abstract class _$GitHubCancelNotifier extends $AsyncNotifier<bool> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args.$1, _$args.$2, _$args.$3));
+    return element.handleCreate(
+      ref,
+      () => build(_$args.$1, _$args.$2, _$args.$3),
+    );
   }
 }

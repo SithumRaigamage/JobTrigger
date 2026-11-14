@@ -110,7 +110,7 @@ abstract class _$GitHubWorkflowsNotifier
   FutureOr<List<GitHubWorkflow>> build(String owner, String repo);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<AsyncValue<List<GitHubWorkflow>>, List<GitHubWorkflow>>;
@@ -125,6 +125,6 @@ abstract class _$GitHubWorkflowsNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
+    return element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
   }
 }

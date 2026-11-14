@@ -52,7 +52,7 @@ abstract class _$AppInfoNotifier extends $AsyncNotifier<AppInfo> {
   FutureOr<AppInfo> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<AppInfo>, AppInfo>;
     final element =
         ref.element
@@ -62,6 +62,6 @@ abstract class _$AppInfoNotifier extends $AsyncNotifier<AppInfo> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

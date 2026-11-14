@@ -61,7 +61,7 @@ abstract class _$PinnedJobsNotifier extends $Notifier<List<PinnedJob>> {
   List<PinnedJob> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<List<PinnedJob>, List<PinnedJob>>;
     final element =
         ref.element
@@ -71,7 +71,7 @@ abstract class _$PinnedJobsNotifier extends $Notifier<List<PinnedJob>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 

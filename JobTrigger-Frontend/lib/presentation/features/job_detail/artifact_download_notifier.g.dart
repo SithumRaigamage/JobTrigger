@@ -143,7 +143,7 @@ abstract class _$ArtifactDownloadNotifier
   FutureOr<ArtifactProgress?> build(String buildUrl, String relativePath);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<ArtifactProgress?>, ArtifactProgress?>;
     final element =
@@ -154,6 +154,6 @@ abstract class _$ArtifactDownloadNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
+    return element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
   }
 }

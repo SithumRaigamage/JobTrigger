@@ -113,7 +113,7 @@ abstract class _$JobHistoryPagesNotifier extends $AsyncNotifier<HistoryPages> {
   FutureOr<HistoryPages> build(String jobUrl);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<HistoryPages>, HistoryPages>;
     final element =
         ref.element
@@ -123,7 +123,7 @@ abstract class _$JobHistoryPagesNotifier extends $AsyncNotifier<HistoryPages> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }
 
@@ -222,7 +222,7 @@ abstract class _$JobHistoryFilterNotifier extends $Notifier<HistoryFilter> {
   HistoryFilter build(String jobUrl);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<HistoryFilter, HistoryFilter>;
     final element =
         ref.element
@@ -232,6 +232,6 @@ abstract class _$JobHistoryFilterNotifier extends $Notifier<HistoryFilter> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

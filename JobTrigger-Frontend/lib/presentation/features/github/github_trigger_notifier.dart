@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/misc.dart' show KeepAliveLink;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
@@ -27,17 +28,43 @@ class GitHubTriggerNotifier extends _$GitHubTriggerNotifier {
   }) async {
     // Re-entrancy guard, as for Jenkins triggers (AUD-64).
     if (state.isLoading) return;
+    // The trigger sheet only calls this (it does not watch the provider), and
+    // an auto-dispose provider with no listener is disposed while this awaits
+    // (the app-lock prompt, the request), which would drop the trigger. Hold
+    // it open until the work, including the delayed refresh, is done.
+    final link = this.ref.keepAlive();
+    var holdForRefresh = false;
+    try {
+      holdForRefresh = await _trigger(
+        link,
+        ref: ref,
+        inputs: inputs,
+        workflowName: workflowName,
+      );
+    } finally {
+      if (!holdForRefresh) link.close();
+    }
+  }
+
+  /// Returns true when [link] was handed to the delayed refresh, which then
+  /// closes it.
+  Future<bool> _trigger(
+    KeepAliveLink link, {
+    required String ref,
+    required Map<String, String> inputs,
+    required String workflowName,
+  }) async {
     // US-JX-21: re-prompt when the user asked for it.
     final allowed = await this.ref
         .read(appLockNotifierProvider.notifier)
         .confirmSensitive('Confirm to run $workflowName');
-    if (!allowed || !this.ref.mounted) return;
+    if (!allowed || !this.ref.mounted) return false;
     state = const AsyncLoading();
 
     final result = await this.ref
         .read(gitHubRepositoryProvider)
         .triggerRun(owner, repo, workflowId, ref: ref, inputs: inputs);
-    if (!this.ref.mounted) return;
+    if (!this.ref.mounted) return false;
 
     switch (result) {
       case Ok():
@@ -60,8 +87,10 @@ class GitHubTriggerNotifier extends _$GitHubTriggerNotifier {
                 gitHubRunsNotifierProvider(owner, repo, workflowId),
               );
             }
+            link.close();
           }),
         );
+        return true;
       case Err(:final error):
         state = AsyncError(error, StackTrace.current);
         unawaited(HapticFeedback.heavyImpact());
@@ -72,6 +101,7 @@ class GitHubTriggerNotifier extends _$GitHubTriggerNotifier {
               title: 'Trigger Failed',
               message: error.message,
             );
+        return false;
     }
   }
 }

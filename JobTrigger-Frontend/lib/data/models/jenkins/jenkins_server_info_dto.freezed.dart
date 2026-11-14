@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'jenkins_server_info_dto.dart';
@@ -9,6 +9,7 @@ part of 'jenkins_server_info_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $JenkinsServerInfoDtoCopyWith<JenkinsServerInfoDto> get copyWith => _$JenkinsSer
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsServerInfoDto&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.nodeDescription, nodeDescription) || other.nodeDescription == nodeDescription)&&(identical(other.numExecutors, numExecutors) || other.numExecutors == numExecutors)&&(identical(other.useSecurity, useSecurity) || other.useSecurity == useSecurity)&&const DeepCollectionEquality().equals(other.jobs, jobs));
+  final _this = this as JenkinsServerInfoDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsServerInfoDto&&(identical(other.mode, _this.mode) || other.mode == _this.mode)&&(identical(other.nodeDescription, _this.nodeDescription) || other.nodeDescription == _this.nodeDescription)&&(identical(other.numExecutors, _this.numExecutors) || other.numExecutors == _this.numExecutors)&&(identical(other.useSecurity, _this.useSecurity) || other.useSecurity == _this.useSecurity)&&const DeepCollectionEquality().equals(other.jobs, _this.jobs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,mode,nodeDescription,numExecutors,useSecurity,const DeepCollectionEquality().hash(jobs));
+int get hashCode {
+  final _this = this as JenkinsServerInfoDto;
+  return Object.hash(runtimeType,_this.mode,_this.nodeDescription,_this.numExecutors,_this.useSecurity,const DeepCollectionEquality().hash(_this.jobs));
+}
 
 @override
 String toString() {
-  return 'JenkinsServerInfoDto(mode: $mode, nodeDescription: $nodeDescription, numExecutors: $numExecutors, useSecurity: $useSecurity, jobs: $jobs)';
+  final _this = this as JenkinsServerInfoDto;
+  return 'JenkinsServerInfoDto(mode: ${_this.mode}, nodeDescription: ${_this.nodeDescription}, numExecutors: ${_this.numExecutors}, useSecurity: ${_this.useSecurity}, jobs: ${_this.jobs})';
 }
 
 
@@ -66,7 +72,7 @@ class _$JenkinsServerInfoDtoCopyWithImpl<$Res>
 /// Create a copy of JenkinsServerInfoDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? mode = freezed,Object? nodeDescription = freezed,Object? numExecutors = freezed,Object? useSecurity = freezed,Object? jobs = null,}) {
-  return _then(_self.copyWith(
+  return _then(JenkinsServerInfoDto(
 mode: freezed == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
 as String?,nodeDescription: freezed == nodeDescription ? _self.nodeDescription : nodeDescription // ignore: cast_nullable_to_non_nullable
 as String?,numExecutors: freezed == numExecutors ? _self.numExecutors : numExecutors // ignore: cast_nullable_to_non_nullable
@@ -213,7 +219,7 @@ return $default(_that.mode,_that.nodeDescription,_that.numExecutors,_that.useSec
 @JsonSerializable()
 
 class _JenkinsServerInfoDto implements JenkinsServerInfoDto {
-  const _JenkinsServerInfoDto({this.mode, this.nodeDescription, this.numExecutors, this.useSecurity, final  List<JenkinsJobDto> jobs = const []}): _jobs = jobs;
+  const _JenkinsServerInfoDto({this.mode, this.nodeDescription, this.numExecutors, this.useSecurity,  List<JenkinsJobDto> jobs = const []}): _jobs = jobs;
   factory _JenkinsServerInfoDto.fromJson(Map<String, dynamic> json) => _$JenkinsServerInfoDtoFromJson(json);
 
 @override final  String? mode;
@@ -241,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsServerInfoDto&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.nodeDescription, nodeDescription) || other.nodeDescription == nodeDescription)&&(identical(other.numExecutors, numExecutors) || other.numExecutors == numExecutors)&&(identical(other.useSecurity, useSecurity) || other.useSecurity == useSecurity)&&const DeepCollectionEquality().equals(other._jobs, _jobs));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsServerInfoDto&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.nodeDescription, nodeDescription) || other.nodeDescription == nodeDescription)&&(identical(other.numExecutors, numExecutors) || other.numExecutors == numExecutors)&&(identical(other.useSecurity, useSecurity) || other.useSecurity == useSecurity)&&const DeepCollectionEquality().equals(other.jobs, _jobs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,mode,nodeDescription,numExecutors,useSecurity,const DeepCollectionEquality().hash(_jobs));
+int get hashCode {
+    return Object.hash(runtimeType,mode,nodeDescription,numExecutors,useSecurity,const DeepCollectionEquality().hash(_jobs));
+}
 
 @override
 String toString() {
-  return 'JenkinsServerInfoDto(mode: $mode, nodeDescription: $nodeDescription, numExecutors: $numExecutors, useSecurity: $useSecurity, jobs: $jobs)';
+    return 'JenkinsServerInfoDto(mode: $mode, nodeDescription: $nodeDescription, numExecutors: $numExecutors, useSecurity: $useSecurity, jobs: $jobs)';
 }
 
 

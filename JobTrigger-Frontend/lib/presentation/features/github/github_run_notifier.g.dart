@@ -107,7 +107,7 @@ abstract class _$GitHubRunNotifier extends $AsyncNotifier<GitHubWorkflowRun> {
   FutureOr<GitHubWorkflowRun> build(String owner, String repo, int runId);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<GitHubWorkflowRun>, GitHubWorkflowRun>;
     final element =
@@ -118,6 +118,9 @@ abstract class _$GitHubRunNotifier extends $AsyncNotifier<GitHubWorkflowRun> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args.$1, _$args.$2, _$args.$3));
+    return element.handleCreate(
+      ref,
+      () => build(_$args.$1, _$args.$2, _$args.$3),
+    );
   }
 }

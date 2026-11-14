@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'credential_dto.dart';
@@ -9,6 +9,7 @@ part of 'credential_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -36,16 +37,21 @@ $CredentialDtoCopyWith<CredentialDto> get copyWith => _$CredentialDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.serverName, serverName) || other.serverName == serverName)&&(identical(other.jenkinsURL, jenkinsURL) || other.jenkinsURL == jenkinsURL)&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password)&&(identical(other.paramToken, paramToken) || other.paramToken == paramToken)&&(identical(other.secretMask, secretMask) || other.secretMask == secretMask)&&(identical(other.hasParamToken, hasParamToken) || other.hasParamToken == hasParamToken)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.needsReentry, needsReentry) || other.needsReentry == needsReentry)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  final _this = this as CredentialDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CredentialDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.serverName, _this.serverName) || other.serverName == _this.serverName)&&(identical(other.jenkinsURL, _this.jenkinsURL) || other.jenkinsURL == _this.jenkinsURL)&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.password, _this.password) || other.password == _this.password)&&(identical(other.paramToken, _this.paramToken) || other.paramToken == _this.paramToken)&&(identical(other.secretMask, _this.secretMask) || other.secretMask == _this.secretMask)&&(identical(other.hasParamToken, _this.hasParamToken) || other.hasParamToken == _this.hasParamToken)&&(identical(other.isDefault, _this.isDefault) || other.isDefault == _this.isDefault)&&(identical(other.needsReentry, _this.needsReentry) || other.needsReentry == _this.needsReentry)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,serverName,jenkinsURL,username,password,paramToken,secretMask,hasParamToken,isDefault,needsReentry,createdAt,updatedAt);
+int get hashCode {
+  final _this = this as CredentialDto;
+  return Object.hash(runtimeType,_this.id,_this.serverName,_this.jenkinsURL,_this.username,_this.password,_this.paramToken,_this.secretMask,_this.hasParamToken,_this.isDefault,_this.needsReentry,_this.createdAt,_this.updatedAt);
+}
 
 @override
 String toString() {
-  return 'CredentialDto(id: $id, serverName: $serverName, jenkinsURL: $jenkinsURL, username: $username, password: $password, paramToken: $paramToken, secretMask: $secretMask, hasParamToken: $hasParamToken, isDefault: $isDefault, needsReentry: $needsReentry, createdAt: $createdAt, updatedAt: $updatedAt)';
+  final _this = this as CredentialDto;
+  return 'CredentialDto(id: ${_this.id}, serverName: ${_this.serverName}, jenkinsURL: ${_this.jenkinsURL}, username: ${_this.username}, password: ${_this.password}, paramToken: ${_this.paramToken}, secretMask: ${_this.secretMask}, hasParamToken: ${_this.hasParamToken}, isDefault: ${_this.isDefault}, needsReentry: ${_this.needsReentry}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt})';
 }
 
 
@@ -74,7 +80,7 @@ class _$CredentialDtoCopyWithImpl<$Res>
 /// Create a copy of CredentialDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? serverName = null,Object? jenkinsURL = null,Object? username = null,Object? password = freezed,Object? paramToken = freezed,Object? secretMask = freezed,Object? hasParamToken = null,Object? isDefault = null,Object? needsReentry = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(CredentialDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,serverName: null == serverName ? _self.serverName : serverName // ignore: cast_nullable_to_non_nullable
 as String,jenkinsURL: null == jenkinsURL ? _self.jenkinsURL : jenkinsURL // ignore: cast_nullable_to_non_nullable
@@ -265,16 +271,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.serverName, serverName) || other.serverName == serverName)&&(identical(other.jenkinsURL, jenkinsURL) || other.jenkinsURL == jenkinsURL)&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password)&&(identical(other.paramToken, paramToken) || other.paramToken == paramToken)&&(identical(other.secretMask, secretMask) || other.secretMask == secretMask)&&(identical(other.hasParamToken, hasParamToken) || other.hasParamToken == hasParamToken)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.needsReentry, needsReentry) || other.needsReentry == needsReentry)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.serverName, serverName) || other.serverName == serverName)&&(identical(other.jenkinsURL, jenkinsURL) || other.jenkinsURL == jenkinsURL)&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password)&&(identical(other.paramToken, paramToken) || other.paramToken == paramToken)&&(identical(other.secretMask, secretMask) || other.secretMask == secretMask)&&(identical(other.hasParamToken, hasParamToken) || other.hasParamToken == hasParamToken)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.needsReentry, needsReentry) || other.needsReentry == needsReentry)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,serverName,jenkinsURL,username,password,paramToken,secretMask,hasParamToken,isDefault,needsReentry,createdAt,updatedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,serverName,jenkinsURL,username,password,paramToken,secretMask,hasParamToken,isDefault,needsReentry,createdAt,updatedAt);
+}
 
 @override
 String toString() {
-  return 'CredentialDto(id: $id, serverName: $serverName, jenkinsURL: $jenkinsURL, username: $username, password: $password, paramToken: $paramToken, secretMask: $secretMask, hasParamToken: $hasParamToken, isDefault: $isDefault, needsReentry: $needsReentry, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'CredentialDto(id: $id, serverName: $serverName, jenkinsURL: $jenkinsURL, username: $username, password: $password, paramToken: $paramToken, secretMask: $secretMask, hasParamToken: $hasParamToken, isDefault: $isDefault, needsReentry: $needsReentry, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 

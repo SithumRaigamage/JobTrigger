@@ -118,7 +118,7 @@ abstract class _$TestReportNotifier extends $AsyncNotifier<TestReport?> {
   FutureOr<TestReport?> build(String buildUrl);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<TestReport?>, TestReport?>;
     final element =
         ref.element
@@ -128,6 +128,6 @@ abstract class _$TestReportNotifier extends $AsyncNotifier<TestReport?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

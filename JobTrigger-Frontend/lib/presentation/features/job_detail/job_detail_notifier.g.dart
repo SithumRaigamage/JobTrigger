@@ -99,7 +99,7 @@ abstract class _$JobDetailNotifier extends $AsyncNotifier<JenkinsJob> {
   FutureOr<JenkinsJob> build(String jobUrl);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<JenkinsJob>, JenkinsJob>;
     final element =
         ref.element
@@ -109,6 +109,6 @@ abstract class _$JobDetailNotifier extends $AsyncNotifier<JenkinsJob> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

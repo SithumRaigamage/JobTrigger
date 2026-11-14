@@ -64,7 +64,7 @@ abstract class _$AppLockNotifier extends $Notifier<AppLockState> {
   AppLockState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AppLockState, AppLockState>;
     final element =
         ref.element
@@ -74,6 +74,6 @@ abstract class _$AppLockNotifier extends $Notifier<AppLockState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

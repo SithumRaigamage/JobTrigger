@@ -175,7 +175,7 @@ abstract class _$ParameterEditsNotifier extends $Notifier<Map<String, String>> {
   Map<String, String> build(String formKey);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<Map<String, String>, Map<String, String>>;
     final element =
         ref.element
@@ -185,6 +185,6 @@ abstract class _$ParameterEditsNotifier extends $Notifier<Map<String, String>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

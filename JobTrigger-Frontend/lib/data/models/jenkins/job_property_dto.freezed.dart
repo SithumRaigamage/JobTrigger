@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'job_property_dto.dart';
@@ -9,6 +9,7 @@ part of 'job_property_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $JobPropertyDtoCopyWith<JobPropertyDto> get copyWith => _$JobPropertyDtoCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobPropertyDto&&const DeepCollectionEquality().equals(other.parameterDefinitions, parameterDefinitions));
+  final _this = this as JobPropertyDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobPropertyDto&&const DeepCollectionEquality().equals(other.parameterDefinitions, _this.parameterDefinitions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(parameterDefinitions));
+int get hashCode {
+  final _this = this as JobPropertyDto;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.parameterDefinitions));
+}
 
 @override
 String toString() {
-  return 'JobPropertyDto(parameterDefinitions: $parameterDefinitions)';
+  final _this = this as JobPropertyDto;
+  return 'JobPropertyDto(parameterDefinitions: ${_this.parameterDefinitions})';
 }
 
 
@@ -66,7 +72,7 @@ class _$JobPropertyDtoCopyWithImpl<$Res>
 /// Create a copy of JobPropertyDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? parameterDefinitions = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(JobPropertyDto(
 parameterDefinitions: freezed == parameterDefinitions ? _self.parameterDefinitions : parameterDefinitions // ignore: cast_nullable_to_non_nullable
 as List<ParameterDefinitionDto>?,
   ));
@@ -209,7 +215,7 @@ return $default(_that.parameterDefinitions);case _:
 @JsonSerializable()
 
 class _JobPropertyDto implements JobPropertyDto {
-  const _JobPropertyDto({final  List<ParameterDefinitionDto>? parameterDefinitions}): _parameterDefinitions = parameterDefinitions;
+  const _JobPropertyDto({ List<ParameterDefinitionDto>? parameterDefinitions}): _parameterDefinitions = parameterDefinitions;
   factory _JobPropertyDto.fromJson(Map<String, dynamic> json) => _$JobPropertyDtoFromJson(json);
 
  final  List<ParameterDefinitionDto>? _parameterDefinitions;
@@ -235,16 +241,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobPropertyDto&&const DeepCollectionEquality().equals(other._parameterDefinitions, _parameterDefinitions));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobPropertyDto&&const DeepCollectionEquality().equals(other.parameterDefinitions, _parameterDefinitions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_parameterDefinitions));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_parameterDefinitions));
+}
 
 @override
 String toString() {
-  return 'JobPropertyDto(parameterDefinitions: $parameterDefinitions)';
+    return 'JobPropertyDto(parameterDefinitions: $parameterDefinitions)';
 }
 
 

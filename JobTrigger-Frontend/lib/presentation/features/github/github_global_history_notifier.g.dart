@@ -59,7 +59,7 @@ abstract class _$GitHubGlobalHistoryNotifier
   FutureOr<GlobalRunFeed> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<GlobalRunFeed>, GlobalRunFeed>;
     final element =
         ref.element
@@ -69,6 +69,6 @@ abstract class _$GitHubGlobalHistoryNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

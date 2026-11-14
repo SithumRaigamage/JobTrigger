@@ -106,7 +106,7 @@ abstract class _$BuildDetailNotifier extends $AsyncNotifier<JenkinsBuild> {
   FutureOr<JenkinsBuild> build(String buildUrl);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<JenkinsBuild>, JenkinsBuild>;
     final element =
         ref.element
@@ -116,6 +116,6 @@ abstract class _$BuildDetailNotifier extends $AsyncNotifier<JenkinsBuild> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }
