@@ -20,6 +20,7 @@ class AppConfig {
     required this.environment,
     required this.backendBaseUrl,
     this.websiteBaseUrl,
+    this.crashReportDsn,
   });
 
   /// AUD-43: a release build without its config used to fall back to the
@@ -31,6 +32,7 @@ class AppConfig {
     const environmentName = String.fromEnvironment('ENVIRONMENT');
     const backendBaseUrl = String.fromEnvironment('BACKEND_BASE_URL');
     const websiteBaseUrl = String.fromEnvironment('WEBSITE_BASE_URL');
+    const crashReportDsn = String.fromEnvironment('SENTRY_DSN');
     if (isRelease) {
       final problem = releaseConfigProblem(
         environmentName: environmentName,
@@ -48,6 +50,9 @@ class AppConfig {
           ? _devBackendBaseUrl
           : backendBaseUrl,
       websiteBaseUrl: websiteBaseUrlFor(environment, websiteBaseUrl),
+      crashReportDsn: crashReportDsn.trim().isEmpty
+          ? null
+          : crashReportDsn.trim(),
     );
   }
 
@@ -59,6 +64,12 @@ class AppConfig {
   /// Null when a non-dev build has none configured; the login screen then
   /// hides its "Forgot password?" link rather than open a wrong address.
   final String? websiteBaseUrl;
+
+  /// E3: where crash reports go (a GlitchTip DSN, which only lets a client
+  /// *send* events). Null means reporting is off: a build without
+  /// `SENTRY_DSN`, such as tests and CI. Kept out of the committed
+  /// `config/*.json`; see `config/README.md`.
+  final String? crashReportDsn;
 
   /// The website's reset page, or null (see [websiteBaseUrl]).
   Uri? get forgotPasswordUri => websiteBaseUrl == null

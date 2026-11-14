@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/config/app_config.dart';
 import 'core/error/no_retry.dart';
+import 'core/error_reporting/crash_reporting.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_notifier.dart';
 import 'presentation/common_widgets/toast_view.dart';
@@ -15,13 +16,20 @@ import 'presentation/features/home_widget/home_widget_sync.dart';
 import 'presentation/features/notifications/build_watch_notifier.dart';
 import 'presentation/features/open_link/open_link_location.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   // AUD-43: a release build without its config fails here, at launch,
   // rather than at the first backend call.
-  AppConfig.fromEnvironment();
+  final config = AppConfig.fromEnvironment();
   _registerFontLicenses();
-  // No automatic retries: a failed load shows its error, not a spinner.
-  runApp(const ProviderScope(retry: noRetry, child: MyApp()));
+  // E3: crash reporting wraps the app (Flutter, platform and zone errors).
+  // With no DSN, or with the Profile switch off, it just runs the app.
+  await CrashReporting.instance.start(
+    config,
+    // No automatic retries: a failed load shows its error, not a spinner.
+    appRunner: () =>
+        runApp(const ProviderScope(retry: noRetry, child: MyApp())),
+  );
 }
 
 /// P14-02: the bundled typefaces are SIL OFL 1.1, which asks for the

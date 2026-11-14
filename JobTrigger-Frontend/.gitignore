@@ -47,3 +47,5 @@ app.*.map.json
 # Machine-local build config for a physical iPhone (Phase 18): holds this
 # Mac's Wi-Fi IP, written by scripts/run-on-iphone.sh. Never commit it.
 /config/device.json
+# E3: a crash-report DSN, kept out of the repository
+/config/sentry.json

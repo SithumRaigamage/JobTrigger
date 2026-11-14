@@ -19,6 +19,16 @@ password is reset on the website only, never in the app (US-AUTH-08).
 `scripts/run-on-iphone.sh` writes this Mac's Wi-Fi address instead. A
 non-dev build without it hides the link.
 
+## `SENTRY_DSN`
+
+Where crash reports go (E3): a GlitchTip DSN for the `jobtrigger-app`
+project. **Not committed** in `dev.json`, `staging.json` or `prod.json`.
+Leave it out and reporting is off (tests, CI, a plain `flutter run`). Give it
+with a second define file, e.g. a git-ignored `config/sentry.json`
+(`{"SENTRY_DSN": "…"}`) added as
+`--dart-define-from-file=config/sentry.json`, or for the iPhone run
+`SENTRY_DSN_APP=… scripts/run-on-iphone.sh`. See `docs/error-reporting.md`.
+
 ## Usage
 
 ```bash

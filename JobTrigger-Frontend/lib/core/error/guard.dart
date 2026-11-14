@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:dio/dio.dart';
 
+import '../error_reporting/crash_reporting.dart';
 import 'app_failure.dart';
 import 'result.dart';
 
@@ -38,9 +39,16 @@ Future<Result<T, AppFailure>> guardRequest<T>(
     // failure, so both get the unexpected-response copy.
     final cause = exception.error;
     if (cause is FormatException || cause is TypeError) {
-      return Err(UnexpectedResponseFailure(exception.error.toString()));
+      return _reported(
+        UnexpectedResponseFailure(exception.error.toString()),
+        error: cause,
+        stackTrace: exception.stackTrace,
+      );
     }
-    return Err(mapDioException(exception));
+    return _reported(
+      mapDioException(exception),
+      stackTrace: exception.stackTrace,
+    );
   } on Object catch (error, stackTrace) {
     // Deliberately catch-all: this is the boundary the rest of the app
     // relies on never throwing. Logged so a genuine bug isn't invisible.
@@ -50,6 +58,25 @@ Future<Result<T, AppFailure>> guardRequest<T>(
       error: error,
       stackTrace: stackTrace,
     );
-    return Err(UnexpectedResponseFailure(error.toString()));
+    return _reported(
+      UnexpectedResponseFailure(error.toString()),
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
+}
+
+/// E3 / PE-25: hands an unexpected failure to crash reporting (which ignores
+/// expected ones and does nothing when off), then returns it unchanged.
+Result<T, AppFailure> _reported<T>(
+  AppFailure failure, {
+  Object? error,
+  StackTrace? stackTrace,
+}) {
+  CrashReporting.instance.reportFailure(
+    failure,
+    error: error,
+    stackTrace: stackTrace,
+  );
+  return Err(failure);
 }
