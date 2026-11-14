@@ -9,6 +9,8 @@ import '../../domain/credential/sonarqube_credential.dart';
 import '../../domain/credential/sonarqube_credentials_repository.dart';
 import '../models/credential/sonarqube_credential_dto.dart';
 
+import '../demo/demo_account_repositories.dart';
+import '../demo/demo_mode_notifier.dart';
 part 'sonarqube_credentials_repository_impl.g.dart';
 
 /// Talks to `JobTrigger-Backend`'s `/api/sonarqube-credentials` (JWT-authed,
@@ -112,5 +114,10 @@ class SonarQubeCredentialsRepositoryImpl
 }
 
 @riverpod
-SonarQubeCredentialsRepository sonarQubeCredentialsRepository(Ref ref) =>
-    SonarQubeCredentialsRepositoryImpl(ref.watch(dioBackendProvider));
+SonarQubeCredentialsRepository sonarQubeCredentialsRepository(Ref ref) {
+  // E2: demo mode never reaches the backend.
+  if (ref.watch(demoModeNotifierProvider)) {
+    return demoSonarQubeCredentialsRepository;
+  }
+  return SonarQubeCredentialsRepositoryImpl(ref.watch(dioBackendProvider));
+}

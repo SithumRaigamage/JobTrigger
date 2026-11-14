@@ -54,4 +54,4 @@ final class JenkinsRepositoryProvider
   }
 }
 
-String _$jenkinsRepositoryHash() => r'd331e6c32396cd7b057450f28d838c64067c08d9';
+String _$jenkinsRepositoryHash() => r'12230179dd7e820dabce5ded9025bff1e591da42';

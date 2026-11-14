@@ -39,6 +39,7 @@ const toc = [
   { id: "use", label: "How it's used" },
   { id: "usage", label: "Anonymous usage data" },
   { id: "crash", label: "Crash reports" },
+  { id: "demo", label: "Demo mode" },
   { id: "email", label: "Email" },
   { id: "delete", label: "Deleting your data" },
   { id: "contact", label: "Contact" },
@@ -121,6 +122,17 @@ export function PrivacyView() {
           to a service we run ourselves, not to an advertising or analytics company, and aren&apos;t
           linked to your email. In the app, turn this off under Profile → Privacy → Send crash
           reports; turning it off also deletes reports that were waiting to be sent.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="demo" title="Demo mode">
+        <p>
+          &ldquo;Try the demo&rdquo; on the app&apos;s sign-in screen and the{" "}
+          <Link href={routes.demo}>demo page</Link> on this website show sample servers and builds
+          that are built into the app and the site. They need no account, and they contact no server
+          of ours or yours. In the app, the only thing kept is a setting that says the demo is on;
+          it is removed when you choose Exit demo, along with the sample choices the demo made. No
+          credentials are read, and nothing you tap in the demo is sent anywhere.
         </p>
       </LegalSection>
 

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/platform/home_widget_bridge.dart';
+import '../../../data/demo/demo_mode_notifier.dart';
 import '../../../domain/auth/auth_state.dart';
 import '../../../domain/widget/widget_snapshot.dart';
 import '../app_lock/app_lock_notifier.dart';
@@ -22,6 +23,8 @@ void homeWidgetSync(Ref ref) {
     authNotifierProvider.select((auth) => auth.value is Authenticated),
   );
   if (!signedIn) return;
+  // E2 (PE-14): sample jobs must never reach the real home-screen widget.
+  if (ref.watch(demoModeNotifierProvider)) return;
   // AUD-54: names stay off the home screen while the app lock is on. Wait
   // for the lock settings, so a cold start can't write names first.
   final lock = ref.watch(

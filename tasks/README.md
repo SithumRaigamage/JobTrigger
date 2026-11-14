@@ -34,7 +34,7 @@ check "where are we."
 | 18 — iPhone testing on the local network | `phase-18-iphone-lan-testing.md` | done 2026-10-26 (P18-01..03; 01..02 merged via PR #54, 03 on `docs/iphone-wireless`). Guide: `IPHONE.md` | none — requested by the owner 2026-10-26 |
 | 19 — Bug fixes and improvements (epic FIX) | `phase-19-bug-fixes.md` | done 2026-10-29 (P19-01..07) | none — found testing on a real iPhone 2026-10-29 |
 | 20 — Subscriptions (epic SUB) | `phase-20-subscriptions.md` | todo — proposed 2026-11-12, waiting for owner approval (P20-00). Plan: `docs/subscription/` | Launch prerequisites: backend deployed (P15-22), store accounts (`release-checklist.md`), P8-26/27 and P10-14/15 |
-| Emergency — Pre-release fixes (epic EMERG) | `phase-emergency.md` | in-progress — approved 2026-11-14 (PE-00), decisions recorded in the file. Plan: `docs/improvement-plan.md` | Before store submission; E5 needs a real GitHub token |
+| Emergency — Pre-release fixes (epic EMERG) | `phase-emergency.md` | in-progress — approved 2026-11-14 (PE-00), decisions recorded in the file. E2 demo mode dev-complete 2026-11-14 (PE-10..18; the iPhone walkthrough is unverified, the review account is an owner action). Plan: `docs/improvement-plan.md` | Before store submission; E5 needs a real GitHub token |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." A handful

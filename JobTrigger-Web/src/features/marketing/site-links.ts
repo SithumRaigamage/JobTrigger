@@ -12,6 +12,7 @@ export const routes = {
   terms: "/terms",
   licenses: "/licenses",
   signIn: "/sign-in",
+  demo: "/demo",
   addServer: "/servers/new",
   account: "/account",
 } as const;

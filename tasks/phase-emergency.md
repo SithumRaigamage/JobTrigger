@@ -60,7 +60,7 @@ can only be checked on a real iPhone or a real server is marked unverified.
       date). `launch-readiness.test.ts` already lists what is missing.
       Add a `/licenses` page, or link the app to the app's own licenses screen
       and drop `openSourceLicensesUrl`. **Decision.**
-- [ ] PE-04 (crash reporting part done with PE-28; demo mode part waits for E2) Privacy policy text: add sections for crash reporting (E3) and
+- [x] PE-04 (2026-11-14: crash reporting part done with PE-28, "Demo mode" section added with E2; legal review is still an owner action) Privacy policy text: add sections for crash reporting (E3) and
       demo mode (E2) once those are approved, so the policy matches what ships.
       Legal review is an owner action (`phase-15-website.md`).
 
@@ -103,7 +103,7 @@ does nothing in the demo looks broken to a reviewer. Why not simulate
 everything: more fake code to maintain, and it blurs what's real.
 
 *App*
-- [ ] PE-10 `lib/data/demo/`: `DemoJenkinsRepository`,
+- [x] PE-10 (2026-11-14, `lib/data/demo/`; unverified on a device) `lib/data/demo/`: `DemoJenkinsRepository`,
       `DemoGitHubRepository`, `DemoSonarQubeRepository`, implementing the
       existing domain interfaces with fixed sample data (a folder tree, a
       pipeline with stages, a failed build with a readable log, a running
@@ -111,42 +111,42 @@ everything: more fake code to maintain, and it blurs what's real.
       failing gate). Build them from the shapes the existing test fakes use
       (`test/support/fake_jenkins_repository.dart`,
       `fake_github_repository.dart`), not by copying test code into `lib/`.
-- [ ] PE-11 `DemoModeNotifier` (stored in `shared_preferences`, not secure
+- [x] PE-11 (2026-11-14; the repository providers branch on the flag rather than a root ProviderScope override, so turning demo on or off needs no new scope, and the real client providers are never built in demo) `DemoModeNotifier` (stored in `shared_preferences`, not secure
       storage, since it holds no secret). When it's on, the app's root
       `ProviderScope` overrides the repository providers with the demo ones.
       The real data layer is untouched.
-- [ ] PE-12 Entry point: a "Try the demo" button on the sign-in screen.
+- [x] PE-12 (2026-11-14; "Try the demo" runs `AuthNotifier.enterDemo`, so the router, Profile and the rest see an ordinary signed-in user) Entry point: a "Try the demo" button on the sign-in screen.
       Demo mode skips sign-in and the backend entirely. A persistent "Demo"
       banner, with "Exit demo", returns to sign-in and clears demo state.
-- [ ] PE-13 Write actions in demo: "Build now" on `demo-app/main` plays the
+- [x] PE-13 (2026-11-14; the script lives in the demo repository (`DemoBuildScript`), derived from the clock, with no timer to leak) Write actions in demo: "Build now" on `demo-app/main` plays the
       scripted run through the existing live-status and log screens (the demo
       repository returns the stages and log in timed steps). Every other write
       action shows "Not available in demo". The decision lives in a notifier,
       not in widgets (`CLAUDE.md` §5). The scripted run resets when demo
       mode exits.
-- [ ] PE-14 Make sure demo mode never touches real data: it must not read
+- [x] PE-14 (2026-11-14; no secure-storage read, no widget snapshot, no build watches or background task, and no backend or CI client. The app has no analytics SDK, so there is none to guard) Make sure demo mode never touches real data: it must not read
       secure storage, refresh the widget snapshot from real servers, run
       background build checks (`workmanager`) or send analytics.
       Tests for each.
-- [ ] PE-15 Tests: notifier unit tests, a widget test per main screen in
+- [x] PE-15 (2026-11-14; "no Dio request" is proved by client providers that throw when built) Tests: notifier unit tests, a widget test per main screen in
       demo mode, and a test that no `Dio` request is made while demo is on.
 
 *Website*
-- [ ] PE-16 A "See the demo" path on the marketing site: a read-only portal
+- [x] PE-16 (2026-11-14, `/demo`; Playwright test checks no backend request, no cookie and inert controls) A "See the demo" path on the marketing site: a read-only portal
       preview (`/demo`) showing sample servers with masked secrets, using the
       same components as the real portal but static data. No sign-in, no
       backend calls, no server actions. Playwright test that it makes no
       backend request.
-- [ ] PE-17 Link from the home page and the download section, and say in
+- [x] PE-17 (2026-11-14, links on the home hero and the download section; the store-description line is an owner action in `release-checklist.md`) Link from the home page and the download section, and say in
       the app's store description that the in-app demo needs no account.
 
 *Backend*
-- [ ] PE-18 No demo endpoints. Instead, write the App Review notes
+- [x] PE-18 (2026-11-14, App Review notes added to `release-checklist.md`; creating the review account is still an owner action) No demo endpoints. Instead, write the App Review notes
       (`release-checklist.md`): how to open the demo, plus a review account
       for the sign-in flow. **Owner action:** create that account.
       Its password goes only into App Store Connect, never into the repo.
 
-**Verify (iPhone):** sign-in screen → tap "Try the demo" → browse the Jenkins
+**Verify (iPhone):** *(unverified until run on the phone; the host tests pass)* sign-in screen → tap "Try the demo" → browse the Jenkins
 tree, open the failed build and its log, GitHub runs and the SonarQube gate.
 Open `demo-app/main` → tap "Build now": the run goes through its stages and
 the log streams to success. Tap "Cancel" or "Replay" on another build: "Not

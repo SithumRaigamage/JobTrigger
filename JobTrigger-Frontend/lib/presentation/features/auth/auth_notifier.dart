@@ -10,6 +10,8 @@ import '../../../core/platform/home_widget_bridge.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import '../../../data/cache/job_tree_cache.dart';
 import '../../../data/cache/user_scoped_prefs.dart';
+import '../../../data/demo/demo_data.dart';
+import '../../../data/demo/demo_mode_notifier.dart';
 import '../../../data/models/auth/user_dto.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
 import '../../../domain/auth/auth_state.dart';
@@ -48,6 +50,12 @@ class AuthNotifier extends _$AuthNotifier {
     ref.listen(sessionSignalProvider, (previous, next) {
       if (previous != null && next != previous) logout();
     });
+
+    // E2 (PE-14): demo mode is signed in without a session. Nothing is read
+    // from secure storage, and there is nothing to refresh or wipe.
+    if (ref.read(demoModeNotifierProvider)) {
+      return const Authenticated(demoUser);
+    }
 
     final secureStorage = ref.watch(secureStorageProvider);
     final token = await secureStorage.readToken();
@@ -156,7 +164,34 @@ class AuthNotifier extends _$AuthNotifier {
     return null;
   }
 
+  /// E2 (PE-12): "Try the demo" on the sign-in screen. Signs in as the
+  /// sample user, with no backend call and no stored session.
+  Future<void> enterDemo() async {
+    // Let the startup session check finish first; it would otherwise
+    // overwrite the state set below.
+    await future;
+    await ref.read(demoModeNotifierProvider.notifier).enter();
+    state = const AsyncData(Authenticated(demoUser));
+  }
+
+  /// E2 (PE-12): "Exit demo". Clears everything demo mode set on this device
+  /// (the active ids and pins it saved, its cached listings and the
+  /// scripted run, which lives in the demo repository) and returns to
+  /// sign-in.
+  Future<void> exitDemo() async {
+    await ref.read(demoModeNotifierProvider.notifier).exit();
+    await clearUserScopedPrefs();
+    try {
+      await ref.read(jobTreeCacheProvider).clearServer(demoJenkinsServer.id);
+    } on Object {
+      // Best effort: the OS may already have purged the cache directory.
+    }
+    ref.invalidate(buildWatchNotifierProvider);
+    state = const AsyncData(Unauthenticated());
+  }
+
   Future<void> logout() async {
+    if (ref.read(demoModeNotifierProvider)) return exitDemo();
     await _wipeLocalSession();
     state = const AsyncData(Unauthenticated());
   }

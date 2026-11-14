@@ -937,6 +937,7 @@ class _WatchMenu extends ConsumerWidget {
         'Notifications are off for JobTrigger. Turn them on in your '
             "phone's settings.",
       WatchResult.noServer => 'Choose a Jenkins server first.',
+      WatchResult.unavailableInDemo => 'Not available in demo.',
     };
     ScaffoldMessenger.of(
       context,

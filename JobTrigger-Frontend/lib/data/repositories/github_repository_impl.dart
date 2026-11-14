@@ -15,6 +15,8 @@ import '../../domain/github/github_job.dart';
 import '../models/github/github_workflow_run_dto.dart';
 import '../../domain/github/github_workflow_run.dart';
 
+import '../demo/demo_github_repository.dart';
+import '../demo/demo_mode_notifier.dart';
 part 'github_repository_impl.g.dart';
 
 class GitHubRepositoryImpl implements GitHubRepository {
@@ -222,5 +224,10 @@ class GitHubRepositoryImpl implements GitHubRepository {
 }
 
 @riverpod
-GitHubRepository gitHubRepository(Ref ref) =>
-    GitHubRepositoryImpl(ref.watch(gitHubClientProvider));
+GitHubRepository gitHubRepository(Ref ref) {
+  // E2: demo mode answers from memory and never builds a client.
+  if (ref.watch(demoModeNotifierProvider)) {
+    return ref.watch(demoGitHubRepositoryProvider);
+  }
+  return GitHubRepositoryImpl(ref.watch(gitHubClientProvider));
+}

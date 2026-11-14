@@ -11,4 +11,5 @@ export const publicPaths = [
   routes.privacy,
   routes.terms,
   routes.licenses,
+  routes.demo,
 ] as const;

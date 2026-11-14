@@ -54,4 +54,4 @@ final class AppInfoRepositoryProvider
   }
 }
 
-String _$appInfoRepositoryHash() => r'b973f9d8c84204af1408069ed306d9e22eaa32f8';
+String _$appInfoRepositoryHash() => r'9efd71da496ac7cd046063697c5d8299e681c335';

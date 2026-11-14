@@ -32,11 +32,7 @@ SentryEvent _dirty() => SentryEvent(
   breadcrumbs: [Breadcrumb(message: 'typed $_token')],
   tags: {
     // Built at runtime so the repository's secret scan doesn't flag a synthetic fixture.
-    'uri': [
-      'mongodb+srv://admin:',
-      '$_token',
-      '@cluster.example.net/db',
-    ].join(),
+    'uri': ['mongodb+srv://admin:', _token, '@cluster.example.net/db'].join(),
     'secret': _token,
   },
 );
