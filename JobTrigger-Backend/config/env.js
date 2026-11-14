@@ -194,7 +194,25 @@ function invalidConfig(env = process.env) {
   }
 }
 
+/**
+ * E3 / PE-20: crash reporting (GlitchTip through the Sentry SDK), or null
+ * when SENTRY_DSN is unset (off: tests and local development send nothing).
+ * `environment` is `production` or `development`; `release` is the
+ * package version, or SENTRY_RELEASE when the deploy sets one.
+ */
+function errorReportingConfig(env = process.env) {
+  if (blank(env.SENTRY_DSN)) return null;
+  const environment = blank(env.SENTRY_ENVIRONMENT)
+    ? env.NODE_ENV === 'production' ? 'production' : 'development'
+    : env.SENTRY_ENVIRONMENT.trim();
+  const release = blank(env.SENTRY_RELEASE)
+    ? `${require('../package.json').version}`
+    : env.SENTRY_RELEASE.trim();
+  return { dsn: env.SENTRY_DSN.trim(), environment, release };
+}
+
 module.exports = {
+  errorReportingConfig,
   missingConfig,
   invalidConfig,
   corsOrigins,

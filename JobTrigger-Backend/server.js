@@ -4,7 +4,14 @@ const cors = require('cors');
 const helmet = require('helmet');
 require('dotenv').config();
 
-const { corsOrigins, invalidConfig, missingConfig, trustProxyHops } = require('./config/env');
+const {
+  corsOrigins,
+  errorReportingConfig,
+  invalidConfig,
+  missingConfig,
+  trustProxyHops,
+} = require('./config/env');
+const errorReporting = require('./lib/errorReporting');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 const requestId = require('./middleware/requestId');
 const requestLogger = require('./middleware/requestLogger');
@@ -17,6 +24,9 @@ const CREDENTIAL_TARGETS = require('./models/credentialTargets');
 // `$`-operators as literal values, so `{"$gt": ""}` can't match every row
 // even if a handler forgets a type check.
 mongoose.set('sanitizeFilter', true);
+
+// E3 / PE-20: before anything that can fail. A no-op without SENTRY_DSN.
+errorReporting.init(errorReportingConfig());
 
 const app = express();
 

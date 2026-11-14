@@ -22,6 +22,8 @@ process.env.CREDENTIALS_ENCRYPTION_KEY = require('crypto').randomBytes(32).toStr
 for (const name of [
   'SMTP_HOST', 'SMTP_PORT', 'SMTP_SECURE', 'SMTP_USER', 'SMTP_PASS', 'MAIL_FROM',
   'RESET_PASSWORD_URL', 'UMAMI_URL', 'UMAMI_WEBSITE_ID',
+  // E3: the suites never report to a real host.
+  'SENTRY_DSN', 'SENTRY_ENVIRONMENT', 'SENTRY_RELEASE',
   // P20-17: billing is off in the suites unless a test turns it on.
   'BILLING_ENABLED', 'REVENUECAT_SECRET_API_KEY', 'REVENUECAT_WEBHOOK_AUTH',
   'PADDLE_API_KEY', 'PADDLE_WEBHOOK_SECRET', 'PADDLE_PRICE_MONTHLY', 'PADDLE_PRICE_YEARLY', 'PADDLE_ENV',
