@@ -104,6 +104,17 @@ const subscriptionRefreshLimiter = authLimiter({
   keyGenerator: (req) => `user:${req.user?.id ?? ipKeyGenerator(req.ip)}`,
 });
 
+/**
+ * E4 (PE-32): the decrypted-secret endpoint, per user. The app asks once per
+ * saved server (then caches), so this is generous for that and a wall for
+ * anything harvesting.
+ */
+const credentialSecretLimiter = authLimiter({
+  windowMs: 10 * MINUTE,
+  limit: fromEnv('CREDENTIAL_SECRET_RATE_LIMIT', 30),
+  keyGenerator: (req) => `user:${req.user?.id ?? ipKeyGenerator(req.ip)}`,
+});
+
 /** P20-16: generous; RevenueCat delivers from a few IPs in bursts. */
 const billingWebhookLimiter = authLimiter({
   windowMs: MINUTE,
@@ -112,6 +123,7 @@ const billingWebhookLimiter = authLimiter({
 
 module.exports = {
   authLimiter,
+  credentialSecretLimiter,
   billingWebhookLimiter,
   subscriptionRefreshLimiter,
   passwordResetConfirmLimiter,

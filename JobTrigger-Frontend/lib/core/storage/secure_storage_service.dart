@@ -25,6 +25,16 @@ class SecureStorageService {
 
   Future<String?> readRefreshToken() => _storage.read(key: _refreshTokenKey);
 
+  /// E4: named values for the credential secrets fetched from the backend
+  /// (`data/credentials/credential_secrets.dart`). Same store as the JWT, so
+  /// [clear] (logout, account deletion) drops them with it.
+  Future<String?> readValue(String key) => _storage.read(key: key);
+
+  Future<void> writeValue(String key, String value) =>
+      _storage.write(key: key, value: value);
+
+  Future<void> deleteValue(String key) => _storage.delete(key: key);
+
   Future<void> clear() => _storage.deleteAll();
 }
 

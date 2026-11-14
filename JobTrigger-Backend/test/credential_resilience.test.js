@@ -38,7 +38,7 @@ describe('Undecryptable credentials (AUD-63)', function() {
     await SonarQubeCredential.collection.deleteMany({ userId: user });
   });
 
-  it('lists an unreadable GitHub token as null with needsReentry, and keeps the others', async function() {
+  it('lists an unreadable GitHub token with a null mask and needsReentry, and keeps the others', async function() {
     await GitHubCredential.collection.insertOne({
       userId: new mongoose.Types.ObjectId(userId),
       label: 'Broken',
@@ -58,15 +58,18 @@ describe('Undecryptable credentials (AUD-63)', function() {
 
     const broken = list.body.find((c) => c.label === 'Broken');
     expect(broken).to.exist;
-    expect(broken.token).to.equal(null);
+    // E4: lists carry a mask, never the secret.
+    expect(broken.secretMask).to.equal(null);
+    expect(broken).to.not.have.property('token');
     expect(broken.needsReentry).to.equal(true);
 
     const working = list.body.find((c) => c.label === 'Working');
-    expect(working.token).to.equal('ghp_working');
+    expect(working.secretMask).to.equal('••••king');
+    expect(working).to.not.have.property('token');
     expect(working.needsReentry).to.equal(false);
   });
 
-  it('lists an unreadable Jenkins password as null with needsReentry', async function() {
+  it('lists an unreadable Jenkins password with a null mask and needsReentry', async function() {
     await JenkinsCredential.collection.insertOne({
       userId: new mongoose.Types.ObjectId(userId),
       serverName: 'Broken Jenkins',
@@ -82,11 +85,12 @@ describe('Undecryptable credentials (AUD-63)', function() {
 
     const broken = list.body.find((c) => c.serverName === 'Broken Jenkins');
     expect(broken).to.exist;
-    expect(broken.password).to.equal(null);
+    expect(broken.secretMask).to.equal(null);
+    expect(broken).to.not.have.property('password');
     expect(broken.needsReentry).to.equal(true);
   });
 
-  it('lists an unreadable SonarQube token as null with needsReentry', async function() {
+  it('lists an unreadable SonarQube token with a null mask and needsReentry', async function() {
     await SonarQubeCredential.collection.insertOne({
       userId: new mongoose.Types.ObjectId(userId),
       label: 'Broken Sonar',
@@ -101,7 +105,8 @@ describe('Undecryptable credentials (AUD-63)', function() {
 
     const broken = list.body.find((c) => c.label === 'Broken Sonar');
     expect(broken).to.exist;
-    expect(broken.token).to.equal(null);
+    expect(broken.secretMask).to.equal(null);
+    expect(broken).to.not.have.property('token');
     expect(broken.needsReentry).to.equal(true);
   });
 
@@ -141,7 +146,7 @@ describe('Undecryptable credentials (AUD-63)', function() {
     expect(text).to.not.include('nosuchkey');
   });
 
-  it('returns a legacy plaintext row unchanged', async function() {
+  it('masks a legacy plaintext row', async function() {
     await GitHubCredential.collection.insertOne({
       userId: new mongoose.Types.ObjectId(userId),
       label: 'Legacy',
@@ -152,7 +157,8 @@ describe('Undecryptable credentials (AUD-63)', function() {
 
     const list = await api().get('/api/github-credentials').set('x-auth-token', token);
     const legacy = list.body.find((c) => c.label === 'Legacy');
-    expect(legacy.token).to.equal('ghp_legacy_plaintext');
+    expect(legacy.secretMask).to.equal('••••text');
+    expect(legacy).to.not.have.property('token');
     expect(legacy.needsReentry).to.equal(false);
   });
 
@@ -162,7 +168,10 @@ describe('Undecryptable credentials (AUD-63)', function() {
       .set('x-auth-token', token)
       .send({ serverName: 'No param token', jenkinsURL: 'http://empty', username: 'u', password: 'p', paramToken: '' });
     expect(created.status).to.equal(201);
-    expect(created.body.paramToken).to.equal('');
+    // E4: an empty trigger token is "none saved"; the short password masks to dots only.
+    expect(created.body.hasParamToken).to.equal(false);
+    expect(created.body.secretMask).to.equal('••••');
+    expect(created.body).to.not.have.property('paramToken');
     expect(created.body.needsReentry).to.equal(false);
   });
 
@@ -175,7 +184,8 @@ describe('Undecryptable credentials (AUD-63)', function() {
       .set('x-auth-token', token)
       .send({ token: 'ghp_reentered' });
     expect(updated.status).to.equal(200);
-    expect(updated.body.token).to.equal('ghp_reentered');
+    expect(updated.body.secretMask).to.equal('••••ered');
+    expect(updated.body).to.not.have.property('token');
     expect(updated.body.needsReentry).to.equal(false);
   });
 });

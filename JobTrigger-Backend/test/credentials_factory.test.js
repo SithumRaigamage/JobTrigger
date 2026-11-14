@@ -58,7 +58,10 @@ for (const { path, body, required } of routes) {
         .set('x-auth-token', token)
         .send({ isDefault: false });
       expect(res.status).to.equal(200);
-      expect(res.body[required]).to.equal(body[required]);
+      // E4: the secret is not echoed; the mask shows it was kept.
+      expect(res.body).to.not.have.property(required);
+      expect(res.body.secretMask).to.equal(created.body.secretMask);
+      expect(res.body.secretMask).to.be.a('string');
       expect(new Date(res.body.updatedAt)).to.be.above(new Date(created.body.updatedAt));
     });
 

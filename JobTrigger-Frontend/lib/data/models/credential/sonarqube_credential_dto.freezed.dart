@@ -18,7 +18,9 @@ mixin _$SonarQubeCredentialDto {
 @JsonKey(name: '_id') String get id; String get label; String get baseUrl;/// Null when the backend could not decrypt the stored token (AUD-63)
 /// — the credential is still listed, but it can't be used until the
 /// user types the token again.
- String? get token; String? get defaultOrganization; bool get isDefault;/// AUD-63: the backend flags a credential whose token it could not
+ String? get token;/// E4: the backend's lists carry a mask and no token. `CredentialSecrets`
+/// fills [token] before `toDomain`.
+ String? get secretMask; String? get defaultOrganization; bool get isDefault;/// AUD-63: the backend flags a credential whose token it could not
 /// decrypt. Always present in the response.
  bool get needsReentry; String? get createdAt; String? get updatedAt;
 /// Create a copy of SonarQubeCredentialDto
@@ -33,16 +35,16 @@ $SonarQubeCredentialDtoCopyWith<SonarQubeCredentialDto> get copyWith => _$SonarQ
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SonarQubeCredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.token, token) || other.token == token)&&(identical(other.defaultOrganization, defaultOrganization) || other.defaultOrganization == defaultOrganization)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.needsReentry, needsReentry) || other.needsReentry == needsReentry)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SonarQubeCredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.token, token) || other.token == token)&&(identical(other.secretMask, secretMask) || other.secretMask == secretMask)&&(identical(other.defaultOrganization, defaultOrganization) || other.defaultOrganization == defaultOrganization)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.needsReentry, needsReentry) || other.needsReentry == needsReentry)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,baseUrl,token,defaultOrganization,isDefault,needsReentry,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,label,baseUrl,token,secretMask,defaultOrganization,isDefault,needsReentry,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'SonarQubeCredentialDto(id: $id, label: $label, baseUrl: $baseUrl, token: $token, defaultOrganization: $defaultOrganization, isDefault: $isDefault, needsReentry: $needsReentry, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'SonarQubeCredentialDto(id: $id, label: $label, baseUrl: $baseUrl, token: $token, secretMask: $secretMask, defaultOrganization: $defaultOrganization, isDefault: $isDefault, needsReentry: $needsReentry, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -53,7 +55,7 @@ abstract mixin class $SonarQubeCredentialDtoCopyWith<$Res>  {
   factory $SonarQubeCredentialDtoCopyWith(SonarQubeCredentialDto value, $Res Function(SonarQubeCredentialDto) _then) = _$SonarQubeCredentialDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: '_id') String id, String label, String baseUrl, String? token, String? defaultOrganization, bool isDefault, bool needsReentry, String? createdAt, String? updatedAt
+@JsonKey(name: '_id') String id, String label, String baseUrl, String? token, String? secretMask, String? defaultOrganization, bool isDefault, bool needsReentry, String? createdAt, String? updatedAt
 });
 
 
@@ -70,12 +72,13 @@ class _$SonarQubeCredentialDtoCopyWithImpl<$Res>
 
 /// Create a copy of SonarQubeCredentialDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? baseUrl = null,Object? token = freezed,Object? defaultOrganization = freezed,Object? isDefault = null,Object? needsReentry = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? baseUrl = null,Object? token = freezed,Object? secretMask = freezed,Object? defaultOrganization = freezed,Object? isDefault = null,Object? needsReentry = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,baseUrl: null == baseUrl ? _self.baseUrl : baseUrl // ignore: cast_nullable_to_non_nullable
 as String,token: freezed == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
+as String?,secretMask: freezed == secretMask ? _self.secretMask : secretMask // ignore: cast_nullable_to_non_nullable
 as String?,defaultOrganization: freezed == defaultOrganization ? _self.defaultOrganization : defaultOrganization // ignore: cast_nullable_to_non_nullable
 as String?,isDefault: null == isDefault ? _self.isDefault : isDefault // ignore: cast_nullable_to_non_nullable
 as bool,needsReentry: null == needsReentry ? _self.needsReentry : needsReentry // ignore: cast_nullable_to_non_nullable
@@ -166,10 +169,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String label,  String baseUrl,  String? token,  String? defaultOrganization,  bool isDefault,  bool needsReentry,  String? createdAt,  String? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String label,  String baseUrl,  String? token,  String? secretMask,  String? defaultOrganization,  bool isDefault,  bool needsReentry,  String? createdAt,  String? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SonarQubeCredentialDto() when $default != null:
-return $default(_that.id,_that.label,_that.baseUrl,_that.token,_that.defaultOrganization,_that.isDefault,_that.needsReentry,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.label,_that.baseUrl,_that.token,_that.secretMask,_that.defaultOrganization,_that.isDefault,_that.needsReentry,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -187,10 +190,10 @@ return $default(_that.id,_that.label,_that.baseUrl,_that.token,_that.defaultOrga
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String label,  String baseUrl,  String? token,  String? defaultOrganization,  bool isDefault,  bool needsReentry,  String? createdAt,  String? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String label,  String baseUrl,  String? token,  String? secretMask,  String? defaultOrganization,  bool isDefault,  bool needsReentry,  String? createdAt,  String? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SonarQubeCredentialDto():
-return $default(_that.id,_that.label,_that.baseUrl,_that.token,_that.defaultOrganization,_that.isDefault,_that.needsReentry,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.label,_that.baseUrl,_that.token,_that.secretMask,_that.defaultOrganization,_that.isDefault,_that.needsReentry,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +210,10 @@ return $default(_that.id,_that.label,_that.baseUrl,_that.token,_that.defaultOrga
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: '_id')  String id,  String label,  String baseUrl,  String? token,  String? defaultOrganization,  bool isDefault,  bool needsReentry,  String? createdAt,  String? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: '_id')  String id,  String label,  String baseUrl,  String? token,  String? secretMask,  String? defaultOrganization,  bool isDefault,  bool needsReentry,  String? createdAt,  String? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SonarQubeCredentialDto() when $default != null:
-return $default(_that.id,_that.label,_that.baseUrl,_that.token,_that.defaultOrganization,_that.isDefault,_that.needsReentry,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.label,_that.baseUrl,_that.token,_that.secretMask,_that.defaultOrganization,_that.isDefault,_that.needsReentry,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -222,7 +225,7 @@ return $default(_that.id,_that.label,_that.baseUrl,_that.token,_that.defaultOrga
 @JsonSerializable()
 
 class _SonarQubeCredentialDto implements SonarQubeCredentialDto {
-  const _SonarQubeCredentialDto({@JsonKey(name: '_id') required this.id, required this.label, required this.baseUrl, this.token, this.defaultOrganization, this.isDefault = false, this.needsReentry = false, this.createdAt, this.updatedAt});
+  const _SonarQubeCredentialDto({@JsonKey(name: '_id') required this.id, required this.label, required this.baseUrl, this.token, this.secretMask, this.defaultOrganization, this.isDefault = false, this.needsReentry = false, this.createdAt, this.updatedAt});
   factory _SonarQubeCredentialDto.fromJson(Map<String, dynamic> json) => _$SonarQubeCredentialDtoFromJson(json);
 
 @override@JsonKey(name: '_id') final  String id;
@@ -232,6 +235,9 @@ class _SonarQubeCredentialDto implements SonarQubeCredentialDto {
 /// — the credential is still listed, but it can't be used until the
 /// user types the token again.
 @override final  String? token;
+/// E4: the backend's lists carry a mask and no token. `CredentialSecrets`
+/// fills [token] before `toDomain`.
+@override final  String? secretMask;
 @override final  String? defaultOrganization;
 @override@JsonKey() final  bool isDefault;
 /// AUD-63: the backend flags a credential whose token it could not
@@ -253,16 +259,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SonarQubeCredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.token, token) || other.token == token)&&(identical(other.defaultOrganization, defaultOrganization) || other.defaultOrganization == defaultOrganization)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.needsReentry, needsReentry) || other.needsReentry == needsReentry)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SonarQubeCredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.token, token) || other.token == token)&&(identical(other.secretMask, secretMask) || other.secretMask == secretMask)&&(identical(other.defaultOrganization, defaultOrganization) || other.defaultOrganization == defaultOrganization)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault)&&(identical(other.needsReentry, needsReentry) || other.needsReentry == needsReentry)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,baseUrl,token,defaultOrganization,isDefault,needsReentry,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,label,baseUrl,token,secretMask,defaultOrganization,isDefault,needsReentry,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'SonarQubeCredentialDto(id: $id, label: $label, baseUrl: $baseUrl, token: $token, defaultOrganization: $defaultOrganization, isDefault: $isDefault, needsReentry: $needsReentry, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'SonarQubeCredentialDto(id: $id, label: $label, baseUrl: $baseUrl, token: $token, secretMask: $secretMask, defaultOrganization: $defaultOrganization, isDefault: $isDefault, needsReentry: $needsReentry, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -273,7 +279,7 @@ abstract mixin class _$SonarQubeCredentialDtoCopyWith<$Res> implements $SonarQub
   factory _$SonarQubeCredentialDtoCopyWith(_SonarQubeCredentialDto value, $Res Function(_SonarQubeCredentialDto) _then) = __$SonarQubeCredentialDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: '_id') String id, String label, String baseUrl, String? token, String? defaultOrganization, bool isDefault, bool needsReentry, String? createdAt, String? updatedAt
+@JsonKey(name: '_id') String id, String label, String baseUrl, String? token, String? secretMask, String? defaultOrganization, bool isDefault, bool needsReentry, String? createdAt, String? updatedAt
 });
 
 
@@ -290,12 +296,13 @@ class __$SonarQubeCredentialDtoCopyWithImpl<$Res>
 
 /// Create a copy of SonarQubeCredentialDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = null,Object? baseUrl = null,Object? token = freezed,Object? defaultOrganization = freezed,Object? isDefault = null,Object? needsReentry = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = null,Object? baseUrl = null,Object? token = freezed,Object? secretMask = freezed,Object? defaultOrganization = freezed,Object? isDefault = null,Object? needsReentry = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_SonarQubeCredentialDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,baseUrl: null == baseUrl ? _self.baseUrl : baseUrl // ignore: cast_nullable_to_non_nullable
 as String,token: freezed == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
+as String?,secretMask: freezed == secretMask ? _self.secretMask : secretMask // ignore: cast_nullable_to_non_nullable
 as String?,defaultOrganization: freezed == defaultOrganization ? _self.defaultOrganization : defaultOrganization // ignore: cast_nullable_to_non_nullable
 as String?,isDefault: null == isDefault ? _self.isDefault : isDefault // ignore: cast_nullable_to_non_nullable
 as bool,needsReentry: null == needsReentry ? _self.needsReentry : needsReentry // ignore: cast_nullable_to_non_nullable

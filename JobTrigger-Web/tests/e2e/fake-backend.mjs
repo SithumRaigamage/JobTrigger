@@ -168,7 +168,26 @@ const server = createServer(async (req, res) => {
     const row = id && mine.find((candidate) => candidate._id === id);
     const pick = () =>
       Object.fromEntries(tool.fields.filter((f) => body[f] !== undefined).map((f) => [f, body[f]]));
-    const view = (r) => ({ ...r, needsReentry: false, __v: 0 });
+    // E4: like the real backend, responses carry a mask and never a secret.
+    const maskOf = (value) =>
+      typeof value !== "string" || value === ""
+        ? null
+        : value.length >= 8
+          ? `••••${value.slice(-4)}`
+          : "••••";
+    const view = (r) => {
+      const { password, token, paramToken, ...rest } = r;
+      return {
+        ...rest,
+        secretMask: maskOf(password ?? token),
+        ...(tool.kind === "jenkins" ? { hasParamToken: Boolean(paramToken) } : {}),
+        needsReentry: false,
+        __v: 0,
+      };
+    };
+    // The decrypted secret is for the phone app only; the portal must never ask.
+    if (second === "secret")
+      return reply(418, { message: "The portal must not request decrypted secrets" });
 
     if (!id && req.method === "GET") return reply(200, mine.map(view));
     if (!id && req.method === "POST") {

@@ -24,6 +24,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+// Since E4 the backend sends masks only. These full values appear nowhere in
+// a response; they are here to prove the portal never holds one.
 const JENKINS_TOKEN = "fake-jenkins-token-a91f";
 const PARAM_TOKEN = "trigger-token-secret-value";
 const GITHUB_TOKEN = "github_pat_11ABCDEFG0123456789_secretpart";
@@ -35,26 +37,26 @@ const jenkinsRow = {
   serverName: "Acme production",
   jenkinsURL: "https://ci.acme.dev",
   username: "sam",
-  password: JENKINS_TOKEN,
-  paramToken: PARAM_TOKEN,
+  secretMask: "••••a91f",
+  hasParamToken: true,
   isDefault: true,
   needsReentry: false,
   __v: 0,
 };
 
 describe("credential reads", () => {
-  it("mask every secret and never return one in full", async () => {
+  it("show the backend's masks and never hold a secret in full", async () => {
     fetchMock.mockImplementation(async (url) => {
       const path = new URL(String(url)).pathname;
       if (path === "/api/credentials") return json([jenkinsRow]);
       if (path === "/api/github-credentials")
-        return json([{ _id: "g1", label: "Work", token: GITHUB_TOKEN, isDefault: false }]);
+        return json([{ _id: "g1", label: "Work", secretMask: "••••part", isDefault: false }]);
       return json([
         {
           _id: "s1",
           label: "Cloud",
           baseUrl: "https://sonarcloud.io",
-          token: SONAR_TOKEN,
+          secretMask: "••••02cd",
           isDefault: true,
         },
       ]);
@@ -85,7 +87,7 @@ describe("credential reads", () => {
   });
 
   it("reports an unreadable secret (AUD-63) with no mask", async () => {
-    fetchMock.mockResolvedValue(json([{ ...jenkinsRow, password: null, needsReentry: true }]));
+    fetchMock.mockResolvedValue(json([{ ...jenkinsRow, secretMask: null, needsReentry: true }]));
 
     const result = await listJenkins("t");
 
@@ -141,5 +143,38 @@ describe("credential writes", () => {
     expect(String(fetchMock.mock.calls[0][0])).toBe(
       "http://backend.test/api/github-credentials/switch/g1",
     );
+  });
+});
+
+describe("the decrypted-secret endpoint (E4, PE-35)", () => {
+  it("is never called, by any read or write", async () => {
+    fetchMock.mockImplementation(async (url) =>
+      new URL(String(url)).pathname === "/api/credentials" && !String(url).includes("switch")
+        ? json([jenkinsRow])
+        : json(jenkinsRow),
+    );
+
+    await listJenkins("t");
+    await listGitHub("t");
+    await listSonarQube("t");
+    await createJenkins("t", {
+      name: "n",
+      url: "https://ci.acme.dev",
+      username: "u",
+      password: "p",
+      paramToken: "",
+    });
+    await updateJenkins("t", "j1", {
+      name: "n",
+      url: "https://ci.acme.dev",
+      username: "u",
+      password: "",
+      paramToken: "",
+    });
+    await setDefaultCredential("t", "jenkins", "j1");
+
+    const urls = fetchMock.mock.calls.map(([url]) => String(url));
+    expect(urls.length).toBeGreaterThan(5);
+    expect(urls.filter((url) => /\/secret(\?|$)/.test(url))).toEqual([]);
   });
 });
