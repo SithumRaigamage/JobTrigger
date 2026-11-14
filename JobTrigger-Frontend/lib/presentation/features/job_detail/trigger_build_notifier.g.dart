@@ -130,7 +130,7 @@ abstract class _$TriggerBuildNotifier extends $AsyncNotifier<void> {
   FutureOr<void> build(String jobUrl);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<void>, void>;
     final element =
         ref.element
@@ -140,6 +140,6 @@ abstract class _$TriggerBuildNotifier extends $AsyncNotifier<void> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

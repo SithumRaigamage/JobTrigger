@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'pipeline_stage_dto.dart';
@@ -9,6 +9,7 @@ part of 'pipeline_stage_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $PipelineDescribeDtoCopyWith<PipelineDescribeDto> get copyWith => _$PipelineDesc
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PipelineDescribeDto&&const DeepCollectionEquality().equals(other.stages, stages));
+  final _this = this as PipelineDescribeDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PipelineDescribeDto&&const DeepCollectionEquality().equals(other.stages, _this.stages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(stages));
+int get hashCode {
+  final _this = this as PipelineDescribeDto;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.stages));
+}
 
 @override
 String toString() {
-  return 'PipelineDescribeDto(stages: $stages)';
+  final _this = this as PipelineDescribeDto;
+  return 'PipelineDescribeDto(stages: ${_this.stages})';
 }
 
 
@@ -66,7 +72,7 @@ class _$PipelineDescribeDtoCopyWithImpl<$Res>
 /// Create a copy of PipelineDescribeDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? stages = null,}) {
-  return _then(_self.copyWith(
+  return _then(PipelineDescribeDto(
 stages: null == stages ? _self.stages : stages // ignore: cast_nullable_to_non_nullable
 as List<PipelineStageDto>,
   ));
@@ -209,7 +215,7 @@ return $default(_that.stages);case _:
 @JsonSerializable()
 
 class _PipelineDescribeDto implements PipelineDescribeDto {
-  const _PipelineDescribeDto({final  List<PipelineStageDto> stages = const <PipelineStageDto>[]}): _stages = stages;
+  const _PipelineDescribeDto({ List<PipelineStageDto> stages = const <PipelineStageDto>[]}): _stages = stages;
   factory _PipelineDescribeDto.fromJson(Map<String, dynamic> json) => _$PipelineDescribeDtoFromJson(json);
 
  final  List<PipelineStageDto> _stages;
@@ -233,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PipelineDescribeDto&&const DeepCollectionEquality().equals(other._stages, _stages));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PipelineDescribeDto&&const DeepCollectionEquality().equals(other.stages, _stages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_stages));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_stages));
+}
 
 @override
 String toString() {
-  return 'PipelineDescribeDto(stages: $stages)';
+    return 'PipelineDescribeDto(stages: $stages)';
 }
 
 
@@ -297,16 +305,21 @@ $PipelineStageDtoCopyWith<PipelineStageDto> get copyWith => _$PipelineStageDtoCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PipelineStageDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.durationMillis, durationMillis) || other.durationMillis == durationMillis)&&(identical(other.startTimeMillis, startTimeMillis) || other.startTimeMillis == startTimeMillis)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other.stageFlowNodes, stageFlowNodes));
+  final _this = this as PipelineStageDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PipelineStageDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.durationMillis, _this.durationMillis) || other.durationMillis == _this.durationMillis)&&(identical(other.startTimeMillis, _this.startTimeMillis) || other.startTimeMillis == _this.startTimeMillis)&&(identical(other.error, _this.error) || other.error == _this.error)&&const DeepCollectionEquality().equals(other.stageFlowNodes, _this.stageFlowNodes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,status,durationMillis,startTimeMillis,error,const DeepCollectionEquality().hash(stageFlowNodes));
+int get hashCode {
+  final _this = this as PipelineStageDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.status,_this.durationMillis,_this.startTimeMillis,_this.error,const DeepCollectionEquality().hash(_this.stageFlowNodes));
+}
 
 @override
 String toString() {
-  return 'PipelineStageDto(id: $id, name: $name, status: $status, durationMillis: $durationMillis, startTimeMillis: $startTimeMillis, error: $error, stageFlowNodes: $stageFlowNodes)';
+  final _this = this as PipelineStageDto;
+  return 'PipelineStageDto(id: ${_this.id}, name: ${_this.name}, status: ${_this.status}, durationMillis: ${_this.durationMillis}, startTimeMillis: ${_this.startTimeMillis}, error: ${_this.error}, stageFlowNodes: ${_this.stageFlowNodes})';
 }
 
 
@@ -335,7 +348,7 @@ class _$PipelineStageDtoCopyWithImpl<$Res>
 /// Create a copy of PipelineStageDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? status = null,Object? durationMillis = freezed,Object? startTimeMillis = freezed,Object? error = freezed,Object? stageFlowNodes = null,}) {
-  return _then(_self.copyWith(
+  return _then(PipelineStageDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -496,7 +509,7 @@ return $default(_that.id,_that.name,_that.status,_that.durationMillis,_that.star
 @JsonSerializable()
 
 class _PipelineStageDto implements PipelineStageDto {
-  const _PipelineStageDto({required this.id, required this.name, required this.status, this.durationMillis, this.startTimeMillis, this.error, final  List<PipelineStepDto> stageFlowNodes = const <PipelineStepDto>[]}): _stageFlowNodes = stageFlowNodes;
+  const _PipelineStageDto({required this.id, required this.name, required this.status, this.durationMillis, this.startTimeMillis, this.error,  List<PipelineStepDto> stageFlowNodes = const <PipelineStepDto>[]}): _stageFlowNodes = stageFlowNodes;
   factory _PipelineStageDto.fromJson(Map<String, dynamic> json) => _$PipelineStageDtoFromJson(json);
 
 @override final  String id;
@@ -526,16 +539,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PipelineStageDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.durationMillis, durationMillis) || other.durationMillis == durationMillis)&&(identical(other.startTimeMillis, startTimeMillis) || other.startTimeMillis == startTimeMillis)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other._stageFlowNodes, _stageFlowNodes));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PipelineStageDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.durationMillis, durationMillis) || other.durationMillis == durationMillis)&&(identical(other.startTimeMillis, startTimeMillis) || other.startTimeMillis == startTimeMillis)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other.stageFlowNodes, _stageFlowNodes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,status,durationMillis,startTimeMillis,error,const DeepCollectionEquality().hash(_stageFlowNodes));
+int get hashCode {
+    return Object.hash(runtimeType,id,name,status,durationMillis,startTimeMillis,error,const DeepCollectionEquality().hash(_stageFlowNodes));
+}
 
 @override
 String toString() {
-  return 'PipelineStageDto(id: $id, name: $name, status: $status, durationMillis: $durationMillis, startTimeMillis: $startTimeMillis, error: $error, stageFlowNodes: $stageFlowNodes)';
+    return 'PipelineStageDto(id: $id, name: $name, status: $status, durationMillis: $durationMillis, startTimeMillis: $startTimeMillis, error: $error, stageFlowNodes: $stageFlowNodes)';
 }
 
 
@@ -608,16 +623,21 @@ $PipelineErrorDtoCopyWith<PipelineErrorDto> get copyWith => _$PipelineErrorDtoCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PipelineErrorDto&&(identical(other.message, message) || other.message == message));
+  final _this = this as PipelineErrorDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PipelineErrorDto&&(identical(other.message, _this.message) || other.message == _this.message));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,message);
+int get hashCode {
+  final _this = this as PipelineErrorDto;
+  return Object.hash(runtimeType,_this.message);
+}
 
 @override
 String toString() {
-  return 'PipelineErrorDto(message: $message)';
+  final _this = this as PipelineErrorDto;
+  return 'PipelineErrorDto(message: ${_this.message})';
 }
 
 
@@ -646,7 +666,7 @@ class _$PipelineErrorDtoCopyWithImpl<$Res>
 /// Create a copy of PipelineErrorDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? message = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PipelineErrorDto(
 message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -807,16 +827,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PipelineErrorDto&&(identical(other.message, message) || other.message == message));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PipelineErrorDto&&(identical(other.message, message) || other.message == message));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,message);
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
 
 @override
 String toString() {
-  return 'PipelineErrorDto(message: $message)';
+    return 'PipelineErrorDto(message: $message)';
 }
 
 
@@ -871,16 +893,21 @@ $PipelineStepDtoCopyWith<PipelineStepDto> get copyWith => _$PipelineStepDtoCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PipelineStepDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.parameterDescription, parameterDescription) || other.parameterDescription == parameterDescription)&&(identical(other.durationMillis, durationMillis) || other.durationMillis == durationMillis));
+  final _this = this as PipelineStepDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PipelineStepDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.parameterDescription, _this.parameterDescription) || other.parameterDescription == _this.parameterDescription)&&(identical(other.durationMillis, _this.durationMillis) || other.durationMillis == _this.durationMillis));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,status,parameterDescription,durationMillis);
+int get hashCode {
+  final _this = this as PipelineStepDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.status,_this.parameterDescription,_this.durationMillis);
+}
 
 @override
 String toString() {
-  return 'PipelineStepDto(id: $id, name: $name, status: $status, parameterDescription: $parameterDescription, durationMillis: $durationMillis)';
+  final _this = this as PipelineStepDto;
+  return 'PipelineStepDto(id: ${_this.id}, name: ${_this.name}, status: ${_this.status}, parameterDescription: ${_this.parameterDescription}, durationMillis: ${_this.durationMillis})';
 }
 
 
@@ -909,7 +936,7 @@ class _$PipelineStepDtoCopyWithImpl<$Res>
 /// Create a copy of PipelineStepDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? status = null,Object? parameterDescription = freezed,Object? durationMillis = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PipelineStepDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -1078,16 +1105,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PipelineStepDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.parameterDescription, parameterDescription) || other.parameterDescription == parameterDescription)&&(identical(other.durationMillis, durationMillis) || other.durationMillis == durationMillis));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PipelineStepDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.parameterDescription, parameterDescription) || other.parameterDescription == parameterDescription)&&(identical(other.durationMillis, durationMillis) || other.durationMillis == durationMillis));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,status,parameterDescription,durationMillis);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,status,parameterDescription,durationMillis);
+}
 
 @override
 String toString() {
-  return 'PipelineStepDto(id: $id, name: $name, status: $status, parameterDescription: $parameterDescription, durationMillis: $durationMillis)';
+    return 'PipelineStepDto(id: $id, name: $name, status: $status, parameterDescription: $parameterDescription, durationMillis: $durationMillis)';
 }
 
 
@@ -1146,16 +1175,21 @@ $StepLogDtoCopyWith<StepLogDto> get copyWith => _$StepLogDtoCopyWithImpl<StepLog
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StepLogDto&&(identical(other.text, text) || other.text == text)&&(identical(other.hasMore, hasMore) || other.hasMore == hasMore));
+  final _this = this as StepLogDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StepLogDto&&(identical(other.text, _this.text) || other.text == _this.text)&&(identical(other.hasMore, _this.hasMore) || other.hasMore == _this.hasMore));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,text,hasMore);
+int get hashCode {
+  final _this = this as StepLogDto;
+  return Object.hash(runtimeType,_this.text,_this.hasMore);
+}
 
 @override
 String toString() {
-  return 'StepLogDto(text: $text, hasMore: $hasMore)';
+  final _this = this as StepLogDto;
+  return 'StepLogDto(text: ${_this.text}, hasMore: ${_this.hasMore})';
 }
 
 
@@ -1184,7 +1218,7 @@ class _$StepLogDtoCopyWithImpl<$Res>
 /// Create a copy of StepLogDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? text = null,Object? hasMore = null,}) {
-  return _then(_self.copyWith(
+  return _then(StepLogDto(
 text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
 as String,hasMore: null == hasMore ? _self.hasMore : hasMore // ignore: cast_nullable_to_non_nullable
 as bool,
@@ -1347,16 +1381,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StepLogDto&&(identical(other.text, text) || other.text == text)&&(identical(other.hasMore, hasMore) || other.hasMore == hasMore));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StepLogDto&&(identical(other.text, text) || other.text == text)&&(identical(other.hasMore, hasMore) || other.hasMore == hasMore));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,text,hasMore);
+int get hashCode {
+    return Object.hash(runtimeType,text,hasMore);
+}
 
 @override
 String toString() {
-  return 'StepLogDto(text: $text, hasMore: $hasMore)';
+    return 'StepLogDto(text: $text, hasMore: $hasMore)';
 }
 
 

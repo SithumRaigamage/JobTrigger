@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'github_workflow_run_dto.dart';
@@ -9,6 +9,7 @@ part of 'github_workflow_run_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $GitHubWorkflowRunDtoCopyWith<GitHubWorkflowRunDto> get copyWith => _$GitHubWork
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitHubWorkflowRunDto&&(identical(other.id, id) || other.id == id)&&(identical(other.runNumber, runNumber) || other.runNumber == runNumber)&&(identical(other.displayTitle, displayTitle) || other.displayTitle == displayTitle)&&(identical(other.name, name) || other.name == name)&&(identical(other.event, event) || other.event == event)&&(identical(other.status, status) || other.status == status)&&(identical(other.conclusion, conclusion) || other.conclusion == conclusion)&&(identical(other.headBranch, headBranch) || other.headBranch == headBranch)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.htmlUrl, htmlUrl) || other.htmlUrl == htmlUrl)&&(identical(other.workflowId, workflowId) || other.workflowId == workflowId));
+  final _this = this as GitHubWorkflowRunDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitHubWorkflowRunDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.runNumber, _this.runNumber) || other.runNumber == _this.runNumber)&&(identical(other.displayTitle, _this.displayTitle) || other.displayTitle == _this.displayTitle)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.event, _this.event) || other.event == _this.event)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.conclusion, _this.conclusion) || other.conclusion == _this.conclusion)&&(identical(other.headBranch, _this.headBranch) || other.headBranch == _this.headBranch)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.htmlUrl, _this.htmlUrl) || other.htmlUrl == _this.htmlUrl)&&(identical(other.workflowId, _this.workflowId) || other.workflowId == _this.workflowId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,runNumber,displayTitle,name,event,status,conclusion,headBranch,createdAt,htmlUrl,workflowId);
+int get hashCode {
+  final _this = this as GitHubWorkflowRunDto;
+  return Object.hash(runtimeType,_this.id,_this.runNumber,_this.displayTitle,_this.name,_this.event,_this.status,_this.conclusion,_this.headBranch,_this.createdAt,_this.htmlUrl,_this.workflowId);
+}
 
 @override
 String toString() {
-  return 'GitHubWorkflowRunDto(id: $id, runNumber: $runNumber, displayTitle: $displayTitle, name: $name, event: $event, status: $status, conclusion: $conclusion, headBranch: $headBranch, createdAt: $createdAt, htmlUrl: $htmlUrl, workflowId: $workflowId)';
+  final _this = this as GitHubWorkflowRunDto;
+  return 'GitHubWorkflowRunDto(id: ${_this.id}, runNumber: ${_this.runNumber}, displayTitle: ${_this.displayTitle}, name: ${_this.name}, event: ${_this.event}, status: ${_this.status}, conclusion: ${_this.conclusion}, headBranch: ${_this.headBranch}, createdAt: ${_this.createdAt}, htmlUrl: ${_this.htmlUrl}, workflowId: ${_this.workflowId})';
 }
 
 
@@ -66,7 +72,7 @@ class _$GitHubWorkflowRunDtoCopyWithImpl<$Res>
 /// Create a copy of GitHubWorkflowRunDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? runNumber = null,Object? displayTitle = freezed,Object? name = freezed,Object? event = null,Object? status = null,Object? conclusion = freezed,Object? headBranch = freezed,Object? createdAt = freezed,Object? htmlUrl = null,Object? workflowId = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(GitHubWorkflowRunDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,runNumber: null == runNumber ? _self.runNumber : runNumber // ignore: cast_nullable_to_non_nullable
 as int,displayTitle: freezed == displayTitle ? _self.displayTitle : displayTitle // ignore: cast_nullable_to_non_nullable
@@ -247,16 +253,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitHubWorkflowRunDto&&(identical(other.id, id) || other.id == id)&&(identical(other.runNumber, runNumber) || other.runNumber == runNumber)&&(identical(other.displayTitle, displayTitle) || other.displayTitle == displayTitle)&&(identical(other.name, name) || other.name == name)&&(identical(other.event, event) || other.event == event)&&(identical(other.status, status) || other.status == status)&&(identical(other.conclusion, conclusion) || other.conclusion == conclusion)&&(identical(other.headBranch, headBranch) || other.headBranch == headBranch)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.htmlUrl, htmlUrl) || other.htmlUrl == htmlUrl)&&(identical(other.workflowId, workflowId) || other.workflowId == workflowId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitHubWorkflowRunDto&&(identical(other.id, id) || other.id == id)&&(identical(other.runNumber, runNumber) || other.runNumber == runNumber)&&(identical(other.displayTitle, displayTitle) || other.displayTitle == displayTitle)&&(identical(other.name, name) || other.name == name)&&(identical(other.event, event) || other.event == event)&&(identical(other.status, status) || other.status == status)&&(identical(other.conclusion, conclusion) || other.conclusion == conclusion)&&(identical(other.headBranch, headBranch) || other.headBranch == headBranch)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.htmlUrl, htmlUrl) || other.htmlUrl == htmlUrl)&&(identical(other.workflowId, workflowId) || other.workflowId == workflowId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,runNumber,displayTitle,name,event,status,conclusion,headBranch,createdAt,htmlUrl,workflowId);
+int get hashCode {
+    return Object.hash(runtimeType,id,runNumber,displayTitle,name,event,status,conclusion,headBranch,createdAt,htmlUrl,workflowId);
+}
 
 @override
 String toString() {
-  return 'GitHubWorkflowRunDto(id: $id, runNumber: $runNumber, displayTitle: $displayTitle, name: $name, event: $event, status: $status, conclusion: $conclusion, headBranch: $headBranch, createdAt: $createdAt, htmlUrl: $htmlUrl, workflowId: $workflowId)';
+    return 'GitHubWorkflowRunDto(id: $id, runNumber: $runNumber, displayTitle: $displayTitle, name: $name, event: $event, status: $status, conclusion: $conclusion, headBranch: $headBranch, createdAt: $createdAt, htmlUrl: $htmlUrl, workflowId: $workflowId)';
 }
 
 

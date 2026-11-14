@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'health_report_dto.dart';
@@ -9,6 +9,7 @@ part of 'health_report_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $HealthReportDtoCopyWith<HealthReportDto> get copyWith => _$HealthReportDtoCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is HealthReportDto&&(identical(other.description, description) || other.description == description)&&(identical(other.iconClassName, iconClassName) || other.iconClassName == iconClassName)&&(identical(other.score, score) || other.score == score));
+  final _this = this as HealthReportDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is HealthReportDto&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.iconClassName, _this.iconClassName) || other.iconClassName == _this.iconClassName)&&(identical(other.score, _this.score) || other.score == _this.score));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,description,iconClassName,score);
+int get hashCode {
+  final _this = this as HealthReportDto;
+  return Object.hash(runtimeType,_this.description,_this.iconClassName,_this.score);
+}
 
 @override
 String toString() {
-  return 'HealthReportDto(description: $description, iconClassName: $iconClassName, score: $score)';
+  final _this = this as HealthReportDto;
+  return 'HealthReportDto(description: ${_this.description}, iconClassName: ${_this.iconClassName}, score: ${_this.score})';
 }
 
 
@@ -66,7 +72,7 @@ class _$HealthReportDtoCopyWithImpl<$Res>
 /// Create a copy of HealthReportDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? description = freezed,Object? iconClassName = freezed,Object? score = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(HealthReportDto(
 description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,iconClassName: freezed == iconClassName ? _self.iconClassName : iconClassName // ignore: cast_nullable_to_non_nullable
 as String?,score: freezed == score ? _self.score : score // ignore: cast_nullable_to_non_nullable
@@ -231,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HealthReportDto&&(identical(other.description, description) || other.description == description)&&(identical(other.iconClassName, iconClassName) || other.iconClassName == iconClassName)&&(identical(other.score, score) || other.score == score));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _HealthReportDto&&(identical(other.description, description) || other.description == description)&&(identical(other.iconClassName, iconClassName) || other.iconClassName == iconClassName)&&(identical(other.score, score) || other.score == score));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,description,iconClassName,score);
+int get hashCode {
+    return Object.hash(runtimeType,description,iconClassName,score);
+}
 
 @override
 String toString() {
-  return 'HealthReportDto(description: $description, iconClassName: $iconClassName, score: $score)';
+    return 'HealthReportDto(description: $description, iconClassName: $iconClassName, score: $score)';
 }
 
 

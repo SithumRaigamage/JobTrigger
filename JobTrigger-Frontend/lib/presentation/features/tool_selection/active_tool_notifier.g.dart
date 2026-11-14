@@ -101,7 +101,7 @@ abstract class _$ActiveToolNotifier extends $Notifier<CiTool?> {
   CiTool? build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<CiTool?, CiTool?>;
     final element =
         ref.element
@@ -111,6 +111,6 @@ abstract class _$ActiveToolNotifier extends $Notifier<CiTool?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

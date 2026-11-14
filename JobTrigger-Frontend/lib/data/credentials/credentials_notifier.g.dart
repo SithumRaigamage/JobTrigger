@@ -54,7 +54,7 @@ abstract class _$CredentialsNotifier
   FutureOr<List<JenkinsServer>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<List<JenkinsServer>>, List<JenkinsServer>>;
     final element =
@@ -65,6 +65,6 @@ abstract class _$CredentialsNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

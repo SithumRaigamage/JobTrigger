@@ -60,7 +60,7 @@ abstract class _$CurrentToast extends $Notifier<ToastMessage?> {
   ToastMessage? build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ToastMessage?, ToastMessage?>;
     final element =
         ref.element
@@ -70,7 +70,7 @@ abstract class _$CurrentToast extends $Notifier<ToastMessage?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 

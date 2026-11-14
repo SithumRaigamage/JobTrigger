@@ -122,7 +122,7 @@ abstract class _$GitHubRunHistoryNotifier
   FutureOr<GitHubRunPages> build(String owner, String repo, int workflowId);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<GitHubRunPages>, GitHubRunPages>;
     final element =
         ref.element
@@ -132,6 +132,9 @@ abstract class _$GitHubRunHistoryNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args.$1, _$args.$2, _$args.$3));
+    return element.handleCreate(
+      ref,
+      () => build(_$args.$1, _$args.$2, _$args.$3),
+    );
   }
 }

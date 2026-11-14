@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'app_info_dto.dart';
@@ -9,6 +9,7 @@ part of 'app_info_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $AppInfoDtoCopyWith<AppInfoDto> get copyWith => _$AppInfoDtoCopyWithImpl<AppInfo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppInfoDto&&(identical(other.id, id) || other.id == id)&&(identical(other.appVersion, appVersion) || other.appVersion == appVersion)&&(identical(other.buildNumber, buildNumber) || other.buildNumber == buildNumber)&&(identical(other.privacyPolicyUrl, privacyPolicyUrl) || other.privacyPolicyUrl == privacyPolicyUrl)&&(identical(other.termsOfServiceUrl, termsOfServiceUrl) || other.termsOfServiceUrl == termsOfServiceUrl)&&(identical(other.supportEmail, supportEmail) || other.supportEmail == supportEmail)&&(identical(other.openSourceLicensesUrl, openSourceLicensesUrl) || other.openSourceLicensesUrl == openSourceLicensesUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  final _this = this as AppInfoDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppInfoDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.appVersion, _this.appVersion) || other.appVersion == _this.appVersion)&&(identical(other.buildNumber, _this.buildNumber) || other.buildNumber == _this.buildNumber)&&(identical(other.privacyPolicyUrl, _this.privacyPolicyUrl) || other.privacyPolicyUrl == _this.privacyPolicyUrl)&&(identical(other.termsOfServiceUrl, _this.termsOfServiceUrl) || other.termsOfServiceUrl == _this.termsOfServiceUrl)&&(identical(other.supportEmail, _this.supportEmail) || other.supportEmail == _this.supportEmail)&&(identical(other.openSourceLicensesUrl, _this.openSourceLicensesUrl) || other.openSourceLicensesUrl == _this.openSourceLicensesUrl)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,appVersion,buildNumber,privacyPolicyUrl,termsOfServiceUrl,supportEmail,openSourceLicensesUrl,createdAt,updatedAt);
+int get hashCode {
+  final _this = this as AppInfoDto;
+  return Object.hash(runtimeType,_this.id,_this.appVersion,_this.buildNumber,_this.privacyPolicyUrl,_this.termsOfServiceUrl,_this.supportEmail,_this.openSourceLicensesUrl,_this.createdAt,_this.updatedAt);
+}
 
 @override
 String toString() {
-  return 'AppInfoDto(id: $id, appVersion: $appVersion, buildNumber: $buildNumber, privacyPolicyUrl: $privacyPolicyUrl, termsOfServiceUrl: $termsOfServiceUrl, supportEmail: $supportEmail, openSourceLicensesUrl: $openSourceLicensesUrl, createdAt: $createdAt, updatedAt: $updatedAt)';
+  final _this = this as AppInfoDto;
+  return 'AppInfoDto(id: ${_this.id}, appVersion: ${_this.appVersion}, buildNumber: ${_this.buildNumber}, privacyPolicyUrl: ${_this.privacyPolicyUrl}, termsOfServiceUrl: ${_this.termsOfServiceUrl}, supportEmail: ${_this.supportEmail}, openSourceLicensesUrl: ${_this.openSourceLicensesUrl}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt})';
 }
 
 
@@ -66,7 +72,7 @@ class _$AppInfoDtoCopyWithImpl<$Res>
 /// Create a copy of AppInfoDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? appVersion = null,Object? buildNumber = null,Object? privacyPolicyUrl = freezed,Object? termsOfServiceUrl = freezed,Object? supportEmail = freezed,Object? openSourceLicensesUrl = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AppInfoDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,appVersion: null == appVersion ? _self.appVersion : appVersion // ignore: cast_nullable_to_non_nullable
 as String,buildNumber: null == buildNumber ? _self.buildNumber : buildNumber // ignore: cast_nullable_to_non_nullable
@@ -243,16 +249,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppInfoDto&&(identical(other.id, id) || other.id == id)&&(identical(other.appVersion, appVersion) || other.appVersion == appVersion)&&(identical(other.buildNumber, buildNumber) || other.buildNumber == buildNumber)&&(identical(other.privacyPolicyUrl, privacyPolicyUrl) || other.privacyPolicyUrl == privacyPolicyUrl)&&(identical(other.termsOfServiceUrl, termsOfServiceUrl) || other.termsOfServiceUrl == termsOfServiceUrl)&&(identical(other.supportEmail, supportEmail) || other.supportEmail == supportEmail)&&(identical(other.openSourceLicensesUrl, openSourceLicensesUrl) || other.openSourceLicensesUrl == openSourceLicensesUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppInfoDto&&(identical(other.id, id) || other.id == id)&&(identical(other.appVersion, appVersion) || other.appVersion == appVersion)&&(identical(other.buildNumber, buildNumber) || other.buildNumber == buildNumber)&&(identical(other.privacyPolicyUrl, privacyPolicyUrl) || other.privacyPolicyUrl == privacyPolicyUrl)&&(identical(other.termsOfServiceUrl, termsOfServiceUrl) || other.termsOfServiceUrl == termsOfServiceUrl)&&(identical(other.supportEmail, supportEmail) || other.supportEmail == supportEmail)&&(identical(other.openSourceLicensesUrl, openSourceLicensesUrl) || other.openSourceLicensesUrl == openSourceLicensesUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,appVersion,buildNumber,privacyPolicyUrl,termsOfServiceUrl,supportEmail,openSourceLicensesUrl,createdAt,updatedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,appVersion,buildNumber,privacyPolicyUrl,termsOfServiceUrl,supportEmail,openSourceLicensesUrl,createdAt,updatedAt);
+}
 
 @override
 String toString() {
-  return 'AppInfoDto(id: $id, appVersion: $appVersion, buildNumber: $buildNumber, privacyPolicyUrl: $privacyPolicyUrl, termsOfServiceUrl: $termsOfServiceUrl, supportEmail: $supportEmail, openSourceLicensesUrl: $openSourceLicensesUrl, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'AppInfoDto(id: $id, appVersion: $appVersion, buildNumber: $buildNumber, privacyPolicyUrl: $privacyPolicyUrl, termsOfServiceUrl: $termsOfServiceUrl, supportEmail: $supportEmail, openSourceLicensesUrl: $openSourceLicensesUrl, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 

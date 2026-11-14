@@ -204,7 +204,7 @@ abstract class _$QueueStatusNotifier extends $Notifier<QueueItem?> {
   QueueItem? build(String jobUrl);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<QueueItem?, QueueItem?>;
     final element =
         ref.element
@@ -214,6 +214,6 @@ abstract class _$QueueStatusNotifier extends $Notifier<QueueItem?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

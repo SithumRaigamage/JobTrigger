@@ -124,7 +124,7 @@ abstract class _$PendingInputNotifier extends $AsyncNotifier<PendingInput?> {
   FutureOr<PendingInput?> build(String buildUrl);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<PendingInput?>, PendingInput?>;
     final element =
         ref.element
@@ -134,6 +134,6 @@ abstract class _$PendingInputNotifier extends $AsyncNotifier<PendingInput?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

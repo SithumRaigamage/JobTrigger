@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'queue_item_dto.dart';
@@ -9,6 +9,7 @@ part of 'queue_item_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $QueueItemDtoCopyWith<QueueItemDto> get copyWith => _$QueueItemDtoCopyWithImpl<Q
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is QueueItemDto&&(identical(other.why, why) || other.why == why)&&(identical(other.cancelled, cancelled) || other.cancelled == cancelled)&&(identical(other.executable, executable) || other.executable == executable));
+  final _this = this as QueueItemDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is QueueItemDto&&(identical(other.why, _this.why) || other.why == _this.why)&&(identical(other.cancelled, _this.cancelled) || other.cancelled == _this.cancelled)&&(identical(other.executable, _this.executable) || other.executable == _this.executable));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,why,cancelled,executable);
+int get hashCode {
+  final _this = this as QueueItemDto;
+  return Object.hash(runtimeType,_this.why,_this.cancelled,_this.executable);
+}
 
 @override
 String toString() {
-  return 'QueueItemDto(why: $why, cancelled: $cancelled, executable: $executable)';
+  final _this = this as QueueItemDto;
+  return 'QueueItemDto(why: ${_this.why}, cancelled: ${_this.cancelled}, executable: ${_this.executable})';
 }
 
 
@@ -66,7 +72,7 @@ class _$QueueItemDtoCopyWithImpl<$Res>
 /// Create a copy of QueueItemDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? why = freezed,Object? cancelled = null,Object? executable = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(QueueItemDto(
 why: freezed == why ? _self.why : why // ignore: cast_nullable_to_non_nullable
 as String?,cancelled: null == cancelled ? _self.cancelled : cancelled // ignore: cast_nullable_to_non_nullable
 as bool,executable: freezed == executable ? _self.executable : executable // ignore: cast_nullable_to_non_nullable
@@ -243,16 +249,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _QueueItemDto&&(identical(other.why, why) || other.why == why)&&(identical(other.cancelled, cancelled) || other.cancelled == cancelled)&&(identical(other.executable, executable) || other.executable == executable));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _QueueItemDto&&(identical(other.why, why) || other.why == why)&&(identical(other.cancelled, cancelled) || other.cancelled == cancelled)&&(identical(other.executable, executable) || other.executable == executable));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,why,cancelled,executable);
+int get hashCode {
+    return Object.hash(runtimeType,why,cancelled,executable);
+}
 
 @override
 String toString() {
-  return 'QueueItemDto(why: $why, cancelled: $cancelled, executable: $executable)';
+    return 'QueueItemDto(why: $why, cancelled: $cancelled, executable: $executable)';
 }
 
 
@@ -321,16 +329,21 @@ $QueueExecutableDtoCopyWith<QueueExecutableDto> get copyWith => _$QueueExecutabl
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is QueueExecutableDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url));
+  final _this = this as QueueExecutableDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is QueueExecutableDto&&(identical(other.number, _this.number) || other.number == _this.number)&&(identical(other.url, _this.url) || other.url == _this.url));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,number,url);
+int get hashCode {
+  final _this = this as QueueExecutableDto;
+  return Object.hash(runtimeType,_this.number,_this.url);
+}
 
 @override
 String toString() {
-  return 'QueueExecutableDto(number: $number, url: $url)';
+  final _this = this as QueueExecutableDto;
+  return 'QueueExecutableDto(number: ${_this.number}, url: ${_this.url})';
 }
 
 
@@ -359,7 +372,7 @@ class _$QueueExecutableDtoCopyWithImpl<$Res>
 /// Create a copy of QueueExecutableDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? number = null,Object? url = null,}) {
-  return _then(_self.copyWith(
+  return _then(QueueExecutableDto(
 number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
 as int,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,
@@ -522,16 +535,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _QueueExecutableDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _QueueExecutableDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,number,url);
+int get hashCode {
+    return Object.hash(runtimeType,number,url);
+}
 
 @override
 String toString() {
-  return 'QueueExecutableDto(number: $number, url: $url)';
+    return 'QueueExecutableDto(number: $number, url: $url)';
 }
 
 

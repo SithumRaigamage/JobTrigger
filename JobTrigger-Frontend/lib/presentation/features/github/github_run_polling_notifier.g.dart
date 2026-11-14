@@ -162,7 +162,7 @@ abstract class _$GitHubRunPollingNotifier extends $Notifier<void> {
   void build(String owner, String repo, int runId);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<void, void>;
     final element =
         ref.element
@@ -172,6 +172,9 @@ abstract class _$GitHubRunPollingNotifier extends $Notifier<void> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args.$1, _$args.$2, _$args.$3));
+    return element.handleCreate(
+      ref,
+      () => build(_$args.$1, _$args.$2, _$args.$3),
+    );
   }
 }

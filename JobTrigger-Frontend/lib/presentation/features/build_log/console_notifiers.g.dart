@@ -48,7 +48,7 @@ abstract class _$ConsolePrefsNotifier extends $Notifier<ConsolePrefs> {
   ConsolePrefs build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ConsolePrefs, ConsolePrefs>;
     final element =
         ref.element
@@ -58,7 +58,7 @@ abstract class _$ConsolePrefsNotifier extends $Notifier<ConsolePrefs> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -169,7 +169,7 @@ abstract class _$ConsoleTimestampsNotifier
   FutureOr<ConsoleTimestamps> build(String buildUrl);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<ConsoleTimestamps>, ConsoleTimestamps>;
     final element =
@@ -180,7 +180,7 @@ abstract class _$ConsoleTimestampsNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }
 
@@ -268,7 +268,7 @@ abstract class _$ConsoleSearchNotifier extends $Notifier<ConsoleSearch> {
   ConsoleSearch build(String buildUrl);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ConsoleSearch, ConsoleSearch>;
     final element =
         ref.element
@@ -278,7 +278,7 @@ abstract class _$ConsoleSearchNotifier extends $Notifier<ConsoleSearch> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }
 
@@ -386,7 +386,7 @@ abstract class _$FullLogExportNotifier extends $AsyncNotifier<void> {
   FutureOr<void> build(String buildUrl);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<void>, void>;
     final element =
         ref.element
@@ -396,6 +396,6 @@ abstract class _$FullLogExportNotifier extends $AsyncNotifier<void> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

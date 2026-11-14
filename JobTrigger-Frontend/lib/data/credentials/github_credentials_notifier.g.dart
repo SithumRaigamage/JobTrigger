@@ -58,7 +58,7 @@ abstract class _$GitHubCredentialsNotifier
   FutureOr<List<GitHubCredential>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<AsyncValue<List<GitHubCredential>>, List<GitHubCredential>>;
@@ -73,6 +73,6 @@ abstract class _$GitHubCredentialsNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

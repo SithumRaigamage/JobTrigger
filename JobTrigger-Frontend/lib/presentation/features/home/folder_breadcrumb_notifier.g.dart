@@ -77,7 +77,7 @@ abstract class _$FolderBreadcrumbNotifier extends $Notifier<List<FolderRef>> {
   List<FolderRef> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<List<FolderRef>, List<FolderRef>>;
     final element =
         ref.element
@@ -87,6 +87,6 @@ abstract class _$FolderBreadcrumbNotifier extends $Notifier<List<FolderRef>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

@@ -48,7 +48,7 @@ abstract class _$QueueNotifier extends $AsyncNotifier<List<QueueEntry>> {
   FutureOr<List<QueueEntry>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<List<QueueEntry>>, List<QueueEntry>>;
     final element =
@@ -59,6 +59,6 @@ abstract class _$QueueNotifier extends $AsyncNotifier<List<QueueEntry>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

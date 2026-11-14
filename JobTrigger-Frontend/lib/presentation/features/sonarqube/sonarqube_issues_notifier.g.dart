@@ -106,7 +106,7 @@ abstract class _$SonarQubeIssueFilterNotifier
   SonarQubeIssueFilter build(String projectKey);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<SonarQubeIssueFilter, SonarQubeIssueFilter>;
     final element =
         ref.element
@@ -116,7 +116,7 @@ abstract class _$SonarQubeIssueFilterNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }
 
@@ -214,7 +214,7 @@ abstract class _$SonarQubeIssuesNotifier
   FutureOr<SonarQubeIssues> build(String projectKey);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<SonarQubeIssues>, SonarQubeIssues>;
     final element =
         ref.element
@@ -224,6 +224,6 @@ abstract class _$SonarQubeIssuesNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

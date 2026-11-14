@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'github_repo_dto.dart';
@@ -9,6 +9,7 @@ part of 'github_repo_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $GitHubRepoDtoCopyWith<GitHubRepoDto> get copyWith => _$GitHubRepoDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitHubRepoDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.owner, owner) || other.owner == owner)&&(identical(other.private, private) || other.private == private)&&(identical(other.defaultBranch, defaultBranch) || other.defaultBranch == defaultBranch));
+  final _this = this as GitHubRepoDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitHubRepoDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.fullName, _this.fullName) || other.fullName == _this.fullName)&&(identical(other.owner, _this.owner) || other.owner == _this.owner)&&(identical(other.private, _this.private) || other.private == _this.private)&&(identical(other.defaultBranch, _this.defaultBranch) || other.defaultBranch == _this.defaultBranch));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,fullName,owner,private,defaultBranch);
+int get hashCode {
+  final _this = this as GitHubRepoDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.fullName,_this.owner,_this.private,_this.defaultBranch);
+}
 
 @override
 String toString() {
-  return 'GitHubRepoDto(id: $id, name: $name, fullName: $fullName, owner: $owner, private: $private, defaultBranch: $defaultBranch)';
+  final _this = this as GitHubRepoDto;
+  return 'GitHubRepoDto(id: ${_this.id}, name: ${_this.name}, fullName: ${_this.fullName}, owner: ${_this.owner}, private: ${_this.private}, defaultBranch: ${_this.defaultBranch})';
 }
 
 
@@ -66,7 +72,7 @@ class _$GitHubRepoDtoCopyWithImpl<$Res>
 /// Create a copy of GitHubRepoDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? fullName = null,Object? owner = null,Object? private = null,Object? defaultBranch = null,}) {
-  return _then(_self.copyWith(
+  return _then(GitHubRepoDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,fullName: null == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
@@ -246,16 +252,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitHubRepoDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.owner, owner) || other.owner == owner)&&(identical(other.private, private) || other.private == private)&&(identical(other.defaultBranch, defaultBranch) || other.defaultBranch == defaultBranch));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitHubRepoDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.owner, owner) || other.owner == owner)&&(identical(other.private, private) || other.private == private)&&(identical(other.defaultBranch, defaultBranch) || other.defaultBranch == defaultBranch));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,fullName,owner,private,defaultBranch);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,fullName,owner,private,defaultBranch);
+}
 
 @override
 String toString() {
-  return 'GitHubRepoDto(id: $id, name: $name, fullName: $fullName, owner: $owner, private: $private, defaultBranch: $defaultBranch)';
+    return 'GitHubRepoDto(id: $id, name: $name, fullName: $fullName, owner: $owner, private: $private, defaultBranch: $defaultBranch)';
 }
 
 
@@ -324,16 +332,21 @@ $GitHubRepoOwnerDtoCopyWith<GitHubRepoOwnerDto> get copyWith => _$GitHubRepoOwne
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitHubRepoOwnerDto&&(identical(other.login, login) || other.login == login));
+  final _this = this as GitHubRepoOwnerDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitHubRepoOwnerDto&&(identical(other.login, _this.login) || other.login == _this.login));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,login);
+int get hashCode {
+  final _this = this as GitHubRepoOwnerDto;
+  return Object.hash(runtimeType,_this.login);
+}
 
 @override
 String toString() {
-  return 'GitHubRepoOwnerDto(login: $login)';
+  final _this = this as GitHubRepoOwnerDto;
+  return 'GitHubRepoOwnerDto(login: ${_this.login})';
 }
 
 
@@ -362,7 +375,7 @@ class _$GitHubRepoOwnerDtoCopyWithImpl<$Res>
 /// Create a copy of GitHubRepoOwnerDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? login = null,}) {
-  return _then(_self.copyWith(
+  return _then(GitHubRepoOwnerDto(
 login: null == login ? _self.login : login // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -523,16 +536,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitHubRepoOwnerDto&&(identical(other.login, login) || other.login == login));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitHubRepoOwnerDto&&(identical(other.login, login) || other.login == login));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,login);
+int get hashCode {
+    return Object.hash(runtimeType,login);
+}
 
 @override
 String toString() {
-  return 'GitHubRepoOwnerDto(login: $login)';
+    return 'GitHubRepoOwnerDto(login: $login)';
 }
 
 

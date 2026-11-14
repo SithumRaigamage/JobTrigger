@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'parameter_definition_dto.dart';
@@ -9,6 +9,7 @@ part of 'parameter_definition_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $ParameterDefinitionDtoCopyWith<ParameterDefinitionDto> get copyWith => _$Parame
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ParameterDefinitionDto&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other.choices, choices)&&const DeepCollectionEquality().equals(other.defaultValue, defaultValue)&&(identical(other.projectName, projectName) || other.projectName == projectName));
+  final _this = this as ParameterDefinitionDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ParameterDefinitionDto&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.description, _this.description) || other.description == _this.description)&&const DeepCollectionEquality().equals(other.choices, _this.choices)&&const DeepCollectionEquality().equals(other.defaultValue, _this.defaultValue)&&(identical(other.projectName, _this.projectName) || other.projectName == _this.projectName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,type,description,const DeepCollectionEquality().hash(choices),const DeepCollectionEquality().hash(defaultValue),projectName);
+int get hashCode {
+  final _this = this as ParameterDefinitionDto;
+  return Object.hash(runtimeType,_this.name,_this.type,_this.description,const DeepCollectionEquality().hash(_this.choices),const DeepCollectionEquality().hash(_this.defaultValue),_this.projectName);
+}
 
 @override
 String toString() {
-  return 'ParameterDefinitionDto(name: $name, type: $type, description: $description, choices: $choices, defaultValue: $defaultValue, projectName: $projectName)';
+  final _this = this as ParameterDefinitionDto;
+  return 'ParameterDefinitionDto(name: ${_this.name}, type: ${_this.type}, description: ${_this.description}, choices: ${_this.choices}, defaultValue: ${_this.defaultValue}, projectName: ${_this.projectName})';
 }
 
 
@@ -66,7 +72,7 @@ class _$ParameterDefinitionDtoCopyWithImpl<$Res>
 /// Create a copy of ParameterDefinitionDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? type = null,Object? description = freezed,Object? choices = freezed,Object? defaultValue = freezed,Object? projectName = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(ParameterDefinitionDto(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -214,7 +220,7 @@ return $default(_that.name,_that.type,_that.description,_that.choices,_that.defa
 @JsonSerializable()
 
 class _ParameterDefinitionDto implements ParameterDefinitionDto {
-  const _ParameterDefinitionDto({required this.name, required this.type, this.description, final  List<String>? choices, @JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) this.defaultValue, this.projectName}): _choices = choices;
+  const _ParameterDefinitionDto({required this.name, required this.type, this.description,  List<String>? choices, @JsonKey(name: 'defaultParameterValue', fromJson: _defaultValueFromJson) this.defaultValue, this.projectName}): _choices = choices;
   factory _ParameterDefinitionDto.fromJson(Map<String, dynamic> json) => _$ParameterDefinitionDtoFromJson(json);
 
 @override final  String name;
@@ -245,16 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ParameterDefinitionDto&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other._choices, _choices)&&const DeepCollectionEquality().equals(other.defaultValue, defaultValue)&&(identical(other.projectName, projectName) || other.projectName == projectName));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ParameterDefinitionDto&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other.choices, _choices)&&const DeepCollectionEquality().equals(other.defaultValue, defaultValue)&&(identical(other.projectName, projectName) || other.projectName == projectName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,type,description,const DeepCollectionEquality().hash(_choices),const DeepCollectionEquality().hash(defaultValue),projectName);
+int get hashCode {
+    return Object.hash(runtimeType,name,type,description,const DeepCollectionEquality().hash(_choices),const DeepCollectionEquality().hash(defaultValue),projectName);
+}
 
 @override
 String toString() {
-  return 'ParameterDefinitionDto(name: $name, type: $type, description: $description, choices: $choices, defaultValue: $defaultValue, projectName: $projectName)';
+    return 'ParameterDefinitionDto(name: $name, type: $type, description: $description, choices: $choices, defaultValue: $defaultValue, projectName: $projectName)';
 }
 
 

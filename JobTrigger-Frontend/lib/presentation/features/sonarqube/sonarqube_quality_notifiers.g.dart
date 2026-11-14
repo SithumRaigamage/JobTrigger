@@ -101,7 +101,7 @@ abstract class _$SonarQubeQualityGateNotifier
   FutureOr<SonarQubeQualityGate> build(String projectKey);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<AsyncValue<SonarQubeQualityGate>, SonarQubeQualityGate>;
@@ -116,7 +116,7 @@ abstract class _$SonarQubeQualityGateNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }
 
@@ -215,7 +215,7 @@ abstract class _$SonarQubeMeasuresNotifier
   FutureOr<Map<String, String>> build(String projectKey);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<Map<String, String>>, Map<String, String>>;
     final element =
@@ -226,6 +226,6 @@ abstract class _$SonarQubeMeasuresNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

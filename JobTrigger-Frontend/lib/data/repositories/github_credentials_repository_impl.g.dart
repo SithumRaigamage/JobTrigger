@@ -56,4 +56,4 @@ final class GitHubCredentialsRepositoryProvider
 }
 
 String _$gitHubCredentialsRepositoryHash() =>
-    r'22da90a4af9a23340b2c34a03bcfef1f8b42b2a6';
+    r'56f89755c2881fee38127b207116c44e7733704c';

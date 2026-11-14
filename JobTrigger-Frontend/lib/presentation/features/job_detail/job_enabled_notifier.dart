@@ -16,7 +16,14 @@ class JobEnabledNotifier extends _$JobEnabledNotifier {
   @override
   FutureOr<void> build(String jobUrl) {}
 
-  Future<void> setEnabled({
+  Future<void> setEnabled({required bool enabled, required String label}) {
+    // The screen only calls this (it does not watch the provider); hold the
+    // auto-dispose provider open until the request and refresh are done.
+    final link = ref.keepAlive();
+    return _setEnabled(enabled: enabled, label: label).whenComplete(link.close);
+  }
+
+  Future<void> _setEnabled({
     required bool enabled,
     required String label,
   }) async {

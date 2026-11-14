@@ -118,7 +118,7 @@ abstract class _$BuildWatchNotifier extends $Notifier<List<BuildWatch>> {
   List<BuildWatch> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<List<BuildWatch>, List<BuildWatch>>;
     final element =
         ref.element
@@ -128,6 +128,6 @@ abstract class _$BuildWatchNotifier extends $Notifier<List<BuildWatch>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

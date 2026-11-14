@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'jenkins_build_dto.dart';
@@ -9,6 +9,7 @@ part of 'jenkins_build_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $JenkinsBuildDtoCopyWith<JenkinsBuildDto> get copyWith => _$JenkinsBuildDtoCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&const DeepCollectionEquality().equals(other.causes, causes)&&(identical(other.upstreamCause, upstreamCause) || other.upstreamCause == upstreamCause)&&const DeepCollectionEquality().equals(other.startedByUserIds, startedByUserIds)&&(identical(other.description, description) || other.description == description)&&(identical(other.keepLog, keepLog) || other.keepLog == keepLog)&&const DeepCollectionEquality().equals(other.changes, changes)&&const DeepCollectionEquality().equals(other.artifacts, artifacts)&&const DeepCollectionEquality().equals(other.parameterValues, parameterValues));
+  final _this = this as JenkinsBuildDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JenkinsBuildDto&&(identical(other.number, _this.number) || other.number == _this.number)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.result, _this.result) || other.result == _this.result)&&(identical(other.timestamp, _this.timestamp) || other.timestamp == _this.timestamp)&&(identical(other.duration, _this.duration) || other.duration == _this.duration)&&(identical(other.estimatedDuration, _this.estimatedDuration) || other.estimatedDuration == _this.estimatedDuration)&&(identical(other.building, _this.building) || other.building == _this.building)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&const DeepCollectionEquality().equals(other.causes, _this.causes)&&(identical(other.upstreamCause, _this.upstreamCause) || other.upstreamCause == _this.upstreamCause)&&const DeepCollectionEquality().equals(other.startedByUserIds, _this.startedByUserIds)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.keepLog, _this.keepLog) || other.keepLog == _this.keepLog)&&const DeepCollectionEquality().equals(other.changes, _this.changes)&&const DeepCollectionEquality().equals(other.artifacts, _this.artifacts)&&const DeepCollectionEquality().equals(other.parameterValues, _this.parameterValues));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName,const DeepCollectionEquality().hash(causes),upstreamCause,const DeepCollectionEquality().hash(startedByUserIds),description,keepLog,const DeepCollectionEquality().hash(changes),const DeepCollectionEquality().hash(artifacts),const DeepCollectionEquality().hash(parameterValues));
+int get hashCode {
+  final _this = this as JenkinsBuildDto;
+  return Object.hash(runtimeType,_this.number,_this.url,_this.result,_this.timestamp,_this.duration,_this.estimatedDuration,_this.building,_this.displayName,const DeepCollectionEquality().hash(_this.causes),_this.upstreamCause,const DeepCollectionEquality().hash(_this.startedByUserIds),_this.description,_this.keepLog,const DeepCollectionEquality().hash(_this.changes),const DeepCollectionEquality().hash(_this.artifacts),const DeepCollectionEquality().hash(_this.parameterValues));
+}
 
 @override
 String toString() {
-  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName, causes: $causes, upstreamCause: $upstreamCause, startedByUserIds: $startedByUserIds, description: $description, keepLog: $keepLog, changes: $changes, artifacts: $artifacts, parameterValues: $parameterValues)';
+  final _this = this as JenkinsBuildDto;
+  return 'JenkinsBuildDto(number: ${_this.number}, url: ${_this.url}, result: ${_this.result}, timestamp: ${_this.timestamp}, duration: ${_this.duration}, estimatedDuration: ${_this.estimatedDuration}, building: ${_this.building}, displayName: ${_this.displayName}, causes: ${_this.causes}, upstreamCause: ${_this.upstreamCause}, startedByUserIds: ${_this.startedByUserIds}, description: ${_this.description}, keepLog: ${_this.keepLog}, changes: ${_this.changes}, artifacts: ${_this.artifacts}, parameterValues: ${_this.parameterValues})';
 }
 
 
@@ -66,7 +72,7 @@ class _$JenkinsBuildDtoCopyWithImpl<$Res>
 /// Create a copy of JenkinsBuildDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? number = null,Object? url = null,Object? result = freezed,Object? timestamp = null,Object? duration = freezed,Object? estimatedDuration = freezed,Object? building = null,Object? displayName = freezed,Object? causes = null,Object? upstreamCause = freezed,Object? startedByUserIds = null,Object? description = freezed,Object? keepLog = freezed,Object? changes = null,Object? artifacts = null,Object? parameterValues = null,}) {
-  return _then(_self.copyWith(
+  return _then(JenkinsBuildDto(
 number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
 as int,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,result: freezed == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
@@ -224,7 +230,7 @@ return $default(_that.number,_that.url,_that.result,_that.timestamp,_that.durati
 @JsonSerializable()
 
 class _JenkinsBuildDto implements JenkinsBuildDto {
-  const _JenkinsBuildDto({required this.number, required this.url, this.result, required this.timestamp, this.duration, this.estimatedDuration, this.building = false, this.displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false) final  List<String> causes = const <String>[], @JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) this.upstreamCause, @JsonKey(name: 'actions', fromJson: _startedByUserIdsFromJson, includeToJson: false) final  List<String> startedByUserIds = const <String>[], this.description, this.keepLog, @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false) final  List<ScmChange> changes = const <ScmChange>[], final  List<BuildArtifactDto> artifacts = const <BuildArtifactDto>[], @JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false) final  Map<String, String> parameterValues = const <String, String>{}}): _causes = causes,_startedByUserIds = startedByUserIds,_changes = changes,_artifacts = artifacts,_parameterValues = parameterValues;
+  const _JenkinsBuildDto({required this.number, required this.url, this.result, required this.timestamp, this.duration, this.estimatedDuration, this.building = false, this.displayName, @JsonKey(name: 'actions', fromJson: _causesFromJson, includeToJson: false)  List<String> causes = const <String>[], @JsonKey(name: 'actions', fromJson: _upstreamCauseFromJson, includeToJson: false) this.upstreamCause, @JsonKey(name: 'actions', fromJson: _startedByUserIdsFromJson, includeToJson: false)  List<String> startedByUserIds = const <String>[], this.description, this.keepLog, @JsonKey(name: 'changeSet', fromJson: _changesFromJson, includeToJson: false)  List<ScmChange> changes = const <ScmChange>[],  List<BuildArtifactDto> artifacts = const <BuildArtifactDto>[], @JsonKey(name: 'actions', fromJson: _parameterValuesFromJson, includeToJson: false)  Map<String, String> parameterValues = const <String, String>{}}): _causes = causes,_startedByUserIds = startedByUserIds,_changes = changes,_artifacts = artifacts,_parameterValues = parameterValues;
   factory _JenkinsBuildDto.fromJson(Map<String, dynamic> json) => _$JenkinsBuildDtoFromJson(json);
 
 @override final  int number;
@@ -287,16 +293,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&const DeepCollectionEquality().equals(other._causes, _causes)&&(identical(other.upstreamCause, upstreamCause) || other.upstreamCause == upstreamCause)&&const DeepCollectionEquality().equals(other._startedByUserIds, _startedByUserIds)&&(identical(other.description, description) || other.description == description)&&(identical(other.keepLog, keepLog) || other.keepLog == keepLog)&&const DeepCollectionEquality().equals(other._changes, _changes)&&const DeepCollectionEquality().equals(other._artifacts, _artifacts)&&const DeepCollectionEquality().equals(other._parameterValues, _parameterValues));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _JenkinsBuildDto&&(identical(other.number, number) || other.number == number)&&(identical(other.url, url) || other.url == url)&&(identical(other.result, result) || other.result == result)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.building, building) || other.building == building)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&const DeepCollectionEquality().equals(other.causes, _causes)&&(identical(other.upstreamCause, upstreamCause) || other.upstreamCause == upstreamCause)&&const DeepCollectionEquality().equals(other.startedByUserIds, _startedByUserIds)&&(identical(other.description, description) || other.description == description)&&(identical(other.keepLog, keepLog) || other.keepLog == keepLog)&&const DeepCollectionEquality().equals(other.changes, _changes)&&const DeepCollectionEquality().equals(other.artifacts, _artifacts)&&const DeepCollectionEquality().equals(other.parameterValues, _parameterValues));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName,const DeepCollectionEquality().hash(_causes),upstreamCause,const DeepCollectionEquality().hash(_startedByUserIds),description,keepLog,const DeepCollectionEquality().hash(_changes),const DeepCollectionEquality().hash(_artifacts),const DeepCollectionEquality().hash(_parameterValues));
+int get hashCode {
+    return Object.hash(runtimeType,number,url,result,timestamp,duration,estimatedDuration,building,displayName,const DeepCollectionEquality().hash(_causes),upstreamCause,const DeepCollectionEquality().hash(_startedByUserIds),description,keepLog,const DeepCollectionEquality().hash(_changes),const DeepCollectionEquality().hash(_artifacts),const DeepCollectionEquality().hash(_parameterValues));
+}
 
 @override
 String toString() {
-  return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName, causes: $causes, upstreamCause: $upstreamCause, startedByUserIds: $startedByUserIds, description: $description, keepLog: $keepLog, changes: $changes, artifacts: $artifacts, parameterValues: $parameterValues)';
+    return 'JenkinsBuildDto(number: $number, url: $url, result: $result, timestamp: $timestamp, duration: $duration, estimatedDuration: $estimatedDuration, building: $building, displayName: $displayName, causes: $causes, upstreamCause: $upstreamCause, startedByUserIds: $startedByUserIds, description: $description, keepLog: $keepLog, changes: $changes, artifacts: $artifacts, parameterValues: $parameterValues)';
 }
 
 
@@ -366,16 +374,21 @@ $BuildArtifactDtoCopyWith<BuildArtifactDto> get copyWith => _$BuildArtifactDtoCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BuildArtifactDto&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.relativePath, relativePath) || other.relativePath == relativePath));
+  final _this = this as BuildArtifactDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BuildArtifactDto&&(identical(other.fileName, _this.fileName) || other.fileName == _this.fileName)&&(identical(other.relativePath, _this.relativePath) || other.relativePath == _this.relativePath));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,fileName,relativePath);
+int get hashCode {
+  final _this = this as BuildArtifactDto;
+  return Object.hash(runtimeType,_this.fileName,_this.relativePath);
+}
 
 @override
 String toString() {
-  return 'BuildArtifactDto(fileName: $fileName, relativePath: $relativePath)';
+  final _this = this as BuildArtifactDto;
+  return 'BuildArtifactDto(fileName: ${_this.fileName}, relativePath: ${_this.relativePath})';
 }
 
 
@@ -404,7 +417,7 @@ class _$BuildArtifactDtoCopyWithImpl<$Res>
 /// Create a copy of BuildArtifactDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? fileName = null,Object? relativePath = null,}) {
-  return _then(_self.copyWith(
+  return _then(BuildArtifactDto(
 fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
 as String,relativePath: null == relativePath ? _self.relativePath : relativePath // ignore: cast_nullable_to_non_nullable
 as String,
@@ -567,16 +580,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BuildArtifactDto&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.relativePath, relativePath) || other.relativePath == relativePath));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BuildArtifactDto&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.relativePath, relativePath) || other.relativePath == relativePath));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,fileName,relativePath);
+int get hashCode {
+    return Object.hash(runtimeType,fileName,relativePath);
+}
 
 @override
 String toString() {
-  return 'BuildArtifactDto(fileName: $fileName, relativePath: $relativePath)';
+    return 'BuildArtifactDto(fileName: $fileName, relativePath: $relativePath)';
 }
 
 

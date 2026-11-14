@@ -166,7 +166,7 @@ abstract class _$ParameterFilesNotifier
   Map<String, ParameterFile> build(String formKey);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<Map<String, ParameterFile>, Map<String, ParameterFile>>;
@@ -181,6 +181,6 @@ abstract class _$ParameterFilesNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

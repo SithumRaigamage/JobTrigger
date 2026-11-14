@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'pending_input_dto.dart';
@@ -9,6 +9,7 @@ part of 'pending_input_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $PendingInputDtoCopyWith<PendingInputDto> get copyWith => _$PendingInputDtoCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PendingInputDto&&(identical(other.id, id) || other.id == id)&&(identical(other.message, message) || other.message == message)&&(identical(other.proceedText, proceedText) || other.proceedText == proceedText)&&(identical(other.abortText, abortText) || other.abortText == abortText)&&const DeepCollectionEquality().equals(other.inputs, inputs));
+  final _this = this as PendingInputDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PendingInputDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.message, _this.message) || other.message == _this.message)&&(identical(other.proceedText, _this.proceedText) || other.proceedText == _this.proceedText)&&(identical(other.abortText, _this.abortText) || other.abortText == _this.abortText)&&const DeepCollectionEquality().equals(other.inputs, _this.inputs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,message,proceedText,abortText,const DeepCollectionEquality().hash(inputs));
+int get hashCode {
+  final _this = this as PendingInputDto;
+  return Object.hash(runtimeType,_this.id,_this.message,_this.proceedText,_this.abortText,const DeepCollectionEquality().hash(_this.inputs));
+}
 
 @override
 String toString() {
-  return 'PendingInputDto(id: $id, message: $message, proceedText: $proceedText, abortText: $abortText, inputs: $inputs)';
+  final _this = this as PendingInputDto;
+  return 'PendingInputDto(id: ${_this.id}, message: ${_this.message}, proceedText: ${_this.proceedText}, abortText: ${_this.abortText}, inputs: ${_this.inputs})';
 }
 
 
@@ -66,7 +72,7 @@ class _$PendingInputDtoCopyWithImpl<$Res>
 /// Create a copy of PendingInputDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? message = freezed,Object? proceedText = null,Object? abortText = null,Object? inputs = null,}) {
-  return _then(_self.copyWith(
+  return _then(PendingInputDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String?,proceedText: null == proceedText ? _self.proceedText : proceedText // ignore: cast_nullable_to_non_nullable
@@ -213,7 +219,7 @@ return $default(_that.id,_that.message,_that.proceedText,_that.abortText,_that.i
 @JsonSerializable()
 
 class _PendingInputDto implements PendingInputDto {
-  const _PendingInputDto({required this.id, this.message, this.proceedText = 'Proceed', this.abortText = 'Abort', final  List<PendingInputParameterDto> inputs = const <PendingInputParameterDto>[]}): _inputs = inputs;
+  const _PendingInputDto({required this.id, this.message, this.proceedText = 'Proceed', this.abortText = 'Abort',  List<PendingInputParameterDto> inputs = const <PendingInputParameterDto>[]}): _inputs = inputs;
   factory _PendingInputDto.fromJson(Map<String, dynamic> json) => _$PendingInputDtoFromJson(json);
 
 @override final  String id;
@@ -241,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PendingInputDto&&(identical(other.id, id) || other.id == id)&&(identical(other.message, message) || other.message == message)&&(identical(other.proceedText, proceedText) || other.proceedText == proceedText)&&(identical(other.abortText, abortText) || other.abortText == abortText)&&const DeepCollectionEquality().equals(other._inputs, _inputs));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PendingInputDto&&(identical(other.id, id) || other.id == id)&&(identical(other.message, message) || other.message == message)&&(identical(other.proceedText, proceedText) || other.proceedText == proceedText)&&(identical(other.abortText, abortText) || other.abortText == abortText)&&const DeepCollectionEquality().equals(other.inputs, _inputs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,message,proceedText,abortText,const DeepCollectionEquality().hash(_inputs));
+int get hashCode {
+    return Object.hash(runtimeType,id,message,proceedText,abortText,const DeepCollectionEquality().hash(_inputs));
+}
 
 @override
 String toString() {
-  return 'PendingInputDto(id: $id, message: $message, proceedText: $proceedText, abortText: $abortText, inputs: $inputs)';
+    return 'PendingInputDto(id: $id, message: $message, proceedText: $proceedText, abortText: $abortText, inputs: $inputs)';
 }
 
 
@@ -309,16 +317,21 @@ $PendingInputParameterDtoCopyWith<PendingInputParameterDto> get copyWith => _$Pe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PendingInputParameterDto&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.description, description) || other.description == description)&&(identical(other.definition, definition) || other.definition == definition));
+  final _this = this as PendingInputParameterDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PendingInputParameterDto&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.definition, _this.definition) || other.definition == _this.definition));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,type,description,definition);
+int get hashCode {
+  final _this = this as PendingInputParameterDto;
+  return Object.hash(runtimeType,_this.name,_this.type,_this.description,_this.definition);
+}
 
 @override
 String toString() {
-  return 'PendingInputParameterDto(name: $name, type: $type, description: $description, definition: $definition)';
+  final _this = this as PendingInputParameterDto;
+  return 'PendingInputParameterDto(name: ${_this.name}, type: ${_this.type}, description: ${_this.description}, definition: ${_this.definition})';
 }
 
 
@@ -347,7 +360,7 @@ class _$PendingInputParameterDtoCopyWithImpl<$Res>
 /// Create a copy of PendingInputParameterDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? type = null,Object? description = freezed,Object? definition = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PendingInputParameterDto(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -526,16 +539,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PendingInputParameterDto&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.description, description) || other.description == description)&&(identical(other.definition, definition) || other.definition == definition));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PendingInputParameterDto&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.description, description) || other.description == description)&&(identical(other.definition, definition) || other.definition == definition));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,type,description,definition);
+int get hashCode {
+    return Object.hash(runtimeType,name,type,description,definition);
+}
 
 @override
 String toString() {
-  return 'PendingInputParameterDto(name: $name, type: $type, description: $description, definition: $definition)';
+    return 'PendingInputParameterDto(name: $name, type: $type, description: $description, definition: $definition)';
 }
 
 
@@ -605,16 +620,21 @@ $PendingInputParameterDefinitionDtoCopyWith<PendingInputParameterDefinitionDto> 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PendingInputParameterDefinitionDto&&const DeepCollectionEquality().equals(other.defaultVal, defaultVal)&&const DeepCollectionEquality().equals(other.choices, choices));
+  final _this = this as PendingInputParameterDefinitionDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PendingInputParameterDefinitionDto&&const DeepCollectionEquality().equals(other.defaultVal, _this.defaultVal)&&const DeepCollectionEquality().equals(other.choices, _this.choices));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(defaultVal),const DeepCollectionEquality().hash(choices));
+int get hashCode {
+  final _this = this as PendingInputParameterDefinitionDto;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.defaultVal),const DeepCollectionEquality().hash(_this.choices));
+}
 
 @override
 String toString() {
-  return 'PendingInputParameterDefinitionDto(defaultVal: $defaultVal, choices: $choices)';
+  final _this = this as PendingInputParameterDefinitionDto;
+  return 'PendingInputParameterDefinitionDto(defaultVal: ${_this.defaultVal}, choices: ${_this.choices})';
 }
 
 
@@ -643,7 +663,7 @@ class _$PendingInputParameterDefinitionDtoCopyWithImpl<$Res>
 /// Create a copy of PendingInputParameterDefinitionDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? defaultVal = freezed,Object? choices = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PendingInputParameterDefinitionDto(
 defaultVal: freezed == defaultVal ? _self.defaultVal : defaultVal // ignore: cast_nullable_to_non_nullable
 as dynamic,choices: freezed == choices ? _self.choices : choices // ignore: cast_nullable_to_non_nullable
 as List<String>?,
@@ -787,7 +807,7 @@ return $default(_that.defaultVal,_that.choices);case _:
 @JsonSerializable()
 
 class _PendingInputParameterDefinitionDto implements PendingInputParameterDefinitionDto {
-  const _PendingInputParameterDefinitionDto({this.defaultVal, final  List<String>? choices}): _choices = choices;
+  const _PendingInputParameterDefinitionDto({this.defaultVal,  List<String>? choices}): _choices = choices;
   factory _PendingInputParameterDefinitionDto.fromJson(Map<String, dynamic> json) => _$PendingInputParameterDefinitionDtoFromJson(json);
 
 @override final  dynamic defaultVal;
@@ -814,16 +834,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PendingInputParameterDefinitionDto&&const DeepCollectionEquality().equals(other.defaultVal, defaultVal)&&const DeepCollectionEquality().equals(other._choices, _choices));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PendingInputParameterDefinitionDto&&const DeepCollectionEquality().equals(other.defaultVal, defaultVal)&&const DeepCollectionEquality().equals(other.choices, _choices));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(defaultVal),const DeepCollectionEquality().hash(_choices));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(defaultVal),const DeepCollectionEquality().hash(_choices));
+}
 
 @override
 String toString() {
-  return 'PendingInputParameterDefinitionDto(defaultVal: $defaultVal, choices: $choices)';
+    return 'PendingInputParameterDefinitionDto(defaultVal: $defaultVal, choices: $choices)';
 }
 
 

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'test_report_dto.dart';
@@ -9,6 +9,7 @@ part of 'test_report_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $TestReportDtoCopyWith<TestReportDto> get copyWith => _$TestReportDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TestReportDto&&(identical(other.passCount, passCount) || other.passCount == passCount)&&(identical(other.failCount, failCount) || other.failCount == failCount)&&(identical(other.skipCount, skipCount) || other.skipCount == skipCount)&&const DeepCollectionEquality().equals(other.failingTests, failingTests));
+  final _this = this as TestReportDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TestReportDto&&(identical(other.passCount, _this.passCount) || other.passCount == _this.passCount)&&(identical(other.failCount, _this.failCount) || other.failCount == _this.failCount)&&(identical(other.skipCount, _this.skipCount) || other.skipCount == _this.skipCount)&&const DeepCollectionEquality().equals(other.failingTests, _this.failingTests));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,passCount,failCount,skipCount,const DeepCollectionEquality().hash(failingTests));
+int get hashCode {
+  final _this = this as TestReportDto;
+  return Object.hash(runtimeType,_this.passCount,_this.failCount,_this.skipCount,const DeepCollectionEquality().hash(_this.failingTests));
+}
 
 @override
 String toString() {
-  return 'TestReportDto(passCount: $passCount, failCount: $failCount, skipCount: $skipCount, failingTests: $failingTests)';
+  final _this = this as TestReportDto;
+  return 'TestReportDto(passCount: ${_this.passCount}, failCount: ${_this.failCount}, skipCount: ${_this.skipCount}, failingTests: ${_this.failingTests})';
 }
 
 
@@ -66,7 +72,7 @@ class _$TestReportDtoCopyWithImpl<$Res>
 /// Create a copy of TestReportDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? passCount = null,Object? failCount = null,Object? skipCount = null,Object? failingTests = null,}) {
-  return _then(_self.copyWith(
+  return _then(TestReportDto(
 passCount: null == passCount ? _self.passCount : passCount // ignore: cast_nullable_to_non_nullable
 as int,failCount: null == failCount ? _self.failCount : failCount // ignore: cast_nullable_to_non_nullable
 as int,skipCount: null == skipCount ? _self.skipCount : skipCount // ignore: cast_nullable_to_non_nullable
@@ -212,7 +218,7 @@ return $default(_that.passCount,_that.failCount,_that.skipCount,_that.failingTes
 @JsonSerializable()
 
 class _TestReportDto implements TestReportDto {
-  const _TestReportDto({this.passCount = 0, this.failCount = 0, this.skipCount = 0, @JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false) final  List<FailingTest> failingTests = const <FailingTest>[]}): _failingTests = failingTests;
+  const _TestReportDto({this.passCount = 0, this.failCount = 0, this.skipCount = 0, @JsonKey(name: 'suites', fromJson: _failingTestsFromJson, includeToJson: false)  List<FailingTest> failingTests = const <FailingTest>[]}): _failingTests = failingTests;
   factory _TestReportDto.fromJson(Map<String, dynamic> json) => _$TestReportDtoFromJson(json);
 
 @override@JsonKey() final  int passCount;
@@ -239,16 +245,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TestReportDto&&(identical(other.passCount, passCount) || other.passCount == passCount)&&(identical(other.failCount, failCount) || other.failCount == failCount)&&(identical(other.skipCount, skipCount) || other.skipCount == skipCount)&&const DeepCollectionEquality().equals(other._failingTests, _failingTests));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TestReportDto&&(identical(other.passCount, passCount) || other.passCount == passCount)&&(identical(other.failCount, failCount) || other.failCount == failCount)&&(identical(other.skipCount, skipCount) || other.skipCount == skipCount)&&const DeepCollectionEquality().equals(other.failingTests, _failingTests));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,passCount,failCount,skipCount,const DeepCollectionEquality().hash(_failingTests));
+int get hashCode {
+    return Object.hash(runtimeType,passCount,failCount,skipCount,const DeepCollectionEquality().hash(_failingTests));
+}
 
 @override
 String toString() {
-  return 'TestReportDto(passCount: $passCount, failCount: $failCount, skipCount: $skipCount, failingTests: $failingTests)';
+    return 'TestReportDto(passCount: $passCount, failCount: $failCount, skipCount: $skipCount, failingTests: $failingTests)';
 }
 
 
