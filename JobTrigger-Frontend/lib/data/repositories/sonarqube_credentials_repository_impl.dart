@@ -116,7 +116,8 @@ class SonarQubeCredentialsRepositoryImpl
 @riverpod
 SonarQubeCredentialsRepository sonarQubeCredentialsRepository(Ref ref) {
   // E2: demo mode never reaches the backend.
-  if (ref.watch(demoModeNotifierProvider))
+  if (ref.watch(demoModeNotifierProvider)) {
     return demoSonarQubeCredentialsRepository;
+  }
   return SonarQubeCredentialsRepositoryImpl(ref.watch(dioBackendProvider));
 }

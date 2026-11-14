@@ -63,7 +63,7 @@ final class AuthNotifierProvider
   AuthNotifier create() => AuthNotifier();
 }
 
-String _$authNotifierHash() => r'cf462a16d00d1299968fd3619ccbc3215f6f2e20';
+String _$authNotifierHash() => r'e11a6ae1c43a4c92ba1ed0da4c49d6b71e148b3e';
 
 /// Holds the app-wide session — `go_router`'s redirect
 /// (`presentation/navigation/app_router.dart`) watches this.

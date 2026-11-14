@@ -107,7 +107,8 @@ class GitHubCredentialsRepositoryImpl implements GitHubCredentialsRepository {
 @riverpod
 GitHubCredentialsRepository gitHubCredentialsRepository(Ref ref) {
   // E2: demo mode never reaches the backend.
-  if (ref.watch(demoModeNotifierProvider))
+  if (ref.watch(demoModeNotifierProvider)) {
     return demoGitHubCredentialsRepository;
+  }
   return GitHubCredentialsRepositoryImpl(ref.watch(dioBackendProvider));
 }

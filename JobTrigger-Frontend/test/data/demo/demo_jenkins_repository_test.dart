@@ -156,7 +156,7 @@ void main() {
         await repo.submitInput(buildUrl: 'x/1/', inputId: 'i', proceed: true),
         unavailable<void>(),
       );
-      expect(DemoUnavailableFailure().message, 'Not available in demo.');
+      expect(const DemoUnavailableFailure().message, 'Not available in demo.');
     });
   });
 }
