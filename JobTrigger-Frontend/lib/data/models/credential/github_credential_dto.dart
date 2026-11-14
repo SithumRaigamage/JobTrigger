@@ -16,6 +16,10 @@ abstract class GitHubCredentialDto with _$GitHubCredentialDto {
     /// — the credential is still listed, but it can't be used until the
     /// user types the token again.
     String? token,
+
+    /// E4: the backend's lists carry a mask and no token. `CredentialSecrets`
+    /// fills [token] before `toDomain`.
+    String? secretMask,
     String? defaultOwner,
     @Default(false) bool isDefault,
 
@@ -39,6 +43,6 @@ extension GitHubCredentialDtoX on GitHubCredentialDto {
     isDefault: isDefault,
     // A null token *is* the unreadable case, so the flag can never
     // disagree with the value it describes.
-    needsReentry: needsReentry || token == null,
+    needsReentry: needsReentry || (token == null && secretMask == null),
   );
 }

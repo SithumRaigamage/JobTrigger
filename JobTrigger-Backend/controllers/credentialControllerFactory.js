@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { createProblem, sendPlanLimit, unlockedIds, MESSAGES } = require('../billing/limits');
+const { maskSecret } = require('../security/secretMask');
 
 /**
  * AUD-31: one implementation of the credential CRUD that the Jenkins,
@@ -20,9 +21,31 @@ const { createProblem, sendPlanLimit, unlockedIds, MESSAGES } = require('../bill
  *   deleting are never limited. Lists mark credentials beyond the plan
  *   `locked` (US-SUB-05) — nothing is deleted on a downgrade.
  *
+ * - E4 (PE-32): no response except `secret` carries a secret. [secrets] names
+ *   the secret fields, the main one first. Every other response drops
+ *   them and carries `secretMask` (the main one, masked) and, for each
+ *   further secret, `has<Name>` (e.g. `hasParamToken`). The decrypted
+ *   values come only from GET /:id/secret: owner-only, rate-limited (the
+ *   route), `Cache-Control: no-store`. The app needs them because it
+ *   calls Jenkins/GitHub/SonarQube directly; the website never asks.
+ *
  * Unexpected errors go to the central handler (AUD-06).
  */
-function makeCredentialController(Model, fields, { tool }) {
+function makeCredentialController(Model, fields, { tool, secrets }) {
+  const [mainSecret, ...otherSecrets] = secrets;
+
+  // The response shape of a credential: metadata and masks, never a secret.
+  const present = (doc, extra = {}) => {
+    const json = { ...doc.toJSON(), ...extra };
+    const shown = { ...json };
+    for (const name of secrets) delete shown[name];
+    shown.secretMask = maskSecret(json[mainSecret]);
+    for (const name of otherSecrets) {
+      shown[`has${name[0].toUpperCase()}${name.slice(1)}`] = Boolean(json[name]);
+    }
+    return shown;
+  };
+
   // Only the fields the client sent; absent ones stay unchanged on update.
   const pick = (body) =>
     Object.fromEntries(
@@ -50,7 +73,7 @@ function makeCredentialController(Model, fields, { tool }) {
         Model.find({ userId: req.user.id }),
         unlockedIds(req.user.id),
       ]);
-      res.json(docs.map((doc) => ({ ...doc.toJSON(), locked: !unlocked.has(String(doc._id)) })));
+      res.json(docs.map((doc) => present(doc, { locked: !unlocked.has(String(doc._id)) })));
     },
 
     async create(req, res) {
@@ -74,7 +97,7 @@ function makeCredentialController(Model, fields, { tool }) {
         await makeDefault(req.user.id, credential._id);
         credential.isDefault = true;
       }
-      res.status(201).json(credential);
+      res.status(201).json(present(credential));
     },
 
     async update(req, res) {
@@ -110,7 +133,7 @@ function makeCredentialController(Model, fields, { tool }) {
         await makeDefault(req.user.id, credential._id);
         credential.isDefault = true;
       }
-      res.json(credential);
+      res.json(present(credential));
     },
 
     async remove(req, res) {
@@ -130,7 +153,28 @@ function makeCredentialController(Model, fields, { tool }) {
         return sendPlanLimit(res, 'locked', MESSAGES.locked);
       }
       await makeDefault(req.user.id, id);
-      res.json(await Model.findById(id));
+      res.json(present(await Model.findById(id)));
+    },
+
+    // E4 (PE-32): the one place a decrypted secret leaves the backend.
+    async secret(req, res) {
+      const { id } = req.params;
+      if (!mongoose.Types.ObjectId.isValid(id)) return invalidId(res);
+      const credential = await Model.findOne({ _id: id, userId: req.user.id });
+      if (!credential) return notFound(res);
+      if (!(await unlockedIds(req.user.id)).has(String(id))) {
+        return sendPlanLimit(res, 'locked', MESSAGES.locked);
+      }
+      const json = credential.toJSON();
+      res.set('Cache-Control', 'no-store');
+      res.set('Pragma', 'no-cache');
+      res.json({
+        ...Object.fromEntries(secrets.map((name) => [name, json[name] ?? null])),
+        needsReentry: json.needsReentry,
+        // Changes whenever the credential is saved, so the app can tell
+        // whether the copy it stored is still current.
+        version: new Date(json.updatedAt).toISOString(),
+      });
     },
   };
 }

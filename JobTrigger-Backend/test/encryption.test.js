@@ -67,13 +67,16 @@ describe('Credentials at rest (AUD-03)', function() {
     token = res.body.token;
   });
 
-  it('stores secrets encrypted but returns them as plaintext', async function() {
+  it('stores secrets encrypted and returns them only masked (E4)', async function() {
     const created = await api()
       .post('/api/credentials')
       .set('x-auth-token', token)
       .send({ serverName: 'S', jenkinsURL: 'http://s', username: 'u', password: 'jenkins-token', paramToken: 'trigger' });
     expect(created.status).to.equal(201);
-    expect(created.body.password).to.equal('jenkins-token');
+    expect(created.body.secretMask).to.equal('••••oken');
+    expect(created.body.hasParamToken).to.equal(true);
+    expect(JSON.stringify(created.body)).to.not.include('jenkins-token');
+    expect(JSON.stringify(created.body)).to.not.include('trigger');
 
     const raw = await JenkinsCredential.collection.findOne({
       _id: new mongoose.Types.ObjectId(created.body._id),
@@ -83,7 +86,8 @@ describe('Credentials at rest (AUD-03)', function() {
     expect(JSON.stringify(raw)).to.not.include('jenkins-token');
 
     const list = await api().get('/api/credentials').set('x-auth-token', token);
-    expect(list.body.find((c) => c._id === created.body._id).password).to.equal('jenkins-token');
+    expect(JSON.stringify(list.body)).to.not.include('jenkins-token');
+    expect(list.body.find((c) => c._id === created.body._id).secretMask).to.equal('••••oken');
   });
 
   it('encrypts an updated secret too', async function() {

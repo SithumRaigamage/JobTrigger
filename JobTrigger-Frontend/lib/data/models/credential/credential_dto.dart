@@ -19,6 +19,12 @@ abstract class CredentialDto with _$CredentialDto {
     /// until the user types the secret again.
     String? password,
     String? paramToken,
+
+    /// E4: the backend's lists carry a mask and no secret. The secret comes
+    /// from `CredentialSecrets`, which fills [password] and [paramToken]
+    /// before [toDomain].
+    String? secretMask,
+    @Default(false) bool hasParamToken,
     @Default(false) bool isDefault,
 
     /// AUD-63: the backend flags a credential whose secret it could not
@@ -43,6 +49,7 @@ extension CredentialDtoX on CredentialDto {
     isDefault: isDefault,
     // A null secret *is* the unreadable case, so the flag can never
     // disagree with the value it describes.
-    needsReentry: needsReentry || password == null,
+    // (A masked response has no password but is not unreadable.)
+    needsReentry: needsReentry || (password == null && secretMask == null),
   );
 }

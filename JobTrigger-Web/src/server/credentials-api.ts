@@ -3,17 +3,17 @@ import "server-only";
 import { z } from "zod";
 
 import type { GitHubAccount, JenkinsServer, SonarQubeServer, Tool } from "@/domain/credentials";
-import { maskSecret } from "@/domain/mask";
 import { ok, type Result } from "@/domain/result";
 
 import { callBackend } from "./backend-client";
 
 /*
- * The three credential collections (docs/api-reference.md §1). The
- * backend returns secrets decrypted in full, because the app needs them;
- * this file masks them the moment a response is parsed, so a full secret
- * never leaves src/server/ (docs/web-architecture.md §2). The raw shapes
- * below are not exported.
+ * The three credential collections (docs/api-reference.md §1). Since E4
+ * (PE-35) the backend returns a mask and never a secret, so there is
+ * nothing to hide here. The portal does not call the decrypted-secret
+ * endpoint (`GET …/:id/secret`, for the app only), and nothing in this
+ * file may: credentials-api.test.ts fails if it does. The raw shapes below
+ * are not exported.
  */
 
 const base = {
@@ -23,21 +23,23 @@ const base = {
   needsReentry: z.boolean().optional().default(false),
 };
 
-const secret = z.string().nullable().optional();
+/** "••••" + last 4, made by the backend; null when the secret is unreadable. */
+const secretMask = z.string().nullable().optional().default(null);
 
 const jenkinsDto = z.object({
   ...base,
   serverName: z.string(),
   jenkinsURL: z.string(),
   username: z.string(),
-  password: secret,
-  paramToken: secret,
+  secretMask,
+  /** Whether an optional build-trigger token is saved. */
+  hasParamToken: z.boolean().optional().default(false),
 });
 
 const githubDto = z.object({
   ...base,
   label: z.string(),
-  token: secret,
+  secretMask,
   defaultOwner: z.string().optional().default(""),
 });
 
@@ -45,12 +47,9 @@ const sonarDto = z.object({
   ...base,
   label: z.string(),
   baseUrl: z.string(),
-  token: secret,
+  secretMask,
   defaultOrganization: z.string().optional().default(""),
 });
-
-const mask = (value: string | null | undefined, needsReentry: boolean) =>
-  !needsReentry && value ? maskSecret(value) : null;
 
 function toJenkins(dto: z.infer<typeof jenkinsDto>): JenkinsServer {
   return {
@@ -61,8 +60,8 @@ function toJenkins(dto: z.infer<typeof jenkinsDto>): JenkinsServer {
     username: dto.username,
     isDefault: dto.isDefault,
     needsReentry: dto.needsReentry,
-    secretMask: mask(dto.password, dto.needsReentry),
-    hasParamToken: Boolean(dto.paramToken),
+    secretMask: dto.needsReentry ? null : dto.secretMask,
+    hasParamToken: dto.hasParamToken,
   };
 }
 
@@ -74,7 +73,7 @@ function toGitHub(dto: z.infer<typeof githubDto>): GitHubAccount {
     defaultOwner: dto.defaultOwner,
     isDefault: dto.isDefault,
     needsReentry: dto.needsReentry,
-    secretMask: mask(dto.token, dto.needsReentry),
+    secretMask: dto.needsReentry ? null : dto.secretMask,
   };
 }
 
@@ -87,7 +86,7 @@ function toSonar(dto: z.infer<typeof sonarDto>): SonarQubeServer {
     defaultOrganization: dto.defaultOrganization,
     isDefault: dto.isDefault,
     needsReentry: dto.needsReentry,
-    secretMask: mask(dto.token, dto.needsReentry),
+    secretMask: dto.needsReentry ? null : dto.secretMask,
   };
 }
 
