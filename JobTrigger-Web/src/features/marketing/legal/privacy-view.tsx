@@ -38,6 +38,7 @@ const toc = [
   { id: "collect", label: "What we store" },
   { id: "use", label: "How it's used" },
   { id: "usage", label: "Anonymous usage data" },
+  { id: "crash", label: "Crash reports" },
   { id: "email", label: "Email" },
   { id: "delete", label: "Deleting your data" },
   { id: "contact", label: "Contact" },
@@ -107,6 +108,19 @@ export function PrivacyView() {
           tokens, and they aren&apos;t linked to your account. No tracking script or cookie is used
           for this: the counts are sent from our server to an analytics service we run ourselves,
           not to an advertising or analytics company. The mobile app sends no usage data.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="crash" title="Crash reports">
+        <p>
+          When the app or this website hits an unexpected error, it can send a crash report so we
+          can fix the problem. A report holds the error, where in the code it happened, the app or
+          site version and the type of phone or browser. It never holds passwords, tokens, what you
+          typed, request contents or the address of your CI server: those are removed before a
+          report leaves your device, and a report that can&apos;t be cleaned is not sent. Reports go
+          to a service we run ourselves, not to an advertising or analytics company, and aren&apos;t
+          linked to your email. In the app, turn this off under Profile → Privacy → Send crash
+          reports; turning it off also deletes reports that were waiting to be sent.
         </p>
       </LegalSection>
 

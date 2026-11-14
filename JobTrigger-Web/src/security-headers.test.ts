@@ -39,6 +39,15 @@ describe("contentSecurityPolicy", () => {
   });
 });
 
+describe("contentSecurityPolicy reporting host (E3)", () => {
+  it("allows connecting to the crash-report host only when one is configured", () => {
+    expect(contentSecurityPolicy("n", false)).toContain("connect-src 'self';");
+    expect(contentSecurityPolicy("n", false, "https://glitch.example.com")).toContain(
+      "connect-src 'self' https://glitch.example.com;",
+    );
+  });
+});
+
 describe("createNonce", () => {
   it("is different every time", () => {
     const nonces = new Set(Array.from({ length: 50 }, createNonce));

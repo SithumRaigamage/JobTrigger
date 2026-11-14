@@ -8,6 +8,13 @@ import { PrivacyView } from "./privacy-view";
 import { TermsView } from "./terms-view";
 
 describe("PrivacyView", () => {
+  it("describes crash reporting and how to turn it off (E3)", () => {
+    render(<PrivacyView />);
+
+    expect(screen.getByRole("heading", { level: 2, name: "Crash reports" })).toBeInTheDocument();
+    expect(screen.getByText(/Send crash reports/)).toBeInTheDocument();
+  });
+
   it("states what is stored and that nothing is tracked", () => {
     render(<PrivacyView />);
 
