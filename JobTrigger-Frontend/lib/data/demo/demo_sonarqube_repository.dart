@@ -5,6 +5,7 @@ import '../../core/error/result.dart';
 import '../../domain/sonarqube/sonarqube_analysis.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
+import '../../domain/sonarqube/sonarqube_project_summary.dart';
 import '../../domain/sonarqube/sonarqube_quality_gate.dart';
 import '../../domain/sonarqube/sonarqube_repository.dart';
 import 'demo_mode_notifier.dart';
@@ -186,6 +187,53 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
           issue,
     ];
     return Ok(SonarQubeIssuePage(issues: matching, total: matching.length));
+  }
+
+  @override
+  Future<Result<Map<String, SonarQubeProjectSummary>, AppFailure>>
+  fetchProjectSummaries(List<String> projectKeys) async => Ok({
+    for (final key in projectKeys)
+      key: key == _bad
+          ? const SonarQubeProjectSummary(
+              gate: QualityGateState.failed,
+              bugs: 3,
+              vulnerabilities: 2,
+              codeSmells: 57,
+              coverage: 62.3,
+            )
+          : const SonarQubeProjectSummary(
+              gate: QualityGateState.passed,
+              bugs: 0,
+              vulnerabilities: 0,
+              codeSmells: 12,
+              coverage: 91.4,
+            ),
+  });
+
+  @override
+  Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
+    SonarQubeIssue issue,
+  ) async {
+    final line = issue.line ?? 1;
+    return Ok(
+      SonarQubeIssueContext(
+        ruleName: switch (issue.type) {
+          'VULNERABILITY' => 'Credentials should not be hard-coded',
+          'BUG' => 'Promises should not be misused',
+          _ => 'Unused imports should be removed',
+        },
+        snippet: [
+          for (var n = line - 2; n <= line + 2; n++)
+            if (n > 0)
+              SonarQubeSourceLine(
+                number: n,
+                code: n == line
+                    ? '  const value = loadSetting(); // flagged line'
+                    : '  // sample code around the issue',
+              ),
+        ],
+      ),
+    );
   }
 
   @override
