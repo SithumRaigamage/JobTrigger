@@ -71,8 +71,8 @@ store's own fields, never into this repository.
 > server: on the sign-in screen tap **Try the demo**. The app then runs on
 > sample data built into it and sends no network requests.
 >
-> - Jenkins: browse the folders, open `demo-app` → `main`, and tap **Build
->   now**. The run goes through its stages and the log streams to SUCCESS in
+> - Jenkins: browse the folders, open `demo-app` → `main`, and tap **Trigger
+>   build**, then **Trigger**. The run goes through its stages and the log streams to SUCCESS in
 >   about 20 seconds. Open `demo-app` → `feature-login` for a failed build
 >   with its log and test report.
 > - GitHub Actions and SonarQube: choose them under **Profile → CI tool**.

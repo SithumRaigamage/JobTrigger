@@ -228,7 +228,7 @@ final class SonarQubeProjectNotFoundFailure extends AppFailure {
 }
 
 /// E2: an action the demo does not support (everything that would write,
-/// except the scripted "Build now"). Demo-only; no real server is involved.
+/// except the scripted "Trigger build"). Demo-only; no real server is involved.
 final class DemoUnavailableFailure extends AppFailure {
   const DemoUnavailableFailure();
 }
