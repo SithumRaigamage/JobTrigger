@@ -32,6 +32,8 @@ import '../models/jenkins/queue_item_dto.dart';
 import '../models/jenkins/test_report_dto.dart';
 import 'jenkins_url_rewriter.dart';
 
+import '../demo/demo_jenkins_repository.dart';
+import '../demo/demo_mode_notifier.dart';
 part 'jenkins_repository_impl.g.dart';
 
 /// Fields requested for each job in a tree or folder listing — ported from
@@ -775,5 +777,10 @@ JenkinsRepository jenkinsRepositoryForServer(JenkinsServer server) =>
     );
 
 @riverpod
-JenkinsRepository jenkinsRepository(Ref ref) =>
-    JenkinsRepositoryImpl(ref.watch(jenkinsClientProvider));
+JenkinsRepository jenkinsRepository(Ref ref) {
+  // E2: demo mode answers from memory and never builds a client.
+  if (ref.watch(demoModeNotifierProvider)) {
+    return ref.watch(demoJenkinsRepositoryProvider);
+  }
+  return JenkinsRepositoryImpl(ref.watch(jenkinsClientProvider));
+}

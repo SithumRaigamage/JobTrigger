@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/platform/notification_service.dart';
 import '../../../data/cache/build_watch_store.dart';
+import '../../../data/demo/demo_mode_notifier.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/build_watch.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
@@ -23,7 +24,7 @@ BackgroundWatchScheduler backgroundWatchScheduler(Ref ref) =>
     BackgroundWatchScheduler();
 
 /// Why a watch wasn't added.
-enum WatchResult { added, permissionDenied, noServer }
+enum WatchResult { added, permissionDenied, noServer, unavailableInDemo }
 
 /// US-JX-10: the builds and jobs the user wants a notification for. While
 /// the app is alive, checks every [_checkEvery]. While it's suspended, the
@@ -87,6 +88,10 @@ class BuildWatchNotifier extends _$BuildWatchNotifier {
   );
 
   Future<WatchResult> _add(BuildWatch Function(String serverId) create) async {
+    // E2 (PE-14): no stored watches and no background task in demo mode.
+    if (ref.read(demoModeNotifierProvider)) {
+      return WatchResult.unavailableInDemo;
+    }
     final serverId = ref.read(activeServerNotifierProvider)?.id;
     if (serverId == null) return WatchResult.noServer;
     final granted = await ref
@@ -130,7 +135,7 @@ class BuildWatchNotifier extends _$BuildWatchNotifier {
   /// One pass now: notify for anything finished, drop what's done. A tick
   /// that arrives while a pass is running is skipped (AUD-49).
   Future<void> check() async {
-    if (_checking) return;
+    if (_checking || ref.read(demoModeNotifierProvider)) return;
     _checking = true;
     final List<BuildWatch> remaining;
     try {

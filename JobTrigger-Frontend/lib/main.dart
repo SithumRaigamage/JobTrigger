@@ -8,7 +8,9 @@ import 'core/error/no_retry.dart';
 import 'core/error_reporting/crash_reporting.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_notifier.dart';
+import 'presentation/common_widgets/demo_banner_gate.dart';
 import 'presentation/common_widgets/toast_view.dart';
+import 'data/demo/demo_mode_notifier.dart';
 import 'presentation/navigation/app_router.dart';
 import 'core/platform/notification_service.dart';
 import 'presentation/features/app_lock/app_lock_gate.dart';
@@ -22,13 +24,20 @@ Future<void> main() async {
   // rather than at the first backend call.
   final config = AppConfig.fromEnvironment();
   _registerFontLicenses();
+  // E2: demo mode is read before the first frame so a relaunch stays in it.
+  final demoMode = await readStoredDemoMode();
   // E3: crash reporting wraps the app (Flutter, platform and zone errors).
   // With no DSN, or with the Profile switch off, it just runs the app.
   await CrashReporting.instance.start(
     config,
     // No automatic retries: a failed load shows its error, not a spinner.
-    appRunner: () =>
-        runApp(const ProviderScope(retry: noRetry, child: MyApp())),
+    appRunner: () => runApp(
+      ProviderScope(
+        retry: noRetry,
+        overrides: [demoModeInitialProvider.overrideWithValue(demoMode)],
+        child: const MyApp(),
+      ),
+    ),
   );
 }
 
@@ -82,7 +91,9 @@ class MyApp extends ConsumerWidget {
       routerConfig: router,
       // US-JX-21: the lock covers everything, toasts included.
       builder: (context, child) => AppLockGate(
-        child: ToastOverlay(child: child ?? const SizedBox.shrink()),
+        child: ToastOverlay(
+          child: DemoBannerGate(child: child ?? const SizedBox.shrink()),
+        ),
       ),
     );
   }

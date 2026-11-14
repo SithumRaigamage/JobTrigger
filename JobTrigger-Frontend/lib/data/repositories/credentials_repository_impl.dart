@@ -9,6 +9,8 @@ import '../../domain/credential/credentials_repository.dart';
 import '../../domain/credential/jenkins_server.dart';
 import '../models/credential/credential_dto.dart';
 
+import '../demo/demo_account_repositories.dart';
+import '../demo/demo_mode_notifier.dart';
 part 'credentials_repository_impl.g.dart';
 
 class CredentialsRepositoryImpl implements CredentialsRepository {
@@ -109,5 +111,8 @@ class CredentialsRepositoryImpl implements CredentialsRepository {
 }
 
 @riverpod
-CredentialsRepository credentialsRepository(Ref ref) =>
-    CredentialsRepositoryImpl(ref.watch(dioBackendProvider));
+CredentialsRepository credentialsRepository(Ref ref) {
+  // E2: demo mode never reaches the backend.
+  if (ref.watch(demoModeNotifierProvider)) return demoCredentialsRepository;
+  return CredentialsRepositoryImpl(ref.watch(dioBackendProvider));
+}

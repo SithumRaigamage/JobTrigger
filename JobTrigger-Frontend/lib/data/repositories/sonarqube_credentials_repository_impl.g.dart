@@ -58,4 +58,4 @@ final class SonarQubeCredentialsRepositoryProvider
 }
 
 String _$sonarQubeCredentialsRepositoryHash() =>
-    r'f0c4231f4d114ff94cec53d1352eb880281bc6d8';
+    r'1c52e0aa938df5cedd91b7978a7f68f32e5bbf58';

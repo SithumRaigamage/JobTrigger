@@ -14,6 +14,8 @@ import '../credentials/active_sonarqube_credential_notifier.dart';
 import '../datasources/sonarqube_client_factory.dart';
 import '../models/sonarqube/sonarqube_project_dto.dart';
 
+import '../demo/demo_mode_notifier.dart';
+import '../demo/demo_sonarqube_repository.dart';
 part 'sonarqube_repository_impl.g.dart';
 
 class SonarQubeRepositoryImpl implements SonarQubeRepository {
@@ -241,6 +243,10 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
 
 @riverpod
 SonarQubeRepository sonarQubeRepository(Ref ref) {
+  // E2: demo mode answers from memory and never builds a client.
+  if (ref.watch(demoModeNotifierProvider)) {
+    return ref.watch(demoSonarQubeRepositoryProvider);
+  }
   final credential = ref.watch(activeSonarQubeCredentialNotifierProvider);
   return SonarQubeRepositoryImpl(
     ref.watch(sonarQubeClientProvider),

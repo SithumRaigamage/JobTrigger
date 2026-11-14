@@ -8,6 +8,8 @@ import '../../core/network/backend_api_client.dart';
 import '../../domain/auth/auth_repository.dart';
 import '../models/auth/user_dto.dart';
 
+import '../demo/demo_account_repositories.dart';
+import '../demo/demo_mode_notifier.dart';
 part 'auth_repository_impl.g.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -90,5 +92,8 @@ class AuthRepositoryImpl implements AuthRepository {
 }
 
 @riverpod
-AuthRepository authRepository(Ref ref) =>
-    AuthRepositoryImpl(ref.watch(dioBackendProvider));
+AuthRepository authRepository(Ref ref) {
+  // E2: demo mode has no backend session.
+  if (ref.watch(demoModeNotifierProvider)) return demoAuthRepository;
+  return AuthRepositoryImpl(ref.watch(dioBackendProvider));
+}

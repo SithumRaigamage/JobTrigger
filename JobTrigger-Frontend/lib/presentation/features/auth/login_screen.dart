@@ -14,6 +14,7 @@ import '../../common_widgets/labeled_field.dart';
 import '../../common_widgets/loading_overlay.dart';
 import '../../common_widgets/pinned_footer_layout.dart';
 import '../../navigation/app_routes.dart';
+import 'auth_notifier.dart';
 import 'login_notifier.dart';
 import 'remembered_email_notifier.dart';
 
@@ -102,6 +103,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         isLoading: isLoading,
         onSignIn: _submit,
         onSignUp: () => context.go(AppRoutes.signup),
+        onDemo: isLoading
+            ? null
+            : () => unawaited(
+                ref.read(authNotifierProvider.notifier).enterDemo(),
+              ),
       ),
     );
 
@@ -392,11 +398,15 @@ class _LoginActions extends StatelessWidget {
     required this.isLoading,
     required this.onSignIn,
     required this.onSignUp,
+    required this.onDemo,
   });
 
   final bool isLoading;
   final VoidCallback onSignIn;
   final VoidCallback onSignUp;
+
+  /// E2 (PE-12): null while a sign-in is running.
+  final VoidCallback? onDemo;
 
   @override
   Widget build(BuildContext context) {
@@ -418,6 +428,13 @@ class _LoginActions extends StatelessWidget {
                   ),
                 )
               : const Text('Log in'),
+        ),
+        const SizedBox(height: 8),
+        // E2 (PE-12): explore with sample data, no account or server.
+        OutlinedButton(
+          key: const Key('login_demo_button'),
+          onPressed: onDemo,
+          child: const Text('Try the demo'),
         ),
         const SizedBox(height: 8),
         Wrap(

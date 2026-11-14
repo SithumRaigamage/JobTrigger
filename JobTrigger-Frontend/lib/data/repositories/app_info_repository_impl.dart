@@ -9,6 +9,8 @@ import '../../domain/app_info/app_info.dart';
 import '../../domain/app_info/app_info_repository.dart';
 import '../models/app_info/app_info_dto.dart';
 
+import '../demo/demo_account_repositories.dart';
+import '../demo/demo_mode_notifier.dart';
 part 'app_info_repository_impl.g.dart';
 
 class AppInfoRepositoryImpl implements AppInfoRepository {
@@ -24,5 +26,8 @@ class AppInfoRepositoryImpl implements AppInfoRepository {
 }
 
 @riverpod
-AppInfoRepository appInfoRepository(Ref ref) =>
-    AppInfoRepositoryImpl(ref.watch(dioBackendProvider));
+AppInfoRepository appInfoRepository(Ref ref) {
+  // E2: demo mode never reaches the backend.
+  if (ref.watch(demoModeNotifierProvider)) return demoAppInfoRepository;
+  return AppInfoRepositoryImpl(ref.watch(dioBackendProvider));
+}

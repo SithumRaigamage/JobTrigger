@@ -9,6 +9,8 @@ import '../../domain/credential/github_credential.dart';
 import '../../domain/credential/github_credentials_repository.dart';
 import '../models/credential/github_credential_dto.dart';
 
+import '../demo/demo_account_repositories.dart';
+import '../demo/demo_mode_notifier.dart';
 part 'github_credentials_repository_impl.g.dart';
 
 /// Talks to `JobTrigger-Backend`'s `/api/github-credentials` (JWT-authed,
@@ -103,5 +105,9 @@ class GitHubCredentialsRepositoryImpl implements GitHubCredentialsRepository {
 }
 
 @riverpod
-GitHubCredentialsRepository gitHubCredentialsRepository(Ref ref) =>
-    GitHubCredentialsRepositoryImpl(ref.watch(dioBackendProvider));
+GitHubCredentialsRepository gitHubCredentialsRepository(Ref ref) {
+  // E2: demo mode never reaches the backend.
+  if (ref.watch(demoModeNotifierProvider))
+    return demoGitHubCredentialsRepository;
+  return GitHubCredentialsRepositoryImpl(ref.watch(dioBackendProvider));
+}

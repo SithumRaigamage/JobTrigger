@@ -107,6 +107,7 @@ sealed class AppFailure {
     SonarQubeOrganizationNotFoundFailure() =>
       "SonarCloud doesn't know that organization. Check the organization "
           'key in this credential in Settings.',
+    DemoUnavailableFailure() => 'Not available in demo.',
     UnknownFailure() => 'Something unexpected happened. Please try again.',
   };
 }
@@ -224,4 +225,10 @@ final class SonarQubeAccessDeniedFailure extends AppFailure {
 /// deleted or renamed since. SonarQube-only.
 final class SonarQubeProjectNotFoundFailure extends AppFailure {
   const SonarQubeProjectNotFoundFailure();
+}
+
+/// E2: an action the demo does not support (everything that would write,
+/// except the scripted "Build now"). Demo-only; no real server is involved.
+final class DemoUnavailableFailure extends AppFailure {
+  const DemoUnavailableFailure();
 }
