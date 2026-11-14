@@ -45,18 +45,22 @@ Dio buildGitHubDio({required String? token}) {
 /// `Dio` instance — never the active credential's client, matching
 /// `testJenkinsConnection()`'s reasoning exactly. Returns the
 /// authenticated username on success.
+///
+/// [dio] is for tests; by default a throwaway client is built and closed,
+/// never the active credential's.
 Future<Result<String, AppFailure>> testGitHubConnection({
   required String token,
+  Dio? dio,
 }) async {
-  final dio = buildGitHubDio(token: token);
+  final client = dio ?? buildGitHubDio(token: token);
   try {
     return await guardRequest(() async {
-      final response = await dio.get<Map<String, dynamic>>('/user');
+      final response = await client.get<Map<String, dynamic>>('/user');
       final login = response.data?['login'] as String?;
       return login ?? 'unknown';
     }, mapDioException: AppFailure.fromGitHubException);
   } finally {
-    dio.close();
+    if (dio == null) client.close();
   }
 }
 

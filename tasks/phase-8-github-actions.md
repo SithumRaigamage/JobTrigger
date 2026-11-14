@@ -372,8 +372,7 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       `StageChipRow` builds its items and is otherwise unchanged (71 job
       detail tests still pass). GitHub steps use the same widget, shown per
       job on the run detail screen.
-- [ ] P8-20 (partly covered by P8-12/13: parsing, empty, 404, screen and
-      notifier tests exist; trigger/cancel/polling tests remain) Unit tests: all new repository methods against mocked
+- [x] P8-20 (done 2026-11-14 as PE-40: `github_repository_impl_failures_test.dart` maps every GH-RUN failure, `github_run_flow_test.dart` covers refresh, polling after a network error and the delayed refresh after a trigger, `testGitHubConnection` and the client provider are tested. The "`Link` header" paging in the text below was never built: paging is by `page` number and is tested) Unit tests: all new repository methods against mocked
       responses (status/conclusion parsing, 422-on-dispatch mapping,
       pagination via `Link` header, rate-limit mid-poll handling); polling
       notifier timer/dispose tests mirroring
