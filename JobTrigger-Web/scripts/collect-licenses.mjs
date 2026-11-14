@@ -31,14 +31,19 @@ function npmPackages(project) {
   });
 }
 
-// Plain-text matching of the licence texts pub packages ship with.
-function detectLicense(text) {
-  if (/Apache License[\s\S]*Version 2\.0/i.test(text)) return "Apache-2.0";
+// Plain-text matching of the licence texts pub packages ship with. Line
+// breaks and runs of spaces are collapsed first: the texts are wrapped at
+// different widths, so "free of\ncharge" must still match.
+function detectLicense(raw) {
+  const text = raw.replace(/\s+/g, " ");
+  if (/Apache License,? Version 2\.0/i.test(text)) return "Apache-2.0";
   if (/Permission is hereby granted, free of charge/i.test(text)) return "MIT";
   if (/Redistribution and use in source and binary forms/i.test(text)) {
     return /Neither the name/i.test(text) ? "BSD-3-Clause" : "BSD-2-Clause";
   }
   if (/Mozilla Public License,? v(ersion)?\.? ?2\.0/i.test(text)) return "MPL-2.0";
+  if (/Permission to use, copy, modify, and\/or distribute this software/i.test(text)) return "ISC";
+  if (/CC0 1\.0 Universal|Creative Commons Zero|Statement of Purpose The laws of most jurisdictions/i.test(text)) return "CC0-1.0";
   return null;
 }
 
@@ -76,8 +81,11 @@ function flutterPackages(project) {
     let license = null;
     const root = roots[name];
     if (root?.startsWith("file://")) {
-      const file = join(fileURLToPath(root), "LICENSE");
-      if (existsSync(file)) license = detectLicense(readFileSync(file, "utf8"));
+      const dir = fileURLToPath(root);
+      const file = ["LICENSE", "LICENSE.md", "LICENSE.txt", "LICENCE"]
+        .map((name) => join(dir, name))
+        .find((path) => existsSync(path));
+      if (file) license = detectLicense(readFileSync(file, "utf8"));
     }
     return {
       name,
