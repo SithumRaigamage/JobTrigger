@@ -37,7 +37,7 @@ const _deployUrl = '${_platformUrl}job/deploy-staging/';
 const _nightlyUrl = '${_platformUrl}job/nightly-tests/';
 const _docsUrl = '${_base}job/docs-site/';
 
-/// How long the scripted "Build now" run waits in the queue, and then runs.
+/// How long the scripted "Trigger build" run waits in the queue, and then runs.
 /// About 20 seconds end to end, which is long enough to watch the stages
 /// advance and the log stream, and short enough not to wait on.
 const demoQueueWait = Duration(seconds: 2);
@@ -45,7 +45,7 @@ const demoRunLength = Duration(seconds: 18);
 
 /// The one scripted run, `demo-app/main` (E2, PE-13): queued, then five
 /// stages and a log that grows line by line, then SUCCESS. Everything is
-/// derived from the time since "Build now", so there is no timer to leak.
+/// derived from the time since "Trigger build", so there is no timer to leak.
 class DemoBuildScript {
   DemoBuildScript(this.number, this.triggeredAt);
 

@@ -93,7 +93,7 @@ implementations through Riverpod overrides. Widgets don't change, and no new
 dependency is needed.
 
 **Decided (recommended, 2026-11-14): read-only, plus one scripted build.**
-Browsing is read-only. The one exception is "Build now" on a single demo
+Browsing is read-only. The one exception is "Trigger build" (the button's label in the app; the task text said "Build now") on a single demo
 job, `demo-app/main`: it plays a scripted run (queued → stages → a log that
 streams line by line → success, about 20 seconds), all in memory. That is
 the app's core moment, which a reviewer or new user should see. Every other
@@ -148,7 +148,7 @@ everything: more fake code to maintain, and it blurs what's real.
 
 **Verify (iPhone):** *(unverified until run on the phone; the host tests pass)* sign-in screen → tap "Try the demo" → browse the Jenkins
 tree, open the failed build and its log, GitHub runs and the SonarQube gate.
-Open `demo-app/main` → tap "Build now": the run goes through its stages and
+Open `demo-app/main` → tap "Trigger build" and confirm "Trigger": the run goes through its stages and
 the log streams to success. Tap "Cancel" or "Replay" on another build: "Not
 available in demo". Tap "Exit demo": back on sign-in.
 
