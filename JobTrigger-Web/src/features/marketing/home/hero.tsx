@@ -144,6 +144,10 @@ export function Hero() {
             </Link>
           </div>
 
+          <Link href={routes.demo} className="self-start text-[0.9375rem] font-semibold">
+            See the demo — no account needed →
+          </Link>
+
           {!appLive && (
             <Link
               href={routes.download}

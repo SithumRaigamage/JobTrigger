@@ -9,4 +9,5 @@ export const publicPages = [
   { path: "/privacy", title: "Privacy policy · JobTrigger" },
   { path: "/terms", title: "Terms of use · JobTrigger" },
   { path: "/support", title: "Support · JobTrigger" },
+  { path: "/demo", title: "Portal demo · JobTrigger" },
 ] as const;

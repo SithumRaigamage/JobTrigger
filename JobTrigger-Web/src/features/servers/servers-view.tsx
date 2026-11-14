@@ -26,7 +26,7 @@ function PlusIcon() {
   );
 }
 
-function Counts({ servers }: { servers: Credential[] }) {
+function Counts({ servers, preview }: { servers: Credential[]; preview: boolean }) {
   return (
     <ul className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3.5">
       {tools.map((tool) => {
@@ -48,6 +48,8 @@ function Counts({ servers }: { servers: Credential[] }) {
                 <span className="text-[0.8125rem] text-muted">
                   {count === 1 ? names.one : names.many}
                 </span>
+              ) : preview ? (
+                <span className="text-[0.8125rem] text-muted">No {names.name} yet</span>
               ) : (
                 <Link href={addServerHref(tool)} className="text-[0.8125rem] font-semibold">
                   Add {names.name} →
@@ -61,7 +63,7 @@ function Counts({ servers }: { servers: Credential[] }) {
   );
 }
 
-function ServerTable({ servers }: { servers: Credential[] }) {
+function ServerTable({ servers, preview }: { servers: Credential[]; preview: boolean }) {
   return (
     <Card radius="lg" className="overflow-hidden">
       {/* Scrolls on its own on narrow screens; focusable for keyboard users. */}
@@ -120,6 +122,8 @@ function ServerTable({ servers }: { servers: Credential[] }) {
                     <span className="rounded-full bg-success-bg px-2.5 py-1 text-xs font-bold text-success-fg">
                       ✓ Active
                     </span>
+                  ) : preview ? (
+                    <PreviewControl label="Make active" name={credentialName(server)} />
                   ) : (
                     <MakeActiveButton
                       tool={server.tool}
@@ -129,11 +133,15 @@ function ServerTable({ servers }: { servers: Credential[] }) {
                   )}
                 </td>
                 <td className="px-5 py-4 text-right">
-                  <Link href={editServerHref(server)} className="font-bold">
-                    {/* The space sits outside the span: a leading space inside it is
+                  {preview ? (
+                    <PreviewControl label="Edit" name={credentialName(server)} plain />
+                  ) : (
+                    <Link href={editServerHref(server)} className="font-bold">
+                      {/* The space sits outside the span: a leading space inside it is
                         trimmed from the accessible name ("EditAcme…"). */}
-                    Edit <span className="sr-only">{credentialName(server)}</span>
-                  </Link>
+                      Edit <span className="sr-only">{credentialName(server)}</span>
+                    </Link>
+                  )}
                 </td>
               </tr>
             ))}
@@ -144,13 +152,39 @@ function ServerTable({ servers }: { servers: Credential[] }) {
   );
 }
 
-/** My servers (design 10; US-WEB-11). */
+/**
+ * A control the demo shows but does not run (E2, PE-16): disabled, with no
+ * form and no link, so nothing here can call a server action.
+ */
+function PreviewControl({ label, name, plain }: { label: string; name: string; plain?: boolean }) {
+  return (
+    <button
+      type="button"
+      aria-disabled="true"
+      title="Not available in the demo"
+      className={
+        plain
+          ? "cursor-not-allowed font-bold text-muted"
+          : "h-9 cursor-not-allowed rounded-[10px] border border-dashed border-line-strong px-3 text-[0.8125rem] font-semibold text-muted"
+      }
+    >
+      {label} <span className="sr-only">{name}</span>
+    </button>
+  );
+}
+
+/**
+ * My servers (design 10; US-WEB-11). With `preview` (the public /demo page,
+ * E2 PE-16) the same view renders sample data and its controls are inert.
+ */
 export function ServersView({
   servers,
   failure,
+  preview = false,
 }: {
   servers: Credential[];
   failure: AppFailure | null;
+  preview?: boolean;
 }) {
   return (
     <>
@@ -161,13 +195,25 @@ export function ServersView({
             Changes here show up in the app the next time you open it.
           </p>
         </div>
-        <Link
-          href={addServerHref()}
-          className="flex h-11.5 items-center gap-2 rounded-control bg-accent px-4.5 text-[0.9375rem] font-bold text-on-accent no-underline hover:bg-accent-hover hover:text-on-accent"
-        >
-          <PlusIcon />
-          Add server
-        </Link>
+        {preview ? (
+          <button
+            type="button"
+            aria-disabled="true"
+            title="Not available in the demo"
+            className="flex h-11.5 cursor-not-allowed items-center gap-2 rounded-control border border-dashed border-line-strong px-4.5 text-[0.9375rem] font-bold text-muted"
+          >
+            <PlusIcon />
+            Add server
+          </button>
+        ) : (
+          <Link
+            href={addServerHref()}
+            className="flex h-11.5 items-center gap-2 rounded-control bg-accent px-4.5 text-[0.9375rem] font-bold text-on-accent no-underline hover:bg-accent-hover hover:text-on-accent"
+          >
+            <PlusIcon />
+            Add server
+          </Link>
+        )}
       </div>
 
       {failure ? (
@@ -188,9 +234,9 @@ export function ServersView({
         </div>
       ) : (
         <>
-          <Counts servers={servers} />
+          <Counts servers={servers} preview={preview} />
           {servers.length > 0 ? (
-            <ServerTable servers={servers} />
+            <ServerTable servers={servers} preview={preview} />
           ) : (
             <Card radius="lg" className="flex flex-col items-start gap-3 p-7">
               <h2 className="text-lg font-bold">No servers yet</h2>

@@ -143,6 +143,12 @@ export function Download() {
             />
           </div>
 
+          {appLive && (
+            <Link href={routes.demo} className="self-start text-[0.9375rem] font-semibold">
+              See the demo — no account needed →
+            </Link>
+          )}
+
           {!appLive && (
             <div className="flex flex-wrap items-center gap-5">
               <Link
@@ -153,6 +159,9 @@ export function Download() {
               </Link>
               <Link href={routes.changelog} className="text-[0.9375rem] font-semibold">
                 Follow launch updates →
+              </Link>
+              <Link href={routes.demo} className="text-[0.9375rem] font-semibold">
+                See the demo →
               </Link>
             </div>
           )}
