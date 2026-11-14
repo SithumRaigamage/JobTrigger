@@ -53,3 +53,9 @@ only tracks what's left and why.
       submission — a real-world, hard-to-reverse action on a shared/public
       system. Requires your explicit action and store-account access.
       Blocked on the items above.
+- [ ] Crash reporting on a real device and host (source: `phase-emergency.md`
+      E3, PE-19c/d, PE-24..27). Unit and widget tests pass; delivery to GlitchTip, the
+      offline cache, `pod install` with the Sentry SDK, the Sentry SDK's own privacy manifest
+      and the "Send crash reports" switch clearing the cache have not been run on a phone.
+      Also owed: the App Store privacy answers (Data Types: Diagnostics → Crash Data,
+      not linked, not tracking) and Google Play's Data safety form (crash logs, optional).

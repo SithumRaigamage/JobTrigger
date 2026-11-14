@@ -74,6 +74,7 @@ Phase 0–6 task without first moving the item here into an actual phase file
   directly during Phase 6; user chose to skip for now rather than commit
   to Firebase Crashlytics or Sentry. Revisit before public release
   (P6-13).
+  **Done 2026-11-14 as Phase Emergency E3** (GlitchTip; `docs/error-reporting.md`).
 - Backend rewrite or migration off MongoDB/Express — out of scope entirely;
   this migration only changes the client.
 - Settings screen "Backend Server Status" live connectivity indicator

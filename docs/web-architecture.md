@@ -52,6 +52,7 @@ because the app needs them. So:
 | End-to-end | Playwright | Against a fake backend, never a real one |
 | Lint / format | ESLint (`eslint-config-next`), Prettier + `prettier-plugin-tailwindcss` | |
 | Runtime | Node 24, npm | Same as the backend; pinned in `.nvmrc` and `engines` |
+| Crash reporting | `@sentry/nextjs` → self-hosted GlitchTip | E3: errors only, scrubbed in `beforeSend`; see `docs/error-reporting.md` |
 | Hosting | Vercel first, Docker (`output: "standalone"`) later | P15-22, P15-23 |
 
 No second HTTP client (use the built-in `fetch`), no client-side data
@@ -80,6 +81,8 @@ JobTrigger-Web/
     proxy.ts               Per-request CSP nonce; portal: no-store, noindex, session upkeep
     session-upkeep.ts      Token renewal + idle timeout for the proxy
     security-headers.ts    Header builders shared with next.config.ts
+    error-reporting/       Crash reporting (E3): scrubber, config, server init, offline outbox
+    instrumentation*.ts    Next.js hooks that start crash reporting (server / browser)
   tests/e2e/               Playwright specs + fake backend
 ```
 

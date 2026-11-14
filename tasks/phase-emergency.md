@@ -60,7 +60,7 @@ can only be checked on a real iPhone or a real server is marked unverified.
       date). `launch-readiness.test.ts` already lists what is missing.
       Add a `/licenses` page, or link the app to the app's own licenses screen
       and drop `openSourceLicensesUrl`. **Decision.**
-- [ ] PE-04 Privacy policy text: add sections for crash reporting (E3) and
+- [ ] PE-04 (crash reporting part done with PE-28; demo mode part waits for E2) Privacy policy text: add sections for crash reporting (E3) and
       demo mode (E2) once those are approved, so the policy matches what ships.
       Legal review is an owner action (`phase-15-website.md`).
 
@@ -204,13 +204,13 @@ switching hosts is configuration only.
 
 *DevOps lab (separate repo, its own flow: audit, plan, approval, install,
 verify, document, per its `docs/TOOLS-ROADMAP.md`)*
-- [x] PE-19a (2026-11-14, files written; unverified until `make up S="postgres glitchtip"` on the Mac. Uses 6.1.0 all-in-one with `VALKEY_URL` empty: no Valkey needed) `glitchtip/docker-compose.yml`: web and worker, data in the
+- [x] PE-19a (2026-11-14, verified on the Mac: container healthy, migrations applied. 6.1.0 all-in-one with `VALKEY_URL` empty: no Valkey needed. Sign-up needs Mailpit running) `glitchtip/docker-compose.yml`: web and worker, data in the
       shared Postgres (database `glitchtip`, role from a `glitchtip/.env`
       made by `make bootstrap`), bound to `127.0.0.1:3005`, memory limits.
       Before writing it, check whether the current GlitchTip release still
       needs Redis/Valkey, and add the smallest one only if it does
       **(check)**.
-- [x] PE-19b (2026-11-14, unverified, as PE-19a) `glitchtip/scripts/init-db.sh` modelled on
+- [x] PE-19b (2026-11-14, verified with PE-19a) `glitchtip/scripts/init-db.sh` modelled on
       `analytics/scripts/init-db.sh`. Add `glitchtip` to `SERVICES`,
       `ensure_env` and the backup list in `scripts/stack.sh`, to
       `scripts/scan.sh`'s images and to the port table in
@@ -238,41 +238,41 @@ verify, document, per its `docs/TOOLS-ROADMAP.md`)*
   fails.
 
 *Backend*
-- [ ] PE-20 Init in `server.js` before routes. Capture in
+- [x] PE-20 (2026-11-14; backend suite passes, 268 tests; delivery to GlitchTip unverified) Init in `server.js` before routes. Capture in
       `middleware/errorHandler.js` (5xx only; 4xx are not errors). Tag
       events with the request id from `middleware/requestId.js`. The DSN comes
       from `config/env.js`; with no DSN it's a no-op, so tests and local dev
       don't send anything.
-- [ ] PE-21 Tests: a thrown error with a token in its message, headers and
+- [x] PE-21 (2026-11-14) Tests: a thrown error with a token in its message, headers and
       URL is captured with all three scrubbed. No DSN means no sending.
 
 *Website*
-- [ ] PE-22 `@sentry/nextjs` for server actions, route handlers and the
+- [x] PE-22 (2026-11-14; `npm run e2e` result in the PR; browser offline transport unverified in a real browser) `@sentry/nextjs` for server actions, route handlers and the
       browser. Scrub in `beforeSend` on both sides. Never capture form
       values (the portal forms hold tokens). Update the Content-Security-
       Policy in `security-headers.ts` for the reporting host, and its test.
-- [ ] PE-23 Tests: a portal action that fails with a token in its input
+- [x] PE-23 (2026-11-14) Tests: a portal action that fails with a token in its input
       reports an event without that token.
 
 *App*
-- [ ] PE-24 `sentry_flutter` in `main.dart`: `FlutterError.onError`,
+- [x] PE-24 (2026-11-14; native crash handling is off on purpose, see `docs/error-reporting.md`; unverified on the iPhone) `sentry_flutter` in `main.dart`: `FlutterError.onError`,
       `PlatformDispatcher.instance.onError`, zone errors. Scrub in
       `beforeSend` and `beforeBreadcrumb`. Turn off HTTP breadcrumbs for
       Dio, or reduce them to method + host + status. The DSN comes from
       `core/config/`.
-- [ ] PE-25 Report unexpected `AppFailure`s only (not "server
+- [x] PE-25 (2026-11-14, in `guardRequest`, which every repository goes through) Report unexpected `AppFailure`s only (not "server
       unreachable" and other expected failures), from the repository layer,
       not from widgets. No change to existing `AppFailure` cases or copy
       (`CLAUDE.md` §11).
-- [ ] PE-26 Profile screen: a "Send crash reports" switch, **on by
+- [x] PE-26 (2026-11-14; clearing the offline cache is best effort and unverified on the iPhone) Profile screen: a "Send crash reports" switch, **on by
       default** in development and production (decided), stored in
       `shared_preferences`. Keep the switch: the store privacy answers and
       the privacy policy describe it as an opt-out. Turning it off also
       clears the offline cache.
-- [ ] PE-27 Re-check `PrivacyInfo.xcprivacy` for the new SDK's
+- [ ] PE-27 (2026-11-14: `CrashData` added to `PrivacyInfo.xcprivacy`; still to do on the Mac: `pod install`, check the Sentry pod's own manifest, then the store privacy answers, listed in `release-checklist.md`) Re-check `PrivacyInfo.xcprivacy` for the new SDK's
       required-reason APIs. Update the App Store and Play privacy answers
       ("Crash data", "Diagnostics").
-- [ ] PE-28 Update the privacy policy (with PE-04).
+- [x] PE-28 (2026-11-14, "Crash reports" section on `/privacy`; legal review is still an owner action) Update the privacy policy (with PE-04).
 
 **Verify:** a test crash from a debug-only settings action on the iPhone
 appears in the dashboard with no token, URL query or email. Unverified until
