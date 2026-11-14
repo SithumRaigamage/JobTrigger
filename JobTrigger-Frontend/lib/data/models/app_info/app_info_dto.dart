@@ -28,9 +28,27 @@ extension AppInfoDtoX on AppInfoDto {
   AppInfo toDomain() => AppInfo(
     appVersion: appVersion,
     buildNumber: buildNumber,
-    privacyPolicyUrl: privacyPolicyUrl,
-    termsOfServiceUrl: termsOfServiceUrl,
+    privacyPolicyUrl: usableLink(privacyPolicyUrl),
+    termsOfServiceUrl: usableLink(termsOfServiceUrl),
     supportEmail: supportEmail,
-    openSourceLicensesUrl: openSourceLicensesUrl,
+    openSourceLicensesUrl: usableLink(openSourceLicensesUrl),
   );
+}
+
+/// PE-05: a link the About screen can open, or null so the row is hidden.
+/// Drops anything that isn't http(s) and the reserved placeholder domains
+/// (`example.com/.org/.net`, RFC 2606) an unconfigured backend still
+/// returns, so a user never lands on a dead page.
+String? usableLink(String? url) {
+  final uri = url == null ? null : Uri.tryParse(url.trim());
+  if (uri == null || !(uri.isScheme('http') || uri.isScheme('https'))) {
+    return null;
+  }
+  const placeholders = {'example.com', 'example.org', 'example.net'};
+  final host = uri.host.toLowerCase();
+  if (host.isEmpty ||
+      placeholders.any((p) => host == p || host.endsWith('.$p'))) {
+    return null;
+  }
+  return url!.trim();
 }

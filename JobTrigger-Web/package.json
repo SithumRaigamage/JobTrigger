@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:portal": "node scripts/dev-portal.mjs",
+    "licenses": "node scripts/collect-licenses.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

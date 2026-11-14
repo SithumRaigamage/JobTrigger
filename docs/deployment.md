@@ -136,6 +136,19 @@ for distribution, and a lost upload key can be reset through Play Console.
 For CI, write `key.properties` and the keystore from GitHub secrets in the
 job, never in the repo (recommendation #2 below).
 
+## App info links (PE-01)
+
+The app's About JobTrigger screen shows the privacy policy and terms links
+(and open-source licenses) from the backend's AppInfo record. Set `SITE_URL` to the website's origin
+(e.g. `https://jobtrigger.app`, no path), then run
+`node scripts/seedAppInfo.js`. The seed replaces the record, so running it
+again also fixes a database that still has the old `example.com` links. It
+refuses to run in production without `SITE_URL`; in development it defaults
+to `http://localhost:3000`. On an iPhone use the Mac's Wi-Fi address instead
+(`SITE_URL=http://$(ipconfig getifaddr en0):3000`), because `localhost` is
+the phone itself. The app hides any link that is missing or still points at
+a placeholder domain.
+
 ## Backend secrets at rest (P12-26, AUD-03)
 
 Tool credentials are stored AES-256-GCM encrypted. Each environment needs:

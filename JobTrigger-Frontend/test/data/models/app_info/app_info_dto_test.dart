@@ -51,18 +51,47 @@ void main() {
           '_id': 'info-1',
           'appVersion': '2.3.0',
           'buildNumber': '42',
-          'privacyPolicyUrl': 'https://example.com/privacy',
+          'privacyPolicyUrl': 'https://jobtrigger.app/privacy',
           'createdAt': '2024-01-01T00:00:00.000Z',
         });
 
         final domain = dto.toDomain();
         expect(domain.appVersion, '2.3.0');
         expect(domain.buildNumber, '42');
-        expect(domain.privacyPolicyUrl, 'https://example.com/privacy');
+        expect(domain.privacyPolicyUrl, 'https://jobtrigger.app/privacy');
         expect(domain.termsOfServiceUrl, isNull);
         expect(domain.supportEmail, isNull);
         expect(domain.openSourceLicensesUrl, isNull);
       },
     );
+
+    // PE-05: placeholder links from an unconfigured backend are hidden.
+    test('toDomain() drops placeholder and non-http links', () {
+      final domain = AppInfoDto.fromJson({
+        '_id': 'info-1',
+        'appVersion': '1.0.0',
+        'buildNumber': '1',
+        'privacyPolicyUrl': 'https://example.com/privacy',
+        'termsOfServiceUrl': 'https://docs.example.org/terms',
+        'openSourceLicensesUrl': 'javascript:alert(1)',
+      }).toDomain();
+
+      expect(domain.privacyPolicyUrl, isNull);
+      expect(domain.termsOfServiceUrl, isNull);
+      expect(domain.openSourceLicensesUrl, isNull);
+    });
+
+    test('toDomain() keeps real links, trimmed', () {
+      final domain = AppInfoDto.fromJson({
+        '_id': 'info-1',
+        'appVersion': '1.0.0',
+        'buildNumber': '1',
+        'privacyPolicyUrl': ' https://jobtrigger.app/privacy ',
+        'termsOfServiceUrl': 'http://192.168.1.20:3000/terms',
+      }).toDomain();
+
+      expect(domain.privacyPolicyUrl, 'https://jobtrigger.app/privacy');
+      expect(domain.termsOfServiceUrl, 'http://192.168.1.20:3000/terms');
+    });
   });
 }

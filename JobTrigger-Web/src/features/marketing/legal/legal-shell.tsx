@@ -10,6 +10,7 @@ import { routes } from "../site-links";
 const legalPages = [
   { href: routes.privacy, label: "Privacy policy" },
   { href: routes.terms, label: "Terms of use" },
+  { href: routes.licenses, label: "Open-source licenses" },
   { href: routes.support, label: "Support" },
 ];
 

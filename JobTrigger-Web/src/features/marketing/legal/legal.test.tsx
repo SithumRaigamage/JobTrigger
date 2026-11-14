@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { SupportView } from "../support/support-view";
 
+import { LicensesView } from "./licenses-view";
 import { PrivacyView } from "./privacy-view";
 import { TermsView } from "./terms-view";
 
@@ -45,6 +46,29 @@ describe("TermsView", () => {
     expect(within(nav).getByRole("link", { name: "Terms of use" })).toHaveAttribute(
       "href",
       "/terms",
+    );
+  });
+});
+
+describe("LicensesView", () => {
+  it("lists every project's packages with a link to each licence", () => {
+    render(<LicensesView />);
+
+    const nav = screen.getByRole("navigation", { name: "Legal pages" });
+    expect(within(nav).getByRole("link", { name: "Open-source licenses" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    for (const name of ["Mobile app", "Website", "Backend"]) {
+      expect(screen.getByRole("heading", { level: 2, name })).toBeVisible();
+    }
+    expect(screen.getByRole("link", { name: "next" })).toHaveAttribute(
+      "href",
+      "https://www.npmjs.com/package/next",
+    );
+    expect(screen.getByRole("link", { name: "dio" })).toHaveAttribute(
+      "href",
+      "https://pub.dev/packages/dio/license",
     );
   });
 });

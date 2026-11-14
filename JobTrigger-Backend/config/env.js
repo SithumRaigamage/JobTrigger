@@ -118,6 +118,17 @@ function analyticsConfig(env = process.env) {
 }
 
 const DEV_RESET_PASSWORD_URL = 'http://localhost:3000/reset-password';
+const DEV_SITE_URL = 'http://localhost:3000';
+
+/**
+ * PE-01: the website's base address, for the links the app opens from
+ * About JobTrigger (privacy policy, terms). Unset means the local website
+ * (`npm run dev` in JobTrigger-Web); `scripts/seedAppInfo.js` refuses that
+ * default in production. No trailing slash.
+ */
+function siteUrl(env = process.env) {
+  return blank(env.SITE_URL) ? DEV_SITE_URL : env.SITE_URL.trim().replace(/\/+$/, '');
+}
 
 /**
  * P20-73: the website page reset links point to. A password is reset on
@@ -168,6 +179,9 @@ function invalidConfig(env = process.env) {
       return 'RESET_PASSWORD_URL must be https:// in production';
     }
   }
+  if (!blank(env.SITE_URL) && !/^https?:\/\/[^\s/?#]+\/*$/.test(env.SITE_URL.trim())) {
+    return 'SITE_URL must be an http(s) origin, e.g. https://jobtrigger.app (no path or query)';
+  }
   if (!blank(env.UMAMI_URL) && !/^https?:\/\/\S+$/.test(env.UMAMI_URL.trim())) {
     return 'UMAMI_URL must be an http(s) URL';
   }
@@ -188,6 +202,7 @@ module.exports = {
   mailConfig,
   analyticsConfig,
   resetPasswordUrl,
+  siteUrl,
   billingEnabled,
   revenueCatConfig,
   paddleConfig,
