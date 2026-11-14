@@ -61,6 +61,19 @@ void main() {
       expect(passing.state, QualityGateState.passed);
     });
 
+    test('project summaries and an issue\'s context', () async {
+      final summaries = ok(
+        await repo.fetchProjectSummaries(['demo-org_app', 'demo-org_api']),
+      );
+      expect(summaries['demo-org_app']!.needsAttention, isTrue);
+      expect(summaries['demo-org_api']!.gate, QualityGateState.passed);
+
+      final issue = ok(await repo.fetchIssues('demo-org_app')).issues.first;
+      final context = ok(await repo.fetchIssueContext(issue));
+      expect(context.ruleName, isNotEmpty);
+      expect(context.snippet.map((l) => l.number), contains(issue.line));
+    });
+
     test('measures, filtered issues and analyses', () async {
       final key = ok(await repo.fetchProjects()).projects.first.key;
       expect(ok(await repo.fetchMeasures(key))['coverage'], '62.3');
