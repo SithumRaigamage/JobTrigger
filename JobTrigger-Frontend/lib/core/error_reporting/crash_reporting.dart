@@ -50,6 +50,9 @@ void configureCrashReporting(
     ..maxBreadcrumbs = 0
     ..maxCacheItems = 30
     ..attachScreenshot = false
+    // Marked experimental in sentry_flutter 9.x (stable in 10.x); it is the
+    // switch that keeps screen contents out of reports, so it stays set.
+    // ignore: experimental_member_use
     ..attachViewHierarchy = false
     ..attachStacktrace = true
     ..captureFailedRequests = false

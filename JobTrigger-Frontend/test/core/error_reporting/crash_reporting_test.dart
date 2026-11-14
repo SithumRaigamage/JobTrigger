@@ -56,6 +56,7 @@ void main() {
     test('collects nothing that could carry text, screens or HTTP', () {
       expect(options.maxBreadcrumbs, 0);
       expect(options.attachScreenshot, isFalse);
+      // ignore: experimental_member_use
       expect(options.attachViewHierarchy, isFalse);
       expect(options.captureFailedRequests, isFalse);
       expect(options.enableUserInteractionBreadcrumbs, isFalse);
