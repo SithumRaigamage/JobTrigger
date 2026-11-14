@@ -41,6 +41,7 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 ## 💳 Subscriptions (proposal)
 
 - **[Subscription plan — 2026-11-12](./subscription/README.md)** — Workspace analysis, Free/Pro business model, technical design (backend plan checks, RevenueCat, app gates, website), stories (epic SUB) and Phase 20 tasks. Waiting for owner approval
+- **[Improvement plan — 2026-11-14](./improvement-plan.md)** — What's built (checked against the code), what's planned, the pre-release emergency fixes (`tasks/phase-emergency.md`), next release and later
 
 ## 📦 Release
 
