@@ -9,7 +9,7 @@ improvements** across the app, the website and the backend.
 
 ## Already planned, so not repeated here
 
-These are in `docs/improvement-plan.md` and are not counted below: the
+These are in `docs/implemented/improvement-plan.md` and are not counted below: the
 unified home dashboard, jump to first error and log folding, server push
 notifications, QR-code pairing, clearer error copy, team workspaces, AI
 summaries of why a build failed, flaky-test detection, iPad layout, Apple

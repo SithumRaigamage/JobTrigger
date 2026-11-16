@@ -102,7 +102,7 @@ class DashboardData {
   bool get isEmpty => items.isEmpty;
 }
 
-/// The unified home dashboard (`NR-02`, `docs/improvement-plan.md`): failing
+/// The unified home dashboard (`NR-02`, `docs/implemented/improvement-plan.md`): failing
 /// builds, running jobs and pinned items across Jenkins, GitHub Actions and
 /// SonarQube on one screen.
 ///

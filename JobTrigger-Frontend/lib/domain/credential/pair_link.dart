@@ -1,4 +1,4 @@
-/// NR-03: the link a pairing QR carries (`docs/improvement-plan.md`).
+/// NR-03: the link a pairing QR carries (`docs/implemented/improvement-plan.md`).
 ///
 /// The website shows a QR for a saved Jenkins server; the phone's own Camera
 /// app opens it, and the app lands on the add-server form with the name, URL

@@ -1,5 +1,5 @@
 /*
- * NR-03: the link a pairing QR carries (docs/improvement-plan.md).
+ * NR-03: the link a pairing QR carries (docs/implemented/improvement-plan.md).
  *
  * The app parses exactly this shape — `jobtrigger://app/pair?url=…&name=…`
  * (`JobTrigger-Frontend/lib/domain/credential/pair_link.dart`), so the two

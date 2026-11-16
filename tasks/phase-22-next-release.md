@@ -1,6 +1,6 @@
 # Phase 22 — Next release (improvement plan follow-up)
 
-Source: `docs/improvement-plan.md`, section "Next release". These are the
+Source: `docs/implemented/improvement-plan.md`, section "Next release". These are the
 items between the Emergency phase and the public release. Each one is still
 planned, approved and committed on its own (`CLAUDE.md` §9), and anything
 touching Jenkins needs the owner to reopen it (§11).

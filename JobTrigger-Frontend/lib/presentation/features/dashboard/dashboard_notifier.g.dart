@@ -8,7 +8,7 @@ part of 'dashboard_notifier.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The unified home dashboard (`NR-02`, `docs/improvement-plan.md`): failing
+/// The unified home dashboard (`NR-02`, `docs/implemented/improvement-plan.md`): failing
 /// builds, running jobs and pinned items across Jenkins, GitHub Actions and
 /// SonarQube on one screen.
 ///
@@ -21,7 +21,7 @@ part of 'dashboard_notifier.dart';
 @ProviderFor(DashboardNotifier)
 final dashboardNotifierProvider = DashboardNotifierProvider._();
 
-/// The unified home dashboard (`NR-02`, `docs/improvement-plan.md`): failing
+/// The unified home dashboard (`NR-02`, `docs/implemented/improvement-plan.md`): failing
 /// builds, running jobs and pinned items across Jenkins, GitHub Actions and
 /// SonarQube on one screen.
 ///
@@ -32,7 +32,7 @@ final dashboardNotifierProvider = DashboardNotifierProvider._();
 /// existing behaviour (`CLAUDE.md` §11).
 final class DashboardNotifierProvider
     extends $AsyncNotifierProvider<DashboardNotifier, DashboardData> {
-  /// The unified home dashboard (`NR-02`, `docs/improvement-plan.md`): failing
+  /// The unified home dashboard (`NR-02`, `docs/implemented/improvement-plan.md`): failing
   /// builds, running jobs and pinned items across Jenkins, GitHub Actions and
   /// SonarQube on one screen.
   ///
@@ -62,7 +62,7 @@ final class DashboardNotifierProvider
 
 String _$dashboardNotifierHash() => r'e489ab53ee84fe3bed51aca4ac74e1240c5e668d';
 
-/// The unified home dashboard (`NR-02`, `docs/improvement-plan.md`): failing
+/// The unified home dashboard (`NR-02`, `docs/implemented/improvement-plan.md`): failing
 /// builds, running jobs and pinned items across Jenkins, GitHub Actions and
 /// SonarQube on one screen.
 ///

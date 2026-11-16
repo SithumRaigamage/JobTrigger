@@ -4,7 +4,7 @@ Proposed 2026-11-14, **approved by the owner 2026-11-14 (PE-00)**. Each fix
 is still planned in detail, approved and committed one at a time, like
 Phase 19 (`CLAUDE.md` §9).
 
-Source: `docs/improvement-plan.md`, "Emergency". The state of every item was
+Source: `docs/implemented/improvement-plan.md`, "Emergency". The state of every item was
 checked in the code on 2026-11-14. Two items turned out smaller than first
 thought:
 - **Encryption at rest is already built** (AUD-03), so E4 is production setup

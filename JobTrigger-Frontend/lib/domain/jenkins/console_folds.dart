@@ -1,4 +1,4 @@
-/// Folding of noisy console sections (NR-01, `docs/improvement-plan.md`
+/// Folding of noisy console sections (NR-01, `docs/implemented/improvement-plan.md`
 /// "Next release"). Jenkins logs repeat the same line with a different
 /// number for hundreds of rows — download progress, retry loops, "test n
 /// passed", "Waiting for next available executor". Those runs cost a lot of

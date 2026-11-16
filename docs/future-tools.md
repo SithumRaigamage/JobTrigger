@@ -120,7 +120,7 @@ doc is written, the same way the Bitrise and Codemagic epics were.
 
 Flag toggles are production changes: they need the two-step confirm
 (`docs/product-improvements.md`, IMP-24) and an entry in the planned audit
-log (`docs/improvement-plan.md`, "Later").
+log (`docs/implemented/improvement-plan.md`, "Later").
 
 ### 4.6 Uptime, observability and incidents
 
