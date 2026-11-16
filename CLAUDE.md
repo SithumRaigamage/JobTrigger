@@ -124,6 +124,12 @@ flutter run -d <device>
   `.env`, `.env.local`, `.env.example` for any reason. If you need configuration
   details, ask the user or check the documented config patterns in `docs/` or
   `JobTrigger-Frontend/config/`.
+  - **One narrow exception (owner-approved):** to document a new variable,
+    Claude may *append* the new variable name with an empty value (or the
+    documented default for a non-secret flag) to an `.env.example` file,
+    without reading that file. Never read, edit or reorder what is already
+    in it, and never write a real value. `.env` itself, and every other
+    `.env.*` file, stay off limits.
 
 ## 9. Development workflow (strict)
 

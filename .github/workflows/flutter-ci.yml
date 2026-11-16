@@ -7,6 +7,7 @@ on:
     branches: [ develop, flutter-migration, feature/** ]
   pull_request:
     branches: [ develop, feature/** ]
+  workflow_dispatch:
 
 # AUD-59: the token gets read access only; no job here writes to the repo.
 permissions:
@@ -112,7 +113,12 @@ jobs:
   # App Group entitlements, BGTaskScheduler, Face ID, and the privacy
   # manifests (AUD-56) are only checked by Xcode, which nothing else here
   # runs. Unsigned: CI holds no Apple certificates.
+  #
+  # macOS minutes cost 10x on a private repo, so this job runs only after a
+  # push to develop and on a manual run, never on a pull request. The Linux
+  # jobs above still run on every PR.
   build-ios:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
