@@ -1,8 +1,11 @@
 # Phase 20 — Subscriptions (epic SUB)
 
-**Status:** in-progress — P20-00 approved by the owner 2026-11-12. Backend
-track (P20-10..19) built on `feat/subscription-billing`, switched off
-(`BILLING_ENABLED` unset). Backend deployment and the stores are on hold.
+**Status:** in-progress — P20-00 approved by the owner 2026-11-12. Backend,
+app and website tracks are built and merged to `develop`, all switched off
+(`BILLING_ENABLED` unset, no purchase keys, Paddle not configured). What is
+left is owner setup (stores, RevenueCat, Paddle sandbox: P20-40..42, P20-85),
+device and sandbox verification (P20-51..53) and launch (P20-60..63).
+Backend deployment and the stores are on hold.
 
 Docs: [`docs/subscription/`](../docs/subscription/README.md) ·
 Stories: [`docs/user-stories/billing/18-subscriptions.md`](../docs/user-stories/billing/18-subscriptions.md).
@@ -137,8 +140,10 @@ names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
 
 ## G. Verification
 
-- [ ] P20-50 Whole suite clean: `flutter analyze`, `flutter test`,
-      `npm test` (backend and web), Playwright.
+- [x] P20-50 (2026-11-16, on develop after PR E) Whole suite clean: `flutter analyze` (no issues),
+      `flutter test` (1327), `npm test` backend (289) and web (310), Playwright
+      (182), `flutter build ios --profile --no-codesign`, gitleaks over the whole
+      history. Not run on a device or against real RevenueCat/Paddle (P20-51/52/85).
 - [ ] P20-51 iPhone sandbox pass via `scripts/run-on-iphone.sh`
       (CLAUDE.md §10): buy, trial, accelerated renewal, cancel, restore on
       a second install, downgrade locking.

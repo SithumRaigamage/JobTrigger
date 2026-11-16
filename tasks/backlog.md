@@ -105,3 +105,15 @@ left alone.
   widgets still show their ordinary empty state. Adding the copy needs a
   device build of each widget, so the native code was deliberately not
   changed blind. Do before enabling billing for users.
+- **Paddle sandbox and CSP hosts** (P20-85, noted 2026-11-16). The billing
+  page, its CSP allowance and the checkout/portal calls are built against
+  Paddle's documented hosts but have never run against a real sandbox. After
+  the first sandbox checkout, check the console for CSP violations and adjust
+  `paddleHosts` in `JobTrigger-Web/src/security-headers.ts` if needed. Needs
+  the owner's Paddle sandbox account and `PADDLE_CLIENT_TOKEN`.
+- **Real RevenueCat/store checks** (P20-40..42, P20-51, noted 2026-11-16).
+  The paywall, purchase, restore and downgrade locking have only run against
+  fakes. Needs RevenueCat keys, store products and sandbox testers, then a
+  pass on the iPhone (`scripts/run-on-iphone.sh`); Android needs the NDK and
+  a device (see above).
+
