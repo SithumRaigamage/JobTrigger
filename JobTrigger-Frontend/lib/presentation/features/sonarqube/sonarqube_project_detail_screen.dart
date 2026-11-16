@@ -147,6 +147,16 @@ class SonarQubeProjectDetailScreen extends ConsumerWidget {
                   projectKey: project.key,
                   failingKeys: failingKeys,
                 ),
+                // US-SQ-QUALITY-13: its own section in the page column, not
+                // part of the measures block (and hidden while the server
+                // reports no distribution).
+                ref
+                    .watch(sonarQubeMeasuresNotifierProvider(project.key))
+                    .maybeWhen(
+                      data: (measures) =>
+                          SonarQubeLanguageBreakdownView(measures: measures),
+                      orElse: () => const SizedBox.shrink(),
+                    ),
                 const SizedBox(height: 24),
                 const SectionLabel('Explore'),
                 const SizedBox(height: 8),
@@ -862,7 +872,6 @@ class _Measures extends StatelessWidget {
             failing: failingKeys.contains('sqale_index'),
           ),
         ],
-        SonarQubeLanguageBreakdownView(measures: measures),
       ],
     );
   }
