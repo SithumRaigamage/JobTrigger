@@ -13,6 +13,14 @@ task where a track is large). Commits reference the task id, e.g.
 
 ## A. Decisions (owner)
 
+- **Working agreement (owner, 2026-11-16):** for the rest of Phase 20,
+  each PR's plan and design go in its PR description instead of pausing for
+  approval, and each PR is merged once every check is green. Pause only if
+  a check fails in a way that can't be fixed, or a decision isn't covered by
+  the owner's instructions. The billing-off guarantee stays absolute: with
+  no keys, backend `billingEnabled` false, or demo mode, every existing flow
+  and test is unchanged.
+
 - [x] P20-00 Approved 2026-11-12, all as written. Approve the plan: Free/Pro split and limits
       (business model §2–3), prices and trial (§4), RevenueCat
       (§5), `purchases_flutter` as a new dependency (add a row to
@@ -94,7 +102,10 @@ names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
       jobs, insights. Each gate gets a notifier test. One `PlanGate`
       (`plan_gate.dart`) decides; it blocks nothing unless billing is
       available (key + `billingEnabled` + not demo), so with billing off every
-      flow is as before. Blocked actions open `/paywall?reason=<limit>`.
+      flow is as before. Blocked actions open `/paywall?reason=<limit>`. A
+      locked *active* credential is replaced by the first unlocked one (or
+      none), its cached secret deleted, and the paywall opens with `locked`
+      the next time the tool is opened (`locked_active_guard.dart`).
 - [x] P20-26 (2026-11-16, PR B) Delete-account dialog warns about an active store
       subscription (US-SUB-07).
 - [x] P20-27 (2026-11-16, PR B) `ios/Runner/PrivacyInfo.xcprivacy`, App Privacy answers and

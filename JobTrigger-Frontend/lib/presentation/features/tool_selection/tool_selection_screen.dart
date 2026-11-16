@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,7 @@ import '../../common_widgets/pinned_footer_layout.dart';
 import '../../common_widgets/external_link.dart';
 import '../../navigation/app_routes.dart';
 import '../app_info/app_info_notifier.dart';
+import '../subscription/locked_active_guard.dart';
 import '../subscription/plan_gate.dart';
 import 'active_tool_notifier.dart';
 import 'ci_tool.dart';
@@ -43,8 +46,15 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
       await openPaywall(context, blocked);
       return;
     }
+    // P20-25: the active credential of this tool was locked (a downgrade)
+    // and replaced; say so once, on top of Home.
+    final router = GoRouter.of(context);
+    final locked = ref
+        .read(lockedActiveGuardProvider.notifier)
+        .consume(_selected);
     notifier.setActiveTool(_selected);
-    context.go(AppRoutes.home);
+    router.go(AppRoutes.home);
+    if (locked) unawaited(router.push(paywallLocation('locked')));
   }
 
   @override

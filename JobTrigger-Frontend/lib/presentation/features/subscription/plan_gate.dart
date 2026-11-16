@@ -167,7 +167,12 @@ Future<PlanLimitFailure?> addCredentialBlock(Ref ref, CiTool tool) async {
   return reason == null ? null : gate.credentialLimitFailure(reason);
 }
 
-/// Opens the paywall for [reason] (`/paywall?reason=<reason>`).
-Future<void> openPaywall(BuildContext context, String reason) => context.push(
-  Uri(path: AppRoutes.paywall, queryParameters: {'reason': reason}).toString(),
-);
+/// The paywall's location for [reason] (`/paywall?reason=<reason>`).
+String paywallLocation(String reason) => Uri(
+  path: AppRoutes.paywall,
+  queryParameters: {'reason': reason},
+).toString();
+
+/// Opens the paywall for [reason].
+Future<void> openPaywall(BuildContext context, String reason) =>
+    context.push(paywallLocation(reason));

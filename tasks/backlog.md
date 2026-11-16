@@ -98,3 +98,10 @@ left alone.
   slow connection and the owner will reinstall it on a fast one. Until then,
   no Android build or run of the subscription work (P20-20..P20-27,
   including `purchases_flutter`) has been done; treat it as unverified.
+- **LAUNCH BLOCKER: native home-screen widget "Upgrade to Pro" copy**
+  (noted 2026-11-16). On Free with billing on, the app writes an
+  `upgradeRequired: true` snapshot with no jobs (P20-25), but the iOS
+  (`ios/PinnedJobsWidget`) and Android (`PinnedJobsWidgetProvider.kt`)
+  widgets still show their ordinary empty state. Adding the copy needs a
+  device build of each widget, so the native code was deliberately not
+  changed blind. Do before enabling billing for users.

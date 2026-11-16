@@ -12,6 +12,7 @@ import 'package:job_trigger/presentation/features/nodes/nodes_screen.dart';
 import 'package:job_trigger/presentation/features/queue/queue_screen.dart';
 import 'package:job_trigger/presentation/features/settings/server_edit_bottom_sheet.dart';
 import 'package:job_trigger/presentation/features/settings/settings_screen.dart';
+import 'package:job_trigger/presentation/features/subscription/locked_active_guard.dart';
 import 'package:job_trigger/presentation/features/subscription/plan_gate.dart';
 import 'package:job_trigger/presentation/features/subscription/pro_teaser.dart';
 import 'package:job_trigger/presentation/features/tool_selection/active_tool_notifier.dart';
@@ -21,6 +22,11 @@ import 'package:job_trigger/presentation/navigation/app_routes.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
 import '../../../../support/plan_gates.dart';
+
+class _OwesLockedPaywall extends LockedActiveGuard {
+  @override
+  Set<CiTool> build() => {CiTool.jenkins};
+}
 
 class _Info extends AppInfoNotifier {
   @override
@@ -120,6 +126,22 @@ void main() {
       await tapContinue(tester);
       expect(find.text('home'), findsOneWidget);
       expect(container.read(activeToolNotifierProvider), CiTool.jenkins);
+    });
+
+    testWidgets('a locked active credential was replaced: opening the tool '
+        'opens the paywall for "locked", once', (tester) async {
+      final container = await pump(
+        tester,
+        const ToolSelectionScreen(),
+        overrides: [
+          gateOverride(freeGate),
+          ...savedCredentials(jenkins: [jenkinsServerNamed('a')]),
+          lockedActiveGuardProvider.overrideWith(_OwesLockedPaywall.new),
+        ],
+      );
+      await tapContinue(tester);
+      expect(find.text('paywall:locked'), findsOneWidget);
+      expect(container.read(lockedActiveGuardProvider), isEmpty);
     });
 
     for (final (name, gate) in [
