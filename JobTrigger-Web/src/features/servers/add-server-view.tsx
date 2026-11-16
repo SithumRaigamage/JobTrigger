@@ -5,7 +5,8 @@ import { FeatureAction } from "@/components/feature-action";
 import { ToolTile } from "@/components/tool-tile";
 import { statusOf } from "@/content/feature-status";
 import type { Tool } from "@/domain/credentials";
-import { toolNames, tools } from "@/domain/tools";
+import { getRelease, releasedTools } from "@/content/release";
+import { toolNames } from "@/domain/tools";
 
 import { addServerAction } from "./actions";
 import { ServerForm } from "./server-form";
@@ -70,7 +71,7 @@ export function AddServerView({ tool }: { tool: Tool }) {
       {/* Links, not client state: works without JS and the server renders the
           chosen tool's form. */}
       <nav aria-label="Tool" className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3">
-        {tools.map((option) => {
+        {releasedTools().map((option) => {
           const current = option === tool;
           return (
             <Link
@@ -91,6 +92,33 @@ export function AddServerView({ tool }: { tool: Tool }) {
           );
         })}
       </nav>
+
+      {/* Tools this release doesn't ship (release/tools.json): not links, not
+          choices, just when they arrive. */}
+      {getRelease().comingNext.length > 0 && (
+        <section aria-labelledby="coming-next-heading" className="flex flex-col gap-2.5">
+          <h2
+            id="coming-next-heading"
+            className="text-xs font-bold tracking-[0.08em] text-muted uppercase"
+          >
+            Coming next
+          </h2>
+          <ul className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3">
+            {getRelease().comingNext.map((next) => (
+              <li
+                key={next.id}
+                className="flex flex-col items-center gap-1 rounded-card border border-dashed border-line-strong px-3 py-3.5 text-center"
+              >
+                <span className="text-sm text-fg-secondary">{next.name}</span>
+                <span className="text-xs font-semibold text-muted">
+                  <span className="sr-only">Coming in </span>
+                  {next.version}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="flex flex-wrap items-stretch gap-5">
         <ServerForm

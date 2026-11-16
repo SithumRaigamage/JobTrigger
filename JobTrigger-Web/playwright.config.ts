@@ -37,7 +37,7 @@ export default defineConfig({
       // developer's running dev server (3000) would block the tests.
       // Built without SITE_URL, started with it: anything that captures
       // runtime config at build time shows up as a wrong URL in the tests.
-      command: `env -u SITE_URL npm run build && npm run start -- --port ${port}`,
+      command: `env -u SITE_URL E2E_ALL_TOOLS=1 npm run build && npm run start -- --port ${port}`,
       url: `http://localhost:${port}`,
       reuseExistingServer: false,
       timeout: 180_000,

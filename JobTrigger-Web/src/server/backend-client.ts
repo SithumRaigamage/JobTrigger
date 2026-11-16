@@ -28,6 +28,8 @@ export function newRequestId(): string {
 
 const errorBody = z.object({ message: z.string() });
 
+const toolUnavailableBody = z.object({ code: z.literal("TOOL_NOT_AVAILABLE") });
+
 const alreadySubscribedBody = z.object({ code: z.literal("ALREADY_SUBSCRIBED") });
 
 const planLimitBody = z.object({ code: z.literal("PLAN_LIMIT"), limit: z.string().optional() });
@@ -37,6 +39,7 @@ export function failureFor(status: number, body: unknown, requestId: string | nu
   if (status === 401) return { kind: "auth" };
   if (status === 404) return { kind: "notFound" };
   if (status === 403) {
+    if (toolUnavailableBody.safeParse(body).success) return { kind: "toolUnavailable" };
     // Only a PLAN_LIMIT 403 is special; any other 403 stays a server failure
     // exactly as before.
     const parsed = planLimitBody.safeParse(body);

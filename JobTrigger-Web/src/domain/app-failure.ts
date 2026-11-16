@@ -20,6 +20,8 @@ export type AppFailure =
    * app shows an Upgrade action; the website says where to upgrade.
    */
   | { kind: "planLimit"; limit: string }
+  /** 403 TOOL_NOT_AVAILABLE — this release doesn't ship the tool (release/tools.json). */
+  | { kind: "toolUnavailable" }
   /** P20-83: 409 ALREADY_SUBSCRIBED — Pro from any source; nothing to buy. */
   | { kind: "alreadySubscribed" }
   /** P20-83: 503 — billing is off or web checkout isn't set up. */
@@ -45,6 +47,8 @@ export function failureMessage(failure: AppFailure): string {
       return failure.requestId
         ? `Something went wrong on the server (HTTP ${failure.status}). Reference: ${failure.requestId}`
         : `Something went wrong on the server (HTTP ${failure.status}).`;
+    case "toolUnavailable":
+      return "This tool isn't available yet in this release of JobTrigger.";
     case "alreadySubscribed":
       return "You already have Pro. There is nothing more to buy.";
     case "billingUnavailable":

@@ -2,7 +2,13 @@ import { cn } from "@/components/cn";
 import { Card, Container, Kicker, Section } from "@/components/layout";
 import { StatusBadge } from "@/components/status-badge";
 import { ToolTile, type Tool } from "@/components/tool-tile";
-import { features, statusLabels, statusOf, type FeatureId } from "@/content/feature-status";
+import {
+  comingInVersion,
+  features,
+  statusLabels,
+  statusOf,
+  type FeatureId,
+} from "@/content/feature-status";
 
 import { routes } from "../site-links";
 
@@ -100,8 +106,16 @@ const rows: { capability: string; jenkins: Cell; github: Cell; sonarqube: Cell }
 
 function StatusCell({ feature }: { feature: Cell }) {
   if (feature === null) return <span className="text-[0.8125rem] text-muted">— n/a</span>;
-  const status = statusOf(feature);
-  const label = status === "live" ? "✓ Yes" : status === "soon" ? "Soon" : statusLabels[status];
+  // A tool this release doesn't ship (release/tools.json) says when it arrives.
+  const arrives = comingInVersion(feature);
+  const status = arrives ? "soon" : statusOf(feature);
+  const label = arrives
+    ? `Coming in ${arrives}`
+    : status === "live"
+      ? "✓ Yes"
+      : status === "soon"
+        ? "Soon"
+        : statusLabels[status];
   return (
     <span
       className={cn(
