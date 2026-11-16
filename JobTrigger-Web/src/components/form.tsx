@@ -110,7 +110,7 @@ export function PasswordField({
           aria-label={`${visible ? "Hide" : "Show"} ${secretName}`}
           aria-pressed={visible}
           onClick={() => setVisible((shown) => !shown)}
-          className="flex size-11 items-center justify-center text-muted"
+          className="flex size-11 items-center justify-center text-fg-secondary hover:text-fg"
         >
           <svg
             width="20"

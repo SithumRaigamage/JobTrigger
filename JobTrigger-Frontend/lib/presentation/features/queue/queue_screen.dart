@@ -13,6 +13,8 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
+import '../subscription/plan_gate.dart';
+import '../subscription/pro_teaser.dart';
 import 'queue_notifier.dart';
 
 /// US-JX-09: everything waiting for an executor, why it's waiting, and a
@@ -23,6 +25,15 @@ class QueueScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // P20-25: the queue is part of Pro insights; Free sees a teaser and the
+    // queue is never polled.
+    if (ref.watch(planGateProvider).insights case final reason?) {
+      return ProTeaserScreen(
+        reason: reason,
+        title: 'Queue',
+        message: 'See what is waiting for an executor, and why.',
+      );
+    }
     final queue = ref.watch(queueNotifierProvider);
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);

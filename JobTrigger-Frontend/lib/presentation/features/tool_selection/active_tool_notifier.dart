@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../subscription/plan_gate.dart';
 import 'ci_tool.dart';
 
 part 'active_tool_notifier.g.dart';
@@ -22,5 +23,18 @@ class ActiveToolNotifier extends _$ActiveToolNotifier {
   @override
   CiTool? build() => null;
 
-  void setActiveTool(CiTool tool) => state = tool;
+  /// Ignores a tool this build doesn't offer (not released, or no code), so
+  /// nothing can select one however it asks.
+  void setActiveTool(CiTool tool) {
+    if (tool.isAvailable) state = tool;
+  }
+
+  /// P20-25: the paywall reason when [tool] needs Pro for this user (they
+  /// use another tool and the plan has no `multiTool`), else null.
+  Future<String?> blockedReason(CiTool tool) async {
+    // Billing off: nothing is read or fetched.
+    if (ref.read(planGateProvider).multiTool == null) return null;
+    final locked = await ref.read(proLockedToolsProvider.future);
+    return locked.contains(tool) ? 'multiTool' : null;
+  }
 }

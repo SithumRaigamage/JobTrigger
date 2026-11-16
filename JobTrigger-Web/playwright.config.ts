@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const port = 3100;
+/** The release-1.0 smoke run: a second build of the site with the real manifest. */
+const releasePort = 3101;
 
 /** Also used by specs that seal a session cookie (tests/e2e/session.ts). */
 export const E2E_SESSION_SECRET = "e2e-session-secret-0123456789abcdef";
@@ -16,11 +18,19 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
+    { name: "desktop", testIgnore: /release-1\.0/, use: { ...devices["Desktop Chrome"] } },
     // WEB-B4: every page works from 360 px wide.
     {
       name: "mobile",
+      testIgnore: /release-1\.0/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 360, height: 780 } },
+    },
+    // The shipped manifest (release 1.0, Jenkins only), not the all-tools one
+    // the specs above run against: a small smoke run, see release-1.0.spec.ts.
+    {
+      name: "release-1.0",
+      testMatch: /release-1\.0\.spec/,
+      use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${releasePort}` },
     },
   ],
   webServer: [
@@ -37,7 +47,7 @@ export default defineConfig({
       // developer's running dev server (3000) would block the tests.
       // Built without SITE_URL, started with it: anything that captures
       // runtime config at build time shows up as a wrong URL in the tests.
-      command: `env -u SITE_URL npm run build && npm run start -- --port ${port}`,
+      command: `env -u SITE_URL E2E_ALL_TOOLS=1 npm run build && npm run start -- --port ${port}`,
       url: `http://localhost:${port}`,
       reuseExistingServer: false,
       timeout: 180_000,
@@ -46,6 +56,25 @@ export default defineConfig({
         JOBTRIGGER_BACKEND_URL: "http://127.0.0.1:5999",
         SESSION_SECRET: E2E_SESSION_SECRET,
         SITE_URL: `http://localhost:${port}`,
+        // A made-up sandbox client token (public by design, and fake): web
+        // checkout is on for the billing specs. Paddle.js itself is stubbed
+        // in the browser (tests/e2e/billing.spec.ts); nothing reaches Paddle.
+        PADDLE_CLIENT_TOKEN: "test_e2efaketoken0123456789",
+        PADDLE_ENV: "sandbox",
+      },
+    },
+    {
+      // The real manifest: no E2E_ALL_TOOLS. Its own build folder, so it can
+      // sit next to the build above. Same fake backend.
+      command: `env -u SITE_URL NEXT_DIST_DIR=.next-release npm run build && NEXT_DIST_DIR=.next-release npm run start -- --port ${releasePort}`,
+      url: `http://localhost:${releasePort}`,
+      reuseExistingServer: false,
+      timeout: 180_000,
+      env: {
+        JOBTRIGGER_BACKEND_URL: "http://127.0.0.1:5999",
+        SESSION_SECRET: E2E_SESSION_SECRET,
+        SITE_URL: `http://localhost:${releasePort}`,
+        NEXT_DIST_DIR: ".next-release",
       },
     },
   ],

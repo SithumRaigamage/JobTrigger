@@ -94,6 +94,14 @@ class CredentialSecrets {
   Future<void> forget(String tool, String id) =>
       _storage.deleteValue(_key(tool, id));
 
+  /// [forget] without a client, for callers that only hold the storage
+  /// (the locked-credential guard).
+  static Future<void> forgetStored(
+    SecureStorageService storage,
+    String tool,
+    String id,
+  ) => storage.deleteValue(_key(tool, id));
+
   Future<StoredSecret?> _read(String tool, String id) async {
     final raw = await _storage.readValue(_key(tool, id));
     if (raw == null) return null;

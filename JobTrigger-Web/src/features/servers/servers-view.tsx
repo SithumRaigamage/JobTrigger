@@ -4,6 +4,7 @@ import { Card } from "@/components/layout";
 import { ToolTile } from "@/components/tool-tile";
 import { failureMessage, type AppFailure } from "@/domain/app-failure";
 import type { Credential } from "@/domain/credentials";
+import { isToolReleased, releasedTools } from "@/content/release";
 import { credentialAddress, credentialName, toolNames, tools } from "@/domain/tools";
 
 import { MakeActiveButton } from "./make-active-button";
@@ -29,36 +30,40 @@ function PlusIcon() {
 function Counts({ servers, preview }: { servers: Credential[]; preview: boolean }) {
   return (
     <ul className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3.5">
-      {tools.map((tool) => {
-        const count = servers.filter((server) => server.tool === tool).length;
-        const names = toolNames[tool];
-        return (
-          <li
-            key={tool}
-            className={
-              count > 0
-                ? "flex items-center gap-3.5 rounded-card border border-line bg-card p-4.5"
-                : "flex items-center gap-3.5 rounded-card border border-dashed border-line-strong bg-card p-4.5"
-            }
-          >
-            <ToolTile tool={tool} size="md" />
-            <span className="flex flex-col">
-              <span className="text-2xl font-extrabold">{count}</span>
-              {count > 0 ? (
-                <span className="text-[0.8125rem] text-muted">
-                  {count === 1 ? names.one : names.many}
-                </span>
-              ) : preview ? (
-                <span className="text-[0.8125rem] text-muted">No {names.name} yet</span>
-              ) : (
-                <Link href={addServerHref(tool)} className="text-[0.8125rem] font-semibold">
-                  Add {names.name} →
-                </Link>
-              )}
-            </span>
-          </li>
-        );
-      })}
+      {/* A tool this release doesn't ship is hidden unless something is
+          saved for it, so a saved server is never out of sight. */}
+      {tools
+        .filter((tool) => isToolReleased(tool) || servers.some((s) => s.tool === tool))
+        .map((tool) => {
+          const count = servers.filter((server) => server.tool === tool).length;
+          const names = toolNames[tool];
+          return (
+            <li
+              key={tool}
+              className={
+                count > 0
+                  ? "flex items-center gap-3.5 rounded-card border border-line bg-card p-4.5"
+                  : "flex items-center gap-3.5 rounded-card border border-dashed border-line-strong bg-card p-4.5"
+              }
+            >
+              <ToolTile tool={tool} size="md" />
+              <span className="flex flex-col">
+                <span className="text-2xl font-extrabold">{count}</span>
+                {count > 0 ? (
+                  <span className="text-[0.8125rem] text-muted">
+                    {count === 1 ? names.one : names.many}
+                  </span>
+                ) : preview ? (
+                  <span className="text-[0.8125rem] text-muted">No {names.name} yet</span>
+                ) : (
+                  <Link href={addServerHref(tool)} className="text-[0.8125rem] font-semibold">
+                    Add {names.name} →
+                  </Link>
+                )}
+              </span>
+            </li>
+          );
+        })}
     </ul>
   );
 }
@@ -240,9 +245,7 @@ export function ServersView({
           ) : (
             <Card radius="lg" className="flex flex-col items-start gap-3 p-7">
               <h2 className="text-lg font-bold">No servers yet</h2>
-              <p className="text-sm text-muted">
-                Add a Jenkins server, GitHub account or SonarQube server, then open the app.
-              </p>
+              <p className="text-sm text-muted">Add {addableTools()}, then open the app.</p>
               <Link href={addServerHref()} className="font-semibold">
                 Add your first server →
               </Link>
@@ -252,4 +255,11 @@ export function ServersView({
       )}
     </>
   );
+}
+
+/** "a Jenkins server, GitHub account or SonarQube server": the released tools only. */
+function addableTools(): string {
+  const names = releasedTools().map((tool) => toolNames[tool].one);
+  if (names.length <= 1) return `a ${names[0] ?? "server"}`;
+  return `a ${names.slice(0, -1).join(", ")} or ${names.at(-1)}`;
 }

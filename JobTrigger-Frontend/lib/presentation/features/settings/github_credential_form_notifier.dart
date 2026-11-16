@@ -6,6 +6,9 @@ import '../../../domain/auth/auth_validation.dart';
 import '../../../data/credentials/active_github_credential_notifier.dart';
 import '../../../data/credentials/github_credentials_notifier.dart';
 
+import '../subscription/plan_gate.dart';
+import '../tool_selection/ci_tool.dart';
+
 part 'github_credential_form_notifier.g.dart';
 
 /// Add/edit form submit state — mirrors `ServerFormNotifier`'s shape
@@ -41,6 +44,15 @@ class GitHubCredentialFormNotifier extends _$GitHubCredentialFormNotifier {
       return;
     }
     state = const AsyncLoading();
+    // P20-25: a new server over the plan's limit goes to the paywall
+    // instead of the backend (which would refuse it the same way).
+    if (id == null) {
+      final blocked = await addCredentialBlock(ref, CiTool.githubActions);
+      if (blocked != null) {
+        state = AsyncError(blocked, StackTrace.current);
+        return;
+      }
+    }
     final repository = ref.read(gitHubCredentialsRepositoryProvider);
     final result = id == null
         ? await repository.add(

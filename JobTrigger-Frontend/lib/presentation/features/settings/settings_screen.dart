@@ -30,6 +30,7 @@ import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../../data/credentials/credentials_notifier.dart';
 import 'github_credential_edit_bottom_sheet.dart';
 import '../../../data/credentials/github_credentials_notifier.dart';
+import '../subscription/plan_gate.dart';
 import 'server_edit_bottom_sheet.dart';
 import 'sonarqube_credential_edit_bottom_sheet.dart';
 import '../../../data/credentials/sonarqube_credentials_notifier.dart';
@@ -73,9 +74,16 @@ class SettingsScreen extends ConsumerWidget {
     // each section to the tool it's actually for; `null` (pre-selection)
     // falls back to Jenkins, matching this app's other "Jenkins is the
     // default" conventions (e.g. `CiTool.isAvailable`'s ordering).
-    final activeTool = ref.watch(activeToolNotifierProvider);
+    // A tool this build doesn't offer shows no section; whatever is saved
+    // for it stays stored (release/tools.json is the one answer).
+    final selectedTool = ref.watch(activeToolNotifierProvider);
+    final activeTool = selectedTool != null && selectedTool.isAvailable
+        ? selectedTool
+        : null;
     final showJenkinsSection =
-        activeTool != CiTool.githubActions && activeTool != CiTool.sonarqube;
+        CiTool.jenkins.isAvailable &&
+        activeTool != CiTool.githubActions &&
+        activeTool != CiTool.sonarqube;
     final showGitHubSection = activeTool == CiTool.githubActions;
     final showSonarQubeSection = activeTool == CiTool.sonarqube;
 
@@ -359,6 +367,7 @@ class _ServerTile extends ConsumerWidget {
       ),
       child: _CredentialRow(
         isActive: isActive,
+        locked: server.locked,
         title: server.serverName,
         onActivate: () => _setActiveServer(ref, server),
         onEdit: () async {
@@ -478,6 +487,7 @@ class _GitHubCredentialTile extends ConsumerWidget {
       ),
       child: _CredentialRow(
         isActive: isActive,
+        locked: credential.locked,
         title: credential.label,
         onActivate: () => _setActiveCredential(ref, credential),
         onEdit: () async {
@@ -589,6 +599,7 @@ class _SonarQubeCredentialTile extends ConsumerWidget {
       ),
       child: _CredentialRow(
         isActive: isActive,
+        locked: credential.locked,
         title: credential.label,
         onActivate: () => _setActiveCredential(ref, credential),
         onEdit: () async {
@@ -765,6 +776,7 @@ class _WatchesSection extends ConsumerWidget {
 class _CredentialRow extends StatelessWidget {
   const _CredentialRow({
     required this.isActive,
+    this.locked = false,
     required this.title,
     required this.onActivate,
     required this.onEdit,
@@ -772,6 +784,10 @@ class _CredentialRow extends StatelessWidget {
   });
 
   final bool isActive;
+
+  /// P20-25: beyond the plan after a downgrade. Greyed, marked Pro, and
+  /// tapping it opens the paywall; it can still be edited and deleted.
+  final bool locked;
   final String title;
   final VoidCallback onActivate;
   final VoidCallback onEdit;
@@ -790,7 +806,11 @@ class _CredentialRow extends StatelessWidget {
             child: InkWell(
               // A radio mark on every row, so the inactive ones read as
               // choosable, not just the active one with a tick.
-              onTap: isActive ? null : onActivate,
+              onTap: locked
+                  ? () => openPaywall(context, 'locked')
+                  : isActive
+                  ? null
+                  : onActivate,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(14, 12, 4, 12),
                 child: Row(
@@ -802,21 +822,34 @@ class _CredentialRow extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
+                      child: Opacity(
+                        opacity: locked ? 0.5 : 1,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          ...details,
-                        ],
+                            const SizedBox(height: 2),
+                            ...details,
+                          ],
+                        ),
                       ),
                     ),
-                    if (isActive)
+                    if (locked)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8, top: 2),
+                        child: Text(
+                          'Pro',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: t.running.foreground,
+                          ),
+                        ),
+                      )
+                    else if (isActive)
                       Padding(
                         padding: const EdgeInsets.only(left: 8, top: 2),
                         child: Text(

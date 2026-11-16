@@ -7,6 +7,9 @@ import '../../../domain/credential/jenkins_url.dart';
 import '../../../data/credentials/active_server_notifier.dart';
 import '../../../data/credentials/credentials_notifier.dart';
 
+import '../subscription/plan_gate.dart';
+import '../tool_selection/ci_tool.dart';
+
 part 'server_form_notifier.g.dart';
 
 /// Add/edit form submit state — see `docs/state-management.md`'s "Feature:
@@ -53,6 +56,15 @@ class ServerFormNotifier extends _$ServerFormNotifier {
     }
     jenkinsURL = normalizeJenkinsUrl(jenkinsURL);
     state = const AsyncLoading();
+    // P20-25: a new server over the plan's limit goes to the paywall
+    // instead of the backend (which would refuse it the same way).
+    if (id == null) {
+      final blocked = await addCredentialBlock(ref, CiTool.jenkins);
+      if (blocked != null) {
+        state = AsyncError(blocked, StackTrace.current);
+        return;
+      }
+    }
     final repository = ref.read(credentialsRepositoryProvider);
     final result = id == null
         ? await repository.add(

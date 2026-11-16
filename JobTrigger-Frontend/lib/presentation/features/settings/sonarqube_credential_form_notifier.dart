@@ -7,6 +7,9 @@ import '../../../domain/credential/sonarqube_url.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../../data/credentials/sonarqube_credentials_notifier.dart';
 
+import '../subscription/plan_gate.dart';
+import '../tool_selection/ci_tool.dart';
+
 part 'sonarqube_credential_form_notifier.g.dart';
 
 /// Add/edit form submit state — mirrors `GitHubCredentialFormNotifier`'s
@@ -55,6 +58,15 @@ class SonarQubeCredentialFormNotifier
     }
     baseUrl = normalizeServerUrl(baseUrl);
     state = const AsyncLoading();
+    // P20-25: a new server over the plan's limit goes to the paywall
+    // instead of the backend (which would refuse it the same way).
+    if (id == null) {
+      final blocked = await addCredentialBlock(ref, CiTool.sonarqube);
+      if (blocked != null) {
+        state = AsyncError(blocked, StackTrace.current);
+        return;
+      }
+    }
     final repository = ref.read(sonarQubeCredentialsRepositoryProvider);
     final result = id == null
         ? await repository.add(

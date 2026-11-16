@@ -4,6 +4,7 @@ export const routes = {
   download: "/#download",
   features: "/features",
   integrations: "/integrations",
+  pricing: "/pricing",
   requestTool: "/integrations#request",
   security: "/security",
   changelog: "/changelog",
@@ -20,6 +21,7 @@ export const routes = {
 export const mainNav = [
   { href: routes.features, label: "Features" },
   { href: routes.integrations, label: "Integrations" },
+  { href: routes.pricing, label: "Pricing" },
   { href: routes.security, label: "Security" },
   { href: routes.changelog, label: "Changelog" },
   { href: routes.support, label: "Support" },

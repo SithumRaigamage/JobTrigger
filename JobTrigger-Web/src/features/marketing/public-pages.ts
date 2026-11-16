@@ -5,6 +5,7 @@ export const publicPaths = [
   routes.home,
   routes.features,
   routes.integrations,
+  routes.pricing,
   routes.security,
   routes.changelog,
   routes.support,

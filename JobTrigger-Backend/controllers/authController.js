@@ -162,6 +162,22 @@ exports.logoutAll = async (req, res, next) => {
 };
 
 /**
+ * Re-checks the signed-in user's password and changes nothing: the same
+ * `reauthenticate` check Change password and Delete account use (400 when
+ * missing or wrong). For clients that guard a sensitive read, such as the
+ * website's "show saved token", behind the password.
+ */
+exports.verifyPassword = async (req, res, next) => {
+  try {
+    const user = await reauthenticate(req, res, req.body?.password);
+    if (!user) return;
+    res.json({ message: 'Password confirmed' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * AUD-48: changes the password and revokes every session (bumping
  * tokenVersion), then hands this device a fresh pair so it stays signed in.
  */

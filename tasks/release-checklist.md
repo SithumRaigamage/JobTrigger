@@ -60,6 +60,85 @@ only tracks what's left and why.
       Also owed: the App Store privacy answers (Data Types: Diagnostics → Crash Data,
       not linked, not tracking) and Google Play's Data safety form (crash logs, optional).
 
+## App Store privacy answers (PE-06 / PE-27, checked 2026-11-16)
+
+Checked against `ios/Runner/PrivacyInfo.xcprivacy`, the merged privacy
+manifests of every pod in the profile build, and `/privacy`. Enter these in
+App Store Connect → App Privacy. Tracking: **No** (no ad identifier, no
+tracking domains).
+
+| Data type (Apple's name) | Collected | Linked to user | Tracking | Purpose |
+|---|---|---|---|---|
+| Contact Info → Email Address | Yes | Yes | No | App Functionality |
+| User Content → Other User Content (saved server names, URLs, usernames, encrypted tokens) | Yes | Yes | No | App Functionality |
+| Diagnostics → Crash Data | Yes (opt-out in Profile) | No | No | App Functionality |
+| Diagnostics → Other Diagnostic Data (device model and OS version sent with a report) | Yes (same switch) | No | No | App Functionality |
+| Purchases → Purchase History (JobTrigger Pro subscription, via RevenueCat) | Yes, only in builds with billing keys | Yes | No | App Functionality |
+| Identifiers → User ID (the JobTrigger account id RevenueCat is logged in with) | Yes, same | Yes | No | App Functionality |
+| Diagnostics → Performance Data | No (tracing is off) | n/a | n/a | n/a |
+
+Decided 2026-11-16: the app manifest declares Crash Data and Other
+Diagnostic Data (not linked, app functionality), matching this table and
+`/privacy`. Performance Data is not collected (`tracesSampleRate = 0`).
+Phase 20 (PE-06 follow-up, 2026-11-16): the manifest and the two
+Purchases / Identifiers rows above now cover RevenueCat. `/privacy` still
+needs a RevenueCat paragraph (P20-34, website PR).
+
+Required-reason APIs: the app declares UserDefaults CA92.1 + 1C8F.1
+(`home_widget` shares data through the App Group and ships no manifest),
+FileTimestamp C617.1 and SystemBootTime 35F9.1. Sentry, Flutter,
+`shared_preferences`, `flutter_local_notifications`, `workmanager` and the
+widget extension ship manifests with reasons the app already covers. Re-run
+this check whenever a plugin is added.
+
+Google Play Data safety: Email address, User IDs, Purchase history and Other
+user content (collected, linked, app functionality); Crash logs and Diagnostics (collected, optional,
+not linked); no data shared with third parties; data encrypted in transit;
+account deletion available in the app and on the website.
+
+## Store listing text, per release
+
+The App Store and Google Play text is typed into the stores, so it **cannot
+follow `release/tools.json`**. It must describe exactly the tools that
+release ships, no more. Each release gets its own version below.
+
+- [ ] **Owner, every release:** rewrite the store text (name/subtitle, short
+      and full description, screenshots' captions, review notes) for that
+      release's tools, from `release/tools.json`, before submitting. Check
+      the website's home, integrations and pricing pages say the same.
+
+### Release 1.0 (Jenkins only)
+
+> **Subtitle / short description (Play, 80 characters):**
+> Trigger and watch your Jenkins builds from your phone.
+>
+> **Full description:**
+> JobTrigger puts your Jenkins in your pocket. Browse jobs and folders,
+> trigger a build with any parameter, watch the console stream live, see
+> which stage or test failed, and get a notification when a build finishes.
+> Pin the jobs you watch, put them on your home screen, and lock the app
+> with Face ID or your fingerprint.
+>
+> Set up your servers on your laptop at the JobTrigger website, or in the
+> app: your phone talks to your Jenkins directly, and your tokens are stored
+> encrypted. Free for one server; JobTrigger Pro adds more servers and the
+> extras.
+>
+> Try the in-app demo without an account or a server.
+>
+> JobTrigger is an independent app and is not affiliated with the Jenkins
+> project.
+
+Do **not** mention GitHub Actions, SonarQube, GitLab or CircleCI in the 1.0
+listing, screenshots or keywords. They arrive in 1.1 (SonarQube), 1.2 (GitHub
+Actions) and later; each of those releases gets its own text here.
+
+**App Review notes for 1.0:** use the notes below, but replace the bullet
+"GitHub Actions and SonarQube: choose them under Profile → CI tool" with:
+"This release works with Jenkins only." Nothing else changes: the demo's
+GitHub and SonarQube samples are not reachable in 1.0, because tool selection
+offers only released tools.
+
 ## App Review notes: how to open the demo (PE-18)
 
 Paste this into App Store Connect → App Review Information → Notes (and the
@@ -90,6 +169,6 @@ store's own fields, never into this repository.
       password in App Store Connect. Needed before store submission.
 - [ ] **Owner:** add one line to each store description: "Try the in-app demo
       without an account or a server." (PE-17).
-- [ ] **On the iPhone** (unverified until run): sign-in → **Try the demo** →
+- [x] **On the iPhone** (verified by the owner 2026-11-16): sign-in → **Try the demo** →
       the walkthrough above, then **Exit demo**. See `phase-emergency.md` E2
       "Verify".

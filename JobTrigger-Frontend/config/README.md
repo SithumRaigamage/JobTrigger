@@ -29,6 +29,17 @@ with a second define file, e.g. a git-ignored `config/sentry.json`
 `--dart-define-from-file=config/sentry.json`, or for the iPhone run
 `SENTRY_DSN_APP=… scripts/run-on-iphone.sh`. See `docs/error-reporting.md`.
 
+## `REVENUECAT_IOS_KEY` / `REVENUECAT_ANDROID_KEY`
+
+RevenueCat's public SDK keys (Phase 20), one per store. **Not committed** in
+any `config/*.json`. Leave them out and the app has no billing: it never
+starts the purchase SDK and offers nothing to buy, which is also how a build
+behaves while `BILLING_ENABLED` is off on the backend. Give them with a
+second, git-ignored define file such as `config/billing.json`
+(`{"REVENUECAT_IOS_KEY": "…", "REVENUECAT_ANDROID_KEY": "…"}`) added as
+`--dart-define-from-file=config/billing.json`. The backend's secret REST key
+is never in the app.
+
 ## Usage
 
 ```bash

@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_tokens.dart';
+import '../../../domain/tools/tool_catalog.dart';
 import '../../common_widgets/pinned_footer_layout.dart';
 import '../../common_widgets/external_link.dart';
 import '../../navigation/app_routes.dart';
 import '../app_info/app_info_notifier.dart';
+import '../subscription/locked_active_guard.dart';
+import '../subscription/plan_gate.dart';
 import 'active_tool_notifier.dart';
 import 'ci_tool.dart';
 
@@ -33,16 +38,34 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
   late CiTool _selected =
       ref.read(activeToolNotifierProvider) ?? CiTool.jenkins;
 
-  void _continue() {
-    ref.read(activeToolNotifierProvider.notifier).setActiveTool(_selected);
-    context.go(AppRoutes.home);
+  Future<void> _continue() async {
+    final notifier = ref.read(activeToolNotifierProvider.notifier);
+    // P20-25: another tool than the one in use is part of Pro.
+    final blocked = await notifier.blockedReason(_selected);
+    if (!mounted) return;
+    if (blocked != null) {
+      await openPaywall(context, blocked);
+      return;
+    }
+    // P20-25: the active credential of this tool was locked (a downgrade)
+    // and replaced; say so once, on top of Home.
+    final router = GoRouter.of(context);
+    final locked = ref
+        .read(lockedActiveGuardProvider.notifier)
+        .consume(_selected);
+    notifier.setActiveTool(_selected);
+    router.go(AppRoutes.home);
+    if (locked) unawaited(router.push(paywallLocation('locked')));
   }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
-    final available = CiTool.values.where((tool) => tool.isAvailable);
+    final available = CiTool.values.where((tool) => tool.isAvailable).toList();
+    final single = available.length == 1;
+    final comingNext = comingNextTools;
+    final proTools = ref.watch(proLockedToolsProvider).value ?? const {};
     // From `GET /api/appinfo`; no address, no link.
     final supportEmail = ref.watch(appInfoNotifierProvider).value?.supportEmail;
 
@@ -59,12 +82,20 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'What do you build with?',
+                      // One released tool: nothing to choose, so say what
+                      // this release does (design `release-1.0`).
+                      single
+                          ? 'Connect your ${available.first.displayName}'
+                          : 'What do you build with?',
                       style: textTheme.headlineLarge,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'You can switch any time from your profile.',
+                      single
+                          ? 'JobTrigger ${ToolCatalog.current.release} works '
+                                'with ${available.first.displayName}. More '
+                                'tools arrive in the next releases.'
+                          : 'You can switch any time from your profile.',
                       style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
                     ),
                   ],
@@ -80,6 +111,7 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
                       _ToolOption(
                         tool: tool,
                         selected: tool == _selected,
+                        pro: proTools.contains(tool),
                         onTap: () => setState(() => _selected = tool),
                       ),
                       const SizedBox(height: 10),
@@ -87,6 +119,10 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
                   ],
                 ),
               ),
+              if (comingNext.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _ComingNext(tools: comingNext),
+              ],
               if (supportEmail != null) ...[
                 const SizedBox(height: 6),
                 Center(
@@ -146,11 +182,15 @@ class _ToolOption extends StatelessWidget {
   const _ToolOption({
     required this.tool,
     required this.selected,
+    this.pro = false,
     required this.onTap,
   });
 
   final CiTool tool;
   final bool selected;
+
+  /// P20-25: needs Pro for this user; shows a mark.
+  final bool pro;
   final VoidCallback onTap;
 
   @override
@@ -165,7 +205,8 @@ class _ToolOption extends StatelessWidget {
       inMutuallyExclusiveGroup: true,
       checked: selected,
       button: true,
-      label: '${tool.displayName}, ${tool.tagline}',
+      label:
+          '${tool.displayName}, ${tool.tagline}${pro ? ', requires Pro' : ''}',
       excludeSemantics: true,
       child: Material(
         color: t.card,
@@ -189,7 +230,36 @@ class _ToolOption extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(tool.displayName, style: textTheme.titleMedium),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              tool.displayName,
+                              style: textTheme.titleMedium,
+                            ),
+                          ),
+                          if (pro) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              key: Key('tool_pro_${tool.name}'),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: t.running.background,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                'Pro',
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: t.running.foreground,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                       const SizedBox(height: 3),
                       Text(tool.tagline, style: textTheme.bodySmall),
                     ],
@@ -218,6 +288,125 @@ class _ToolOption extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// "Coming next" (design `release-1.0`): the tools in the manifest that this
+/// release doesn't offer yet, as a 3-column grid of disabled tiles with the
+/// tool's name and the release it arrives in. Not selectable, not focusable
+/// as a choice; a screen reader reads each as "tool, coming in version".
+class _ComingNext extends StatelessWidget {
+  const _ComingNext({required this.tools});
+
+  final List<CiTool> tools;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final t = AppTokens.of(context);
+    return Column(
+      key: const Key('coming_next'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Semantics(
+          header: true,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              'COMING NEXT',
+              style: textTheme.labelSmall?.copyWith(
+                color: t.textMuted,
+                letterSpacing: 0.7,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        // Rows of three (the design's 3-column grid). Rows, not a Wrap in a
+        // LayoutBuilder: this sits in PinnedFooterLayout, which measures its
+        // body's intrinsic height.
+        for (var start = 0; start < tools.length; start += 3) ...[
+          if (start > 0) const SizedBox(height: 10),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = start; i < start + 3; i++) ...[
+                  if (i > start) const SizedBox(width: 10),
+                  Expanded(
+                    child: i < tools.length
+                        ? _ComingNextTile(tool: tools[i])
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _ComingNextTile extends StatelessWidget {
+  const _ComingNextTile({required this.tool});
+
+  final CiTool tool;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final t = AppTokens.of(context);
+    final version = tool.releaseVersion ?? '';
+    return Semantics(
+      key: Key('coming_next_${tool.name}'),
+      enabled: false,
+      label: '${tool.displayName}, coming in $version',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: t.cardBorder),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: t.card,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                tool.shortLabel,
+                style: textTheme.labelLarge?.copyWith(
+                  color: t.textMuted,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              tool.displayName,
+              textAlign: TextAlign.center,
+              style: textTheme.bodySmall?.copyWith(color: t.textSecondary),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              version,
+              style: textTheme.labelSmall?.copyWith(
+                color: t.textMuted,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );

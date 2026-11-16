@@ -57,4 +57,4 @@ final class HomeWidgetSyncProvider extends $FunctionalProvider<void, void, void>
   }
 }
 
-String _$homeWidgetSyncHash() => r'1ac053b1294882c5b78ef3e93995c5dc954a370c';
+String _$homeWidgetSyncHash() => r'd9ed1a2f81afc163ab9e88edf48456b85b9a40ad';

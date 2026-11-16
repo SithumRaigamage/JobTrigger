@@ -61,6 +61,7 @@ dependencies:
   local_auth: ^3.0.2
   home_widget: ^0.10.0
   sentry_flutter: 9.30.1
+  purchases_flutter: ^11.0.2
 
 dev_dependencies:
   flutter_test:
@@ -107,6 +108,8 @@ flutter:
   assets:
     - assets/fonts/Inter-OFL.txt
     - assets/fonts/JetBrainsMono-OFL.txt
+    # The release manifest copy (scripts/sync-tools.mjs): which tools ship.
+    - config/tools.json
   fonts:
     - family: Inter
       fonts:

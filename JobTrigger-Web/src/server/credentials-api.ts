@@ -10,10 +10,11 @@ import { callBackend } from "./backend-client";
 /*
  * The three credential collections (docs/api-reference.md §1). Since E4
  * (PE-35) the backend returns a mask and never a secret, so there is
- * nothing to hide here. The portal does not call the decrypted-secret
- * endpoint (`GET …/:id/secret`, for the app only), and nothing in this
- * file may: credentials-api.test.ts fails if it does. The raw shapes below
- * are not exported.
+ * nothing to hide here. The decrypted-secret endpoint (`GET …/:id/secret`)
+ * is called by exactly one function, `revealSecret`, when the owner taps the
+ * eye on the edit page; no list, create, update or switch call touches it
+ * (credentials-api.test.ts fails if one does). The raw shapes below are not
+ * exported.
  */
 
 const base = {
@@ -284,5 +285,43 @@ export async function setDefaultCredential(
       z.object({ _id: z.string() }),
     ),
     () => null,
+  );
+}
+
+/*
+ * The owner-only decrypted-secret endpoints (`GET …/:id/secret`,
+ * docs/api-reference.md): `no-store`, owner only (another user's id is 404),
+ * 30 per user per 10 minutes. Parsed apart from the list shapes above, which
+ * never carry a secret.
+ */
+const jenkinsSecretDto = z.object({
+  password: z.string().nullable().optional().default(null),
+  needsReentry: z.boolean().optional().default(false),
+});
+const tokenSecretDto = z.object({
+  token: z.string().nullable().optional().default(null),
+  needsReentry: z.boolean().optional().default(false),
+});
+
+/**
+ * The one place a saved secret leaves this file in full: the owner asked to
+ * see it (edit page eye button). Fetched on demand from the owner-only
+ * endpoint, never cached or logged; null when it can't be decrypted
+ * (AUD-63). No list, create, update or switch call ever fetches a secret
+ * (credentials-api.test.ts).
+ */
+export async function revealSecret(
+  accessToken: string,
+  tool: Tool,
+  id: string,
+): Promise<Result<string | null>> {
+  const path = `${paths[tool]}/${encodeURIComponent(id)}/secret` as const;
+  if (tool === "jenkins") {
+    return map(await callBackend({ path, accessToken }, jenkinsSecretDto), (row) =>
+      row.needsReentry ? null : row.password,
+    );
+  }
+  return map(await callBackend({ path, accessToken }, tokenSecretDto), (row) =>
+    row.needsReentry ? null : row.token,
   );
 }

@@ -26,6 +26,10 @@ abstract class GitHubCredentialDto with _$GitHubCredentialDto {
     /// AUD-63: the backend flags a credential whose token it could not
     /// decrypt. Always present in the response.
     @Default(false) bool needsReentry,
+
+    /// P20-25: beyond the user's plan after a downgrade (absent on older
+    /// backends, so false).
+    @Default(false) bool locked,
     String? createdAt,
     String? updatedAt,
   }) = _GitHubCredentialDto;
@@ -44,5 +48,6 @@ extension GitHubCredentialDtoX on GitHubCredentialDto {
     // A null token *is* the unreadable case, so the flag can never
     // disagree with the value it describes.
     needsReentry: needsReentry || (token == null && secretMask == null),
+    locked: locked,
   );
 }

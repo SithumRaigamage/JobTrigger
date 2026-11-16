@@ -8,6 +8,7 @@ import '../../../domain/widget/widget_snapshot.dart';
 import '../app_lock/app_lock_notifier.dart';
 import '../auth/auth_notifier.dart';
 import '../home/pinned_jobs_notifier.dart';
+import '../subscription/plan_gate.dart';
 
 part 'home_widget_sync.g.dart';
 
@@ -25,6 +26,20 @@ void homeWidgetSync(Ref ref) {
   if (!signedIn) return;
   // E2 (PE-14): sample jobs must never reach the real home-screen widget.
   if (ref.watch(demoModeNotifierProvider)) return;
+  // P20-25: without the widget in the plan, no pinned job reaches the home
+  // screen; the widget shows an upgrade prompt instead.
+  if (ref.watch(planGateProvider).homeWidget != null) {
+    ref
+        .read(homeWidgetBridgeProvider)
+        .write(
+          WidgetSnapshot(
+            jobs: const [],
+            updatedAt: DateTime.now(),
+            upgradeRequired: true,
+          ),
+        );
+    return;
+  }
   // AUD-54: names stay off the home screen while the app lock is on. Wait
   // for the lock settings, so a cold start can't write names first.
   final lock = ref.watch(

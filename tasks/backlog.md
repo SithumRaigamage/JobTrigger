@@ -123,3 +123,33 @@ task it unblocks; tick the task there, not here.
   testing (`release-checklist.md`); store links on the website (P15-24).
 - Billing setup: App Store Connect and Play payments, RevenueCat, Paddle
   (P20-40..42, P20-85), then the sandbox passes (P20-51/52).
+
+## Owner actions waiting: subscriptions and releases (added 2026-11-16)
+
+Things only the owner can do; the code around them is done or deliberately
+left alone.
+
+- **Android build unverified until the NDK is reinstalled** (noted
+  2026-11-16). The Android NDK 28.2.13676358 install was interrupted by a
+  slow connection and the owner will reinstall it on a fast one. Until then,
+  no Android build or run of the subscription work (P20-20..P20-27,
+  including `purchases_flutter`) has been done; treat it as unverified.
+- **LAUNCH BLOCKER: native home-screen widget "Upgrade to Pro" copy**
+  (noted 2026-11-16). On Free with billing on, the app writes an
+  `upgradeRequired: true` snapshot with no jobs (P20-25), but the iOS
+  (`ios/PinnedJobsWidget`) and Android (`PinnedJobsWidgetProvider.kt`)
+  widgets still show their ordinary empty state. Adding the copy needs a
+  device build of each widget, so the native code was deliberately not
+  changed blind. Do before enabling billing for users.
+- **Paddle sandbox and CSP hosts** (P20-85, noted 2026-11-16). The billing
+  page, its CSP allowance and the checkout/portal calls are built against
+  Paddle's documented hosts but have never run against a real sandbox. After
+  the first sandbox checkout, check the console for CSP violations and adjust
+  `paddleHosts` in `JobTrigger-Web/src/security-headers.ts` if needed. Needs
+  the owner's Paddle sandbox account and `PADDLE_CLIENT_TOKEN`.
+- **Real RevenueCat/store checks** (P20-40..42, P20-51, noted 2026-11-16).
+  The paywall, purchase, restore and downgrade locking have only run against
+  fakes. Needs RevenueCat keys, store products and sandbox testers, then a
+  pass on the iPhone (`scripts/run-on-iphone.sh`); Android needs the NDK and
+  a device (see above).
+

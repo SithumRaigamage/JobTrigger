@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../domain/credential/jenkins_server.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
+import '../tool_selection/ci_tool.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/jenkins_link.dart';
 import '../../../core/theme/app_colors.dart';
@@ -52,6 +53,13 @@ class _OpenLinkScreenState extends ConsumerState<OpenLinkScreen> {
   }
 
   Future<void> _open() async {
+    // The link is a Jenkins link; this build may not offer Jenkins.
+    if (!CiTool.jenkins.isAvailable) {
+      return _fail(
+        'This link needs Jenkins, which this version of JobTrigger '
+        "doesn't offer.",
+      );
+    }
     final List<JenkinsServer> servers;
     try {
       servers = await ref.read(credentialsNotifierProvider.future);

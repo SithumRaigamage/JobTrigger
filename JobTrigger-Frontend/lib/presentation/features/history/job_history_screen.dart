@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../subscription/plan_gate.dart';
+import '../subscription/pro_teaser.dart';
 import '../../../domain/jenkins/history_filter.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
@@ -129,9 +131,7 @@ class _HistoryList extends ConsumerWidget {
             // US-JX-15, over everything loaded (not the filter).
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverToBoxAdapter(
-                child: BuildTrendsCard(builds: pages.builds),
-              ),
+              sliver: SliverToBoxAdapter(child: _trends(ref, pages.builds)),
             ),
             SliverToBoxAdapter(child: _FilterRow(jobUrl: job.url)),
             if (builds.isNotEmpty)
@@ -277,4 +277,18 @@ class _Footer extends StatelessWidget {
       child: Center(child: content),
     );
   }
+}
+
+/// US-JX-15 trends, or (P20-25) the Pro teaser where the plan has no
+/// insights.
+Widget _trends(WidgetRef ref, List<JenkinsBuild> builds) {
+  final blocked = ref.watch(planGateProvider).insights;
+  if (blocked == null) return BuildTrendsCard(builds: builds);
+  return ProTeaser(
+    reason: blocked,
+    title: 'Trends',
+    message:
+        'Success rate, average and slowest build times across your '
+        'recent builds.',
+  );
 }

@@ -1,8 +1,11 @@
 # Phase 20 — Subscriptions (epic SUB)
 
-**Status:** in-progress — P20-00 approved by the owner 2026-11-12. Backend
-track (P20-10..19) built on `feat/subscription-billing`, switched off
-(`BILLING_ENABLED` unset). Backend deployment and the stores are on hold.
+**Status:** in-progress — P20-00 approved by the owner 2026-11-12. Backend,
+app and website tracks are built and merged to `develop`, all switched off
+(`BILLING_ENABLED` unset, no purchase keys, Paddle not configured). What is
+left is owner setup (stores, RevenueCat, Paddle sandbox: P20-40..42, P20-85),
+device and sandbox verification (P20-51..53) and launch (P20-60..63).
+Backend deployment and the stores are on hold.
 
 Docs: [`docs/subscription/`](../docs/subscription/README.md) ·
 Stories: [`docs/user-stories/billing/18-subscriptions.md`](../docs/user-stories/billing/18-subscriptions.md).
@@ -12,6 +15,14 @@ task where a track is large). Commits reference the task id, e.g.
 `feat(backend): plan check on credential create [P20-12]`.
 
 ## A. Decisions (owner)
+
+- **Working agreement (owner, 2026-11-16):** for the rest of Phase 20,
+  each PR's plan and design go in its PR description instead of pausing for
+  approval, and each PR is merged once every check is green. Pause only if
+  a check fails in a way that can't be fixed, or a decision isn't covered by
+  the owner's instructions. The billing-off guarantee stays absolute: with
+  no keys, backend `billingEnabled` false, or demo mode, every existing flow
+  and test is unchanged.
 
 - [x] P20-00 Approved 2026-11-12, all as written. Approve the plan: Free/Pro split and limits
       (business model §2–3), prices and trial (§4), RevenueCat
@@ -74,40 +85,48 @@ names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
 
 ## D. Mobile app
 
-- [ ] P20-20 Add `purchases_flutter`; SDK keys in `config/*.json` via
+- [x] P20-20 (2026-11-16, PR A; Android build and a real purchase unverified) Add `purchases_flutter`; SDK keys in `config/*.json` via
       `app_config.dart`; `BillingClient` interface + RevenueCat impl
       (only file importing the SDK).
-- [ ] P20-21 Domain: `Entitlements`, `SubscriptionStatus`,
+- [x] P20-21 (2026-11-16, PR A) Domain: `Entitlements`, `SubscriptionStatus`,
       `BillingOffer`, `SubscriptionRepository`; data: DTO (freezed) +
       repository impl; `PlanLimitFailure` and `PurchaseCancelled` as new
       `AppFailure` cases (existing copy untouched).
-- [ ] P20-22 `EntitlementsNotifier` (keepAlive, cached in
+- [x] P20-22 (2026-11-16, PR A; nothing reads it until PR B/C, so no extra request yet) `EntitlementsNotifier` (keepAlive, cached in
       `user_scoped_prefs`, refreshed on sign-in / resume / purchase);
       RevenueCat `logIn`/`logOut` driven by auth state.
-- [ ] P20-23 Paywall screen + notifier (store prices, trial, auto-renew
+- [x] P20-23 (2026-11-16, PR B; store sheet and real prices unverified until RevenueCat keys exist) Paywall screen + notifier (store prices, trial, auto-renew
       text, Terms/Privacy, Restore, reason-aware headline); route
       `/paywall`.
-- [ ] P20-24 Profile → Subscription section (US-SUB-01, manage link,
+- [x] P20-24 (2026-11-16, PR B) Profile → Subscription section (US-SUB-01, manage link,
       restore); route `/profile/subscription`.
-- [ ] P20-25 Gates (technical design §4.3): add-server forms, tool
+- [x] P20-25 (2026-11-16, PR C; paywall opening from the real screens and the native widget's upgrade copy unverified until a device run) Gates (technical design §4.3): add-server forms, tool
       switch, locked credential rows, background watch, widget, pinned
-      jobs, insights. Each gate gets a notifier test.
-- [ ] P20-26 Delete-account dialog warns about an active store
+      jobs, insights. Each gate gets a notifier test. One `PlanGate`
+      (`plan_gate.dart`) decides; it blocks nothing unless billing is
+      available (key + `billingEnabled` + not demo), so with billing off every
+      flow is as before. Blocked actions open `/paywall?reason=<limit>`. A
+      locked *active* credential is replaced by the first unlocked one (or
+      none), its cached secret deleted, and the paywall opens with `locked`
+      the next time the tool is opened (`locked_active_guard.dart`).
+- [x] P20-26 (2026-11-16, PR B) Delete-account dialog warns about an active store
       subscription (US-SUB-07).
-- [ ] P20-27 `ios/Runner/PrivacyInfo.xcprivacy`, App Privacy answers and
-      Play Data safety updated for purchases.
+- [x] P20-27 (2026-11-16, PR B) `ios/Runner/PrivacyInfo.xcprivacy`, App Privacy answers and
+      Play Data safety updated for purchases. The manifest entries (Purchase
+      History, User ID) and the Play Data safety text in `release-checklist.md`
+      are done; entering the answers in the two stores is an owner action.
 
 ## E. Website
 
 - [ ] P20-30 Analytics events wired in the app and on the site (after
       P20-01): paywall view, trial start, purchase, limit hit (with which
       limit), restore, pricing-page view.
-- [ ] P20-31 `server/subscription-api.ts` + `PlanLimitFailure` copy in
+- [x] P20-31 (2026-11-16, PR D) `server/subscription-api.ts` + `PlanLimitFailure` copy in
       `domain/app-failure.ts`; add-server form shows the plan limit.
-- [ ] P20-32 Account page: plan, dates, manage-in-store instructions.
-- [ ] P20-33 `/pricing` from `src/content/pricing.ts` (tested), header,
+- [x] P20-32 (2026-11-16, PR D) Account page: plan, dates, manage-in-store instructions.
+- [x] P20-33 (2026-11-16, PR D) `/pricing` from `src/content/pricing.ts` (tested), header,
       footer, sitemap; comparison wording per competitive analysis §7.2.
-- [ ] P20-34 Terms and Privacy updated for subscriptions and RevenueCat.
+- [x] P20-34 (2026-11-16, PR D; legal wording is a draft for legal review, like the rest of the policy) Terms and Privacy updated for subscriptions and RevenueCat.
 
 ## F. Store and RevenueCat setup (owner)
 
@@ -121,8 +140,10 @@ names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
 
 ## G. Verification
 
-- [ ] P20-50 Whole suite clean: `flutter analyze`, `flutter test`,
-      `npm test` (backend and web), Playwright.
+- [x] P20-50 (2026-11-16, on develop after PR E) Whole suite clean: `flutter analyze` (no issues),
+      `flutter test` (1327), `npm test` backend (289) and web (310), Playwright
+      (182), `flutter build ios --profile --no-codesign`, gitleaks over the whole
+      history. Not run on a device or against real RevenueCat/Paddle (P20-51/52/85).
 - [ ] P20-51 iPhone sandbox pass via `scripts/run-on-iphone.sh`
       (CLAUDE.md §10): buy, trial, accelerated renewal, cancel, restore on
       a second install, downgrade locking.
@@ -199,10 +220,10 @@ the app and site see the same Pro.
       once per event, stale events ignored), `/checkout` (server-set
       user id, 409 when already Pro), `/portal`; deleting an account
       cancels a renewing web subscription. Tests: `test/paddle.test.js`.
-- [ ] P20-83 Website: `/pricing`, account billing page (plan, Upgrade →
+- [x] P20-83 (2026-11-16, PR E; Paddle's real checkout, portal and CSP hosts unverified until the P20-85 sandbox exists) Website: `/pricing`, account billing page (plan, Upgrade →
       Paddle.js overlay, Manage → portal), CSP allowance for Paddle on
       the billing page only, zod-parsed BFF calls.
-- [ ] P20-84 App: show a web subscription as Pro and hide the store
+- [x] P20-84 (2026-11-16, PR B) App: show a web subscription as Pro and hide the store
       purchase for it (with P20-23/24).
 - [ ] P20-85 Owner: Paddle sandbox account, Pro product with monthly and
       yearly prices, default payment link domain approved, notification

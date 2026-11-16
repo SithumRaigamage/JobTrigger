@@ -37,6 +37,7 @@ const toc = [
   { id: "summary", label: "At a glance" },
   { id: "collect", label: "What we store" },
   { id: "use", label: "How it's used" },
+  { id: "subscriptions", label: "Subscriptions and payments" },
   { id: "usage", label: "Anonymous usage data" },
   { id: "crash", label: "Crash reports" },
   { id: "demo", label: "Demo mode" },
@@ -88,6 +89,10 @@ export function PrivacyView() {
             <strong className="text-fg">Which server is active</strong> for each tool.
           </li>
           <li>
+            <strong className="text-fg">Your plan,</strong> if you subscribe: whether you have Pro,
+            its status and dates, where it was bought and which product. Never a card number.
+          </li>
+          <li>
             <strong className="text-fg">A pending password reset</strong>, if you asked for one:
             only a fingerprint of the link, deleted once used or after 15 minutes.
           </li>
@@ -97,7 +102,24 @@ export function PrivacyView() {
       <LegalSection id="use" title="How it's used">
         <p>
           Only to sign you in and hand your saved servers to your own phone. Build notifications are
-          created on your phone, not sent by us. We don&apos;t sell or share your data.
+          created on your phone, not sent by us. We don&apos;t sell your data, and we share it only
+          with the payment services named under Subscriptions and payments.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="subscriptions" title="Subscriptions and payments">
+        <p>
+          Paying is optional. When you subscribe in the app, the App Store or Google Play takes the
+          payment and tells us whether your subscription is active. We use{" "}
+          <strong className="text-fg">RevenueCat</strong> to check purchases for us: it receives
+          your JobTrigger account&apos;s random ID and the store receipt, and returns your plan. It
+          does not receive your email address, your servers or your tokens. If you buy on this
+          website, <strong className="text-fg">Paddle</strong> is the seller and collects your
+          payment details and billing address; we receive your plan status and a customer reference,
+          never your card number. RevenueCat and Paddle act for us as processors under their own
+          privacy policies. We keep your plan record while your account exists; it is deleted with
+          your account, but deleting your account does not cancel a subscription, which you cancel
+          in your store or from the app.
         </p>
       </LegalSection>
 

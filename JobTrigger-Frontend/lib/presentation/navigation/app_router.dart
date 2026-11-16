@@ -47,6 +47,9 @@ import '../features/tool_selection/active_tool_notifier.dart';
 import '../features/tool_selection/ci_tool.dart';
 import '../features/tool_selection/tool_selection_screen.dart';
 import 'app_routes.dart';
+import '../features/subscription/billing_availability.dart';
+import '../features/subscription/paywall_screen.dart';
+import '../features/subscription/subscription_screen.dart';
 import 'main_scaffold.dart';
 
 part 'app_router.g.dart';
@@ -62,6 +65,8 @@ class _AuthRefreshListenable extends ChangeNotifier {
 }
 
 const _authRoutes = {AppRoutes.login, AppRoutes.signup};
+
+const _billingRoutes = {AppRoutes.subscription, AppRoutes.paywall};
 
 /// AUD-51: drill-down routes that only work with an in-app `extra` object.
 /// Deep linking is on for the whole router (US-JX-19), so any app or web
@@ -244,6 +249,12 @@ GoRouter appRouter(Ref ref) {
 
       if (isAuthenticated && onAuthRoute) return AppRoutes.toolSelection;
       if (!isAuthenticated && !onAuthRoute) return AppRoutes.login;
+      // Phase 20: no subscription UI unless billing is on for this build
+      // and account, so a default build is exactly as before.
+      if (_billingRoutes.contains(state.matchedLocation) &&
+          !ref.read(billingAvailableProvider)) {
+        return AppRoutes.home;
+      }
       final acceptsExtra = _extraRoutes[state.matchedLocation];
       if (acceptsExtra != null && !acceptsExtra(state.extra)) {
         return AppRoutes.home;
@@ -319,6 +330,17 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.appInfo,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AppInfoScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.subscription,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SubscriptionScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.paywall,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            PaywallScreen(reason: state.uri.queryParameters['reason']),
       ),
       GoRoute(
         path: AppRoutes.sonarqubeProject,

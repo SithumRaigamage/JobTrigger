@@ -22,9 +22,17 @@ GitHub or SonarQube.
 
 ## 2. The rule everything else follows
 
-**The browser never holds a full secret or a JobTrigger token.** The
-backend's credential list endpoints return secrets decrypted in full,
-because the app needs them. So:
+**The browser never holds a JobTrigger token, and receives a full secret
+only when its owner asks.** Since E4 the backend's credential lists return
+only a mask (`••••` + last 4), never a secret, so list and edit pages have
+nothing to hide. The one way a full secret reaches the browser is
+`revealSecret`: the owner taps Show or Copy on the edit page, confirms the
+account password (the backend's re-authentication check, `POST
+/api/auth/verify-password`, the same one Change password uses), and only
+then does the server fetch `GET …/:id/secret` and return it. It is returned
+to that one request, never cached, never logged, and never put in HTML or the
+RSC payload. A wrong password shows an error and fetches nothing; the
+backend's rate limits apply to both calls. So:
 
 - Every backend call is made by the Next.js server (server components,
   server actions, route handlers) — a backend-for-frontend (BFF). Browser
@@ -33,9 +41,9 @@ because the app needs them. So:
 - The access and refresh tokens live in an encrypted `iron-session`
   cookie: `HttpOnly`, `Secure`, `SameSite=Lax`. Never `localStorage`,
   never readable by JS.
-- Secrets are masked on the server (`••••` + last 4 characters) before any
-  data reaches a component. The full value never appears in HTML, the RSC
-  payload, or a server-action response.
+- Lists and edit pages carry masks only. A full secret appears nowhere
+  else: not in HTML, not in the RSC payload, not in any server-action response
+  except `revealSecretAction`'s, after the password check.
 - The backend still receives `x-auth-token: <token>`, exactly like the app
   (not `Authorization: Bearer` — see [`api-reference.md`](api-reference.md)).
 
@@ -53,6 +61,7 @@ because the app needs them. So:
 | Lint / format | ESLint (`eslint-config-next`), Prettier + `prettier-plugin-tailwindcss` | |
 | Runtime | Node 24, npm | Same as the backend; pinned in `.nvmrc` and `engines` |
 | Crash reporting | `@sentry/nextjs` → self-hosted GlitchTip | E3: errors only, scrubbed in `beforeSend`; see `docs/error-reporting.md` |
+| Web checkout | Paddle.js (`https://cdn.paddle.com/paddle/v2/paddle.js`, no npm package) | P20-83. Loaded only by `/account/billing` (`features/billing/billing-actions.tsx`); the CSP exception exists for that route only. No Paddle API key on the site: the backend holds it and creates the transaction. Paddle is the seller (merchant of record) |
 | Hosting | Vercel first, Docker (`output: "standalone"`) later | P15-22, P15-23 |
 
 No second HTTP client (use the built-in `fetch`), no client-side data
@@ -77,7 +86,7 @@ JobTrigger-Web/
     domain/                Plain TS: entities, Result<T, AppFailure>, copy
     server/                `import "server-only"` — backend client, session,
                            refresh, masking, config. The ONLY backend caller.
-    content/               feature-status.ts (US-WEB-22), changelog entries
+    content/               feature-status.ts (US-WEB-22), pricing.ts (the /pricing page, P20-33), changelog entries
     proxy.ts               Per-request CSP nonce; portal: no-store, noindex, session upkeep
     session-upkeep.ts      Token renewal + idle timeout for the proxy
     security-headers.ts    Header builders shared with next.config.ts
@@ -167,9 +176,13 @@ go to server logs only (NFR-SEC-04).
   (network, 5xx, 429) keeps it (NFR-SEC-07), as in the app.
 - A server component that still gets a 401 treats it as `AuthFailure` and
   sends the user to `/sign-in`.
-- Secrets are masked in `src/server/credentials-api.ts` the moment a
-  response is parsed; the backend shapes (`*Dto`) are not exported, and a
-  test checks no full secret appears in anything it returns.
+- Secrets are masked in `src/server/credentials-api.ts`: the backend lists
+  only a mask (E4), the backend shapes (`*Dto`) are not exported, and a test
+  checks no full secret appears in anything the list/create/update calls
+  return. The one exception is `revealSecret`, which calls the owner-only
+  `GET …/:id/secret` only after `revealSecretAction` has confirmed the
+  password: on demand, never cached or logged, covered by
+  `reveal-secret.test.ts` and `reveal-action.test.ts`.
 
 ### Security headers (P15-03, WEB-B1–B3)
 
@@ -184,6 +197,14 @@ One strict policy on every page (owner decision 2026-10-26):
   with `includeSubDomains` (no `preload` — a separate domain decision),
   `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`,
   `Permissions-Policy`, `Cross-Origin-Opener-Policy`; no `X-Powered-By`.
+- **Billing page exception (P20-83).** `/account/billing` alone adds Paddle's
+  hosts to its CSP, for the configured environment only: `https://cdn.paddle.com`
+  in `script-src`, `https://checkout-service.paddle.com` in `connect-src`
+  and `https://buy.paddle.com` in `frame-src` (the `sandbox-` variants in
+  sandbox). Nothing else is loosened: no `'unsafe-inline'`, the script gets
+  the page nonce, every other page keeps the strict policy
+  (`security-headers.test.ts`, `tests/e2e/billing.spec.ts`). With no Paddle
+  client token configured the page gets the strict policy too.
 - **`no-store`** explicitly on `/sign-in`, `/sign-up`, `/servers`,
   `/account` (`NO_STORE_PATH_PREFIXES` in `src/security-headers.ts`; add
   new portal paths there).
@@ -266,6 +287,7 @@ fails at startup if anything is missing. Nothing secret is ever
 | `JOBTRIGGER_BACKEND_URL` | Backend base URL (`http://127.0.0.1:5001` locally); in production `https://`, except loopback and single-label container service names such as `http://backend:5001` (P15-23) |
 | `SESSION_SECRET` | `iron-session` encryption key, 32+ characters |
 | `SITE_URL` | Canonical URL for link previews and the sitemap (US-WEB-07); defaults to `http://localhost:3000` |
+| `PADDLE_CLIENT_TOKEN`, `PADDLE_ENV` | Optional (P20-83). Paddle's client-side token (`test_…` / `live_…`) and `sandbox` (default) or `production`; read by `billing/paddle-config.ts`. Public by design but not committed. Unset, mismatched or malformed means web checkout is off and the billing page says so |
 | `UMAMI_URL`, `UMAMI_WEBSITE_ID` | Optional (P20-77). Anonymous events from server actions to the self-hosted Umami (`server/analytics.ts`, `getAnalyticsConfig()`); both unset or invalid means analytics is off, never an error. No tracker script, so the CSP is unchanged |
 
 All three are read at runtime on the server. `SITE_URL` alone is also available through `getSiteUrl()`, which metadata, `robots.txt` and the sitemap use, so marketing pages work on a deploy without the portal's secrets. `SITE_URL` is deliberately

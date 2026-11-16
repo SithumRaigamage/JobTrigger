@@ -8,12 +8,14 @@ import { failureMessage } from "@/domain/app-failure";
 import type { Credential, Tool } from "@/domain/credentials";
 import type { Result } from "@/domain/result";
 import { track } from "@/server/analytics";
+import { verifyPassword } from "@/server/auth-api";
 import { authed } from "@/server/authed";
 import {
   createGitHub,
   createJenkins,
   createSonarQube,
   deleteCredential,
+  revealSecret,
   setDefaultCredential,
   updateGitHub,
   updateJenkins,
@@ -140,4 +142,32 @@ export async function deleteServerAction(
 
   revalidatePath("/servers");
   redirect("/servers");
+}
+
+export type RevealState = { secret?: string; error?: string };
+
+/**
+ * Returns the saved token in full, only when the owner taps the eye on the
+ * edit page. The token is never rendered into the page; it is not logged.
+ */
+export async function revealSecretAction(
+  target: { tool: Tool; id: string },
+  password: string,
+): Promise<RevealState> {
+  const session = await requireSession();
+  const checked = makeActiveForm.safeParse(target);
+  if (!checked.success) return { error: "That server couldn't be found." };
+  if (typeof password !== "string" || password === "") return { error: "Enter your password." };
+
+  // The account password first, with the backend's own check (the one Change
+  // password uses). Wrong: an error, and the secret is never requested.
+  const confirmed = await authed(session, (token) => verifyPassword(token, password));
+  if (!confirmed.ok) return { error: failureMessage(confirmed.failure) };
+
+  const result = await authed(session, (token) =>
+    revealSecret(token, checked.data.tool, checked.data.id),
+  );
+  if (!result.ok) return { error: failureMessage(result.failure) };
+  if (!result.value) return { error: "The saved token can't be read. Paste it again." };
+  return { secret: result.value };
 }

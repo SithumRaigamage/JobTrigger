@@ -53,6 +53,14 @@ sealed class AppFailure {
     _ => false,
   };
 
+  /// P20-25: for the calls that can hit a plan limit (adding a credential,
+  /// making one active): a `PLAN_LIMIT` 403 becomes a [PlanLimitFailure];
+  /// everything else, including every other 403, maps exactly as
+  /// [fromDioException] does.
+  factory AppFailure.fromCredentialsException(DioException exception) =>
+      PlanLimitFailure.tryFrom(exception) ??
+      AppFailure.fromDioException(exception);
+
   /// GitHub-specific: a 403 with `X-RateLimit-Remaining: 0` means the
   /// request was rejected for exceeding GitHub's rate limit, not because
   /// the credential was rejected — a real API behavior Jenkins/the backend
@@ -108,6 +116,9 @@ sealed class AppFailure {
       "SonarCloud doesn't know that organization. Check the organization "
           'key in this credential in Settings.',
     DemoUnavailableFailure() => 'Not available in demo.',
+    PlanLimitFailure(:final serverMessage) => serverMessage,
+    // Closing the store sheet is a choice, not an error: no copy.
+    PurchaseCancelled() => '',
     UnknownFailure() => 'Something unexpected happened. Please try again.',
   };
 }
@@ -231,4 +242,43 @@ final class SonarQubeProjectNotFoundFailure extends AppFailure {
 /// except the scripted "Trigger build"). Demo-only; no real server is involved.
 final class DemoUnavailableFailure extends AppFailure {
   const DemoUnavailableFailure();
+}
+
+/// P20-21: the backend refused because the user's plan doesn't allow this
+/// (`403` with `code: "PLAN_LIMIT"`). Kept apart from [PermissionFailure],
+/// whose copy ("on this server") would be wrong, and produced only by
+/// [PlanLimitFailure.tryFrom] on the backend client's calls that can hit a
+/// limit, so every other 403 keeps meaning what it meant.
+final class PlanLimitFailure extends AppFailure {
+  const PlanLimitFailure(this.limit, this.serverMessage);
+
+  /// Which limit: `maxCredentialsTotal`, `maxCredentialsPerTool`,
+  /// `multiTool`, `primaryCooldown`, ... (the backend's `limit` field), so
+  /// the paywall can match its headline to what the user tried.
+  final String limit;
+
+  /// The backend's own user-facing sentence.
+  final String serverMessage;
+
+  /// The failure for a `PLAN_LIMIT` response, or null for anything else.
+  static PlanLimitFailure? tryFrom(DioException exception) {
+    final response = exception.response;
+    final data = response?.data;
+    if (response?.statusCode != 403 || data is! Map) return null;
+    if (data['code'] != 'PLAN_LIMIT') return null;
+    final message = data['message'];
+    final limit = data['limit'];
+    return PlanLimitFailure(
+      limit is String ? limit : 'unknown',
+      message is String && message.isNotEmpty
+          ? message
+          : 'This needs JobTrigger Pro.',
+    );
+  }
+}
+
+/// P20-21: the user closed the store's purchase sheet. Not an error; the UI
+/// shows nothing.
+final class PurchaseCancelled extends AppFailure {
+  const PurchaseCancelled();
 }

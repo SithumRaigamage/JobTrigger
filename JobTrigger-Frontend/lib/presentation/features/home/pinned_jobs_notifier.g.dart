@@ -51,7 +51,7 @@ final class PinnedJobsNotifierProvider
 }
 
 String _$pinnedJobsNotifierHash() =>
-    r'2bc64aef795dc160015bebeaf83b872602d6e918';
+    r'102372fcdeef26b863d106e55f708e566e528c48';
 
 /// Pins for the active server, in the order they were pinned. Rebuilt
 /// (and reloaded) whenever the active server changes: pins belong to a

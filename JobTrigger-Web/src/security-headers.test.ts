@@ -74,3 +74,48 @@ describe("staticSecurityHeaders", () => {
     expect(headers["X-Frame-Options"]).toBe("DENY");
   });
 });
+
+describe("contentSecurityPolicy on the billing page (P20-83)", () => {
+  const strict = contentSecurityPolicy("n", false);
+  const sandbox = contentSecurityPolicy("n", false, null, { environment: "sandbox" });
+  const production = contentSecurityPolicy("n", false, null, { environment: "production" });
+
+  it("is unchanged for every page that isn't the billing page", () => {
+    expect(strict).not.toContain("paddle");
+    expect(strict).not.toContain("frame-src");
+    expect(contentSecurityPolicy("n", false, null, null)).toBe(strict);
+  });
+
+  it("allows Paddle.js, its API and its checkout frame, for the environment in use only", () => {
+    expect(sandbox).toContain(
+      "script-src 'self' 'nonce-n' 'strict-dynamic' https://cdn.paddle.com",
+    );
+    expect(sandbox).toContain("connect-src 'self' https://sandbox-checkout-service.paddle.com;");
+    expect(sandbox).toContain("frame-src https://sandbox-buy.paddle.com;");
+    expect(sandbox).not.toContain("https://checkout-service.paddle.com");
+
+    expect(production).toContain("connect-src 'self' https://checkout-service.paddle.com;");
+    expect(production).toContain("frame-src https://buy.paddle.com;");
+    expect(production).not.toContain("sandbox");
+  });
+
+  it("loosens nothing else", () => {
+    for (const policy of [sandbox, production]) {
+      expect(policy).not.toContain("unsafe-inline");
+      expect(policy).not.toContain("unsafe-eval");
+      expect(policy).toContain("style-src 'self' 'nonce-n'");
+      expect(policy).toContain("default-src 'self'");
+      expect(policy).toContain("frame-ancestors 'none'");
+      expect(policy).toContain("form-action 'self'");
+      expect(policy).toContain("object-src 'none'");
+    }
+  });
+
+  it("keeps the crash-report host alongside Paddle", () => {
+    expect(
+      contentSecurityPolicy("n", false, "https://glitch.example.com", { environment: "sandbox" }),
+    ).toContain(
+      "connect-src 'self' https://glitch.example.com https://sandbox-checkout-service.paddle.com;",
+    );
+  });
+});

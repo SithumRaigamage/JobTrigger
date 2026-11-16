@@ -14,6 +14,10 @@
  *   deliberate two-line change.
  */
 
+import type { Tool } from "@/domain/credentials";
+
+import { isToolReleased, toolVersion } from "./release";
+
 export type FeatureStatus = "live" | "beta" | "soon" | "planned";
 
 type Feature = {
@@ -102,6 +106,14 @@ export const features = {
     source: "US-AUTH-08 built in Phase 20; waits for the backend deployment",
     changelog: ["Password reset by email"],
   },
+  subscriptions: {
+    label: "JobTrigger Pro (subscriptions)",
+    status: "soon",
+    // Built in Phase 20 and switched off (BILLING_ENABLED unset). Flip to
+    // live with the store listings, when the backend is deployed with
+    // billing on.
+    source: "Phase 20 built, billing off; waits for the stores and the backend deployment",
+  },
   "gitlab-ci": {
     label: "GitLab CI",
     status: "planned",
@@ -130,8 +142,31 @@ export function statusOf(id: FeatureId): FeatureStatus {
  * works. `soon` and `planned` render disabled (US-WEB-22).
  */
 export function isActionable(id: FeatureId): boolean {
+  // A tool this release doesn't ship has nothing to act on, whatever its
+  // build status is.
+  if (comingInVersion(id) !== null) return false;
   const status = statusOf(id);
   return status === "live" || status === "beta";
+}
+
+/** The tool each tool feature belongs to; other features belong to none. */
+const featureTool: Partial<Record<FeatureId, Tool>> = {
+  "github-accounts": "github",
+  "github-actions": "github",
+  "github-runs": "github",
+  "sonarqube-save": "sonarqube",
+  "sonarqube-insights": "sonarqube",
+};
+
+/**
+ * The release a feature arrives in, when its tool isn't in this release yet
+ * (release/tools.json); null otherwise. Badges and labels show it as
+ * "Coming in 1.2" instead of the build status.
+ */
+export function comingInVersion(id: FeatureId): string | null {
+  const tool = featureTool[id];
+  if (!tool || isToolReleased(tool)) return null;
+  return toolVersion(tool) ?? null;
 }
 
 /** Badge copy; `live` features show no badge. */

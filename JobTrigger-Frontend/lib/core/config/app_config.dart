@@ -21,6 +21,8 @@ class AppConfig {
     required this.backendBaseUrl,
     this.websiteBaseUrl,
     this.crashReportDsn,
+    this.revenueCatIosKey,
+    this.revenueCatAndroidKey,
   });
 
   /// AUD-43: a release build without its config used to fall back to the
@@ -33,6 +35,10 @@ class AppConfig {
     const backendBaseUrl = String.fromEnvironment('BACKEND_BASE_URL');
     const websiteBaseUrl = String.fromEnvironment('WEBSITE_BASE_URL');
     const crashReportDsn = String.fromEnvironment('SENTRY_DSN');
+    const revenueCatIosKey = String.fromEnvironment('REVENUECAT_IOS_KEY');
+    const revenueCatAndroidKey = String.fromEnvironment(
+      'REVENUECAT_ANDROID_KEY',
+    );
     if (isRelease) {
       final problem = releaseConfigProblem(
         environmentName: environmentName,
@@ -53,6 +59,8 @@ class AppConfig {
       crashReportDsn: crashReportDsn.trim().isEmpty
           ? null
           : crashReportDsn.trim(),
+      revenueCatIosKey: _orNull(revenueCatIosKey),
+      revenueCatAndroidKey: _orNull(revenueCatAndroidKey),
     );
   }
 
@@ -71,6 +79,20 @@ class AppConfig {
   /// `config/*.json`; see `config/README.md`.
   final String? crashReportDsn;
 
+  /// P20-20: RevenueCat's *public* SDK keys, one per store. Null means this
+  /// build has no billing: the app never starts the SDK and shows no
+  /// purchase option. Kept out of the committed `config/*.json`; see
+  /// `config/README.md`. The secret REST key lives only on the backend.
+  final String? revenueCatIosKey;
+  final String? revenueCatAndroidKey;
+
+  /// The key for the platform the app is running on, or null.
+  String? revenueCatKeyFor(TargetPlatform platform) => switch (platform) {
+    TargetPlatform.iOS => revenueCatIosKey,
+    TargetPlatform.android => revenueCatAndroidKey,
+    _ => null,
+  };
+
   /// The website's reset page, or null (see [websiteBaseUrl]).
   Uri? get forgotPasswordUri => websiteBaseUrl == null
       ? null
@@ -82,6 +104,8 @@ class AppConfig {
   /// alongside the fixture's pinned version.
   static const recommendedJenkinsBaseline = '2.516.1';
 }
+
+String? _orNull(String value) => value.trim().isEmpty ? null : value.trim();
 
 /// [configured] without a trailing slash; the local site for a dev run
 /// that sets nothing; otherwise null.

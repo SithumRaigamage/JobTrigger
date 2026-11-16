@@ -1,7 +1,20 @@
+import type { Subscription } from "@/domain/subscription";
+
 import { ChangePassword, DeleteAccount, SignOutEverywhere } from "./account-forms";
+import { deleteNotice, PlanSection } from "./plan-section";
 
 /** Account (design 14; US-WEB-20, 21). */
-export function AccountView({ email }: { email: string }) {
+export function AccountView({
+  email,
+  subscription = null,
+  billingHref = null,
+}: {
+  email: string;
+  /** Null: billing is off or the plan couldn't be read, so no plan card. */
+  subscription?: Subscription | null;
+  /** Set when web checkout is set up (P20-83). */
+  billingHref?: string | null;
+}) {
   return (
     <>
       <section
@@ -25,9 +38,13 @@ export function AccountView({ email }: { email: string }) {
       </section>
       <div className="flex flex-wrap items-start gap-5">
         <ChangePassword />
+        {subscription && <PlanSection subscription={subscription} billingHref={billingHref} />}
         <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-5">
           <SignOutEverywhere />
-          <DeleteAccount email={email} />
+          <DeleteAccount
+            email={email}
+            subscriptionNotice={subscription ? deleteNotice(subscription) : null}
+          />
         </div>
       </div>
     </>

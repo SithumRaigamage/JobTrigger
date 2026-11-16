@@ -62,6 +62,13 @@ const tools = {
   },
 };
 
+// Counted per account (the specs run in parallel), keyed by email.
+const secretFetches = new Map();
+// Requests for GitHub or SonarQube credentials: the release-1.0 smoke run
+// checks the site never makes one.
+// Counted per account (the specs run in parallel), keyed by email.
+const toolRequests = new Map();
+
 function send(res, status, body, requestId) {
   res.writeHead(status, { "content-type": "application/json", "x-request-id": requestId });
   res.end(JSON.stringify(body));
@@ -88,6 +95,12 @@ const server = createServer(async (req, res) => {
   if (body === null) return reply(400, { message: "Malformed JSON body" });
 
   if (url.pathname === "/healthz") return reply(200, { status: "ok" });
+  // Test-only: how many decrypted secrets were requested so far.
+  if (url.pathname === "/__stats")
+    return reply(200, {
+      secretFetches: secretFetches.get(url.searchParams.get("email") ?? "") ?? 0,
+      toolRequests: toolRequests.get(url.searchParams.get("email") ?? "") ?? 0,
+    });
   if (url.pathname === "/api/appinfo")
     return reply(200, { supportEmail: "support@jobtrigger.test", appVersion: "1.0.0" });
 
@@ -135,6 +148,48 @@ const server = createServer(async (req, res) => {
     });
   }
 
+  // P20-31/32: the plan. Billing is off unless the email says otherwise, so
+  // every other spec sees no plan section.
+  if (url.pathname === "/api/subscription" && req.method === "GET") {
+    const free = user.email.startsWith("free-plan-");
+    const pro = user.email.startsWith("pro-plan-");
+    return reply(200, {
+      plan: pro ? "pro" : "free",
+      billingEnabled: free || pro,
+      status: pro ? "active" : "none",
+      source: pro ? "app_store" : null,
+      productId: pro ? "pro_yearly" : null,
+      periodEnd: pro ? "2027-03-03T10:00:00.000Z" : null,
+      willRenew: pro,
+      manageOnWeb: false,
+      limits: pro
+        ? { maxCredentialsTotal: null, maxCredentialsPerTool: 25, maxPinnedJobs: null }
+        : { maxCredentialsTotal: 1, maxCredentialsPerTool: 1, maxPinnedJobs: 3 },
+      features: {
+        multiTool: pro,
+        backgroundWatch: pro,
+        homeWidget: pro,
+        insights: pro,
+      },
+      primaryCredentialId: null,
+    });
+  }
+
+  // P20-83: web checkout. A made-up transaction; nothing talks to Paddle.
+  if (url.pathname === "/api/billing/paddle/checkout" && req.method === "POST") {
+    if (user.email.startsWith("pro-plan-"))
+      return reply(409, { message: "Already subscribed", code: "ALREADY_SUBSCRIBED" });
+    if (!["monthly", "yearly"].includes(body.interval))
+      return reply(400, { message: "Choose monthly or yearly" });
+    return reply(200, { transactionId: "txn_e2e_fake", environment: "sandbox" });
+  }
+  if (url.pathname === "/api/billing/paddle/portal" && req.method === "POST") {
+    return reply(404, { message: "No web subscription" });
+  }
+
+  if (/^\/api\/(github|sonarqube)-credentials/.test(url.pathname))
+    toolRequests.set(user.email, (toolRequests.get(user.email) ?? 0) + 1);
+
   if (url.pathname === "/api/auth/logout-all" && req.method === "POST") {
     user.tokenVersion += 1;
     return reply(200, { message: "Signed out everywhere" });
@@ -148,6 +203,13 @@ const server = createServer(async (req, res) => {
     user.tokenVersion += 1;
     return reply(200, issue(user));
   }
+  // Re-checks the password and changes nothing (verify-password).
+  if (url.pathname === "/api/auth/verify-password" && req.method === "POST") {
+    return user.password === body.password
+      ? reply(200, { message: "Password confirmed" })
+      : reply(400, { message: "Current password is incorrect" });
+  }
+
   if (url.pathname === "/api/auth/account" && req.method === "DELETE") {
     if (body.password !== user.password)
       return reply(400, { message: "Current password is incorrect" });
@@ -185,9 +247,23 @@ const server = createServer(async (req, res) => {
         __v: 0,
       };
     };
-    // The decrypted secret is for the phone app only; the portal must never ask.
-    if (second === "secret")
-      return reply(418, { message: "The portal must not request decrypted secrets" });
+    // The decrypted secret, owner only. Counted, so a spec can prove the
+    // portal asked only after the password was confirmed.
+    if (second === "secret") {
+      secretFetches.set(user.email, (secretFetches.get(user.email) ?? 0) + 1);
+      if (!row) return reply(404, { message: "Credential not found" });
+      return reply(
+        200,
+        tool.kind === "jenkins"
+          ? {
+              password: row.password ?? null,
+              paramToken: row.paramToken ?? null,
+              needsReentry: false,
+              version: "v1",
+            }
+          : { token: row.token ?? null, needsReentry: false, version: "v1" },
+      );
+    }
 
     if (!id && req.method === "GET") return reply(200, mine.map(view));
     if (!id && req.method === "POST") {

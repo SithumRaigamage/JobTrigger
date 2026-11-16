@@ -30,6 +30,10 @@ abstract class CredentialDto with _$CredentialDto {
     /// AUD-63: the backend flags a credential whose secret it could not
     /// decrypt. Always present in the response.
     @Default(false) bool needsReentry,
+
+    /// P20-25: beyond the user's plan after a downgrade (absent on older
+    /// backends, so false).
+    @Default(false) bool locked,
     String? createdAt,
     String? updatedAt,
   }) = _CredentialDto;
@@ -51,5 +55,6 @@ extension CredentialDtoX on CredentialDto {
     // disagree with the value it describes.
     // (A masked response has no password but is not unreadable.)
     needsReentry: needsReentry || (password == null && secretMask == null),
+    locked: locked,
   );
 }

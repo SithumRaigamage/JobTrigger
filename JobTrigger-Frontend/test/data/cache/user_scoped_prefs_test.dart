@@ -12,6 +12,7 @@ void main() {
         'active_github_credential_id': 'g1',
         'active_sonarqube_credential_id': 'q1',
         'build_watches': '[]',
+        'subscription_cache': '{}',
         'pinned_jobs_s1': '[]',
         'pinned_jobs_s2': '[]',
         'selected_view_s1': 'All',

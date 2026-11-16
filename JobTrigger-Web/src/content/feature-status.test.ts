@@ -22,6 +22,7 @@ describe("feature status list", () => {
       "web-portal": "live",
       "web-test-connection": "soon",
       "password-reset": "soon",
+      subscriptions: "soon",
       "gitlab-ci": "planned",
       circleci: "planned",
       "changelog-entries": "soon",

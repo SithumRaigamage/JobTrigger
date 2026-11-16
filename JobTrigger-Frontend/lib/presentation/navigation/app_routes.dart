@@ -34,4 +34,9 @@ abstract class AppRoutes {
   static const settings = '/settings';
   static const profile = '/profile';
   static const appInfo = '/profile/app-info';
+
+  /// Phase 20: both reachable only when billing is available
+  /// (`billingAvailableProvider`); otherwise they go to Home.
+  static const subscription = '/profile/subscription';
+  static const paywall = '/paywall';
 }

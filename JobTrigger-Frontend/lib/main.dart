@@ -15,7 +15,9 @@ import 'presentation/navigation/app_router.dart';
 import 'core/platform/notification_service.dart';
 import 'presentation/features/app_lock/app_lock_gate.dart';
 import 'presentation/features/home_widget/home_widget_sync.dart';
+import 'presentation/features/subscription/locked_active_guard.dart';
 import 'presentation/features/notifications/build_watch_notifier.dart';
+import 'core/config/tool_catalog_loader.dart';
 import 'presentation/features/open_link/open_link_location.dart';
 
 Future<void> main() async {
@@ -23,6 +25,9 @@ Future<void> main() async {
   // AUD-43: a release build without its config fails here, at launch,
   // rather than at the first backend call.
   final config = AppConfig.fromEnvironment();
+  // Which tools this build supports (release/tools.json), read before the
+  // first frame so nothing flickers from one answer to another.
+  await loadToolCatalog();
   _registerFontLicenses();
   // E2: demo mode is read before the first frame so a relaunch stays in it.
   final demoMode = await readStoredDemoMode();
@@ -70,6 +75,8 @@ class MyApp extends ConsumerWidget {
       ..watch(buildWatchNotifierProvider)
       // US-JX-23: keep the home-screen widget's snapshot current.
       ..watch(homeWidgetSyncProvider)
+      // P20-25: a locked active credential is replaced (billing on only).
+      ..watch(lockedActiveGuardProvider)
       ..listen(notificationTapsProvider, (_, next) {
         // AUD-45: through the open-link screen, which matches the job to
         // its own server and asks before switching, rather than onto

@@ -15,6 +15,8 @@ import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/inline_alert.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
+import '../subscription/plan_gate.dart';
+import '../subscription/pro_teaser.dart';
 import 'nodes_notifier.dart';
 
 /// US-JX-12: which agents are online and busy, what they're running, and
@@ -25,6 +27,15 @@ class NodesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // P20-25: Nodes is part of Pro insights; Free sees a teaser and the
+    // node list is never fetched.
+    if (ref.watch(planGateProvider).insights case final reason?) {
+      return ProTeaserScreen(
+        reason: reason,
+        title: 'Nodes',
+        message: 'See which agents are online and busy, and take one offline.',
+      );
+    }
     final nodes = ref.watch(nodesNotifierProvider);
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(

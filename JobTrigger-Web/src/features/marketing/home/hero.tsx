@@ -4,6 +4,7 @@ import { Container, Section } from "@/components/layout";
 import { StaticImage } from "@/components/static-image";
 import { StatusBadge } from "@/components/status-badge";
 import { statusOf } from "@/content/feature-status";
+import { pocketLine, releasedToolList } from "@/content/tool-copy";
 
 import appHome from "@/assets/screens/app-home-dark.png";
 
@@ -104,6 +105,8 @@ function HeroIllustration() {
  */
 export function Hero() {
   const appLive = statusOf("app-stores") === "live";
+  // Leads with the tools this release ships (release/tools.json).
+  const pocket = pocketLine();
 
   return (
     <Section surface="dark" dotGrid className="border-b border-line">
@@ -125,8 +128,9 @@ export function Hero() {
             from <span className="text-running-fg">anywhere.</span>
           </h1>
           <p className="max-w-135 text-xl leading-relaxed text-fg-secondary">
-            JobTrigger puts Jenkins, GitHub Actions and SonarQube in your pocket. Trigger jobs,
-            watch logs stream live, and know the moment a build breaks.
+            JobTrigger puts {releasedToolList()} in your pocket.{" "}
+            {pocket.next ? `${pocket.next} ` : ""}Trigger jobs, watch logs stream live, and know the
+            moment a build breaks.
           </p>
 
           <div className="flex flex-wrap gap-3">
