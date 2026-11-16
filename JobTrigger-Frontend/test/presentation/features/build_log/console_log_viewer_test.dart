@@ -37,8 +37,92 @@ Future<GlobalKey<ConsoleLogViewerState>> _pump(
 
 void main() {
   testWidgets('virtualizes a 5,000-line log', (tester) async {
-    await _pump(tester, _lines(5000));
+    // Folding off: these lines share a signature, and this test is about
+    // the list building only the visible rows.
+    await _pump(
+      tester,
+      _lines(5000),
+      prefs: const ConsolePrefs(foldSections: false),
+    );
     expect(tester.widgetList(find.byType(RichText)).length, lessThan(200));
+  });
+
+  testWidgets('folds a noisy run into one row and opens it on tap', (
+    tester,
+  ) async {
+    final lines = ConsoleDecoder().addChunk(
+      [
+        for (var i = 1; i <= 40; i++)
+          'Waiting for next available executor $i\n',
+        'Build finished\n',
+      ].join(),
+    );
+
+    await _pump(tester, lines);
+
+    expect(find.text('40 similar lines'), findsOneWidget);
+    expect(
+      find.textContaining('Waiting for next', findRichText: true),
+      findsNothing,
+    );
+
+    await tester.tap(find.text('40 similar lines'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hide 40 similar lines'), findsOneWidget);
+    expect(
+      find.textContaining('Waiting for next', findRichText: true),
+      findsWidgets,
+    );
+
+    await tester.tap(find.text('Hide 40 similar lines'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('40 similar lines'), findsOneWidget);
+    expect(find.text('Hide 40 similar lines'), findsNothing);
+  });
+
+  testWidgets('folding can be turned off', (tester) async {
+    final lines = ConsoleDecoder().addChunk(
+      [
+        for (var i = 1; i <= 40; i++)
+          'Waiting for next available executor $i\n',
+        'Build finished\n',
+      ].join(),
+    );
+
+    await _pump(tester, lines, prefs: const ConsolePrefs(foldSections: false));
+
+    expect(find.textContaining('similar lines'), findsNothing);
+    expect(
+      find.textContaining('Waiting for next', findRichText: true),
+      findsWidgets,
+    );
+  });
+
+  testWidgets('jumping to a line inside a folded run opens the run', (
+    tester,
+  ) async {
+    final key = await _pump(tester, _lines(3000));
+
+    expect(find.text('3000 similar lines'), findsOneWidget);
+
+    key.currentState!.jumpToLine(2000);
+    await tester.pumpAndSettle();
+
+    expect(find.text('line 2000', findRichText: true), findsOneWidget);
+  });
+
+  testWidgets('a search match inside a folded run is revealed', (tester) async {
+    final lines = ConsoleDecoder().addChunk(
+      [for (var i = 0; i < 20; i++) 'retrying $i\n'].join(),
+    );
+
+    await _pump(tester, lines, query: 'retrying 7', current: 7);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hide 20 similar lines'), findsOneWidget);
+    expect(find.text('retrying 7', findRichText: true), findsOneWidget);
   });
 
   testWidgets('renders ANSI colors instead of stripping them', (tester) async {

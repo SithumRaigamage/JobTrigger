@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { failureMessage } from "@/domain/app-failure";
+import { failureMessage, type AppFailure } from "@/domain/app-failure";
 import type { Credential, Tool } from "@/domain/credentials";
 import type { Result } from "@/domain/result";
 import { track } from "@/server/analytics";
@@ -27,6 +27,16 @@ import { parseServerForm, type FieldErrors } from "./server-input";
 
 export type ActionState = { error?: string };
 
+/**
+ * P20-30: a plan-limit refusal, counted anonymously and with which limit
+ * (`docs/subscription/04-email-and-analytics.md` §4.1) — never who hit it.
+ */
+function trackLimitHit(failure: AppFailure): void {
+  if (failure.kind === "planLimit") {
+    void track("limit_hit", { limit: failure.limit, source: "web" });
+  }
+}
+
 const tool = z.enum(["jenkins", "github", "sonarqube"]);
 /** Mongo ObjectIds; nothing else is sent to the backend as a path segment. */
 const credentialId = z.string().regex(/^[A-Za-z0-9]{1,64}$/);
@@ -45,7 +55,10 @@ export async function makeActiveAction(
   const result = await authed(session, (token) =>
     setDefaultCredential(token, parsed.data.tool, parsed.data.id),
   );
-  if (!result.ok) return { error: failureMessage(result.failure) };
+  if (!result.ok) {
+    trackLimitHit(result.failure);
+    return { error: failureMessage(result.failure) };
+  }
   revalidatePath("/servers");
   return {};
 }
@@ -84,7 +97,10 @@ export async function addServerAction(
         return createSonarQube(token, parsed.input);
     }
   });
-  if (!result.ok) return { error: failureMessage(result.failure) };
+  if (!result.ok) {
+    trackLimitHit(result.failure);
+    return { error: failureMessage(result.failure) };
+  }
   void track("server_added", { tool: parsed.tool, source: "web" }); // P20-77
 
   revalidatePath("/servers");

@@ -111,6 +111,29 @@ function paddleConfig(env = process.env) {
   };
 }
 
+/**
+ * NR-06 (BACKLOG-02): the Firebase service account for server push, or null
+ * when push is off. Parsed here so a malformed value fails closed (no push)
+ * rather than at send time.
+ */
+function pushConfig(env = process.env) {
+  if (blank(env.FCM_SERVICE_ACCOUNT)) return null;
+  let account;
+  try {
+    account = JSON.parse(env.FCM_SERVICE_ACCOUNT);
+  } catch {
+    return null;
+  }
+  if (!account || typeof account !== 'object') return null;
+  const projectId = account.project_id;
+  const clientEmail = account.client_email;
+  const privateKey = typeof account.private_key === 'string'
+    ? account.private_key.replace(/\\n/g, '\n')
+    : null;
+  if (blank(projectId) || blank(clientEmail) || blank(privateKey)) return null;
+  return { projectId: String(projectId), clientEmail: String(clientEmail), privateKey };
+}
+
 /** P20-78: Umami settings, or null when analytics is off. */
 function analyticsConfig(env = process.env) {
   if (blank(env.UMAMI_URL) || blank(env.UMAMI_WEBSITE_ID)) return null;
@@ -241,6 +264,7 @@ module.exports = {
   trustProxyHops,
   mailConfig,
   analyticsConfig,
+  pushConfig,
   resetPasswordUrl,
   siteUrl,
   studentAdminEmail,

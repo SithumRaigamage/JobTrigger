@@ -42,7 +42,7 @@ final class ConsolePrefsNotifierProvider
 }
 
 String _$consolePrefsNotifierHash() =>
-    r'5f56f32d6858c9870add33f093cad1983f22bcac';
+    r'413a48ded668819da7a74254a82c87d5da9acf7f';
 
 abstract class _$ConsolePrefsNotifier extends $Notifier<ConsolePrefs> {
   ConsolePrefs build();

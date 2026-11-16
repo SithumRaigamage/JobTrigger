@@ -34,7 +34,9 @@ void main() {
           body: ConsoleLogViewer(
             key: key,
             lines: lines,
-            prefs: const ConsolePrefs(),
+            // Folding off: this test is about decoding and virtualizing
+            // all 50,000 rows (`console_folds_test.dart` covers folding).
+            prefs: const ConsolePrefs(foldSections: false),
           ),
         ),
       ),

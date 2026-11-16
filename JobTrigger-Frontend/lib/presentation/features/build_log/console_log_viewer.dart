@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 
 import '../../../core/theme/app_typography.dart';
 import '../../../domain/jenkins/console_decoder.dart';
+import '../../../domain/jenkins/console_folds.dart';
 import 'console_notifiers.dart';
 
 /// Renders decoded console lines (US-JX-07): ANSI colors, optional
@@ -57,6 +58,15 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
   int? _jumpTarget;
   final _jumpKey = GlobalKey();
 
+  /// Folds the user has opened, by their first line. A fold that isn't in
+  /// here is collapsed, so a long noisy run starts out as one summary row.
+  final _expandedFolds = <int>{};
+
+  /// The rows as built last — lines, or a fold's summary row, in display
+  /// order. Jumps and search go through this, because a line's row and its
+  /// line index differ once anything is folded.
+  List<_Row> _rows = const [];
+
   static const _padding = EdgeInsets.symmetric(horizontal: 12, vertical: 8);
 
   /// Console text, and the dimmer gutters (line numbers, timestamps) —
@@ -98,6 +108,13 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    // Opening straight onto a match (search restored from a previous visit)
+    // still has to show the line rather than the fold that hides it.
+    if (widget.currentMatchLine != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _revealMatch(widget.currentMatchLine);
+      });
+    }
   }
 
   void _onScroll() {
@@ -110,6 +127,9 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
   @override
   void didUpdateWidget(covariant ConsoleLogViewer oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.currentMatchLine != oldWidget.currentMatchLine) {
+      _revealMatch(widget.currentMatchLine);
+    }
     if (widget.lines.length != oldWidget.lines.length && _autoScroll) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToEnd());
     }
@@ -121,12 +141,36 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
     }
   }
 
-  /// Scrolls so [line] (an index into `lines`) is on screen.
+  /// Scrolls so [line] (an index into `lines`) is on screen. A line inside
+  /// a collapsed fold opens that fold first, so search and "jump to first
+  /// error" always land on real output.
   void jumpToLine(int line) {
     if (!_scrollController.hasClients) return;
-    setState(() => _jumpTarget = line);
+    final index = _rowIndexForLine(line);
+    if (index == null) return;
+    final row = _rows[index];
+    if (row.kind == _RowKind.foldHeader && !row.expanded) {
+      // Opening puts the line `offset` rows below the fold's summary.
+      final target = index + 1 + (line - row.line);
+      setState(() {
+        _expandedFolds.add(row.line);
+        _jumpTarget = target;
+      });
+      _setFollowing(false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _scrollController.hasClients) _scrollToRow(target);
+      });
+      return;
+    }
+    _scrollToRow(index);
+  }
+
+  /// Scrolls row [index] of [_rows] into view.
+  void _scrollToRow(int index) {
+    if (!_scrollController.hasClients) return;
+    setState(() => _jumpTarget = index);
     _setFollowing(false);
-    final estimate = (line * _lineHeight - 120).clamp(
+    final estimate = (index * _lineHeight - 120).clamp(
       0.0,
       _scrollController.position.maxScrollExtent,
     );
@@ -142,6 +186,62 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
     }
   }
 
+  /// The row showing [line], or null if this log doesn't have that line.
+  int? _rowIndexForLine(int line) {
+    for (var i = 0; i < _rows.length; i++) {
+      final row = _rows[i];
+      if (row.kind == _RowKind.line) {
+        if (row.line == line) return i;
+      } else if (line >= row.line && line <= row.foldEnd!) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  /// Opens a fold that holds the current search match, so its highlight is
+  /// on screen rather than hidden inside the summary.
+  void _revealMatch(int? line) {
+    if (line == null) return;
+    final index = _rowIndexForLine(line);
+    if (index == null) return;
+    final row = _rows[index];
+    if (row.kind != _RowKind.foldHeader || row.expanded) return;
+    setState(() => _expandedFolds.add(row.line));
+  }
+
+  void _toggleFold(int firstLine) {
+    setState(() {
+      if (!_expandedFolds.remove(firstLine)) _expandedFolds.add(firstLine);
+    });
+  }
+
+  /// Lines → rows: single lines as they are, a fold as one summary row, plus
+  /// its lines underneath once the user opens it.
+  List<_Row> _buildRows(List<ConsoleLine> lines) {
+    final rows = <_Row>[];
+    if (!widget.prefs.foldSections) {
+      for (var i = 0; i < lines.length; i++) {
+        rows.add(_Row.line(i));
+      }
+      return rows;
+    }
+    for (final section in foldConsole(lines)) {
+      if (!section.isFold) {
+        rows.add(_Row.line(section.firstLine));
+        continue;
+      }
+      final expanded = _expandedFolds.contains(section.firstLine);
+      rows.add(_Row.fold(section.firstLine, section.lastLine, expanded));
+      if (expanded) {
+        for (var i = section.firstLine; i <= section.lastLine; i++) {
+          rows.add(_Row.line(i));
+        }
+      }
+    }
+    return rows;
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -152,6 +252,7 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
   @override
   Widget build(BuildContext context) {
     final lines = widget.lines;
+    final rows = _rows = _buildRows(lines);
     final showTimestamps = widget.prefs.timestamps;
     final gutterChars = '${widget.firstLineNumber + lines.length}'.length;
     // Measured once per build, not per row: the face is monospaced.
@@ -166,25 +267,39 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
       // Rows are cheap; a generous cache means a wrapped jump's estimate
       // still builds the target row, so `ensureVisible` can correct it.
       scrollCacheExtent: const ScrollCacheExtent.pixels(1500),
-      itemCount: lines.length,
+      itemCount: rows.length,
       itemBuilder: (context, index) {
-        final row = _LineRow(
-          line: lines[index],
-          lineNumber: widget.firstLineNumber + index + 1,
-          gutterChars: gutterChars,
-          gutterWidth: gutterWidth,
-          baseStyle: _baseStyle,
-          wrap: widget.prefs.wrap,
-          timestamp: showTimestamps
-              ? _timestampFor(lines[index], widget.firstLineNumber + index)
-              : null,
-          showTimestampGutter: showTimestamps,
-          query: widget.query,
-          isCurrentMatch: index == widget.currentMatchLine,
-        );
+        final row = rows[index];
+        final child = row.kind == _RowKind.line
+            ? _LineRow(
+                line: lines[row.line],
+                lineNumber: widget.firstLineNumber + row.line + 1,
+                gutterChars: gutterChars,
+                gutterWidth: gutterWidth,
+                baseStyle: _baseStyle,
+                wrap: widget.prefs.wrap,
+                timestamp: showTimestamps
+                    ? _timestampFor(
+                        lines[row.line],
+                        widget.firstLineNumber + row.line,
+                      )
+                    : null,
+                showTimestampGutter: showTimestamps,
+                query: widget.query,
+                isCurrentMatch: row.line == widget.currentMatchLine,
+              )
+            : _FoldRow(
+                firstLineNumber: widget.firstLineNumber + row.line + 1,
+                count: row.lineCount,
+                expanded: row.expanded,
+                gutterChars: gutterChars,
+                gutterWidth: gutterWidth,
+                baseStyle: _baseStyle,
+                onTap: () => _toggleFold(row.line),
+              );
         return index == _jumpTarget
-            ? KeyedSubtree(key: _jumpKey, child: row)
-            : row;
+            ? KeyedSubtree(key: _jumpKey, child: child)
+            : child;
       },
     );
 
@@ -238,6 +353,111 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
         (gutterChars + 1) * painter.width;
     final width = longest * painter.width + gutter + _padding.horizontal;
     return width > viewport ? width : viewport;
+  }
+}
+
+enum _RowKind { line, foldHeader }
+
+/// One rendered row: a console line, or a fold's summary row (NR-01).
+class _Row {
+  const _Row.line(this.line)
+    : kind = _RowKind.line,
+      foldEnd = null,
+      expanded = false;
+
+  const _Row.fold(this.line, this.foldEnd, this.expanded)
+    : kind = _RowKind.foldHeader;
+
+  final _RowKind kind;
+
+  /// The line index, or a fold's first line.
+  final int line;
+
+  /// A fold's last line, inclusive; null for a single line.
+  final int? foldEnd;
+  final bool expanded;
+
+  int get lineCount => foldEnd == null ? 1 : foldEnd! - line + 1;
+}
+
+/// A collapsed run of similar lines, as one tappable row that opens it.
+/// Exactly one line tall in no-wrap mode, so row heights stay uniform and
+/// a jump's estimate stays exact.
+class _FoldRow extends StatelessWidget {
+  const _FoldRow({
+    required this.firstLineNumber,
+    required this.count,
+    required this.expanded,
+    required this.gutterChars,
+    required this.gutterWidth,
+    required this.baseStyle,
+    required this.onTap,
+  });
+
+  final int firstLineNumber;
+  final int count;
+  final bool expanded;
+  final int gutterChars;
+  final double gutterWidth;
+  final TextStyle baseStyle;
+  final VoidCallback onTap;
+
+  static const _gutter = ConsoleLogViewerState._gutter;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = baseStyle.copyWith(color: _gutter);
+    final number = '$firstLineNumber'.padLeft(gutterChars);
+    return Semantics(
+      button: true,
+      label: expanded
+          ? 'Hide $count similar lines'
+          : 'Show $count folded lines',
+      onTap: onTap,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: ColoredBox(
+          color: AppColors.consoleBar,
+          child: Stack(
+            children: [
+              Padding(
+                padding: EdgeInsets.only(left: gutterWidth),
+                child: Row(
+                  children: [
+                    Icon(
+                      expanded
+                          ? Icons.expand_less_rounded
+                          : Icons.expand_more_rounded,
+                      // Never taller than the line, so the row keeps the
+                      // one-line height the jump estimate relies on.
+                      size: baseStyle.fontSize ?? 12,
+                      color: _gutter,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        expanded
+                            ? 'Hide $count similar lines'
+                            : '$count similar lines',
+                        style: style,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                left: 0,
+                top: 0,
+                child: ExcludeSemantics(child: Text(number, style: style)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

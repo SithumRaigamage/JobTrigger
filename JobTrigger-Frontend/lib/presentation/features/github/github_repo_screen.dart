@@ -74,6 +74,11 @@ class GitHubRepoScreen extends ConsumerWidget {
                         _AccountChip(label: activeCredential.label),
                         const Spacer(),
                         IconButton(
+                          icon: const Icon(Icons.dashboard_outlined),
+                          tooltip: 'Dashboard',
+                          onPressed: () => context.push(AppRoutes.dashboard),
+                        ),
+                        IconButton(
                           icon: const Icon(Icons.history_rounded),
                           tooltip: 'Recent activity',
                           onPressed: () =>

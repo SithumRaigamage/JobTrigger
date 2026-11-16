@@ -118,9 +118,12 @@ names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
 
 ## E. Website
 
-- [ ] P20-30 Analytics events wired in the app and on the site (after
-      P20-01): paywall view, trial start, purchase, limit hit (with which
-      limit), restore, pricing-page view.
+- [x] P20-30 (2026-11-16) Analytics events wired on the site: `signup`,
+      `server_added`, `pricing_view` and `limit_hit` (with the backend's
+      `limit`). The app sends none — the owner decision in
+      `docs/subscription/04-email-and-analytics.md` §4.2 — so the app-only
+      rows (paywall view, purchase, restore) are unsent by design;
+      purchase outcomes still come from the store webhooks.
 - [x] P20-31 (2026-11-16, PR D) `server/subscription-api.ts` + `PlanLimitFailure` copy in
       `domain/app-failure.ts`; add-server form shows the plan limit.
 - [x] P20-32 (2026-11-16, PR D) Account page: plan, dates, manage-in-store instructions.

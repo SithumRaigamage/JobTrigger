@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/responsive_center.dart';
+import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'sonarqube_credential_gate.dart';
 import 'sonarqube_project_card.dart';
@@ -47,9 +49,23 @@ class SonarQubeProjectScreen extends ConsumerWidget {
                       style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
                     ),
                     const SizedBox(height: 4),
-                    Semantics(
-                      header: true,
-                      child: Text('Projects', style: textTheme.headlineLarge),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              'Projects',
+                              style: textTheme.headlineLarge,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.dashboard_outlined),
+                          tooltip: 'Dashboard',
+                          onPressed: () => context.push(AppRoutes.dashboard),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 14),
                     Semantics(

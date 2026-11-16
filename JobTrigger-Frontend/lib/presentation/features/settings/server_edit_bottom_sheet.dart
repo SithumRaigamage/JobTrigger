@@ -24,12 +24,35 @@ import 'test_connection_notifier.dart';
 Future<bool?> showServerEditBottomSheet(
   BuildContext context, {
   JenkinsServer? existing,
-}) => showEditSheet(context, ServerEditBottomSheet(existing: existing));
+  String? prefillName,
+  String? prefillURL,
+  String? prefillUsername,
+}) => showEditSheet(
+  context,
+  ServerEditBottomSheet(
+    existing: existing,
+    prefillName: prefillName,
+    prefillURL: prefillURL,
+    prefillUsername: prefillUsername,
+  ),
+);
 
 class ServerEditBottomSheet extends ConsumerStatefulWidget {
-  const ServerEditBottomSheet({super.key, this.existing});
+  const ServerEditBottomSheet({
+    super.key,
+    this.existing,
+    this.prefillName,
+    this.prefillURL,
+    this.prefillUsername,
+  });
 
   final JenkinsServer? existing;
+
+  /// NR-03: values from a pairing QR, used when adding a server (the token is
+  /// always typed by hand, never part of the code).
+  final String? prefillName;
+  final String? prefillURL;
+  final String? prefillUsername;
 
   @override
   ConsumerState<ServerEditBottomSheet> createState() =>
@@ -38,13 +61,13 @@ class ServerEditBottomSheet extends ConsumerStatefulWidget {
 
 class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
   late final _serverNameController = TextEditingController(
-    text: widget.existing?.serverName,
+    text: widget.existing?.serverName ?? widget.prefillName,
   );
   late final _jenkinsURLController = TextEditingController(
-    text: widget.existing?.jenkinsURL,
+    text: widget.existing?.jenkinsURL ?? widget.prefillURL,
   );
   late final _usernameController = TextEditingController(
-    text: widget.existing?.username,
+    text: widget.existing?.username ?? widget.prefillUsername,
   );
   late final _passwordController = TextEditingController(
     text: widget.existing?.secret,

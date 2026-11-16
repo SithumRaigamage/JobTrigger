@@ -14,6 +14,13 @@ abstract class AppRoutes {
   static const buildDetail = '/home/job/build';
   static const jobHistory = '/home/job/history';
   static const queue = '/home/queue';
+
+  /// NR-02: the unified dashboard across every configured tool.
+  static const dashboard = '/dashboard';
+
+  /// NR-03: `jobtrigger://app/pair?url=<server>&name=<label>` — what the
+  /// website's pairing QR opens.
+  static const pair = '/pair';
   static const nodes = '/home/nodes';
 
   /// US-JX-19: `jobtrigger://app/open?url=<Jenkins URL>` lands here.

@@ -473,6 +473,13 @@ class _MoreMenu extends ConsumerWidget {
       },
       itemBuilder: (context) => [
         const PopupMenuItem(
+          value: AppRoutes.dashboard,
+          child: ListTile(
+            leading: Icon(Icons.dashboard_outlined),
+            title: Text('Dashboard'),
+          ),
+        ),
+        const PopupMenuItem(
           value: _openLinkAction,
           child: ListTile(
             leading: Icon(Icons.open_in_browser_rounded),

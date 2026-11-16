@@ -66,6 +66,8 @@ app.use('/api/credentials', require('./routes/credentialRoutes'));
 app.use('/api/github-credentials', require('./routes/githubCredentialRoutes'));
 app.use('/api/sonarqube-credentials', require('./routes/sonarqubeCredentialRoutes'));
 app.use('/api/appinfo', require('./routes/appInfoRoutes'));
+// NR-06 (BACKLOG-02): push-token registration. Off until FCM is configured.
+app.use('/api/devices', require('./routes/deviceRoutes'));
 app.use('/api/subscription', require('./routes/subscriptionRoutes'));
 app.use('/api/billing', require('./routes/billingRoutes'));
 app.use('/api/student', require('./routes/studentRoutes'));

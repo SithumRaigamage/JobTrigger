@@ -289,6 +289,10 @@ class _BuildLogScreenState extends ConsumerState<BuildLogScreen> {
         await prefsNotifier.update(
           prefs.copyWith(timestamps: !prefs.timestamps),
         );
+      case _MenuAction.fold:
+        await prefsNotifier.update(
+          prefs.copyWith(foldSections: !prefs.foldSections),
+        );
       case _MenuAction.smallerText:
         await prefsNotifier.update(
           prefs.copyWith(fontStep: (prefs.fontStep - 1).clamp(0, 2)),
@@ -379,6 +383,7 @@ class _SearchBar extends ConsumerWidget {
 enum _MenuAction {
   wrap,
   timestamps,
+  fold,
   smallerText,
   largerText,
   copy,
@@ -422,6 +427,11 @@ class _MenuButton extends StatelessWidget {
           value: _MenuAction.timestamps,
           checked: prefs.timestamps,
           child: const Text('Timestamps'),
+        ),
+        CheckedPopupMenuItem(
+          value: _MenuAction.fold,
+          checked: prefs.foldSections,
+          child: const Text('Fold repeated lines'),
         ),
         PopupMenuItem(
           value: _MenuAction.smallerText,

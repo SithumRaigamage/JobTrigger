@@ -20,6 +20,7 @@ import '../../core/theme/app_tokens.dart';
 import '../../core/theme/app_typography.dart';
 import '../common_widgets/pinned_footer_layout.dart';
 import '../features/build_detail/build_detail_screen.dart';
+import '../features/dashboard/dashboard_screen.dart';
 import '../features/build_log/build_log_screen.dart';
 import '../features/github/github_global_history_screen.dart';
 import '../features/github/github_job_log_screen.dart';
@@ -40,6 +41,7 @@ import '../features/home/home_screen.dart';
 import '../features/job_detail/job_detail_screen.dart';
 import '../features/nodes/nodes_screen.dart';
 import '../features/open_link/open_link_screen.dart';
+import '../features/pairing/pair_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/queue/queue_screen.dart';
 import '../features/settings/settings_screen.dart';
@@ -312,6 +314,17 @@ GoRouter appRouter(Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) =>
             JobHistoryScreen(job: state.extra! as JenkinsJob),
+      ),
+      GoRoute(
+        path: AppRoutes.pair,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            PairScreen(query: state.uri.queryParameters),
+      ),
+      GoRoute(
+        path: AppRoutes.dashboard,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const DashboardScreen(),
       ),
       GoRoute(
         path: AppRoutes.openLink,
