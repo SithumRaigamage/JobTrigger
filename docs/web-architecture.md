@@ -77,7 +77,7 @@ JobTrigger-Web/
     domain/                Plain TS: entities, Result<T, AppFailure>, copy
     server/                `import "server-only"` — backend client, session,
                            refresh, masking, config. The ONLY backend caller.
-    content/               feature-status.ts (US-WEB-22), changelog entries
+    content/               feature-status.ts (US-WEB-22), pricing.ts (the /pricing page, P20-33), changelog entries
     proxy.ts               Per-request CSP nonce; portal: no-store, noindex, session upkeep
     session-upkeep.ts      Token renewal + idle timeout for the proxy
     security-headers.ts    Header builders shared with next.config.ts

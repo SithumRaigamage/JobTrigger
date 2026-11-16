@@ -116,3 +116,28 @@ describe("SupportView", () => {
     expect(screen.getByText(/Password reset isn’t available yet/)).toBeInTheDocument();
   });
 });
+
+describe("subscriptions in the legal pages (P20-34)", () => {
+  it("terms cover auto-renewal, store refunds and Paddle", () => {
+    render(<TermsView />);
+
+    expect(screen.getByRole("heading", { level: 2, name: "Subscriptions" })).toBeVisible();
+    expect(screen.getByText(/renews automatically/)).toBeVisible();
+    expect(screen.getByText(/handled by Apple or Google/)).toBeVisible();
+    expect(screen.getByText(/Paddle/, { selector: "li" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "pricing page" })).toHaveAttribute("href", "/pricing");
+  });
+
+  it("privacy names RevenueCat and Paddle and what they receive", () => {
+    render(<PrivacyView />);
+
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Subscriptions and payments" }),
+    ).toBeVisible();
+    expect(screen.getByText("RevenueCat")).toBeVisible();
+    expect(screen.getByText("Paddle")).toBeVisible();
+    expect(screen.getByText(/does not receive your email address/)).toBeVisible();
+    // Unchanged claims still hold.
+    expect(screen.getByText(/hashed password and your encrypted server details/)).toBeVisible();
+  });
+});

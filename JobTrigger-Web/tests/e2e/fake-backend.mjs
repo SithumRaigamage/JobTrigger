@@ -135,6 +135,33 @@ const server = createServer(async (req, res) => {
     });
   }
 
+  // P20-31/32: the plan. Billing is off unless the email says otherwise, so
+  // every other spec sees no plan section.
+  if (url.pathname === "/api/subscription" && req.method === "GET") {
+    const free = user.email.startsWith("free-plan-");
+    const pro = user.email.startsWith("pro-plan-");
+    return reply(200, {
+      plan: pro ? "pro" : "free",
+      billingEnabled: free || pro,
+      status: pro ? "active" : "none",
+      source: pro ? "app_store" : null,
+      productId: pro ? "pro_yearly" : null,
+      periodEnd: pro ? "2027-03-03T10:00:00.000Z" : null,
+      willRenew: pro,
+      manageOnWeb: false,
+      limits: pro
+        ? { maxCredentialsTotal: null, maxCredentialsPerTool: 25, maxPinnedJobs: null }
+        : { maxCredentialsTotal: 1, maxCredentialsPerTool: 1, maxPinnedJobs: 3 },
+      features: {
+        multiTool: pro,
+        backgroundWatch: pro,
+        homeWidget: pro,
+        insights: pro,
+      },
+      primaryCredentialId: null,
+    });
+  }
+
   if (url.pathname === "/api/auth/logout-all" && req.method === "POST") {
     user.tokenVersion += 1;
     return reply(200, { message: "Signed out everywhere" });
