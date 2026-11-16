@@ -19,6 +19,7 @@ const { logger } = require('./lib/logger');
 const { connectDatabase, connectionHint } = require('./lib/database');
 const { auditKeyIds } = require('./security/keyIdAudit');
 const CREDENTIAL_TARGETS = require('./models/credentialTargets');
+const studentJobs = require('./lib/studentJobs');
 
 // AUD-04: defence in depth. Query filters built from request data treat
 // `$`-operators as literal values, so `{"$gt": ""}` can't match every row
@@ -53,6 +54,10 @@ app.use(cors({ origin: origins.length > 0 ? origins : false }));
 // Paddle signs the exact bytes it sends, so its webhook gets the raw body.
 // Registered first: express.json() then leaves that request alone.
 app.use('/api/billing/paddle/webhook', express.raw({ type: '*/*', limit: '1mb' }));
+// Phase 21 (SP-30): a student document arrives as base64 in JSON, so this one
+// route reads up to ~7 MB (a 5 MB file is a third larger in base64). Registered
+// first: the global express.json() below then leaves this request alone.
+app.use('/api/student/document', express.json({ limit: '7mb' }));
 app.use(express.json());
 
 // Routes
@@ -64,6 +69,7 @@ app.use('/api/appinfo', require('./routes/appInfoRoutes'));
 app.use('/api/subscription', require('./routes/subscriptionRoutes'));
 app.use('/api/billing', require('./routes/billingRoutes'));
 app.use('/api/student', require('./routes/studentRoutes'));
+app.use('/api/admin/students', require('./routes/adminStudentRoutes'));
 
 app.get('/', (req, res) => {
   res.json({ message: 'JobTrigger Backend API is running' });
@@ -114,6 +120,7 @@ async function startServer() {
     await connectDatabase();
     logger.info('server.mongo_connected');
     await auditCredentialKeyIds();
+    studentJobs.start();
     const PORT = process.env.PORT || 5001;
     const server = app.listen(PORT, () => {
       logger.info('server.listening', { port: Number(PORT) });

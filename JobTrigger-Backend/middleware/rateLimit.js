@@ -137,7 +137,23 @@ const studentEmailConfirmLimiter = authLimiter({
   keyGenerator: perUser,
 });
 
+/** Phase 21: an upload is up to 5 MB stored encrypted, so a few per hour. */
+const studentDocumentLimiter = authLimiter({
+  windowMs: 60 * MINUTE,
+  limit: fromEnv('STUDENT_DOCUMENT_RATE_LIMIT', 5),
+  keyGenerator: perUser,
+});
+
+/** SP-31: the admin routes, per user; generous for a person, a wall for a script. */
+const adminLimiter = authLimiter({
+  windowMs: MINUTE,
+  limit: fromEnv('ADMIN_RATE_LIMIT', 120),
+  keyGenerator: perUser,
+});
+
 module.exports = {
+  adminLimiter,
+  studentDocumentLimiter,
   authLimiter,
   studentEmailConfirmLimiter,
   studentEmailStartLimiter,

@@ -25,6 +25,8 @@ const studentVerificationSchema = new mongoose.Schema({
     default: 'pending',
   },
   universityEmail: { type: String, default: null, lowercase: true, trim: true },
+  /** Document method: the name as printed on the ID. Deleted with the document. */
+  fullName: { type: String, default: null },
 
   // Email method: the pending code. Only a salted hash is stored.
   codeSalt: { type: String, default: null, select: false },

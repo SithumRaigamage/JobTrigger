@@ -26,13 +26,14 @@ function studentCodeEmail({ code, minutes }) {
 }
 
 /** The owner's notice. [fields] are plain values; none is a document. */
-function studentApplicationEmail({ accountEmail, universityEmail, method, submittedAt, status, link }) {
+function studentApplicationEmail({ accountEmail, fullName, universityEmail, method, submittedAt, status, link }) {
   const methodLabel = method === 'email' ? 'University email code' : 'Student ID / enrolment letter';
   const subject = method === 'email'
     ? 'Student plan: verified by university email'
     : 'Student plan: new document to review';
   const lines = [
     ['Account', accountEmail],
+    ...(fullName ? [['Full name on ID', fullName]] : []),
     ['University email', universityEmail || '(not given)'],
     ['Method', methodLabel],
     ['Status', status],
