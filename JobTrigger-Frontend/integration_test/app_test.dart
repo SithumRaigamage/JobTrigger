@@ -21,7 +21,7 @@ void main() {
       Theme.of(tester.element(finder)).colorScheme.primary;
 
   testWidgets('Login screen renders with the app accent', (tester) async {
-    app.main();
+    await app.main();
     await tester.pumpAndSettle();
 
     final emailField = find.byKey(const Key('login_email_field'));
@@ -36,7 +36,7 @@ void main() {
   testWidgets(
     'Login -> Tool Selection -> Jenkins Home all keep the one app accent',
     (tester) async {
-      app.main();
+      await app.main();
       await tester.pumpAndSettle();
 
       await tester.enterText(
