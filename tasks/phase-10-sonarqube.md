@@ -213,6 +213,13 @@ would be unrelated scope creep for this phase.
       credentials; the SonarQube client never carries the backend token.
       Still open: the live check against a real SonarQube, which needs a real
       server and token.
+      **2026-11-16 (left unchecked):** lab SonarQube 26.1.0 (community) started
+      with `SONAR_BIND=0.0.0.0 make up S=sonarqube` and reached at the Mac's
+      Wi-Fi address on port 9000. Verified over HTTP: a bad token and no
+      token both get 401 from `api/components/search_projects`, matching the
+      scripted tests. Unverified: that the app, with a real token, keeps the
+      backend session and the Jenkins/GitHub clients after that 401. This
+      needs a SonarQube user token and the iPhone.
 - [x] P10-16 **Fixes and improvements after the owner's local-server test
       (2026-11-08).** The owner tested every SonarQube screen against a local
       server. Four changes, none touching Jenkins or GitHub behaviour:
@@ -271,6 +278,12 @@ would be unrelated scope creep for this phase.
       task above manually verified against a real SonarCloud organization
       and a real self-hosted SonarQube Server instance (both flavors, per
       the epic's own scope note) before this phase is marked done.
+      **2026-11-16 (left unchecked):** the lab server is up (see P10-14) but
+      no token was available to the agent, and `.env` files are not read
+      (`CLAUDE.md` §8), so no authenticated endpoint was exercised. SonarCloud
+      was not tried. The whole pass is the owner's, on the iPhone: create a
+      user token in the lab SonarQube (My Account → Security), then add it in
+      the app against `http://<Mac Wi-Fi address>:9000`.
 
 ## Planned batches (documented 2026-11-09, none started)
 
