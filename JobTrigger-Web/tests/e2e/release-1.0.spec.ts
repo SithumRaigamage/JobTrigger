@@ -37,6 +37,13 @@ test("release 1.0: the public pages lead with Jenkins and name the rest as comin
     "Jenkins in JobTrigger: what works today. SonarQube and GitHub Actions coming next.",
   );
 
+  await page.goto("/features");
+  const github = page.locator("section", {
+    has: page.getByRole("heading", { name: "Jenkins and GitHub, side by side." }),
+  });
+  await expect(github.getByText("Coming in 1.2")).toBeVisible();
+  await expect(github.getByText(/✓ Accounts/)).toHaveCount(0);
+
   await page.goto("/pricing");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Free to start");
   await expect(page.getByRole("main")).not.toContainText(/GitHub|SonarQube/);
