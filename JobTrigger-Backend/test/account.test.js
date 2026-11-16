@@ -97,3 +97,28 @@ describe('Password change (AUD-48)', function() {
     expect((await authed('get', '/api/credentials', me.token)).status).to.equal(200);
   });
 });
+
+describe('Password confirmation (verify-password)', function() {
+  it('confirms the right password and changes nothing', async function() {
+    const me = await signup();
+    const res = await authed('post', '/api/auth/verify-password', me.token).send({ password: 'password' });
+    expect(res.status).to.equal(200);
+    // The same token and password still work: nothing was revoked or changed.
+    expect((await authed('get', '/api/credentials', me.token)).status).to.equal(200);
+    const login = await api().post('/api/auth/login').send({ email: me.email, password: 'password' });
+    expect(login.status).to.equal(200);
+  });
+
+  it('refuses a missing, wrong or non-string password', async function() {
+    const me = await signup();
+    for (const body of [{}, { password: 'wrong-password' }, { password: { $gt: '' } }]) {
+      const res = await authed('post', '/api/auth/verify-password', me.token).send(body);
+      expect(res.status).to.equal(400);
+    }
+  });
+
+  it('needs a signed-in user', async function() {
+    const res = await api().post('/api/auth/verify-password').send({ password: 'password' });
+    expect(res.status).to.equal(401);
+  });
+});

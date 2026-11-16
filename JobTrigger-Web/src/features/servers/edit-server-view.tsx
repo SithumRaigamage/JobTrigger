@@ -91,7 +91,7 @@ export function EditServerView({ credential }: { credential: Credential }) {
                   action={revealSecretAction.bind(null, target)}
                 />
                 <span className="text-muted">
-                  Stored encrypted. Shown in full only when you tap the eye.
+                  Stored encrypted. Shown in full only after you confirm your account password.
                 </span>
               </>
             )}
