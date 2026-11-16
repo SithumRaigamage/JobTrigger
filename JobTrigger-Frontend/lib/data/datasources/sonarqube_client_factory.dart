@@ -19,7 +19,7 @@ part 'sonarqube_client_factory.g.dart';
 Dio buildSonarQubeDio({
   required String baseUrl,
   required String? token,
-  SonarQubeBranchRef ref = const SonarQubeBranchRef.main(),
+  SonarQubeBranchRef Function(String projectKey)? refFor,
 }) {
   final dio = Dio(
     BaseOptions(
@@ -41,13 +41,14 @@ Dio buildSonarQubeDio({
   // US-SQ-QUALITY-10: every project-scoped call carries the chosen branch or
   // pull request. Only the endpoints that accept it are touched, so listing
   // branches (and anything server-wide) is never given a branch parameter.
-  final queryKey = ref.queryKey;
-  if (queryKey != null) {
+  if (refFor != null) {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
           if (_refAwarePaths.any(options.path.startsWith)) {
-            options.queryParameters[queryKey] = ref.name;
+            final ref = refFor(_projectKeyOf(options.queryParameters));
+            final queryKey = ref.queryKey;
+            if (queryKey != null) options.queryParameters[queryKey] = ref.name;
           }
           handler.next(options);
         },
@@ -100,11 +101,25 @@ Dio sonarQubeClient(Ref ref) {
   return buildSonarQubeDio(
     baseUrl: credential.baseUrl,
     token: credential.secret,
-    ref: ref.watch(sonarQubeBranchRefNotifierProvider),
+    refFor: (projectKey) =>
+        ref.watch(sonarQubeBranchSelectionsNotifierProvider)[projectKey] ??
+        const SonarQubeBranchRef.main(),
   );
 }
 
 /// The endpoints that take `branch` / `pullRequest` (`US-SQ-QUALITY-10`).
+/// The project a request is about, from whichever parameter it uses. A
+/// component key is `project:path`, so the project is its first two parts.
+String _projectKeyOf(Map<String, dynamic> query) {
+  for (final name in ['project', 'projectKey', 'component', 'componentKeys']) {
+    final value = query[name];
+    if (value is! String || value.isEmpty) continue;
+    final parts = value.split(':');
+    return parts.length > 2 ? '${parts[0]}:${parts[1]}' : value;
+  }
+  return '';
+}
+
 const _refAwarePaths = [
   '/api/qualitygates/project_status',
   '/api/measures/component_tree',
@@ -116,13 +131,19 @@ const _refAwarePaths = [
   '/api/ce/component',
 ];
 
-/// The branch or pull request every project view reads (`US-SQ-QUALITY-10`).
-/// The SonarQube client watches it, so choosing another ref rebuilds the
-/// repositories and every screen reloads through its own notifier.
+/// The branch or pull request each project's views read (`US-SQ-QUALITY-10`),
+/// per project: switching one project's ref leaves the others on main. The
+/// SonarQube client watches this map, so a change rebuilds it and every
+/// notifier on that project reloads through its own provider.
 @riverpod
-class SonarQubeBranchRefNotifier extends _$SonarQubeBranchRefNotifier {
+class SonarQubeBranchSelectionsNotifier
+    extends _$SonarQubeBranchSelectionsNotifier {
   @override
-  SonarQubeBranchRef build() => const SonarQubeBranchRef.main();
+  Map<String, SonarQubeBranchRef> build() => const {};
 
-  void set(SonarQubeBranchRef ref) => state = ref;
+  SonarQubeBranchRef refFor(String projectKey) =>
+      state[projectKey] ?? const SonarQubeBranchRef.main();
+
+  void set(String projectKey, SonarQubeBranchRef ref) =>
+      state = {...state, projectKey: ref};
 }

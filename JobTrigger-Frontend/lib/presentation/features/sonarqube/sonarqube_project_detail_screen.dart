@@ -1018,7 +1018,8 @@ class _BranchPicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final choices = ref.watch(sonarQubeProjectRefsProvider(projectKey));
-    final selected = ref.watch(sonarQubeBranchRefNotifierProvider);
+    final selections = ref.watch(sonarQubeBranchSelectionsNotifierProvider);
+    final selected = selections[projectKey] ?? const SonarQubeBranchRef.main();
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
 
@@ -1030,8 +1031,8 @@ class _BranchPicker extends ConsumerWidget {
               child: PopupMenuButton<SonarQubeBranchRef>(
                 tooltip: 'Branch or pull request',
                 onSelected: (choice) => ref
-                    .read(sonarQubeBranchRefNotifierProvider.notifier)
-                    .set(choice),
+                    .read(sonarQubeBranchSelectionsNotifierProvider.notifier)
+                    .set(projectKey, choice),
                 itemBuilder: (context) => [
                   const PopupMenuItem(
                     value: SonarQubeBranchRef.main(),

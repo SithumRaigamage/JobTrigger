@@ -50,7 +50,7 @@ void _refInterceptor() {
       final dio = buildSonarQubeDio(
         baseUrl: 'https://sonar.test',
         token: 't',
-        ref: const SonarQubeBranchRef.branch('release/2.0'),
+        refFor: (_) => const SonarQubeBranchRef.branch('release/2.0'),
       );
       // Appended, so the branch interceptor has already run.
       dio.interceptors.add(

@@ -750,8 +750,13 @@ So that I can check a change before it merges
   never to the branch or PR listings themselves. So one tap reloads the gate,
   measures, issues, hotspots, trends and worst files for that ref, since
   every notifier already watches the repository. Main branch adds no
-  parameter at all. Not verified against an edition that serves branches or
-  pull requests.
+  parameter at all. The selection is **per project** (a map keyed by project
+  key, defaulting to main), so switching one project leaves the others as
+  they were. The interceptor resolves a request's project from its own
+  `project`/`projectKey`/`component`/`componentKeys` parameter. Widget tests
+  cover the picker: hidden when only main exists, showing the choices
+  otherwise, and choosing one re-querying the gate. Not verified against an
+  edition that serves branches or pull requests.
 
 ### US-SQ-HOTSPOT-01 — Security hotspots
 

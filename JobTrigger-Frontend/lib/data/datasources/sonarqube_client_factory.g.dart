@@ -60,70 +60,90 @@ final class SonarQubeClientProvider extends $FunctionalProvider<Dio, Dio, Dio>
   }
 }
 
-String _$sonarQubeClientHash() => r'224474d1b69f159bb8457d044537b9a729ddd4d6';
+String _$sonarQubeClientHash() => r'8a7cd4fbee4af9eaa7c5bb7ec26883bd36623605';
 
-/// The branch or pull request every project view reads (`US-SQ-QUALITY-10`).
-/// The SonarQube client watches it, so choosing another ref rebuilds the
-/// repositories and every screen reloads through its own notifier.
+/// The branch or pull request each project's views read (`US-SQ-QUALITY-10`),
+/// per project: switching one project's ref leaves the others on main. The
+/// SonarQube client watches this map, so a change rebuilds it and every
+/// notifier on that project reloads through its own provider.
 
-@ProviderFor(SonarQubeBranchRefNotifier)
-final sonarQubeBranchRefNotifierProvider =
-    SonarQubeBranchRefNotifierProvider._();
+@ProviderFor(SonarQubeBranchSelectionsNotifier)
+final sonarQubeBranchSelectionsNotifierProvider =
+    SonarQubeBranchSelectionsNotifierProvider._();
 
-/// The branch or pull request every project view reads (`US-SQ-QUALITY-10`).
-/// The SonarQube client watches it, so choosing another ref rebuilds the
-/// repositories and every screen reloads through its own notifier.
-final class SonarQubeBranchRefNotifierProvider
-    extends $NotifierProvider<SonarQubeBranchRefNotifier, SonarQubeBranchRef> {
-  /// The branch or pull request every project view reads (`US-SQ-QUALITY-10`).
-  /// The SonarQube client watches it, so choosing another ref rebuilds the
-  /// repositories and every screen reloads through its own notifier.
-  SonarQubeBranchRefNotifierProvider._()
+/// The branch or pull request each project's views read (`US-SQ-QUALITY-10`),
+/// per project: switching one project's ref leaves the others on main. The
+/// SonarQube client watches this map, so a change rebuilds it and every
+/// notifier on that project reloads through its own provider.
+final class SonarQubeBranchSelectionsNotifierProvider
+    extends
+        $NotifierProvider<
+          SonarQubeBranchSelectionsNotifier,
+          Map<String, SonarQubeBranchRef>
+        > {
+  /// The branch or pull request each project's views read (`US-SQ-QUALITY-10`),
+  /// per project: switching one project's ref leaves the others on main. The
+  /// SonarQube client watches this map, so a change rebuilds it and every
+  /// notifier on that project reloads through its own provider.
+  SonarQubeBranchSelectionsNotifierProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'sonarQubeBranchRefNotifierProvider',
+        name: r'sonarQubeBranchSelectionsNotifierProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$sonarQubeBranchRefNotifierHash();
+  String debugGetCreateSourceHash() =>
+      _$sonarQubeBranchSelectionsNotifierHash();
 
   @$internal
   @override
-  SonarQubeBranchRefNotifier create() => SonarQubeBranchRefNotifier();
+  SonarQubeBranchSelectionsNotifier create() =>
+      SonarQubeBranchSelectionsNotifier();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(SonarQubeBranchRef value) {
+  Override overrideWithValue(Map<String, SonarQubeBranchRef> value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<SonarQubeBranchRef>(value),
+      providerOverride: $SyncValueProvider<Map<String, SonarQubeBranchRef>>(
+        value,
+      ),
     );
   }
 }
 
-String _$sonarQubeBranchRefNotifierHash() =>
-    r'ce0a4fcc163602db0baf9c8e49a0935bae9e9815';
+String _$sonarQubeBranchSelectionsNotifierHash() =>
+    r'5c9f9099e12cce10aece58c21977d60be75d781b';
 
-/// The branch or pull request every project view reads (`US-SQ-QUALITY-10`).
-/// The SonarQube client watches it, so choosing another ref rebuilds the
-/// repositories and every screen reloads through its own notifier.
+/// The branch or pull request each project's views read (`US-SQ-QUALITY-10`),
+/// per project: switching one project's ref leaves the others on main. The
+/// SonarQube client watches this map, so a change rebuilds it and every
+/// notifier on that project reloads through its own provider.
 
-abstract class _$SonarQubeBranchRefNotifier
-    extends $Notifier<SonarQubeBranchRef> {
-  SonarQubeBranchRef build();
+abstract class _$SonarQubeBranchSelectionsNotifier
+    extends $Notifier<Map<String, SonarQubeBranchRef>> {
+  Map<String, SonarQubeBranchRef> build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<SonarQubeBranchRef, SonarQubeBranchRef>;
+    final ref =
+        this.ref
+            as $Ref<
+              Map<String, SonarQubeBranchRef>,
+              Map<String, SonarQubeBranchRef>
+            >;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<SonarQubeBranchRef, SonarQubeBranchRef>,
-              SonarQubeBranchRef,
+              AnyNotifier<
+                Map<String, SonarQubeBranchRef>,
+                Map<String, SonarQubeBranchRef>
+              >,
+              Map<String, SonarQubeBranchRef>,
               Object?,
               Object?
             >;
