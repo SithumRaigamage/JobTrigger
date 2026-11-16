@@ -11,6 +11,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_analysis_status.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_hotspot.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_delta.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_issue_grouping.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_history.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_worst_files.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
@@ -61,6 +62,7 @@ void main() {
   _hotspots();
   _history();
   _worstFiles();
+  _issueGrouping();
   group('SonarQubeRepositoryImpl.fetchProjects (US-SQ-PROJ-01)', () {
     test('parses projects, including one that was never analysed', () async {
       final adapter = _Adapter(200, {
@@ -1334,6 +1336,49 @@ void _worstFiles() {
       ).fetchWorstFiles('acme:api', metric);
 
       expect(adapter.last?.queryParameters['asc'], false);
+    });
+  });
+}
+
+// US-SQ-ISSUES-02: grouping rides on the server's facets.
+void _issueGrouping() {
+  group('issue grouping (US-SQ-ISSUES-02)', () {
+    test('asks for the facet and reads the server counts', () async {
+      final adapter = _Adapter(200, {
+        'total': 9,
+        'issues': <Object>[],
+        'facets': [
+          {
+            'property': 'severities',
+            'values': [
+              {'val': 'MAJOR', 'count': 6},
+              {'val': 'MINOR', 'count': 3},
+            ],
+          },
+        ],
+      });
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchIssues('acme:api', grouping: SonarQubeIssueGrouping.severity);
+
+      final page = (result as Ok<SonarQubeIssuePage, AppFailure>).value;
+      expect(adapter.last?.queryParameters['facets'], 'severities');
+      expect(page.groups.map((g) => g.label), ['MAJOR', 'MINOR']);
+      expect(page.groups.first.count, 6);
+    });
+
+    test('without grouping no facet is asked for', () async {
+      final adapter = _Adapter(200, {'total': 0, 'issues': <Object>[]});
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchIssues('acme:api');
+
+      expect(adapter.last?.queryParameters.containsKey('facets'), isFalse);
+      expect(
+        (result as Ok<SonarQubeIssuePage, AppFailure>).value.groups,
+        isEmpty,
+      );
     });
   });
 }

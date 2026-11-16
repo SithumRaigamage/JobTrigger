@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../domain/sonarqube/sonarqube_issue.dart';
+import '../../../domain/sonarqube/sonarqube_issue_grouping.dart';
 import '../../../domain/sonarqube/sonarqube_project.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
@@ -28,8 +29,12 @@ class SonarQubeIssuesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final issuesProvider = sonarQubeIssuesNotifierProvider(project.key);
     final filterProvider = sonarQubeIssueFilterNotifierProvider(project.key);
+    final groupingProvider = sonarQubeIssueGroupingNotifierProvider(
+      project.key,
+    );
     final issuesAsync = ref.watch(issuesProvider);
     final filter = ref.watch(filterProvider);
+    final grouping = ref.watch(groupingProvider);
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
 
@@ -76,6 +81,11 @@ class SonarQubeIssuesScreen extends ConsumerWidget {
                     ref.read(filterProvider.notifier).toggleSeverity(s),
                 onClear: () => ref.read(filterProvider.notifier).clear(),
               ),
+              _GroupingBar(
+                grouping: grouping,
+                onSelected: (value) =>
+                    ref.read(groupingProvider.notifier).set(value),
+              ),
               Expanded(
                 child: issuesAsync.when(
                   loading: () =>
@@ -87,15 +97,18 @@ class SonarQubeIssuesScreen extends ConsumerWidget {
                           ref.read(issuesProvider.notifier).refresh(),
                     ),
                   ),
-                  data: (issues) => _IssueList(
-                    project: project,
-                    issues: issues,
-                    filtered: !filter.isEmpty,
-                    onRefresh: () =>
-                        ref.read(issuesProvider.notifier).refresh(),
-                    onLoadMore: () =>
-                        ref.read(issuesProvider.notifier).loadMore(),
-                  ),
+                  data: (issues) =>
+                      grouping.isGrouped && issues.groups.isNotEmpty
+                      ? _GroupList(grouping: grouping, groups: issues.groups)
+                      : _IssueList(
+                          project: project,
+                          issues: issues,
+                          filtered: !filter.isEmpty,
+                          onRefresh: () =>
+                              ref.read(issuesProvider.notifier).refresh(),
+                          onLoadMore: () =>
+                              ref.read(issuesProvider.notifier).loadMore(),
+                        ),
                 ),
               ),
             ],
@@ -334,6 +347,75 @@ class _IssueTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Group by file, rule or severity (`US-SQ-ISSUES-02`). The counts come from
+/// the server's facets, so they cover every matching issue, not just the page.
+class _GroupingBar extends StatelessWidget {
+  const _GroupingBar({required this.grouping, required this.onSelected});
+
+  final SonarQubeIssueGrouping grouping;
+  final ValueChanged<SonarQubeIssueGrouping> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          for (final option in SonarQubeIssueGrouping.values)
+            ChoiceChip(
+              label: Text(
+                'By ${option.label.toLowerCase()}'.replaceFirst(
+                  'by none',
+                  'No grouping',
+                ),
+              ),
+              selected: option == grouping,
+              onSelected: (_) => onSelected(option),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GroupList extends StatelessWidget {
+  const _GroupList({required this.grouping, required this.groups});
+
+  final SonarQubeIssueGrouping grouping;
+  final List<SonarQubeIssueGroup> groups;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final t = AppTokens.of(context);
+    return ListView.separated(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        0,
+        20,
+        16 + glassNavBarClearance(context),
+      ),
+      itemCount: groups.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final group = groups[index];
+        return GlassSurface.card(
+          padding: EdgeInsets.zero,
+          child: ListTile(
+            title: Text(group.label, style: textTheme.bodyMedium),
+            trailing: Text(
+              '${group.count}',
+              style: textTheme.titleMedium?.copyWith(color: t.textMuted),
+            ),
+          ),
+        );
+      },
     );
   }
 }

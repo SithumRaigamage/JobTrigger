@@ -8,6 +8,7 @@ import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis_status.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_issue_grouping.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_delta.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_metrics.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
@@ -89,6 +90,7 @@ class _Repo with SonarQubeInsightsDefaults implements SonarQubeRepository {
     String projectKey, {
     SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
     int page = 1,
+    SonarQubeIssueGrouping grouping = SonarQubeIssueGrouping.none,
   }) => throw UnimplementedError();
 
   @override

@@ -860,7 +860,7 @@ So that I understand what the project is made of
 ### US-SQ-ISSUES-02 — Group issues by file, rule or severity
 
 **Batch:** 3 · **Priority:** Could · **Effort:** S–M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-20)
 **Dependencies:** US-SQ-QUALITY-03
 
 As a user
@@ -876,6 +876,14 @@ So that a long list becomes something I can scan
 
 **Notes**
 - Keeps the server-side filtering and paging of `US-SQ-QUALITY-03`.
+- **Built 2026-11-17:** chips above the list — No grouping / By file / By
+  rule / By severity. Choosing one asks the server for that facet
+  (`facets=files|rules|severities`) and the body becomes the groups with the
+  server's counts, biggest first, so the numbers are right beyond the first
+  page; the filter chips still narrow both. No grouping asks for no facet at
+  all, so a server that charges for facets is not charged for nothing. A
+  facet the server omits leaves the usual issue list in place rather than an
+  empty group screen.
 
 ## Batch 4 — Across projects and the server (2026-11-09)
 

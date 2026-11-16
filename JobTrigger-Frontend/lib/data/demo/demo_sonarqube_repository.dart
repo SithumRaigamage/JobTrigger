@@ -6,6 +6,7 @@ import '../../domain/sonarqube/sonarqube_analysis.dart';
 import '../../domain/sonarqube/sonarqube_analysis_status.dart';
 import '../../domain/sonarqube/sonarqube_hotspot.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
+import '../../domain/sonarqube/sonarqube_issue_grouping.dart';
 import '../../domain/sonarqube/sonarqube_measure_history.dart';
 import '../../domain/sonarqube/sonarqube_worst_files.dart';
 import '../../domain/sonarqube/sonarqube_measure_delta.dart';
@@ -383,6 +384,7 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
     String projectKey, {
     SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
     int page = 1,
+    SonarQubeIssueGrouping grouping = SonarQubeIssueGrouping.none,
   }) async {
     if (projectKey != _bad || page > 1) {
       return const Ok(SonarQubeIssuePage(issues: [], total: 0));
@@ -394,7 +396,20 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
                 filter.severities.contains(issue.severity)))
           issue,
     ];
-    return Ok(SonarQubeIssuePage(issues: matching, total: matching.length));
+    return Ok(
+      SonarQubeIssuePage(
+        issues: matching,
+        total: matching.length,
+        groups: grouping.isGrouped
+            ? [
+                SonarQubeIssueGroup(
+                  label: 'src/main.dart',
+                  count: matching.length,
+                ),
+              ]
+            : const [],
+      ),
+    );
   }
 
   @override

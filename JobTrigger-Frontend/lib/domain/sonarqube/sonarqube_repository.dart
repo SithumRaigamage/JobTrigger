@@ -4,6 +4,7 @@ import 'sonarqube_analysis.dart';
 import 'sonarqube_analysis_status.dart';
 import 'sonarqube_hotspot.dart';
 import 'sonarqube_issue.dart';
+import 'sonarqube_issue_grouping.dart';
 import 'sonarqube_measure_history.dart';
 import 'sonarqube_worst_files.dart';
 import 'sonarqube_measure_delta.dart';
@@ -49,6 +50,7 @@ abstract class SonarQubeRepository {
     String projectKey, {
     SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
     int page = 1,
+    SonarQubeIssueGrouping grouping = SonarQubeIssueGrouping.none,
   });
 
   /// `GET api/project_analyses/search?project=` (`US-SQ-QUALITY-04`): the

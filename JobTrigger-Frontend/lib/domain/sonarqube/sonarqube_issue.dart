@@ -1,3 +1,5 @@
+import 'sonarqube_issue_grouping.dart';
+
 /// One issue raised against a project (`US-SQ-QUALITY-03`) —
 /// `GET api/issues/search`'s `issues[]`.
 class SonarQubeIssue {
@@ -177,10 +179,18 @@ class SonarQubeIssueFilter {
 
 /// One page of issues and how many exist in total under the filter.
 class SonarQubeIssuePage {
-  const SonarQubeIssuePage({required this.issues, required this.total});
+  const SonarQubeIssuePage({
+    required this.issues,
+    required this.total,
+    this.groups = const [],
+  });
 
   final List<SonarQubeIssue> issues;
   final int total;
+
+  /// The server's counts per group when a grouping was asked for
+  /// (`US-SQ-ISSUES-02`); empty otherwise.
+  final List<SonarQubeIssueGroup> groups;
 }
 
 /// Issues per page.

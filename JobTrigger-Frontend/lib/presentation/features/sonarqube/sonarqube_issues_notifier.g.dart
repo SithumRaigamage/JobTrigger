@@ -120,6 +120,125 @@ abstract class _$SonarQubeIssueFilterNotifier
   }
 }
 
+/// How the list is grouped (`US-SQ-ISSUES-02`), per project.
+
+@ProviderFor(SonarQubeIssueGroupingNotifier)
+final sonarQubeIssueGroupingNotifierProvider =
+    SonarQubeIssueGroupingNotifierFamily._();
+
+/// How the list is grouped (`US-SQ-ISSUES-02`), per project.
+final class SonarQubeIssueGroupingNotifierProvider
+    extends
+        $NotifierProvider<
+          SonarQubeIssueGroupingNotifier,
+          SonarQubeIssueGrouping
+        > {
+  /// How the list is grouped (`US-SQ-ISSUES-02`), per project.
+  SonarQubeIssueGroupingNotifierProvider._({
+    required SonarQubeIssueGroupingNotifierFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'sonarQubeIssueGroupingNotifierProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$sonarQubeIssueGroupingNotifierHash();
+
+  @override
+  String toString() {
+    return r'sonarQubeIssueGroupingNotifierProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  SonarQubeIssueGroupingNotifier create() => SonarQubeIssueGroupingNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SonarQubeIssueGrouping value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SonarQubeIssueGrouping>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SonarQubeIssueGroupingNotifierProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$sonarQubeIssueGroupingNotifierHash() =>
+    r'e74e0d2f6be4e8747d21fa06b02ff706b558bf70';
+
+/// How the list is grouped (`US-SQ-ISSUES-02`), per project.
+
+final class SonarQubeIssueGroupingNotifierFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          SonarQubeIssueGroupingNotifier,
+          SonarQubeIssueGrouping,
+          SonarQubeIssueGrouping,
+          SonarQubeIssueGrouping,
+          String
+        > {
+  SonarQubeIssueGroupingNotifierFamily._()
+    : super(
+        retry: null,
+        name: r'sonarQubeIssueGroupingNotifierProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// How the list is grouped (`US-SQ-ISSUES-02`), per project.
+
+  SonarQubeIssueGroupingNotifierProvider call(String projectKey) =>
+      SonarQubeIssueGroupingNotifierProvider._(
+        argument: projectKey,
+        from: this,
+      );
+
+  @override
+  String toString() => r'sonarQubeIssueGroupingNotifierProvider';
+}
+
+/// How the list is grouped (`US-SQ-ISSUES-02`), per project.
+
+abstract class _$SonarQubeIssueGroupingNotifier
+    extends $Notifier<SonarQubeIssueGrouping> {
+  late final _$args = ref.$arg as String;
+  String get projectKey => _$args;
+
+  SonarQubeIssueGrouping build(String projectKey);
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref =
+        this.ref as $Ref<SonarQubeIssueGrouping, SonarQubeIssueGrouping>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<SonarQubeIssueGrouping, SonarQubeIssueGrouping>,
+              SonarQubeIssueGrouping,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, () => build(_$args));
+  }
+}
+
 /// A project's issues, server-filtered and paged (`US-SQ-QUALITY-03`).
 /// Changing the filter rebuilds from page one.
 
@@ -170,7 +289,7 @@ final class SonarQubeIssuesNotifierProvider
 }
 
 String _$sonarQubeIssuesNotifierHash() =>
-    r'2362114e4bd9cd88eef363a7c9e2fe0f86f7e48f';
+    r'344e62188d5525f3dc5b16b2fb1cb901d31b6530';
 
 /// A project's issues, server-filtered and paged (`US-SQ-QUALITY-03`).
 /// Changing the filter rebuilds from page one.

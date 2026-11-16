@@ -8,6 +8,7 @@ import '../../domain/sonarqube/sonarqube_analysis.dart';
 import '../../domain/sonarqube/sonarqube_analysis_status.dart';
 import '../../domain/sonarqube/sonarqube_hotspot.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
+import '../../domain/sonarqube/sonarqube_issue_grouping.dart';
 import '../../domain/sonarqube/sonarqube_language_breakdown.dart';
 import '../../domain/sonarqube/sonarqube_measure_history.dart';
 import '../../domain/sonarqube/sonarqube_worst_files.dart';
@@ -240,6 +241,7 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
     String projectKey, {
     SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
     int page = 1,
+    SonarQubeIssueGrouping grouping = SonarQubeIssueGrouping.none,
   }) => guardRequest(() async {
     // Order matters only for a stable request; the server treats these as
     // sets.
@@ -253,6 +255,7 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
         'componentKeys': projectKey,
         'resolved': 'false',
         'ps': sonarQubeIssuesPageSize,
+        if (grouping.isGrouped) 'facets': grouping.facet,
         'p': page,
         if (filter.types.isNotEmpty)
           'types': join(filter.types, sonarQubeIssueTypes),
@@ -267,6 +270,7 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
         issues.length;
     return SonarQubeIssuePage(
       total: total,
+      groups: sonarQubeIssueGroups(data['facets'], grouping),
       issues: [
         for (final i in issues.cast<Map<String, dynamic>>())
           SonarQubeIssue(
