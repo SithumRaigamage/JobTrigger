@@ -1,15 +1,17 @@
 import { connection } from "next/server";
 
+import { integrationsDescription } from "@/content/tool-copy";
 import { pageMetadata } from "@/features/marketing/page-metadata";
 import { IntegrationsView } from "@/features/marketing/integrations/integrations-view";
 import { getAppInfo } from "@/server/app-info";
 
-export const metadata = pageMetadata({
-  title: "Integrations",
-  description:
-    "Jenkins, GitHub Actions and SonarQube in JobTrigger: what works today, and what's coming.",
-  path: "/integrations",
-});
+// Worded for the tools this release ships (release/tools.json).
+export const generateMetadata = () =>
+  pageMetadata({
+    title: "Integrations",
+    description: integrationsDescription(),
+    path: "/integrations",
+  });
 
 export default async function IntegrationsPage() {
   // Pages render alongside the root layout, so its connection() doesn't stop

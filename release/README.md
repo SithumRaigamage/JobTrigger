@@ -54,3 +54,16 @@ Anything that sells Pro must not name a tool the release doesn't ship or promise
 tools "together" while only one is released. The paywall (`paywall_reason.dart`),
 `/pricing` (`pricingFor` in `content/pricing.ts`) and the Account plan card read
 the manifest; with several tools released they say what they always said.
+
+## Marketing copy and store text
+
+- The website's home hero, tool strip, social preview image, integrations
+  description and sign-in text name the released tools first and the rest only
+  as "coming next" (`JobTrigger-Web/src/content/tool-copy.ts`). With every tool
+  released they read exactly as they always have.
+- **Store text can't follow the manifest.** Rewrite it for each release's tools
+  (`tasks/release-checklist.md`, "Store listing text, per release").
+- CI runs the website's Playwright suite twice: against an all-tools build, and
+  a small smoke run (`release-1.0.spec.ts`) against a build with the real
+  manifest, which must show Jenkins as the only selectable tool and never ask
+  for GitHub or SonarQube.

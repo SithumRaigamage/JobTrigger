@@ -16,7 +16,7 @@ async function withJenkins(page: Page) {
     password: TOKEN,
     isDefault: true,
   });
-  return { token, id: saved._id };
+  return { token, id: saved._id, email };
 }
 
 test("editing with a blank token keeps the saved one", async ({ page }) => {
@@ -73,10 +73,14 @@ test("a server deleted elsewhere reads as not found", async ({ page }) => {
 });
 
 test("showing the saved token needs the account password", async ({ page }) => {
-  const { id } = await withJenkins(page);
+  const { id, email } = await withJenkins(page);
+  // Counted for this account only: the desktop and mobile runs go in parallel.
   const secretFetches = async () =>
-    ((await (await fetch("http://127.0.0.1:5999/__stats")).json()) as { secretFetches: number })
-      .secretFetches;
+    (
+      (await (
+        await fetch(`http://127.0.0.1:5999/__stats?email=${encodeURIComponent(email)}`)
+      ).json()) as { secretFetches: number }
+    ).secretFetches;
   const before = await secretFetches();
   await page.goto(`/servers/jenkins/${id}`);
 
