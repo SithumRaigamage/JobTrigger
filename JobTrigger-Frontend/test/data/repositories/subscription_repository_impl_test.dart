@@ -11,7 +11,7 @@ import 'package:job_trigger/domain/subscription/billing_offer.dart';
 import 'package:job_trigger/domain/subscription/entitlements.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../support_subscription_fakes.dart';
+import '../../support/fake_subscription.dart';
 
 class _Adapter implements HttpClientAdapter {
   _Adapter(this.status, this.body);

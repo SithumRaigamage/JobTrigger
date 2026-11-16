@@ -12,7 +12,7 @@ import 'package:job_trigger/domain/subscription/entitlements.dart';
 import 'package:job_trigger/presentation/features/auth/auth_notifier.dart';
 import 'package:job_trigger/presentation/features/subscription/entitlements_notifier.dart';
 
-import '../../../support_subscription_fakes.dart';
+import '../../../support/fake_subscription.dart';
 
 class _Auth extends AuthNotifier {
   _Auth(this.initial);
