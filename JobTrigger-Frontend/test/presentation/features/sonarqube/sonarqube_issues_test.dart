@@ -53,6 +53,12 @@ class _Repo with SonarQubeInsightsDefaults implements SonarQubeRepository {
     return Ok(
       SonarQubeIssuePage(
         total: count,
+        groups: grouping.isGrouped
+            ? [
+                SonarQubeIssueGroup(label: 'src/F.java', count: count - 1),
+                const SonarQubeIssueGroup(label: 'src/G.java', count: 1),
+              ]
+            : const [],
         issues: [
           for (var i = 0; i < n; i++)
             SonarQubeIssue(
@@ -236,6 +242,34 @@ void main() {
         expect(find.text('No issues match these filters'), findsOneWidget);
       },
     );
+
+    testWidgets('By file shows the server groups with their counts', (
+      tester,
+    ) async {
+      await pump(tester, _Repo()..total = 5);
+
+      await tester.tap(find.text('By file'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('src/F.java'), findsOneWidget);
+      expect(find.text('4'), findsOneWidget);
+      expect(find.text('src/G.java'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
+      // The flat list is gone while grouping.
+      expect(find.text('Issue 0'), findsNothing);
+    });
+
+    testWidgets('No grouping brings the issues back', (tester) async {
+      await pump(tester, _Repo()..total = 2);
+
+      await tester.tap(find.text('By rule'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('No grouping'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Issue 0'), findsOneWidget);
+      expect(find.text('src/F.java'), findsNothing);
+    });
 
     testWidgets('a load failure shows the error with retry', (tester) async {
       final repo = _Repo()..forcedResult = const Err(NetworkFailure());

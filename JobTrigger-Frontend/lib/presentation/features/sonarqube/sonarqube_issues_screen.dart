@@ -369,12 +369,7 @@ class _GroupingBar extends StatelessWidget {
         children: [
           for (final option in SonarQubeIssueGrouping.values)
             ChoiceChip(
-              label: Text(
-                'By ${option.label.toLowerCase()}'.replaceFirst(
-                  'by none',
-                  'No grouping',
-                ),
-              ),
+              label: Text(option.label),
               selected: option == grouping,
               onSelected: (_) => onSelected(option),
             ),

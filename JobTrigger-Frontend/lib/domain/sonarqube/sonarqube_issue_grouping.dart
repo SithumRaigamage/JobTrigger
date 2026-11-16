@@ -2,10 +2,10 @@
 /// SonarQube's own facet name, so the counts come from the server and are
 /// right beyond the first page.
 enum SonarQubeIssueGrouping {
-  none('', 'None'),
-  file('files', 'File'),
-  rule('rules', 'Rule'),
-  severity('severities', 'Severity');
+  none('', 'No grouping'),
+  file('files', 'By file'),
+  rule('rules', 'By rule'),
+  severity('severities', 'By severity');
 
   const SonarQubeIssueGrouping(this.facet, this.label);
 
