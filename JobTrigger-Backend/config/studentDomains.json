@@ -1,0 +1,4 @@
+{
+  "_comment": "Phase 21 (SP-13): university email domains accepted for the one-time-code check. Owner-editable. An entry matches that domain and any subdomain (ac.lk matches uom.ac.lk and cse.mrt.ac.lk). A domain not listed falls back to uploading a student ID or enrolment letter.",
+  "domains": ["ac.lk", "edu"]
+}

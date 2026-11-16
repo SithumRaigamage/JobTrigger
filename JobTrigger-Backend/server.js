@@ -63,6 +63,7 @@ app.use('/api/sonarqube-credentials', require('./routes/sonarqubeCredentialRoute
 app.use('/api/appinfo', require('./routes/appInfoRoutes'));
 app.use('/api/subscription', require('./routes/subscriptionRoutes'));
 app.use('/api/billing', require('./routes/billingRoutes'));
+app.use('/api/student', require('./routes/studentRoutes'));
 
 app.get('/', (req, res) => {
   res.json({ message: 'JobTrigger Backend API is running' });

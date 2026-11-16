@@ -117,6 +117,22 @@ function analyticsConfig(env = process.env) {
   return { url: env.UMAMI_URL.trim().replace(/\/+$/, ''), websiteId: env.UMAMI_WEBSITE_ID.trim() };
 }
 
+/**
+ * SP-22: where the owner is told about every student application
+ * (`STUDENT_ADMIN_EMAIL`), or null when unset (no notification, logged).
+ */
+function studentAdminEmail(env = process.env) {
+  return blank(env.STUDENT_ADMIN_EMAIL) ? null : env.STUDENT_ADMIN_EMAIL.trim();
+}
+
+/**
+ * Phase 21: yearly renewal of the student grant. Off (the default): one
+ * grant per person, ever, and on expiry the account drops to Free.
+ */
+function studentRenewalEnabled(env = process.env) {
+  return env.STUDENT_RENEWAL_ENABLED === 'true';
+}
+
 const DEV_RESET_PASSWORD_URL = 'http://localhost:3000/reset-password';
 const DEV_SITE_URL = 'http://localhost:3000';
 
@@ -166,6 +182,12 @@ function invalidConfig(env = process.env) {
   if (billingEnabled(env) && !revenueCatConfig(env) && !paddleConfig(env)) {
     return 'BILLING_ENABLED=true needs RevenueCat (REVENUECAT_SECRET_API_KEY, '
       + 'REVENUECAT_WEBHOOK_AUTH) or Paddle (PADDLE_API_KEY, PADDLE_WEBHOOK_SECRET, prices)';
+  }
+  if (!blank(env.STUDENT_RENEWAL_ENABLED) && !['true', 'false'].includes(env.STUDENT_RENEWAL_ENABLED)) {
+    return 'STUDENT_RENEWAL_ENABLED must be true or false';
+  }
+  if (!blank(env.STUDENT_ADMIN_EMAIL) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.STUDENT_ADMIN_EMAIL.trim())) {
+    return 'STUDENT_ADMIN_EMAIL must be an email address';
   }
   if (!blank(env.RESET_PASSWORD_URL) && !/^https?:\/\/[^\s?#]+$/.test(env.RESET_PASSWORD_URL.trim())) {
     return 'RESET_PASSWORD_URL must be an http(s) URL without a query string';
@@ -221,6 +243,8 @@ module.exports = {
   analyticsConfig,
   resetPasswordUrl,
   siteUrl,
+  studentAdminEmail,
+  studentRenewalEnabled,
   billingEnabled,
   revenueCatConfig,
   paddleConfig,

@@ -5,6 +5,7 @@ const GitHubCredential = require('../models/GitHubCredential');
 const SonarQubeCredential = require('../models/SonarQubeCredential');
 const PasswordResetToken = require('../models/PasswordResetToken');
 const Subscription = require('../models/Subscription');
+const StudentVerification = require('../models/StudentVerification');
 const revenueCat = require('../billing/revenuecatClient');
 const paddle = require('../billing/paddleClient');
 const { revenueCatConfig, paddleConfig } = require('../config/env');
@@ -206,7 +207,9 @@ exports.changePassword = async (req, res, next) => {
  * AUD-48 (App Store 5.1.1(v), Google Play data deletion): deletes the
  * account and every tool credential stored for it. Credentials go first,
  * so an interrupted request leaves an account the user can still sign in
- * to and delete again, never orphaned secrets.
+ * to and delete again, never orphaned secrets. Student applications go too
+ * (documents included); only the one-way hashes in StudentClaim stay, so the
+ * same university email or document can't claim a second grant (Phase 21).
  */
 exports.deleteAccount = async (req, res, next) => {
   try {
@@ -218,7 +221,7 @@ exports.deleteAccount = async (req, res, next) => {
     const subscription = await Subscription.findOne({ userId: user._id }).lean();
 
     await Promise.all(
-      [JenkinsCredential, GitHubCredential, SonarQubeCredential, PasswordResetToken, Subscription].map((Model) =>
+      [JenkinsCredential, GitHubCredential, SonarQubeCredential, PasswordResetToken, Subscription, StudentVerification].map((Model) =>
         Model.deleteMany({ userId: user._id }),
       ),
     );

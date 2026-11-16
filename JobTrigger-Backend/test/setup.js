@@ -19,6 +19,8 @@ process.env.PASSWORD_RESET_EMAIL_RATE_LIMIT = '10000';
 process.env.PASSWORD_RESET_CONFIRM_RATE_LIMIT = '10000';
 process.env.SUBSCRIPTION_REFRESH_RATE_LIMIT = '10000';
 process.env.BILLING_WEBHOOK_RATE_LIMIT = '10000';
+process.env.STUDENT_EMAIL_START_RATE_LIMIT = '10000';
+process.env.STUDENT_EMAIL_CONFIRM_RATE_LIMIT = '10000';
 // AUD-03: a throwaway key per run; secrets are encrypted at rest.
 process.env.CREDENTIALS_ENCRYPTION_KEY = require('crypto').randomBytes(32).toString('base64');
 // P20-72/73/78: optional features configured in a developer's .env (SMTP,
@@ -32,6 +34,8 @@ for (const name of [
   'SENTRY_DSN', 'SENTRY_ENVIRONMENT', 'SENTRY_RELEASE',
   // P20-17: billing is off in the suites unless a test turns it on.
   'BILLING_ENABLED', 'REVENUECAT_SECRET_API_KEY', 'REVENUECAT_WEBHOOK_AUTH',
+  // Phase 21: no owner address or renewal unless a test sets them.
+  'STUDENT_ADMIN_EMAIL', 'STUDENT_RENEWAL_ENABLED',
   'PADDLE_API_KEY', 'PADDLE_WEBHOOK_SECRET', 'PADDLE_PRICE_MONTHLY', 'PADDLE_PRICE_YEARLY', 'PADDLE_ENV',
 ]) {
   process.env[name] = '';
