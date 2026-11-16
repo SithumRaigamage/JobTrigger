@@ -18,6 +18,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_issue_screen.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_issues_screen.dart';
 import 'package:job_trigger/presentation/navigation/app_routes.dart';
+import '../../../support/sonarqube_insights_defaults.dart';
 
 class _Repo with SonarQubeInsightsDefaults implements SonarQubeRepository {
   Result<SonarQubeIssueContext, AppFailure> context = const Ok(

@@ -12,6 +12,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_analysis_screen.dart';
+import '../../../support/sonarqube_insights_defaults.dart';
 
 class _Repo with SonarQubeInsightsDefaults implements SonarQubeRepository {
   @override

@@ -15,6 +15,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_project_screen.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_projects_notifier.dart';
+import '../../../support/sonarqube_insights_defaults.dart';
 
 /// Serves projects `p0…p(total-1)` in pages of [size], so paging can be
 /// followed request by request.

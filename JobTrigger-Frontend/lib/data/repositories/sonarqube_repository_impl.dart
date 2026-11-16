@@ -289,29 +289,40 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
   }, recover: _projectRecover);
 
   /// Project keys → names for the cross-project issue list
-  /// (`US-SQ-ISSUES-01`), one `api/components/show` per project and cached
-  /// for the session. Capped: a page across many projects would otherwise
-  /// cost a request per row, and the row shows the key when a name is
-  /// missing.
+  /// (`US-SQ-ISSUES-01`): **one** request for the whole page, or none at all
+  /// when every name is already cached. A failure leaves the names out and
+  /// the rows show the project keys — a nicety, never an error.
   final Map<String, String> _projectNames = {};
 
   Future<Map<String, String>> _resolveProjectNames(Set<String> keys) async {
-    final missing = keys
-        .where((k) => k.isNotEmpty && !_projectNames.containsKey(k))
-        .take(10);
-    for (final key in missing) {
+    final wanted = [
+      for (final key in keys)
+        if (key.isNotEmpty && !_projectNames.containsKey(key)) key,
+    ];
+    if (wanted.isNotEmpty) {
       try {
+        // `projects` filters the same endpoint the overview already uses, so
+        // one call names every project on the page.
         final response = await _dio.get<Map<String, dynamic>>(
-          '/api/components/show',
-          queryParameters: {'component': key},
+          '/api/components/search_projects',
+          queryParameters: {
+            'projects': wanted.join(','),
+            'ps': wanted.length,
+            if (_organization != null) 'organization': _organization,
+          },
         );
-        final name =
-            (response.data?['component'] as Map<String, dynamic>?)?['name']
-                as String?;
-        if (name != null && name.isNotEmpty) _projectNames[key] = name;
+        final components =
+            (response.data?['components'] as List<dynamic>? ?? const [])
+                .cast<Map<String, dynamic>>();
+        for (final component in components) {
+          final key = component['key'] as String?;
+          final name = component['name'] as String?;
+          if (key != null && name != null && name.isNotEmpty) {
+            _projectNames[key] = name;
+          }
+        }
       } on DioException {
         // The list still works with keys alone.
-        break;
       }
     }
     return {

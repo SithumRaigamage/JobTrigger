@@ -23,6 +23,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../support/fake_github_repository.dart';
 import '../../../support/fake_jenkins_repository.dart';
+import '../../../support/sonarqube_insights_defaults.dart';
 
 const _server = JenkinsServer(
   id: 'a',

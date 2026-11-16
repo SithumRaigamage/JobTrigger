@@ -15,7 +15,10 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_project_summary.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 
 class _Adapter implements HttpClientAdapter {
-  _Adapter(this.status, this.body);
+  _Adapter(this.status, this.body, {this.byPath = const {}});
+
+  /// Answers for particular paths; anything else gets [body].
+  final Map<String, dynamic> byPath;
 
   final int status;
   final dynamic body;
@@ -34,7 +37,7 @@ class _Adapter implements HttpClientAdapter {
     last = options;
     requests.add(options);
     return ResponseBody.fromString(
-      jsonEncode(body),
+      jsonEncode(byPath[options.path] ?? body),
       status,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],
@@ -51,6 +54,7 @@ Dio _dio(_Adapter a) =>
 
 void main() {
   _batch1();
+  _batch1Names();
   group('SonarQubeRepositoryImpl.fetchProjects (US-SQ-PROJ-01)', () {
     test('parses projects, including one that was never analysed', () async {
       final adapter = _Adapter(200, {
@@ -1100,5 +1104,64 @@ void _batch1() {
       expect(search.queryParameters['resolved'], 'false');
       expect(search.queryParameters.containsKey('componentKeys'), isFalse);
     });
+  });
+}
+
+// P10-18 leftovers: the cross-project list names its projects in one request
+// (or none, when the names are already cached), never one per project.
+void _batch1Names() {
+  test('names the projects of my issues in one request', () async {
+    final adapter = _Adapter(
+      200,
+      {
+        'paging': {'total': 2},
+        'issues': [
+          {
+            'key': 'i1',
+            'type': 'BUG',
+            'severity': 'MAJOR',
+            'message': 'A',
+            'company': null,
+            'project': 'acme:api',
+            'component': 'acme:api:src/a.ts',
+          },
+          {
+            'key': 'i2',
+            'type': 'BUG',
+            'severity': 'MINOR',
+            'message': 'B',
+            'project': 'acme:web',
+            'component': 'acme:web:src/b.ts',
+          },
+        ],
+      },
+      byPath: {
+        '/api/components/search_projects': {
+          'components': [
+            {'key': 'acme:api', 'name': 'API Gateway'},
+            {'key': 'acme:web', 'name': 'Website'},
+          ],
+        },
+      },
+    );
+
+    final repo = SonarQubeRepositoryImpl(_dio(adapter));
+    final first = await repo.fetchMyIssues();
+    final page = (first as Ok<SonarQubeIssuePage, AppFailure>).value;
+
+    expect(page.issues.map((i) => i.projectLabel), ['API Gateway', 'Website']);
+    // One issues call and one name lookup for the whole page.
+    expect(adapter.requests, hasLength(2));
+    expect(adapter.requests.last.path, '/api/components/search_projects');
+    expect(
+      adapter.requests.last.queryParameters['projects'] as String,
+      allOf(contains('acme:api'), contains('acme:web')),
+    );
+
+    // Names are cached: a second page costs the issues call only.
+    adapter.requests.clear();
+    await repo.fetchMyIssues(page: 2);
+    expect(adapter.requests, hasLength(1));
+    expect(adapter.requests.single.path, '/api/issues/search');
   });
 }

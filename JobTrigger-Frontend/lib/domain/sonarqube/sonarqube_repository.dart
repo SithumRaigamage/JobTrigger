@@ -104,30 +104,5 @@ abstract class SonarQubeRepository {
   );
 }
 
-/// Defaults for the batch-1 reads (`US-SQ-ISSUES-01`, `US-SQ-CE-01`,
-/// `US-SQ-QUALITY-08/09`). An implementation that has nothing to say — a
-/// test fake, or a lite one that only lists projects — mixes this in and
-/// keeps the empty answers, rather than each fake repeating four stubs.
-/// The real repository implements all four against the server.
-mixin SonarQubeInsightsDefaults {
-  Future<Result<SonarQubeIssuePage, AppFailure>> fetchMyIssues({
-    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
-    int page = 1,
-  }) async => const Ok(SonarQubeIssuePage(issues: [], total: 0));
-
-  Future<Result<SonarQubeAnalysisStatus, AppFailure>> fetchAnalysisStatus(
-    String projectKey,
-  ) async => const Ok(SonarQubeAnalysisStatus.none);
-
-  Future<Result<Map<String, String>, AppFailure>> fetchNewCodeMeasures(
-    String projectKey,
-  ) async => const Ok({});
-
-  Future<Result<List<SonarQubeMeasureDelta>, AppFailure>> fetchMeasureDeltas(
-    String projectKey, {
-    List<String> metricKeys = sonarQubeMeasureKeys,
-  }) async => const Ok([]);
-}
-
 /// `ps` for `api/projects/search`; 500 is SonarQube's maximum.
 const sonarQubeProjectsPageSize = 500;

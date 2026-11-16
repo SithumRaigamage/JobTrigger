@@ -29,6 +29,7 @@ import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
 import 'package:job_trigger/presentation/navigation/app_router.dart';
 import 'package:job_trigger/presentation/navigation/app_routes.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+import '../../../support/sonarqube_insights_defaults.dart';
 
 class _Repo with SonarQubeInsightsDefaults implements SonarQubeRepository {
   @override

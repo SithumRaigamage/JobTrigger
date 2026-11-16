@@ -312,10 +312,15 @@ the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
       **My issues** screen at `/sonarqube/my-issues`, reached from the
       Overview's "My issues” button: `assignees=__me__&resolved=false` with no
       `componentKeys`, server-side type/severity filters, "Load more”, and
-      project names resolved through `api/components/show` (capped at 10 per
-      page and cached; a row falls back to the project key). Tests: 7 domain
-      + 9 widget (`sonarqube_batch1_test.dart`, `sonarqube_insights_test.dart`)
-      + 4 repository; whole suite green.
+      project names resolved with **one** `api/components/search_projects`
+      request per page — or none when the names are already cached; a failed
+      or refused lookup leaves the project key in the row, never an error.
+      The Overall / New code chips sit on their own wrapping row, so the
+      section also holds at 320 dp. Tests: 7 domain + 10 widget (including a
+      320 dp no-overflow test) + 5 repository; whole suite green. The
+      four-method test stub lives in `test/support/sonarqube_insights_defaults.dart`,
+      not in `lib/`, so production code cannot answer these reads with
+      empty data.
       **Not verified** (needs the owner's server): `assignees=__me__`, Browse
       permission on `api/ce/component`, and which `new_*` metrics the server
       actually computes. The project **card** still does not say

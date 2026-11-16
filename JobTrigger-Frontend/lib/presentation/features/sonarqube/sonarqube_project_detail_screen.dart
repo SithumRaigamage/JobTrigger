@@ -213,17 +213,22 @@ class _MeasuresSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            const Expanded(child: SectionLabel('Measures')),
-            if (hasNewCode) ...[
+        const SectionLabel('Measures'),
+        // A label plus two chips does not fit one row at ~320 dp (iPhone SE
+        // with a large text size), so the chips get their own wrapping row
+        // under the label.
+        if (hasNewCode) ...[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
               ChoiceChip(
                 label: const Text('Overall'),
                 selected: !showingNewCode,
                 onSelected: (_) =>
                     scopeNotifier.set(SonarQubeMeasureScope.overall),
               ),
-              const SizedBox(width: 8),
               ChoiceChip(
                 label: const Text('New code'),
                 selected: showingNewCode,
@@ -231,8 +236,8 @@ class _MeasuresSection extends ConsumerWidget {
                     scopeNotifier.set(SonarQubeMeasureScope.newCode),
               ),
             ],
-          ],
-        ),
+          ),
+        ],
         const SizedBox(height: 8),
         selected.when(
           loading: () => const _Loading(),

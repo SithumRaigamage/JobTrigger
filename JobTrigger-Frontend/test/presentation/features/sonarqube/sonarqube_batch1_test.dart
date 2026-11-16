@@ -16,6 +16,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_my_issues_screen.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_project_detail_screen.dart';
+import '../../../support/sonarqube_insights_defaults.dart';
 
 /// P10-18 (batch 1) — `US-SQ-QUALITY-07/08/09`, `US-SQ-CE-01`,
 /// `US-SQ-ISSUES-01`: what the project page says about a gate, a running
@@ -103,8 +104,12 @@ const _project = SonarQubeProject(
   lastAnalysisDate: null,
 );
 
-Future<void> _pumpDetail(WidgetTester tester, _Repo repo) async {
-  tester.view.physicalSize = const Size(800, 2600);
+Future<void> _pumpDetail(
+  WidgetTester tester,
+  _Repo repo, {
+  Size size = const Size(800, 2600),
+}) async {
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
@@ -298,5 +303,29 @@ void main() {
   ) async {
     await _pumpMyIssues(tester, _Repo());
     expect(find.text('Nothing is assigned to you'), findsOneWidget);
+  });
+
+  testWidgets('the scope switch fits a 320 dp screen without overflowing '
+      '(US-SQ-QUALITY-08)', (tester) async {
+    final repo = _Repo()
+      ..measures = const Ok({'bugs': '3'})
+      ..newCode = const Ok({'new_bugs': '1'});
+
+    // 320 dp is an iPhone SE with a large text size, the narrowest the app
+    // supports: a label plus two chips used to sit on one row there.
+    await _pumpDetail(tester, repo, size: const Size(320, 2400));
+
+    // The list builds lazily, and a narrow screen makes the page taller.
+    await tester.scrollUntilVisible(find.text('New code'), 200);
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Overall'), findsOneWidget);
+    expect(find.text('New code'), findsOneWidget);
+
+    await tester.tap(find.text('New code'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('New bugs'), findsOneWidget);
   });
 }
