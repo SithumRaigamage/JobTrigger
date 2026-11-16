@@ -21,6 +21,9 @@ router.post('/logout-all', auth, authController.logoutAll);
 // AUD-48. Both re-check the current password, and wrong guesses share the
 // login limiter's failure budget.
 router.post('/password', auth, loginLimiter, authController.changePassword);
+// Re-checks the password and changes nothing. Wrong guesses share the login
+// limiter with the two routes above.
+router.post('/verify-password', auth, loginLimiter, authController.verifyPassword);
 router.delete('/account', auth, loginLimiter, authController.deleteAccount);
 // US-AUTH-08: forgotten password, by email. Public by design.
 router.post('/password-reset/request', passwordResetLimiter, passwordResetEmailLimiter,

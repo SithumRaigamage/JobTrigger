@@ -71,3 +71,28 @@ test("a server deleted elsewhere reads as not found", async ({ page }) => {
   await expect(page.getByText("That couldn't be found — it may have been removed.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Back to my servers →" })).toBeVisible();
 });
+
+test("showing the saved token needs the account password", async ({ page }) => {
+  const { id } = await withJenkins(page);
+  const secretFetches = async () =>
+    ((await (await fetch("http://127.0.0.1:5999/__stats")).json()) as { secretFetches: number })
+      .secretFetches;
+  const before = await secretFetches();
+  await page.goto(`/servers/jenkins/${id}`);
+
+  // Wrong password: an error, nothing shown, nothing requested.
+  await page.getByRole("button", { name: "Show saved token" }).click();
+  await page.getByLabel("Account password").fill("not-my-password");
+  await page.getByRole("button", { name: "Confirm and show" }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "incorrect" })).toBeVisible();
+  await expect(page.getByTestId("saved-token")).toContainText("••••");
+  expect(await secretFetches()).toBe(before);
+
+  // Right password: the token shows, and then hides again.
+  await page.getByLabel("Account password").fill(PASSWORD);
+  await page.getByRole("button", { name: "Confirm and show" }).click();
+  await expect(page.getByTestId("saved-token")).not.toContainText("••••");
+  expect(await secretFetches()).toBe(before + 1);
+  await page.getByRole("button", { name: "Hide saved token" }).click();
+  await expect(page.getByTestId("saved-token")).toContainText("••••");
+});

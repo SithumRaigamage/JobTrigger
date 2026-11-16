@@ -22,9 +22,17 @@ GitHub or SonarQube.
 
 ## 2. The rule everything else follows
 
-**The browser never holds a full secret or a JobTrigger token.** The
-backend's credential list endpoints return secrets decrypted in full,
-because the app needs them. So:
+**The browser never holds a JobTrigger token, and receives a full secret
+only when its owner asks.** Since E4 the backend's credential lists return
+only a mask (`••••` + last 4), never a secret, so list and edit pages have
+nothing to hide. The one way a full secret reaches the browser is
+`revealSecret`: the owner taps Show or Copy on the edit page, confirms the
+account password (the backend's re-authentication check, `POST
+/api/auth/verify-password`, the same one Change password uses), and only
+then does the server fetch `GET …/:id/secret` and return it. It is returned
+to that one request, never cached, never logged, and never put in HTML or the
+RSC payload. A wrong password shows an error and fetches nothing; the
+backend's rate limits apply to both calls. So:
 
 - Every backend call is made by the Next.js server (server components,
   server actions, route handlers) — a backend-for-frontend (BFF). Browser
@@ -33,9 +41,9 @@ because the app needs them. So:
 - The access and refresh tokens live in an encrypted `iron-session`
   cookie: `HttpOnly`, `Secure`, `SameSite=Lax`. Never `localStorage`,
   never readable by JS.
-- Secrets are masked on the server (`••••` + last 4 characters) before any
-  data reaches a component. The full value never appears in HTML, the RSC
-  payload, or a server-action response.
+- Lists and edit pages carry masks only. A full secret appears nowhere
+  else: not in HTML, not in the RSC payload, not in any server-action response
+  except `revealSecretAction`'s, after the password check.
 - The backend still receives `x-auth-token: <token>`, exactly like the app
   (not `Authorization: Bearer` — see [`api-reference.md`](api-reference.md)).
 
@@ -172,8 +180,9 @@ go to server logs only (NFR-SEC-04).
   only a mask (E4), the backend shapes (`*Dto`) are not exported, and a test
   checks no full secret appears in anything the list/create/update calls
   return. The one exception is `revealSecret`, which calls the owner-only
-  `GET …/:id/secret` when the owner taps the eye on the edit page: on
-  demand, never cached or logged, and covered by `reveal-secret.test.ts`.
+  `GET …/:id/secret` only after `revealSecretAction` has confirmed the
+  password: on demand, never cached or logged, covered by
+  `reveal-secret.test.ts` and `reveal-action.test.ts`.
 
 ### Security headers (P15-03, WEB-B1–B3)
 

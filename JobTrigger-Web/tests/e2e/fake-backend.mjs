@@ -62,6 +62,8 @@ const tools = {
   },
 };
 
+let secretFetches = 0;
+
 function send(res, status, body, requestId) {
   res.writeHead(status, { "content-type": "application/json", "x-request-id": requestId });
   res.end(JSON.stringify(body));
@@ -88,6 +90,8 @@ const server = createServer(async (req, res) => {
   if (body === null) return reply(400, { message: "Malformed JSON body" });
 
   if (url.pathname === "/healthz") return reply(200, { status: "ok" });
+  // Test-only: how many decrypted secrets were requested so far.
+  if (url.pathname === "/__stats") return reply(200, { secretFetches });
   if (url.pathname === "/api/appinfo")
     return reply(200, { supportEmail: "support@jobtrigger.test", appVersion: "1.0.0" });
 
@@ -187,6 +191,13 @@ const server = createServer(async (req, res) => {
     user.tokenVersion += 1;
     return reply(200, issue(user));
   }
+  // Re-checks the password and changes nothing (verify-password).
+  if (url.pathname === "/api/auth/verify-password" && req.method === "POST") {
+    return user.password === body.password
+      ? reply(200, { message: "Password confirmed" })
+      : reply(400, { message: "Current password is incorrect" });
+  }
+
   if (url.pathname === "/api/auth/account" && req.method === "DELETE") {
     if (body.password !== user.password)
       return reply(400, { message: "Current password is incorrect" });
@@ -224,9 +235,23 @@ const server = createServer(async (req, res) => {
         __v: 0,
       };
     };
-    // The decrypted secret is for the phone app only; the portal must never ask.
-    if (second === "secret")
-      return reply(418, { message: "The portal must not request decrypted secrets" });
+    // The decrypted secret, owner only. Counted, so a spec can prove the
+    // portal asked only after the password was confirmed.
+    if (second === "secret") {
+      secretFetches += 1;
+      if (!row) return reply(404, { message: "Credential not found" });
+      return reply(
+        200,
+        tool.kind === "jenkins"
+          ? {
+              password: row.password ?? null,
+              paramToken: row.paramToken ?? null,
+              needsReentry: false,
+              version: "v1",
+            }
+          : { token: row.token ?? null, needsReentry: false, version: "v1" },
+      );
+    }
 
     if (!id && req.method === "GET") return reply(200, mine.map(view));
     if (!id && req.method === "POST") {

@@ -4,47 +4,57 @@ import { useState, useTransition } from "react";
 
 import type { RevealState } from "./actions";
 
-/** The saved token's mask with an eye that fetches and shows it on tap. */
+type Ask = "show" | "copy";
+
+/**
+ * The saved token's mask with an eye that shows it and a button that copies
+ * it. Either one first asks for the account password: [action] gets it, and
+ * a wrong password comes back as an error with nothing revealed.
+ */
 export function RevealToken({
   mask,
   action,
 }: {
   mask: string;
-  action: () => Promise<RevealState>;
+  action: (password: string) => Promise<RevealState>;
 }) {
   const [secret, setSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [ask, setAsk] = useState<Ask | null>(null);
+  const [password, setPassword] = useState("");
   const [pending, startTransition] = useTransition();
   const [copied, setCopied] = useState(false);
   const visible = secret !== null;
 
   function toggle() {
+    setError(null);
     if (visible) {
       setSecret(null);
       return;
     }
-    setError(null);
-    startTransition(async () => {
-      const result = await action();
-      if (result.secret) setSecret(result.secret);
-      else setError(result.error ?? "Couldn't show the token.");
-    });
+    setAsk("show");
   }
 
-  function copy() {
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
+    const purpose = ask;
+    const typed = password;
+    if (!purpose) return;
     setError(null);
     startTransition(async () => {
-      let value = secret;
-      if (value === null) {
-        const result = await action();
-        if (!result.secret) {
-          setError(result.error ?? "Couldn't copy the token.");
-          return;
-        }
-        value = result.secret;
+      const result = await action(typed);
+      setPassword("");
+      if (!result.secret) {
+        setError(result.error ?? "Couldn't show the token.");
+        return;
+      }
+      setAsk(null);
+      if (purpose === "show") {
+        setSecret(result.secret);
+        return;
       }
       try {
-        await navigator.clipboard.writeText(value);
+        await navigator.clipboard.writeText(result.secret);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch {
@@ -88,12 +98,50 @@ export function RevealToken({
           type="button"
           aria-label="Copy saved token"
           disabled={pending}
-          onClick={copy}
+          onClick={() => {
+            setError(null);
+            setAsk("copy");
+          }}
           className="flex h-11 shrink-0 items-center justify-center px-2 text-[0.8125rem] font-semibold text-fg-secondary hover:text-fg disabled:opacity-60"
         >
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
+      {ask && (
+        <form onSubmit={submit} className="flex flex-wrap items-center gap-2">
+          <label htmlFor="reveal-password" className="text-sm font-semibold">
+            Account password
+          </label>
+          <input
+            id="reveal-password"
+            type="password"
+            autoComplete="current-password"
+            required
+            autoFocus
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            className="h-11 min-w-0 flex-1 rounded-control border border-line-strong bg-card px-3"
+          />
+          <button
+            type="submit"
+            disabled={pending || password === ""}
+            className="h-11 rounded-control bg-accent px-4 text-sm font-bold text-on-accent disabled:opacity-60"
+          >
+            {ask === "copy" ? "Confirm and copy" : "Confirm and show"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setAsk(null);
+              setPassword("");
+              setError(null);
+            }}
+            className="h-11 px-3 text-sm font-semibold text-fg-secondary hover:text-fg"
+          >
+            Cancel
+          </button>
+        </form>
+      )}
       {error && (
         <span role="alert" className="text-failed-fg">
           {error}

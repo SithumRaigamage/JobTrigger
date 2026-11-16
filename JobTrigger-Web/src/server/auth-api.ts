@@ -85,6 +85,21 @@ export async function changePassword(
   );
 }
 
+/**
+ * Re-checks the signed-in user's password and changes nothing (the backend's
+ * `reauthenticate`, shared with change password and delete). Wrong: 400
+ * "Current password is incorrect", with the same rate limit as login.
+ */
+export async function verifyPassword(
+  accessToken: string,
+  password: string,
+): Promise<Result<unknown>> {
+  return callBackend(
+    { method: "POST", path: "/api/auth/verify-password", body: { password }, accessToken },
+    message,
+  );
+}
+
 /** Deletes the account and every saved credential (AUD-48). */
 export async function deleteAccount(
   accessToken: string,
