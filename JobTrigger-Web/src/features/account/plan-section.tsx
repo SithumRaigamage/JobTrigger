@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Card } from "@/components/layout";
+import { getRelease } from "@/content/release";
 import type { Subscription } from "@/domain/subscription";
 
 /*
@@ -84,6 +85,12 @@ export function deleteNotice(subscription: Subscription): string | null {
   }
 }
 
+/** Pro's tools line; it can't say "together" while only one tool is released. */
+function toolsLine(multiTool: boolean): string {
+  if (!multiTool) return "One tool at a time";
+  return getRelease().released.length > 1 ? "All tools together" : "More tools as they release";
+}
+
 function limitText(value: number | null, unit: string): string {
   return value === null ? `Unlimited ${unit}` : `${value} ${unit}`;
 }
@@ -112,7 +119,7 @@ export function PlanSection({
       <ul className="flex list-disc flex-col gap-1.5 pl-5.5 text-sm text-fg-secondary">
         <li>{limitText(limits.maxCredentialsTotal, "saved servers in total")}</li>
         <li>{limitText(limits.maxPinnedJobs, "pinned jobs")}</li>
-        <li>{features.multiTool ? "All tools together" : "One tool at a time"}</li>
+        <li>{toolsLine(features.multiTool)}</li>
       </ul>
       {instructions && <p className="text-sm text-muted">{instructions}</p>}
       {subscription.plan === "free" && (

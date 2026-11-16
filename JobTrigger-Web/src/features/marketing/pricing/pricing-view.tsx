@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Card, Container, Kicker, Section } from "@/components/layout";
 import { FeatureAction } from "@/components/feature-action";
 import { StatusBadge } from "@/components/status-badge";
-import { comparison, plans, pricingPromises, type Cell } from "@/content/pricing";
+import { pricingFor, type Cell } from "@/content/pricing";
+import { getRelease } from "@/content/release";
 
 import { routes } from "../site-links";
 
@@ -20,6 +21,8 @@ function CellText({ cell }: { cell: Cell }) {
  * (US-WEB-22); there is no buy button on this site in this phase.
  */
 export function PricingView() {
+  // Worded for the tools this release ships (release/tools.json).
+  const { plans, comparison, promises: pricingPromises } = pricingFor(getRelease());
   return (
     <main id="content" tabIndex={-1} className="flex-1">
       <Section className="py-16">
