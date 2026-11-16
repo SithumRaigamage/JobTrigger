@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:job_trigger/core/config/app_config.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/platform/link_launcher.dart';
@@ -19,6 +20,17 @@ import 'package:job_trigger/presentation/features/subscription/paywall_screen.da
 import 'package:job_trigger/presentation/navigation/app_routes.dart';
 
 import '../../../support/fake_subscription.dart';
+
+class _InfoWithoutUrls extends AppInfoNotifier {
+  @override
+  Future<AppInfo> build() async =>
+      const AppInfo(appVersion: '1.0.0', buildNumber: '1');
+}
+
+class _InfoFails extends AppInfoNotifier {
+  @override
+  Future<AppInfo> build() async => throw const NetworkFailure();
+}
 
 class _Auth extends AuthNotifier {
   @override
@@ -42,6 +54,8 @@ Future<ProviderContainer> pumpPaywall(
   FakeSubscriptionRepository repo, {
   String? reason,
   List<Uri>? opened,
+  AppInfoNotifier Function()? info,
+  String? websiteBaseUrl,
 }) async {
   // Tall enough to build the whole list (it is lazy).
   tester.view.physicalSize = const Size(800, 2200);
@@ -66,7 +80,15 @@ Future<ProviderContainer> pumpPaywall(
         subscriptionRepositoryProvider.overrideWithValue(repo),
         billingClientProvider.overrideWithValue(FakeBillingClient()),
         authNotifierProvider.overrideWith(_Auth.new),
-        appInfoNotifierProvider.overrideWith(_Info.new),
+        appInfoNotifierProvider.overrideWith(info ?? _Info.new),
+        if (websiteBaseUrl != null)
+          appConfigProvider.overrideWithValue(
+            AppConfig(
+              environment: AppEnvironment.prod,
+              backendBaseUrl: 'https://api.test',
+              websiteBaseUrl: websiteBaseUrl,
+            ),
+          ),
         linkLauncherProvider.overrideWithValue((uri) async {
           opened?.add(uri);
           return true;
@@ -204,6 +226,36 @@ void main() {
       'https://site.test/privacy',
     ]);
   });
+
+  for (final entry in {
+    '/api/appinfo has no URLs': _InfoWithoutUrls.new,
+    '/api/appinfo fails': _InfoFails.new,
+  }.entries) {
+    testWidgets('${entry.key}: Terms and Privacy fall back to the website', (
+      tester,
+    ) async {
+      final repo = FakeSubscriptionRepository(
+        loadResult: const Ok(freeSnapshot),
+      );
+      final opened = <Uri>[];
+      await pumpPaywall(
+        tester,
+        repo,
+        opened: opened,
+        info: entry.value,
+        websiteBaseUrl: 'https://site.test',
+      );
+
+      await tester.tap(find.text('Terms of Use'));
+      await tester.pump();
+      await tester.tap(find.text('Privacy Policy'));
+      await tester.pump();
+      expect(opened.map((u) => u.toString()), [
+        'https://site.test/terms',
+        'https://site.test/privacy',
+      ]);
+    });
+  }
 
   testWidgets('P20-84: a web subscription is Pro: nothing to buy, no restore, '
       'and no link to anywhere', (tester) async {

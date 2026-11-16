@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../domain/subscription/billing_offer.dart';
@@ -220,10 +221,16 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     return days == null ? price : '$days-day free trial, then $price';
   }
 
+  /// Terms and Privacy are a store requirement on the paywall, so they are
+  /// always shown: the backend's `/api/appinfo` URLs when it has them, else
+  /// the website's `/terms` and `/privacy` pages.
   Widget _legalLinks() {
     final info = ref.watch(appInfoNotifierProvider).value;
-    final terms = info?.termsOfServiceUrl;
-    final privacy = info?.privacyPolicyUrl;
+    final site = ref.watch(appConfigProvider).websiteBaseUrl;
+    final terms =
+        info?.termsOfServiceUrl ?? (site == null ? null : '$site/terms');
+    final privacy =
+        info?.privacyPolicyUrl ?? (site == null ? null : '$site/privacy');
     if (terms == null && privacy == null) return const SizedBox.shrink();
     return Wrap(
       alignment: WrapAlignment.center,

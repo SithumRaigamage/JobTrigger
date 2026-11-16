@@ -87,3 +87,14 @@ Phase 0–6 task without first moving the item here into an actual phase file
   server in the browser). Also: a deep link opened
   while signed out is dropped at login; resuming it after sign-in is a
   small follow-up.
+
+## Owner actions waiting
+
+Things only the owner can do; the code around them is done or deliberately
+left alone.
+
+- **Android build unverified until the NDK is reinstalled** (noted
+  2026-11-16). The Android NDK 28.2.13676358 install was interrupted by a
+  slow connection and the owner will reinstall it on a fast one. Until then,
+  no Android build or run of the subscription work (P20-20..P20-27,
+  including `purchases_flutter`) has been done; treat it as unverified.
