@@ -23,7 +23,11 @@ class ActiveToolNotifier extends _$ActiveToolNotifier {
   @override
   CiTool? build() => null;
 
-  void setActiveTool(CiTool tool) => state = tool;
+  /// Ignores a tool this build doesn't offer (not released, or no code), so
+  /// nothing can select one however it asks.
+  void setActiveTool(CiTool tool) {
+    if (tool.isAvailable) state = tool;
+  }
 
   /// P20-25: the paywall reason when [tool] needs Pro for this user (they
   /// use another tool and the plan has no `multiTool`), else null.

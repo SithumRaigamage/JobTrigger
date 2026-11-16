@@ -108,6 +108,8 @@ flutter:
   assets:
     - assets/fonts/Inter-OFL.txt
     - assets/fonts/JetBrainsMono-OFL.txt
+    # The release manifest copy (scripts/sync-tools.mjs): which tools ship.
+    - config/tools.json
   fonts:
     - family: Inter
       fonts:
