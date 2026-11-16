@@ -88,6 +88,37 @@ class SubscriptionScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 16),
                           ..._actions(context, ref, snapshot),
+                          // Phase 21: the free student year. Free users can
+                          // start it; a student sees where it stands.
+                          if (!snapshot.entitlements.isPro ||
+                              snapshot.status.isStudent) ...[
+                            const SizedBox(height: 16),
+                            GroupedCard(
+                              children: [
+                                ListTile(
+                                  key: const Key('student_entry'),
+                                  leading: const Icon(Icons.school_outlined),
+                                  title: Text(
+                                    snapshot.status.isStudent
+                                        ? 'Student status'
+                                        : 'Verify student status',
+                                  ),
+                                  subtitle: snapshot.status.isStudent
+                                      ? null
+                                      : const Text(
+                                          'Students get Pro free for one '
+                                          'year.',
+                                        ),
+                                  trailing: const Icon(
+                                    Icons.chevron_right_rounded,
+                                  ),
+                                  onTap: () => context.push(
+                                    AppRoutes.studentVerification,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
               ),
@@ -124,6 +155,9 @@ class SubscriptionScreen extends ConsumerWidget {
     }
     if (status.isWeb) {
       return 'Bought on the JobTrigger website, and managed there.';
+    }
+    if (status.isStudent) {
+      return 'Free for one year as a verified student.';
     }
     if (status.source != null) return 'Included with your account.';
     return null;
@@ -204,3 +238,12 @@ class SubscriptionScreen extends ConsumerWidget {
 /// The Profile row's value: "Pro" or "Free".
 String planLabel(Entitlements entitlements) =>
     entitlements.isPro ? 'Pro' : 'Free';
+
+/// Phase 21: the Profile row's value. "Pro (Student)" for the free student
+/// year, otherwise [planLabel].
+String planLabelFor(
+  Entitlements entitlements,
+  SubscriptionSnapshot? snapshot,
+) => entitlements.isPro && (snapshot?.status.isStudent ?? false)
+    ? 'Pro (Student)'
+    : planLabel(entitlements);

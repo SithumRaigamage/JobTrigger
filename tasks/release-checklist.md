@@ -73,6 +73,8 @@ tracking domains).
 | User Content → Other User Content (saved server names, URLs, usernames, encrypted tokens) | Yes | Yes | No | App Functionality |
 | Diagnostics → Crash Data | Yes (opt-out in Profile) | No | No | App Functionality |
 | Diagnostics → Other Diagnostic Data (device model and OS version sent with a report) | Yes (same switch) | No | No | App Functionality |
+| Contact Info → Name (student plan only: the full name as on the ID) | Yes, only when a student uploads a document | Yes | No | App Functionality |
+| User Content → Other User Content (student plan only: an uploaded student ID or enrolment letter, stored encrypted, deleted 30 days after the decision) | Yes, same | Yes | No | App Functionality |
 | Purchases → Purchase History (JobTrigger Pro subscription, via RevenueCat) | Yes, only in builds with billing keys | Yes | No | App Functionality |
 | Identifiers → User ID (the JobTrigger account id RevenueCat is logged in with) | Yes, same | Yes | No | App Functionality |
 | Diagnostics → Performance Data | No (tracing is off) | n/a | n/a | n/a |
@@ -91,8 +93,8 @@ FileTimestamp C617.1 and SystemBootTime 35F9.1. Sentry, Flutter,
 widget extension ship manifests with reasons the app already covers. Re-run
 this check whenever a plugin is added.
 
-Google Play Data safety: Email address, User IDs, Purchase history and Other
-user content (collected, linked, app functionality); Crash logs and Diagnostics (collected, optional,
+Google Play Data safety: Email address, Name (student plan), User IDs, Purchase history and Other
+user content, including the optional student document (collected, linked, app functionality); Crash logs and Diagnostics (collected, optional,
 not linked); no data shared with third parties; data encrypted in transit;
 account deletion available in the app and on the website.
 

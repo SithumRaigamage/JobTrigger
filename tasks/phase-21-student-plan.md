@@ -101,12 +101,12 @@ These fit inside the decisions above; they are how to build them safely.
 - [x] SP-33 Tests: size and type limits, non-admin gets 404, approve and reject.
 
 ### SP-4 App (Flutter)
-- [ ] SP-40 Subscription screen: "Verify student status" entry (billing on only).
-- [ ] SP-41 Flow: university email → code; domain not listed → document upload
+- [x] SP-40 Subscription screen: "Verify student status" entry (billing on only).
+- [x] SP-41 Flow: university email → code; domain not listed → document upload
       with the 5 MB and type check before sending.
-- [ ] SP-42 States: pending review, approved with expiry date, rejected with
+- [x] SP-42 States: pending review, approved with expiry date, rejected with
       reason and retry; Account shows "Pro (Student)" and the expiry date.
-- [ ] SP-43 Logic in notifiers; widget tests for every state; demo mode
+- [x] SP-43 Logic in notifiers; widget tests for every state; demo mode
       read-only. Privacy manifest and store answers cover the uploaded document.
 
 ### SP-5 Website

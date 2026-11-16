@@ -26,7 +26,8 @@ import 'account_dialogs.dart';
 import '../subscription/billing_availability.dart';
 import '../subscription/entitlements_notifier.dart';
 import '../subscription/store_links.dart';
-import '../subscription/subscription_screen.dart' show planLabel;
+import '../student/student_verification_screen.dart' show formatStudentDate;
+import '../subscription/subscription_screen.dart' show planLabelFor;
 import '../../common_widgets/external_link.dart';
 
 /// Ported from `ProfileView.swift`, laid out to the P14 design
@@ -141,8 +142,14 @@ class ProfileScreen extends ConsumerWidget {
                     ListTile(
                       leading: const Icon(Icons.workspace_premium_outlined),
                       title: const Text('Subscription'),
+                      subtitle: _studentUntil(ref) == null
+                          ? null
+                          : Text(_studentUntil(ref)!),
                       trailing: _Trailing(
-                        planLabel(ref.watch(entitlementsProvider)),
+                        planLabelFor(
+                          ref.watch(entitlementsProvider),
+                          ref.watch(entitlementsNotifierProvider).value,
+                        ),
                       ),
                       onTap: () => context.push(AppRoutes.subscription),
                     ),
@@ -314,6 +321,20 @@ class ProfileScreen extends ConsumerWidget {
 }
 
 /// A row's current value, with a chevron: it opens where that's changed.
+/// Phase 21: "Student plan until 12 Nov 2027" under the Subscription row, only
+/// for the free student year.
+String? _studentUntil(WidgetRef ref) {
+  final snapshot = ref.watch(entitlementsNotifierProvider).value;
+  final end = snapshot?.status.periodEnd;
+  if (snapshot == null ||
+      !snapshot.entitlements.isPro ||
+      !snapshot.status.isStudent ||
+      end == null) {
+    return null;
+  }
+  return 'Student plan until ${formatStudentDate(end)}';
+}
+
 class _Trailing extends StatelessWidget {
   const _Trailing(this.value);
 

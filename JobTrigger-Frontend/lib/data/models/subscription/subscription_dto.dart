@@ -97,5 +97,6 @@ SubscriptionSource? _sourceOf(String? value) => switch (value) {
   'web' => SubscriptionSource.web,
   'promo' => SubscriptionSource.promo,
   'admin' => SubscriptionSource.admin,
+  'student' => SubscriptionSource.student,
   _ => null,
 };

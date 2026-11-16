@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- AUD-56: required since May 2024 (ITMS-91053). UserDefaults: shared_preferences, the app's own settings (CA92.1); home_widget (no manifest of its own) shares the pinned-jobs snapshot with the widget through the App Group (1C8F.1, PE-06). File timestamps: Dart's stat() on files in the app container, e.g. File.existsSync (C617.1). System boot time: Dart's monotonic clock for elapsed time (35F9.1). Collected: the account email and the CI credentials users save, for the app's function only; no tracking. E3: crash reports (Sentry SDK, sent to our own GlitchTip, opt-out in Profile) are declared as Crash Data and Other Diagnostic Data (the phone model and OS version sent with a report); they are not linked to the user and not used for tracking. Phase 20: purchases (RevenueCat, only when the build has a key) are declared as Purchase History and User ID (the JobTrigger account id RevenueCat is logged in with), linked to the user, for app functionality, not tracking; RevenueCat's own manifest declares UserDefaults CA92.1 and Purchase History, which the app's entries cover. The Sentry SDK ships its own manifest for the required-reason APIs it uses (check after `pod install`, PE-27). -->
+<!-- AUD-56: required since May 2024 (ITMS-91053). UserDefaults: shared_preferences, the app's own settings (CA92.1); home_widget (no manifest of its own) shares the pinned-jobs snapshot with the widget through the App Group (1C8F.1, PE-06). File timestamps: Dart's stat() on files in the app container, e.g. File.existsSync (C617.1). System boot time: Dart's monotonic clock for elapsed time (35F9.1). Collected: the account email and the CI credentials users save, for the app's function only; no tracking. E3: crash reports (Sentry SDK, sent to our own GlitchTip, opt-out in Profile) are declared as Crash Data and Other Diagnostic Data (the phone model and OS version sent with a report); they are not linked to the user and not used for tracking. Phase 20: purchases (RevenueCat, only when the build has a key) are declared as Purchase History and User ID (the JobTrigger account id RevenueCat is logged in with), linked to the user, for app functionality, not tracking; RevenueCat's own manifest declares UserDefaults CA92.1 and Purchase History, which the app's entries cover. Phase 21: the student plan's optional document upload is declared as Name (the full name as on the ID) and Other User Content (the student ID or enrolment letter, stored encrypted and deleted 30 days after the decision), linked to the user, for app functionality, not tracking. The Sentry SDK ships its own manifest for the required-reason APIs it uses (check after `pod install`, PE-27). -->
 <plist version="1.0">
 <dict>
 	<key>NSPrivacyTracking</key>
@@ -72,6 +72,30 @@
 		<dict>
 			<key>NSPrivacyCollectedDataType</key>
 			<string>NSPrivacyCollectedDataTypeUserID</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeName</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeOtherUserContent</string>
 			<key>NSPrivacyCollectedDataTypeLinked</key>
 			<true/>
 			<key>NSPrivacyCollectedDataTypeTracking</key>

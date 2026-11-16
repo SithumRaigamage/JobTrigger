@@ -12,7 +12,7 @@ enum SubscriptionState {
 }
 
 /// Where the subscription was bought (`Subscription.source`).
-enum SubscriptionSource { appStore, playStore, web, promo, admin }
+enum SubscriptionSource { appStore, playStore, web, promo, admin, student }
 
 /// P20-21: the details the Subscription screen shows (US-SUB-01).
 class SubscriptionStatus {
@@ -43,6 +43,9 @@ class SubscriptionStatus {
 
   /// Bought on the website rather than in a store (US-SUB web).
   bool get isWeb => source == SubscriptionSource.web;
+
+  /// Phase 21: the free year for verified students.
+  bool get isStudent => source == SubscriptionSource.student;
 
   /// Bought in the App Store or Google Play.
   bool get isStore =>

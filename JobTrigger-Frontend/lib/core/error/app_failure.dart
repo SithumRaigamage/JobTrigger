@@ -61,6 +61,13 @@ sealed class AppFailure {
       PlanLimitFailure.tryFrom(exception) ??
       AppFailure.fromDioException(exception);
 
+  /// Phase 21: for the student-plan calls, whose 400/409/413/415/429/503
+  /// answers carry the backend's own explanation (and a `code`). Anything
+  /// else maps exactly as [fromDioException] does.
+  factory AppFailure.fromStudentException(DioException exception) =>
+      StudentRequestFailure.tryFrom(exception) ??
+      AppFailure.fromDioException(exception);
+
   /// GitHub-specific: a 403 with `X-RateLimit-Remaining: 0` means the
   /// request was rejected for exceeding GitHub's rate limit, not because
   /// the credential was rejected — a real API behavior Jenkins/the backend
@@ -117,6 +124,7 @@ sealed class AppFailure {
           'key in this credential in Settings.',
     DemoUnavailableFailure() => 'Not available in demo.',
     PlanLimitFailure(:final serverMessage) => serverMessage,
+    StudentRequestFailure(:final serverMessage) => serverMessage,
     // Closing the store sheet is a choice, not an error: no copy.
     PurchaseCancelled() => '',
     UnknownFailure() => 'Something unexpected happened. Please try again.',
@@ -281,4 +289,46 @@ final class PlanLimitFailure extends AppFailure {
 /// shows nothing.
 final class PurchaseCancelled extends AppFailure {
   const PurchaseCancelled();
+}
+
+/// Phase 21: the backend refused a student-plan call and said why in its own
+/// words ("File too large, max 5 MB", "That code has expired. Ask for a new
+/// one."). Produced only by [AppFailure.fromStudentException], so no other
+/// feature's 400s or 409s change meaning.
+final class StudentRequestFailure extends AppFailure {
+  const StudentRequestFailure(this.statusCode, this.code, this.serverMessage);
+
+  final int statusCode;
+
+  /// The backend's machine-readable `code`, if it sent one:
+  /// `domain_not_listed`, `wrong_code`, `code_expired`, `too_many_attempts`,
+  /// `email_used`, `already_used`, `under_review`, `document_used`, ...
+  final String? code;
+
+  /// The backend's user-facing sentence.
+  final String serverMessage;
+
+  /// The email's domain isn't one we verify automatically: use a document.
+  bool get isDomainNotListed => code == 'domain_not_listed';
+
+  /// The code can no longer work; the user needs a new one.
+  bool get needsNewCode =>
+      code == 'code_expired' ||
+      code == 'too_many_attempts' ||
+      code == 'no_code';
+
+  static const _statuses = {400, 409, 413, 415, 429, 503};
+
+  static StudentRequestFailure? tryFrom(DioException exception) {
+    final response = exception.response;
+    final status = response?.statusCode;
+    final data = response?.data;
+    if (status == null || !_statuses.contains(status) || data is! Map) {
+      return null;
+    }
+    final message = data['message'];
+    if (message is! String || message.isEmpty) return null;
+    final code = data['code'];
+    return StudentRequestFailure(status, code is String ? code : null, message);
+  }
 }
