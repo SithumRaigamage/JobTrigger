@@ -26,5 +26,5 @@ jobs:
 
       - name: Manifest rules and copies
         run: |
-          node --test scripts/
+          node --test scripts/*.test.mjs
           node scripts/sync-tools.mjs --check
