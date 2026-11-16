@@ -228,3 +228,11 @@ Old: `AppInfo` model + `/api/appinfo`. Kept as-is: `AppInfoDto { version,
 build, minSupportedVersion, releaseNotesUrl }` — used by
 `presentation/features/app_info` to gate forced-update prompts if the
 backend ever returns a `minSupportedVersion` above the running app version.
+
+## Student plan (Phase 21, backend)
+
+- `Subscription.student` — a fourth Pro source beside `store`, `web` and `grant`: `{ plan: "pro", status: "active", source: "student", startsAt, periodEnd }`. A paid source always wins over it (`billing/combine.js`); when the date passes, `isPro` is false, so expiry is computed on every read and never depends on a job.
+- `User.role` — `user` (default) or `superAdmin`. Set only by `scripts/grant-role.js` on a local database; no API reads or writes it.
+- `StudentVerification` — one application: `method` (`email`|`document`), `status` (`pending`|`approved`|`rejected`|`expired`), `universityEmail`, the pending code as a salted hash with `codeExpiresAt` and `codeAttempts`, the document (encrypted, never in JSON), decision fields and the granted `approvedAt`..`expiresAt`. Deleted with the account.
+- `StudentClaim` — `{ kind: "email"|"document", hash }` with a unique index. SHA-256 only, no user id, kept after the account or application is deleted so one university email or document can claim only once.
+- Config: `STUDENT_ADMIN_EMAIL` (who is told about each application), `STUDENT_RENEWAL_ENABLED` (default `false`), `config/studentDomains.json` (owner-editable domain list).

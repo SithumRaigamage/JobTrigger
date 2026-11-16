@@ -3,6 +3,11 @@
  * user's sources. Pro from any source wins; between two Pro sources, the
  * one that lasts longer (no end beats any end). With no Pro source, the
  * most recent ended one is shown, so "expired" still reads as expired.
+ *
+ * Phase 21: the student year is the exception to "lasts longer wins". A
+ * paid or granted Pro always outranks it, so a student who subscribes sees
+ * (and is managed as) a paid user, and the student year is not what the
+ * account shows while something else is active.
  */
 const Subscription = require('../models/Subscription');
 const { isPro } = require('./entitlements');
@@ -17,8 +22,9 @@ const pick = (s) => Object.fromEntries(PLAN_FIELDS.map((f) => [f, s[f] ?? NONE[f
 function derive(doc, now = new Date()) {
   // Before sources existed, grant-plan.js wrote an admin grant at the top.
   const legacyGrant = !doc?.grant && doc?.source === 'admin' ? doc : null;
-  const sources = [doc?.store, doc?.web, doc?.grant ?? legacyGrant].filter(Boolean);
-  const pro = sources.filter((s) => isPro(s, now)).sort((a, b) => endOf(b) - endOf(a));
+  const sources = [doc?.store, doc?.web, doc?.grant ?? legacyGrant, doc?.student].filter(Boolean);
+  const rank = (s) => (s.source === 'student' ? 1 : 0);
+  const pro = sources.filter((s) => isPro(s, now)).sort((a, b) => rank(a) - rank(b) || endOf(b) - endOf(a));
   if (pro.length > 0) return pick(pro[0]);
   const ended = sources
     .filter((s) => s.status && s.status !== 'none')

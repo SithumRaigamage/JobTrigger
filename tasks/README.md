@@ -35,7 +35,7 @@ check "where are we."
 | 19 — Bug fixes and improvements (epic FIX) | `phase-19-bug-fixes.md` | done 2026-10-29 (P19-01..07) | none — found testing on a real iPhone 2026-10-29 |
 | 20 — Subscriptions (epic SUB) | `phase-20-subscriptions.md` | in-progress — approved 2026-11-12 (P20-00); 41 of 57 tasks done: backend (plans, limits, RevenueCat and Paddle webhooks, mailer, analytics), app (billing client, paywall, subscription screen, gates, P20-20..27, P20-84) and website plan/pricing/legal (P20-31..34) and web billing with Paddle (P20-83). Owner store and Paddle setup (P20-40..42, P20-85) are open. Plan: `docs/subscription/` | Launch prerequisites: backend deployed (P15-22), store accounts (`release-checklist.md`), P8-26/27 and P10-14/15 |
 | Emergency — Pre-release fixes (epic EMERG) | `phase-emergency.md` | in-progress — approved 2026-11-14 (PE-00), decisions recorded in the file. E2 demo mode dev-complete and merged 2026-11-14 (PE-10..18; the iPhone walkthrough was verified by the owner 2026-11-16, the review account is an owner action). E4 PE-32..35 dev-complete 2026-11-14 (PE-30/31 are owner actions). Plan: `docs/improvement-plan.md` | Before store submission; E5 needs a real GitHub token |
-| 21 — Student Plan (epic STU) | `phase-21-student-plan.md` | todo — approved by the owner November 2026; ready to build | Phase 20 (billing); ships dark until billing is on |
+| 21 — Student Plan (epic STU) | `phase-21-student-plan.md` | in-progress — approved by the owner November 2026; SP-1 and SP-2 (backend data, role, email code flow, owner email) done 2026-11-16; SP-3..SP-6 open | Phase 20 (billing); ships dark until billing is on |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." A handful

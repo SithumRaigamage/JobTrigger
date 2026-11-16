@@ -13,6 +13,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // SP-15: `superAdmin` unlocks the website's student review pages. Set only
+  // by scripts/grant-role.js on a local database; no API reads it from a
+  // request or writes it.
+  role: {
+    type: String,
+    enum: ['user', 'superAdmin'],
+    default: 'user'
+  },
   // AUD-26: bumped to revoke every token issued before (logout everywhere).
   tokenVersion: {
     type: Number,

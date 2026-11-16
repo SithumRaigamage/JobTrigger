@@ -12,9 +12,11 @@ const sourceSchema = new mongoose.Schema({
     enum: ['none', 'trialing', 'active', 'grace', 'billing_issue', 'cancelled', 'expired'],
     default: 'none',
   },
-  source: { type: String, enum: ['app_store', 'play_store', 'web', 'promo', 'admin', null], default: null },
+  source: { type: String, enum: ['app_store', 'play_store', 'web', 'promo', 'admin', 'student', null], default: null },
   productId: { type: String, default: null },
   periodEnd: { type: Date, default: null },
+  /** Student grant only: when the year began (periodEnd is when it ends). */
+  startsAt: { type: Date, default: null },
   willRenew: { type: Boolean, default: false },
   /** Paddle only: ids for the customer portal and ordering of events. */
   paddleSubscriptionId: { type: String, default: null },
@@ -27,7 +29,7 @@ const sourceSchema = new mongoose.Schema({
  * billing code (RevenueCat sync, Paddle webhook) and scripts/grant-plan.js.
  * Clients never write it.
  *
- * `store`, `web` and `grant` are the sources; the top-level plan fields
+ * `store`, `web`, `grant` and `student` are the sources; the top-level plan fields
  * are derived from them by billing/combine.js (the best one wins) and are
  * what entitlements read.
  */
@@ -35,6 +37,8 @@ const subscriptionSchema = new mongoose.Schema({
   store: { type: sourceSchema, default: null },
   web: { type: sourceSchema, default: null },
   grant: { type: sourceSchema, default: null },
+  /** Phase 21: the free year for verified students. */
+  student: { type: sourceSchema, default: null },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   plan: { type: String, enum: ['free', 'pro'], default: 'free' },
   status: {
@@ -42,7 +46,7 @@ const subscriptionSchema = new mongoose.Schema({
     enum: ['none', 'trialing', 'active', 'grace', 'billing_issue', 'cancelled', 'expired'],
     default: 'none',
   },
-  source: { type: String, enum: ['app_store', 'play_store', 'web', 'promo', 'admin', null], default: null },
+  source: { type: String, enum: ['app_store', 'play_store', 'web', 'promo', 'admin', 'student', null], default: null },
   productId: { type: String, default: null },
   /** End of the paid period or trial (or of the grace period). Null = no end. */
   periodEnd: { type: Date, default: null },

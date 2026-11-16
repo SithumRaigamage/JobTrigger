@@ -121,8 +121,26 @@ const billingWebhookLimiter = authLimiter({
   limit: fromEnv('BILLING_WEBHOOK_RATE_LIMIT', 120),
 });
 
+const perUser = (req) => `user:${req.user?.id ?? ipKeyGenerator(req.ip)}`;
+
+/** Phase 21: each start sends an email, so a few per hour per user. */
+const studentEmailStartLimiter = authLimiter({
+  windowMs: 60 * MINUTE,
+  limit: fromEnv('STUDENT_EMAIL_START_RATE_LIMIT', 5),
+  keyGenerator: perUser,
+});
+
+/** Phase 21: the code itself also allows 5 tries; this caps the rest. */
+const studentEmailConfirmLimiter = authLimiter({
+  windowMs: 15 * MINUTE,
+  limit: fromEnv('STUDENT_EMAIL_CONFIRM_RATE_LIMIT', 15),
+  keyGenerator: perUser,
+});
+
 module.exports = {
   authLimiter,
+  studentEmailConfirmLimiter,
+  studentEmailStartLimiter,
   credentialSecretLimiter,
   billingWebhookLimiter,
   subscriptionRefreshLimiter,

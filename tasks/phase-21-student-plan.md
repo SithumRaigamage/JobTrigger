@@ -67,28 +67,28 @@ These fit inside the decisions above; they are how to build them safely.
 ## Tasks
 
 ### SP-1 Backend: plan and data
-- [ ] SP-10 Student entitlement source alongside store/web/grant: plan Pro,
+- [x] SP-10 Student entitlement source alongside store/web/grant: plan Pro,
       source `student`, `startsAt`, `expiresAt`.
-- [ ] SP-11 Entitlements: an active student grant counts as Pro; a paid
+- [x] SP-11 Entitlements: an active student grant counts as Pro; a paid
       subscription always wins over it.
-- [ ] SP-12 `StudentVerification` model: userId, method (`email`|`document`),
+- [x] SP-12 `StudentVerification` model: userId, method (`email`|`document`),
       universityEmail, status (`pending`|`approved`|`rejected`|`expired`),
       encrypted document, document hash, reviewer, timestamps, rejection reason.
-- [ ] SP-13 Allowed university domains in a seeded, owner-editable config list
+- [x] SP-13 Allowed university domains in a seeded, owner-editable config list
       (start with `ac.lk` and common `.edu`).
-- [ ] SP-14 Unique constraints and kept hashes so a university email or document
+- [x] SP-14 Unique constraints and kept hashes so a university email or document
       can only ever be used once (note 6).
-- [ ] SP-15 `role` on `User` and `scripts/grant-role.js` (note 5).
-- [ ] SP-16 Tests: grant, computed expiry, one-per-person (including after
+- [x] SP-15 `role` on `User` and `scripts/grant-role.js` (note 5).
+- [x] SP-16 Tests: grant, computed expiry, one-per-person (including after
       deletion), paid overrides student.
 
 ### SP-2 Backend: email code flow
-- [ ] SP-20 `POST /api/student/email/start`: domain on the list, send a 6-digit
+- [x] SP-20 `POST /api/student/email/start`: domain on the list, send a 6-digit
       code (10-minute expiry, hashed at rest, max 5 attempts, rate limited).
-- [ ] SP-21 `POST /api/student/email/confirm`: correct code approves and grants
+- [x] SP-21 `POST /api/student/email/confirm`: correct code approves and grants
       365 days at once.
-- [ ] SP-22 Owner notification email on every application (note 8).
-- [ ] SP-23 Tests, including wrong code, expired code, attempt limit, reused email.
+- [x] SP-22 Owner notification email on every application (note 8).
+- [x] SP-23 Tests, including wrong code, expired code, attempt limit, reused email.
 
 ### SP-3 Backend: document flow and admin
 - [ ] SP-30 `POST /api/student/document`: base64 JPG/PNG/PDF, max 5 MB checked
