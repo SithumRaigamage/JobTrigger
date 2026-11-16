@@ -11,6 +11,8 @@
  * names, and nothing that needs a qualifier while features are pre-launch.
  */
 
+import type { ReleaseView } from "./release";
+
 export type PlanId = "free" | "pro";
 
 export type Plan = {
@@ -85,3 +87,38 @@ export const pricingPromises = [
   "If you drop to Free, nothing you saved is deleted. One server stays usable and the rest wait for you.",
   "Pro is bought in the JobTrigger app, through the App Store or Google Play, and renews until you cancel it there.",
 ] as const;
+
+/**
+ * The plans, the comparison and the promises for [release] (release/tools.json).
+ * The constants above are the wording once several tools are released; while
+ * only one is (release 1.0, Jenkins), nothing may suggest tools "together" or
+ * name tools the release doesn't ship, so those two lines change. With
+ * several released tools this returns the constants unchanged.
+ */
+export function pricingFor(release: ReleaseView): {
+  plans: readonly Plan[];
+  comparison: readonly ComparisonRow[];
+  promises: readonly string[];
+} {
+  if (release.released.length > 1) return { plans, comparison, promises: pricingPromises };
+  return {
+    plans: plans.map((plan) =>
+      plan.id === "pro"
+        ? {
+            ...plan,
+            highlights: plan.highlights.map((line) =>
+              line === "Jenkins, GitHub Actions and SonarQube together"
+                ? "More tools together as they release"
+                : line,
+            ),
+          }
+        : plan,
+    ),
+    comparison: comparison.map((row) =>
+      row.label === "CI tools at the same time"
+        ? { ...row, pro: yes("Jenkins today; more as they release") }
+        : row,
+    ),
+    promises: pricingPromises,
+  };
+}

@@ -47,3 +47,10 @@ The manifest calls GitHub Actions `githubActions`; the website's `Tool` type and
 the backend's routes and stored data call it `github`. Each project maps manifest
 ids to its own ids in one place (`MANIFEST_TO_TOOL`, `LOCAL_TOOL`); nothing is
 renamed, and an id a project doesn't know fails loudly.
+
+## Subscription copy
+
+Anything that sells Pro must not name a tool the release doesn't ship or promise
+tools "together" while only one is released. The paywall (`paywall_reason.dart`),
+`/pricing` (`pricingFor` in `content/pricing.ts`) and the Account plan card read
+the manifest; with several tools released they say what they always said.
