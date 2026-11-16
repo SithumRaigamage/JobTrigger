@@ -26,6 +26,13 @@ export type AppFailure =
   | { kind: "alreadySubscribed" }
   /** P20-83: 503 — billing is off or web checkout isn't set up. */
   | { kind: "billingUnavailable" }
+  /**
+   * Phase 21: a student-plan call the backend refused and explained in its
+   * own words (400/409/413/415/429/503, with an optional machine `code`).
+   * Only calls that opt in produce it; every other call keeps the mapping
+   * above exactly as it was.
+   */
+  | { kind: "explained"; status: number; code?: string; message: string }
   /** The response didn't match the expected shape. */
   | { kind: "unexpected" }
   | { kind: "unknown" };
@@ -59,6 +66,8 @@ export function failureMessage(failure: AppFailure): string {
       return failure.limit === "locked"
         ? "This server is locked on your plan. Upgrade in the JobTrigger app to use it."
         : "Your plan's limit has been reached. Upgrade in the JobTrigger app to add more.";
+    case "explained":
+      return failure.message;
     case "unexpected":
       return "The server sent a response the app didn't understand. Check that the server URL is correct — not a login page or proxy.";
     case "unknown":

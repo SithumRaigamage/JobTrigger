@@ -28,10 +28,11 @@ const sourceNames = {
   web: "web",
   promo: "promo",
   admin: "admin",
+  student: "student",
 } as const;
 
 const source = z
-  .enum(["app_store", "play_store", "web", "promo", "admin"])
+  .enum(["app_store", "play_store", "web", "promo", "admin", "student"])
   .nullable()
   .catch(null)
   .transform((value) => (value === null ? null : sourceNames[value]));

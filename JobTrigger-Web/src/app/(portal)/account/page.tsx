@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { BILLING_PATH, getPaddleConfig } from "@/billing/paddle-config";
 import { AccountView } from "@/features/account/account-view";
 import { requireSession } from "@/server/guard";
+import { studentAt } from "@/domain/student";
+import { getStudent } from "@/server/student-api";
 import { getSubscription } from "@/server/subscription-api";
 
 export const metadata: Metadata = { title: "Account" };
@@ -14,10 +16,16 @@ export default async function AccountPage() {
   // out. The proxy has renewed the token already, as on the servers page.
   const result = await getSubscription(session.accessToken);
   const subscription = result.ok && result.value.billingEnabled ? result.value : null;
+  // Phase 21: the student plan, only where billing is on and the account is
+  // on Free or already a student. Also best effort.
+  const eligible =
+    subscription !== null && (subscription.plan === "free" || subscription.source === "student");
+  const student = eligible ? await getStudent(session.accessToken) : null;
   return (
     <AccountView
       email={session.email}
       subscription={subscription}
+      student={student?.ok ? studentAt(student.value, new Date()) : null}
       billingHref={getPaddleConfig() ? BILLING_PATH : null}
     />
   );

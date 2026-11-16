@@ -38,6 +38,7 @@ const toc = [
   { id: "collect", label: "What we store" },
   { id: "use", label: "How it's used" },
   { id: "subscriptions", label: "Subscriptions and payments" },
+  { id: "student", label: "Student verification" },
   { id: "usage", label: "Anonymous usage data" },
   { id: "crash", label: "Crash reports" },
   { id: "demo", label: "Demo mode" },
@@ -93,6 +94,10 @@ export function PrivacyView() {
             its status and dates, where it was bought and which product. Never a card number.
           </li>
           <li>
+            <strong className="text-fg">Student verification,</strong> only if you use the student
+            plan: see Student verification below.
+          </li>
+          <li>
             <strong className="text-fg">A pending password reset</strong>, if you asked for one:
             only a fingerprint of the link, deleted once used or after 15 minutes.
           </li>
@@ -120,6 +125,24 @@ export function PrivacyView() {
           privacy policies. We keep your plan record while your account exists; it is deleted with
           your account, but deleting your account does not cancel a subscription, which you cancel
           in your store or from the app.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="student" title="Student verification">
+        <p>
+          The student plan is optional and gives Pro free for one year. If you verify with a
+          university email, we send a 6-digit code to that address; we keep a record that the
+          address was verified, and only a one-way fingerprint of the code until it expires (10
+          minutes). If you upload a student ID or enrolment letter instead, we store the file,
+          encrypted, together with the full name you type as it appears on it, and the account it
+          belongs to. A person reviews it on a private page of this website, and we email the site
+          owner a notice with a link, never the file itself. We delete the file and the name{" "}
+          <strong className="text-fg">30 days after we decide</strong>, whether we approve or reject
+          it. The student plan is one free year per person: to keep that rule after the file or your
+          account is gone, we keep a one-way fingerprint (a SHA-256 hash) of each university email
+          and each document used for an approved year. A fingerprint cannot be turned back into the
+          email or the file, and it is not linked to your account. We use the information only to
+          decide whether to give you the free year.
         </p>
       </LegalSection>
 
@@ -169,8 +192,10 @@ export function PrivacyView() {
       <LegalSection id="delete" title="Deleting your data">
         <p>
           Delete your account from the app&apos;s Profile screen or from{" "}
-          <Link href={routes.account}>Account</Link> on this website. Your account and every saved
-          server are removed. Backups keep deleted data for {detail("backupRetention")}.
+          <Link href={routes.account}>Account</Link> on this website. Your account, every saved
+          server and any student application (with its document) are removed. Only the one-way
+          fingerprints described under Student verification stay. Backups keep deleted data for{" "}
+          {detail("backupRetention")}.
         </p>
       </LegalSection>
 
