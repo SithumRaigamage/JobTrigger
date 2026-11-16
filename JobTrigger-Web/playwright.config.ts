@@ -46,6 +46,11 @@ export default defineConfig({
         JOBTRIGGER_BACKEND_URL: "http://127.0.0.1:5999",
         SESSION_SECRET: E2E_SESSION_SECRET,
         SITE_URL: `http://localhost:${port}`,
+        // A made-up sandbox client token (public by design, and fake): web
+        // checkout is on for the billing specs. Paddle.js itself is stubbed
+        // in the browser (tests/e2e/billing.spec.ts); nothing reaches Paddle.
+        PADDLE_CLIENT_TOKEN: "test_e2efaketoken0123456789",
+        PADDLE_ENV: "sandbox",
       },
     },
   ],

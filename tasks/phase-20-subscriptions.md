@@ -215,7 +215,7 @@ the app and site see the same Pro.
       once per event, stale events ignored), `/checkout` (server-set
       user id, 409 when already Pro), `/portal`; deleting an account
       cancels a renewing web subscription. Tests: `test/paddle.test.js`.
-- [ ] P20-83 Website: `/pricing`, account billing page (plan, Upgrade →
+- [x] P20-83 (2026-11-16, PR E; Paddle's real checkout, portal and CSP hosts unverified until the P20-85 sandbox exists) Website: `/pricing`, account billing page (plan, Upgrade →
       Paddle.js overlay, Manage → portal), CSP allowance for Paddle on
       the billing page only, zod-parsed BFF calls.
 - [x] P20-84 (2026-11-16, PR B) App: show a web subscription as Pro and hide the store

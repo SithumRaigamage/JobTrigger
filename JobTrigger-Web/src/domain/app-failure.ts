@@ -20,6 +20,10 @@ export type AppFailure =
    * app shows an Upgrade action; the website says where to upgrade.
    */
   | { kind: "planLimit"; limit: string }
+  /** P20-83: 409 ALREADY_SUBSCRIBED — Pro from any source; nothing to buy. */
+  | { kind: "alreadySubscribed" }
+  /** P20-83: 503 — billing is off or web checkout isn't set up. */
+  | { kind: "billingUnavailable" }
   /** The response didn't match the expected shape. */
   | { kind: "unexpected" }
   | { kind: "unknown" };
@@ -41,6 +45,10 @@ export function failureMessage(failure: AppFailure): string {
       return failure.requestId
         ? `Something went wrong on the server (HTTP ${failure.status}). Reference: ${failure.requestId}`
         : `Something went wrong on the server (HTTP ${failure.status}).`;
+    case "alreadySubscribed":
+      return "You already have Pro. There is nothing more to buy.";
+    case "billingUnavailable":
+      return "Buying on the website isn't available right now. Pro can be bought in the JobTrigger app.";
     case "planLimit":
       // Same meaning as the app's PlanLimitFailure. No link: the website
       // never sells (the App Store and Play rules, Phase 21).

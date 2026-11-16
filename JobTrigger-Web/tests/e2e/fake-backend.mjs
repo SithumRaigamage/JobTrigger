@@ -162,6 +162,18 @@ const server = createServer(async (req, res) => {
     });
   }
 
+  // P20-83: web checkout. A made-up transaction; nothing talks to Paddle.
+  if (url.pathname === "/api/billing/paddle/checkout" && req.method === "POST") {
+    if (user.email.startsWith("pro-plan-"))
+      return reply(409, { message: "Already subscribed", code: "ALREADY_SUBSCRIBED" });
+    if (!["monthly", "yearly"].includes(body.interval))
+      return reply(400, { message: "Choose monthly or yearly" });
+    return reply(200, { transactionId: "txn_e2e_fake", environment: "sandbox" });
+  }
+  if (url.pathname === "/api/billing/paddle/portal" && req.method === "POST") {
+    return reply(404, { message: "No web subscription" });
+  }
+
   if (url.pathname === "/api/auth/logout-all" && req.method === "POST") {
     user.tokenVersion += 1;
     return reply(200, { message: "Signed out everywhere" });

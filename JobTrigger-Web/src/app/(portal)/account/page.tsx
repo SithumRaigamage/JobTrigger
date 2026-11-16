@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { BILLING_PATH, getPaddleConfig } from "@/billing/paddle-config";
 import { AccountView } from "@/features/account/account-view";
 import { requireSession } from "@/server/guard";
 import { getSubscription } from "@/server/subscription-api";
@@ -13,5 +14,11 @@ export default async function AccountPage() {
   // out. The proxy has renewed the token already, as on the servers page.
   const result = await getSubscription(session.accessToken);
   const subscription = result.ok && result.value.billingEnabled ? result.value : null;
-  return <AccountView email={session.email} subscription={subscription} />;
+  return (
+    <AccountView
+      email={session.email}
+      subscription={subscription}
+      billingHref={getPaddleConfig() ? BILLING_PATH : null}
+    />
+  );
 }
