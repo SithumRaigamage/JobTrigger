@@ -17,6 +17,7 @@ const sourceLabel = {
   web: "the JobTrigger website",
   promo: "a promotion",
   admin: "JobTrigger",
+  student: "the student plan",
 } as const;
 
 const dateFormat = new Intl.DateTimeFormat("en", { dateStyle: "long", timeZone: "UTC" });

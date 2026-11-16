@@ -9,7 +9,7 @@ export type SubscriptionState =
   "none" | "trialing" | "active" | "grace" | "billingIssue" | "cancelled" | "expired";
 
 /** Where it was bought. */
-export type SubscriptionSource = "appStore" | "playStore" | "web" | "promo" | "admin";
+export type SubscriptionSource = "appStore" | "playStore" | "web" | "promo" | "admin" | "student";
 
 export type Subscription = {
   plan: "free" | "pro";

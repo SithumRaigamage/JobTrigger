@@ -36,6 +36,7 @@ export const NO_STORE_PATH_PREFIXES = [
   "/reset-password",
   "/servers",
   "/account",
+  "/admin",
 ] as const;
 
 export function isNoStorePath(pathname: string): boolean {
@@ -45,7 +46,7 @@ export function isNoStorePath(pathname: string): boolean {
 }
 
 /** Portal pages that need a signed-in user (sign-in and sign-up don't). */
-export const PROTECTED_PATH_PREFIXES = ["/servers", "/account"] as const;
+export const PROTECTED_PATH_PREFIXES = ["/servers", "/account", "/admin"] as const;
 
 export function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PATH_PREFIXES.some(

@@ -85,6 +85,165 @@ async function readBody(req) {
   }
 }
 
+// ---- Phase 21: student plan (the real rules are in the backend's
+// studentController.js and adminStudentController.js) ----
+const LISTED = /(^|\.)(ac\.lk|edu)$/;
+const isAdmin = (user) => user.email.startsWith("student-admin-");
+const applications = new Map(); // id → { id, userId, ... }
+const documents = new Map(); // id → Buffer
+const mimeOf = (bytes) =>
+  bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff
+    ? "image/jpeg"
+    : bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+      ? "image/png"
+      : bytes.subarray(0, 5).toString("latin1") === "%PDF-"
+        ? "application/pdf"
+        : null;
+const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+const publicApp = (a) => ({
+  id: a.id,
+  method: a.method,
+  status: a.status,
+  universityEmail: a.universityEmail ?? null,
+  rejectionReason: a.rejectionReason ?? null,
+  submittedAt: a.createdAt,
+  approvedAt: a.approvedAt ?? null,
+  expiresAt: a.expiresAt ?? null,
+});
+const adminApp = (a) => ({
+  ...publicApp(a),
+  userId: a.userId,
+  accountEmail: [...users.values()].find((u) => u.id === a.userId)?.email ?? null,
+  fullName: a.fullName ?? null,
+  reviewedAt: a.reviewedAt ?? null,
+  documentMime: a.method === "document" ? a.mime : null,
+  documentSize: a.method === "document" ? (documents.get(a.id)?.length ?? null) : null,
+  hasDocument: a.method === "document",
+  documentDeleted: false,
+  documentDeleteAt: null,
+});
+
+function student(url, req, body, user, reply) {
+  const mine = () => [...applications.values()].filter((a) => a.userId === user.id).at(-1);
+  if (url.pathname === "/api/student" && req.method === "GET") {
+    const latest = mine();
+    return reply(200, latest ? publicApp(latest) : { status: "none" });
+  }
+  const blocked = mine();
+  if (blocked?.method === "document" && blocked.status === "pending")
+    return reply(409, {
+      code: "under_review",
+      message: "Your student document is already waiting for review.",
+    });
+  if (url.pathname === "/api/student/email/start" && req.method === "POST") {
+    const email = String(body.universityEmail ?? "")
+      .trim()
+      .toLowerCase();
+    if (!EMAIL.test(email)) return reply(400, { message: "Enter a valid email address" });
+    if (!LISTED.test(email.split("@")[1]))
+      return reply(400, {
+        code: "domain_not_listed",
+        message:
+          "We can't verify that email domain automatically. Upload a student ID or enrolment letter instead.",
+      });
+    user.pendingStudentEmail = email;
+    return reply(202, { message: `We sent a code to ${email}.`, expiresInMinutes: 10 });
+  }
+  if (url.pathname === "/api/student/email/confirm" && req.method === "POST") {
+    if (!user.pendingStudentEmail)
+      return reply(400, { code: "no_code", message: "Ask for a new code first." });
+    if (body.code !== "123456")
+      return reply(400, { code: "wrong_code", message: "That code is not right. 4 tries left." });
+    const now = new Date();
+    const app = {
+      id: randomUUID().replaceAll("-", "").slice(0, 24),
+      userId: user.id,
+      method: "email",
+      status: "approved",
+      universityEmail: user.pendingStudentEmail,
+      createdAt: now.toISOString(),
+      approvedAt: now.toISOString(),
+      expiresAt: new Date(now.getTime() + YEAR_MS).toISOString(),
+    };
+    applications.set(app.id, app);
+    user.student = app;
+    return reply(200, publicApp(app));
+  }
+  if (url.pathname === "/api/student/document" && req.method === "POST") {
+    const fullName = String(body.fullName ?? "").trim();
+    if (fullName.length < 2)
+      return reply(400, { message: "Enter your full name as it appears on your student ID" });
+    const bytes = Buffer.from(String(body.data ?? ""), "base64");
+    if (bytes.length > 5 * 1024 * 1024) return reply(413, { message: "File too large, max 5 MB" });
+    const mime = mimeOf(bytes);
+    if (!mime) return reply(415, { message: "Only JPG, PNG or PDF files are accepted" });
+    const app = {
+      id: randomUUID().replaceAll("-", "").slice(0, 24),
+      userId: user.id,
+      method: "document",
+      status: "pending",
+      fullName,
+      mime,
+      createdAt: new Date().toISOString(),
+    };
+    applications.set(app.id, app);
+    documents.set(app.id, bytes);
+    return reply(201, publicApp(app));
+  }
+  return reply(404, { message: "Not found" });
+}
+
+function admin(url, req, body, user, reply, res) {
+  // Everyone else gets the same 404 as an unknown route.
+  if (!isAdmin(user)) return reply(404, { message: "Not found" });
+  const parts = url.pathname.split("/").filter(Boolean); // api admin students [id] [action]
+  if (parts[2] !== "students") return reply(404, { message: "Not found" });
+  const [, , , id, action] = parts;
+  if (!id && req.method === "GET") {
+    const status = url.searchParams.get("status") ?? "pending";
+    const q = (url.searchParams.get("q") ?? "").toLowerCase();
+    const items = [...applications.values()]
+      .filter((a) => a.method === "document")
+      .filter((a) => status === "all" || a.status === status)
+      .map(adminApp)
+      .filter(
+        (a) =>
+          !q ||
+          (a.accountEmail ?? "").toLowerCase().includes(q) ||
+          (a.fullName ?? "").toLowerCase().includes(q),
+      );
+    return reply(200, { items });
+  }
+  const app = applications.get(id);
+  if (!app || app.method !== "document") return reply(404, { message: "Not found" });
+  if (!action && req.method === "GET") return reply(200, adminApp(app));
+  if (action === "document" && req.method === "GET") {
+    res.writeHead(200, { "content-type": app.mime, "x-request-id": "e2e" });
+    return res.end(documents.get(app.id));
+  }
+  if (app.status !== "pending")
+    return reply(409, { message: `This application is already ${app.status}.` });
+  const now = new Date();
+  if (action === "approve" && req.method === "POST") {
+    app.status = "approved";
+    app.approvedAt = now.toISOString();
+    app.expiresAt = new Date(now.getTime() + YEAR_MS).toISOString();
+    app.reviewedAt = now.toISOString();
+    const owner = [...users.values()].find((u) => u.id === app.userId);
+    if (owner) owner.student = app;
+    return reply(200, adminApp(app));
+  }
+  if (action === "reject" && req.method === "POST") {
+    const reason = String(body.reason ?? "").trim();
+    if (!reason) return reply(400, { message: "Give a reason (up to 500 characters)" });
+    app.status = "rejected";
+    app.rejectionReason = reason;
+    app.reviewedAt = now.toISOString();
+    return reply(200, adminApp(app));
+  }
+  return reply(404, { message: "Not found" });
+}
+
 const server = createServer(async (req, res) => {
   const requestId = /^[A-Za-z0-9._-]{1,64}$/.test(req.headers["x-request-id"] ?? "")
     ? req.headers["x-request-id"]
@@ -148,19 +307,25 @@ const server = createServer(async (req, res) => {
     });
   }
 
+  // Phase 21: the student plan. Accounts named student-* have billing on and
+  // are on Free; student-admin-* is a super admin. The code is always 123456.
+  if (url.pathname.startsWith("/api/student")) return student(url, req, body, user, reply);
+  if (url.pathname.startsWith("/api/admin/")) return admin(url, req, body, user, reply, res);
+
   // P20-31/32: the plan. Billing is off unless the email says otherwise, so
   // every other spec sees no plan section.
   if (url.pathname === "/api/subscription" && req.method === "GET") {
-    const free = user.email.startsWith("free-plan-");
-    const pro = user.email.startsWith("pro-plan-");
+    const studentPro = user.student?.status === "approved";
+    const free = user.email.startsWith("free-plan-") || user.email.startsWith("student-");
+    const pro = user.email.startsWith("pro-plan-") || studentPro;
     return reply(200, {
       plan: pro ? "pro" : "free",
       billingEnabled: free || pro,
       status: pro ? "active" : "none",
-      source: pro ? "app_store" : null,
-      productId: pro ? "pro_yearly" : null,
-      periodEnd: pro ? "2027-03-03T10:00:00.000Z" : null,
-      willRenew: pro,
+      source: studentPro ? "student" : pro ? "app_store" : null,
+      productId: pro && !studentPro ? "pro_yearly" : null,
+      periodEnd: studentPro ? user.student.expiresAt : pro ? "2027-03-03T10:00:00.000Z" : null,
+      willRenew: pro && !studentPro,
       manageOnWeb: false,
       limits: pro
         ? { maxCredentialsTotal: null, maxCredentialsPerTool: 25, maxPinnedJobs: null }

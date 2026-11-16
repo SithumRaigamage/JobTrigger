@@ -141,3 +141,22 @@ describe("subscriptions in the legal pages (P20-34)", () => {
     expect(screen.getByText(/hashed password and your encrypted server details/)).toBeVisible();
   });
 });
+
+describe("student verification in the privacy policy (Phase 21)", () => {
+  it("states what is kept, the 30-day deletion and the kept fingerprints", () => {
+    render(<PrivacyView />);
+    const section = document.getElementById("student")!;
+    expect(section).toHaveTextContent("30 days after we decide");
+    expect(section).toHaveTextContent("full name");
+    expect(section).toHaveTextContent("one-way fingerprint");
+    expect(section).toHaveTextContent("SHA-256");
+    expect(section).toHaveTextContent("never the file itself");
+    expect(screen.getAllByRole("link", { name: "Student verification" }).length).toBeGreaterThan(0);
+  });
+
+  it("says deleting the account removes the application and keeps only fingerprints", () => {
+    render(<PrivacyView />);
+    expect(document.getElementById("delete")).toHaveTextContent("any student application");
+    expect(document.getElementById("delete")).toHaveTextContent("Only the one-way");
+  });
+});

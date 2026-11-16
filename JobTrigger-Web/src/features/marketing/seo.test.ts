@@ -35,6 +35,7 @@ describe("robots and sitemap", () => {
     const rules = robots().rules as { disallow: string[] };
 
     // Changed on purpose (P20-74): the password reset pages are portal pages too.
+    // Changed on purpose (Phase 21): so is the admin area.
     expect(rules.disallow).toEqual([
       "/sign-in",
       "/sign-up",
@@ -42,6 +43,7 @@ describe("robots and sitemap", () => {
       "/reset-password",
       "/servers",
       "/account",
+      "/admin",
     ]);
   });
 

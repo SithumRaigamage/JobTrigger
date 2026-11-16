@@ -328,3 +328,11 @@ finishes reading its `<Link>` prefetch responses, so the network never
 looks idle and the wait times out (measured in P15-05; the server answers
 those requests in ~2 ms). Wait for the thing the test checks instead:
 `document.fonts.ready`, a visible element, or `expect.poll`.
+
+## Student plan and the admin pages (Phase 21)
+
+- **Account page:** `features/student/` adds a *Student verification* card (only where billing is on and the account is on Free or already a student). The same flow as the app: a code to a university email, or a student ID / enrolment letter. Server actions forward to the backend, which decides; the browser and the action both check size (5 MB) and type (the file's first bytes) before anything is sent. Posting a file needs `experimental.serverActions.bodySizeLimit: "8mb"` in `next.config.ts` (the default is 1 MB).
+- **Backend errors:** a call that passes `explain: true` to `callBackend` shows the backend's own sentence for 400/409/413/415/429/503 (`kind: "explained"`). Every other call maps exactly as before.
+- **`/admin/students`** (`(portal)/admin/`): the review queue and one page per application. The role is the backend's decision on every call; a non-admin gets the backend's plain 404, which these pages turn into Next's 404, so nothing advertises the area. `/admin` is a no-store, noindex, protected path like the rest of the portal, and is not linked from the sidebar (the owner's notice email links to it).
+- **The document** is never in a list or a public URL. `/admin/students/[id]/document` (a route handler) fetches it from the backend with the admin's own session and streams it with `Cache-Control: no-store`, `nosniff` and a sandbox CSP. Images show inline from our own origin; a PDF is a download (the site's `X-Frame-Options: DENY` and `object-src 'none'` rule out an embedded viewer).
+

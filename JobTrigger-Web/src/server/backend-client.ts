@@ -63,12 +63,35 @@ export function failureFor(status: number, body: unknown, requestId: string | nu
   };
 }
 
+/** Statuses a student-plan call explains in its own words. */
+const EXPLAINED_STATUSES = new Set([400, 409, 413, 415, 429, 503]);
+const explainedBody = z.object({ message: z.string().min(1), code: z.string().optional() });
+
+/**
+ * Phase 21: the failure for a call that opted into `explain`: the backend's
+ * own sentence and code for the statuses above, else null (fall back to
+ * [failureFor]). The messages are written for users (AUD-06).
+ */
+export function explainedFailureFor(status: number, body: unknown): AppFailure | null {
+  if (!EXPLAINED_STATUSES.has(status)) return null;
+  const parsed = explainedBody.safeParse(body);
+  if (!parsed.success) return null;
+  return {
+    kind: "explained",
+    status,
+    message: parsed.data.message,
+    ...(parsed.data.code ? { code: parsed.data.code } : {}),
+  };
+}
+
 export type BackendCall = {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   path: `/api/${string}`;
   body?: unknown;
   /** The JobTrigger access token, for authenticated endpoints. */
   accessToken?: string;
+  /** Phase 21: show the backend's own sentence for 400/409/413/415/429/503. */
+  explain?: boolean;
 };
 
 /**
@@ -111,6 +134,8 @@ export async function callBackend<S extends z.ZodType>(
   }
 
   if (!response.ok) {
+    const explained = call.explain ? explainedFailureFor(response.status, body) : null;
+    if (explained) return fail(explained);
     const failure = failureFor(response.status, body, response.headers.get("x-request-id"));
     if (failure.kind === "server") {
       console.warn(
@@ -128,4 +153,51 @@ export async function callBackend<S extends z.ZodType>(
     return fail({ kind: "unexpected" });
   }
   return ok(parsed.data);
+}
+
+const MAX_BINARY_BYTES = 8 * 1024 * 1024;
+
+/**
+ * Phase 21: GET a file from the backend (a student document, for the admin
+ * page's server to pass on). Same headers, timeout and failure mapping as
+ * [callBackend]; the body is returned as bytes with its content type, and is
+ * never logged.
+ */
+export async function callBackendBytes(call: {
+  path: `/api/${string}`;
+  accessToken: string;
+}): Promise<Result<{ bytes: ArrayBuffer; contentType: string }>> {
+  const requestId = newRequestId();
+  let response: Response;
+  try {
+    response = await fetch(`${getConfig().backendUrl}${call.path}`, {
+      headers: { "x-request-id": requestId, "x-auth-token": call.accessToken },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+      cache: "no-store",
+    });
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "unknown";
+    console.warn(`backend: GET ${call.path} unreachable (${name}) [${requestId}]`);
+    return fail({ kind: "network" });
+  }
+  if (!response.ok) {
+    let body: unknown = null;
+    try {
+      body = await response.json();
+    } catch {
+      // Not JSON; the status decides.
+    }
+    if (response.status === 410) {
+      return fail({ kind: "explained", status: 410, message: errorMessageOf(body) });
+    }
+    return fail(failureFor(response.status, body, response.headers.get("x-request-id")));
+  }
+  const bytes = await response.arrayBuffer();
+  if (bytes.byteLength > MAX_BINARY_BYTES) return fail({ kind: "unexpected" });
+  return ok({ bytes, contentType: response.headers.get("content-type") ?? "" });
+}
+
+function errorMessageOf(body: unknown): string {
+  const parsed = errorBody.safeParse(body);
+  return parsed.success ? parsed.data.message : "That document is no longer available.";
 }

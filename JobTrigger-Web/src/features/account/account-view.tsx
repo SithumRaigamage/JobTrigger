@@ -1,4 +1,6 @@
+import type { StudentApplication } from "@/domain/student";
 import type { Subscription } from "@/domain/subscription";
+import { StudentCard } from "@/features/student/student-card";
 
 import { ChangePassword, DeleteAccount, SignOutEverywhere } from "./account-forms";
 import { deleteNotice, PlanSection } from "./plan-section";
@@ -7,11 +9,14 @@ import { deleteNotice, PlanSection } from "./plan-section";
 export function AccountView({
   email,
   subscription = null,
+  student = null,
   billingHref = null,
 }: {
   email: string;
   /** Null: billing is off or the plan couldn't be read, so no plan card. */
   subscription?: Subscription | null;
+  /** Phase 21: the student application; null hides the student card. */
+  student?: StudentApplication | null;
   /** Set when web checkout is set up (P20-83). */
   billingHref?: string | null;
 }) {
@@ -39,6 +44,7 @@ export function AccountView({
       <div className="flex flex-wrap items-start gap-5">
         <ChangePassword />
         {subscription && <PlanSection subscription={subscription} billingHref={billingHref} />}
+        {subscription && student && <StudentCard application={student} />}
         <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-5">
           <SignOutEverywhere />
           <DeleteAccount

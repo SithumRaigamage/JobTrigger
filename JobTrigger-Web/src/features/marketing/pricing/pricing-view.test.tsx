@@ -76,3 +76,19 @@ describe("PricingView", () => {
     expect(publicPaths).toContain("/pricing");
   });
 });
+
+describe("PricingView student offer (Phase 21)", () => {
+  it("is not shown while billing is off", () => {
+    render(<PricingView />);
+    expect(screen.queryByTestId("student-offer")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Students get Pro free/)).not.toBeInTheDocument();
+  });
+
+  it("says students get Pro free for one year once Pro is on sale", () => {
+    overrides.subscriptions = "live";
+    render(<PricingView />);
+    const offer = screen.getByTestId("student-offer");
+    expect(offer).toHaveTextContent("Students get Pro free for one year.");
+    expect(offer).toHaveTextContent("one free year per person");
+  });
+});

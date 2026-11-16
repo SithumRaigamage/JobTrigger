@@ -4,6 +4,7 @@ import { Card, Container, Kicker, Section } from "@/components/layout";
 import { FeatureAction } from "@/components/feature-action";
 import { StatusBadge } from "@/components/status-badge";
 import { pricingFor, type Cell } from "@/content/pricing";
+import { statusOf } from "@/content/feature-status";
 import { getRelease } from "@/content/release";
 
 import { routes } from "../site-links";
@@ -23,6 +24,8 @@ function CellText({ cell }: { cell: Cell }) {
 export function PricingView() {
   // Worded for the tools this release ships (release/tools.json).
   const { plans, comparison, promises: pricingPromises } = pricingFor(getRelease());
+  // Phase 21: the student offer is only real while Pro is on sale, i.e. billing is on.
+  const studentOffer = statusOf("subscriptions") === "live";
   return (
     <main id="content" tabIndex={-1} className="flex-1">
       <Section className="py-16">
@@ -120,6 +123,17 @@ export function PricingView() {
               </table>
             </div>
           </section>
+
+          {studentOffer && (
+            <p
+              data-testid="student-offer"
+              className="rounded-card border border-line bg-sunken px-5 py-4 text-fg-secondary"
+            >
+              <strong className="text-fg">Students get Pro free for one year.</strong> Verify with a
+              university email, or a student ID, in the Account section of the app or on this
+              website. It is one free year per person.
+            </p>
+          )}
 
           <ul className="flex list-disc flex-col gap-2 pl-5.5 text-fg-secondary">
             {pricingPromises.map((promise) => (

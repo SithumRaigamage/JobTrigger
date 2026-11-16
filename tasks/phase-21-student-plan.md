@@ -110,12 +110,12 @@ These fit inside the decisions above; they are how to build them safely.
       read-only. Privacy manifest and store answers cover the uploaded document.
 
 ### SP-5 Website
-- [ ] SP-50 The same verify flow on the Account page, with the same client-side
+- [x] SP-50 The same verify flow on the Account page, with the same client-side
       size and type checks.
-- [ ] SP-51 `/admin/students`: pending queue, document viewer, approve and
+- [x] SP-51 `/admin/students`: pending queue, document viewer, approve and
       reject, search by user. Non-admins get a 404.
-- [ ] SP-52 `/pricing`: "Students get Pro free for one year" (billing on only).
-- [ ] SP-53 Privacy policy: student verification data, the 30-day deletion and
+- [x] SP-52 `/pricing`: "Students get Pro free for one year" (billing on only).
+- [x] SP-53 Privacy policy: student verification data, the 30-day deletion and
       the kept hashes.
 
 ### SP-6 Reminders and expiry

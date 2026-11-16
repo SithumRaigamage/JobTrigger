@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
   // Dockerfile sets NEXT_STANDALONE=1. `next start` and Vercel use the
   // regular output, and `next start` refuses to serve a standalone build.
   ...(process.env.NEXT_STANDALONE === "1" ? { output: "standalone" as const } : {}),
+  // Phase 21: a student document (up to 5 MB) is posted to a server action as
+  // form data, which Next caps at 1 MB by default.
+  experimental: { serverActions: { bodySizeLimit: "8mb" } },
   turbopack: {
     // End-to-end builds only (playwright.config.ts): the specs add GitHub and
     // SonarQube servers, which release 1.0's manifest hides, so they build
