@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { getPaddleConfig, isBillingPath } from "./billing/paddle-config";
 import { reportingOrigin } from "./error-reporting/config";
 import {
   contentSecurityPolicy,
@@ -8,6 +9,11 @@ import {
   isProtectedPath,
 } from "./security-headers";
 import { upkeepSession } from "./session-upkeep";
+
+function paddleCsp() {
+  const config = getPaddleConfig();
+  return config ? { environment: config.environment } : null;
+}
 
 /**
  * Per-request headers, plus session upkeep on portal paths. Sets the CSP
@@ -44,6 +50,9 @@ export async function proxy(request: NextRequest) {
     nonce,
     process.env.NODE_ENV === "development",
     reportingOrigin(process.env.NEXT_PUBLIC_SENTRY_DSN),
+    // P20-83: Paddle.js is allowed on the billing page and nowhere else,
+    // and only when web checkout is configured.
+    isBillingPath(pathname) ? paddleCsp() : null,
   );
 
   // Next.js reads the nonce from the request's CSP header while rendering

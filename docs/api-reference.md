@@ -89,7 +89,7 @@ never does:
 
 | Path | Method | Auth | Response | Notes |
 |---|---|---|---|---|
-| `/api/credentials/:id/secret` | GET | `x-auth-token` | `{ password, paramToken, needsReentry, version }` | Owner only: another user's id is **404**. `Cache-Control: no-store`. 30 per **user** per 10 min (`CREDENTIAL_SECRET_RATE_LIMIT`), then **429**. A locked credential: **403** `PLAN_LIMIT`, `limit: "locked"` |
+| `/api/credentials/:id/secret` | GET | `x-auth-token` | `{ password, paramToken, needsReentry, version }` | Owner only: another user's id is **404**. `Cache-Control: no-store`. 30 per **user** per 10 min (`CREDENTIAL_SECRET_RATE_LIMIT`), then **429**. Called by the app, and by the website's reveal button (`revealSecret`, only when the owner asks). A locked credential: **403** `PLAN_LIMIT`, `limit: "locked"` |
 | `/api/github-credentials/:id/secret` | GET | `x-auth-token` | `{ token, needsReentry, version }` | Same rules |
 | `/api/sonarqube-credentials/:id/secret` | GET | `x-auth-token` | `{ token, needsReentry, version }` | Same rules |
 

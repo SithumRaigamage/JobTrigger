@@ -8,6 +8,26 @@
 
 type Header = { key: string; value: string };
 
+/**
+ * P20-83: what Paddle.js needs, for the billing page only. Only the
+ * environment in use is allowed, so a production page never trusts the
+ * sandbox hosts. Nothing here loosens style-src or adds 'unsafe-inline';
+ * the script is loaded with the page's nonce and 'strict-dynamic' lets it
+ * load what it needs.
+ */
+export type PaddleCsp = { environment: "sandbox" | "production" };
+
+const paddleHosts = {
+  production: {
+    connect: "https://checkout-service.paddle.com",
+    frame: "https://buy.paddle.com",
+  },
+  sandbox: {
+    connect: "https://sandbox-checkout-service.paddle.com",
+    frame: "https://sandbox-buy.paddle.com",
+  },
+} as const;
+
 /** Paths whose responses must never be cached (US-WEB-11: `no-store`). */
 export const NO_STORE_PATH_PREFIXES = [
   "/sign-in",
@@ -48,14 +68,18 @@ export function contentSecurityPolicy(
   isDev: boolean,
   /** E3: where crash reports are sent (the DSN's origin), if reporting is on. */
   reportingOrigin: string | null = null,
+  /** Set on the billing page only; every other page gets the strict policy. */
+  paddle: PaddleCsp | null = null,
 ): string {
+  const hosts = paddle ? paddleHosts[paddle.environment] : null;
   const directives = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${hosts ? " https://cdn.paddle.com" : ""}${isDev ? " 'unsafe-eval'" : ""}`,
     `style-src 'self' 'nonce-${nonce}'`,
     "img-src 'self' data: blob:",
     "font-src 'self'",
-    `connect-src 'self'${reportingOrigin ? ` ${reportingOrigin}` : ""}`,
+    `connect-src 'self'${reportingOrigin ? ` ${reportingOrigin}` : ""}${hosts ? ` ${hosts.connect}` : ""}`,
+    ...(hosts ? [`frame-src ${hosts.frame}`] : []),
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Card } from "@/components/layout";
 import type { Subscription } from "@/domain/subscription";
 
@@ -87,7 +89,14 @@ function limitText(value: number | null, unit: string): string {
 }
 
 /** The plan card. */
-export function PlanSection({ subscription }: { subscription: Subscription }) {
+export function PlanSection({
+  subscription,
+  billingHref = null,
+}: {
+  subscription: Subscription;
+  /** The billing page, when web checkout is set up (P20-83); else null. */
+  billingHref?: string | null;
+}) {
   const instructions = manageInstructions(subscription);
   const { limits, features } = subscription;
   return (
@@ -108,6 +117,11 @@ export function PlanSection({ subscription }: { subscription: Subscription }) {
       {instructions && <p className="text-sm text-muted">{instructions}</p>}
       {subscription.plan === "free" && (
         <p className="text-sm text-muted">Pro is bought in the JobTrigger app.</p>
+      )}
+      {billingHref && (
+        <p className="text-sm">
+          <Link href={billingHref}>Billing</Link>
+        </p>
       )}
     </Card>
   );
