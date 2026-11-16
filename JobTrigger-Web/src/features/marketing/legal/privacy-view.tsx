@@ -185,7 +185,9 @@ export function PrivacyView() {
         <p>
           We email you only about your account, such as a password reset link you asked for. A
           password is reset on this website: the link opens it, works once and expires after 15
-          minutes. We don&apos;t send marketing email.
+          minutes. If you use the student plan, we also send the code that confirms your university
+          email, and one reminder to your account email in the last 7 days of your free year. We
+          don&apos;t send marketing email.
         </p>
       </LegalSection>
 

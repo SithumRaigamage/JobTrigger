@@ -159,4 +159,10 @@ describe("student verification in the privacy policy (Phase 21)", () => {
     expect(document.getElementById("delete")).toHaveTextContent("any student application");
     expect(document.getElementById("delete")).toHaveTextContent("Only the one-way");
   });
+
+  it("mentions the code and the one reminder email under Email", () => {
+    render(<PrivacyView />);
+    expect(document.getElementById("email")).toHaveTextContent("one reminder");
+    expect(document.getElementById("email")).toHaveTextContent("last 7 days");
+  });
 });

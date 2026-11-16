@@ -10,6 +10,7 @@ import '../../common_widgets/grouped_card.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
+import '../student/student_expiry_notice.dart';
 import 'entitlements_notifier.dart';
 import 'paywall_notifier.dart';
 import 'store_links.dart';
@@ -61,6 +62,7 @@ class SubscriptionScreen extends ConsumerWidget {
                               style: textTheme.headlineMedium,
                             ),
                           ),
+                          const StudentExpiryBanner(),
                           const SizedBox(height: 16),
                           GroupedCard(
                             children: [
