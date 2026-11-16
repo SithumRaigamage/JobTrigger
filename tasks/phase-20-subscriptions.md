@@ -84,17 +84,17 @@ names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
 - [x] P20-22 (2026-11-16, PR A; nothing reads it until PR B/C, so no extra request yet) `EntitlementsNotifier` (keepAlive, cached in
       `user_scoped_prefs`, refreshed on sign-in / resume / purchase);
       RevenueCat `logIn`/`logOut` driven by auth state.
-- [ ] P20-23 Paywall screen + notifier (store prices, trial, auto-renew
+- [x] P20-23 (2026-11-16, PR B; store sheet and real prices unverified until RevenueCat keys exist) Paywall screen + notifier (store prices, trial, auto-renew
       text, Terms/Privacy, Restore, reason-aware headline); route
       `/paywall`.
-- [ ] P20-24 Profile → Subscription section (US-SUB-01, manage link,
+- [x] P20-24 (2026-11-16, PR B) Profile → Subscription section (US-SUB-01, manage link,
       restore); route `/profile/subscription`.
 - [ ] P20-25 Gates (technical design §4.3): add-server forms, tool
       switch, locked credential rows, background watch, widget, pinned
       jobs, insights. Each gate gets a notifier test.
-- [ ] P20-26 Delete-account dialog warns about an active store
+- [x] P20-26 (2026-11-16, PR B) Delete-account dialog warns about an active store
       subscription (US-SUB-07).
-- [ ] P20-27 `ios/Runner/PrivacyInfo.xcprivacy`, App Privacy answers and
+- [ ] P20-27 (2026-11-16: the `PrivacyInfo.xcprivacy` entries and App Store answers were done in PR B; Play Data safety text is in `release-checklist.md`; entering the answers in the stores is an owner action) `ios/Runner/PrivacyInfo.xcprivacy`, App Privacy answers and
       Play Data safety updated for purchases.
 
 ## E. Website
@@ -202,7 +202,7 @@ the app and site see the same Pro.
 - [ ] P20-83 Website: `/pricing`, account billing page (plan, Upgrade →
       Paddle.js overlay, Manage → portal), CSP allowance for Paddle on
       the billing page only, zod-parsed BFF calls.
-- [ ] P20-84 App: show a web subscription as Pro and hide the store
+- [x] P20-84 (2026-11-16, PR B) App: show a web subscription as Pro and hide the store
       purchase for it (with P20-23/24).
 - [ ] P20-85 Owner: Paddle sandbox account, Pro product with monthly and
       yearly prices, default payment link domain approved, notification

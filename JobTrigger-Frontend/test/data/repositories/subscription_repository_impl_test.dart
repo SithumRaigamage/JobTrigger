@@ -87,28 +87,32 @@ void main() {
     expect(adapter.paths, ['POST /api/subscription/refresh']);
   });
 
-  test('a failed load maps to an AppFailure and leaves the cache alone',
-      () async {
-    final good = _repo(_Adapter(200, _proBody), FakeBillingClient());
-    await good.load();
+  test(
+    'a failed load maps to an AppFailure and leaves the cache alone',
+    () async {
+      final good = _repo(_Adapter(200, _proBody), FakeBillingClient());
+      await good.load();
 
-    final result = await _repo(
-      _Adapter(500, {'message': 'x'}),
-      FakeBillingClient(),
-    ).load();
+      final result = await _repo(
+        _Adapter(500, {'message': 'x'}),
+        FakeBillingClient(),
+      ).load();
 
-    expect((result as Err).error, isA<ServerFailure>());
-    expect((await good.cached())!.entitlements.plan, Plan.pro);
-  });
+      expect((result as Err).error, isA<ServerFailure>());
+      expect((await good.cached())!.entitlements.plan, Plan.pro);
+    },
+  );
 
-  test('a body that is not the expected shape is an UnexpectedResponse',
-      () async {
-    final result = await _repo(
-      _Adapter(200, {'unexpected': true}),
-      FakeBillingClient(),
-    ).load();
-    expect((result as Err).error, isA<UnexpectedResponseFailure>());
-  });
+  test(
+    'a body that is not the expected shape is an UnexpectedResponse',
+    () async {
+      final result = await _repo(
+        _Adapter(200, {'unexpected': true}),
+        FakeBillingClient(),
+      ).load();
+      expect((result as Err).error, isA<UnexpectedResponseFailure>());
+    },
+  );
 
   test('a cancelled store sheet is PurchaseCancelled; other errors are '
       'UnknownFailure', () async {
@@ -121,7 +125,10 @@ void main() {
     );
 
     billing.purchaseError = const BillingCancelled();
-    expect(((await repo.purchase(offer)) as Err).error, isA<PurchaseCancelled>());
+    expect(
+      ((await repo.purchase(offer)) as Err).error,
+      isA<PurchaseCancelled>(),
+    );
 
     billing.purchaseError = const BillingException('boom');
     expect(((await repo.restore()) as Err).error, isA<UnknownFailure>());

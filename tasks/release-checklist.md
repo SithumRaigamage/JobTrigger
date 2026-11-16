@@ -73,14 +73,16 @@ tracking domains).
 | User Content → Other User Content (saved server names, URLs, usernames, encrypted tokens) | Yes | Yes | No | App Functionality |
 | Diagnostics → Crash Data | Yes (opt-out in Profile) | No | No | App Functionality |
 | Diagnostics → Other Diagnostic Data (device model and OS version sent with a report) | Yes (same switch) | No | No | App Functionality |
+| Purchases → Purchase History (JobTrigger Pro subscription, via RevenueCat) | Yes, only in builds with billing keys | Yes | No | App Functionality |
+| Identifiers → User ID (the JobTrigger account id RevenueCat is logged in with) | Yes, same | Yes | No | App Functionality |
 | Diagnostics → Performance Data | No (tracing is off) | n/a | n/a | n/a |
 
 Decided 2026-11-16: the app manifest declares Crash Data and Other
 Diagnostic Data (not linked, app functionality), matching this table and
 `/privacy`. Performance Data is not collected (`tracesSampleRate = 0`).
-Still open: when Phase 20 ships purchases
-(RevenueCat), add Purchases → Purchase History and Identifiers → User ID,
-and update `/privacy`; neither is needed while billing is off.
+Phase 20 (PE-06 follow-up, 2026-11-16): the manifest and the two
+Purchases / Identifiers rows above now cover RevenueCat. `/privacy` still
+needs a RevenueCat paragraph (P20-34, website PR).
 
 Required-reason APIs: the app declares UserDefaults CA92.1 + 1C8F.1
 (`home_widget` shares data through the App Group and ships no manifest),
@@ -89,8 +91,8 @@ FileTimestamp C617.1 and SystemBootTime 35F9.1. Sentry, Flutter,
 widget extension ship manifests with reasons the app already covers. Re-run
 this check whenever a plugin is added.
 
-Google Play Data safety: Email address and Other user content (collected,
-linked, app functionality); Crash logs and Diagnostics (collected, optional,
+Google Play Data safety: Email address, User IDs, Purchase history and Other
+user content (collected, linked, app functionality); Crash logs and Diagnostics (collected, optional,
 not linked); no data shared with third parties; data encrypted in transit;
 account deletion available in the app and on the website.
 

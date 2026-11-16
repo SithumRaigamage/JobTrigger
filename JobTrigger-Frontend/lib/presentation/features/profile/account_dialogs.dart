@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../domain/auth/auth_validation.dart';
 import '../../common_widgets/inline_alert.dart';
@@ -43,11 +44,28 @@ Future<bool> showChangePasswordDialog(
     ) ??
     false;
 
+/// US-SUB-07: shown in the delete dialog when the account has a store
+/// subscription that will renew. Deleting the account does not cancel it.
+class StoreSubscriptionNotice {
+  const StoreSubscriptionNotice({
+    required this.storeName,
+    required this.onManage,
+  });
+
+  /// "App Store" or "Google Play".
+  final String storeName;
+
+  /// Opens the store's page for managing subscriptions.
+  final VoidCallback onManage;
+}
+
 /// AUD-48: "Delete account" — permanent, so it asks for the password. True
-/// when the account was deleted.
+/// when the account was deleted. With [storeSubscription], also warns that
+/// the subscription keeps billing until cancelled in the store.
 Future<bool> showDeleteAccountDialog(
   BuildContext context, {
   required AccountAction onSubmit,
+  StoreSubscriptionNotice? storeSubscription,
 }) async =>
     await showDialog<bool>(
       context: context,
@@ -62,6 +80,7 @@ Future<bool> showDeleteAccountDialog(
         confirmLabel: 'Delete',
         destructive: true,
         onSubmit: onSubmit,
+        storeSubscription: storeSubscription,
       ),
     ) ??
     false;
@@ -75,7 +94,10 @@ class _PasswordFormDialog extends StatefulWidget {
     required this.confirmLabel,
     required this.destructive,
     required this.onSubmit,
+    this.storeSubscription,
   });
+
+  final StoreSubscriptionNotice? storeSubscription;
 
   final String title;
   final String message;
@@ -146,6 +168,28 @@ class _PasswordFormDialogState extends State<_PasswordFormDialog> {
                 widget.message,
                 style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
               ),
+              if (widget.storeSubscription case final notice?)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      InlineAlert(
+                        message:
+                            'Your JobTrigger Pro subscription is billed by '
+                            'the ${notice.storeName} and keeps renewing '
+                            'after the account is deleted. Cancel it in '
+                            'the ${notice.storeName} first.',
+                        icon: Icons.warning_amber_rounded,
+                        tone: StatusTone.unstable,
+                      ),
+                      TextButton(
+                        onPressed: notice.onManage,
+                        child: const Text('Manage subscription'),
+                      ),
+                    ],
+                  ),
+                ),
               for (final (i, label) in widget.labels.indexed)
                 Padding(
                   padding: const EdgeInsets.only(top: 16),

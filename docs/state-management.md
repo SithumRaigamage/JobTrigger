@@ -259,3 +259,7 @@ quiet until Retry.
 | `billingSessionProvider` | keepAlive side effect | `logIn(userId)` / `logOut()` on the purchase SDK as the auth state changes. No-op without an SDK key or in demo mode. |
 | `billingClientProvider` | keepAlive | `RevenueCatBillingClient` when the build has a key for the platform, else `NoBillingClient`. |
 | `subscriptionRepositoryProvider` | repository | Backend calls plus the billing client; caches the last answer in `shared_preferences` (`subscription_cache`, cleared on sign-out). |
+| `billingAvailableProvider` | derived `bool`, keepAlive | True only with an SDK key for the platform **and** `billingEnabled` from the backend **and** not demo mode. Gates the Profile "Subscription" row and the `/paywall` and `/profile/subscription` routes (the router redirects them to Home otherwise). |
+| `paywallNotifierProvider` | `AsyncNotifier<PaywallState>` (no retry) | The store's offers; `purchase()` and `restore()` return a `PaywallOutcome`. A closed store sheet is `PaywallCancelled`, which the screen shows as nothing. After a purchase or restore it calls `POST /api/subscription/refresh` and hands the answer to `EntitlementsNotifier.apply`. |
+
+A subscription bought on the website (`source: web`) is shown as Pro. The app offers no purchase for it and never links to web checkout.
