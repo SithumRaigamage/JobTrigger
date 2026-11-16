@@ -43,6 +43,12 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 - **[Subscription plan — 2026-11-12](./subscription/README.md)** — Workspace analysis, Free/Pro business model, technical design (backend plan checks, RevenueCat, app gates, website), stories (epic SUB) and Phase 20 tasks. Waiting for owner approval
 - **[Improvement plan — 2026-11-14](./improvement-plan.md)** — What's built (checked against the code), what's planned, the pre-release emergency fixes (`tasks/phase-emergency.md`), next release and later
 
+## 🧭 Roadmap proposals (not promoted)
+
+- **[Future tools — 2026-11-16](./future-tools.md)** — Numbered catalogue of 164 tools (`T-001`…`T-164`): every epic doc, the backlog list and about 95 newly listed tools (deploy, mobile, security, testing, flags, incidents, data pipelines); proposed release order after SonarQube; tools not to add
+- **[Product improvements — 2026-11-16](./product-improvements.md)** — 156 improvements beyond new CI/CD tools (`IMP-01`…`IMP-156`): everyday use, alerts, logs, security, firewalled servers, platforms, accessibility, insights, AI, website, backend
+- **[Community plan — 2026-11-16](./community-plan.md)** — 157 community ideas beyond the student plan (`COM-01`…`COM-157`): fair access, learning, meetups, open source, feedback, trust, partnerships
+
 ## 📦 Release
 
 - **[Deployment](./deployment.md)** — App Store / Play Store submission process, CI/CD tooling options, what's blocked on store accounts vs. code

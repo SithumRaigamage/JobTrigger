@@ -127,3 +127,8 @@ release:
 - Multi-account support (`tasks/backlog.md`).
 - New tools, each from its epic doc: GitLab CI, CircleCI, Azure DevOps,
   Argo CD, Bitrise, Codemagic.
+
+More proposals (2026-11-16, none promoted): 164 tools and their order in
+`docs/future-tools.md` (T-001…164), product improvements in
+`docs/product-improvements.md` (IMP-01…156), community ideas in
+`docs/community-plan.md` (COM-01…157).

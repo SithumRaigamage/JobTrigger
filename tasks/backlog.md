@@ -43,6 +43,38 @@ Phase 0–6 task without first moving the item here into an actual phase file
     Connect, Google Play Console, Firebase App Distribution.
   - *Monitoring and incidents:* Datadog, Grafana, Prometheus /
     Alertmanager, PagerDuty, Sentry.
+  - *Added 2026-11-16* (details, release order and tools not to add:
+    `docs/future-tools.md`):
+    - *Deploy and hosting:* Vercel, Netlify, Render, Railway, Fly.io,
+      Heroku, Cloudflare Pages / Workers Builds, DigitalOcean App
+      Platform, AWS Amplify Hosting, Coolify, Dokploy.
+    - *Mobile:* Expo EAS, Appcircle, Firebase Test Lab.
+    - *Security:* OWASP Dependency-Track, DefectDojo, Semgrep AppSec
+      Platform, GitHub code scanning / secret scanning, Trivy Operator.
+    - *Testing services:* BrowserStack, Sauce Labs, Cypress Cloud,
+      Allure TestOps / ReportPortal.
+    - *Feature flags:* LaunchDarkly, Unleash, Flagsmith, GrowthBook.
+    - *Uptime and incidents:* GlitchTip, Uptime Kuma, UptimeRobot,
+      Better Stack, incident.io, Atlassian Statuspage, New Relic.
+    - *Issue tracking (build actions):* Jira, Linear, GitHub Issues.
+    - *Data and ML pipelines:* Apache Airflow, Dagster+, Prefect Cloud,
+      Kubeflow Pipelines.
+    - *Registries and platform:* AWS ECR, Google Artifact Registry,
+      Quay.io, Backstage.
+    - *Workflow automation:* n8n.
+    - *Second batch:* AppVeyor, Buddy, Dagger Cloud, Depot, Gradle
+      Develocity, BuildBuddy, Nx Cloud, Unity Build Automation, Google
+      Cloud Run, Google Cloud Deploy, AWS CloudFormation, AWS Elastic
+      Beanstalk, Firebase Hosting, Kargo, Flagger, Statsig, ConfigCat,
+      PostHog, Mend, Aikido Security, Socket, JFrog Xray, Wiz, Cortex
+      Cloud, HashiCorp Vault (health only), Infisical (sync status only),
+      Cloudsmith, Azure Container Registry, Chromatic, Percy, LambdaTest,
+      Currents, Grafana Cloud k6, Lighthouse CI server, Splunk On-Call,
+      Grafana Cloud IRM, Dynatrace, Honeycomb, Elastic Observability,
+      Zabbix, Checkly, Healthchecks.io, Cronitor, Jira Service
+      Management, ServiceNow change approvals, dbt Cloud, Databricks
+      Jobs, Temporal Cloud, Weights & Biases.
+    - Full numbered catalogue of all 164 tools: `docs/future-tools.md` §7.
 - Push notifications for build completion/failure. *(Local, on-device
   notifications promoted 2026-09-29 → `phase-11-jenkins-extended.md`
   P11-24 / US-JX-10; true server push remains here.)*

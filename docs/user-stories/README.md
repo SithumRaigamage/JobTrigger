@@ -56,6 +56,9 @@ to the same file, just at a new path.
 | `bitrise/` | [21-bitrise.md](bitrise/21-bitrise.md) | BR | Mobile CI (docs-only, **proposed 2026-11-14, not promoted**): apps/builds, trigger/abort/rebuild, build log, install artifacts on the phone |
 | `codemagic/` | [22-codemagic.md](codemagic/22-codemagic.md) | CM | Flutter/mobile CI (docs-only, **proposed 2026-11-14, not promoted**): apps/builds, start/cancel/rebuild, steps and logs, artifacts |
 
+Tools without an epic doc yet, and a proposed release order, are in
+[`docs/future-tools.md`](../future-tools.md) (2026-11-16).
+
 ## Story ID convention
 
 `US-<EPIC>-##`, e.g. `US-AUTH-01`. Epic codes: `AUTH`, `TOOL`, `CRED`,
