@@ -75,11 +75,10 @@ tracking domains).
 | Diagnostics → Other Diagnostic Data (device model and OS version sent with a report) | Yes (same switch) | No | No | App Functionality |
 | Diagnostics → Performance Data | No (tracing is off) | n/a | n/a | n/a |
 
-Owner decisions: (1) the app manifest declares Crash Data only, while the
-Sentry SDK's own manifest also lists Performance Data and Other Diagnostic
-Data. Performance Data is not collected (`tracesSampleRate = 0`); Other
-Diagnostic Data is, because the policy says reports hold "the type of
-phone", so the label above includes it. (2) When Phase 20 ships purchases
+Decided 2026-11-16: the app manifest declares Crash Data and Other
+Diagnostic Data (not linked, app functionality), matching this table and
+`/privacy`. Performance Data is not collected (`tracesSampleRate = 0`).
+Still open: when Phase 20 ships purchases
 (RevenueCat), add Purchases → Purchase History and Identifiers → User ID,
 and update `/privacy`; neither is needed while billing is off.
 
@@ -125,6 +124,6 @@ store's own fields, never into this repository.
       password in App Store Connect. Needed before store submission.
 - [ ] **Owner:** add one line to each store description: "Try the in-app demo
       without an account or a server." (PE-17).
-- [ ] **On the iPhone** (unverified until run): sign-in → **Try the demo** →
+- [x] **On the iPhone** (verified by the owner 2026-11-16): sign-in → **Try the demo** →
       the walkthrough above, then **Exit demo**. See `phase-emergency.md` E2
       "Verify".
