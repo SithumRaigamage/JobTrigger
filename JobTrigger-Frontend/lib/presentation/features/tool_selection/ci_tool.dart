@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:simple_icons/simple_icons.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../domain/tools/tool_catalog.dart';
 
 /// Ported from `Tools/ToolSelection/CITool.swift`. Static — no notifier per
 /// `docs/state-management.md`'s "Feature: tool_selection" section.
@@ -45,11 +46,37 @@ extension CiToolX on CiTool {
     CiTool.circleci => AppColors.ciToolCircleci,
   };
 
-  /// Jenkins, GitHub Actions (`Phase 8`) and SonarQube (`Phase 10`, from
-  /// SQ-PROJ) are available. The others aren't built, so the tool-selection
-  /// screen doesn't show them (see `tasks/backlog.md`'s "More CI/CD tools").
-  bool get isAvailable =>
+  /// The id this tool has in `release/tools.json` (the enum name).
+  String get manifestId => name;
+
+  /// Tools with code in this app. GitLab CI and CircleCI are planned only:
+  /// even a manifest that releases them can't make them selectable.
+  bool get isImplemented =>
       this == CiTool.jenkins ||
       this == CiTool.githubActions ||
       this == CiTool.sonarqube;
+
+  /// Built *and* released in this build's manifest. Everything that offers
+  /// a tool (selection, Settings, deep links, the plan gates) asks this.
+  bool get isAvailable =>
+      isImplemented && ToolCatalog.current.isReleased(manifestId);
+
+  /// The release it ships in, for the "Coming next" label (e.g. `1.1`).
+  String? get releaseVersion => ToolCatalog.current.versionOf(manifestId);
+
+  /// The two-letter mark on a "Coming next" tile.
+  String get shortLabel => switch (this) {
+    CiTool.jenkins => 'J',
+    CiTool.githubActions => 'G',
+    CiTool.gitlab => 'GL',
+    CiTool.sonarqube => 'SQ',
+    CiTool.circleci => 'CC',
+  };
 }
+
+/// The tools shown as "Coming next": in the manifest, not released yet,
+/// soonest release first.
+List<CiTool> get comingNextTools => [
+  for (final id in ToolCatalog.current.comingNext)
+    ?CiTool.values.where((tool) => tool.name == id).firstOrNull,
+];

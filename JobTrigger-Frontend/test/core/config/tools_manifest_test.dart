@@ -9,7 +9,18 @@ void main() {
   test('config/tools.json is byte-identical to release/tools.json', () {
     final source = File('../release/tools.json');
     final copy = File('config/tools.json');
-    expect(source.existsSync(), isTrue, reason: 'run from JobTrigger-Frontend/');
+    expect(
+      source.existsSync(),
+      isTrue,
+      reason: 'run from JobTrigger-Frontend/',
+    );
     expect(copy.readAsStringSync(), source.readAsStringSync());
+  });
+
+  test('the manifest is bundled as an asset, so a release build reads it', () {
+    expect(
+      File('pubspec.yaml').readAsStringSync(),
+      contains('- config/tools.json'),
+    );
   });
 }

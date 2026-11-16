@@ -74,9 +74,16 @@ class SettingsScreen extends ConsumerWidget {
     // each section to the tool it's actually for; `null` (pre-selection)
     // falls back to Jenkins, matching this app's other "Jenkins is the
     // default" conventions (e.g. `CiTool.isAvailable`'s ordering).
-    final activeTool = ref.watch(activeToolNotifierProvider);
+    // A tool this build doesn't offer shows no section; whatever is saved
+    // for it stays stored (release/tools.json is the one answer).
+    final selectedTool = ref.watch(activeToolNotifierProvider);
+    final activeTool = selectedTool != null && selectedTool.isAvailable
+        ? selectedTool
+        : null;
     final showJenkinsSection =
-        activeTool != CiTool.githubActions && activeTool != CiTool.sonarqube;
+        CiTool.jenkins.isAvailable &&
+        activeTool != CiTool.githubActions &&
+        activeTool != CiTool.sonarqube;
     final showGitHubSection = activeTool == CiTool.githubActions;
     final showSonarQubeSection = activeTool == CiTool.sonarqube;
 
