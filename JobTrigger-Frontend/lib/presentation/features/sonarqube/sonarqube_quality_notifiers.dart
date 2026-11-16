@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
 import '../../../data/repositories/sonarqube_repository_impl.dart';
+import '../../../domain/sonarqube/sonarqube_branch_ref.dart';
 import '../../../domain/sonarqube/sonarqube_quality_gate.dart';
 
 part 'sonarqube_quality_notifiers.g.dart';
@@ -33,4 +34,16 @@ class SonarQubeMeasuresNotifier extends _$SonarQubeMeasuresNotifier {
   }
 
   Future<void> refresh() async => ref.invalidateSelf();
+}
+
+/// The branch and pull-request choices for a project (`US-SQ-QUALITY-10`).
+@riverpod
+Future<SonarQubeRefChoices> sonarQubeProjectRefs(
+  Ref ref,
+  String projectKey,
+) async {
+  final result = await ref
+      .watch(sonarQubeRepositoryProvider)
+      .fetchProjectRefs(projectKey);
+  return result.fold((choices) => choices, (failure) => throw failure);
 }

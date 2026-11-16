@@ -6,6 +6,7 @@ import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../domain/sonarqube/sonarqube_analysis.dart';
 import '../../domain/sonarqube/sonarqube_analysis_status.dart';
+import '../../domain/sonarqube/sonarqube_branch_ref.dart';
 import '../../domain/sonarqube/sonarqube_hotspot.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
 import '../../domain/sonarqube/sonarqube_issue_grouping.dart';
@@ -471,6 +472,30 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
       if (delta != null) deltas.add(delta);
     }
     return deltas;
+  }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeRefChoices, AppFailure>> fetchProjectRefs(
+    String projectKey,
+  ) => guardRequest(() async {
+    // A Community Build has no such endpoints; a missing list is simply no
+    // choice, which is how the picker stays hidden there.
+    Future<Object?> list(String path) async {
+      try {
+        final response = await _dio.get<Map<String, dynamic>>(
+          path,
+          queryParameters: {'project': projectKey},
+        );
+        return response.data;
+      } on DioException {
+        return null;
+      }
+    }
+
+    return parseSonarQubeRefs(
+      branches: await list('/api/project_branches/list'),
+      pullRequests: await list('/api/project_pull_requests/list'),
+    );
   }, recover: _projectRecover);
 
   @override

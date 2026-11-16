@@ -352,7 +352,7 @@ the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
       **Not verified:** the story itself says it needs a real device and a
       real analysis — an actual gate failure arriving as a notification, and
       iOS's background scheduling, are the owner's check.
-- [ ] P10-20 **Batch 3: deeper project views.** *Started 2026-11-17 with
+- [x] P10-20 **Batch 3: deeper project views.** *Started 2026-11-17 with
       `US-SQ-HOTSPOT-01` (built: hotspots list + inline rule/code detail,
       `api/hotspots/search` / `hotspots/show`). Still open in this batch:
       `US-SQ-QUALITY-11` (trends, custom painter, no dependency),

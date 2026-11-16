@@ -1,6 +1,7 @@
 import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
 import 'sonarqube_analysis.dart';
+import 'sonarqube_branch_ref.dart';
 import 'sonarqube_analysis_status.dart';
 import 'sonarqube_hotspot.dart';
 import 'sonarqube_issue.dart';
@@ -99,6 +100,13 @@ abstract class SonarQubeRepository {
     String projectKey, {
     List<String> metricKeys = sonarQubeMeasureKeys,
   });
+
+  /// `api/project_branches/list` plus `api/project_pull_requests/list`
+  /// (`US-SQ-QUALITY-10`): everything analysed except the main branch, empty
+  /// on editions that only analyse main.
+  Future<Result<SonarQubeRefChoices, AppFailure>> fetchProjectRefs(
+    String projectKey,
+  );
 
   /// `GET api/measures/component_tree` (`US-SQ-QUALITY-12`): the ten files
   /// worst for [metric], file level, sorted on the server.

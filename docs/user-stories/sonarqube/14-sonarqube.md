@@ -722,7 +722,7 @@ Read-only depth for one project. Independent of each other; any can be taken alo
 ### US-SQ-QUALITY-10 — Branch and pull request picker
 
 **Batch:** 3 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-20)
 **Dependencies:** US-SQ-QUALITY-02
 
 As a user
@@ -740,6 +740,18 @@ So that I can check a change before it merges
 **Notes**
 - **Edition-dependent**: SonarQube Community Build may only analyse the main branch; branches and pull requests need an edition that supports them. Hide the picker rather than show a dead one.
 - Every project call then carries a `branch` or `pullRequest` parameter.
+- **Built 2026-11-17:** choices come from both `api/project_branches/list`
+  and `api/project_pull_requests/list` (main excluded, malformed entries
+  skipped); a server where either call fails simply offers no choices and
+  the picker stays hidden. The selection is one `SonarQubeBranchRef` state;
+  the SonarQube `Dio` is rebuilt with it, and an interceptor adds `branch=`
+  or `pullRequest=` to the project-scoped endpoints only (gate, measures,
+  measures history, component tree, issues, hotspots, analyses, ce/component),
+  never to the branch or PR listings themselves. So one tap reloads the gate,
+  measures, issues, hotspots, trends and worst files for that ref, since
+  every notifier already watches the repository. Main branch adds no
+  parameter at all. Not verified against an edition that serves branches or
+  pull requests.
 
 ### US-SQ-HOTSPOT-01 — Security hotspots
 

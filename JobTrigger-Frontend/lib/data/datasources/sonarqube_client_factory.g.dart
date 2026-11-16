@@ -60,4 +60,73 @@ final class SonarQubeClientProvider extends $FunctionalProvider<Dio, Dio, Dio>
   }
 }
 
-String _$sonarQubeClientHash() => r'e8ffc50b852dbf98bafd96c4349d0927a43e356d';
+String _$sonarQubeClientHash() => r'224474d1b69f159bb8457d044537b9a729ddd4d6';
+
+/// The branch or pull request every project view reads (`US-SQ-QUALITY-10`).
+/// The SonarQube client watches it, so choosing another ref rebuilds the
+/// repositories and every screen reloads through its own notifier.
+
+@ProviderFor(SonarQubeBranchRefNotifier)
+final sonarQubeBranchRefNotifierProvider =
+    SonarQubeBranchRefNotifierProvider._();
+
+/// The branch or pull request every project view reads (`US-SQ-QUALITY-10`).
+/// The SonarQube client watches it, so choosing another ref rebuilds the
+/// repositories and every screen reloads through its own notifier.
+final class SonarQubeBranchRefNotifierProvider
+    extends $NotifierProvider<SonarQubeBranchRefNotifier, SonarQubeBranchRef> {
+  /// The branch or pull request every project view reads (`US-SQ-QUALITY-10`).
+  /// The SonarQube client watches it, so choosing another ref rebuilds the
+  /// repositories and every screen reloads through its own notifier.
+  SonarQubeBranchRefNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'sonarQubeBranchRefNotifierProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$sonarQubeBranchRefNotifierHash();
+
+  @$internal
+  @override
+  SonarQubeBranchRefNotifier create() => SonarQubeBranchRefNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SonarQubeBranchRef value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SonarQubeBranchRef>(value),
+    );
+  }
+}
+
+String _$sonarQubeBranchRefNotifierHash() =>
+    r'ce0a4fcc163602db0baf9c8e49a0935bae9e9815';
+
+/// The branch or pull request every project view reads (`US-SQ-QUALITY-10`).
+/// The SonarQube client watches it, so choosing another ref rebuilds the
+/// repositories and every screen reloads through its own notifier.
+
+abstract class _$SonarQubeBranchRefNotifier
+    extends $Notifier<SonarQubeBranchRef> {
+  SonarQubeBranchRef build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<SonarQubeBranchRef, SonarQubeBranchRef>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<SonarQubeBranchRef, SonarQubeBranchRef>,
+              SonarQubeBranchRef,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

@@ -2,6 +2,7 @@ import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis_status.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_hotspot.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_branch_ref.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_history.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_worst_files.dart';
@@ -28,6 +29,10 @@ mixin SonarQubeInsightsDefaults {
   Future<Result<Map<String, String>, AppFailure>> fetchNewCodeMeasures(
     String projectKey,
   ) async => const Ok({});
+
+  Future<Result<SonarQubeRefChoices, AppFailure>> fetchProjectRefs(
+    String projectKey,
+  ) async => const Ok(SonarQubeRefChoices.none);
 
   Future<Result<SonarQubeWorstFiles, AppFailure>> fetchWorstFiles(
     String projectKey,

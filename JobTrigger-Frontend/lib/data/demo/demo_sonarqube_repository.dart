@@ -5,6 +5,7 @@ import '../../core/error/result.dart';
 import '../../domain/sonarqube/sonarqube_analysis.dart';
 import '../../domain/sonarqube/sonarqube_analysis_status.dart';
 import '../../domain/sonarqube/sonarqube_hotspot.dart';
+import '../../domain/sonarqube/sonarqube_branch_ref.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
 import '../../domain/sonarqube/sonarqube_issue_grouping.dart';
 import '../../domain/sonarqube/sonarqube_measure_history.dart';
@@ -263,6 +264,25 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
         SonarQubeMeasurePoint(date: DateTime(2026, 11, 1), value: 69.2),
         SonarQubeMeasurePoint(date: DateTime(2026, 11, 15), value: 77.8),
       ],
+    ),
+  );
+
+  @override
+  Future<Result<SonarQubeRefChoices, AppFailure>> fetchProjectRefs(
+    String projectKey,
+  ) async => Ok(
+    parseSonarQubeRefs(
+      branches: {
+        'branches': [
+          {'name': 'main', 'isMain': true},
+          {'name': 'feature/login', 'isMain': false},
+        ],
+      },
+      pullRequests: {
+        'pullRequests': [
+          {'key': '42', 'title': 'Add login'},
+        ],
+      },
     ),
   );
 

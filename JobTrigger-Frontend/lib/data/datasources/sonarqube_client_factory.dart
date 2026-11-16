@@ -6,6 +6,7 @@ import '../../core/error/app_failure.dart';
 import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../core/network/host_pinning.dart';
+import '../../domain/sonarqube/sonarqube_branch_ref.dart';
 
 part 'sonarqube_client_factory.g.dart';
 
@@ -15,7 +16,11 @@ part 'sonarqube_client_factory.g.dart';
 /// `api.github.com` base, only the token varies), SonarQube supports
 /// self-hosted instances, so the base URL is per-credential, matching
 /// `buildJenkinsDio`'s shape instead.
-Dio buildSonarQubeDio({required String baseUrl, required String? token}) {
+Dio buildSonarQubeDio({
+  required String baseUrl,
+  required String? token,
+  SonarQubeBranchRef ref = const SonarQubeBranchRef.main(),
+}) {
   final dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
@@ -33,6 +38,22 @@ Dio buildSonarQubeDio({required String baseUrl, required String? token}) {
   }
   // AUD-45: the token only ever goes to the credential's own server.
   dio.interceptors.add(hostPinningInterceptor());
+  // US-SQ-QUALITY-10: every project-scoped call carries the chosen branch or
+  // pull request. Only the endpoints that accept it are touched, so listing
+  // branches (and anything server-wide) is never given a branch parameter.
+  final queryKey = ref.queryKey;
+  if (queryKey != null) {
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          if (_refAwarePaths.any(options.path.startsWith)) {
+            options.queryParameters[queryKey] = ref.name;
+          }
+          handler.next(options);
+        },
+      ),
+    );
+  }
 
   return dio;
 }
@@ -79,5 +100,29 @@ Dio sonarQubeClient(Ref ref) {
   return buildSonarQubeDio(
     baseUrl: credential.baseUrl,
     token: credential.secret,
+    ref: ref.watch(sonarQubeBranchRefNotifierProvider),
   );
+}
+
+/// The endpoints that take `branch` / `pullRequest` (`US-SQ-QUALITY-10`).
+const _refAwarePaths = [
+  '/api/qualitygates/project_status',
+  '/api/measures/component_tree',
+  '/api/measures/component',
+  '/api/measures/search_history',
+  '/api/issues/search',
+  '/api/hotspots/search',
+  '/api/project_analyses/search',
+  '/api/ce/component',
+];
+
+/// The branch or pull request every project view reads (`US-SQ-QUALITY-10`).
+/// The SonarQube client watches it, so choosing another ref rebuilds the
+/// repositories and every screen reloads through its own notifier.
+@riverpod
+class SonarQubeBranchRefNotifier extends _$SonarQubeBranchRefNotifier {
+  @override
+  SonarQubeBranchRef build() => const SonarQubeBranchRef.main();
+
+  void set(SonarQubeBranchRef ref) => state = ref;
 }

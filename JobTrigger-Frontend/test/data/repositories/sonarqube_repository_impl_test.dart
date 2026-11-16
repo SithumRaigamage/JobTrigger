@@ -10,6 +10,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis_status.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_hotspot.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_delta.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_branch_ref.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue_grouping.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_history.dart';
@@ -63,6 +64,7 @@ void main() {
   _history();
   _worstFiles();
   _issueGrouping();
+  _branchRefs();
   group('SonarQubeRepositoryImpl.fetchProjects (US-SQ-PROJ-01)', () {
     test('parses projects, including one that was never analysed', () async {
       final adapter = _Adapter(200, {
@@ -1379,6 +1381,54 @@ void _issueGrouping() {
         (result as Ok<SonarQubeIssuePage, AppFailure>).value.groups,
         isEmpty,
       );
+    });
+  });
+}
+
+// US-SQ-QUALITY-10: the branch and pull-request choices.
+void _branchRefs() {
+  group('branch refs (US-SQ-QUALITY-10)', () {
+    test('merges branches and pull requests, main excluded', () async {
+      final adapter = _Adapter(
+        200,
+        {
+          'branches': [
+            {'name': 'main', 'isMain': true},
+          ],
+        },
+        byPath: {
+          '/api/project_branches/list': {
+            'branches': [
+              {'name': 'main', 'isMain': true},
+              {'name': 'release/2.0', 'isMain': false},
+            ],
+          },
+          '/api/project_pull_requests/list': {
+            'pullRequests': [
+              {'key': '7', 'title': 'Retry'},
+            ],
+          },
+        },
+      );
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchProjectRefs('acme:api');
+
+      final choices = (result as Ok<SonarQubeRefChoices, AppFailure>).value;
+      expect(choices.hasChoice, isTrue);
+      expect(choices.refs.map((r) => r.label), ['release/2.0', 'PR 7']);
+    });
+
+    test('a server without those endpoints offers no choice', () async {
+      final adapter = _Adapter(404, {'errors': <Object>[]});
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchProjectRefs('acme:api');
+
+      final choices = (result as Ok<SonarQubeRefChoices, AppFailure>).value;
+      expect(choices.hasChoice, isFalse);
     });
   });
 }
