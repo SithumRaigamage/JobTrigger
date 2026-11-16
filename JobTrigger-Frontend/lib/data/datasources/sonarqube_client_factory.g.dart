@@ -60,7 +60,7 @@ final class SonarQubeClientProvider extends $FunctionalProvider<Dio, Dio, Dio>
   }
 }
 
-String _$sonarQubeClientHash() => r'8a7cd4fbee4af9eaa7c5bb7ec26883bd36623605';
+String _$sonarQubeClientHash() => r'ba0f8d3dd6bd8f5e152bcfe56b89a32e6fa6867e';
 
 /// The branch or pull request each project's views read (`US-SQ-QUALITY-10`),
 /// per project: switching one project's ref leaves the others on main. The

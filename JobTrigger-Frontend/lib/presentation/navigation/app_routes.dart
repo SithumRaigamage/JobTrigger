@@ -31,6 +31,9 @@ abstract class AppRoutes {
   static const sonarqubeAnalyses = '/sonarqube/project/analyses';
   static const sonarqubeIssues = '/sonarqube/project/issues';
 
+  /// US-SQ-SERVER-01: the server's version and status.
+  static const sonarqubeServer = '/sonarqube/server';
+
   /// US-SQ-QUALITY-12: a project's worst files for a measure.
   static const sonarqubeWorstFiles = '/sonarqube/project/worst-files';
 

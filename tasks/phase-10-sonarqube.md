@@ -364,10 +364,11 @@ the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
       painter or a flagged dependency**), `US-SQ-QUALITY-12`,
       `US-SQ-QUALITY-13`, `US-SQ-ISSUES-02`. Read-only; any can be taken
       alone.
-- [ ] P10-21 **Batch 4: across projects and the server.**
-      `US-SQ-ISSUES-03` (search issues), `US-SQ-SERVER-01` (version and
-      status), `US-SQ-OVERVIEW-02` (failing-projects trend, from the app's
-      own device-side snapshots). Read-only.
+- [ ] P10-21 **Batch 4: across projects and the server.** *Started
+      2026-11-17 with `US-SQ-SERVER-01` (version + status screen, built).
+      Still open: `US-SQ-ISSUES-03` (search issues across projects) and
+      `US-SQ-OVERVIEW-02` (failing-projects trend from device-side
+      snapshots). Read-only.*
 - [ ] P10-22 **Batch 5: shortcuts and offline.** `US-SQ-PIN-01` (local pins),
       `US-SQ-WIDGET-01` (home-screen widget; native work on both platforms,
       device-only check), `US-SQ-OFFLINE-01`, `US-SQ-LINK-02` (deep links),

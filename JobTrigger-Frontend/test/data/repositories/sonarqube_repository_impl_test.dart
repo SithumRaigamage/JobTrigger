@@ -16,6 +16,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_issue_grouping.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_history.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_worst_files.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_server_info.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project_summary.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 
@@ -65,6 +66,7 @@ void main() {
   _worstFiles();
   _issueGrouping();
   _branchRefs();
+  _serverInfo();
   group('SonarQubeRepositoryImpl.fetchProjects (US-SQ-PROJ-01)', () {
     test('parses projects, including one that was never analysed', () async {
       final adapter = _Adapter(200, {
@@ -1429,6 +1431,50 @@ void _branchRefs() {
 
       final choices = (result as Ok<SonarQubeRefChoices, AppFailure>).value;
       expect(choices.hasChoice, isFalse);
+    });
+  });
+}
+
+// US-SQ-SERVER-01: version and status from the two public endpoints.
+void _serverInfo() {
+  group('server info (US-SQ-SERVER-01)', () {
+    test('reads the version string and the status', () async {
+      final adapter = _Adapter(
+        200,
+        '10.6.0.92116',
+        byPath: {
+          '/api/server/version': '10.6.0.92116',
+          '/api/system/status': {'status': 'UP'},
+        },
+      );
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchServerInfo();
+
+      final info = (result as Ok<SonarQubeServerInfo, AppFailure>).value;
+      expect(info.version, '10.6.0.92116');
+      expect(info.statusLabel, 'Up');
+      expect(info.isUp, isTrue);
+    });
+
+    test('a starting server keeps its own word and says why', () async {
+      final adapter = _Adapter(
+        200,
+        {'status': 'STARTING'},
+        byPath: {
+          '/api/server/version': '10.6.0.92116',
+          '/api/system/status': {'status': 'STARTING'},
+        },
+      );
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchServerInfo();
+
+      final info = (result as Ok<SonarQubeServerInfo, AppFailure>).value;
+      expect(info.isUp, isFalse);
+      expect(info.hint, contains('starting'));
     });
   });
 }

@@ -929,7 +929,7 @@ So that I can find a known problem wherever it is
 ### US-SQ-SERVER-01 — Server health and version
 
 **Batch:** 4 · **Priority:** Could · **Effort:** S
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-21)
 **Dependencies:** US-SQ-CRED-04
 
 As a user
@@ -945,6 +945,14 @@ So that I can tell a server problem from an app problem
 
 **Notes**
 - `api/system/health` and the background-task queue need administrator rights; shown only if the token allows it, never required.
+- **Built 2026-11-17:** project page → *Server version and status*. Version
+  from `api/server/version`, status from `api/system/status`, made readable
+  (`UP` → "Up") with a sentence for the cases people actually hit —
+  starting, maintenance — and an unreachable server reuses the app's error
+  view with retry. Edition is not shown, and the page says why: the
+  endpoints that report it need administrator rights, so nothing is asked
+  for that would 403 for a normal token. Not verified against a real
+  server.
 
 ### US-SQ-OVERVIEW-02 — Overview trend: are more projects failing?
 

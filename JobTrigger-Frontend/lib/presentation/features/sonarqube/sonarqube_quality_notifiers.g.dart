@@ -316,3 +316,53 @@ final class SonarQubeProjectRefsFamily extends $Family
   @override
   String toString() => r'sonarQubeProjectRefsProvider';
 }
+
+/// The server's version and status (`US-SQ-SERVER-01`), for telling a server
+/// problem from an app problem.
+
+@ProviderFor(sonarQubeServerInfo)
+final sonarQubeServerInfoProvider = SonarQubeServerInfoProvider._();
+
+/// The server's version and status (`US-SQ-SERVER-01`), for telling a server
+/// problem from an app problem.
+
+final class SonarQubeServerInfoProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SonarQubeServerInfo>,
+          SonarQubeServerInfo,
+          FutureOr<SonarQubeServerInfo>
+        >
+    with
+        $FutureModifier<SonarQubeServerInfo>,
+        $FutureProvider<SonarQubeServerInfo> {
+  /// The server's version and status (`US-SQ-SERVER-01`), for telling a server
+  /// problem from an app problem.
+  SonarQubeServerInfoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'sonarQubeServerInfoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$sonarQubeServerInfoHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<SonarQubeServerInfo> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SonarQubeServerInfo> create(Ref ref) {
+    return sonarQubeServerInfo(ref);
+  }
+}
+
+String _$sonarQubeServerInfoHash() =>
+    r'b0886c927a021c5c62835dfa8a18791e8a4340d3';

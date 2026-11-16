@@ -7,14 +7,13 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
-import '../../../data/datasources/sonarqube_client_factory.dart';
 import '../../../domain/sonarqube/sonarqube_analysis_status.dart';
-import '../../../domain/sonarqube/sonarqube_branch_ref.dart';
 import '../../../domain/sonarqube/sonarqube_links.dart';
 import '../../../domain/sonarqube/sonarqube_measure_delta.dart';
 import '../../../domain/sonarqube/sonarqube_metrics.dart';
 import '../../../domain/sonarqube/sonarqube_project.dart';
 import '../../../domain/sonarqube/sonarqube_quality_gate.dart';
+import 'sonarqube_branch_picker.dart';
 import 'sonarqube_language_breakdown_view.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/external_link.dart';
@@ -143,7 +142,7 @@ class SonarQubeProjectDetailScreen extends ConsumerWidget {
                   data: (gate) => _GateCard(gate: gate),
                 ),
                 const SizedBox(height: 8),
-                _BranchPicker(projectKey: project.key),
+                SonarQubeBranchPicker(projectKey: project.key),
                 const SizedBox(height: 12),
                 _GateWatchSwitch(project: project),
                 const SizedBox(height: 24),
@@ -177,6 +176,12 @@ class SonarQubeProjectDetailScreen extends ConsumerWidget {
                         ),
                       ),
                       const Divider(height: 1),
+                      const Divider(height: 1),
+                      _NavRow(
+                        icon: Icons.dns_outlined,
+                        label: 'Server version and status',
+                        onTap: () => context.push(AppRoutes.sonarqubeServer),
+                      ),
                       const Divider(height: 1),
                       _NavRow(
                         icon: Icons.sort_rounded,
@@ -1003,72 +1008,6 @@ class _RatingTile extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// `US-SQ-QUALITY-10`: switches the whole page to another analysed branch or
-/// pull request. Hidden when only the main branch exists (Community Build),
-/// so it is never a control that does nothing.
-class _BranchPicker extends ConsumerWidget {
-  const _BranchPicker({required this.projectKey});
-
-  final String projectKey;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final choices = ref.watch(sonarQubeProjectRefsProvider(projectKey));
-    final selections = ref.watch(sonarQubeBranchSelectionsNotifierProvider);
-    final selected = selections[projectKey] ?? const SonarQubeBranchRef.main();
-    final textTheme = Theme.of(context).textTheme;
-    final t = AppTokens.of(context);
-
-    return choices.maybeWhen(
-      data: (choices) => !choices.hasChoice
-          ? const SizedBox.shrink()
-          : Align(
-              alignment: Alignment.centerLeft,
-              child: PopupMenuButton<SonarQubeBranchRef>(
-                tooltip: 'Branch or pull request',
-                onSelected: (choice) => ref
-                    .read(sonarQubeBranchSelectionsNotifierProvider.notifier)
-                    .set(projectKey, choice),
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: SonarQubeBranchRef.main(),
-                    child: Text('Main branch'),
-                  ),
-                  for (final choice in choices.refs)
-                    PopupMenuItem(value: choice, child: Text(choice.label)),
-                ],
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.call_split_rounded,
-                        size: 16,
-                        color: t.textMuted,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        selected.label,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: t.textMuted,
-                        ),
-                      ),
-                      Icon(
-                        Icons.expand_more_rounded,
-                        size: 18,
-                        color: t.textMuted,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-      orElse: () => const SizedBox.shrink(),
     );
   }
 }

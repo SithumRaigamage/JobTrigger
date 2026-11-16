@@ -107,9 +107,8 @@ Dio sonarQubeClient(Ref ref) {
   );
 }
 
-/// The endpoints that take `branch` / `pullRequest` (`US-SQ-QUALITY-10`).
-/// The project a request is about, from whichever parameter it uses. A
-/// component key is `project:path`, so the project is its first two parts.
+/// The project a request is about, taken from whichever parameter it uses:
+/// a component key is `project:path`, so its project is the first two parts.
 String _projectKeyOf(Map<String, dynamic> query) {
   for (final name in ['project', 'projectKey', 'component', 'componentKeys']) {
     final value = query[name];
@@ -120,6 +119,7 @@ String _projectKeyOf(Map<String, dynamic> query) {
   return '';
 }
 
+/// The endpoints that take `branch` / `pullRequest` (`US-SQ-QUALITY-10`).
 const _refAwarePaths = [
   '/api/qualitygates/project_status',
   '/api/measures/component_tree',

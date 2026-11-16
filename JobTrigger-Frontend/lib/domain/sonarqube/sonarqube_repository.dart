@@ -1,3 +1,4 @@
+import '../../domain/sonarqube/sonarqube_server_info.dart';
 import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
 import 'sonarqube_analysis.dart';
@@ -100,6 +101,11 @@ abstract class SonarQubeRepository {
     String projectKey, {
     List<String> metricKeys = sonarQubeMeasureKeys,
   });
+
+  /// `api/server/version` plus `api/system/status` (`US-SQ-SERVER-01`):
+  /// the server's version and whether it is up, for telling a server problem
+  /// from an app problem. Administrator-only endpoints are not used.
+  Future<Result<SonarQubeServerInfo, AppFailure>> fetchServerInfo();
 
   /// `api/project_branches/list` plus `api/project_pull_requests/list`
   /// (`US-SQ-QUALITY-10`): everything analysed except the main branch, empty

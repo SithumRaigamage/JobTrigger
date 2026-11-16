@@ -12,6 +12,7 @@ import '../../domain/sonarqube/sonarqube_measure_history.dart';
 import '../../domain/sonarqube/sonarqube_worst_files.dart';
 import '../../domain/sonarqube/sonarqube_measure_delta.dart';
 import '../../domain/sonarqube/sonarqube_metrics.dart';
+import '../../domain/sonarqube/sonarqube_server_info.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
 import '../../domain/sonarqube/sonarqube_project_summary.dart';
 import '../../domain/sonarqube/sonarqube_quality_gate.dart';
@@ -266,6 +267,10 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
       ],
     ),
   );
+
+  @override
+  Future<Result<SonarQubeServerInfo, AppFailure>> fetchServerInfo() async =>
+      const Ok(SonarQubeServerInfo(version: '10.6.0.92116', status: 'UP'));
 
   @override
   Future<Result<SonarQubeRefChoices, AppFailure>> fetchProjectRefs(
