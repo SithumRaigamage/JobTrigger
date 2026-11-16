@@ -53,6 +53,14 @@ sealed class AppFailure {
     _ => false,
   };
 
+  /// P20-25: for the calls that can hit a plan limit (adding a credential,
+  /// making one active): a `PLAN_LIMIT` 403 becomes a [PlanLimitFailure];
+  /// everything else, including every other 403, maps exactly as
+  /// [fromDioException] does.
+  factory AppFailure.fromCredentialsException(DioException exception) =>
+      PlanLimitFailure.tryFrom(exception) ??
+      AppFailure.fromDioException(exception);
+
   /// GitHub-specific: a 403 with `X-RateLimit-Remaining: 0` means the
   /// request was rejected for exceeding GitHub's rate limit, not because
   /// the credential was rejected — a real API behavior Jenkins/the backend

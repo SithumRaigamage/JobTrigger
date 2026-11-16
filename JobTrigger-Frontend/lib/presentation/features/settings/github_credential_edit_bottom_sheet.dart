@@ -6,6 +6,8 @@ import '../../../domain/credential/github_credential.dart';
 import '../../common_widgets/labeled_field.dart';
 import '../../common_widgets/secret_reentry_notice.dart';
 import '../../common_widgets/toast_controller.dart';
+import '../../../core/error/app_failure.dart';
+import '../subscription/plan_gate.dart';
 import 'edit_sheet.dart';
 import 'github_credential_form_notifier.dart';
 import 'test_github_connection_notifier.dart';
@@ -60,6 +62,9 @@ class _GitHubCredentialEditBottomSheetState
   Widget build(BuildContext context) {
     ref.listen(gitHubCredentialFormNotifierProvider, (previous, next) {
       switch (next) {
+        // P20-25: over the plan's limit is a prompt, not a failure.
+        case AsyncError(error: final PlanLimitFailure failure):
+          openPaywall(context, failure.limit);
         case AsyncError(:final error):
           ref
               .read(toastControllerProvider)

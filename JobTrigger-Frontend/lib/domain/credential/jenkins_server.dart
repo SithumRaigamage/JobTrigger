@@ -11,6 +11,7 @@ class JenkinsServer {
     this.paramToken,
     this.isDefault = false,
     this.needsReentry = false,
+    this.locked = false,
   });
 
   final String id;
@@ -31,6 +32,11 @@ class JenkinsServer {
   /// fail the whole list) and asks the user to re-enter the secret.
   final bool needsReentry;
 
+  /// P20-25: the backend marks a credential beyond the user's plan after a
+  /// downgrade. It is still listed, editable and deletable, but can't be
+  /// made active.
+  final bool locked;
+
   /// Redacted — `secret` must never end up in logs or crash reports.
   @override
   String toString() =>
@@ -50,7 +56,8 @@ class JenkinsServer {
       other.secret == secret &&
       other.paramToken == paramToken &&
       other.isDefault == isDefault &&
-      other.needsReentry == needsReentry;
+      other.needsReentry == needsReentry &&
+      other.locked == locked;
 
   @override
   int get hashCode => Object.hash(
@@ -62,5 +69,6 @@ class JenkinsServer {
     paramToken,
     isDefault,
     needsReentry,
+    locked,
   );
 }

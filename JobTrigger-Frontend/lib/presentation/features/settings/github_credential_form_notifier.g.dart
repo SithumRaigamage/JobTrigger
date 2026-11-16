@@ -44,7 +44,7 @@ final class GitHubCredentialFormNotifierProvider
 }
 
 String _$gitHubCredentialFormNotifierHash() =>
-    r'd6be7bdf5ea9912f6be7adcf829141e1332ec38e';
+    r'57bb73062f2e576432ad828ec6e051d6620774a0';
 
 /// Add/edit form submit state — mirrors `ServerFormNotifier`'s shape
 /// exactly. Form field values are passed in at call time (owned by the

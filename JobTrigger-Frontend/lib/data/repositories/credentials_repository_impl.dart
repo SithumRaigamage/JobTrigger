@@ -81,24 +81,27 @@ class CredentialsRepositoryImpl implements CredentialsRepository {
     required String secret,
     String? paramToken,
     bool isDefault = false,
-  }) => guardRequest(() async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/api/credentials',
-      data: _body(
-        serverName: serverName,
-        jenkinsURL: jenkinsURL,
-        username: username,
+  }) => guardRequest(
+    mapDioException: AppFailure.fromCredentialsException,
+    () async {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/credentials',
+        data: _body(
+          serverName: serverName,
+          jenkinsURL: jenkinsURL,
+          username: username,
+          secret: secret,
+          paramToken: paramToken,
+          isDefault: isDefault,
+        ),
+      );
+      return _saved(
+        CredentialDto.fromJson(response.data!),
         secret: secret,
         paramToken: paramToken,
-        isDefault: isDefault,
-      ),
-    );
-    return _saved(
-      CredentialDto.fromJson(response.data!),
-      secret: secret,
-      paramToken: paramToken,
-    );
-  });
+      );
+    },
+  );
 
   @override
   Future<Result<JenkinsServer, AppFailure>> update(
@@ -136,12 +139,15 @@ class CredentialsRepositoryImpl implements CredentialsRepository {
 
   @override
   Future<Result<JenkinsServer, AppFailure>> switchActive(String id) =>
-      guardRequest(() async {
-        final response = await _dio.post<Map<String, dynamic>>(
-          '/api/credentials/switch/$id',
-        );
-        return _withSecret(CredentialDto.fromJson(response.data!));
-      });
+      guardRequest(
+        mapDioException: AppFailure.fromCredentialsException,
+        () async {
+          final response = await _dio.post<Map<String, dynamic>>(
+            '/api/credentials/switch/$id',
+          );
+          return _withSecret(CredentialDto.fromJson(response.data!));
+        },
+      );
 
   Map<String, dynamic> _body({
     required String serverName,

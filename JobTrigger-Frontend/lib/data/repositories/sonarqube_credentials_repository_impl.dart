@@ -87,22 +87,25 @@ class SonarQubeCredentialsRepositoryImpl
     required String secret,
     String? defaultOrganization,
     bool isDefault = false,
-  }) => guardRequest(() async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/api/sonarqube-credentials',
-      data: _body(
-        label: label,
-        baseUrl: baseUrl,
+  }) => guardRequest(
+    mapDioException: AppFailure.fromCredentialsException,
+    () async {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/sonarqube-credentials',
+        data: _body(
+          label: label,
+          baseUrl: baseUrl,
+          secret: secret,
+          defaultOrganization: defaultOrganization,
+          isDefault: isDefault,
+        ),
+      );
+      return _saved(
+        SonarQubeCredentialDto.fromJson(response.data!),
         secret: secret,
-        defaultOrganization: defaultOrganization,
-        isDefault: isDefault,
-      ),
-    );
-    return _saved(
-      SonarQubeCredentialDto.fromJson(response.data!),
-      secret: secret,
-    );
-  });
+      );
+    },
+  );
 
   @override
   Future<Result<SonarQubeCredential, AppFailure>> update(
@@ -137,12 +140,15 @@ class SonarQubeCredentialsRepositoryImpl
 
   @override
   Future<Result<SonarQubeCredential, AppFailure>> switchActive(String id) =>
-      guardRequest(() async {
-        final response = await _dio.post<Map<String, dynamic>>(
-          '/api/sonarqube-credentials/switch/$id',
-        );
-        return _withSecret(SonarQubeCredentialDto.fromJson(response.data!));
-      });
+      guardRequest(
+        mapDioException: AppFailure.fromCredentialsException,
+        () async {
+          final response = await _dio.post<Map<String, dynamic>>(
+            '/api/sonarqube-credentials/switch/$id',
+          );
+          return _withSecret(SonarQubeCredentialDto.fromJson(response.data!));
+        },
+      );
 
   Map<String, dynamic> _body({
     required String label,

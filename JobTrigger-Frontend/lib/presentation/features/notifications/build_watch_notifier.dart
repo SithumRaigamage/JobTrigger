@@ -13,6 +13,7 @@ import '../../../domain/jenkins/jenkins_repository.dart';
 import '../app_lock/app_lock_notifier.dart';
 import '../../../data/credentials/active_server_notifier.dart';
 import '../../../data/credentials/credentials_notifier.dart';
+import '../subscription/plan_gate.dart';
 import 'background_watch.dart';
 import 'watch_runner.dart';
 
@@ -24,7 +25,15 @@ BackgroundWatchScheduler backgroundWatchScheduler(Ref ref) =>
     BackgroundWatchScheduler();
 
 /// Why a watch wasn't added.
-enum WatchResult { added, permissionDenied, noServer, unavailableInDemo }
+enum WatchResult {
+  added,
+  permissionDenied,
+  noServer,
+  unavailableInDemo,
+
+  /// P20-25: the plan has no build notifications (billing on, Free).
+  requiresPro,
+}
 
 /// US-JX-10: the builds and jobs the user wants a notification for. While
 /// the app is alive, checks every [_checkEvery]. While it's suspended, the
@@ -52,6 +61,11 @@ class BuildWatchNotifier extends _$BuildWatchNotifier {
   @override
   List<BuildWatch> build() {
     ref.onDispose(() => _timer?.cancel());
+    // P20-25: the plan arrives after the watches load, and can change
+    // (a downgrade, a purchase); the background task follows it.
+    ref.listen(planGateProvider, (_, _) {
+      if (ref.mounted) _afterChange();
+    });
     _load();
     return const [];
   }
@@ -62,6 +76,10 @@ class BuildWatchNotifier extends _$BuildWatchNotifier {
     state = watches;
     await _afterChange();
   }
+
+  /// P20-25: the paywall reason when the plan has no build notifications,
+  /// else null.
+  String? get blockedReason => ref.read(planGateProvider).backgroundWatch;
 
   bool isWatching({required String jobUrl, int? buildNumber}) => state.any(
     (watch) => watch.jobUrl == jobUrl && watch.buildNumber == buildNumber,
@@ -92,6 +110,7 @@ class BuildWatchNotifier extends _$BuildWatchNotifier {
     if (ref.read(demoModeNotifierProvider)) {
       return WatchResult.unavailableInDemo;
     }
+    if (blockedReason != null) return WatchResult.requiresPro;
     final serverId = ref.read(activeServerNotifierProvider)?.id;
     if (serverId == null) return WatchResult.noServer;
     final granted = await ref
@@ -176,6 +195,8 @@ class BuildWatchNotifier extends _$BuildWatchNotifier {
     _timer = state.isEmpty ? null : Timer.periodic(_checkEvery, (_) => check());
     await ref
         .read(backgroundWatchSchedulerProvider)
-        .sync(hasWatches: state.isNotEmpty);
+        // P20-25: after a downgrade the stored watches stay, but nothing is
+        // scheduled for them while the plan has no notifications.
+        .sync(hasWatches: state.isNotEmpty && blockedReason == null);
   }
 }

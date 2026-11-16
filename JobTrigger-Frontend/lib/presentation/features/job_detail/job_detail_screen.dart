@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../subscription/plan_gate.dart';
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -111,9 +112,17 @@ class JobDetailScreen extends ConsumerWidget {
                             : null,
                       ),
                       tooltip: pinned ? 'Unpin from Home' : 'Pin to Home',
-                      onPressed: () => ref
-                          .read(pinnedJobsNotifierProvider.notifier)
-                          .toggle(job),
+                      onPressed: () {
+                        final notifier = ref.read(
+                          pinnedJobsNotifierProvider.notifier,
+                        );
+                        final blocked = notifier.pinBlockedReason(job.url);
+                        if (blocked != null) {
+                          openPaywall(context, blocked);
+                        } else {
+                          notifier.toggle(job);
+                        }
+                      },
                     ),
                     if (loadedJob != null && loadedJob.buildable != null)
                       PopupMenuButton<bool>(
@@ -911,6 +920,11 @@ class _WatchMenu extends ConsumerWidget {
     JenkinsBuild? build,
   }) async {
     final notifier = ref.read(buildWatchNotifierProvider.notifier);
+    final blocked = notifier.blockedReason;
+    if (blocked != null) {
+      await openPaywall(context, blocked);
+      return;
+    }
     if (ref.read(buildWatchNotifierProvider).isEmpty) {
       final proceed = await showConfirmationDialog(
         context,
@@ -938,6 +952,7 @@ class _WatchMenu extends ConsumerWidget {
             "phone's settings.",
       WatchResult.noServer => 'Choose a Jenkins server first.',
       WatchResult.unavailableInDemo => 'Not available in demo.',
+      WatchResult.requiresPro => 'Build notifications are part of Pro.',
     };
     ScaffoldMessenger.of(
       context,

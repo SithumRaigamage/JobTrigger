@@ -6,6 +6,7 @@ String paywallHeadline(String? reason) => switch (reason) {
   'maxCredentialsPerTool' => 'Add more servers with Pro',
   'multiTool' => 'Use Jenkins, GitHub Actions and SonarQube together',
   'primaryCooldown' => 'Switch servers freely with Pro',
+  'locked' => 'Use all your saved servers with Pro',
   'backgroundWatch' => 'Get notified when a build finishes',
   'homeWidget' => 'Put your jobs on the home screen',
   'maxPinnedJobs' => 'Pin as many jobs as you like',
