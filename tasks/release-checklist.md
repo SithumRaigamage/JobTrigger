@@ -60,6 +60,40 @@ only tracks what's left and why.
       Also owed: the App Store privacy answers (Data Types: Diagnostics → Crash Data,
       not linked, not tracking) and Google Play's Data safety form (crash logs, optional).
 
+## App Store privacy answers (PE-06 / PE-27, checked 2026-11-16)
+
+Checked against `ios/Runner/PrivacyInfo.xcprivacy`, the merged privacy
+manifests of every pod in the profile build, and `/privacy`. Enter these in
+App Store Connect → App Privacy. Tracking: **No** (no ad identifier, no
+tracking domains).
+
+| Data type (Apple's name) | Collected | Linked to user | Tracking | Purpose |
+|---|---|---|---|---|
+| Contact Info → Email Address | Yes | Yes | No | App Functionality |
+| User Content → Other User Content (saved server names, URLs, usernames, encrypted tokens) | Yes | Yes | No | App Functionality |
+| Diagnostics → Crash Data | Yes (opt-out in Profile) | No | No | App Functionality |
+| Diagnostics → Other Diagnostic Data (device model and OS version sent with a report) | Yes (same switch) | No | No | App Functionality |
+| Diagnostics → Performance Data | No (tracing is off) | n/a | n/a | n/a |
+
+Decided 2026-11-16: the app manifest declares Crash Data and Other
+Diagnostic Data (not linked, app functionality), matching this table and
+`/privacy`. Performance Data is not collected (`tracesSampleRate = 0`).
+Still open: when Phase 20 ships purchases
+(RevenueCat), add Purchases → Purchase History and Identifiers → User ID,
+and update `/privacy`; neither is needed while billing is off.
+
+Required-reason APIs: the app declares UserDefaults CA92.1 + 1C8F.1
+(`home_widget` shares data through the App Group and ships no manifest),
+FileTimestamp C617.1 and SystemBootTime 35F9.1. Sentry, Flutter,
+`shared_preferences`, `flutter_local_notifications`, `workmanager` and the
+widget extension ship manifests with reasons the app already covers. Re-run
+this check whenever a plugin is added.
+
+Google Play Data safety: Email address and Other user content (collected,
+linked, app functionality); Crash logs and Diagnostics (collected, optional,
+not linked); no data shared with third parties; data encrypted in transit;
+account deletion available in the app and on the website.
+
 ## App Review notes: how to open the demo (PE-18)
 
 Paste this into App Store Connect → App Review Information → Notes (and the
@@ -90,6 +124,6 @@ store's own fields, never into this repository.
       password in App Store Connect. Needed before store submission.
 - [ ] **Owner:** add one line to each store description: "Try the in-app demo
       without an account or a server." (PE-17).
-- [ ] **On the iPhone** (unverified until run): sign-in → **Try the demo** →
+- [x] **On the iPhone** (verified by the owner 2026-11-16): sign-in → **Try the demo** →
       the walkthrough above, then **Exit demo**. See `phase-emergency.md` E2
       "Verify".

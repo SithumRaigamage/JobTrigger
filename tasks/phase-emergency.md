@@ -68,7 +68,7 @@ can only be checked on a real iPhone or a real server is marked unverified.
 - [x] PE-05 (2026-11-14, done in the DTO mapping rather than the widget; unverified until `flutter test` on the Mac) App info screen: if a URL is still a placeholder
       (`example.com`), hide the row instead of opening a dead page. Same
       pattern as the website's "never a dead link" rule. Widget test.
-- [ ] PE-06 Re-check `ios/Runner/PrivacyInfo.xcprivacy` and the App Store
+- [x] PE-06 (2026-11-16: manifest re-checked against every plugin's manifest and the final policy; added `1C8F.1` for `home_widget`'s App Group UserDefaults; App Store answers listed in `release-checklist.md`; entering them in App Store Connect is an owner action) Re-check `ios/Runner/PrivacyInfo.xcprivacy` and the App Store
       privacy answers against the final policy (already in
       `release-checklist.md`; tick it here once done).
 
@@ -269,7 +269,7 @@ verify, document, per its `docs/TOOLS-ROADMAP.md`)*
       `shared_preferences`. Keep the switch: the store privacy answers and
       the privacy policy describe it as an opt-out. Turning it off also
       clears the offline cache.
-- [ ] PE-27 (2026-11-14: `CrashData` added to `PrivacyInfo.xcprivacy`; still to do on the Mac: `pod install`, check the Sentry pod's own manifest, then the store privacy answers, listed in `release-checklist.md`) Re-check `PrivacyInfo.xcprivacy` for the new SDK's
+- [x] PE-27 (2026-11-14: `CrashData` added to `PrivacyInfo.xcprivacy`. 2026-11-16: `pod install` and `flutter build ios --profile --no-codesign` pass; the Sentry 9.30.1 manifest declares UserDefaults CA92.1, SystemBootTime 35F9.1 and FileTimestamp C617.1, all already in the app manifest; store answers listed in `release-checklist.md`; installing on the iPhone and the Play form are still owner actions) Re-check `PrivacyInfo.xcprivacy` for the new SDK's
       required-reason APIs. Update the App Store and Play privacy answers
       ("Crash data", "Diagnostics").
 - [x] PE-28 (2026-11-14, "Crash reports" section on `/privacy`; legal review is still an owner action) Update the privacy policy (with PE-04).
