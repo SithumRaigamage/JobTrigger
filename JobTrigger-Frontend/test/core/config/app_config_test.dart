@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/config/app_config.dart';
 
@@ -53,5 +54,28 @@ void main() {
     final config = AppConfig.fromEnvironment(isRelease: false);
     expect(config.environment, AppEnvironment.dev);
     expect(config.backendBaseUrl, 'http://127.0.0.1:5001');
+  });
+
+  group('RevenueCat keys (P20-20)', () {
+    test('a build with no keys has no billing on any platform', () {
+      const config = AppConfig(
+        environment: AppEnvironment.dev,
+        backendBaseUrl: 'http://x',
+      );
+      expect(config.revenueCatKeyFor(TargetPlatform.iOS), isNull);
+      expect(config.revenueCatKeyFor(TargetPlatform.android), isNull);
+    });
+
+    test('each platform gets its own key; others get none', () {
+      const config = AppConfig(
+        environment: AppEnvironment.dev,
+        backendBaseUrl: 'http://x',
+        revenueCatIosKey: 'appl_test',
+        revenueCatAndroidKey: 'goog_test',
+      );
+      expect(config.revenueCatKeyFor(TargetPlatform.iOS), 'appl_test');
+      expect(config.revenueCatKeyFor(TargetPlatform.android), 'goog_test');
+      expect(config.revenueCatKeyFor(TargetPlatform.macOS), isNull);
+    });
   });
 }

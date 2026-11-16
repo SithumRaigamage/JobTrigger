@@ -74,14 +74,14 @@ names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
 
 ## D. Mobile app
 
-- [ ] P20-20 Add `purchases_flutter`; SDK keys in `config/*.json` via
+- [x] P20-20 (2026-11-16, PR A; Android build and a real purchase unverified) Add `purchases_flutter`; SDK keys in `config/*.json` via
       `app_config.dart`; `BillingClient` interface + RevenueCat impl
       (only file importing the SDK).
-- [ ] P20-21 Domain: `Entitlements`, `SubscriptionStatus`,
+- [x] P20-21 (2026-11-16, PR A) Domain: `Entitlements`, `SubscriptionStatus`,
       `BillingOffer`, `SubscriptionRepository`; data: DTO (freezed) +
       repository impl; `PlanLimitFailure` and `PurchaseCancelled` as new
       `AppFailure` cases (existing copy untouched).
-- [ ] P20-22 `EntitlementsNotifier` (keepAlive, cached in
+- [x] P20-22 (2026-11-16, PR A; nothing reads it until PR B/C, so no extra request yet) `EntitlementsNotifier` (keepAlive, cached in
       `user_scoped_prefs`, refreshed on sign-in / resume / purchase);
       RevenueCat `logIn`/`logOut` driven by auth state.
 - [ ] P20-23 Paywall screen + notifier (store prices, trial, auto-renew

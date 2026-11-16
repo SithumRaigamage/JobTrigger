@@ -49,3 +49,4 @@ app.*.map.json
 /config/device.json
 # E3: a crash-report DSN, kept out of the repository
 /config/sentry.json
+/config/billing.json
