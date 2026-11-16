@@ -249,3 +249,13 @@ quiet until Retry.
   `AsyncNotifier`) side-effect kind, separate from the notifier that holds
   the fetched data — keeps "what triggers a refetch" separate from "what the
   data is," which made the original SwiftUI `ViewModel`s hard to test.
+
+## Feature: subscription (Phase 20)
+
+| Provider | Kind | Notes |
+|---|---|---|
+| `entitlementsNotifierProvider` | `AsyncNotifier<SubscriptionSnapshot>`, keepAlive | The plan, limits, features and renewal details from `GET /api/subscription`. First value is the cached one; reloads on sign-in/out and when the app resumes; `apply()` after a purchase. Created on first use. |
+| `entitlementsProvider` | derived `Entitlements` | What gates read. `Entitlements.unrestricted` until an answer arrives, in demo mode, signed out, or when the backend is unreachable or has no endpoint — so billing off behaves exactly as before. |
+| `billingSessionProvider` | keepAlive side effect | `logIn(userId)` / `logOut()` on the purchase SDK as the auth state changes. No-op without an SDK key or in demo mode. |
+| `billingClientProvider` | keepAlive | `RevenueCatBillingClient` when the build has a key for the platform, else `NoBillingClient`. |
+| `subscriptionRepositoryProvider` | repository | Backend calls plus the billing client; caches the last answer in `shared_preferences` (`subscription_cache`, cleared on sign-out). |
