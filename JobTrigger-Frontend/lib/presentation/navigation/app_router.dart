@@ -242,6 +242,11 @@ class _MessageScreen extends StatelessWidget {
 GoRouter appRouter(Ref ref) {
   final refreshListenable = _AuthRefreshListenable(ref);
 
+  /// A link opened while signed out (a pairing code from NR-03, or any
+  /// US-JX-19 deep link) is kept here and restored as soon as sign-in
+  /// completes; otherwise the scan did nothing on a fresh install.
+  String? pendingLocation;
+
   return GoRouter(
     initialLocation: AppRoutes.login,
     refreshListenable: refreshListenable,
@@ -254,8 +259,15 @@ GoRouter appRouter(Ref ref) {
       final isAuthenticated = authAsync.value is Authenticated;
       final onAuthRoute = _authRoutes.contains(state.matchedLocation);
 
-      if (isAuthenticated && onAuthRoute) return AppRoutes.toolSelection;
-      if (!isAuthenticated && !onAuthRoute) return AppRoutes.login;
+      if (isAuthenticated && onAuthRoute) {
+        final target = pendingLocation;
+        pendingLocation = null;
+        return target ?? AppRoutes.toolSelection;
+      }
+      if (!isAuthenticated && !onAuthRoute) {
+        pendingLocation = state.uri.toString();
+        return AppRoutes.login;
+      }
       // Phase 20: no subscription UI unless billing is on for this build
       // and account, so a default build is exactly as before.
       if (_billingRoutes.contains(state.matchedLocation) &&

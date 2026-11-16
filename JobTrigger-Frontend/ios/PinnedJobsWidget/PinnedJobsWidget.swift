@@ -25,6 +25,9 @@ struct Snapshot: Decodable {
   /// Set while the app lock is on (AUD-54): only how many jobs are pinned
   /// leaves the app. Absent from snapshots written before P14-25.
   let lockedCount: Int?
+  /// P20-25: on Free with billing on, the app writes no jobs and this flag,
+  /// so the widget says why instead of looking empty. Absent means no.
+  let upgradeRequired: Bool?
 }
 
 struct PinnedJobsEntry: TimelineEntry {
@@ -42,7 +45,8 @@ struct PinnedJobsProvider: TimelineProvider {
         label: "web", link: "jobtrigger://app", status: "failure",
         statusText: "Failed", buildNumber: 17, buildTimestamp: nil),
     ],
-    updatedAt: Date().timeIntervalSince1970 * 1000, lockedCount: nil)
+    updatedAt: Date().timeIntervalSince1970 * 1000, lockedCount: nil,
+    upgradeRequired: nil)
 
   func placeholder(in context: Context) -> PinnedJobsEntry {
     PinnedJobsEntry(date: Date(), snapshot: Self.sample)
@@ -115,6 +119,8 @@ struct PinnedJobsView: View {
     Group {
       if let count = entry.snapshot?.lockedCount {
         LockedView(count: count)
+      } else if entry.snapshot?.upgradeRequired == true {
+        UpgradeView()
       } else {
         jobsView
       }
@@ -180,6 +186,24 @@ struct LockedView: View {
           .font(.caption)
           .foregroundStyle(Palette.muted)
       }
+      Spacer(minLength: 0)
+    }
+    .accessibilityElement(children: .combine)
+  }
+}
+
+/// P20-25: pinned jobs are a Pro feature, so on Free the widget asks for the
+/// upgrade instead of pretending nothing is pinned.
+struct UpgradeView: View {
+  var body: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      Text("Upgrade to Pro")
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(Palette.text)
+      Text("Pinned jobs need Pro. Open JobTrigger to upgrade.")
+        .font(.caption)
+        .foregroundStyle(Palette.muted)
+        .fixedSize(horizontal: false, vertical: true)
       Spacer(minLength: 0)
     }
     .accessibilityElement(children: .combine)

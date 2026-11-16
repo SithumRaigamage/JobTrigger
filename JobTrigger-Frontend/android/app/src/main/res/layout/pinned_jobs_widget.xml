@@ -48,6 +48,31 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- P20-25: pinned jobs need Pro, so on Free the widget says so. -->
+    <LinearLayout
+        android:id="@+id/widget_upgrade"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/widget_upgrade_title"
+            android:textColor="@color/widget_text"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/widget_upgrade_hint"
+            android:textColor="@color/widget_muted"
+            android:textSize="12sp" />
+    </LinearLayout>
+
     <LinearLayout
         android:id="@+id/widget_header"
         android:layout_width="match_parent"

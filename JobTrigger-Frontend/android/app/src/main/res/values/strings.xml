@@ -9,4 +9,6 @@
         <item quantity="other">%d pinned jobs</item>
     </plurals>
     <string name="widget_locked_hint">Unlock JobTrigger to see them</string>
+    <string name="widget_upgrade_title">Upgrade to Pro</string>
+    <string name="widget_upgrade_hint">Pinned jobs need Pro. Open JobTrigger to upgrade.</string>
 </resources>

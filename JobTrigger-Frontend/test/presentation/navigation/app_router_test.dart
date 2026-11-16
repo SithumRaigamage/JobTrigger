@@ -362,6 +362,51 @@ void main() {
     expect(find.text('That link didn’t lead anywhere'), findsOneWidget);
     expect(find.text('Go to Home'), findsOneWidget);
   });
+
+  testWidgets(
+    'a pairing link opened while signed out is restored after sign-in (NR-03)',
+    (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          jenkinsRepositoryProvider.overrideWithValue(
+            _FakeJenkinsRepository(const []),
+          ),
+          credentialsNotifierProvider.overrideWith(_NoCredentials.new),
+          reachabilityWatcherProvider.overrideWith((ref) {}),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(authNotifierProvider, (_, _) {});
+
+      final router = container.read(appRouterProvider);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Signed out, the link can only land on /login -- and must be kept.
+      const link =
+          '/pair?url=http%3A%2F%2Fjenkins.test%3A8080&name=CI&username=admin';
+      router.go(link);
+      await tester.pumpAndSettle();
+      expect(
+        router.routerDelegate.currentConfiguration.uri.path,
+        AppRoutes.login,
+      );
+
+      await container
+          .read(authNotifierProvider.notifier)
+          .setSession(const User(id: 'u1', email: 'a@b.com'), 'jwt-abc');
+      await tester.pumpAndSettle();
+
+      final restored = router.routerDelegate.currentConfiguration.uri;
+      expect(restored.path, AppRoutes.pair);
+      expect(restored.queryParameters['name'], 'CI');
+    },
+  );
 }
 
 class _NoCredentials extends CredentialsNotifier {

@@ -76,6 +76,18 @@ class PinnedJobsWidgetProvider : HomeWidgetProvider() {
             return
         }
 
+        // P20-25: pinned jobs need Pro, so on Free the app writes this flag
+        // with no jobs. Say why instead of looking empty.
+        val upgrade = snapshot?.optBoolean("upgradeRequired", false) == true
+        views.setViewVisibility(R.id.widget_upgrade, if (upgrade) View.VISIBLE else View.GONE)
+        views.setViewVisibility(R.id.widget_header, if (upgrade) View.GONE else View.VISIBLE)
+        if (upgrade) {
+            views.setViewVisibility(R.id.widget_empty, View.GONE)
+            ROWS.forEach { views.setViewVisibility(it.root, View.GONE) }
+            manager.updateAppWidget(widgetId, views)
+            return
+        }
+
         val count = minOf(jobs?.length() ?: 0, capacity)
         views.setViewVisibility(R.id.widget_empty, if (count == 0) View.VISIBLE else View.GONE)
 
