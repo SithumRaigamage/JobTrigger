@@ -39,4 +39,7 @@ abstract class AppRoutes {
   /// (`billingAvailableProvider`); otherwise they go to Home.
   static const subscription = '/profile/subscription';
   static const paywall = '/paywall';
+
+  /// Phase 21: also billing-only; opened from the Subscription screen.
+  static const studentVerification = '/profile/subscription/student';
 }

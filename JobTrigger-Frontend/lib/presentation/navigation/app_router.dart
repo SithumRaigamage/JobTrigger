@@ -47,6 +47,7 @@ import '../features/tool_selection/active_tool_notifier.dart';
 import '../features/tool_selection/ci_tool.dart';
 import '../features/tool_selection/tool_selection_screen.dart';
 import 'app_routes.dart';
+import '../features/student/student_verification_screen.dart';
 import '../features/subscription/billing_availability.dart';
 import '../features/subscription/paywall_screen.dart';
 import '../features/subscription/subscription_screen.dart';
@@ -66,7 +67,11 @@ class _AuthRefreshListenable extends ChangeNotifier {
 
 const _authRoutes = {AppRoutes.login, AppRoutes.signup};
 
-const _billingRoutes = {AppRoutes.subscription, AppRoutes.paywall};
+const _billingRoutes = {
+  AppRoutes.subscription,
+  AppRoutes.paywall,
+  AppRoutes.studentVerification,
+};
 
 /// AUD-51: drill-down routes that only work with an in-app `extra` object.
 /// Deep linking is on for the whole router (US-JX-19), so any app or web
@@ -335,6 +340,11 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.subscription,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SubscriptionScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentVerification,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const StudentVerificationScreen(),
       ),
       GoRoute(
         path: AppRoutes.paywall,
