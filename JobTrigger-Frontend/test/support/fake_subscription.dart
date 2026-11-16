@@ -47,6 +47,29 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
   Result<SubscriptionSnapshot, AppFailure>? loadResult;
   int loads = 0;
 
+  /// What the store sells (Phase 20 PR B).
+  Result<List<BillingOffer>, AppFailure> offerResult = const Ok([
+    BillingOffer(
+      id: 'monthly',
+      period: BillingPeriod.monthly,
+      priceText: 'LKR 1,200.00',
+    ),
+    BillingOffer(
+      id: 'yearly',
+      period: BillingPeriod.yearly,
+      priceText: 'LKR 9,900.00',
+      trialDays: 7,
+    ),
+  ]);
+  Result<void, AppFailure> purchaseResult = const Ok(null);
+  Result<void, AppFailure> restoreResult = const Ok(null);
+
+  /// What `POST /api/subscription/refresh` answers.
+  Result<SubscriptionSnapshot, AppFailure>? refreshResult;
+  final purchased = <String>[];
+  int restores = 0;
+  int refreshes = 0;
+
   @override
   Future<SubscriptionSnapshot?> cached() async => cachedValue;
 
@@ -57,18 +80,26 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
   }
 
   @override
-  Future<Result<SubscriptionSnapshot, AppFailure>> refresh() => load();
+  Future<Result<SubscriptionSnapshot, AppFailure>> refresh() async {
+    refreshes++;
+    return refreshResult ?? await load();
+  }
 
   @override
   Future<Result<List<BillingOffer>, AppFailure>> offerings() async =>
-      const Ok([]);
+      offerResult;
 
   @override
-  Future<Result<void, AppFailure>> purchase(BillingOffer offer) async =>
-      const Ok(null);
+  Future<Result<void, AppFailure>> purchase(BillingOffer offer) async {
+    purchased.add(offer.id);
+    return purchaseResult;
+  }
 
   @override
-  Future<Result<void, AppFailure>> restore() async => const Ok(null);
+  Future<Result<void, AppFailure>> restore() async {
+    restores++;
+    return restoreResult;
+  }
 }
 
 class FakeBillingClient implements BillingClient {
@@ -108,3 +139,26 @@ class FakeBillingClient implements BillingClient {
     calls.add('restore');
   }
 }
+
+/// Pro bought in a store (App Store), renewing on [end].
+SubscriptionSnapshot storeProSnapshot({DateTime? end}) => SubscriptionSnapshot(
+  entitlements: proSnapshot.entitlements,
+  status: SubscriptionStatus(
+    state: SubscriptionState.active,
+    source: SubscriptionSource.appStore,
+    willRenew: true,
+    periodEnd: end ?? DateTime.utc(2027, 1, 15, 12),
+  ),
+);
+
+/// Pro bought on the website (P20-84).
+final webProSnapshot = SubscriptionSnapshot(
+  entitlements: proSnapshot.entitlements,
+  status: SubscriptionStatus(
+    state: SubscriptionState.active,
+    source: SubscriptionSource.web,
+    willRenew: true,
+    manageOnWeb: true,
+    periodEnd: DateTime.utc(2027, 1, 15, 12),
+  ),
+);

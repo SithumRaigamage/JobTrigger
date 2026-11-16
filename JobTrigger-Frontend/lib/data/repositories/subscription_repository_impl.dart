@@ -74,8 +74,7 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       _billingCall(() => _billing.purchase(offer));
 
   @override
-  Future<Result<void, AppFailure>> restore() =>
-      _billingCall(_billing.restore);
+  Future<Result<void, AppFailure>> restore() => _billingCall(_billing.restore);
 
   Future<Result<T, AppFailure>> _billingCall<T>(
     Future<T> Function() call,

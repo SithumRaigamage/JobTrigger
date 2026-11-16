@@ -23,6 +23,11 @@ import '../tool_selection/ci_tool.dart';
 import '../app_lock/app_lock_settings_section.dart';
 import 'crash_reports_settings_section.dart';
 import 'account_dialogs.dart';
+import '../subscription/billing_availability.dart';
+import '../subscription/entitlements_notifier.dart';
+import '../subscription/store_links.dart';
+import '../subscription/subscription_screen.dart' show planLabel;
+import '../../common_widgets/external_link.dart';
 
 /// Ported from `ProfileView.swift`, laid out to the P14 design
 /// (`UI-UX/screens/10-profile`). The old app's "Change Password" row was a
@@ -130,6 +135,17 @@ class ProfileScreen extends ConsumerWidget {
               const GroupHeader(title: 'Account'),
               GroupedCard(
                 children: [
+                  // Phase 20: only where billing is on for this build and
+                  // account; otherwise the Profile is exactly as before.
+                  if (ref.watch(billingAvailableProvider))
+                    ListTile(
+                      leading: const Icon(Icons.workspace_premium_outlined),
+                      title: const Text('Subscription'),
+                      trailing: _Trailing(
+                        planLabel(ref.watch(entitlementsProvider)),
+                      ),
+                      onTap: () => context.push(AppRoutes.subscription),
+                    ),
                   ListTile(
                     leading: const Icon(Icons.key_outlined),
                     title: const Text('Change password'),
@@ -243,8 +259,26 @@ class ProfileScreen extends ConsumerWidget {
   /// A successful deletion signs out, which leaves this screen; the login
   /// screen is where the user lands.
   Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
+    // US-SUB-07: a store subscription outlives the account.
+    final snapshot = ref.read(entitlementsNotifierProvider).value;
+    final storeName = snapshot != null && snapshot.hasRenewingStoreSubscription
+        ? storeNameOf(snapshot.status.source)
+        : null;
     await showDeleteAccountDialog(
       context,
+      storeSubscription: storeName == null
+          ? null
+          : StoreSubscriptionNotice(
+              storeName: storeName,
+              onManage: () => openExternalLink(
+                ref,
+                manageSubscriptionUri(
+                  storeName == 'App Store'
+                      ? TargetPlatform.iOS
+                      : TargetPlatform.android,
+                ),
+              ),
+            ),
       onSubmit: (values) async {
         final problem = await ref
             .read(authNotifierProvider.notifier)

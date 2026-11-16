@@ -43,6 +43,11 @@ class SubscriptionStatus {
 
   /// Bought on the website rather than in a store (US-SUB web).
   bool get isWeb => source == SubscriptionSource.web;
+
+  /// Bought in the App Store or Google Play.
+  bool get isStore =>
+      source == SubscriptionSource.appStore ||
+      source == SubscriptionSource.playStore;
 }
 
 /// The backend's answer: what the user may do, and why.
@@ -54,4 +59,24 @@ class SubscriptionSnapshot {
 
   final Entitlements entitlements;
   final SubscriptionStatus status;
+
+  /// A store subscription that will bill again: deleting the account does
+  /// not cancel it, so the delete dialog says so (US-SUB-07).
+  bool get hasRenewingStoreSubscription =>
+      entitlements.billingEnabled &&
+      entitlements.isPro &&
+      status.isStore &&
+      status.willRenew &&
+      switch (status.state) {
+        SubscriptionState.trialing ||
+        SubscriptionState.active ||
+        SubscriptionState.grace ||
+        SubscriptionState.billingIssue => true,
+        _ => false,
+      };
+
+  /// Pro that came from the website (P20-84): shown as Pro like any other,
+  /// with no store purchase offered.
+  bool get isWebPro =>
+      entitlements.billingEnabled && entitlements.isPro && status.isWeb;
 }
