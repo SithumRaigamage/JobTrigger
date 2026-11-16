@@ -8,9 +8,15 @@ import '../../../core/error/result.dart';
 import '../../../core/platform/notification_service.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import '../../../data/cache/build_watch_store.dart';
+import '../../../data/cache/sonarqube_watch_store.dart';
+import '../../../data/datasources/sonarqube_client_factory.dart';
 import '../../../data/repositories/credentials_repository_impl.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
+import '../../../data/repositories/sonarqube_credentials_repository_impl.dart';
+import '../../../data/repositories/sonarqube_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_repository.dart';
+import '../../../domain/sonarqube/sonarqube_repository.dart';
+import '../sonarqube/sonarqube_watch_runner.dart';
 import '../app_lock/app_lock_notifier.dart';
 import 'watch_runner.dart';
 
@@ -35,6 +41,17 @@ void buildWatchDispatcher() {
         repositoryFor: (serverId) => _repositoryFor(container, serverId),
         notify: (notification) => notifications.show(
           hideNames ? notification.redacted() : notification,
+        ),
+      );
+      // US-SQ-WATCH-01: the same task checks gate watches, best effort.
+      await runSonarQubeWatchCheck(
+        store: SonarQubeWatchStore(),
+        repositoryFor: (credentialId) =>
+            _gateRepositoryFor(container, credentialId),
+        notify: (notification) => notifications.showAlert(
+          id: notification.id,
+          title: notification.title,
+          body: notification.body,
         ),
       );
     } on Object {
@@ -70,6 +87,36 @@ Future<JenkinsRepository?> _repositoryFor(
   };
 }
 
+/// Null when the credential is gone (deleted, or signed out), which drops
+/// its gate watches. Throws when it can't be reached right now, which keeps
+/// them.
+Future<SonarQubeRepository?> _gateRepositoryFor(
+  ProviderContainer container,
+  String credentialId,
+) async {
+  final token = await container.read(secureStorageProvider).readToken();
+  if (token == null) return null;
+  final credentials = await container
+      .read(sonarQubeCredentialsRepositoryProvider)
+      .fetchAll();
+  return switch (credentials) {
+    Ok(:final value) => switch (value.where((c) => c.id == credentialId)) {
+      // AUD-63: a credential the backend could not decrypt has no token;
+      // nothing is sent in its place.
+      final match when match.isNotEmpty => SonarQubeRepositoryImpl(
+        buildSonarQubeDio(
+          baseUrl: match.first.baseUrl,
+          token: match.first.secret,
+        ),
+        organization: match.first.defaultOrganization,
+      ),
+      _ => null,
+    },
+    Err(error: AuthFailure()) => null,
+    Err(:final error) => throw error,
+  };
+}
+
 /// Registers the periodic background check while there are watches, and
 /// cancels it when there are none. The OS decides when it actually runs
 /// (15 minutes at the earliest): best effort, and the UI says so.
@@ -86,14 +133,18 @@ class BackgroundWatchScheduler {
   final bool isSupported;
   bool _initialized = false;
 
-  Future<void> sync({required bool hasWatches}) async {
+  Future<void> sync({
+    required bool hasWatches,
+    // US-SQ-WATCH-01: SonarQube gate watches ride the same task.
+    bool hasGateWatches = false,
+  }) async {
     if (!isSupported) return;
     try {
       if (!_initialized) {
         await Workmanager().initialize(buildWatchDispatcher);
         _initialized = true;
       }
-      if (hasWatches) {
+      if (hasWatches || hasGateWatches) {
         await Workmanager().registerPeriodicTask(
           buildWatchTaskName,
           buildWatchTaskName,

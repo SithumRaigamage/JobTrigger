@@ -689,7 +689,7 @@ After batch 1. This is what makes the app useful when it is closed. It reuses th
 ### US-SQ-WATCH-01 — Notify me when a gate fails after a new scan
 
 **Batch:** 2 · **Priority:** Should · **Effort:** M–L
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-19)
 **Dependencies:** US-SQ-CE-01, `US-JX-10`'s watch plumbing
 
 As a user

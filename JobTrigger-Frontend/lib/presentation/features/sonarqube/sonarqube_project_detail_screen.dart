@@ -21,6 +21,7 @@ import '../../common_widgets/section_label.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'sonarqube_insights_notifiers.dart';
+import 'sonarqube_watch_notifier.dart';
 import 'sonarqube_last_analysis.dart';
 import 'sonarqube_quality_notifiers.dart';
 
@@ -138,6 +139,8 @@ class SonarQubeProjectDetailScreen extends ConsumerWidget {
                   ),
                   data: (gate) => _GateCard(gate: gate),
                 ),
+                const SizedBox(height: 12),
+                _GateWatchSwitch(project: project),
                 const SizedBox(height: 24),
                 _MeasuresSection(
                   projectKey: project.key,
@@ -173,6 +176,57 @@ class SonarQubeProjectDetailScreen extends ConsumerWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// `US-SQ-WATCH-01`: tell me when this project's gate fails after a new
+/// analysis. The story asks for the limits to be stated, not implied.
+class _GateWatchSwitch extends ConsumerWidget {
+  const _GateWatchSwitch({required this.project});
+
+  final SonarQubeProject project;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final watching = ref
+        .watch(sonarQubeWatchNotifierProvider)
+        .any((watch) => watch.projectKey == project.key);
+    final t = AppTokens.of(context);
+
+    return GlassSurface.card(
+      padding: EdgeInsets.zero,
+      child: SwitchListTile(
+        value: watching,
+        onChanged: (_) async {
+          final result = await ref
+              .read(sonarQubeWatchNotifierProvider.notifier)
+              .toggle(project);
+          if (!context.mounted) return;
+          final message = switch (result) {
+            GateWatchResult.permissionDenied =>
+              'Allow notifications in Settings to hear about a failing gate.',
+            GateWatchResult.unavailableInDemo => 'Watching is off in the demo.',
+            GateWatchResult.requiresPro => 'Gate notifications need Pro.',
+            GateWatchResult.noCredential =>
+              'Add a SonarQube token to integrate before watching.',
+            GateWatchResult.added => null,
+          };
+          if (message != null) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(message)));
+          }
+        },
+        title: const Text('Notify me when the gate fails'),
+        subtitle: Text(
+          'Best effort: iOS decides when background checks run. They also '
+          'run every time you open the app.',
+          style: DefaultTextStyle.of(
+            context,
+          ).style.copyWith(fontSize: 12, color: t.textMuted),
         ),
       ),
     );

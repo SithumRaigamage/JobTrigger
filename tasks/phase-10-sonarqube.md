@@ -326,10 +326,32 @@ the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
       actually computes. The project **card** still does not say
       "Analysing…”/"Queued” — that needs one CE request per card, so it goes
       with P10-19, which polls a project anyway.
-- [ ] P10-19 **Batch 2: alerts.** `US-SQ-WATCH-01` (notify when a watched
+- [x] P10-19 **Batch 2: alerts.** `US-SQ-WATCH-01` (notify when a watched
       project fails its gate). Local notifications and a best-effort
       background check, reusing the Jenkins watch; no new dependency. Only
       verifiable on a real device with a real analysis.
+      *Built 2026-11-17.* A "Notify me when the gate fails" switch on the
+      project page, with the story's honest limits written under it. Watches
+      live in `shared_preferences` (`SonarQubeWatchStore`: credential id,
+      project key and name, the analysis judged and its verdict — no token,
+      no issue text). `decideGateWatch` is pure: new analysis + failing gate
+      = one notification naming the project and the first failing condition
+      ("Coverage on new code is 62.1%, below 80%"); the same analysis never
+      notifies twice; a server that reports no time only notifies on a change
+      of verdict. The in-app timer checks every 5 minutes while the app is
+      open, and the existing `workmanager` task runs
+      `runSonarQubeWatchCheck` in its own isolate — one scheduler entry for
+      both watch kinds, unregistered when the last watch of either kind goes.
+      Gate alerts use their own Android channel (`quality_gates`), and the
+      app lock redacts them (AUD-54). Deleting the credential drops its
+      watches; an unreachable server keeps them. Shares the plan's
+      `backgroundWatch` limit with Jenkins. Tests: 5 domain (decision) + 6
+      runner (once per analysis, no repeated notify without a date, transient
+      keeps, deleted credential drops, unreachable keeps, concurrent add
+      survives) + a `showAlert` seam on `NotificationService`.
+      **Not verified:** the story itself says it needs a real device and a
+      real analysis — an actual gate failure arriving as a notification, and
+      iOS's background scheduling, are the owner's check.
 - [ ] P10-20 **Batch 3: deeper project views.** `US-SQ-QUALITY-10` (branch
       and pull request picker; **edition-dependent, hidden when the server
       lists only the main branch**), `US-SQ-HOTSPOT-01`,
