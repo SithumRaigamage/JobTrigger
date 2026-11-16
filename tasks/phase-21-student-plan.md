@@ -91,14 +91,14 @@ These fit inside the decisions above; they are how to build them safely.
 - [x] SP-23 Tests, including wrong code, expired code, attempt limit, reused email.
 
 ### SP-3 Backend: document flow and admin
-- [ ] SP-30 `POST /api/student/document`: base64 JPG/PNG/PDF, max 5 MB checked
+- [x] SP-30 `POST /api/student/document`: required `fullName` (as on the student ID, owner-approved 2026-11-16: stored, shown on the admin page, in the owner email, deleted with the document), base64 JPG/PNG/PDF, max 5 MB checked
       on the server ("File too large, max 5 MB"; type rejected with a message),
       encrypted at rest, status `pending`, owner email sent.
-- [ ] SP-31 Admin routes (super-admin only, server-checked, rate limited,
+- [x] SP-31 Admin routes (super-admin only, server-checked, rate limited,
       logged): list pending, search by user, view document (note 7), approve
       (365 days) or reject with a reason.
-- [ ] SP-32 Delete document bytes 30 days after a decision (keep the hash).
-- [ ] SP-33 Tests: size and type limits, non-admin gets 404, approve and reject.
+- [x] SP-32 Delete document bytes 30 days after a decision (keep the hash).
+- [x] SP-33 Tests: size and type limits, non-admin gets 404, approve and reject.
 
 ### SP-4 App (Flutter)
 - [ ] SP-40 Subscription screen: "Verify student status" entry (billing on only).

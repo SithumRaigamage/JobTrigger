@@ -21,6 +21,10 @@ process.env.SUBSCRIPTION_REFRESH_RATE_LIMIT = '10000';
 process.env.BILLING_WEBHOOK_RATE_LIMIT = '10000';
 process.env.STUDENT_EMAIL_START_RATE_LIMIT = '10000';
 process.env.STUDENT_EMAIL_CONFIRM_RATE_LIMIT = '10000';
+process.env.STUDENT_DOCUMENT_RATE_LIMIT = '10000';
+process.env.ADMIN_RATE_LIMIT = '10000';
+// The daily student job is started by the real server only.
+process.env.STUDENT_JOBS_ENABLED = 'false';
 // AUD-03: a throwaway key per run; secrets are encrypted at rest.
 process.env.CREDENTIALS_ENCRYPTION_KEY = require('crypto').randomBytes(32).toString('base64');
 // P20-72/73/78: optional features configured in a developer's .env (SMTP,

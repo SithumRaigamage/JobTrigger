@@ -15,6 +15,8 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 const StudentVerification = require('../models/StudentVerification');
 const User = require('../models/User');
+const { encrypt } = require('../security/secretCipher');
+const { inspectDocument } = require('../lib/studentDocument');
 const { sendMail } = require('../lib/mailer');
 const { logger } = require('../lib/logger');
 const { siteUrl, studentAdminEmail, studentRenewalEnabled } = require('../config/env');
@@ -23,6 +25,7 @@ const {
   DAY_MS,
   GRANT_DAYS,
   claim,
+  documentHash,
   emailHash,
   grantStudentYear,
   isClaimed,
@@ -32,6 +35,8 @@ const {
 
 const CODE_MINUTES = 10;
 const MAX_ATTEMPTS = 5;
+/** The field name the document is encrypted for (bound in as associated data). */
+const DOCUMENT_FIELD = 'studentVerification.documentData';
 const MAX_EMAIL_LENGTH = 254;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -76,6 +81,7 @@ async function notifyOwner(verification, user) {
   try {
     const message = studentApplicationEmail({
       accountEmail: user.email,
+      fullName: verification.fullName,
       universityEmail: verification.universityEmail,
       method: verification.method,
       submittedAt: verification.createdAt ?? new Date(),
@@ -259,6 +265,59 @@ exports.emailConfirm = async (req, res, next) => {
   }
 };
 
+const MAX_NAME_LENGTH = 100;
+
+/**
+ * SP-30: a student ID or enrolment letter, for universities not on the
+ * list. Base64 in JSON (no upload library): `{ fullName, data }`.
+ * Stored encrypted with status `pending`; the owner is emailed a link,
+ * never the file. Decided by hand on the website's admin page.
+ */
+exports.documentUpload = async (req, res, next) => {
+  try {
+    const fullName = typeof req.body?.fullName === 'string' ? req.body.fullName.trim().replace(/\s+/g, ' ') : '';
+    if (fullName.length < 2 || fullName.length > MAX_NAME_LENGTH) {
+      return res.status(400).json({ message: 'Enter your full name as it appears on your student ID' });
+    }
+    const block = await applicationBlock(req.user.id);
+    if (block) return res.status(block.status).json({ code: block.code, message: block.message });
+
+    const file = inspectDocument(req.body?.data);
+    if (file.error) return res.status(file.error.status).json({ message: file.error.message });
+
+    const hash = documentHash(file.bytes);
+    const takenElsewhere = await StudentVerification.exists({
+      documentHash: hash, userId: mongoose.trusted({ $ne: req.user.id }), status: mongoose.trusted({ $in: ['pending', 'approved', 'expired'] }),
+    });
+    if (takenElsewhere || (await isClaimed('document', hash))) {
+      return res.status(409).json({
+        code: 'document_used',
+        message: 'That document has already been used for a student plan.',
+      });
+    }
+
+    // Starting over with a document replaces an unfinished code request.
+    await StudentVerification.deleteMany({ userId: req.user.id, method: 'email', status: 'pending' });
+    const verification = await StudentVerification.create({
+      userId: req.user.id,
+      method: 'document',
+      status: 'pending',
+      fullName,
+      documentData: encrypt(file.bytes.toString('base64'), DOCUMENT_FIELD),
+      documentMime: file.mime,
+      documentSize: file.bytes.length,
+      documentHash: hash,
+    });
+    const user = await User.findById(req.user.id).lean();
+    await notifyOwner(verification, user);
+    logger.info('student.document_submitted', { requestId: req.requestId, userId: req.user.id, id: String(verification._id) });
+    res.status(201).json(publicView(verification));
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.DOCUMENT_FIELD = DOCUMENT_FIELD;
 exports.applicationBlock = applicationBlock;
 exports.notifyOwner = notifyOwner;
 exports.publicView = publicView;

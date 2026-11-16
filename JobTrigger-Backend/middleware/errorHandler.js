@@ -25,6 +25,10 @@ function errorHandler(err, req, res, next) {
   if (err.type === 'entity.parse.failed') {
     return res.status(400).json({ message: 'Malformed JSON body' });
   }
+  // Phase 21: the student document route reads a larger body than the rest.
+  if (err.type === 'entity.too.large' && req.originalUrl?.startsWith('/api/student/document')) {
+    return res.status(413).json({ message: 'File too large, max 5 MB' });
+  }
   if (err.status >= 400 && err.status < 500) {
     return res.status(err.status).json({ message: 'Bad request' });
   }
