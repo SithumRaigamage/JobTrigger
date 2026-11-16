@@ -83,18 +83,24 @@ class GitHubCredentialsRepositoryImpl implements GitHubCredentialsRepository {
     required String secret,
     String? defaultOwner,
     bool isDefault = false,
-  }) => guardRequest(() async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/api/github-credentials',
-      data: _body(
-        label: label,
+  }) => guardRequest(
+    mapDioException: AppFailure.fromCredentialsException,
+    () async {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/github-credentials',
+        data: _body(
+          label: label,
+          secret: secret,
+          defaultOwner: defaultOwner,
+          isDefault: isDefault,
+        ),
+      );
+      return _saved(
+        GitHubCredentialDto.fromJson(response.data!),
         secret: secret,
-        defaultOwner: defaultOwner,
-        isDefault: isDefault,
-      ),
-    );
-    return _saved(GitHubCredentialDto.fromJson(response.data!), secret: secret);
-  });
+      );
+    },
+  );
 
   @override
   Future<Result<GitHubCredential, AppFailure>> update(
@@ -124,12 +130,15 @@ class GitHubCredentialsRepositoryImpl implements GitHubCredentialsRepository {
 
   @override
   Future<Result<GitHubCredential, AppFailure>> switchActive(String id) =>
-      guardRequest(() async {
-        final response = await _dio.post<Map<String, dynamic>>(
-          '/api/github-credentials/switch/$id',
-        );
-        return _withSecret(GitHubCredentialDto.fromJson(response.data!));
-      });
+      guardRequest(
+        mapDioException: AppFailure.fromCredentialsException,
+        () async {
+          final response = await _dio.post<Map<String, dynamic>>(
+            '/api/github-credentials/switch/$id',
+          );
+          return _withSecret(GitHubCredentialDto.fromJson(response.data!));
+        },
+      );
 
   Map<String, dynamic> _body({
     required String label,

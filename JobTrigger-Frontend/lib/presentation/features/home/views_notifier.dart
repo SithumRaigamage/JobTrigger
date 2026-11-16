@@ -6,6 +6,7 @@ import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_view.dart';
 import '../../../data/credentials/active_server_notifier.dart';
+import '../subscription/plan_gate.dart';
 
 part 'views_notifier.g.dart';
 
@@ -28,8 +29,15 @@ class SelectedViewNotifier extends _$SelectedViewNotifier {
 
   String get _key => 'selected_view_$_serverId';
 
+  /// P20-25: views are part of Pro insights. The paywall reason when the
+  /// plan has none (billing on, Free), else null.
+  String? get blockedReason => ref.read(planGateProvider).insights;
+
   @override
   String? build() {
+    // P20-25: without insights Home lists the primary view, whatever was
+    // chosen while the plan had them.
+    if (ref.watch(planGateProvider).insights != null) return null;
     _serverId = ref.watch(
       activeServerNotifierProvider.select((server) => server?.id),
     );

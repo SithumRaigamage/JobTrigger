@@ -13,6 +13,14 @@ task where a track is large). Commits reference the task id, e.g.
 
 ## A. Decisions (owner)
 
+- **Working agreement (owner, 2026-11-16):** for the rest of Phase 20,
+  each PR's plan and design go in its PR description instead of pausing for
+  approval, and each PR is merged once every check is green. Pause only if
+  a check fails in a way that can't be fixed, or a decision isn't covered by
+  the owner's instructions. The billing-off guarantee stays absolute: with
+  no keys, backend `billingEnabled` false, or demo mode, every existing flow
+  and test is unchanged.
+
 - [x] P20-00 Approved 2026-11-12, all as written. Approve the plan: Free/Pro split and limits
       (business model §2–3), prices and trial (§4), RevenueCat
       (§5), `purchases_flutter` as a new dependency (add a row to
@@ -89,13 +97,21 @@ names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
       `/paywall`.
 - [x] P20-24 (2026-11-16, PR B) Profile → Subscription section (US-SUB-01, manage link,
       restore); route `/profile/subscription`.
-- [ ] P20-25 Gates (technical design §4.3): add-server forms, tool
+- [x] P20-25 (2026-11-16, PR C; paywall opening from the real screens and the native widget's upgrade copy unverified until a device run) Gates (technical design §4.3): add-server forms, tool
       switch, locked credential rows, background watch, widget, pinned
-      jobs, insights. Each gate gets a notifier test.
+      jobs, insights. Each gate gets a notifier test. One `PlanGate`
+      (`plan_gate.dart`) decides; it blocks nothing unless billing is
+      available (key + `billingEnabled` + not demo), so with billing off every
+      flow is as before. Blocked actions open `/paywall?reason=<limit>`. A
+      locked *active* credential is replaced by the first unlocked one (or
+      none), its cached secret deleted, and the paywall opens with `locked`
+      the next time the tool is opened (`locked_active_guard.dart`).
 - [x] P20-26 (2026-11-16, PR B) Delete-account dialog warns about an active store
       subscription (US-SUB-07).
-- [ ] P20-27 (2026-11-16: the `PrivacyInfo.xcprivacy` entries and App Store answers were done in PR B; Play Data safety text is in `release-checklist.md`; entering the answers in the stores is an owner action) `ios/Runner/PrivacyInfo.xcprivacy`, App Privacy answers and
-      Play Data safety updated for purchases.
+- [x] P20-27 (2026-11-16, PR B) `ios/Runner/PrivacyInfo.xcprivacy`, App Privacy answers and
+      Play Data safety updated for purchases. The manifest entries (Purchase
+      History, User ID) and the Play Data safety text in `release-checklist.md`
+      are done; entering the answers in the two stores is an owner action.
 
 ## E. Website
 

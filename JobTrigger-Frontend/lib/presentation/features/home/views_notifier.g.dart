@@ -97,7 +97,7 @@ final class SelectedViewNotifierProvider
 }
 
 String _$selectedViewNotifierHash() =>
-    r'cb076972a7872d9b931c90fef7f8599d34e4d46b';
+    r'7e71f51db4ef87e6b97fc22383791a64b7a75b18';
 
 /// US-JX-17: the view Home lists, as its URL; null means the primary view
 /// (the plain root). Persisted per server, like pins.

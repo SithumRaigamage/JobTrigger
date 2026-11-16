@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,8 @@ import '../../common_widgets/pinned_footer_layout.dart';
 import '../../common_widgets/external_link.dart';
 import '../../navigation/app_routes.dart';
 import '../app_info/app_info_notifier.dart';
+import '../subscription/locked_active_guard.dart';
+import '../subscription/plan_gate.dart';
 import 'active_tool_notifier.dart';
 import 'ci_tool.dart';
 
@@ -33,9 +37,24 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
   late CiTool _selected =
       ref.read(activeToolNotifierProvider) ?? CiTool.jenkins;
 
-  void _continue() {
-    ref.read(activeToolNotifierProvider.notifier).setActiveTool(_selected);
-    context.go(AppRoutes.home);
+  Future<void> _continue() async {
+    final notifier = ref.read(activeToolNotifierProvider.notifier);
+    // P20-25: another tool than the one in use is part of Pro.
+    final blocked = await notifier.blockedReason(_selected);
+    if (!mounted) return;
+    if (blocked != null) {
+      await openPaywall(context, blocked);
+      return;
+    }
+    // P20-25: the active credential of this tool was locked (a downgrade)
+    // and replaced; say so once, on top of Home.
+    final router = GoRouter.of(context);
+    final locked = ref
+        .read(lockedActiveGuardProvider.notifier)
+        .consume(_selected);
+    notifier.setActiveTool(_selected);
+    router.go(AppRoutes.home);
+    if (locked) unawaited(router.push(paywallLocation('locked')));
   }
 
   @override
@@ -43,6 +62,7 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
     final available = CiTool.values.where((tool) => tool.isAvailable);
+    final proTools = ref.watch(proLockedToolsProvider).value ?? const {};
     // From `GET /api/appinfo`; no address, no link.
     final supportEmail = ref.watch(appInfoNotifierProvider).value?.supportEmail;
 
@@ -80,6 +100,7 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
                       _ToolOption(
                         tool: tool,
                         selected: tool == _selected,
+                        pro: proTools.contains(tool),
                         onTap: () => setState(() => _selected = tool),
                       ),
                       const SizedBox(height: 10),
@@ -146,11 +167,15 @@ class _ToolOption extends StatelessWidget {
   const _ToolOption({
     required this.tool,
     required this.selected,
+    this.pro = false,
     required this.onTap,
   });
 
   final CiTool tool;
   final bool selected;
+
+  /// P20-25: needs Pro for this user; shows a mark.
+  final bool pro;
   final VoidCallback onTap;
 
   @override
@@ -165,7 +190,8 @@ class _ToolOption extends StatelessWidget {
       inMutuallyExclusiveGroup: true,
       checked: selected,
       button: true,
-      label: '${tool.displayName}, ${tool.tagline}',
+      label:
+          '${tool.displayName}, ${tool.tagline}${pro ? ', requires Pro' : ''}',
       excludeSemantics: true,
       child: Material(
         color: t.card,
@@ -189,7 +215,36 @@ class _ToolOption extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(tool.displayName, style: textTheme.titleMedium),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              tool.displayName,
+                              style: textTheme.titleMedium,
+                            ),
+                          ),
+                          if (pro) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              key: Key('tool_pro_${tool.name}'),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: t.running.background,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                'Pro',
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: t.running.foreground,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                       const SizedBox(height: 3),
                       Text(tool.tagline, style: textTheme.bodySmall),
                     ],

@@ -45,6 +45,7 @@ class WidgetSnapshot {
     required this.jobs,
     required this.updatedAt,
     this.lockedCount,
+    this.upgradeRequired = false,
   });
 
   /// A medium widget shows four rows; a small one the first two.
@@ -60,10 +61,17 @@ class WidgetSnapshot {
 
   bool get isLocked => lockedCount != null;
 
+  /// P20-25: the plan has no home-screen widget (billing on, Free), so
+  /// [jobs] is empty. Written to the shared snapshot only when true, so
+  /// every other snapshot keeps its exact shape; the native widgets' own
+  /// "Upgrade to Pro" copy reads this flag.
+  final bool upgradeRequired;
+
   Map<String, Object?> toJson() => {
     'jobs': [for (final job in jobs) job.toJson()],
     'updatedAt': updatedAt.millisecondsSinceEpoch,
     'lockedCount': lockedCount,
+    if (upgradeRequired) 'upgradeRequired': true,
   };
 }
 

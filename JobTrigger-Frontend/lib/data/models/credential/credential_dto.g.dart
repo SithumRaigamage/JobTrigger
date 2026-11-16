@@ -18,6 +18,7 @@ _CredentialDto _$CredentialDtoFromJson(Map<String, dynamic> json) =>
       hasParamToken: json['hasParamToken'] as bool? ?? false,
       isDefault: json['isDefault'] as bool? ?? false,
       needsReentry: json['needsReentry'] as bool? ?? false,
+      locked: json['locked'] as bool? ?? false,
       createdAt: json['createdAt'] as String?,
       updatedAt: json['updatedAt'] as String?,
     );
@@ -34,6 +35,7 @@ Map<String, dynamic> _$CredentialDtoToJson(_CredentialDto instance) =>
       'hasParamToken': instance.hasParamToken,
       'isDefault': instance.isDefault,
       'needsReentry': instance.needsReentry,
+      'locked': instance.locked,
       'createdAt': instance.createdAt,
       'updatedAt': instance.updatedAt,
     };

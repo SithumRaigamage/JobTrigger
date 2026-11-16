@@ -15,6 +15,7 @@ _GitHubCredentialDto _$GitHubCredentialDtoFromJson(Map<String, dynamic> json) =>
       defaultOwner: json['defaultOwner'] as String?,
       isDefault: json['isDefault'] as bool? ?? false,
       needsReentry: json['needsReentry'] as bool? ?? false,
+      locked: json['locked'] as bool? ?? false,
       createdAt: json['createdAt'] as String?,
       updatedAt: json['updatedAt'] as String?,
     );
@@ -29,6 +30,7 @@ Map<String, dynamic> _$GitHubCredentialDtoToJson(
   'defaultOwner': instance.defaultOwner,
   'isDefault': instance.isDefault,
   'needsReentry': instance.needsReentry,
+  'locked': instance.locked,
   'createdAt': instance.createdAt,
   'updatedAt': instance.updatedAt,
 };

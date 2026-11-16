@@ -9,6 +9,7 @@ import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../data/credentials/active_server_notifier.dart';
+import '../subscription/plan_gate.dart';
 
 part 'pinned_jobs_notifier.g.dart';
 
@@ -60,6 +61,12 @@ class PinnedJobsNotifier extends _$PinnedJobsNotifier {
   }
 
   bool isPinned(String url) => state.any((pin) => pin.url == url);
+
+  /// P20-25: the paywall reason when pinning [url] is over the plan's limit,
+  /// else null. Unpinning, and a job that is already pinned, are never
+  /// blocked; pins beyond the limit after a downgrade stay and can be removed.
+  String? pinBlockedReason(String url) =>
+      isPinned(url) ? null : ref.read(planGateProvider).pinJob(state.length);
 
   /// Pins [job], or unpins it if already pinned. Returns true if pinned.
   Future<bool> toggle(JenkinsJob job) async {

@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../subscription/plan_gate.dart';
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -925,6 +926,13 @@ Future<void> _togglePin(
   WidgetRef ref,
   JenkinsJob job,
 ) async {
+  final blocked = ref
+      .read(pinnedJobsNotifierProvider.notifier)
+      .pinBlockedReason(job.url);
+  if (blocked != null) {
+    await openPaywall(context, blocked);
+    return;
+  }
   final nowPinned = await ref
       .read(pinnedJobsNotifierProvider.notifier)
       .toggle(job);
@@ -1211,6 +1219,13 @@ class _ViewPickerTitle extends ConsumerWidget {
     List<JenkinsView> views,
     JenkinsView? current,
   ) async {
+    final blocked = ref
+        .read(selectedViewNotifierProvider.notifier)
+        .blockedReason;
+    if (blocked != null) {
+      await openPaywall(context, blocked);
+      return;
+    }
     final chosen = await showModalBottomSheet<JenkinsView>(
       context: context,
       showDragHandle: true,
