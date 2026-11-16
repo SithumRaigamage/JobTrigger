@@ -4,6 +4,7 @@ import 'sonarqube_analysis.dart';
 import 'sonarqube_analysis_status.dart';
 import 'sonarqube_hotspot.dart';
 import 'sonarqube_issue.dart';
+import 'sonarqube_measure_history.dart';
 import 'sonarqube_measure_delta.dart';
 import 'sonarqube_metrics.dart';
 import 'sonarqube_project.dart';
@@ -95,6 +96,14 @@ abstract class SonarQubeRepository {
     String projectKey, {
     List<String> metricKeys = sonarQubeMeasureKeys,
   });
+
+  /// `GET api/measures/search_history` (`US-SQ-QUALITY-11`): one measure's
+  /// points over time, oldest first. Points the server reports without a
+  /// value are dropped.
+  Future<Result<SonarQubeMeasureHistory, AppFailure>> fetchMeasureHistory(
+    String projectKey,
+    String metric,
+  );
 
   /// `GET api/hotspots/search?project=` (`US-SQ-HOTSPOT-01`): a project's
   /// security hotspots, filtered by the server to [reviewed] ones or the

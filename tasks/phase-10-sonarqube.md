@@ -355,8 +355,7 @@ the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
 - [ ] P10-20 **Batch 3: deeper project views.** *Started 2026-11-17 with
       `US-SQ-HOTSPOT-01` (built: hotspots list + inline rule/code detail,
       `api/hotspots/search` / `hotspots/show`). Still open in this batch:
-      `US-SQ-QUALITY-10` (branch/PR picker), `US-SQ-QUALITY-11` (trends — the
-      plan's default is a small custom painter, no dependency),
+      `US-SQ-QUALITY-11` (trends, custom painter, no dependency),
       `US-SQ-QUALITY-12` (worst files), `US-SQ-QUALITY-13` (language
       breakdown), `US-SQ-ISSUES-02`.* `US-SQ-QUALITY-10` (branch
       and pull request picker; **edition-dependent, hidden when the server

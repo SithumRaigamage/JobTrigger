@@ -6,6 +6,7 @@ import '../../domain/sonarqube/sonarqube_analysis.dart';
 import '../../domain/sonarqube/sonarqube_analysis_status.dart';
 import '../../domain/sonarqube/sonarqube_hotspot.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
+import '../../domain/sonarqube/sonarqube_measure_history.dart';
 import '../../domain/sonarqube/sonarqube_measure_delta.dart';
 import '../../domain/sonarqube/sonarqube_metrics.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
@@ -240,6 +241,28 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
         ),
     ]);
   }
+
+  @override
+  Future<Result<SonarQubeMeasureHistory, AppFailure>> fetchMeasureHistory(
+    String projectKey,
+    String metric,
+  ) async => Ok(
+    SonarQubeMeasureHistory(
+      metric: metric,
+      unit: sonarQubeTrendMetrics
+          .firstWhere(
+            (m) => m.metric == metric,
+            orElse: () => SonarQubeTrendMetric(metric, metric, ''),
+          )
+          .unit,
+      points: [
+        SonarQubeMeasurePoint(date: DateTime(2026, 10, 1), value: 71),
+        SonarQubeMeasurePoint(date: DateTime(2026, 10, 15), value: 74.5),
+        SonarQubeMeasurePoint(date: DateTime(2026, 11, 1), value: 69.2),
+        SonarQubeMeasurePoint(date: DateTime(2026, 11, 15), value: 77.8),
+      ],
+    ),
+  );
 
   static const _hotspots = [
     SonarQubeHotspot(

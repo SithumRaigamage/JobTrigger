@@ -8,6 +8,7 @@ import '../../domain/sonarqube/sonarqube_analysis.dart';
 import '../../domain/sonarqube/sonarqube_analysis_status.dart';
 import '../../domain/sonarqube/sonarqube_hotspot.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
+import '../../domain/sonarqube/sonarqube_measure_history.dart';
 import '../../domain/sonarqube/sonarqube_measure_delta.dart';
 import '../../domain/sonarqube/sonarqube_metrics.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
@@ -462,6 +463,41 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
       if (delta != null) deltas.add(delta);
     }
     return deltas;
+  }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeMeasureHistory, AppFailure>> fetchMeasureHistory(
+    String projectKey,
+    String metric,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/measures/search_history',
+      queryParameters: {'component': projectKey, 'metrics': metric, 'ps': 100},
+    );
+    final measures = response.data?['measures'] as List<dynamic>? ?? const [];
+    final history = measures.isEmpty
+        ? const <dynamic>[]
+        : ((measures.first as Map<String, dynamic>)['history']
+                      as List<dynamic>? ??
+                  const [])
+              .cast<Map<String, dynamic>>();
+    final metricDef = sonarQubeTrendMetrics.firstWhere(
+      (m) => m.metric == metric,
+      orElse: () => SonarQubeTrendMetric(metric, metric, ''),
+    );
+    return SonarQubeMeasureHistory(
+      metric: metric,
+      unit: metricDef.unit,
+      points: [
+        for (final point in history)
+          if (point['value'] != null &&
+              DateTime.tryParse(point['date'] as String? ?? '') != null)
+            SonarQubeMeasurePoint(
+              date: DateTime.parse(point['date'] as String),
+              value: num.parse(point['value'] as String),
+            ),
+      ]..sort((a, b) => a.date.compareTo(b.date)),
+    );
   }, recover: _projectRecover);
 
   @override

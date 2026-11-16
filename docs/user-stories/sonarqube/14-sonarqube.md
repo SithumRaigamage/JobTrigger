@@ -772,7 +772,7 @@ So that I know which security-sensitive code still needs a review
 ### US-SQ-QUALITY-11 — Trends over time
 
 **Batch:** 3 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-20)
 **Dependencies:** US-SQ-QUALITY-04
 
 As a user
@@ -789,6 +789,16 @@ So that I can tell whether the project is getting better
 **Notes**
 - No chart library is in the locked stack (`CLAUDE.md` §3): either a small custom painter, or a flagged dependency request. **Decide in the plan, don't add silently.**
 - The chart must also be readable without colour (labels, not only a line).
+- **Decided and built 2026-11-17: a small custom painter, no dependency.**
+  Project page → *Trends*, chips for Coverage / Bugs / Code smells /
+  Duplication from `api/measures/search_history` (points the server sends
+  without a value are dropped, `DateTime.tryParse` guards the date). The
+  painter draws a grid with each value written as text, the line, its dots
+  and both end dates; a tap picks the nearest point
+  (`nearestSonarQubePointIndex`, pure and tested) and the date · value is
+  written under the chart, so nothing depends on colour. Fewer than two
+  points says "Not enough history yet". A semantics label states lowest,
+  highest and their dates. Not verified against a real server.
 
 ### US-SQ-QUALITY-12 — Worst files
 

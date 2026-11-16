@@ -62,7 +62,7 @@ final class SonarQubeHotspotsNotifierProvider
 }
 
 String _$sonarQubeHotspotsNotifierHash() =>
-    r'11fe8092e0edc7a590977f7265f0a4dde88de596';
+    r'4802d5aa4739e14100dd299638ffab7c610aad2a';
 
 /// A project's security hotspots (`US-SQ-HOTSPOT-01`), to review or already
 /// reviewed. Read-only: reviewing is `US-SQ-WRITE-04`.

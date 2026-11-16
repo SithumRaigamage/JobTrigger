@@ -164,6 +164,15 @@ class SonarQubeProjectDetailScreen extends ConsumerWidget {
                       const Divider(height: 1),
                       const Divider(height: 1),
                       _NavRow(
+                        icon: Icons.show_chart_rounded,
+                        label: 'Trends',
+                        onTap: () => context.push(
+                          AppRoutes.sonarqubeTrends,
+                          extra: project,
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      _NavRow(
                         icon: Icons.shield_outlined,
                         label: 'Security hotspots',
                         onTap: () => context.push(

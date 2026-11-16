@@ -31,6 +31,9 @@ abstract class AppRoutes {
   static const sonarqubeAnalyses = '/sonarqube/project/analyses';
   static const sonarqubeIssues = '/sonarqube/project/issues';
 
+  /// US-SQ-QUALITY-11: a measure's history for a project.
+  static const sonarqubeTrends = '/sonarqube/project/trends';
+
   /// US-SQ-HOTSPOT-01: a project's security hotspots.
   static const sonarqubeHotspots = '/sonarqube/project/hotspots';
 

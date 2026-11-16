@@ -11,6 +11,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_analysis_status.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_hotspot.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_delta.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_measure_history.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project_summary.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
@@ -57,6 +58,7 @@ void main() {
   _batch1();
   _batch1Names();
   _hotspots();
+  _history();
   group('SonarQubeRepositoryImpl.fetchProjects (US-SQ-PROJ-01)', () {
     test('parses projects, including one that was never analysed', () async {
       final adapter = _Adapter(200, {
@@ -1233,5 +1235,54 @@ void _hotspots() {
       expect(detail.snippet.single.number, 18);
       expect(detail.snippet.single.code, "const password = 'x';");
     });
+  });
+}
+
+// US-SQ-QUALITY-11: history points, oldest first, blanks dropped.
+void _history() {
+  group('measure history (US-SQ-QUALITY-11)', () {
+    test('parses the points, drops valueless ones and sorts by date', () async {
+      final adapter = _Adapter(200, {
+        'measures': [
+          {
+            'metric': 'coverage',
+            'history': [
+              {'date': '2026-11-01T10:00:00+0000', 'value': '69.2'},
+              {'date': '2026-10-15T10:00:00+0000'},
+              {'date': '2026-10-01T10:00:00+0000', 'value': '71.0'},
+            ],
+          },
+        ],
+      });
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchMeasureHistory('acme:api', 'coverage');
+
+      final history = (result as Ok<SonarQubeMeasureHistory, AppFailure>).value;
+      expect(history.points.map((p) => p.value), [71, 69.2]);
+      expect(
+        history.points.first.date.isBefore(history.points.last.date),
+        isTrue,
+      );
+      expect(history.unit, '%');
+      expect(adapter.last?.path, '/api/measures/search_history');
+      expect(adapter.last?.queryParameters['component'], 'acme:api');
+      expect(adapter.last?.queryParameters['metrics'], 'coverage');
+    });
+
+    test(
+      'a project without history is an empty history, not an error',
+      () async {
+        final result = await SonarQubeRepositoryImpl(
+          _dio(_Adapter(200, {'measures': <Object>[]})),
+        ).fetchMeasureHistory('acme:api', 'bugs');
+
+        final history =
+            (result as Ok<SonarQubeMeasureHistory, AppFailure>).value;
+        expect(history.points, isEmpty);
+        expect(history.hasEnoughHistory, isFalse);
+      },
+    );
   });
 }

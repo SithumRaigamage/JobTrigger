@@ -34,6 +34,7 @@ import '../features/sonarqube/sonarqube_issues_screen.dart';
 import '../features/sonarqube/sonarqube_overview_screen.dart';
 import '../features/sonarqube/sonarqube_hotspots_screen.dart';
 import '../features/sonarqube/sonarqube_my_issues_screen.dart';
+import '../features/sonarqube/sonarqube_trends_screen.dart';
 import '../features/sonarqube/sonarqube_project_detail_screen.dart';
 import '../features/sonarqube/sonarqube_project_screen.dart';
 import '../features/github/github_workflow_list_screen.dart';
@@ -99,6 +100,7 @@ final Map<String, bool Function(Object? extra)> _extraRoutes = {
       extra is (SonarQubeProject, SonarQubeIssue),
   AppRoutes.sonarqubeAnalyses: (extra) => extra is SonarQubeProject,
   AppRoutes.sonarqubeHotspots: (extra) => extra is SonarQubeProject,
+  AppRoutes.sonarqubeTrends: (extra) => extra is SonarQubeProject,
 };
 
 /// Module-level (not inside `appRouter`) so identity is stable across
@@ -335,6 +337,12 @@ GoRouter appRouter(Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) =>
             PairScreen(query: state.uri.queryParameters),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeTrends,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            SonarQubeTrendsScreen(project: state.extra! as SonarQubeProject),
       ),
       GoRoute(
         path: AppRoutes.sonarqubeHotspots,
