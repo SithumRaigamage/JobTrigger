@@ -4,6 +4,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_analysis_status.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_hotspot.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_history.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_worst_files.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_delta.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_metrics.dart';
 
@@ -27,6 +28,15 @@ mixin SonarQubeInsightsDefaults {
   Future<Result<Map<String, String>, AppFailure>> fetchNewCodeMeasures(
     String projectKey,
   ) async => const Ok({});
+
+  Future<Result<SonarQubeWorstFiles, AppFailure>> fetchWorstFiles(
+    String projectKey,
+    SonarQubeFileMetric metric,
+  ) async => Ok(SonarQubeWorstFiles(metric: metric.metric, files: const []));
+
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchFileIssues(
+    String componentKey,
+  ) async => const Ok(SonarQubeIssuePage(issues: [], total: 0));
 
   Future<Result<SonarQubeMeasureHistory, AppFailure>> fetchMeasureHistory(
     String projectKey,

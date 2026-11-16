@@ -356,8 +356,8 @@ the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
       `US-SQ-HOTSPOT-01` (built: hotspots list + inline rule/code detail,
       `api/hotspots/search` / `hotspots/show`). Still open in this batch:
       `US-SQ-QUALITY-11` (trends, custom painter, no dependency),
-      `US-SQ-QUALITY-12` (worst files), `US-SQ-QUALITY-13` (language
-      breakdown), `US-SQ-ISSUES-02`.* `US-SQ-QUALITY-10` (branch
+      `US-SQ-QUALITY-12` (worst files + a file's own issues),
+      `US-SQ-QUALITY-13` (language breakdown), `US-SQ-ISSUES-02`.* `US-SQ-QUALITY-10` (branch
       and pull request picker; **edition-dependent, hidden when the server
       lists only the main branch**), `US-SQ-HOTSPOT-01`,
       `US-SQ-QUALITY-11` (trends; **needs a decision on the chart: custom

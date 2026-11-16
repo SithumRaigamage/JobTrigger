@@ -803,7 +803,7 @@ So that I can tell whether the project is getting better
 ### US-SQ-QUALITY-12 — Worst files
 
 **Batch:** 3 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-20)
 **Dependencies:** US-SQ-QUALITY-03
 
 As a user
@@ -819,6 +819,14 @@ So that I know where to start
 
 **Notes**
 - Uses `strategy=leaves`, `qualifiers=FIL`, `s=metric`, `metricSort`, `ps=10`.
+- **Built 2026-11-17:** project page → *Worst files*, four rankings with
+  their own direction — *Least covered* sorts ascending (no coverage is
+  worst), *Most duplicated*, *Most issues* and *Most complex* sort
+  descending. A file the server sends no value for shows `—`, not `0%`.
+  Tapping a file opens a sheet with that file's open issues
+  (`api/issues/search?componentKeys=<projectKey>:<path>`, through the same
+  parsing as every issue list); a file with none says so. Not verified
+  against a real server.
 
 ### US-SQ-QUALITY-13 — Language breakdown
 

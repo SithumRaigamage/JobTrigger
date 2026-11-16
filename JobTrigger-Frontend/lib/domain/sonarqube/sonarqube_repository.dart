@@ -5,6 +5,7 @@ import 'sonarqube_analysis_status.dart';
 import 'sonarqube_hotspot.dart';
 import 'sonarqube_issue.dart';
 import 'sonarqube_measure_history.dart';
+import 'sonarqube_worst_files.dart';
 import 'sonarqube_measure_delta.dart';
 import 'sonarqube_metrics.dart';
 import 'sonarqube_project.dart';
@@ -96,6 +97,19 @@ abstract class SonarQubeRepository {
     String projectKey, {
     List<String> metricKeys = sonarQubeMeasureKeys,
   });
+
+  /// `GET api/measures/component_tree` (`US-SQ-QUALITY-12`): the ten files
+  /// worst for [metric], file level, sorted on the server.
+  Future<Result<SonarQubeWorstFiles, AppFailure>> fetchWorstFiles(
+    String projectKey,
+    SonarQubeFileMetric metric,
+  );
+
+  /// `GET api/issues/search?componentKeys=` (`US-SQ-QUALITY-12`): a single
+  /// file's open issues, for the tap-through.
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchFileIssues(
+    String componentKey,
+  );
 
   /// `GET api/measures/search_history` (`US-SQ-QUALITY-11`): one measure's
   /// points over time, oldest first. Points the server reports without a

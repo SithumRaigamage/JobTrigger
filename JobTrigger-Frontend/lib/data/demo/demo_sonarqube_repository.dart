@@ -7,6 +7,7 @@ import '../../domain/sonarqube/sonarqube_analysis_status.dart';
 import '../../domain/sonarqube/sonarqube_hotspot.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
 import '../../domain/sonarqube/sonarqube_measure_history.dart';
+import '../../domain/sonarqube/sonarqube_worst_files.dart';
 import '../../domain/sonarqube/sonarqube_measure_delta.dart';
 import '../../domain/sonarqube/sonarqube_metrics.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
@@ -263,6 +264,27 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
       ],
     ),
   );
+
+  @override
+  Future<Result<SonarQubeWorstFiles, AppFailure>> fetchWorstFiles(
+    String projectKey,
+    SonarQubeFileMetric metric,
+  ) async => Ok(
+    SonarQubeWorstFiles(
+      metric: metric.metric,
+      unit: metric.unit,
+      files: const [
+        SonarQubeFileMeasures(path: 'src/legacy/report.ts', value: 0),
+        SonarQubeFileMeasures(path: 'src/config/auth.ts', value: 12.5),
+        SonarQubeFileMeasures(path: 'src/net/client.ts', value: 31.0),
+      ],
+    ),
+  );
+
+  @override
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchFileIssues(
+    String componentKey,
+  ) async => Ok(SonarQubeIssuePage(issues: _issues.take(2).toList(), total: 2));
 
   static const _hotspots = [
     SonarQubeHotspot(

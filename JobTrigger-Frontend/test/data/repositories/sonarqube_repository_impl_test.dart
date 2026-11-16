@@ -12,6 +12,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_hotspot.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_delta.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_history.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_worst_files.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project_summary.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
@@ -59,6 +60,7 @@ void main() {
   _batch1Names();
   _hotspots();
   _history();
+  _worstFiles();
   group('SonarQubeRepositoryImpl.fetchProjects (US-SQ-PROJ-01)', () {
     test('parses projects, including one that was never analysed', () async {
       final adapter = _Adapter(200, {
@@ -1284,5 +1286,52 @@ void _history() {
         expect(history.hasEnoughHistory, isFalse);
       },
     );
+  });
+}
+
+// US-SQ-QUALITY-12: the ten worst files, ranked on the server.
+void _worstFiles() {
+  group('worst files (US-SQ-QUALITY-12)', () {
+    test('asks the server for file leaves sorted the metric way', () async {
+      final adapter = _Adapter(200, {
+        'components': [
+          {
+            'key': 'acme:api:src/legacy/report.ts',
+            'measures': [
+              {'metric': 'coverage', 'value': '0.0'},
+            ],
+          },
+          {'key': 'acme:api:src/net/client.ts'},
+        ],
+      });
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchWorstFiles('acme:api', sonarQubeFileMetrics.first);
+
+      final files = (result as Ok<SonarQubeWorstFiles, AppFailure>).value;
+      expect(adapter.last?.path, '/api/measures/component_tree');
+      expect(adapter.last?.queryParameters['qualifiers'], 'FIL');
+      expect(adapter.last?.queryParameters['strategy'], 'leaves');
+      expect(adapter.last?.queryParameters['metricSort'], 'coverage');
+      expect(adapter.last?.queryParameters['asc'], true);
+      expect(files.files.first.path, 'src/legacy/report.ts');
+      expect(files.format(files.files.first.value), '0%');
+      // A file the server sent without a value is a dash, not a zero.
+      expect(files.format(files.files.last.value), '—');
+    });
+
+    test('the duplication ranking sorts the other way', () async {
+      final adapter = _Adapter(200, {'components': <Object>[]});
+      final metric = sonarQubeFileMetrics.firstWhere(
+        (m) => m.metric == 'duplicated_lines_density',
+      );
+
+      await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchWorstFiles('acme:api', metric);
+
+      expect(adapter.last?.queryParameters['asc'], false);
+    });
   });
 }

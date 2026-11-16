@@ -9,6 +9,7 @@ import '../../domain/sonarqube/sonarqube_analysis_status.dart';
 import '../../domain/sonarqube/sonarqube_hotspot.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
 import '../../domain/sonarqube/sonarqube_measure_history.dart';
+import '../../domain/sonarqube/sonarqube_worst_files.dart';
 import '../../domain/sonarqube/sonarqube_measure_delta.dart';
 import '../../domain/sonarqube/sonarqube_metrics.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
@@ -464,6 +465,55 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
     }
     return deltas;
   }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeWorstFiles, AppFailure>> fetchWorstFiles(
+    String projectKey,
+    SonarQubeFileMetric metric,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/measures/component_tree',
+      queryParameters: {
+        'component': projectKey,
+        'metricKeys': metric.metric,
+        'strategy': 'leaves',
+        'qualifiers': 'FIL',
+        's': 'metric',
+        'metricSort': metric.metric,
+        'asc': metric.lowestFirst,
+        'ps': sonarQubeWorstFilesLimit,
+      },
+    );
+    final components =
+        (response.data?['components'] as List<dynamic>? ?? const [])
+            .cast<Map<String, dynamic>>();
+    return SonarQubeWorstFiles(
+      metric: metric.metric,
+      unit: metric.unit,
+      files: [
+        for (final component in components)
+          SonarQubeFileMeasures(
+            path: _fileOf(component['key'] as String?, projectKey) ?? '',
+            value: _measureValue(component),
+          ),
+      ],
+    );
+  }, recover: _projectRecover);
+
+  /// The first measure's `value` (period values are ignored).
+  static num? _measureValue(Map<String, dynamic> component) {
+    final measures = component['measures'] as List<dynamic>? ?? const [];
+    if (measures.isEmpty) return null;
+    final value = (measures.first as Map<String, dynamic>)['value'];
+    return value == null ? null : num.tryParse(value as String);
+  }
+
+  @override
+  // A component key is what `componentKeys` takes, so the file's own issues
+  // come back through the same parsing as every other issue list.
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchFileIssues(
+    String componentKey,
+  ) => fetchIssues(componentKey);
 
   @override
   Future<Result<SonarQubeMeasureHistory, AppFailure>> fetchMeasureHistory(
