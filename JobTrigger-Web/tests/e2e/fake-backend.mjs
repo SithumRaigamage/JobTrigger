@@ -62,7 +62,12 @@ const tools = {
   },
 };
 
-let secretFetches = 0;
+// Counted per account (the specs run in parallel), keyed by email.
+const secretFetches = new Map();
+// Requests for GitHub or SonarQube credentials: the release-1.0 smoke run
+// checks the site never makes one.
+// Counted per account (the specs run in parallel), keyed by email.
+const toolRequests = new Map();
 
 function send(res, status, body, requestId) {
   res.writeHead(status, { "content-type": "application/json", "x-request-id": requestId });
@@ -91,7 +96,11 @@ const server = createServer(async (req, res) => {
 
   if (url.pathname === "/healthz") return reply(200, { status: "ok" });
   // Test-only: how many decrypted secrets were requested so far.
-  if (url.pathname === "/__stats") return reply(200, { secretFetches });
+  if (url.pathname === "/__stats")
+    return reply(200, {
+      secretFetches: secretFetches.get(url.searchParams.get("email") ?? "") ?? 0,
+      toolRequests: toolRequests.get(url.searchParams.get("email") ?? "") ?? 0,
+    });
   if (url.pathname === "/api/appinfo")
     return reply(200, { supportEmail: "support@jobtrigger.test", appVersion: "1.0.0" });
 
@@ -178,6 +187,9 @@ const server = createServer(async (req, res) => {
     return reply(404, { message: "No web subscription" });
   }
 
+  if (/^\/api\/(github|sonarqube)-credentials/.test(url.pathname))
+    toolRequests.set(user.email, (toolRequests.get(user.email) ?? 0) + 1);
+
   if (url.pathname === "/api/auth/logout-all" && req.method === "POST") {
     user.tokenVersion += 1;
     return reply(200, { message: "Signed out everywhere" });
@@ -238,7 +250,7 @@ const server = createServer(async (req, res) => {
     // The decrypted secret, owner only. Counted, so a spec can prove the
     // portal asked only after the password was confirmed.
     if (second === "secret") {
-      secretFetches += 1;
+      secretFetches.set(user.email, (secretFetches.get(user.email) ?? 0) + 1);
       if (!row) return reply(404, { message: "Credential not found" });
       return reply(
         200,

@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   // page rendered per request. Measured 2026-10-26; see
   // docs/web-architecture.md "Security headers".
   poweredByHeader: false,
+  // The release-1.0 smoke run (playwright.config.ts) builds into its own
+  // folder so it can sit next to the all-tools build. Unset: the usual .next.
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   // No dev toolbar: under `next dev` it injects <style> blocks without the
   // CSP nonce, the strict policy blocks them, and it renders as a blank box
   // over the logo. Kept off rather than loosening the dev CSP, so dev and

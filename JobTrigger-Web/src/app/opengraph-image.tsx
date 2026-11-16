@@ -3,6 +3,8 @@ import { join } from "node:path";
 
 import { ImageResponse } from "next/og";
 
+import { pocketLine } from "@/content/tool-copy";
+
 // The shared link-preview image (US-WEB-07: "a shared default"), 1200×630,
 // generated once at build time. ImageResponse renders its own JSX to PNG,
 // so these inline styles never reach a page or the CSP. Inter Bold is the
@@ -17,6 +19,8 @@ export const contentType = "image/png";
 const interBold = await readFile(join(process.cwd(), "src/assets/fonts/Inter-Bold.ttf"));
 
 export default function OpengraphImage() {
+  // The tools this release ships first, the rest as "coming next" (release/tools.json).
+  const pocket = pocketLine();
   return new ImageResponse(
     <div
       style={{
@@ -72,9 +76,10 @@ export default function OpengraphImage() {
             from&nbsp;<span style={{ color: "#93C5FD" }}>anywhere.</span>
           </span>
         </div>
-        <span style={{ fontSize: 32, color: "#CBD5E1" }}>
-          Jenkins, GitHub Actions and SonarQube in your pocket.
-        </span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <span style={{ fontSize: 32, color: "#CBD5E1" }}>{pocket.lead}</span>
+          {pocket.next && <span style={{ fontSize: 26, color: "#94A3B8" }}>{pocket.next}</span>}
+        </div>
       </div>
     </div>,
     { ...size, fonts: [{ name: "Inter", data: interBold, style: "normal", weight: 700 }] },

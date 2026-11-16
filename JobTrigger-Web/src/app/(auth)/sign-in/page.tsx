@@ -5,15 +5,16 @@ import { statusOf } from "@/content/feature-status";
 import { AuthShell, PortalUnavailable } from "@/features/auth/auth-shell";
 import { safeNext } from "@/features/auth/safe-next";
 import { SignInForm } from "@/features/auth/sign-in-form";
+import { releasedToolListShort } from "@/content/tool-copy";
 import { routes } from "@/features/marketing/site-links";
 import { isPortalConfigured } from "@/server/config";
 import { getSession, isSignedIn } from "@/server/session";
 
-export const metadata: Metadata = {
+export const generateMetadata = (): Metadata => ({
   title: "Sign in",
-  description: "Sign in to add Jenkins, GitHub and SonarQube servers from your computer.",
+  description: `Sign in to add ${releasedToolListShort()} servers from your computer.`,
   robots: { index: false, follow: false },
-};
+});
 
 const notices: Record<string, string> = {
   idle: "You were signed out after 30 minutes without activity.",
@@ -34,7 +35,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
         <span className="text-running-fg">Your phone has it.</span>
       </h2>
       <p className="text-[1.0625rem] leading-relaxed text-fg-secondary">
-        Sign in with your JobTrigger account to add Jenkins, GitHub and SonarQube servers from this
+        Sign in with your JobTrigger account to add {releasedToolListShort()} servers from this
         computer.
       </p>
     </>

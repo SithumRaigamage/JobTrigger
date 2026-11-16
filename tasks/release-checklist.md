@@ -96,6 +96,49 @@ user content (collected, linked, app functionality); Crash logs and Diagnostics 
 not linked); no data shared with third parties; data encrypted in transit;
 account deletion available in the app and on the website.
 
+## Store listing text, per release
+
+The App Store and Google Play text is typed into the stores, so it **cannot
+follow `release/tools.json`**. It must describe exactly the tools that
+release ships, no more. Each release gets its own version below.
+
+- [ ] **Owner, every release:** rewrite the store text (name/subtitle, short
+      and full description, screenshots' captions, review notes) for that
+      release's tools, from `release/tools.json`, before submitting. Check
+      the website's home, integrations and pricing pages say the same.
+
+### Release 1.0 (Jenkins only)
+
+> **Subtitle / short description (Play, 80 characters):**
+> Trigger and watch your Jenkins builds from your phone.
+>
+> **Full description:**
+> JobTrigger puts your Jenkins in your pocket. Browse jobs and folders,
+> trigger a build with any parameter, watch the console stream live, see
+> which stage or test failed, and get a notification when a build finishes.
+> Pin the jobs you watch, put them on your home screen, and lock the app
+> with Face ID or your fingerprint.
+>
+> Set up your servers on your laptop at the JobTrigger website, or in the
+> app: your phone talks to your Jenkins directly, and your tokens are stored
+> encrypted. Free for one server; JobTrigger Pro adds more servers and the
+> extras.
+>
+> Try the in-app demo without an account or a server.
+>
+> JobTrigger is an independent app and is not affiliated with the Jenkins
+> project.
+
+Do **not** mention GitHub Actions, SonarQube, GitLab or CircleCI in the 1.0
+listing, screenshots or keywords. They arrive in 1.1 (SonarQube), 1.2 (GitHub
+Actions) and later; each of those releases gets its own text here.
+
+**App Review notes for 1.0:** use the notes below, but replace the bullet
+"GitHub Actions and SonarQube: choose them under Profile → CI tool" with:
+"This release works with Jenkins only." Nothing else changes: the demo's
+GitHub and SonarQube samples are not reachable in 1.0, because tool selection
+offers only released tools.
+
 ## App Review notes: how to open the demo (PE-18)
 
 Paste this into App Store Connect → App Review Information → Notes (and the
