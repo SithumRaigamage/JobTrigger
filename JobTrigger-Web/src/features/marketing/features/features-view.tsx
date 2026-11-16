@@ -10,7 +10,7 @@ import { cn } from "@/components/cn";
 import { Card, Container, Kicker, Section } from "@/components/layout";
 import { StaticImage } from "@/components/static-image";
 import { StatusBadge } from "@/components/status-badge";
-import { statusOf } from "@/content/feature-status";
+import { comingInVersion, statusOf } from "@/content/feature-status";
 
 import { routes } from "../site-links";
 
@@ -103,6 +103,9 @@ const cards: { tone: Tone; glyph: string; title: string; body: string; chip: str
 /** Features page (designs 02 / 19; US-WEB-03). */
 export function FeaturesView() {
   const runsLive = statusOf("github-runs") === "live";
+  // The GitHub Actions section describes a tool this release may not ship
+  // (release/tools.json): then it says when it arrives, not what it does today.
+  const githubArrives = comingInVersion("github-actions");
 
   return (
     <main id="content" tabIndex={-1} className="flex flex-1 flex-col">
@@ -113,9 +116,11 @@ export function FeaturesView() {
             The whole CI loop. <span className="text-running-fg">On one screen.</span>
           </h1>
           <p className="max-w-155 text-[1.1875rem] leading-relaxed text-fg-secondary">
-            {runsLive
-              ? "Everything on this page ships in the current app — no roadmap promises."
-              : "Everything below is built today. Anything still on the way is marked."}
+            {githubArrives
+              ? "The Jenkins features below work today. Sections for tools in a later release say which one."
+              : runsLive
+                ? "Everything on this page ships in the current app — no roadmap promises."
+                : "Everything below is built today. Anything still on the way is marked."}
           </p>
           <div
             role="img"
@@ -190,10 +195,12 @@ export function FeaturesView() {
               Jenkins and GitHub, side by side.
             </h2>
             <p className="text-[1.0625rem] leading-[1.65] text-fg-secondary">
-              Add your GitHub accounts and browse repositories and workflows next to your Jenkins
-              servers.{!runsLive && " Runs, logs and history are on the way."}
+              {githubArrives
+                ? `GitHub Actions arrives in release ${githubArrives}: your GitHub accounts, repositories and workflows next to your Jenkins servers.`
+                : "Add your GitHub accounts and browse repositories and workflows next to your Jenkins servers."}
+              {!githubArrives && !runsLive && " Runs, logs and history are on the way."}
             </p>
-            {!runsLive && (
+            {!githubArrives && !runsLive && (
               <ul className="flex flex-wrap gap-2 text-[0.8125rem] font-semibold">
                 <li className="rounded-[10px] bg-success-bg px-3 py-1.5 text-success-fg">
                   ✓ Accounts · repos · workflows
