@@ -58,4 +58,27 @@ function studentApplicationEmail({ accountEmail, fullName, universityEmail, meth
   return { subject, text, html };
 }
 
-module.exports = { studentCodeEmail, studentApplicationEmail };
+const dateFormat = new Intl.DateTimeFormat('en', { dateStyle: 'long', timeZone: 'UTC' });
+
+/** SP-60: seven days before the free year ends. */
+function studentReminderEmail({ expiresAt, canRenew }) {
+  const date = dateFormat.format(new Date(expiresAt));
+  const subject = 'Your JobTrigger student year ends soon';
+  const lines = [
+    `Your free year of JobTrigger Pro as a student ends on ${date}.`,
+    '',
+    'After that your account goes back to the Free plan: one saved server stays usable and the rest are kept, locked, until you choose.',
+    canRenew
+      ? 'You can verify again from the Subscription screen in the app, or subscribe to keep Pro.'
+      : 'The student plan is one free year per person. To keep Pro, subscribe in the JobTrigger app.',
+  ];
+  const text = lines.join('\n');
+  const html = [
+    '<!doctype html><html><body style="font-family:sans-serif;line-height:1.5">',
+    ...lines.filter(Boolean).map((line) => `<p>${escapeHtml(line)}</p>`),
+    '</body></html>',
+  ].join('\n');
+  return { subject, text, html };
+}
+
+module.exports = { studentCodeEmail, studentApplicationEmail, studentReminderEmail };

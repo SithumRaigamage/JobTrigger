@@ -119,10 +119,10 @@ These fit inside the decisions above; they are how to build them safely.
       the kept hashes.
 
 ### SP-6 Reminders and expiry
-- [ ] SP-60 Daily job: email and in-app banner 7 days before expiry.
-- [ ] SP-61 On expiry: status `expired`, plan back to Free, the locked
+- [x] SP-60 Daily job: email and in-app banner 7 days before expiry.
+- [x] SP-61 On expiry: status `expired`, plan back to Free, the locked
       active-credential guard applies as for a lapsed paid plan.
-- [ ] SP-62 Tests for the reminder and the downgrade.
+- [x] SP-62 Tests for the reminder and the downgrade.
 
 ## Done when
 - All checks green in CI, `flutter analyze` clean, backend, web and widget tests pass.

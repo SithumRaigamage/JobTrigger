@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../student/student_expiry_notice.dart';
 import '../subscription/plan_gate.dart';
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
@@ -249,6 +250,7 @@ class _Header extends ConsumerWidget {
           ],
           const _OfflineBanner(),
           const _QuietDownBanner(),
+          const StudentExpiryBanner(),
         ],
       ),
     );

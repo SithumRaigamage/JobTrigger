@@ -78,6 +78,26 @@ class SubscriptionSnapshot {
         _ => false,
       };
 
+  /// Phase 21 (SP-60): the end of the free student year when it is running
+  /// and ends within [within] of [now]; null otherwise. Read from the plan
+  /// itself, so the banner needs no extra request.
+  DateTime? studentYearEndingSoon(
+    DateTime now, {
+    Duration within = const Duration(days: 7),
+  }) {
+    final end = status.periodEnd;
+    if (!entitlements.billingEnabled ||
+        !entitlements.isPro ||
+        !status.isStudent ||
+        end == null) {
+      return null;
+    }
+    final left = end.difference(now);
+    return left.isNegative || left == Duration.zero || left > within
+        ? null
+        : end;
+  }
+
   /// Pro that came from the website (P20-84): shown as Pro like any other,
   /// with no store purchase offered.
   bool get isWebPro =>
