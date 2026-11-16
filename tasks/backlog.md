@@ -88,7 +88,43 @@ Phase 0–6 task without first moving the item here into an actual phase file
   while signed out is dropped at login; resuming it after sign-in is a
   small follow-up.
 
-## Owner actions waiting
+## Owner actions waiting (added 2026-11-16)
+
+Not product scope: steps only the owner can do (accounts, tokens, a real
+device, legal details) or that wait for the deployment. Each points at the
+task it unblocks; tick the task there, not here.
+
+**Now (development can't close without them)**
+- GlitchTip: create the organization, a team and the projects
+  `jobtrigger-app`, `jobtrigger-web`, `jobtrigger-backend` at
+  http://localhost:3005 (lab `custom-devops-stack`, bound to the Wi-Fi address
+  since 2026-11-16), and hand the DSNs to the app config and the web/backend
+  `.env` files. Unblocks PE-19c/19d and delivery of every crash report (E3).
+- GitHub: a fine-grained token on one test repo (read + Actions write) for
+  the live checks P8-26/P8-27 = PE-41/PE-42. Closes Phase 8 and the emergency
+  phase.
+- SonarQube: a user token from the lab SonarQube (My Account → Security),
+  added in the app against `http://<Mac Wi-Fi address>:9000`, then the
+  P10-14 session check and the P10-15 real-server pass on the iPhone.
+- iPhone: install the PE-06/PE-27 build with `scripts/run-on-iphone.sh`
+  (the build passed with no phone attached; the install is unverified).
+- App Store Connect / Play Console: enter the privacy and Data safety
+  answers recorded in `release-checklist.md` (PE-27).
+
+**At release (after all development; deployment is on hold)**
+- Backend on Render: `docs/deployment-render.md` RD-01..RD-11, including the
+  production key and backfill (PE-30/PE-31).
+- Production crash reporting host (hosted GlitchTip or self-hosted), and its
+  DSNs.
+- Legal details in `JobTrigger-Web/src/content/site-details.ts` and legal
+  review of the privacy policy and terms (PE-03, PE-04).
+- App Review account and the "in-app demo needs no account" line in the
+  store descriptions (PE-18); store accounts, artwork, TestFlight and Play
+  testing (`release-checklist.md`); store links on the website (P15-24).
+- Billing setup: App Store Connect and Play payments, RevenueCat, Paddle
+  (P20-40..42, P20-85), then the sandbox passes (P20-51/52).
+
+## Owner actions waiting: subscriptions and releases (added 2026-11-16)
 
 Things only the owner can do; the code around them is done or deliberately
 left alone.

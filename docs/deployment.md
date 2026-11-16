@@ -171,6 +171,11 @@ key once the run reports 0.
 Losing the key makes every stored credential unreadable (users would
 re-enter them), so back it up like the database.
 
+## Backend host (Render)
+
+The production backend plan, environment variables and steps are in
+[`deployment-render.md`](deployment-render.md) (proposed 2026-11-16).
+
 ## Database (MongoDB Atlas, Phase 17)
 
 Every environment runs on MongoDB Atlas; there is no self-hosted MongoDB.
