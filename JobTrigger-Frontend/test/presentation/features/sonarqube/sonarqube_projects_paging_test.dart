@@ -18,7 +18,7 @@ import 'package:job_trigger/presentation/features/sonarqube/sonarqube_projects_n
 
 /// Serves projects `p0…p(total-1)` in pages of [size], so paging can be
 /// followed request by request.
-class _Repo implements SonarQubeRepository {
+class _Repo with SonarQubeInsightsDefaults implements SonarQubeRepository {
   @override
   Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
     SonarQubeIssue issue,

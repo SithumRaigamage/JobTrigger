@@ -102,7 +102,7 @@ class _Jenkins extends FakeJenkinsRepository {
 }
 
 /// Only the two calls the dashboard makes; the rest of the interface throws.
-class _SonarRepo implements SonarQubeRepository {
+class _SonarRepo with SonarQubeInsightsDefaults implements SonarQubeRepository {
   _SonarRepo({required this.projects, required this.summaries});
 
   final List<SonarQubeProject> projects;

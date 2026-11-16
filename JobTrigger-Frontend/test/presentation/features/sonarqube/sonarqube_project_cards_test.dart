@@ -17,7 +17,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_project_screen.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_summaries_notifier.dart';
 
-class _Repo implements SonarQubeRepository {
+class _Repo with SonarQubeInsightsDefaults implements SonarQubeRepository {
   @override
   Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
     SonarQubeIssue issue,

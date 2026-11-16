@@ -30,7 +30,7 @@ import 'package:job_trigger/presentation/navigation/app_router.dart';
 import 'package:job_trigger/presentation/navigation/app_routes.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
-class _Repo implements SonarQubeRepository {
+class _Repo with SonarQubeInsightsDefaults implements SonarQubeRepository {
   @override
   Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
     SonarQubeIssue issue,

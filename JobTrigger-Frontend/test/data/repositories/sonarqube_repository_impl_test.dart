@@ -7,6 +7,8 @@ import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_analysis_status.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_measure_delta.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project_summary.dart';
@@ -19,6 +21,10 @@ class _Adapter implements HttpClientAdapter {
   final dynamic body;
   RequestOptions? last;
 
+  /// Every request made, oldest first: a method that looks up project names
+  /// sends more than one, so the interesting call is not always [last].
+  final List<RequestOptions> requests = [];
+
   @override
   Future<ResponseBody> fetch(
     RequestOptions options,
@@ -26,6 +32,7 @@ class _Adapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     last = options;
+    requests.add(options);
     return ResponseBody.fromString(
       jsonEncode(body),
       status,
@@ -43,6 +50,7 @@ Dio _dio(_Adapter a) =>
     Dio(BaseOptions(baseUrl: 'https://sonar.test'))..httpClientAdapter = a;
 
 void main() {
+  _batch1();
   group('SonarQubeRepositoryImpl.fetchProjects (US-SQ-PROJ-01)', () {
     test('parses projects, including one that was never analysed', () async {
       final adapter = _Adapter(200, {
@@ -958,4 +966,139 @@ class _HtmlAdapter implements HttpClientAdapter {
 
   @override
   void close({bool force = false}) {}
+}
+
+// P10-18 (batch 1): the four reads the project page and the cross-project
+// issue list added — CE status, new-code measures, measure deltas, my issues.
+void _batch1() {
+  group('P10-18 insights', () {
+    test(
+      'parses the analysis status, its queue and a failure reason',
+      () async {
+        final adapter = _Adapter(200, {
+          'current': {
+            'status': 'FAILED',
+            'type': 'REPORT',
+            'submittedAt': '2026-11-12T13:00:00+0000',
+            'executedAt': '2026-11-12T14:02:00+0000',
+            'errorMessage': 'The main branch was not found',
+          },
+          'queue': [
+            {'status': 'PENDING', 'type': 'REPORT'},
+          ],
+        });
+
+        final result = await SonarQubeRepositoryImpl(
+          _dio(adapter),
+        ).fetchAnalysisStatus('acme:api');
+
+        final status =
+            (result as Ok<SonarQubeAnalysisStatus, AppFailure>).value;
+        expect(status.current?.failed, isTrue);
+        expect(
+          status.lastFailure?.errorMessage,
+          'The main branch was not found',
+        );
+        expect(status.queue.single.isQueued, isTrue);
+        expect(adapter.last?.path, '/api/ce/component');
+        expect(adapter.last?.queryParameters['component'], 'acme:api');
+      },
+    );
+
+    test('asks for the new-code metrics and keeps what came back', () async {
+      final adapter = _Adapter(200, {
+        'component': {
+          'measures': [
+            {'metric': 'new_bugs', 'value': '1'},
+            {'metric': 'new_lines', 'value': '620'},
+          ],
+        },
+      });
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchNewCodeMeasures('acme:api');
+
+      expect((result as Ok<Map<String, String>, AppFailure>).value, {
+        'new_bugs': '1',
+        'new_lines': '620',
+      });
+      expect(
+        adapter.last?.queryParameters['metricKeys'],
+        'new_bugs,new_vulnerabilities,new_code_smells,new_coverage,'
+        'new_duplicated_lines_density,new_lines',
+      );
+    });
+
+    test(
+      'turns two history points into a delta, drops a single point',
+      () async {
+        final adapter = _Adapter(200, {
+          'measures': [
+            {
+              'metric': 'bugs',
+              'history': [
+                {'date': '2026-11-12T10:00:00+0000', 'value': '3'},
+                {'date': '2026-11-11T10:00:00+0000', 'value': '1'},
+              ],
+            },
+            {
+              'metric': 'coverage',
+              'history': [
+                {'date': '2026-11-12T10:00:00+0000', 'value': '62.3'},
+              ],
+            },
+          ],
+        });
+
+        final result = await SonarQubeRepositoryImpl(
+          _dio(adapter),
+        ).fetchMeasureDeltas('acme:api', metricKeys: ['bugs', 'coverage']);
+
+        final deltas =
+            (result as Ok<List<SonarQubeMeasureDelta>, AppFailure>).value;
+        expect(deltas, hasLength(1));
+        expect(deltas.single.metricKey, 'bugs');
+        expect(deltas.single.change, 2);
+        expect(deltas.single.isWorse, isTrue);
+        expect(adapter.last?.path, '/api/measures/search_history');
+        expect(adapter.last?.queryParameters['ps'], 2);
+      },
+    );
+
+    test('lists the caller\'s issues with no project filter', () async {
+      final adapter = _Adapter(200, {
+        'paging': {'total': 1},
+        'issues': [
+          {
+            'key': 'i1',
+            'type': 'BUG',
+            'severity': 'MAJOR',
+            'message': 'Handle the rejected promise',
+            'component': 'acme:api:src/jobs/sync.ts',
+            'project': 'acme:api',
+            'line': 102,
+            'status': 'OPEN',
+          },
+        ],
+      });
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchMyIssues();
+
+      final page = (result as Ok<SonarQubeIssuePage, AppFailure>).value;
+      expect(page.issues.single.project, 'acme:api');
+      // No name lookup answer here, so the row falls back to the key.
+      expect(page.issues.single.projectLabel, 'acme:api');
+      expect(page.issues.single.file, 'src/jobs/sync.ts');
+      expect(page.issues.single.line, 102);
+
+      final search = adapter.requests.first;
+      expect(search.path, '/api/issues/search');
+      expect(search.queryParameters['assignees'], '__me__');
+      expect(search.queryParameters['resolved'], 'false');
+      expect(search.queryParameters.containsKey('componentKeys'), isFalse);
+    });
+  });
 }

@@ -3,7 +3,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
 import '../../domain/sonarqube/sonarqube_analysis.dart';
+import '../../domain/sonarqube/sonarqube_analysis_status.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
+import '../../domain/sonarqube/sonarqube_measure_delta.dart';
+import '../../domain/sonarqube/sonarqube_metrics.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
 import '../../domain/sonarqube/sonarqube_project_summary.dart';
 import '../../domain/sonarqube/sonarqube_quality_gate.dart';
@@ -125,6 +128,116 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
       'duplicated_lines_density': '1.2',
       'ncloc': '41870',
     });
+  }
+
+  @override
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchMyIssues({
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  }) async {
+    if (page > 1) return const Ok(SonarQubeIssuePage(issues: [], total: 0));
+    // Two of the demo issues are "yours", so the list is never empty.
+    const mine = {'demo-2', 'demo-3'};
+    final matching = [
+      for (final issue in _issues)
+        if (mine.contains(issue.key) &&
+            (filter.types.isEmpty || filter.types.contains(issue.type)) &&
+            (filter.severities.isEmpty ||
+                filter.severities.contains(issue.severity)))
+          SonarQubeIssue(
+            key: issue.key,
+            type: issue.type,
+            severity: issue.severity,
+            message: issue.message,
+            file: issue.file,
+            line: issue.line,
+            component: issue.component,
+            rule: issue.rule,
+            effort: issue.effort,
+            tags: issue.tags,
+            author: issue.author,
+            status: issue.status,
+            creationDate: issue.creationDate,
+            project: _bad,
+            projectName: 'Demo app',
+          ),
+    ];
+    return Ok(SonarQubeIssuePage(issues: matching, total: matching.length));
+  }
+
+  @override
+  Future<Result<SonarQubeAnalysisStatus, AppFailure>> fetchAnalysisStatus(
+    String projectKey,
+  ) async {
+    if (projectKey != _good && projectKey != _bad) {
+      return const Err(SonarQubeProjectNotFoundFailure());
+    }
+    // A finished analysis: the demo has no pending scan to show off.
+    return Ok(
+      SonarQubeAnalysisStatus(
+        current: SonarQubeCeTask(
+          status: 'SUCCESS',
+          type: 'REPORT',
+          executedAt: _now,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Future<Result<Map<String, String>, AppFailure>> fetchNewCodeMeasures(
+    String projectKey,
+  ) async {
+    if (projectKey == _good) {
+      return const Ok({
+        'new_bugs': '0',
+        'new_vulnerabilities': '0',
+        'new_code_smells': '2',
+        'new_coverage': '94.2',
+        'new_duplicated_lines_density': '0',
+        'new_lines': '180',
+      });
+    }
+    if (projectKey != _bad) return const Err(SonarQubeProjectNotFoundFailure());
+    return const Ok({
+      'new_bugs': '1',
+      'new_vulnerabilities': '0',
+      'new_code_smells': '9',
+      'new_coverage': '41.7',
+      'new_duplicated_lines_density': '3.4',
+      'new_lines': '620',
+    });
+  }
+
+  @override
+  Future<Result<List<SonarQubeMeasureDelta>, AppFailure>> fetchMeasureDeltas(
+    String projectKey, {
+    List<String> metricKeys = sonarQubeMeasureKeys,
+  }) async {
+    if (projectKey != _good && projectKey != _bad) {
+      return const Err(SonarQubeProjectNotFoundFailure());
+    }
+    final worse = projectKey == _bad;
+    return Ok([
+      if (metricKeys.contains('coverage'))
+        SonarQubeMeasureDelta(
+          metricKey: 'coverage',
+          previous: worse ? 66 : 90.9,
+          current: worse ? 62.3 : 91.4,
+        ),
+      if (metricKeys.contains('bugs'))
+        SonarQubeMeasureDelta(
+          metricKey: 'bugs',
+          previous: worse ? 1 : 0,
+          current: worse ? 3 : 0,
+        ),
+      if (metricKeys.contains('code_smells'))
+        SonarQubeMeasureDelta(
+          metricKey: 'code_smells',
+          previous: worse ? 48 : 13,
+          current: worse ? 57 : 12,
+        ),
+    ]);
   }
 
   static const _issues = [

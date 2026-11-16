@@ -571,7 +571,7 @@ First in line (recommended to the owner on 2026-11-08). All five are `GET`s over
 ### US-SQ-ISSUES-01 — My issues across every project
 
 **Batch:** 1 · **Priority:** Should · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-18)
 **Dependencies:** US-SQ-QUALITY-03, US-SQ-OVERVIEW-01
 
 As a user
@@ -596,7 +596,7 @@ So that I know what is mine to fix without opening each project
 ### US-SQ-CE-01 — Analysis status: running, queued or failed
 
 **Batch:** 1 · **Priority:** Should · **Effort:** S–M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-18)
 **Dependencies:** US-SQ-QUALITY-04
 
 As a user
@@ -621,7 +621,7 @@ So that I don't mistake a stale result for a current one
 ### US-SQ-QUALITY-07 — All gate conditions, passing ones too
 
 **Batch:** 1 · **Priority:** Should · **Effort:** S
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-18)
 **Dependencies:** US-SQ-QUALITY-01
 
 As a user
@@ -642,7 +642,7 @@ So that I know how close a passing project is to failing
 ### US-SQ-QUALITY-08 — New code versus overall code
 
 **Batch:** 1 · **Priority:** Should · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-18)
 **Dependencies:** US-SQ-QUALITY-02
 
 As a user
@@ -664,7 +664,7 @@ So that I see the numbers the quality gate is actually judged on
 ### US-SQ-QUALITY-09 — Compare with the previous analysis
 
 **Batch:** 1 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-18)
 **Dependencies:** US-SQ-QUALITY-04
 
 As a user

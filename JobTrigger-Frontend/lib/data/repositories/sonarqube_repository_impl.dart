@@ -5,7 +5,9 @@ import '../../core/error/app_failure.dart';
 import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../domain/sonarqube/sonarqube_analysis.dart';
+import '../../domain/sonarqube/sonarqube_analysis_status.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
+import '../../domain/sonarqube/sonarqube_measure_delta.dart';
 import '../../domain/sonarqube/sonarqube_metrics.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
 import '../../domain/sonarqube/sonarqube_project_summary.dart';
@@ -197,15 +199,23 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
   @override
   Future<Result<Map<String, String>, AppFailure>> fetchMeasures(
     String projectKey,
+  ) => _measureMap(projectKey, [
+    ...sonarQubeMeasureKeys,
+    ...sonarQubeExtraMeasureKeys,
+  ]);
+
+  /// One `api/measures/component` call for [metricKeys] (`US-SQ-QUALITY-02`,
+  /// and the new-code set in `US-SQ-QUALITY-08`). A metric the server did
+  /// not compute is absent, never zero.
+  Future<Result<Map<String, String>, AppFailure>> _measureMap(
+    String projectKey,
+    List<String> metricKeys,
   ) => guardRequest(() async {
     final response = await _dio.get<Map<String, dynamic>>(
       '/api/measures/component',
       queryParameters: {
         'component': projectKey,
-        'metricKeys': [
-          ...sonarQubeMeasureKeys,
-          ...sonarQubeExtraMeasureKeys,
-        ].join(','),
+        'metricKeys': metricKeys.join(','),
       },
     );
     final component = response.data?['component'] as Map<String, dynamic>?;
@@ -215,6 +225,9 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
         if (m['value'] is String) m['metric'] as String: m['value'] as String,
     };
   }, recover: _projectRecover);
+
+  static DateTime? _sonarDate(String? raw) =>
+      raw == null ? null : DateTime.tryParse(raw);
 
   @override
   Future<Result<SonarQubeIssuePage, AppFailure>> fetchIssues(
@@ -273,6 +286,170 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
           ),
       ],
     );
+  }, recover: _projectRecover);
+
+  /// Project keys → names for the cross-project issue list
+  /// (`US-SQ-ISSUES-01`), one `api/components/show` per project and cached
+  /// for the session. Capped: a page across many projects would otherwise
+  /// cost a request per row, and the row shows the key when a name is
+  /// missing.
+  final Map<String, String> _projectNames = {};
+
+  Future<Map<String, String>> _resolveProjectNames(Set<String> keys) async {
+    final missing = keys
+        .where((k) => k.isNotEmpty && !_projectNames.containsKey(k))
+        .take(10);
+    for (final key in missing) {
+      try {
+        final response = await _dio.get<Map<String, dynamic>>(
+          '/api/components/show',
+          queryParameters: {'component': key},
+        );
+        final name =
+            (response.data?['component'] as Map<String, dynamic>?)?['name']
+                as String?;
+        if (name != null && name.isNotEmpty) _projectNames[key] = name;
+      } on DioException {
+        // The list still works with keys alone.
+        break;
+      }
+    }
+    return {
+      for (final key in keys)
+        if (_projectNames[key] != null) key: _projectNames[key]!,
+    };
+  }
+
+  @override
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchMyIssues({
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  }) => guardRequest(() async {
+    String join(Set<String> values, List<String> order) => ([
+      ...order.where(values.contains),
+      ...values.where((v) => !order.contains(v)),
+    ]).join(',');
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/issues/search',
+      queryParameters: {
+        // `__me__` is SonarQube's own shorthand for the token's user.
+        'assignees': '__me__',
+        'resolved': 'false',
+        'ps': sonarQubeIssuesPageSize,
+        'p': page,
+        if (_organization != null) 'organization': _organization,
+        if (filter.types.isNotEmpty)
+          'types': join(filter.types, sonarQubeIssueTypes),
+        if (filter.severities.isNotEmpty)
+          'severities': join(filter.severities, sonarQubeIssueSeverities),
+      },
+    );
+    final data = response.data ?? const <String, dynamic>{};
+    final raw = (data['issues'] as List<dynamic>? ?? const [])
+        .cast<Map<String, dynamic>>();
+    final names = await _resolveProjectNames({
+      for (final i in raw) i['project'] as String? ?? '',
+    });
+    final total =
+        (data['paging'] as Map<String, dynamic>?)?['total'] as int? ??
+        raw.length;
+    return SonarQubeIssuePage(
+      total: total,
+      issues: [
+        for (final i in raw)
+          SonarQubeIssue(
+            key: i['key'] as String? ?? '',
+            type: i['type'] as String? ?? '',
+            severity: i['severity'] as String? ?? '',
+            message: i['message'] as String? ?? '',
+            file: _fileOf(
+              i['component'] as String?,
+              i['project'] as String? ?? '',
+            ),
+            line: i['line'] as int?,
+            component: i['component'] as String?,
+            rule: i['rule'] as String?,
+            effort: i['effort'] as String?,
+            tags: [...(i['tags'] as List<dynamic>? ?? const []).cast<String>()],
+            author: (i['author'] as String?)?.isEmpty ?? true
+                ? null
+                : i['author'] as String?,
+            status: i['status'] as String?,
+            creationDate: _sonarDate(i['creationDate'] as String?),
+            project: i['project'] as String?,
+            projectName: names[i['project'] as String?],
+          ),
+      ],
+    );
+  }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeAnalysisStatus, AppFailure>> fetchAnalysisStatus(
+    String projectKey,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/ce/component',
+      queryParameters: {'component': projectKey},
+    );
+    final data = response.data ?? const <String, dynamic>{};
+    SonarQubeCeTask? task(Map<String, dynamic>? raw) => raw == null
+        ? null
+        : SonarQubeCeTask(
+            status: raw['status'] as String? ?? '',
+            type: raw['type'] as String?,
+            submittedAt: _sonarDate(raw['submittedAt'] as String?),
+            executedAt: _sonarDate(raw['executedAt'] as String?),
+            errorMessage: (raw['errorMessage'] as String?)?.isEmpty ?? true
+                ? null
+                : raw['errorMessage'] as String?,
+          );
+    final queue = <SonarQubeCeTask>[];
+    for (final t
+        in (data['queue'] as List<dynamic>? ?? const [])
+            .cast<Map<String, dynamic>>()) {
+      final parsed = task(t);
+      if (parsed != null) queue.add(parsed);
+    }
+    return SonarQubeAnalysisStatus(
+      current: task(data['current'] as Map<String, dynamic>?),
+      queue: queue,
+    );
+  }, recover: _projectRecover);
+
+  @override
+  Future<Result<Map<String, String>, AppFailure>> fetchNewCodeMeasures(
+    String projectKey,
+  ) => _measureMap(projectKey, sonarQubeNewCodeMetricKeys);
+
+  @override
+  Future<Result<List<SonarQubeMeasureDelta>, AppFailure>> fetchMeasureDeltas(
+    String projectKey, {
+    List<String> metricKeys = sonarQubeMeasureKeys,
+  }) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/measures/search_history',
+      queryParameters: {
+        'component': projectKey,
+        'metrics': metricKeys.join(','),
+        'ps': 2,
+      },
+    );
+    final measures = (response.data?['measures'] as List<dynamic>? ?? const [])
+        .cast<Map<String, dynamic>>();
+    final deltas = <SonarQubeMeasureDelta>[];
+    for (final m in measures) {
+      // ps=2 gives the newest point first; one point is not a change.
+      final history = (m['history'] as List<dynamic>? ?? const [])
+          .cast<Map<String, dynamic>>();
+      if (history.length < 2) continue;
+      final delta = sonarQubeMeasureDelta(
+        m['metric'] as String? ?? '',
+        history[1]['value'] as String?,
+        history[0]['value'] as String?,
+      );
+      if (delta != null) deltas.add(delta);
+    }
+    return deltas;
   }, recover: _projectRecover);
 
   @override

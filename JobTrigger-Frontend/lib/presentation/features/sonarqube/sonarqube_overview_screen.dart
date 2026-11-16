@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
@@ -10,6 +11,7 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
+import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'sonarqube_credential_gate.dart';
 import 'sonarqube_project_card.dart';
@@ -58,6 +60,21 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
                     Semantics(
                       header: true,
                       child: Text('Overview', style: textTheme.headlineLarge),
+                    ),
+                    const SizedBox(height: 8),
+                    // US-SQ-ISSUES-01: what is assigned to you, across every
+                    // project, from the one place that already lists them all.
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () =>
+                            context.push(AppRoutes.sonarqubeMyIssues),
+                        icon: const Icon(
+                          Icons.assignment_ind_outlined,
+                          size: 18,
+                        ),
+                        label: const Text('My issues'),
+                      ),
                     ),
                   ],
                 ),

@@ -32,6 +32,7 @@ import '../features/sonarqube/sonarqube_analysis_screen.dart';
 import '../features/sonarqube/sonarqube_issue_screen.dart';
 import '../features/sonarqube/sonarqube_issues_screen.dart';
 import '../features/sonarqube/sonarqube_overview_screen.dart';
+import '../features/sonarqube/sonarqube_my_issues_screen.dart';
 import '../features/sonarqube/sonarqube_project_detail_screen.dart';
 import '../features/sonarqube/sonarqube_project_screen.dart';
 import '../features/github/github_workflow_list_screen.dart';
@@ -332,6 +333,11 @@ GoRouter appRouter(Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) =>
             PairScreen(query: state.uri.queryParameters),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeMyIssues,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SonarQubeMyIssuesScreen(),
       ),
       GoRoute(
         path: AppRoutes.dashboard,

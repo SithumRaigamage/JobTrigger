@@ -285,7 +285,7 @@ would be unrelated scope creep for this phase.
       user token in the lab SonarQube (My Account → Security), then add it in
       the app against `http://<Mac Wi-Fi address>:9000`.
 
-## Planned batches (documented 2026-11-09, none started)
+## Planned batches (documented 2026-11-09; batch 1 built 2026-11-17)
 
 Listed for the owner on 2026-11-08 and written up as user stories on
 2026-11-09 under "Planned work" in
@@ -294,12 +294,33 @@ starts until the owner picks it and approves its plan** (`CLAUDE.md` §9).
 Suggested order: P10-18, then P10-19, then as picked. Every batch ends with
 the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
 
-- [ ] P10-18 **Batch 1: understand why a gate fails, and what is mine.**
+- [x] P10-18 **Batch 1: understand why a gate fails, and what is mine.**
       `US-SQ-ISSUES-01` (my issues across projects), `US-SQ-CE-01`
       (analysis running, queued or failed), `US-SQ-QUALITY-07` (all gate
-      conditions), `US-SQ-QUALITY-08` (new code vs overall; **check how the
-      owner's server reports new-code values first**),
+      conditions), `US-SQ-QUALITY-08` (new code vs overall),
       `US-SQ-QUALITY-09` (compare with the previous analysis). Read-only.
+      *Built 2026-11-17.* The gate card lists every condition, failing first
+      (`_AllConditionRow`); an analysis banner says "Analysing…”, "Queued” or
+      "Last analysis failed” with the server's reason and time
+      (`api/ce/component`); an Overall / New code switch appears **only** when
+      the server reports new-code values, and new code is requested as the
+      `new_*` metric keys directly — that is the version-tolerant answer to
+      the "check how the server reports it first” note: whatever it computes
+      comes back, and nothing is invented for a metric it does not compute.
+      Measures show their change since the previous analysis
+      (`api/measures/search_history?ps=2`), worse in the failure colour. New
+      **My issues** screen at `/sonarqube/my-issues`, reached from the
+      Overview's "My issues” button: `assignees=__me__&resolved=false` with no
+      `componentKeys`, server-side type/severity filters, "Load more”, and
+      project names resolved through `api/components/show` (capped at 10 per
+      page and cached; a row falls back to the project key). Tests: 7 domain
+      + 9 widget (`sonarqube_batch1_test.dart`, `sonarqube_insights_test.dart`)
+      + 4 repository; whole suite green.
+      **Not verified** (needs the owner's server): `assignees=__me__`, Browse
+      permission on `api/ce/component`, and which `new_*` metrics the server
+      actually computes. The project **card** still does not say
+      "Analysing…”/"Queued” — that needs one CE request per card, so it goes
+      with P10-19, which polls a project anyway.
 - [ ] P10-19 **Batch 2: alerts.** `US-SQ-WATCH-01` (notify when a watched
       project fails its gate). Local notifications and a best-effort
       background check, reusing the Jenkins watch; no new dependency. Only

@@ -15,6 +15,8 @@ class SonarQubeIssue {
     this.author,
     this.status,
     this.creationDate,
+    this.project,
+    this.projectName,
   });
 
   final String key;
@@ -47,6 +49,19 @@ class SonarQubeIssue {
   /// `OPEN`, `CONFIRMED`, `REOPENED`, `RESOLVED` or `CLOSED`.
   final String? status;
   final DateTime? creationDate;
+
+  /// The project's key (`api/issues/search`'s `project`), set for the
+  /// cross-project list (`US-SQ-ISSUES-01`) where a row has no project page
+  /// to imply it.
+  final String? project;
+
+  /// The project's name when it could be looked up; the row falls back to
+  /// [project] rather than showing nothing.
+  final String? projectName;
+
+  /// What a cross-project row calls its project.
+  String? get projectLabel =>
+      (projectName?.isNotEmpty ?? false) ? projectName : project;
 
   /// `src/Foo.java:42`, `src/Foo.java`, or null.
   String? get location =>

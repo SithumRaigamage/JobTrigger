@@ -19,7 +19,7 @@ import 'package:job_trigger/presentation/features/sonarqube/sonarqube_issue_scre
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_issues_screen.dart';
 import 'package:job_trigger/presentation/navigation/app_routes.dart';
 
-class _Repo implements SonarQubeRepository {
+class _Repo with SonarQubeInsightsDefaults implements SonarQubeRepository {
   Result<SonarQubeIssueContext, AppFailure> context = const Ok(
     SonarQubeIssueContext(
       ruleName: 'Track uses of TODO tags',

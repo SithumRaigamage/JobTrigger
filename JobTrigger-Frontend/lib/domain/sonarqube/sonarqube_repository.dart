@@ -1,7 +1,10 @@
 import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
 import 'sonarqube_analysis.dart';
+import 'sonarqube_analysis_status.dart';
 import 'sonarqube_issue.dart';
+import 'sonarqube_measure_delta.dart';
+import 'sonarqube_metrics.dart';
 import 'sonarqube_project.dart';
 import 'sonarqube_project_summary.dart';
 import 'sonarqube_quality_gate.dart';
@@ -58,6 +61,40 @@ abstract class SonarQubeRepository {
   Future<Result<Map<String, SonarQubeProjectSummary>, AppFailure>>
   fetchProjectSummaries(List<String> projectKeys);
 
+  /// The unresolved issues assigned to the credential's own user, across
+  /// every project they can browse (`US-SQ-ISSUES-01`):
+  /// `GET api/issues/search?assignees=__me__&resolved=false`, with no
+  /// `componentKeys`. Each issue carries its project key and, when the
+  /// lookup succeeds, its name.
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchMyIssues({
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  });
+
+  /// `GET api/ce/component?component=` (`US-SQ-CE-01`): the scan running
+  /// now, anything queued, and whether the newest task failed. No polling;
+  /// read when the page opens and on pull-to-refresh, like the rest.
+  Future<Result<SonarQubeAnalysisStatus, AppFailure>> fetchAnalysisStatus(
+    String projectKey,
+  );
+
+  /// `GET api/measures/component` for `sonarQubeNewCodeMetricKeys`
+  /// (`US-SQ-QUALITY-08`): the numbers the gate is judged on. Whatever the
+  /// server computes is returned; a server that reports no new-code values
+  /// returns an empty map, and the app hides the switch rather than
+  /// inventing zeros.
+  Future<Result<Map<String, String>, AppFailure>> fetchNewCodeMeasures(
+    String projectKey,
+  );
+
+  /// `GET api/measures/search_history?ps=2` (`US-SQ-QUALITY-09`): each
+  /// measure's change since the previous analysis. A measure with fewer
+  /// than two points is simply absent.
+  Future<Result<List<SonarQubeMeasureDelta>, AppFailure>> fetchMeasureDeltas(
+    String projectKey, {
+    List<String> metricKeys = sonarQubeMeasureKeys,
+  });
+
   /// What an issue's page shows besides the issue (`US-SQ-QUALITY-06`): the
   /// rule's name (`api/rules/show`) and the code around it
   /// (`api/sources/show`), fetched together. One failing leaves the other; if
@@ -65,6 +102,31 @@ abstract class SonarQubeRepository {
   Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
     SonarQubeIssue issue,
   );
+}
+
+/// Defaults for the batch-1 reads (`US-SQ-ISSUES-01`, `US-SQ-CE-01`,
+/// `US-SQ-QUALITY-08/09`). An implementation that has nothing to say — a
+/// test fake, or a lite one that only lists projects — mixes this in and
+/// keeps the empty answers, rather than each fake repeating four stubs.
+/// The real repository implements all four against the server.
+mixin SonarQubeInsightsDefaults {
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchMyIssues({
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  }) async => const Ok(SonarQubeIssuePage(issues: [], total: 0));
+
+  Future<Result<SonarQubeAnalysisStatus, AppFailure>> fetchAnalysisStatus(
+    String projectKey,
+  ) async => const Ok(SonarQubeAnalysisStatus.none);
+
+  Future<Result<Map<String, String>, AppFailure>> fetchNewCodeMeasures(
+    String projectKey,
+  ) async => const Ok({});
+
+  Future<Result<List<SonarQubeMeasureDelta>, AppFailure>> fetchMeasureDeltas(
+    String projectKey, {
+    List<String> metricKeys = sonarQubeMeasureKeys,
+  }) async => const Ok([]);
 }
 
 /// `ps` for `api/projects/search`; 500 is SonarQube's maximum.

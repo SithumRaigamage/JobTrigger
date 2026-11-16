@@ -13,7 +13,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_project_detail_screen.dart';
 
-class _Repo implements SonarQubeRepository {
+class _Repo with SonarQubeInsightsDefaults implements SonarQubeRepository {
   @override
   Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
     SonarQubeIssue issue,
@@ -145,8 +145,12 @@ void main() {
     expect(find.text('What failed'), findsOneWidget);
     expect(find.text('Coverage on new code: 62.1%'), findsOneWidget);
     expect(find.text('Fails when below 80%'), findsOneWidget);
-    // The passing condition is not listed.
-    expect(find.textContaining('New bugs'), findsNothing);
+    // P10-18 (US-SQ-QUALITY-07): the passing condition stays out of "What
+    // failed" but is now listed under "All conditions", which is the point
+    // of that story — a pass one bug from failing is visible.
+    expect(find.text('All conditions'), findsOneWidget);
+    expect(find.textContaining('New bugs'), findsOneWidget);
+    expect(find.text('New bugs: 0 (fails when above 0)'), findsOneWidget);
   });
 
   testWidgets('a project never analysed says so instead of passing', (
