@@ -831,7 +831,7 @@ So that I know where to start
 ### US-SQ-QUALITY-13 — Language breakdown
 
 **Batch:** 3 · **Priority:** Could · **Effort:** S
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-20)
 **Dependencies:** US-SQ-QUALITY-02
 
 As a user
@@ -847,6 +847,15 @@ So that I understand what the project is made of
 
 **Notes**
 - The metric is a `;`-separated string and needs parsing; keep that in the domain layer with tests.
+- **Built 2026-11-17:** `SonarQubeLanguageBreakdown.parse` in the domain
+  (tested): biggest first, ties by name, share rounded, fragments that are
+  not `name=<positive int>` skipped, all-zero or absent = empty. The section
+  sits under the measures on the project page as bars with "1200 lines ·
+  78%" written out, and is left off entirely when the server reports
+  nothing — no empty heading. It rides in the existing measures call
+  (`fetchMeasures` now also asks for `ncloc_language_distribution`), so a
+  server without it costs no extra request. Not verified against a real
+  server.
 
 ### US-SQ-ISSUES-02 — Group issues by file, rule or severity
 

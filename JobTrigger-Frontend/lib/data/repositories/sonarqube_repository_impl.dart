@@ -8,6 +8,7 @@ import '../../domain/sonarqube/sonarqube_analysis.dart';
 import '../../domain/sonarqube/sonarqube_analysis_status.dart';
 import '../../domain/sonarqube/sonarqube_hotspot.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
+import '../../domain/sonarqube/sonarqube_language_breakdown.dart';
 import '../../domain/sonarqube/sonarqube_measure_history.dart';
 import '../../domain/sonarqube/sonarqube_worst_files.dart';
 import '../../domain/sonarqube/sonarqube_measure_delta.dart';
@@ -205,6 +206,8 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
   ) => _measureMap(projectKey, [
     ...sonarQubeMeasureKeys,
     ...sonarQubeExtraMeasureKeys,
+    // US-SQ-QUALITY-13: the same call, so a server without it costs nothing.
+    sonarQubeLanguageMetricKey,
   ]);
 
   /// One `api/measures/component` call for [metricKeys] (`US-SQ-QUALITY-02`,

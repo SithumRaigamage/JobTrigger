@@ -13,6 +13,7 @@ import '../../../domain/sonarqube/sonarqube_measure_delta.dart';
 import '../../../domain/sonarqube/sonarqube_metrics.dart';
 import '../../../domain/sonarqube/sonarqube_project.dart';
 import '../../../domain/sonarqube/sonarqube_quality_gate.dart';
+import 'sonarqube_language_breakdown_view.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/external_link.dart';
 import '../../common_widgets/glass_surface.dart';
@@ -861,6 +862,7 @@ class _Measures extends StatelessWidget {
             failing: failingKeys.contains('sqale_index'),
           ),
         ],
+        SonarQubeLanguageBreakdownView(measures: measures),
       ],
     );
   }

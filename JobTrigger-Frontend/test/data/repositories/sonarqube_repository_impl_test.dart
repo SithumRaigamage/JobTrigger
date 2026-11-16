@@ -286,9 +286,11 @@ void main() {
       expect(adapter.last?.queryParameters['component'], 'acme:api');
       expect(
         adapter.last?.queryParameters['metricKeys'],
-        // The six headline measures, then the ratings and the technical debt.
+        // The six headline measures, the ratings and the technical debt, then
+        // the language distribution US-SQ-QUALITY-13 reads from the same call.
         'coverage,bugs,vulnerabilities,code_smells,duplicated_lines_density,'
-        'ncloc,reliability_rating,security_rating,sqale_rating,sqale_index',
+        'ncloc,reliability_rating,security_rating,sqale_rating,sqale_index,'
+        'ncloc_language_distribution',
       );
       final measures = (result as Ok<Map<String, String>, AppFailure>).value;
       expect(measures, {'bugs': '3', 'coverage': '71.4', 'ncloc': '12345'});
