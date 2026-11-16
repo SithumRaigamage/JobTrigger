@@ -14,6 +14,12 @@ export type AppFailure =
   /** A backend 400 with its own user-facing message (AUD-06/AUD-65). */
   | { kind: "rejected"; message: string }
   | { kind: "server"; status: number; requestId?: string }
+  /**
+   * P20-31: a backend 403 `PLAN_LIMIT` — the plan doesn't allow this. [limit]
+   * is the backend's own value (`maxCredentialsTotal`, `locked`, ...). The
+   * app shows an Upgrade action; the website says where to upgrade.
+   */
+  | { kind: "planLimit"; limit: string }
   /** The response didn't match the expected shape. */
   | { kind: "unexpected" }
   | { kind: "unknown" };
@@ -35,6 +41,12 @@ export function failureMessage(failure: AppFailure): string {
       return failure.requestId
         ? `Something went wrong on the server (HTTP ${failure.status}). Reference: ${failure.requestId}`
         : `Something went wrong on the server (HTTP ${failure.status}).`;
+    case "planLimit":
+      // Same meaning as the app's PlanLimitFailure. No link: the website
+      // never sells (the App Store and Play rules, Phase 21).
+      return failure.limit === "locked"
+        ? "This server is locked on your plan. Upgrade in the JobTrigger app to use it."
+        : "Your plan's limit has been reached. Upgrade in the JobTrigger app to add more.";
     case "unexpected":
       return "The server sent a response the app didn't understand. Check that the server URL is correct — not a login page or proxy.";
     case "unknown":

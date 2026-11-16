@@ -43,7 +43,12 @@ function detectLicense(raw) {
   }
   if (/Mozilla Public License,? v(ersion)?\.? ?2\.0/i.test(text)) return "MPL-2.0";
   if (/Permission to use, copy, modify, and\/or distribute this software/i.test(text)) return "ISC";
-  if (/CC0 1\.0 Universal|Creative Commons Zero|Statement of Purpose The laws of most jurisdictions/i.test(text)) return "CC0-1.0";
+  if (
+    /CC0 1\.0 Universal|Creative Commons Zero|Statement of Purpose The laws of most jurisdictions/i.test(
+      text,
+    )
+  )
+    return "CC0-1.0";
   return null;
 }
 
@@ -108,4 +113,5 @@ const unknown = Object.values(data)
   .filter((p) => !p.license)
   .map((p) => p.name);
 console.log(`Wrote ${out}`);
-if (unknown.length) console.log(`Licence not recognised (page links to the registry): ${unknown.join(", ")}`);
+if (unknown.length)
+  console.log(`Licence not recognised (page links to the registry): ${unknown.join(", ")}`);

@@ -4,6 +4,7 @@ export const publicPages = [
   { path: "/", title: "JobTrigger" },
   { path: "/features", title: "Features · JobTrigger" },
   { path: "/integrations", title: "Integrations · JobTrigger" },
+  { path: "/pricing", title: "Pricing · JobTrigger" },
   { path: "/security", title: "Security · JobTrigger" },
   { path: "/changelog", title: "Changelog · JobTrigger" },
   { path: "/privacy", title: "Privacy policy · JobTrigger" },

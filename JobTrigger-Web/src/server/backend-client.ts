@@ -28,10 +28,18 @@ export function newRequestId(): string {
 
 const errorBody = z.object({ message: z.string() });
 
+const planLimitBody = z.object({ code: z.literal("PLAN_LIMIT"), limit: z.string().optional() });
+
 /** Maps a non-2xx backend response to an AppFailure. */
 export function failureFor(status: number, body: unknown, requestId: string | null): AppFailure {
   if (status === 401) return { kind: "auth" };
   if (status === 404) return { kind: "notFound" };
+  if (status === 403) {
+    // Only a PLAN_LIMIT 403 is special; any other 403 stays a server failure
+    // exactly as before.
+    const parsed = planLimitBody.safeParse(body);
+    if (parsed.success) return { kind: "planLimit", limit: parsed.data.limit ?? "unknown" };
+  }
   if (status === 400) {
     const parsed = errorBody.safeParse(body);
     // A 400's message is written for users and never carries internals

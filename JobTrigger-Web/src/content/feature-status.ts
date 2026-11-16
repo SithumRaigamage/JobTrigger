@@ -102,6 +102,14 @@ export const features = {
     source: "US-AUTH-08 built in Phase 20; waits for the backend deployment",
     changelog: ["Password reset by email"],
   },
+  subscriptions: {
+    label: "JobTrigger Pro (subscriptions)",
+    status: "soon",
+    // Built in Phase 20 and switched off (BILLING_ENABLED unset). Flip to
+    // live with the store listings, when the backend is deployed with
+    // billing on.
+    source: "Phase 20 built, billing off; waits for the stores and the backend deployment",
+  },
   "gitlab-ci": {
     label: "GitLab CI",
     status: "planned",

@@ -35,6 +35,7 @@ export function SiteFooter() {
   const product: FooterLink[] = [
     { href: routes.features, label: "Features" },
     { href: routes.integrations, label: "Integrations" },
+    { href: routes.pricing, label: "Pricing" },
     { href: routes.changelog, label: "Changelog" },
     appLive
       ? { href: routes.download, label: "Download" }

@@ -11,6 +11,7 @@ const toc = [
   { id: "service", label: "The service" },
   { id: "account", label: "Your account" },
   { id: "tokens", label: "Your servers and tokens" },
+  { id: "subscriptions", label: "Subscriptions" },
   { id: "availability", label: "Availability" },
   { id: "changes", label: "Changes" },
   { id: "contact", label: "Contact" },
@@ -51,6 +52,41 @@ export function TermsView() {
           tokens allow, so give it the smallest token you can — see{" "}
           <Link href={routes.security}>Security</Link>.
         </p>
+      </LegalSection>
+
+      <LegalSection id="subscriptions" title="Subscriptions">
+        <ul className="flex list-disc flex-col gap-2.5 pl-5.5">
+          <li>
+            JobTrigger is free for one saved server.{" "}
+            <strong className="text-fg">JobTrigger Pro</strong> is an optional paid subscription
+            that adds more tools, servers and features. What each plan includes is on the{" "}
+            <Link href={routes.pricing}>pricing page</Link>.
+          </li>
+          <li>
+            In the app, Pro is bought through the App Store or Google Play. Your payment is taken by
+            that store, and the price, currency and any free trial are shown by the store before you
+            confirm.
+          </li>
+          <li>
+            A subscription <strong className="text-fg">renews automatically</strong> at the end of
+            each period until you cancel it. Cancel at least a day before the period ends, in your
+            App Store or Google Play subscription settings. Deleting the app or your JobTrigger
+            account does not cancel it.
+          </li>
+          <li>
+            Refunds for store purchases are handled by Apple or Google under their own rules; we
+            cannot refund them. If you ever buy on this website, the seller is our payment provider,
+            Paddle, and its refund terms are shown at checkout.
+          </li>
+          <li>
+            If a subscription ends, nothing you saved is deleted. You keep one usable server and the
+            rest wait, locked, until you subscribe again.
+          </li>
+          <li>
+            We may change prices for new and renewing subscriptions. The store tells you first and
+            asks for your agreement where it requires it.
+          </li>
+        </ul>
       </LegalSection>
 
       <LegalSection id="availability" title="Availability">

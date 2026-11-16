@@ -40,8 +40,8 @@ export function LicensesView() {
 
       <LegalSection id="about" title="About this list">
         <p>
-          These are the packages each part of JobTrigger depends on directly. Each name links to
-          the package&apos;s page, where its full licence text and its own dependencies are listed.
+          These are the packages each part of JobTrigger depends on directly. Each name links to the
+          package&apos;s page, where its full licence text and its own dependencies are listed.
         </p>
       </LegalSection>
     </LegalShell>

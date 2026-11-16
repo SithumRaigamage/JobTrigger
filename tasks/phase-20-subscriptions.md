@@ -118,12 +118,12 @@ names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
 - [ ] P20-30 Analytics events wired in the app and on the site (after
       P20-01): paywall view, trial start, purchase, limit hit (with which
       limit), restore, pricing-page view.
-- [ ] P20-31 `server/subscription-api.ts` + `PlanLimitFailure` copy in
+- [x] P20-31 (2026-11-16, PR D) `server/subscription-api.ts` + `PlanLimitFailure` copy in
       `domain/app-failure.ts`; add-server form shows the plan limit.
-- [ ] P20-32 Account page: plan, dates, manage-in-store instructions.
-- [ ] P20-33 `/pricing` from `src/content/pricing.ts` (tested), header,
+- [x] P20-32 (2026-11-16, PR D) Account page: plan, dates, manage-in-store instructions.
+- [x] P20-33 (2026-11-16, PR D) `/pricing` from `src/content/pricing.ts` (tested), header,
       footer, sitemap; comparison wording per competitive analysis §7.2.
-- [ ] P20-34 Terms and Privacy updated for subscriptions and RevenueCat.
+- [x] P20-34 (2026-11-16, PR D; legal wording is a draft for legal review, like the rest of the policy) Terms and Privacy updated for subscriptions and RevenueCat.
 
 ## F. Store and RevenueCat setup (owner)
 

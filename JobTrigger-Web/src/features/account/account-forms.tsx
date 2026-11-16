@@ -171,7 +171,14 @@ export function SignOutEverywhere() {
   );
 }
 
-export function DeleteAccount({ email }: { email: string }) {
+export function DeleteAccount({
+  email,
+  subscriptionNotice = null,
+}: {
+  email: string;
+  /** US-SUB-07: set when a paid subscription would keep billing. */
+  subscriptionNotice?: string | null;
+}) {
   const [state, formAction, pending] = useActionState(deleteAccountAction, {} as AccountState);
   const [typed, setTyped] = useState("");
   const [password, setPassword] = useState("");
@@ -194,6 +201,7 @@ export function DeleteAccount({ email }: { email: string }) {
       <p className="text-sm leading-[1.55] text-muted">
         Deletes your account and every saved server. Your CI servers aren&apos;t affected.
       </p>
+      {subscriptionNotice && <Notice tone="error">{subscriptionNotice}</Notice>}
       {state.error && <Notice tone="error">{state.error}</Notice>}
       <form action={formAction} noValidate className="flex flex-col gap-3.5">
         <Field
