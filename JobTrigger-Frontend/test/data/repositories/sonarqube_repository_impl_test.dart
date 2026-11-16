@@ -8,6 +8,7 @@ import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis_status.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_hotspot.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_delta.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
@@ -55,6 +56,7 @@ Dio _dio(_Adapter a) =>
 void main() {
   _batch1();
   _batch1Names();
+  _hotspots();
   group('SonarQubeRepositoryImpl.fetchProjects (US-SQ-PROJ-01)', () {
     test('parses projects, including one that was never analysed', () async {
       final adapter = _Adapter(200, {
@@ -1163,5 +1165,73 @@ void _batch1Names() {
     await repo.fetchMyIssues(page: 2);
     expect(adapter.requests, hasLength(1));
     expect(adapter.requests.single.path, '/api/issues/search');
+  });
+}
+
+// US-SQ-HOTSPOT-01: the hotspot list and its expanded detail.
+void _hotspots() {
+  group('hotspots (US-SQ-HOTSPOT-01)', () {
+    test('asks for the to-review ones by default and parses them', () async {
+      final adapter = _Adapter(200, {
+        'paging': {'total': 1},
+        'hotspots': [
+          {
+            'key': 'h1',
+            'message': 'Make sure this password is not hard-coded.',
+            'status': 'TO_REVIEW',
+            'securityCategory': 'weak-cryptography',
+            'vulnerabilityProbability': 'HIGH',
+            'component': 'acme:api:src/config/auth.ts',
+            'line': 18,
+          },
+        ],
+      });
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchHotspots('acme:api');
+
+      final page = (result as Ok<SonarQubeHotspotPage, AppFailure>).value;
+      expect(page.hotspots.single.file, 'src/config/auth.ts');
+      expect(page.hotspots.single.location, 'src/config/auth.ts:18');
+      expect(page.hotspots.single.probabilityLabel, 'High probability');
+      expect(adapter.last?.path, '/api/hotspots/search');
+      expect(adapter.last?.queryParameters['status'], 'TO_REVIEW');
+
+      await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchHotspots('acme:api', reviewed: true);
+      expect(adapter.last?.queryParameters['status'], 'REVIEWED');
+    });
+
+    test('reads the rule and the code around a hotspot', () async {
+      final adapter = _Adapter(
+        200,
+        {
+          'hotspot': {
+            'rule': {'name': 'Hard-coded credentials'},
+            'component': {'key': 'acme:api:src/config/auth.ts'},
+            'textRange': {'startLine': 18},
+          },
+        },
+        byPath: {
+          '/api/sources/show': {
+            // SonarQube sends each line as a [number, html] pair.
+            'sources': [
+              [18, 'const password = &#39;x&#39;;'],
+            ],
+          },
+        },
+      );
+
+      final result = await SonarQubeRepositoryImpl(
+        _dio(adapter),
+      ).fetchHotspotDetail('h1');
+
+      final detail = (result as Ok<SonarQubeHotspotDetail, AppFailure>).value;
+      expect(detail.ruleName, 'Hard-coded credentials');
+      expect(detail.snippet.single.number, 18);
+      expect(detail.snippet.single.code, "const password = 'x';");
+    });
   });
 }

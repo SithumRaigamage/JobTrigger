@@ -31,6 +31,9 @@ abstract class AppRoutes {
   static const sonarqubeAnalyses = '/sonarqube/project/analyses';
   static const sonarqubeIssues = '/sonarqube/project/issues';
 
+  /// US-SQ-HOTSPOT-01: a project's security hotspots.
+  static const sonarqubeHotspots = '/sonarqube/project/hotspots';
+
   /// US-SQ-ISSUES-01: the caller's open issues across every project.
   static const sonarqubeMyIssues = '/sonarqube/my-issues';
   static const githubWorkflows = '/github/repos/workflows';

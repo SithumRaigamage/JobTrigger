@@ -2,6 +2,7 @@ import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
 import 'sonarqube_analysis.dart';
 import 'sonarqube_analysis_status.dart';
+import 'sonarqube_hotspot.dart';
 import 'sonarqube_issue.dart';
 import 'sonarqube_measure_delta.dart';
 import 'sonarqube_metrics.dart';
@@ -94,6 +95,21 @@ abstract class SonarQubeRepository {
     String projectKey, {
     List<String> metricKeys = sonarQubeMeasureKeys,
   });
+
+  /// `GET api/hotspots/search?project=` (`US-SQ-HOTSPOT-01`): a project's
+  /// security hotspots, filtered by the server to [reviewed] ones or the
+  /// ones still to review. Reviewing itself is a write (`US-SQ-WRITE-04`).
+  Future<Result<SonarQubeHotspotPage, AppFailure>> fetchHotspots(
+    String projectKey, {
+    bool reviewed = false,
+    int page = 1,
+  });
+
+  /// `GET api/hotspots/show` plus the code around it (`US-SQ-HOTSPOT-01`):
+  /// the rule's name and the snippet the same way an issue's page shows them.
+  Future<Result<SonarQubeHotspotDetail, AppFailure>> fetchHotspotDetail(
+    String hotspotKey,
+  );
 
   /// What an issue's page shows besides the issue (`US-SQ-QUALITY-06`): the
   /// rule's name (`api/rules/show`) and the code around it

@@ -744,7 +744,7 @@ So that I can check a change before it merges
 ### US-SQ-HOTSPOT-01 — Security hotspots
 
 **Batch:** 3 · **Priority:** Should · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-20)
 **Dependencies:** US-SQ-QUALITY-03
 
 As a user
@@ -762,6 +762,12 @@ So that I know which security-sensitive code still needs a review
 **Notes**
 - Reviewing a hotspot is a write and is `US-SQ-WRITE-04`, not this story.
 - `api/hotspots/show` for the detail.
+- **Built 2026-11-17:** project page → *Security hotspots*; *To review* /
+  *Reviewed* chips ask the server for each (`status=TO_REVIEW|REVIEWED`,
+  `ps=50`, *Load more*); a row shows its category, `file:line` and the
+  probability spelled out ("High probability") rather than as a colour, and
+  expanding it loads the rule's name plus the same code snippet an issue page
+  shows. Not verified against a real server.
 
 ### US-SQ-QUALITY-11 — Trends over time
 

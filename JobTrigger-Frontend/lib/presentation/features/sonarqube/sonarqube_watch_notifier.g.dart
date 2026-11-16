@@ -55,7 +55,7 @@ final class SonarQubeWatchNotifierProvider
 }
 
 String _$sonarQubeWatchNotifierHash() =>
-    r'dfc4c77f25425563f08cd18717052fe9ec7a57b1';
+    r'c5fe439807fafb1999323f655eee64d36fc78a6f';
 
 /// `US-SQ-WATCH-01`: projects watched for a failing quality gate. While the
 /// app is alive it checks every [_checkEvery]; while it is closed the shared

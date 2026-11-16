@@ -6,6 +6,7 @@ import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../domain/sonarqube/sonarqube_analysis.dart';
 import '../../domain/sonarqube/sonarqube_analysis_status.dart';
+import '../../domain/sonarqube/sonarqube_hotspot.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
 import '../../domain/sonarqube/sonarqube_measure_delta.dart';
 import '../../domain/sonarqube/sonarqube_metrics.dart';
@@ -462,6 +463,84 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
     }
     return deltas;
   }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeHotspotPage, AppFailure>> fetchHotspots(
+    String projectKey, {
+    bool reviewed = false,
+    int page = 1,
+  }) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/hotspots/search',
+      queryParameters: {
+        'project': projectKey,
+        'status': reviewed ? 'REVIEWED' : 'TO_REVIEW',
+        'ps': sonarQubeHotspotsPageSize,
+        'p': page,
+      },
+    );
+    final data = response.data ?? const <String, dynamic>{};
+    final raw = (data['hotspots'] as List<dynamic>? ?? const [])
+        .cast<Map<String, dynamic>>();
+    final total =
+        (data['paging'] as Map<String, dynamic>?)?['total'] as int? ??
+        raw.length;
+    return SonarQubeHotspotPage(
+      total: total,
+      hotspots: [
+        for (final h in raw)
+          SonarQubeHotspot(
+            key: h['key'] as String? ?? '',
+            message: h['message'] as String? ?? '',
+            status: h['status'] as String? ?? '',
+            securityCategory: h['securityCategory'] as String?,
+            vulnerabilityProbability: h['vulnerabilityProbability'] as String?,
+            file: _fileOf(h['component'] as String?, projectKey),
+            line: h['line'] as int?,
+            component: h['component'] as String?,
+          ),
+      ],
+    );
+  }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeHotspotDetail, AppFailure>> fetchHotspotDetail(
+    String hotspotKey,
+  ) async {
+    final show = await guardRequest<Map<String, dynamic>>(() async {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/hotspots/show',
+        queryParameters: {'hotspot': hotspotKey},
+      );
+      return response.data?['hotspot'] as Map<String, dynamic>? ??
+          const <String, dynamic>{};
+    }, recover: _projectRecover);
+    final Map<String, dynamic> hotspot;
+    switch (show) {
+      case Ok(:final value):
+        hotspot = value;
+      case Err(:final error):
+        return Err(error);
+    }
+    final component =
+        (hotspot['component'] as Map<String, dynamic>?)?['key'] as String?;
+    final line =
+        hotspot['line'] as int? ??
+        (hotspot['textRange'] as Map<String, dynamic>?)?['startLine'] as int?;
+    // Same snippet rule as an issue: no component or line, no snippet.
+    final snippet = component == null || line == null
+        ? const Ok<List<SonarQubeSourceLine>, AppFailure>([])
+        : await _snippet(component, line);
+    return Ok(
+      SonarQubeHotspotDetail(
+        ruleName:
+            (hotspot['rule'] as Map<String, dynamic>?)?['name'] as String?,
+        snippet: snippet is Ok<List<SonarQubeSourceLine>, AppFailure>
+            ? snippet.value
+            : const [],
+      ),
+    );
+  }
 
   @override
   Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(

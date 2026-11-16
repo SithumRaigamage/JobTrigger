@@ -4,6 +4,7 @@ import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
 import '../../domain/sonarqube/sonarqube_analysis.dart';
 import '../../domain/sonarqube/sonarqube_analysis_status.dart';
+import '../../domain/sonarqube/sonarqube_hotspot.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
 import '../../domain/sonarqube/sonarqube_measure_delta.dart';
 import '../../domain/sonarqube/sonarqube_metrics.dart';
@@ -239,6 +240,55 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
         ),
     ]);
   }
+
+  static const _hotspots = [
+    SonarQubeHotspot(
+      key: 'demo-h1',
+      message: 'Make sure this password is not hard-coded.',
+      status: 'TO_REVIEW',
+      securityCategory: 'weak-cryptography',
+      vulnerabilityProbability: 'HIGH',
+      file: 'src/config/auth.ts',
+      line: 18,
+    ),
+    SonarQubeHotspot(
+      key: 'demo-h2',
+      message: 'Make sure the permissive CORS header is intended.',
+      status: 'REVIEWED',
+      securityCategory: 'others',
+      vulnerabilityProbability: 'MEDIUM',
+      file: 'src/net/client.ts',
+      line: 54,
+    ),
+  ];
+
+  @override
+  Future<Result<SonarQubeHotspotPage, AppFailure>> fetchHotspots(
+    String projectKey, {
+    bool reviewed = false,
+    int page = 1,
+  }) async {
+    if (projectKey != _bad || page > 1) {
+      return const Ok(SonarQubeHotspotPage(hotspots: [], total: 0));
+    }
+    final matching = [
+      for (final hotspot in _hotspots)
+        if (hotspot.isReviewed == reviewed) hotspot,
+    ];
+    return Ok(SonarQubeHotspotPage(hotspots: matching, total: matching.length));
+  }
+
+  @override
+  Future<Result<SonarQubeHotspotDetail, AppFailure>> fetchHotspotDetail(
+    String hotspotKey,
+  ) async => const Ok(
+    SonarQubeHotspotDetail(
+      ruleName: 'Hard-coded credentials',
+      snippet: [
+        SonarQubeSourceLine(number: 18, code: 'const password = \'hunter2\';'),
+      ],
+    ),
+  );
 
   static const _issues = [
     SonarQubeIssue(
