@@ -1,4 +1,4 @@
-import { features, type FeatureStatus } from "./feature-status";
+import { comingInVersion, features, type FeatureId, type FeatureStatus } from "./feature-status";
 
 /*
  * The changelog (US-WEB-08). Released versions are authored here, newest
@@ -32,17 +32,24 @@ const tagFor: Partial<Record<FeatureStatus, UpcomingTag>> = {
   soon: "Next",
 };
 
-/** Changelog lines for features in the given statuses, in list order. */
+type Entry = [FeatureId, (typeof features)[FeatureId]];
+
+const entries = (): Entry[] =>
+  (Object.entries(features) as Entry[]).filter(([, feature]) => "changelog" in feature);
+
+const textsOf = (feature: Entry[1]): readonly string[] =>
+  "changelog" in feature ? feature.changelog : [];
+
+/**
+ * Changelog lines for features in the given statuses, in list order. A
+ * feature of a tool this release doesn't ship (release/tools.json) is left
+ * out here: it is listed by [afterLaunch] with the release it arrives in.
+ */
 function linesFor(statuses: FeatureStatus[]) {
   return statuses.flatMap((status) =>
-    Object.values(features)
-      .filter((feature) => feature.status === status && "changelog" in feature)
-      .flatMap((feature) =>
-        ("changelog" in feature ? feature.changelog : []).map((text) => ({
-          tag: tagFor[status]!,
-          text,
-        })),
-      ),
+    entries()
+      .filter(([id, feature]) => feature.status === status && comingInVersion(id) === null)
+      .flatMap(([, feature]) => textsOf(feature).map((text) => ({ tag: tagFor[status]!, text }))),
   );
 }
 
@@ -51,7 +58,18 @@ export function upcomingRelease() {
   return linesFor(["live", "beta"]);
 }
 
-/** What follows it: everything still `soon`. Planned work isn't listed. */
+/**
+ * What follows it: everything still `soon`, then the live and beta features
+ * of tools a later release ships, with that release. Planned work isn't listed.
+ */
 export function afterLaunch() {
-  return linesFor(["soon"]);
+  const later = entries()
+    .filter(([id, feature]) => comingInVersion(id) !== null && feature.status !== "planned")
+    .flatMap(([id, feature]) =>
+      textsOf(feature).map((text) => ({
+        tag: "Next" as const,
+        text: `${text} (release ${comingInVersion(id)})`,
+      })),
+    );
+  return [...linesFor(["soon"]), ...later];
 }

@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
   // regular output, and `next start` refuses to serve a standalone build.
   ...(process.env.NEXT_STANDALONE === "1" ? { output: "standalone" as const } : {}),
   turbopack: {
+    // End-to-end builds only (playwright.config.ts): the specs add GitHub and
+    // SonarQube servers, which release 1.0's manifest hides, so they build
+    // against an all-tools manifest. A normal build never sets this.
+    ...(process.env.E2E_ALL_TOOLS === "1"
+      ? { resolveAlias: { "@/content/tools.json": "./tests/e2e/all-tools.json" } }
+      : {}),
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],

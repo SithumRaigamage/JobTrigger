@@ -31,6 +31,8 @@ const { maskSecret } = require('../security/secretMask');
  *
  * Unexpected errors go to the central handler (AUD-06).
  */
+const { isToolReleased, TOOL_NOT_AVAILABLE } = require('../lib/releasedTools');
+
 function makeCredentialController(Model, fields, { tool, secrets }) {
   const [mainSecret, ...otherSecrets] = secrets;
 
@@ -77,6 +79,12 @@ function makeCredentialController(Model, fields, { tool, secrets }) {
     },
 
     async create(req, res) {
+      // The release manifest: a tool this release doesn't offer can't get
+      // new credentials. Checked before the plan, so the answer doesn't
+      // depend on the user's plan. Reads, updates and deletes are unaffected.
+      if (!isToolReleased(tool)) {
+        return res.status(403).json({ ...TOOL_NOT_AVAILABLE, tool });
+      }
       const problem = await createProblem(req.user.id, tool);
       if (problem) return sendPlanLimit(res, problem.limit, problem.message);
       const credential = new Model({

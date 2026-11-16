@@ -3,6 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import { RevealToken } from "./reveal-token";
 
+// The default 1 s wait is too tight when the whole suite runs in parallel.
+const slow = { timeout: 5000 };
+
 // The action now takes the account password (reveal needs it): every test
 // confirms the password before anything shows.
 function confirm(password = "pw-1", name: string | RegExp = /Confirm and/) {
@@ -22,8 +25,9 @@ describe("RevealToken", () => {
     expect(screen.getByTestId("saved-token")).toHaveTextContent("ghp_••••");
 
     confirm("pw-1", "Confirm and show");
-    await waitFor(() =>
-      expect(screen.getByTestId("saved-token")).toHaveTextContent("ghp_full_secret"),
+    await waitFor(
+      () => expect(screen.getByTestId("saved-token")).toHaveTextContent("ghp_full_secret"),
+      slow,
     );
     expect(action).toHaveBeenCalledWith("pw-1");
     expect(screen.queryByLabelText("Account password")).not.toBeInTheDocument();
@@ -40,7 +44,9 @@ describe("RevealToken", () => {
     fireEvent.click(screen.getByRole("button", { name: "Show saved token" }));
     confirm("wrong");
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Current password is incorrect");
+    expect(await screen.findByRole("alert", {}, slow)).toHaveTextContent(
+      "Current password is incorrect",
+    );
     expect(screen.getByTestId("saved-token")).toHaveTextContent("••••a91f");
     // The prompt stays for another try, with the password cleared.
     expect(screen.getByLabelText("Account password")).toHaveValue("");
@@ -67,7 +73,7 @@ describe("RevealToken", () => {
     expect(writeText).not.toHaveBeenCalled();
     confirm("pw-1", "Confirm and copy");
 
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith("ghp_full_secret"));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith("ghp_full_secret"), slow);
     expect(screen.getByTestId("saved-token")).toHaveTextContent("ghp_••••");
   });
 });

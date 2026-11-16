@@ -1,4 +1,5 @@
 import {
+  comingInVersion,
   statusLabels,
   statusOf,
   type FeatureId,
@@ -39,7 +40,10 @@ export function StatusBadge({
   inset?: boolean;
   className?: string;
 }) {
-  const status = statusOf(feature);
+  // A tool this release doesn't ship says when it arrives (release/tools.json),
+  // whatever its build status is.
+  const arrives = comingInVersion(feature);
+  const status = arrives ? "soon" : statusOf(feature);
   if (status === "live") return null;
 
   return (
@@ -51,7 +55,7 @@ export function StatusBadge({
         className,
       )}
     >
-      {statusLabels[status]}
+      {arrives ? `Coming in ${arrives}` : statusLabels[status]}
     </span>
   );
 }
