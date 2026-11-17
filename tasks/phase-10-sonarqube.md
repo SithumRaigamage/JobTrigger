@@ -200,7 +200,7 @@ would be unrelated scope creep for this phase.
       the project detail screen.
 ## Cross-cutting
 
-- [ ] P10-14 `NFR-SEC-03` verification: a live test confirming a SonarQube
+- [ ] P10-14 **MANUAL (owner, M-03):** Only the iPhone check remains (automated and live parts are done, below). `NFR-SEC-03` verification: a live test confirming a SonarQube
       401 never triggers Jenkins/GitHub's auth handling or the backend's
       global logout, and vice versa — four independent auth failure
       domains, not two or three.
@@ -284,7 +284,7 @@ would be unrelated scope creep for this phase.
       Not verified on a real server: `api/measures/search`,
       `api/sources/show` (response shape) and `api/rules/show` follow
       SonarQube's documentation; the owner's iPhone test is the check.
-- [ ] P10-15 Full real-server verification pass: every SQ-CRED/PROJ/QUALITY
+- [ ] P10-15 **MANUAL (owner, M-03, M-04):** Only the iPhone pass and SonarCloud remain (the endpoint pass against a real server is done, below). Full real-server verification pass: every SQ-CRED/PROJ/QUALITY
       task above manually verified against a real SonarCloud organization
       and a real self-hosted SonarQube Server instance (both flavors, per
       the epic's own scope note) before this phase is marked done.

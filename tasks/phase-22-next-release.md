@@ -48,14 +48,8 @@ anything only checkable on a real iPhone marked **UNVERIFIED**.
       codes are refused with a way to Settings. Tests: web (pairing link,
       codes, view) and app (link round-trip, screen). The website's store QR
       (P15-24) is a separate item.
-- [ ] NR-04 **Clearer error copy** for a bad token, an unreachable server
-      and an expired session. Checked 2026-11-16: the app
-      (`core/error/error_message.dart`, `describeError`) and the portal
-      (`server/backend-client.ts`, its failure mapping) already carry this
-      copy. Re-check on the iPhone with a deliberately wrong token and an
-      off server before closing it.
-- [ ] Subscriptions in the app: finish Phase 20 (`tasks/phase-20-subscriptions.md`).
-- [ ] Website go-live: owner actions in `tasks/phase-15-website.md` (P15-22,
+- [ ] Subscriptions in the app: **MANUAL (owner, M-15):** finish Phase 20 (`tasks/phase-20-subscriptions.md`).
+- [ ] Website go-live: **MANUAL (owner, M-13):** owner actions in `tasks/phase-15-website.md` (P15-22,
       P15-24) and `tasks/phase-emergency.md` (PE-03).
 - [x] NR-04 **Clearer error copy** — checked 2026-11-16 and already built:
       the app's `core/error/error_message.dart` (`describeError`) and the
@@ -73,7 +67,7 @@ anything only checkable on a real iPhone marked **UNVERIFIED**.
       self-signed RS256 JWT, one send per registered device, unregistered
       tokens deleted, and a no-op unless `FCM_SERVICE_ACCOUNT` is set. No
       SDK and no new npm dependency. `npm test` 392 passing.
-- [ ] NR-06b **Server push — what is left**, all outside the code I can
+- [ ] NR-06b **MANUAL (owner, M-16):** **Server push — what is left**, all outside the code I can
       land alone: (1) the Firebase project plus its APNs key and
       `google-services.json` / `GoogleService-Info.plist` (owner); (2) the
       app side — `firebase_messaging`, a token upload on launch and a

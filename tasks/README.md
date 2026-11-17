@@ -19,12 +19,12 @@ check "where are we."
 | 4 — Jenkins job tree | `phase-4-jenkins-job-tree.md` | done | Phase 3 |
 | 5 — Build execution, logs, history | `phase-5-build-execution-logs-history.md` | done | Phase 4 |
 | 6 — Polish + release | `phase-6-polish-release.md` | done | Phase 5 (can start early on some items) |
-| Release | `release-checklist.md` | pending | Phase 6 |
+| Release | `release-checklist.md` | dev-complete; store upload and device checks are MANUAL (owner), `MANUAL.md` | Phase 6 |
 | 7 — Pipeline & build insights (epic PIPE) | `phase-7-pipeline-insights.md` | done | none — new scope, not required for parity |
-| 8 — GitHub Actions integration (epic GH) | `phase-8-github-actions.md` | in-progress (Backend + GH-CRED + GH-REPO done, plus runs, trigger, live status, cancel, jobs and steps, job logs, run history, cross-repo feed P8-12..25; P8-00..25 of 28; P8-26/27 need a real GitHub token, owner will run after development) | none — second CI tool, promoted from `backlog.md` |
+| 8 — GitHub Actions integration (epic GH) | `phase-8-github-actions.md` | in-progress (Backend + GH-CRED + GH-REPO done, plus runs, trigger, live status, cancel, jobs and steps, job logs, run history, cross-repo feed P8-12..25; P8-00..25 of 28; P8-26/27: live API half done 2026-11-17 against a real repo; the fine-grained-token and iPhone checks are MANUAL (owner, `MANUAL.md` M-06)) | none — second CI tool, promoted from `backlog.md` |
 | 9 — Testing, CI/CD hardening, dev tooling (epic HARDEN) | `phase-9-testing-cicd-hardening.md` | done | none — dev/QA/tooling work, promoted from a direct user request 2026-09-15 |
 | 10 — SonarQube integration (epic SQ) | `phase-10-sonarqube.md` | in-progress (Backend + SQ-CRED + SQ-PROJ done, gate + measures + issues + analysis history done, P10-00..13 + P10-16/17 fixes and polish of 18; P10-14/15 are the auth-isolation and real-server checks; batches 1–3 built 2026-11-17 (P10-18 gate conditions, analysis status, new vs overall code, change since the previous analysis, my issues; P10-19 gate-failure alerts; P10-20 hotspots, trends, worst files, languages, issue grouping, branch/PR picker); batch 4 (P10-21: server screen, cross-project issue search by rule/tag/file/key, Overview trend) built 2026-11-17; batch 5 (P10-22: pins, offline copy, deep links, copy/share, pinned-projects widget) built 2026-11-17; batch 7 (P10-24: assign, status, comment, hotspot review) built 2026-11-17; batch 6 (P10-23: gate on the Jenkins build and GitHub run pages, Scan now) built 2026-11-17 with a 14-line additive Jenkins/GitHub diff) | none — fourth CI tool, promoted from `backlog.md` |
-| 11 — Jenkins extended capabilities (epic JX) | `phase-11-jenkins-extended.md` | done 2026-09-30 (P11-01..28; P11-27 closed as won't-do by its verification gate). Only P11-03 is open, **blocked** on a physical Android device and tracked in `release-checklist.md` | P12-04 (shared repository guard); P11-01 fixture Jenkins for verification |
+| 11 — Jenkins extended capabilities (epic JX) | `phase-11-jenkins-extended.md` | done 2026-09-30 (P11-01..28; P11-27 closed as won't-do by its verification gate). Only P11-03 remains: MANUAL (owner), on hold, no Android device (`MANUAL.md` M-02) | P12-04 (shared repository guard); P11-01 fixture Jenkins for verification |
 | 12 — Audit remediation (epic AUDIT) | `phase-12-audit-remediation.md` | done 2026-10-01 (P12-01..11 frontend, P12-20..27 backend). Audit: 41 findings, all fixed; tracker: `docs/audit/2026-09-29-workspace-audit.md`. The `buildUnstable` contrast follow-up was resolved by the Phase 14 redesign (measured 2026-11-08: text 4.52:1, dot 3.56:1 on light) | none; backend-track items need per-item approval; P12-06 needs a product decision on LAN `http://` |
 | 13 — Second audit remediation (epic AUDIT-2) | `phase-13-audit-2-remediation.md` | done 2026-10-22, closed 2026-10-23 (P13-01..27 fixed; password reset deferred to `backlog.md` as US-AUTH-08). Audit documents deleted; this phase file is the record | none; AUD-66 (leaked Jenkins token) confirmed revoked by the owner 2026-11-08 |
 | 14 — UI redesign (epic UI-2) | `phase-14-ui-redesign.md` | done (P14-01..26). Designs: `UI-UX/` | none — approved by the user 2026-10-23 |
@@ -39,12 +39,10 @@ check "where are we."
 | 22 — Next release (improvement plan) | `phase-22-next-release.md` | development-complete 2026-11-16 — NR-01 log folding, NR-02 dashboard, NR-03 QR pairing, NR-04 error copy (verified), NR-05/P20-30 site analytics and NR-06 server-push backend (devices + FCM sender) done. Left: NR-06b (Firebase keys, app SDK + token upload, server-side trigger), Phase 20 store/RevenueCat setup, website go-live | Public release |
 | Backlog | `backlog.md` | n/a | — |
 
-`done` above means **development-complete**, not "in production." A handful
-of items in Phase 2 and Phase 6 are still open but no longer gate phase
-status — they're blocked on external/ops action (real device, real artwork,
-store accounts, real users), not on more development work. They're tracked
-in `release-checklist.md` instead of here so this table reflects what
-engineering can still move on its own.
+`done` above means **development-complete**, not "in production." Every
+item is either done (ticked, with evidence) or **MANUAL (owner)**: a task only
+the owner can do (a physical device, a store or billing account, a token),
+with its steps in **`tasks/MANUAL.md`**, the single list.
 
 ## Conventions
 

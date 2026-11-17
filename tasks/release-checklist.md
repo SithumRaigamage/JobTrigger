@@ -1,64 +1,39 @@
-# Release checklist (dev-complete, blocked on external/ops action)
+# Release checklist (dev-complete; the rest is MANUAL (owner))
 
-These are **not** scope-cuts — unlike `backlog.md` (deliberately excluded
-product surface), everything here is fully specified and, where code is
-involved, already implemented. Each item is blocked on something outside
-what development in this environment can resolve: a real device, real
-artwork, store accounts, real users, or a real production action. Phase 2
-and Phase 6 are marked `done` in `tasks/README.md` despite these being open,
-because "done" there means dev-complete, not "in production." Full
-investigation detail for each item lives at its source task id — this file
-only tracks what's left and why.
+Everything development can do for release 1.0 is done. Each line is either
+**DONE** (ticked, with its evidence) or **MANUAL (owner)**, with its steps in
+`tasks/MANUAL.md`. The submission pack (screenshots, captions, archive and
+upload commands) is `docs/store-submission.md`.
 
-- [ ] Real device kill-and-relaunch verification (source: `phase-2-auth-tool-selection.md`
-      P2-11). Widget-test substitute exists and passes; no working iOS
-      simulator destination or connected physical device was available in
-      this environment to run the real manual test. Needs someone with a
-      working local iOS toolchain (or the iOS 26.5 simulator platform
-      installed via Xcode) to confirm.
-- [ ] Android on-device build-log jank/performance test (source:
-      `phase-5-build-execution-logs-history.md` P5-13). A 5,000-line log
-      fixture confirms `ListView.builder` actually virtualizes (well under
-      200 live widgets, not 5,000) and doesn't throw/hang — evidence the
-      mechanism is sound, not a substitute for real on-device scroll
-      measurement. Update 2026-11-08: an emulator (Medium_Phone_API_37.0)
-      and the fixture Jenkins `big-log` job (50,000 lines) are now ready, and
-      a 50,000-line host test passes. Remaining: build the profile APK on a
-      fast connection, scroll the `big-log` build, record frame times.
-- [ ] App icons, splash screens, store screenshots for both platforms
-      (source: `phase-6-polish-release.md` P6-07). The original SwiftUI app
-      never shipped real artwork to port from. Needs real source artwork
-      supplied by the team — not agent-generated — before store submission
-      can proceed.
-- [ ] Before the first App Store Connect upload: re-check
-      `ios/Runner/PrivacyInfo.xcprivacy` (AUD-56) against the App Privacy
-      answers given in App Store Connect, and against any plugin added
+- [x] Kill-and-relaunch on the iOS simulator (P2-11), 2026-11-17: signed in,
+      process ended, relaunched, landed signed in
+      (`integration_test/relaunch.sh`).
+- [ ] **MANUAL (owner, M-01):** the same kill-and-relaunch on the physical iPhone.
+- [ ] **MANUAL (owner, M-02):** Android on-device build-log jank test (P5-13,
+      P11-03). On hold: no Android device. The 50,000-line host test passes.
+- [x] App icons and launch screen (Phase 16) and iPhone store screenshots
+      (`release/store-screenshots/ios-6.9/`, P6-07, 2026-11-17).
+- [ ] **MANUAL (owner, M-05):** Android store screenshots (needs an Android
+      emulator, which needs the NDK installed).
+- [ ] **MANUAL (owner, M-12):** before the first App Store Connect upload,
+      re-check `ios/Runner/PrivacyInfo.xcprivacy` (AUD-56) against the App
+      Privacy answers given in App Store Connect, and against any plugin added
       since 2026-10-20 that uses a required-reason API.
-- [ ] Internal TestFlight + Play internal testing track release (source:
-      `phase-6-polish-release.md` P6-11). Needs an Apple Developer account
-      + App Store Connect access + code-signing certificates, and a Google
-      Play Console account + signing key. The Android upload-key setup is
-      in `docs/deployment.md`, "Android release signing" (P12-10); the
-      build side is ready, and only the key itself is missing. Also blocked on the icon/splash
-      item above, and on revisiting the crash-reporting decision
-      (`backlog.md`) before real users are involved.
-- [ ] Dogfood window — track crash-free rate and Jenkins-server edge cases
-      from real usage (source: `phase-6-polish-release.md` P6-12). Needs
-      real users on real devices over a real time window; currently no
-      crash-free-rate signal exists since crash reporting was deliberately
-      skipped (see `backlog.md`) — worth revisiting before this starts.
-- [ ] Public release; keep the SwiftUI app archived (not delisted) for a
-      rollback window per `docs/migration-strategy.md §5` (source:
-      `phase-6-polish-release.md` P6-13). App Store / Play Store
-      submission — a real-world, hard-to-reverse action on a shared/public
-      system. Requires your explicit action and store-account access.
-      Blocked on the items above.
-- [ ] Crash reporting on a real device and host (source: `phase-emergency.md`
-      E3, PE-19c/d, PE-24..27). Unit and widget tests pass; delivery to GlitchTip, the
-      offline cache, `pod install` with the Sentry SDK, the Sentry SDK's own privacy manifest
-      and the "Send crash reports" switch clearing the cache have not been run on a phone.
-      Also owed: the App Store privacy answers (Data Types: Diagnostics → Crash Data,
-      not linked, not tracking) and Google Play's Data safety form (crash logs, optional).
+- [ ] **MANUAL (owner, M-08, M-09):** internal TestFlight + Play internal
+      testing release (P6-11). Prepared: archive and upload commands,
+      `flutter build ios --release --no-codesign` verified. Needs the Apple
+      Developer and Play Console accounts and signing keys.
+- [ ] **MANUAL (owner, M-10):** dogfood window (P6-12). Crash-free rate is
+      now readable in GlitchTip.
+- [ ] **MANUAL (owner, M-11):** public release, keeping the SwiftUI app
+      archived for a rollback window (P6-13).
+- [x] Crash reporting host and test crash (P6-08, 2026-11-17): the lab's
+      GlitchTip received the app's test crash from the simulator, scrubbed.
+- [ ] **MANUAL (owner, M-07):** crash reports from the physical iPhone over the
+      Mac's Wi-Fi address (PE-19d), and the three DSNs in the apps' `.env`.
+- [ ] **MANUAL (owner, M-12):** the store privacy forms (the tables below are
+      ready to copy: App Store → Crash Data, not linked, not tracking; Play →
+      Data safety).
 
 ## App Store privacy answers (PE-06 / PE-27, checked 2026-11-16)
 
@@ -104,7 +79,7 @@ The App Store and Google Play text is typed into the stores, so it **cannot
 follow `release/tools.json`**. It must describe exactly the tools that
 release ships, no more. Each release gets its own version below.
 
-- [ ] **Owner, every release:** rewrite the store text (name/subtitle, short
+- [ ] **MANUAL (owner, M-12), every release:** rewrite the store text (name/subtitle, short
       and full description, screenshots' captions, review notes) for that
       release's tools, from `release/tools.json`, before submitting. Check
       the website's home, integrations and pricing pages say the same.
@@ -166,10 +141,10 @@ store's own fields, never into this repository.
 > Email: `<review account email>`; password: in the Password field of this
 > form.
 
-- [ ] **Owner:** create the review account on the production backend (a
+- [ ] **MANUAL (owner, M-12):** create the review account on the production backend (a
       normal account, with no saved servers) and enter its email and
       password in App Store Connect. Needed before store submission.
-- [ ] **Owner:** add one line to each store description: "Try the in-app demo
+- [ ] **MANUAL (owner, M-12):** add one line to each store description: "Try the in-app demo
       without an account or a server." (PE-17).
 - [x] **On the iPhone** (verified by the owner 2026-11-16): sign-in → **Try the demo** →
       the walkthrough above, then **Exit demo**. See `phase-emergency.md` E2

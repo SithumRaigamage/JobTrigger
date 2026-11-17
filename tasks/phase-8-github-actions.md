@@ -446,7 +446,7 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       from the history icon on the repositories screen.
 ## Cross-cutting
 
-- [ ] P8-26 `NFR-SEC-03` verification: a live test confirming a GitHub
+- [ ] P8-26 **MANUAL (owner, M-06):** Only the in-app fine-grained-token check and the iPhone remain (live API half done, below). `NFR-SEC-03` verification: a live test confirming a GitHub
       401 never triggers Jenkins' per-server auth handling or the
       backend's global logout, and vice versa — three independent auth
       failure domains, not two.
@@ -467,7 +467,7 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       access token* (a fine-grained token cannot be created through the API),
       and then the iPhone: that after a GitHub 401 the app keeps the backend
       session and the Jenkins/SonarQube clients.
-- [ ] P8-27 Full `NFR-TEST-03` pass: every GH-CRED/REPO/RUN/LOG/HIST task
+- [ ] P8-27 **MANUAL (owner, M-06):** Only the fine-grained-token check and the iPhone walk-through remain (API half done, below). Full `NFR-TEST-03` pass: every GH-CRED/REPO/RUN/LOG/HIST task
       above manually verified against a real GitHub repository with real
       Actions workflows (including at least one with `workflow_dispatch`
       inputs, one without, and one disabled workflow) before this phase

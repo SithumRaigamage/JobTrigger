@@ -107,7 +107,7 @@ Each task names the `AUD-##` ids it closes.
       The real payload is recorded at
       `test/fixtures/jenkins_pending_input_params.json`, and the unit tests
       were rewritten against it. The UNVERIFIED notes were removed.
-- [ ] P11-03 **P5-13 on-device log performance.** Blocked on a physical
+- [ ] P11-03 **MANUAL (owner, M-02):** On hold, the owner has no Android device. **P5-13 on-device log performance.** Blocked on a physical
       Android device or emulator (none in this environment). Re-run after
       P11-11 lands, since that task removes the O(n²) cause (AUD-12). Stays
       tracked in `release-checklist.md`.

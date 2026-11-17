@@ -36,17 +36,17 @@ task where a track is large). Commits reference the task id, e.g.
       `nodemailer` over SMTP (needs approval); production provider chosen
       when the backend deploys. US-AUTH-08 password reset promoted as the
       first use (P20-72..74). Decided 2026-11-12.
-- [ ] P20-03 RevenueCat "transfer behaviour" when one store account
+- [ ] P20-03 **MANUAL (owner, M-15):** Needs two real sandbox store accounts. RevenueCat "transfer behaviour" when one store account
       restores onto a second JobTrigger account (US-SUB-03).
 
 ## B. Launch prerequisites (already tracked elsewhere — linked, not duplicated)
 
-- [ ] P20-05 Backend deployed at a public `https://` URL with a
+- [ ] P20-05 **MANUAL (owner, M-14):** Deploy the backend (production Atlas, public https URL). Backend deployed at a public `https://` URL with a
       production Atlas cluster (Phase 15 owner actions, Phase 17).
       **On hold** (owner, 2026-11-12): still in development.
-- [ ] P20-06 Store accounts, signing and artwork (`release-checklist.md`).
+- [ ] P20-06 **MANUAL (owner, M-08, M-09):** Store accounts and signing. Store accounts, signing and artwork (`release-checklist.md`).
       **On hold** (owner, 2026-11-12): still in development.
-- [ ] P20-07 GitHub and SonarQube real-server checks (P8-26/27,
+- [ ] P20-07 **MANUAL (owner, M-03, M-06):** Automated and live API parts are done (P8-26/27, P10-14/15); the iPhone checks remain. GitHub and SonarQube real-server checks (P8-26/27,
       P10-14/15) — these are the tools Pro sells.
 
 ## C. Backend (backend track — per-item approval)
@@ -133,12 +133,12 @@ names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
 
 ## F. Store and RevenueCat setup (owner)
 
-- [ ] P20-40 App Store Connect: Paid Apps agreement, tax, banking (check
+- [ ] P20-40 **MANUAL (owner, M-15):** App Store Connect: Paid Apps agreement, tax, banking (check
       Sri Lanka payout details), subscription group + 2 products, 7-day
       trial on yearly, **Small Business Program enrolment**.
-- [ ] P20-41 Play Console: payments profile, subscription with monthly
+- [ ] P20-41 **MANUAL (owner, M-15):** Play Console: payments profile, subscription with monthly
       and yearly base plans, trial offer on yearly.
-- [ ] P20-42 RevenueCat: project, both apps, entitlement `pro`, offering
+- [ ] P20-42 **MANUAL (owner, M-15):** RevenueCat: project, both apps, entitlement `pro`, offering
       `default`, webhook URL + secret, sandbox testers.
 
 ## G. Verification
@@ -147,22 +147,22 @@ names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
       `flutter test` (1327), `npm test` backend (289) and web (310), Playwright
       (182), `flutter build ios --profile --no-codesign`, gitleaks over the whole
       history. Not run on a device or against real RevenueCat/Paddle (P20-51/52/85).
-- [ ] P20-51 iPhone sandbox pass via `scripts/run-on-iphone.sh`
+- [ ] P20-51 **MANUAL (owner, M-15):** iPhone sandbox pass via `scripts/run-on-iphone.sh`
       (CLAUDE.md §10): buy, trial, accelerated renewal, cancel, restore on
       a second install, downgrade locking.
-- [ ] P20-52 Android sandbox pass with a Play license tester (blocked on
+- [ ] P20-52 **MANUAL (owner, M-02, M-15):** Android sandbox pass with a Play license tester (blocked on
       a physical Android device, like P11-03).
-- [ ] P20-53 Security review of the webhook and plan checks (third audit
+- [ ] P20-53 **MANUAL (owner, M-15):** Owner decides to commission the third audit scope (billing code needs the owner's go-ahead). Security review of the webhook and plan checks (third audit
       scope, small): auth, idempotency, `userId` scoping, logging.
 
 ## H. Launch
 
-- [ ] P20-60 Staging with `BILLING_ENABLED=true`; TestFlight + Play
+- [ ] P20-60 **MANUAL (owner, M-15):** Staging with `BILLING_ENABLED=true`; TestFlight + Play
       internal testers.
-- [ ] P20-61 Grant Pro to owner and early testers (`grant-plan.js`).
-- [ ] P20-62 Production: flip `BILLING_ENABLED=true`, flip the website's
+- [ ] P20-61 **MANUAL (owner, M-15):** Grant Pro to owner and early testers (`grant-plan.js`).
+- [ ] P20-62 **MANUAL (owner, M-15):** Production: flip `BILLING_ENABLED=true`, flip the website's
       pricing status to live, announce in the changelog.
-- [ ] P20-63 After ~200 paywall views: review conversion and price
+- [ ] P20-63 **MANUAL (owner, M-15):** After ~200 paywall views: review conversion and price
       (business model §4, §7).
 
 ## I. Email and analytics (plan: `docs/subscription/04-email-and-analytics.md`)
@@ -228,7 +228,7 @@ the app and site see the same Pro.
       the billing page only, zod-parsed BFF calls.
 - [x] P20-84 (2026-11-16, PR B) App: show a web subscription as Pro and hide the store
       purchase for it (with P20-23/24).
-- [ ] P20-85 Owner: Paddle sandbox account, Pro product with monthly and
+- [ ] P20-85 **MANUAL (owner, M-15):** Owner: Paddle sandbox account, Pro product with monthly and
       yearly prices, default payment link domain approved, notification
       destination → `/api/billing/paddle/webhook` (subscription events),
       client-side token for the website. Then live account verification

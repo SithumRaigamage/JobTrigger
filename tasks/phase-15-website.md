@@ -104,7 +104,7 @@ runs are the merge gate.
 - [x] P15-23 Docker image (`output: "standalone"`) to run next to the
       backend, documented in `docs/deployment.md`; mark the phase done in
       `tasks/README.md`.
-- [ ] P15-24 Store links and QR code on Home's download section: set
+- [ ] P15-24 **MANUAL (owner, M-13):** Needs the live store listings. Store links and QR code on Home's download section: set
       `storeLinks` in `site-links.ts` and add a QR code (a pre-built SVG,
       or a QR library — needs approval). **Blocked** on the store listings
       in `release-checklist.md`. `store-links.test.ts` fails if

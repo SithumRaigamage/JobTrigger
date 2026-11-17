@@ -98,8 +98,8 @@ blocked on external toolchain access, not on more development work.
       relaunched with `simctl launch`: the screenshot shows the signed-in
       tool-selection screen, not login. (`flutter test` uninstalls the app
       between runs, so `flutter drive --keep-app-running` is used; see
-      `integration_test/relaunch.sh`.) **Only the physical-iPhone
-      confirmation stays open.** Someone with a working
+      `integration_test/relaunch.sh`.) **MANUAL (owner, M-01):** only the
+      physical-iPhone confirmation stays open. Someone with a working
       local iOS toolchain should run the real manual test before this box
       is fully trusted.
 
