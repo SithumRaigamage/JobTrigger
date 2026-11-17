@@ -227,11 +227,11 @@ Tracked per-phase in [`tasks/README.md`](tasks/README.md). Summary:
 |-------|--------|
 | 0 — Setup | 🟢 Done |
 | 1 — Core infrastructure | 🟢 Done |
-| 2 — Auth + tool selection | 🟡 Blocked — code complete, pending a real-device relaunch check |
+| 2 — Auth + tool selection | 🟡 Dev complete — physical-iPhone relaunch check pending (M-01) |
 | 3 — Credentials management | 🟢 Done |
 | 4 — Jenkins job tree | 🟢 Done |
 | 5 — Build execution, logs, history | 🟢 Done |
-| 6 — Polish + release | 🟡 Blocked — app icon artwork and store submission still needed |
+| 6 — Polish + release | 🟡 Dev complete — store submission, device and billing checks pending (M-08…M-12) |
 
 Not yet released to the App Store / Play Store.
 

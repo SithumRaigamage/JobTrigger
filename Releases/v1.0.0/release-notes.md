@@ -40,3 +40,17 @@
 
 * **GitLab CI & CircleCI**: Scheduled for Release 1.3.0 (`release/tools.json`). Not included or supported in 1.0.0.
 * **Apple Watch & Localised Languages**: Planned for future milestones.
+* **Billing is switched off in this release**: the app and website show
+  JobTrigger Pro as *coming soon*. The paywall, purchases and plan
+  enforcement stay disabled until the store listings, RevenueCat keys and
+  the backend `BILLING_ENABLED` flag are configured; Free limits are not
+  enforced while billing is off.
+* **Student plan**: built but dark in 1.0 (no student verification flow yet).
+* **Notifications**: build notifications are local to the phone; server
+  push (NR-06b) is not enabled yet.
+* **Password reset**: the UI appears only once the backend is deployed with
+  a real mail provider.
+* **Website test connection**: coming in a later release (US-WEB-19 needs a
+  backend endpoint).
+* **Store availability**: 1.0 is not yet listed on the App Store or Google
+  Play; TestFlight and Play internal testing come first.

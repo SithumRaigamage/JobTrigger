@@ -63,8 +63,9 @@ Decided 2026-11-16: the app manifest declares Crash Data and Other
 Diagnostic Data (not linked, app functionality), matching this table and
 `/privacy`. Performance Data is not collected (`tracesSampleRate = 0`).
 Phase 20 (PE-06 follow-up, 2026-11-16): the manifest and the two
-Purchases / Identifiers rows above now cover RevenueCat. `/privacy` still
-needs a RevenueCat paragraph (P20-34, website PR).
+Purchases / Identifiers rows above now cover RevenueCat. `/privacy` has
+the RevenueCat and Paddle paragraphs (P20-34); keep them in sync with
+this table.
 
 Required-reason APIs: the app declares UserDefaults CA92.1 + 1C8F.1
 (`home_widget` shares data through the App Group and ships no manifest),
@@ -115,6 +116,12 @@ release ships, no more. Each release gets its own version below.
 
 Do **not** mention GitLab CI or CircleCI in the 1.0 listing, screenshots or
 keywords. They are planned for 1.3; that release gets its own text here.
+
+If billing is still off when the listing goes live, omit the
+"JobTrigger Pro adds more servers and the extras" sentence (the app and
+website show Pro as coming soon) or replace it with a one-line
+"JobTrigger Pro is coming soon" note. Use the Pro sentence only once the
+store products and RevenueCat keys are configured.
 
 **App Review notes for 1.0:** use the notes below unchanged. All three tools
 (Jenkins, GitHub Actions and SonarQube) are available in 1.0, so their demo

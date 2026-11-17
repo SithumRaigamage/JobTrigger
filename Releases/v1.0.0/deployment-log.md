@@ -5,6 +5,11 @@
 - **Base Commit SHA**: `9b87d10` (develop, 2026-11-17; re-confirm the
   tag commit when cutting the release)
 
+> **Status: plan, not executed.** The values below are the intended
+> production configuration. Nothing here has been deployed or stored yet;
+> tick each step and replace placeholder secrets during the real
+> deployment.
+
 ---
 
 ## 1. Backend Infrastructure (Render / Docker)

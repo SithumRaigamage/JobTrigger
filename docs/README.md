@@ -34,13 +34,17 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 - **[Second audit remediation — Phase 13](../tasks/phase-13-audit-2-remediation.md)** — Record of the second audit (`AUD-42`…`AUD-66`, `P13-01`…`P13-27`): all 27 tasks fixed; password reset deferred (US-AUTH-08); AUD-66 token revocation confirmed by the owner 2026-11-08. Its audit documents (2026-10-20, 2026-10-22) were deleted once closed and remain in git history
 - **[Pipeline security controls](./deployment.md#pipeline-security-controls-p13-18-aud-59)** — What CI checks, and which checks block
 
+## 🔑 Tokens
+
+- **[Token guides](./token-guides.md)** — Where to create each token, the scopes to grant, and the read-only alternative (mirrors the in-app wizards)
+
 ## 📊 Market
 
 - **[Competitive analysis — 2026-10-24](./market/competitive-analysis.md)** — Mobile CI/CD apps on the App Store and Google Play (Jenkins, GitHub Actions, multi-tool, SonarQube), feature matrix, where JobTrigger wins, risks, pricing and messaging recommendations, what to monitor
 
-## 💳 Subscriptions (proposal)
+## 💳 Subscriptions
 
-- **[Subscription plan — 2026-11-12](./subscription/README.md)** — Workspace analysis, Free/Pro business model, technical design (backend plan checks, RevenueCat, app gates, website), stories (epic SUB) and Phase 20 tasks. Waiting for owner approval
+- **[Subscription plan — 2026-11-12](./subscription/README.md)** — Workspace analysis, Free/Pro business model, technical design (backend plan checks, RevenueCat, app gates, website), stories (epic SUB) and Phase 20 tasks. Approved and built; billing is off until the stores and backend are configured
 - **[Improvement plan — implemented 2026-11-16](./implemented/improvement-plan.md)** — Archived record (checked against the code): what was built, the pre-release emergency fixes (`tasks/phase-emergency.md`), the next-release items now delivered, and the owner actions still open
 
 ## 🧭 Roadmap proposals (not promoted)
