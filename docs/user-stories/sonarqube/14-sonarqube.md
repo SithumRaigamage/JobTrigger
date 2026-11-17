@@ -910,7 +910,7 @@ Read-only views that span projects, plus the server itself.
 ### US-SQ-ISSUES-03 — Search issues across projects
 
 **Batch:** 4 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-21), changed from "text"
 **Dependencies:** US-SQ-ISSUES-01
 
 As a user
@@ -926,6 +926,7 @@ So that I can find a known problem wherever it is
 
 **Notes**
 - The exact text-search parameter is confirmed against the owner's server in the plan; not assumed here.
+- **Built 2026-11-17, and the parameter does not exist.** `api/issues/search` has no `q` (SonarQube 26.1's own web-service listing; an unknown `q` is silently ignored and returns everything). Search is therefore by an exact server-side filter: rule (`rules`), tag (`tags`), file path (`files`) or issue key (`issues`). Free text over the message is not offered, because filtering it on the device would only cover what is loaded.
 
 ### US-SQ-SERVER-01 — Server health and version
 
@@ -958,7 +959,7 @@ So that I can tell a server problem from an app problem
 ### US-SQ-OVERVIEW-02 — Overview trend: are more projects failing?
 
 **Batch:** 4 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-21)
 **Dependencies:** US-SQ-OVERVIEW-01
 
 As a user
@@ -974,6 +975,7 @@ So that I see the direction, not only today's count
 
 **Notes**
 - SonarQube has no portfolio-level history for this, so the app would **store its own small snapshots on the device** (counts only, no secrets, in `shared_preferences`). Honest label: "since you last looked", not "over time".
+- **Built 2026-11-17:** compares with the newest snapshot at least an hour old, so two quick visits do not erase "yesterday"; keeps 30 per credential; counts only; first visit says the trend starts now.
 - The alternative is computing it from each project's history, which costs one request per project; rejected for the rate-limit-style reasons of `US-GH-HIST-02`.
 
 ## Batch 5 — Shortcuts and offline (2026-11-09)

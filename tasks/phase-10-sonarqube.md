@@ -315,12 +315,18 @@ Fixed:
 - Tracker text: P10-20, the README row, this file's batch heading, the
   backlog entry and the stories doc's "not started" line.
 
-Left as an observation, not changed: the issue page's code context
-(`api/sources/show`) carries no branch, so on a branch it may show the main
-branch's lines. Whether that endpoint accepts `branch` is not documented
-clearly enough to change it without a server that has branches.
+**Resolved 2026-11-17 (P10-21):** the issue page's code context
+(`api/sources/show`) does **not** accept `branch` or `pullRequest` — checked in
+SonarQube 26.1.0's own web-service listing (`key`, `from`, `to` only). The
+internal `api/sources/lines` does accept both. So a source lookup on a chosen
+branch or pull request is rerouted to `lines` inside the SonarQube client's
+existing ref interceptor, and its answer is converted back to `show`'s shape;
+on the main branch nothing changes. Proven by `sonarqube_sources_reroute_test`
+(a branch, a pull request, and main left alone). `lines` is an *internal*
+endpoint, and branches need a Developer Edition, so the live branch case is
+unverified: the throwaway server is a Community Build and accepts no branch.
 
-## Planned batches (documented 2026-11-09; batches 1–3 built 2026-11-17, batch 4 started)
+## Planned batches (documented 2026-11-09; batches 1–4 built 2026-11-17)
 
 Listed for the owner on 2026-11-08 and written up as user stories on
 2026-11-09 under "Planned work" in
@@ -407,11 +413,31 @@ the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
       **Not verified:** branches and pull requests need a Developer Edition
       or SonarCloud; the owner's lab server is a Community Build, which only
       shows the picker's "hidden" state.
-- [ ] P10-21 **Batch 4: across projects and the server.** *Started
-      2026-11-17 with `US-SQ-SERVER-01` (version + status screen, built).
-      Still open: `US-SQ-ISSUES-03` (search issues across projects) and
-      `US-SQ-OVERVIEW-02` (failing-projects trend from device-side
-      snapshots). Read-only.*
+- [x] P10-21 **Batch 4: across projects and the server.** *Built
+      2026-11-17, all three stories, read-only.*
+      - `US-SQ-SERVER-01`: version and status screen (built earlier the same
+        day).
+      - `US-SQ-ISSUES-03`: **Search issues** from the Overview, by rule, tag,
+        file path or issue key. **Finding (verified on a real SonarQube
+        26.1.0 scanned with a sample project):** `api/issues/search` has *no*
+        free-text `q` parameter; an unknown `q` is silently ignored and
+        returns every issue, so the story's "text search" cannot be built as
+        written. The screen therefore offers the four exact filters the
+        server really has (`rules`, `tags`, `files`, `issues`), each checked
+        live (`rules=javascript:S1135` → 1, `tags=bad-practice` → 3,
+        `files=src/app.js` → 11, `issues=<key>` → 1). "No issues match" when
+        empty; type/severity chips and paging are shared with My issues.
+      - `US-SQ-OVERVIEW-02`: "since you last looked". Counts only (no keys or
+        names) are kept per credential in `shared_preferences`
+        (`sonarqube_snapshots_<id>`, last 30, cleared at logout). The trend
+        compares with the newest snapshot at least one hour old, so opening
+        the tab twice does not erase yesterday's comparison. First visit:
+        "The trend starts now". Only a fully loaded Overview is recorded.
+      - Also fixed in the audit's open question (see P10-21 note below): the
+        issue page's code follows the chosen branch.
+      Tests: 7 trend (pure), 2 trend on the screen, 8 repository (four
+      search fields × request mapping, plus paging), 2 search screen, 3
+      source reroute. **Not verified:** on the iPhone.
 - [ ] P10-22 **Batch 5: shortcuts and offline.** `US-SQ-PIN-01` (local pins),
       `US-SQ-WIDGET-01` (home-screen widget; native work on both platforms,
       device-only check), `US-SQ-OFFLINE-01`, `US-SQ-LINK-02` (deep links),

@@ -347,6 +347,28 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
   Future<Result<SonarQubeIssuePage, AppFailure>> fetchMyIssues({
     SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
     int page = 1,
+  }) => _searchAcrossProjects(filter: filter, page: page, assignedToMe: true);
+
+  @override
+  Future<Result<SonarQubeIssuePage, AppFailure>> searchIssues(
+    String term, {
+    SonarQubeIssueSearchField field = SonarQubeIssueSearchField.rule,
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  }) => _searchAcrossProjects(
+    filter: filter,
+    page: page,
+    search: (field, term.trim()),
+  );
+
+  /// The one `api/issues/search` call with no `componentKeys`, shared by
+  /// "My issues" (`US-SQ-ISSUES-01`) and the text/rule search
+  /// (`US-SQ-ISSUES-03`).
+  Future<Result<SonarQubeIssuePage, AppFailure>> _searchAcrossProjects({
+    required SonarQubeIssueFilter filter,
+    required int page,
+    bool assignedToMe = false,
+    (SonarQubeIssueSearchField, String)? search,
   }) => guardRequest(() async {
     String join(Set<String> values, List<String> order) => ([
       ...order.where(values.contains),
@@ -356,7 +378,8 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
       '/api/issues/search',
       queryParameters: {
         // `__me__` is SonarQube's own shorthand for the token's user.
-        'assignees': '__me__',
+        if (assignedToMe) 'assignees': '__me__',
+        if (search != null && search.$2.isNotEmpty) search.$1.param: search.$2,
         'resolved': 'false',
         'ps': sonarQubeIssuesPageSize,
         'p': page,

@@ -16,6 +16,7 @@ import '../../navigation/main_scaffold.dart';
 import 'sonarqube_credential_gate.dart';
 import 'sonarqube_project_card.dart';
 import 'sonarqube_projects_notifier.dart';
+import 'sonarqube_overview_trend_notifier.dart';
 import 'sonarqube_summaries_notifier.dart';
 import 'sonarqube_summaries_sync.dart';
 
@@ -76,6 +77,16 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
                         label: const Text('My issues'),
                       ),
                     ),
+                    // US-SQ-ISSUES-03: find an issue by rule, tag, file or key.
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () =>
+                            context.push(AppRoutes.sonarqubeIssueSearch),
+                        icon: const Icon(Icons.search_rounded, size: 18),
+                        label: const Text('Search issues'),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -94,6 +105,17 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
                       loaded.projects,
                       summaries.byKey,
                     );
+                    // US-SQ-OVERVIEW-02: compare with, and add to, the snapshots
+                    // kept on this device once every gate verdict has arrived.
+                    if (overview.unknown == 0 && loaded.projects.isNotEmpty) {
+                      WidgetsBinding.instance.addPostFrameCallback(
+                        (_) => ref
+                            .read(
+                              sonarQubeOverviewTrendNotifierProvider.notifier,
+                            )
+                            .record(overview),
+                      );
+                    }
                     return RefreshIndicator(
                       onRefresh: projectsNotifier.refresh,
                       child: ListView(
@@ -109,7 +131,13 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
                             const _Message('No projects found')
                           else ...[
                             _Counts(overview: overview),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
+                            _TrendLine(
+                              state: ref.watch(
+                                sonarQubeOverviewTrendNotifierProvider,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
                             _Status(
                               overview: overview,
                               summaries: summaries,
@@ -464,5 +492,59 @@ class _Partial extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// "Since you last looked" (`US-SQ-OVERVIEW-02`). The label is deliberately
+/// not "over time": SonarQube keeps no portfolio history, so this is only
+/// what this device saw, and the first visit says the trend starts now.
+class _TrendLine extends StatelessWidget {
+  const _TrendLine({required this.state});
+
+  final SonarQubeTrendState state;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!state.recorded) return const SizedBox.shrink();
+    final t = AppTokens.of(context);
+    final style = Theme.of(
+      context,
+    ).textTheme.bodySmall?.copyWith(color: t.textMuted);
+    final trend = state.trend;
+    if (trend == null) {
+      return Text(
+        'The trend starts now: this device keeps a count each time you look, '
+        'so the next visit can show the change.',
+        textAlign: TextAlign.center,
+        style: style,
+      );
+    }
+    final change = trend.failingChange;
+    final what = switch (change) {
+      0 => 'Same number failing as',
+      > 0 => '$change more failing than',
+      _ => '${-change} fewer failing than',
+    };
+    final colour = change > 0
+        ? t.status(StatusTone.failure).foreground
+        : change < 0
+        ? t.status(StatusTone.success).foreground
+        : t.textMuted;
+    return Semantics(
+      label: '$what ${_ago(trend.since)}',
+      child: Text(
+        '$what ${_ago(trend.since)}',
+        textAlign: TextAlign.center,
+        style: style?.copyWith(color: colour, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  static String _ago(DateTime then) {
+    final gap = DateTime.now().difference(then);
+    if (gap.inDays >= 2) return '${gap.inDays} days ago';
+    if (gap.inDays == 1) return 'yesterday';
+    if (gap.inHours >= 1) return '${gap.inHours} h ago';
+    return 'a little while ago';
   }
 }

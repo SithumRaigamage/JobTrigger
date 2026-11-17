@@ -4,12 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../../../domain/sonarqube/sonarqube_issue.dart';
 import '../../common_widgets/connection_error_view.dart';
-import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/main_scaffold.dart';
 import 'sonarqube_insights_notifiers.dart';
+import 'sonarqube_issue_widgets.dart';
 
 /// `US-SQ-ISSUES-01`: the open issues assigned to the token's user, across
 /// every project they can browse. Read-only, like the rest of the epic; the
@@ -85,7 +84,7 @@ class SonarQubeMyIssuesScreen extends ConsumerWidget {
                         16 + glassNavBarClearance(context),
                       ),
                       children: [
-                        _Filters(
+                        SonarQubeIssueFilterChips(
                           filter: loaded.filter,
                           onChanged: notifier.setFilter,
                         ),
@@ -116,7 +115,9 @@ class SonarQubeMyIssuesScreen extends ConsumerWidget {
                           for (final issue in loaded.issues)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 10),
-                              child: _IssueCard(issue: issue),
+                              child: SonarQubeCrossProjectIssueCard(
+                                issue: issue,
+                              ),
                             ),
                           if (loaded.hasMore)
                             Padding(
@@ -139,89 +140,6 @@ class SonarQubeMyIssuesScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _Filters extends StatelessWidget {
-  const _Filters({required this.filter, required this.onChanged});
-
-  final SonarQubeIssueFilter filter;
-  final ValueChanged<SonarQubeIssueFilter> onChanged;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Wrap(
-        spacing: 8,
-        runSpacing: 4,
-        children: [
-          for (final type in sonarQubeIssueTypes)
-            FilterChip(
-              label: Text(sonarQubeIssueTypeLabel(type)),
-              selected: filter.types.contains(type),
-              onSelected: (_) => onChanged(filter.toggleType(type)),
-            ),
-        ],
-      ),
-      Wrap(
-        spacing: 8,
-        runSpacing: 4,
-        children: [
-          for (final severity in sonarQubeIssueSeverities)
-            FilterChip(
-              label: Text(sonarQubeSeverityLabel(severity)),
-              selected: filter.severities.contains(severity),
-              onSelected: (_) => onChanged(filter.toggleSeverity(severity)),
-            ),
-        ],
-      ),
-    ],
-  );
-}
-
-class _IssueCard extends StatelessWidget {
-  const _IssueCard({required this.issue});
-
-  final SonarQubeIssue issue;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppTokens.of(context);
-    final textTheme = Theme.of(context).textTheme;
-    final project = issue.projectLabel;
-    final where = [?project, ?issue.location].join(' · ');
-    return GlassSurface.card(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            issue.message,
-            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  where,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.bodySmall?.copyWith(color: t.textMuted),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '${sonarQubeIssueTypeLabel(issue.type)} · '
-                '${sonarQubeSeverityLabel(issue.severity)}',
-                style: textTheme.bodySmall?.copyWith(color: t.textMuted),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

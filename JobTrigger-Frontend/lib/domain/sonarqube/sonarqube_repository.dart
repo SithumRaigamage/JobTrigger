@@ -78,6 +78,17 @@ abstract class SonarQubeRepository {
     int page = 1,
   });
 
+  /// Unresolved issues across every project the user can browse that match
+  /// [term] in [field] (`US-SQ-ISSUES-03`): a rule key, a tag, a file path or
+  /// an issue key, each an exact server-side filter of `api/issues/search`
+  /// (which has no free-text parameter). Paged like [fetchMyIssues].
+  Future<Result<SonarQubeIssuePage, AppFailure>> searchIssues(
+    String term, {
+    SonarQubeIssueSearchField field = SonarQubeIssueSearchField.rule,
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  });
+
   /// `GET api/ce/component?component=` (`US-SQ-CE-01`): the scan running
   /// now, anything queued, and whether the newest task failed. No polling;
   /// read when the page opens and on pull-to-refresh, like the rest.

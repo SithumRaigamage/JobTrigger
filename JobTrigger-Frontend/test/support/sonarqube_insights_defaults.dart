@@ -23,6 +23,13 @@ mixin SonarQubeInsightsDefaults {
     int page = 1,
   }) async => const Ok(SonarQubeIssuePage(issues: [], total: 0));
 
+  Future<Result<SonarQubeIssuePage, AppFailure>> searchIssues(
+    String term, {
+    SonarQubeIssueSearchField field = SonarQubeIssueSearchField.rule,
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  }) async => const Ok(SonarQubeIssuePage(issues: [], total: 0));
+
   Future<Result<SonarQubeAnalysisStatus, AppFailure>> fetchAnalysisStatus(
     String projectKey,
   ) async => const Ok(SonarQubeAnalysisStatus.none);

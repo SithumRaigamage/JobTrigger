@@ -172,6 +172,51 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
   }
 
   @override
+  Future<Result<SonarQubeIssuePage, AppFailure>> searchIssues(
+    String term, {
+    SonarQubeIssueSearchField field = SonarQubeIssueSearchField.rule,
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  }) async {
+    if (page > 1) return const Ok(SonarQubeIssuePage(issues: [], total: 0));
+    final needle = term.trim().toLowerCase();
+    bool hit(SonarQubeIssue i) => switch (field) {
+      SonarQubeIssueSearchField.rule => (i.rule ?? '').toLowerCase() == needle,
+      SonarQubeIssueSearchField.tag => i.tags.any(
+        (t) => t.toLowerCase() == needle,
+      ),
+      SonarQubeIssueSearchField.file => (i.file ?? '').toLowerCase() == needle,
+      SonarQubeIssueSearchField.issueKey => i.key.toLowerCase() == needle,
+    };
+    final matching = [
+      for (final issue in _issues)
+        if (needle.isNotEmpty &&
+            hit(issue) &&
+            (filter.types.isEmpty || filter.types.contains(issue.type)) &&
+            (filter.severities.isEmpty ||
+                filter.severities.contains(issue.severity)))
+          SonarQubeIssue(
+            key: issue.key,
+            type: issue.type,
+            severity: issue.severity,
+            message: issue.message,
+            file: issue.file,
+            line: issue.line,
+            component: issue.component,
+            rule: issue.rule,
+            effort: issue.effort,
+            tags: issue.tags,
+            author: issue.author,
+            status: issue.status,
+            creationDate: issue.creationDate,
+            project: _bad,
+            projectName: 'Demo app',
+          ),
+    ];
+    return Ok(SonarQubeIssuePage(issues: matching, total: matching.length));
+  }
+
+  @override
   Future<Result<SonarQubeAnalysisStatus, AppFailure>> fetchAnalysisStatus(
     String projectKey,
   ) async {

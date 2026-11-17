@@ -61,6 +61,7 @@ Dio _dio(_Adapter a) =>
 void main() {
   _batch1();
   _batch1Names();
+  _issueSearch();
   _hotspots();
   _history();
   _worstFiles();
@@ -1119,6 +1120,41 @@ void _batch1() {
       expect(search.queryParameters.containsKey('componentKeys'), isFalse);
     });
   });
+}
+
+// US-SQ-ISSUES-03: api/issues/search has no free-text `q` (verified on a real
+// SonarQube 26.1), so each search field maps to the filter the server has.
+void _issueSearch() {
+  for (final entry in {
+    SonarQubeIssueSearchField.rule: 'rules',
+    SonarQubeIssueSearchField.tag: 'tags',
+    SonarQubeIssueSearchField.file: 'files',
+    SonarQubeIssueSearchField.issueKey: 'issues',
+  }.entries) {
+    test(
+      '${entry.key.label} searches with ${entry.value}, no project',
+      () async {
+        final adapter = _Adapter(200, {
+          'paging': {'total': 0},
+          'issues': <dynamic>[],
+        });
+
+        final result = await SonarQubeRepositoryImpl(
+          _dio(adapter),
+        ).searchIssues('  term  ', field: entry.key, page: 2);
+
+        expect(result, isA<Ok<SonarQubeIssuePage, AppFailure>>());
+        final query = adapter.requests.first.queryParameters;
+        expect(adapter.requests.first.path, '/api/issues/search');
+        expect(query[entry.value], 'term');
+        expect(query['p'], 2);
+        expect(query['resolved'], 'false');
+        expect(query.containsKey('q'), isFalse);
+        expect(query.containsKey('assignees'), isFalse);
+        expect(query.containsKey('componentKeys'), isFalse);
+      },
+    );
+  }
 }
 
 // P10-18 leftovers: the cross-project list names its projects in one request

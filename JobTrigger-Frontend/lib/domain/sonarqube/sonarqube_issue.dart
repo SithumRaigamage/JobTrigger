@@ -78,6 +78,28 @@ class SonarQubeIssue {
   int get hashCode => key.hashCode;
 }
 
+/// What a cross-project issue search looks for (`US-SQ-ISSUES-03`).
+///
+/// SonarQube's `api/issues/search` has **no free-text parameter** (checked
+/// against the server's own web-service listing, 26.1: the list has `rules`,
+/// `tags`, `files`, `issues` and others, but no `q`; an unknown `q` is
+/// silently ignored and returns everything). So the search is by one of the
+/// filters the server really has, each exact and server-side.
+enum SonarQubeIssueSearchField {
+  rule('Rule', 'java:S1135', 'rules'),
+  tag('Tag', 'security', 'tags'),
+  file('File path', 'src/app.js', 'files'),
+  issueKey('Issue key', 'AZ…', 'issues');
+
+  const SonarQubeIssueSearchField(this.label, this.hint, this.param);
+
+  final String label;
+  final String hint;
+
+  /// The `api/issues/search` parameter this field filters by.
+  final String param;
+}
+
 /// The issue types and severities the filter offers, in display order.
 const sonarQubeIssueTypes = ['BUG', 'VULNERABILITY', 'CODE_SMELL'];
 const sonarQubeIssueSeverities = [

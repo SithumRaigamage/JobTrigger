@@ -45,6 +45,22 @@ Dio buildSonarQubeDio({
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
+          // `api/sources/show` takes no branch (checked against SonarQube
+          // 26.1's own web-service listing), but `api/sources/lines` does and
+          // answers the same lines. So a source lookup on a chosen branch or
+          // pull request is rerouted; on main it is left alone.
+          if (options.path == '/api/sources/show') {
+            final ref = _refForComponent(
+              _componentOf(options.queryParameters),
+              refFor,
+            );
+            final queryKey = ref.queryKey;
+            if (queryKey != null) {
+              options.path = '/api/sources/lines';
+              options.queryParameters[queryKey] = ref.name;
+              options.extra[_linesExtra] = true;
+            }
+          }
           if (_refAwarePaths.any(options.path.startsWith)) {
             final ref = _refForComponent(
               _componentOf(options.queryParameters),
@@ -54,6 +70,25 @@ Dio buildSonarQubeDio({
             if (queryKey != null) options.queryParameters[queryKey] = ref.name;
           }
           handler.next(options);
+        },
+        onResponse: (response, handler) {
+          // `lines` answers `{line, code}` objects; the repository reads
+          // `show`'s `[line, code]` pairs, so convert rather than teach it
+          // two shapes.
+          if (response.requestOptions.extra[_linesExtra] == true) {
+            final data = response.data;
+            if (data is Map<String, dynamic> && data['sources'] is List) {
+              response.data = {
+                'sources': [
+                  for (final row
+                      in (data['sources'] as List)
+                          .whereType<Map<String, dynamic>>())
+                    [row['line'], row['code']],
+                ],
+              };
+            }
+          }
+          handler.next(response);
         },
       ),
     );
@@ -110,9 +145,17 @@ Dio sonarQubeClient(Ref ref) {
   );
 }
 
+const _linesExtra = 'sonarqubeSourcesViaLines';
+
 /// The component a request is about, from whichever parameter it uses.
 String _componentOf(Map<String, dynamic> query) {
-  for (final name in ['project', 'projectKey', 'component', 'componentKeys']) {
+  for (final name in [
+    'project',
+    'projectKey',
+    'component',
+    'componentKeys',
+    'key',
+  ]) {
     final value = query[name];
     if (value is String && value.isNotEmpty) return value;
   }

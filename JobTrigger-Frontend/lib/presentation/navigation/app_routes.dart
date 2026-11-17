@@ -45,6 +45,7 @@ abstract class AppRoutes {
 
   /// US-SQ-ISSUES-01: the caller's open issues across every project.
   static const sonarqubeMyIssues = '/sonarqube/my-issues';
+  static const sonarqubeIssueSearch = '/sonarqube/issue-search';
   static const githubWorkflows = '/github/repos/workflows';
   static const githubRuns = '/github/repos/workflows/runs';
   static const githubGlobalHistory = '/github/history';

@@ -12,6 +12,7 @@ const userScopedPrefKeys = {
   'active_github_credential_id', // ActiveGitHubCredentialNotifier
   'active_sonarqube_credential_id', // ActiveSonarQubeCredentialNotifier
   'build_watches', // BuildWatchStore (US-JX-10)
+  'sonarqube_watches', // SonarQubeWatchStore (US-SQ-WATCH-01)
   'subscription_cache', // SubscriptionRepositoryImpl (P20-22)
 };
 
@@ -19,6 +20,7 @@ const userScopedPrefKeys = {
 const userScopedPrefPrefixes = {
   'pinned_jobs_', // PinnedJobsNotifier (US-JX-11)
   'selected_view_', // ViewsNotifier (US-JX-17)
+  'sonarqube_snapshots_', // SonarQubeSnapshotStore (US-SQ-OVERVIEW-02)
 };
 
 Future<void> clearUserScopedPrefs() async {

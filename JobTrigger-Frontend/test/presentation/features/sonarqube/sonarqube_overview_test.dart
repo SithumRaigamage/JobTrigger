@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_overview_trend.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:job_trigger/data/credentials/active_sonarqube_credential_notifier.dart';
 import 'package:job_trigger/data/credentials/sonarqube_credentials_notifier.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
@@ -176,6 +180,41 @@ void main() {
       expect(find.text('Untouched'), findsOneWidget);
     });
 
+    testWidgets('the first visit says the trend starts now '
+        '(US-SQ-OVERVIEW-02)', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final repo = _Repo([_p('bad', 'Broken')])..summaries['bad'] = _failed;
+
+      await _pump(tester, repo);
+
+      expect(find.textContaining('The trend starts now'), findsOneWidget);
+    });
+
+    testWidgets('shows the change in failing projects since the last look '
+        '(US-SQ-OVERVIEW-02)', (tester) async {
+      final yesterday = SonarQubeOverviewSnapshot(
+        at: DateTime.now().subtract(const Duration(days: 1, hours: 1)),
+        failing: 0,
+        warning: 0,
+        passing: 1,
+      );
+      SharedPreferences.setMockInitialValues({
+        'sonarqube_snapshots_c': '[${_json(yesterday)}]',
+      });
+      final repo = _Repo([_p('bad', 'Broken')])..summaries['bad'] = _failed;
+
+      await _pump(tester, repo);
+
+      expect(find.text('1 more failing than yesterday'), findsOneWidget);
+      expect(find.textContaining('The trend starts now'), findsNothing);
+      // This visit was saved for next time, with counts only.
+      final saved = (await SharedPreferences.getInstance()).getString(
+        'sonarqube_snapshots_c',
+      )!;
+      expect(saved, isNot(contains('Broken')));
+      expect('{'.allMatches(saved), hasLength(2));
+    });
+
     testWidgets('when everything passes it says so', (tester) async {
       final repo = _Repo([_p('a', 'A'), _p('b', 'B')]);
       repo.summaries['a'] = _passed;
@@ -330,3 +369,5 @@ void main() {
     });
   });
 }
+
+String _json(SonarQubeOverviewSnapshot s) => jsonEncode(s.toJson());
