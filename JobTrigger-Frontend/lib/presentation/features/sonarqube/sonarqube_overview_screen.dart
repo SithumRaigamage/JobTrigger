@@ -6,6 +6,8 @@ import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../../data/credentials/sonarqube_credentials_notifier.dart';
+import '../../../domain/credential/sonarqube_credential.dart';
 import '../../../domain/sonarqube/sonarqube_overview.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/data_freshness.dart';
@@ -39,7 +41,6 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
     final projectsAsync = ref.watch(sonarQubeProjectsNotifierProvider);
     final summaries = ref.watch(sonarQubeSummariesNotifierProvider);
     final textTheme = Theme.of(context).textTheme;
-    final t = AppTokens.of(context);
     final projectsNotifier = ref.read(
       sonarQubeProjectsNotifierProvider.notifier,
     );
@@ -52,42 +53,44 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: _CredentialSelector(
+                    credential: credential,
+                    onSwitch: (chosen) => ref
+                        .read(
+                          activeSonarQubeCredentialNotifierProvider.notifier,
+                        )
+                        .setActiveCredential(chosen),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Semantics(
+                header: true,
+                child: Text('Overview', style: textTheme.headlineLarge),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
                   children: [
-                    Text(
-                      credential.label,
-                      style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
-                    ),
-                    const SizedBox(height: 4),
-                    Semantics(
-                      header: true,
-                      child: Text('Overview', style: textTheme.headlineLarge),
-                    ),
-                    const SizedBox(height: 8),
-                    // US-SQ-ISSUES-01: what is assigned to you, across every
-                    // project, from the one place that already lists them all.
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton.icon(
-                        onPressed: () =>
+                    Expanded(
+                      child: _ActionTile(
+                        icon: Icons.assignment_ind_outlined,
+                        label: 'My issues',
+                        onTap: () =>
                             context.push(AppRoutes.sonarqubeMyIssues),
-                        icon: const Icon(
-                          Icons.assignment_ind_outlined,
-                          size: 18,
-                        ),
-                        label: const Text('My issues'),
                       ),
                     ),
-                    // US-SQ-ISSUES-03: find an issue by rule, tag, file or key.
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton.icon(
-                        onPressed: () =>
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _ActionTile(
+                        icon: Icons.search_rounded,
+                        label: 'Search issues',
+                        onTap: () =>
                             context.push(AppRoutes.sonarqubeIssueSearch),
-                        icon: const Icon(Icons.search_rounded, size: 18),
-                        label: const Text('Search issues'),
                       ),
                     ),
                   ],
@@ -225,10 +228,12 @@ class _Message extends StatelessWidget {
   }
 }
 
-/// One big number with its label. The column stretches so the card fills the
-/// width it is given: the shared card shrinks to its content otherwise.
-class _CountTile extends StatelessWidget {
-  const _CountTile({
+/// One count as a colored pill, matching the Jenkins Home design's
+/// Running/Failing/Passing cards: tinted background, status-coloured number
+/// and label. A zero count fades to neutral so a clean board isn't a wall of
+/// red.
+class _PillCount extends StatelessWidget {
+  const _PillCount({
     required this.count,
     required this.label,
     required this.tone,
@@ -242,12 +247,18 @@ class _CountTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppTokens.of(context);
     final textTheme = Theme.of(context).textTheme;
-    final colour = count == 0 ? t.textMuted : t.status(tone).foreground;
+    final colours = t.status(tone);
+    final isZero = count == 0;
+    final fg = isZero ? t.textMuted : colours.foreground;
     return Semantics(
       label: '$count $label',
       excludeSemantics: true,
-      child: GlassSurface.card(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isZero ? t.raised : colours.background,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -255,7 +266,7 @@ class _CountTile extends StatelessWidget {
               '$count',
               textAlign: TextAlign.center,
               style: textTheme.headlineMedium?.copyWith(
-                color: colour,
+                color: fg,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -263,10 +274,46 @@ class _CountTile extends StatelessWidget {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: textTheme.bodySmall?.copyWith(color: t.textMuted),
+              style: textTheme.bodySmall?.copyWith(color: fg),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// A quick action on the Overview, styled like the count pills so the row
+/// reads as one family. These are the entry points for `US-SQ-ISSUES-01`
+/// (what is assigned to you) and `US-SQ-ISSUES-03` (find an issue by rule,
+/// tag, file or key).
+class _ActionTile extends StatelessWidget {
+  const _ActionTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    return GlassSurface.card(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      onTap: onTap,
+      child: Column(
+        children: [
+          Icon(icon, size: 22, color: t.textSecondary),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: textTheme.bodySmall?.copyWith(color: t.textSecondary),
+          ),
+        ],
       ),
     );
   }
@@ -282,24 +329,24 @@ class _Counts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tiles = [
-      _CountTile(
+      _PillCount(
         count: overview.failing,
         label: 'Failing',
         tone: StatusTone.failure,
       ),
       if (overview.warning > 0)
-        _CountTile(
+        _PillCount(
           count: overview.warning,
           label: 'Warning',
           tone: StatusTone.unstable,
         ),
-      _CountTile(
+      _PillCount(
         count: overview.passing,
         label: 'Passing',
         tone: StatusTone.success,
       ),
       if (overview.notAnalysed > 0)
-        _CountTile(
+        _PillCount(
           count: overview.notAnalysed,
           label: 'Not analyzed',
           tone: StatusTone.neutral,
@@ -312,6 +359,154 @@ class _Counts extends StatelessWidget {
           Expanded(child: tile),
         ],
       ],
+    );
+  }
+}
+
+/// The active SonarQube credential, tappable to drop down the saved ones and
+/// switch in place — the same pattern as Jenkins Home's server chip (`P19-07`).
+/// Switching only changes the SonarQube credential, never another tool's.
+class _CredentialSelector extends ConsumerWidget {
+  const _CredentialSelector({
+    required this.credential,
+    required this.onSwitch,
+  });
+
+  final SonarQubeCredential credential;
+  final ValueChanged<SonarQubeCredential> onSwitch;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppTokens.of(context);
+    final saved = ref.watch(sonarQubeCredentialsNotifierProvider).value;
+    final credentials = saved == null || !saved.any((c) => c.id == credential.id)
+        ? [credential, ...?saved]
+        : saved;
+    return Semantics(
+      button: true,
+      label: 'SonarQube ${credential.label}. Switch credential',
+      excludeSemantics: true,
+      child: Material(
+        color: t.card,
+        shape: StadiumBorder(side: BorderSide(color: t.cardBorder)),
+        child: PopupMenuButton<String>(
+          position: PopupMenuPosition.under,
+          borderRadius: BorderRadius.circular(22),
+          onSelected: (id) {
+            if (id == _manageCredentialsAction) {
+              context.go(AppRoutes.settings);
+              return;
+            }
+            final chosen = credentials.firstWhere((c) => c.id == id);
+            if (chosen.id == credential.id) return;
+            onSwitch(chosen);
+          },
+          itemBuilder: (context) => [
+            for (final option in credentials)
+              PopupMenuItem<String>(
+                value: option.id,
+                child: _CredentialOption(
+                  credential: option,
+                  isActive: option.id == credential.id,
+                ),
+              ),
+            const PopupMenuDivider(),
+            const PopupMenuItem<String>(
+              value: _manageCredentialsAction,
+              child: ListTile(
+                leading: Icon(Icons.settings_outlined),
+                title: Text('Manage credentials…'),
+              ),
+            ),
+          ],
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 10, 0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.cloud_outlined,
+                    size: 16,
+                    color: t.textSecondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      credential.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 18,
+                    color: t.textSecondary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Sentinel returned by "Manage credentials…" — opens Settings instead of
+/// switching.
+const _manageCredentialsAction = '__manage_credentials__';
+
+/// One saved credential in the dropdown, with a check on the active one and
+/// its URL underneath.
+class _CredentialOption extends StatelessWidget {
+  const _CredentialOption({
+    required this.credential,
+    required this.isActive,
+  });
+
+  final SonarQubeCredential credential;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    return Semantics(
+      selected: isActive,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 28,
+            child: isActive
+                ? Icon(Icons.check_rounded, size: 20, color: t.success.dot)
+                : null,
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  credential.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  credential.baseUrl,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodySmall?.copyWith(color: t.textMuted),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

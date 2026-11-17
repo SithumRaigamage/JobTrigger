@@ -23,6 +23,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_project_summary.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_overview_screen.dart';
+import 'package:job_trigger/presentation/navigation/app_routes.dart';
 import 'package:job_trigger/presentation/navigation/main_scaffold.dart';
 import '../../../support/sonarqube_insights_defaults.dart';
 
@@ -108,6 +109,24 @@ class _NoSaved extends SonarQubeCredentialsNotifier {
   Future<List<SonarQubeCredential>> build() async => const [];
 }
 
+class _Saved extends SonarQubeCredentialsNotifier {
+  @override
+  Future<List<SonarQubeCredential>> build() async => const [
+    SonarQubeCredential(
+      id: 'c',
+      label: 'Local',
+      baseUrl: 'http://sonar.test',
+      secret: 't',
+    ),
+    SonarQubeCredential(
+      id: 'd',
+      label: 'Other',
+      baseUrl: 'http://other.test',
+      secret: 't',
+    ),
+  ];
+}
+
 SonarQubeProject _p(String key, String name) =>
     SonarQubeProject(key: key, name: name, lastAnalysisDate: null);
 
@@ -129,6 +148,7 @@ Future<void> _pump(
   _Repo repo, {
   bool credential = true,
   SonarQubeCache? cache,
+  bool saved = false,
 }) async {
   tester.view.physicalSize = const Size(800, 2400);
   tester.view.devicePixelRatio = 1;
@@ -140,7 +160,9 @@ Future<void> _pump(
         activeSonarQubeCredentialNotifierProvider.overrideWith(
           credential ? _Credential.new : _NoActive.new,
         ),
-        sonarQubeCredentialsNotifierProvider.overrideWith(_NoSaved.new),
+        sonarQubeCredentialsNotifierProvider.overrideWith(
+          saved ? _Saved.new : _NoSaved.new,
+        ),
         sonarQubeRepositoryProvider.overrideWithValue(repo),
         if (cache != null) sonarQubeCacheProvider.overrideWithValue(cache),
       ],
@@ -182,6 +204,85 @@ void main() {
       expect(find.text('Healthy'), findsNothing);
       expect(find.text('Not analyzed yet'.toUpperCase()), findsOneWidget);
       expect(find.text('Untouched'), findsOneWidget);
+    });
+
+    testWidgets('the credential chip drops down the saved credentials and '
+        'switches in place', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final repo = _Repo([_p('a', 'A')])..summaries['a'] = _passed;
+
+      await _pump(tester, repo, saved: true);
+
+      // The chip names the active credential and offers the dropdown.
+      expect(find.text('Local'), findsOneWidget);
+      expect(find.byIcon(Icons.keyboard_arrow_down_rounded), findsOneWidget);
+
+      // Open the dropdown: the other credential and the Settings escape
+      // hatch are listed, the active one first.
+      await tester.tap(find.text('Local'));
+      await tester.pumpAndSettle();
+      expect(find.text('Other'), findsOneWidget);
+      expect(find.text('http://other.test'), findsOneWidget);
+      expect(find.text('Manage credentials…'), findsOneWidget);
+
+      // Switch to it.
+      await tester.tap(find.text('Other'));
+      await tester.pumpAndSettle();
+
+      // The chip now names the new active credential.
+      expect(find.text('Other'), findsOneWidget);
+      expect(find.text('Local'), findsNothing);
+    });
+
+    testWidgets('the My issues and Search issues tiles still reach their '
+        'screens', (tester) async {
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const SonarQubeOverviewScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.sonarqubeMyIssues,
+            builder: (_, _) => const Scaffold(body: Text('my issues page')),
+          ),
+          GoRoute(
+            path: AppRoutes.sonarqubeIssueSearch,
+            builder: (_, _) =>
+                const Scaffold(body: Text('issue search page')),
+          ),
+        ],
+      );
+      final repo = _Repo([_p('a', 'A')])..summaries['a'] = _passed;
+      await tester.pumpWidget(
+        ProviderScope(
+          retry: (retryCount, error) => null,
+          overrides: [
+            activeSonarQubeCredentialNotifierProvider.overrideWith(
+              _Credential.new,
+            ),
+            sonarQubeCredentialsNotifierProvider.overrideWith(_NoSaved.new),
+            sonarQubeRepositoryProvider.overrideWithValue(repo),
+          ],
+          child: MaterialApp.router(
+            theme: AppTheme.dark(),
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('My issues'));
+      await tester.pumpAndSettle();
+      expect(find.text('my issues page'), findsOneWidget);
+
+      router.pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Search issues'));
+      await tester.pumpAndSettle();
+      expect(find.text('issue search page'), findsOneWidget);
     });
 
     testWidgets('the first visit says the trend starts now '

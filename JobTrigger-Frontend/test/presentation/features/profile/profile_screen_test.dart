@@ -77,9 +77,10 @@ void main() {
 
     expect(find.text('sam@acme.dev'), findsOneWidget);
     expect(find.textContaining('Acme production'), findsWidgets);
-    // At the foot of the list, built once scrolled to.
-    await tester.scrollUntilVisible(find.text('Version 1.0.0 (7)'), 200);
-    expect(find.text('Version 1.0.0 (7)'), findsOneWidget);
+    // At the foot of the list, built once scrolled to. The build number is
+    // deliberately not shown: the owner asked for just "Version 1.0.0".
+    await tester.scrollUntilVisible(find.text('Version 1.0.0'), 200);
+    expect(find.text('Version 1.0.0'), findsOneWidget);
   });
 
   testWidgets('holds the app lock settings, moved from Settings', (

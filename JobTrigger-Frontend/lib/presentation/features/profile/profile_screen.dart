@@ -214,7 +214,7 @@ class ProfileScreen extends ConsumerWidget {
               Text(
                 packageInfoAsync.when(
                   data: (info) =>
-                      'Version ${info.version} (${info.buildNumber})',
+                      'Version ${info.version}',
                   loading: () => '',
                   error: (error, stackTrace) => '',
                 ),
