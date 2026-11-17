@@ -17,6 +17,8 @@ import 'sonarqube_credential_gate.dart';
 import 'sonarqube_project_card.dart';
 import 'sonarqube_projects_notifier.dart';
 import 'sonarqube_overview_trend_notifier.dart';
+import 'sonarqube_pins_notifier.dart';
+import 'sonarqube_saved_banner.dart';
 import 'sonarqube_summaries_notifier.dart';
 import 'sonarqube_summaries_sync.dart';
 
@@ -104,10 +106,13 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
                     final overview = buildSonarQubeOverview(
                       loaded.projects,
                       summaries.byKey,
+                      pinned: ref.watch(sonarQubePinnedKeysProvider),
                     );
                     // US-SQ-OVERVIEW-02: compare with, and add to, the snapshots
                     // kept on this device once every gate verdict has arrived.
-                    if (overview.unknown == 0 && loaded.projects.isNotEmpty) {
+                    if (overview.unknown == 0 &&
+                        loaded.projects.isNotEmpty &&
+                        loaded.savedAt == null) {
                       WidgetsBinding.instance.addPostFrameCallback(
                         (_) => ref
                             .read(
@@ -127,6 +132,8 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
                           16 + glassNavBarClearance(context),
                         ),
                         children: [
+                          if (loaded.savedAt != null)
+                            SonarQubeSavedBanner(savedAt: loaded.savedAt!),
                           if (loaded.projects.isEmpty)
                             const _Message('No projects found')
                           else ...[

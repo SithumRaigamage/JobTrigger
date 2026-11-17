@@ -985,7 +985,7 @@ Convenience that mostly reuses plumbing the Jenkins work already built.
 ### US-SQ-PIN-01 — Pin projects
 
 **Batch:** 5 · **Priority:** Should · **Effort:** S–M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-22)
 **Dependencies:** US-SQ-PROJ-03
 
 As a user
@@ -1006,7 +1006,7 @@ So that they sit at the top of the list and the Overview
 ### US-SQ-WIDGET-01 — Home-screen widget for pinned projects
 
 **Batch:** 5 · **Priority:** Could · **Effort:** L
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-22)
 **Dependencies:** US-SQ-PIN-01, `US-JX-23`'s widget plumbing
 
 As a user
@@ -1027,7 +1027,7 @@ So that I check them without opening the app
 ### US-SQ-OFFLINE-01 — Offline copy of the last data
 
 **Batch:** 5 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-22)
 **Dependencies:** US-SQ-PROJ-03
 
 As a user
@@ -1047,7 +1047,7 @@ So that I can still check a project on the train
 ### US-SQ-LINK-02 — Deep links to a project
 
 **Batch:** 5 · **Priority:** Could · **Effort:** S
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-22)
 **Dependencies:** US-SQ-LINK-01
 
 As a user
@@ -1067,7 +1067,7 @@ So that a teammate's message can take me straight to it
 ### US-SQ-ISSUES-04 — Copy and share an issue
 
 **Batch:** 5 · **Priority:** Could · **Effort:** S
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-22)
 **Dependencies:** US-SQ-QUALITY-06
 
 As a user

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_overview_trend.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:job_trigger/data/cache/sonarqube_cache.dart';
 import 'package:job_trigger/data/credentials/active_sonarqube_credential_notifier.dart';
 import 'package:job_trigger/data/credentials/sonarqube_credentials_notifier.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
@@ -126,6 +128,7 @@ Future<void> _pump(
   WidgetTester tester,
   _Repo repo, {
   bool credential = true,
+  SonarQubeCache? cache,
 }) async {
   tester.view.physicalSize = const Size(800, 2400);
   tester.view.devicePixelRatio = 1;
@@ -139,6 +142,7 @@ Future<void> _pump(
         ),
         sonarQubeCredentialsNotifierProvider.overrideWith(_NoSaved.new),
         sonarQubeRepositoryProvider.overrideWithValue(repo),
+        if (cache != null) sonarQubeCacheProvider.overrideWithValue(cache),
       ],
       child: MaterialApp(
         theme: AppTheme.dark(),
@@ -301,7 +305,11 @@ void main() {
     ) async {
       final repo = _Repo(const [])
         ..projectsResult = const Err(NetworkFailure());
-      await _pump(tester, repo);
+      // Nothing saved yet (US-SQ-OFFLINE-01: with a saved copy, the list would
+      // show it instead; see sonarqube_cache_test).
+      final empty = Directory.systemTemp.createTempSync('sq_empty_');
+      addTearDown(() => empty.deleteSync(recursive: true));
+      await _pump(tester, repo, cache: SonarQubeCache(() async => empty));
 
       expect(find.textContaining("Can't reach the server"), findsOneWidget);
       expect(find.text('Retry Connection'), findsOneWidget);

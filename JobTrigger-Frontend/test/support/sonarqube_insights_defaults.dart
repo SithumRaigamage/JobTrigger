@@ -9,6 +9,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_measure_history.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_worst_files.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_delta.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_metrics.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 
 /// Empty answers for the batch-1 SonarQube reads (P10-18: `US-SQ-ISSUES-01`,
 /// `US-SQ-CE-01`, `US-SQ-QUALITY-08/09`), so a test fake implements only the
@@ -29,6 +30,12 @@ mixin SonarQubeInsightsDefaults {
     SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
     int page = 1,
   }) async => const Ok(SonarQubeIssuePage(issues: [], total: 0));
+
+  Future<Result<SonarQubeProject, AppFailure>> fetchProjectByKey(
+    String projectKey,
+  ) async => Ok(
+    SonarQubeProject(key: projectKey, name: projectKey, lastAnalysisDate: null),
+  );
 
   Future<Result<SonarQubeAnalysisStatus, AppFailure>> fetchAnalysisStatus(
     String projectKey,

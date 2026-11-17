@@ -438,10 +438,37 @@ the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
       Tests: 7 trend (pure), 2 trend on the screen, 8 repository (four
       search fields × request mapping, plus paging), 2 search screen, 3
       source reroute. **Not verified:** on the iPhone.
-- [ ] P10-22 **Batch 5: shortcuts and offline.** `US-SQ-PIN-01` (local pins),
-      `US-SQ-WIDGET-01` (home-screen widget; native work on both platforms,
-      device-only check), `US-SQ-OFFLINE-01`, `US-SQ-LINK-02` (deep links),
-      `US-SQ-ISSUES-04` (copy and share). Reuses plumbing from Phase 11.
+- [x] P10-22 **Batch 5: shortcuts and offline.** *Built 2026-11-17, all five
+      stories; the home-screen widget's native code compiles on iOS only.*
+      - `US-SQ-PIN-01`: pin button on every project card and the project
+        page; pinned projects sort first in the list and the Overview's
+        needs-attention list. Local, per credential (`sonarqube_pins_<id>`,
+        cleared at logout), no plan limit.
+      - `US-SQ-OFFLINE-01`: the first page of projects and their card numbers
+        are saved in the platform cache directory (same place and rules as the
+        Jenkins tree cache; cleared at logout and when a credential is
+        deleted). Only a *network* failure falls back to it; a 401/403 is never
+        answered with old data. The list and Overview say "Saved 2h ago ·
+        can't reach the server". **Limit:** the project page's gate, issues and
+        measures are not cached; only the list and the card numbers.
+      - `US-SQ-LINK-02`: `jobtrigger://app/sonarqube/project?key=KEY` (key
+        only, validated, never a server or token; a bad key lands on Home).
+        Looks the key up with `api/components/show` (only a project, `TRK`,
+        is opened), says what is missing when there is no credential.
+      - `US-SQ-ISSUES-04`: Copy and Share on the issue page (message, type,
+        severity, location, rule, web link; no token).
+      - `US-SQ-WIDGET-01`: a second widget, "Pinned projects", on iOS (a
+        `WidgetBundle` in the existing extension) and Android (a subclass of
+        the pinned-jobs provider, own receiver and strings). Same snapshot
+        shape under its own key; carries names and verdicts only, honours the
+        app lock and the plan gate as the jobs widget does.
+      Tests: pins 3, offline 6, link/share 4 + a router test, widget snapshot
+      4 + sync 3, repository 3. `flutter build ios --simulator` succeeds with
+      the new widget. **Not verified:** the widget on a device (both
+      platforms); the Android Kotlin/XML changes were **not compiled**, because
+      this Mac's Android NDK install is broken (empty
+      `ndk/28.2.13676358`, no `sdkmanager`) and installing one was not
+      permitted in this session.
 - [ ] P10-23 **Batch 6: connecting the tools.** `US-SQ-XTOOL-01..03`
       (Jenkins build or GitHub run beside the SonarQube gate; scan from
       Jenkins). **Edits Jenkins and GitHub screens**, so it needs the

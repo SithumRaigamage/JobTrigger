@@ -15,6 +15,7 @@ import 'presentation/navigation/app_router.dart';
 import 'core/platform/notification_service.dart';
 import 'presentation/features/app_lock/app_lock_gate.dart';
 import 'presentation/features/home_widget/home_widget_sync.dart';
+import 'presentation/features/home_widget/sonarqube_widget_sync.dart';
 import 'presentation/features/subscription/locked_active_guard.dart';
 import 'presentation/features/notifications/build_watch_notifier.dart';
 import 'core/config/tool_catalog_loader.dart';
@@ -75,6 +76,8 @@ class MyApp extends ConsumerWidget {
       ..watch(buildWatchNotifierProvider)
       // US-JX-23: keep the home-screen widget's snapshot current.
       ..watch(homeWidgetSyncProvider)
+      // US-SQ-WIDGET-01: and the pinned SonarQube projects' widget.
+      ..watch(sonarQubeWidgetSyncProvider)
       // P20-25: a locked active credential is replaced (billing on only).
       ..watch(lockedActiveGuardProvider)
       ..listen(notificationTapsProvider, (_, next) {

@@ -34,6 +34,8 @@ import '../features/sonarqube/sonarqube_issues_screen.dart';
 import '../features/sonarqube/sonarqube_overview_screen.dart';
 import '../features/sonarqube/sonarqube_hotspots_screen.dart';
 import '../features/sonarqube/sonarqube_issue_search_screen.dart';
+import '../features/sonarqube/sonarqube_open_link_screen.dart';
+import '../../domain/sonarqube/sonarqube_links.dart';
 import '../features/sonarqube/sonarqube_my_issues_screen.dart';
 import '../features/sonarqube/sonarqube_server_screen.dart';
 import '../features/sonarqube/sonarqube_trends_screen.dart';
@@ -284,6 +286,20 @@ GoRouter appRouter(Ref ref) {
           !ref.read(billingAvailableProvider)) {
         return AppRoutes.home;
       }
+      // US-SQ-LINK-02: `jobtrigger://app/sonarqube/project?key=KEY` has no
+      // in-app `extra`; a valid key goes to the screen that looks the
+      // project up on the user's own credential. An invalid one falls
+      // through to the guard below and lands on Home (AUD-51).
+      if (state.matchedLocation == AppRoutes.sonarqubeProject &&
+          state.extra == null) {
+        final key = state.uri.queryParameters['key'];
+        if (sonarQubeLinkKeyIsValid(key)) {
+          return Uri(
+            path: AppRoutes.sonarqubeOpenLink,
+            queryParameters: {'key': key},
+          ).toString();
+        }
+      }
       final acceptsExtra = _extraRoutes[state.matchedLocation];
       if (acceptsExtra != null && !acceptsExtra(state.extra)) {
         return AppRoutes.home;
@@ -371,6 +387,13 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.sonarqubeMyIssues,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SonarQubeMyIssuesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeOpenLink,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => SonarQubeOpenLinkScreen(
+          projectKey: state.uri.queryParameters['key'] ?? '',
+        ),
       ),
       GoRoute(
         path: AppRoutes.sonarqubeIssueSearch,

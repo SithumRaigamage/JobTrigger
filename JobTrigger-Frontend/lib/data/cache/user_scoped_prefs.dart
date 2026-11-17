@@ -20,6 +20,7 @@ const userScopedPrefKeys = {
 const userScopedPrefPrefixes = {
   'pinned_jobs_', // PinnedJobsNotifier (US-JX-11)
   'selected_view_', // ViewsNotifier (US-JX-17)
+  'sonarqube_pins_', // SonarQubePinsNotifier (US-SQ-PIN-01)
   'sonarqube_snapshots_', // SonarQubeSnapshotStore (US-SQ-OVERVIEW-02)
 };
 

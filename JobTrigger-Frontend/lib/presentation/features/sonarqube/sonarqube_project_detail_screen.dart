@@ -25,6 +25,7 @@ import '../../navigation/main_scaffold.dart';
 import 'sonarqube_insights_notifiers.dart';
 import 'sonarqube_watch_notifier.dart';
 import 'sonarqube_last_analysis.dart';
+import 'sonarqube_project_card.dart' show SonarQubePinButton;
 import 'sonarqube_quality_notifiers.dart';
 
 /// One project's code health (`US-SQ-QUALITY-01/02/05`): the quality gate
@@ -90,6 +91,7 @@ class SonarQubeProjectDetailScreen extends ConsumerWidget {
                       onPressed: () => context.pop(),
                     ),
                     const Spacer(),
+                    SonarQubePinButton(project: project),
                     if (credential != null)
                       IconButton(
                         icon: const Icon(Icons.open_in_new_rounded, size: 22),

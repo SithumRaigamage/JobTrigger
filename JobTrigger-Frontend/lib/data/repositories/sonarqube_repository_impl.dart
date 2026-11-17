@@ -166,6 +166,36 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
     };
   }, recover: _projectRecover);
 
+  @override
+  Future<Result<SonarQubeProject, AppFailure>> fetchProjectByKey(
+    String projectKey,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/components/show',
+      queryParameters: {'component': projectKey},
+    );
+    final component = response.data?['component'] as Map<String, dynamic>?;
+    // Only a project qualifies: `components/show` also answers for a file or
+    // a directory key, which a project link must not open as a project.
+    if (component == null || component['qualifier'] != 'TRK') {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: Response<void>(
+          requestOptions: response.requestOptions,
+          statusCode: 404,
+        ),
+        type: DioExceptionType.badResponse,
+      );
+    }
+    return SonarQubeProject(
+      key: component['key'] as String? ?? projectKey,
+      name: (component['name'] as String?)?.isNotEmpty ?? false
+          ? component['name'] as String
+          : projectKey,
+      lastAnalysisDate: _sonarDate(component['analysisDate'] as String?),
+    );
+  }, recover: _projectRecover);
+
   /// SonarQube-specific wording for the two refusals that mean something
   /// particular here, for calls about one project. Everything else keeps the
   /// shared mapping.

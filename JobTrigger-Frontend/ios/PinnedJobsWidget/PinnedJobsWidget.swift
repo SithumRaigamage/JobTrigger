@@ -7,6 +7,28 @@ import WidgetKit
 // entitlements.
 private let appGroupId = "group.Sraig.Lab-Trigger-frontend"
 private let snapshotKey = "snapshot"
+// US-SQ-WIDGET-01: pinned SonarQube projects reuse everything here under their
+// own key and wording. The widget renders a snapshot the app wrote; it never
+// calls SonarQube and holds no credential.
+private let projectsSnapshotKey = "sonarqube_snapshot"
+
+/// The words that differ between the two widgets.
+struct WidgetCopy {
+  let title: String
+  let empty: String
+  let noun: String  // "job" / "project"
+  let upgrade: String
+  let description: String
+
+  static let jobs = WidgetCopy(
+    title: "Pinned jobs", empty: "Pin jobs in JobTrigger", noun: "job",
+    upgrade: "Pinned jobs need Pro. Open JobTrigger to upgrade.",
+    description: "Your pinned Jenkins jobs at a glance.")
+  static let projects = WidgetCopy(
+    title: "Pinned projects", empty: "Pin projects in JobTrigger", noun: "project",
+    upgrade: "Pinned projects need Pro. Open JobTrigger to upgrade.",
+    description: "Your pinned SonarQube projects and their quality gate.")
+}
 
 struct WidgetJob: Decodable, Identifiable {
   let label: String
@@ -36,6 +58,8 @@ struct PinnedJobsEntry: TimelineEntry {
 }
 
 struct PinnedJobsProvider: TimelineProvider {
+  var key: String = snapshotKey
+
   private static let sample = Snapshot(
     jobs: [
       WidgetJob(
@@ -70,7 +94,7 @@ struct PinnedJobsProvider: TimelineProvider {
 
   private func load() -> Snapshot? {
     guard
-      let json = UserDefaults(suiteName: appGroupId)?.string(forKey: snapshotKey),
+      let json = UserDefaults(suiteName: appGroupId)?.string(forKey: key),
       let data = json.data(using: .utf8)
     else { return nil }
     return try? JSONDecoder().decode(Snapshot.self, from: data)
@@ -112,15 +136,16 @@ private enum Palette {
 struct PinnedJobsView: View {
   @Environment(\.widgetFamily) private var family
   let entry: PinnedJobsEntry
+  var copy: WidgetCopy = .jobs
 
   private var capacity: Int { family == .systemSmall ? 2 : 4 }
 
   var body: some View {
     Group {
       if let count = entry.snapshot?.lockedCount {
-        LockedView(count: count)
+        LockedView(count: count, noun: copy.noun)
       } else if entry.snapshot?.upgradeRequired == true {
-        UpgradeView()
+        UpgradeView(message: copy.upgrade)
       } else {
         jobsView
       }
@@ -132,7 +157,7 @@ struct PinnedJobsView: View {
     let jobs = Array((entry.snapshot?.jobs ?? []).prefix(capacity))
     return VStack(alignment: .leading, spacing: 8) {
       HStack {
-        Text("Pinned jobs")
+        Text(copy.title)
           .font(.caption.weight(.semibold))
           .foregroundStyle(Palette.secondary)
         Spacer()
@@ -148,7 +173,7 @@ struct PinnedJobsView: View {
       }
       if jobs.isEmpty {
         Spacer()
-        Text("Pin jobs in JobTrigger")
+        Text(copy.empty)
           .font(.footnote)
           .foregroundStyle(Palette.muted)
           .frame(maxWidth: .infinity)
@@ -171,6 +196,7 @@ struct PinnedJobsView: View {
 /// The app lock is on: say how many, not which (AUD-54).
 struct LockedView: View {
   let count: Int
+  var noun: String = "job"
 
   var body: some View {
     HStack(spacing: 12) {
@@ -179,7 +205,7 @@ struct LockedView: View {
         .foregroundStyle(Palette.secondary)
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 2) {
-        Text(count == 1 ? "1 pinned job" : "\(count) pinned jobs")
+        Text(count == 1 ? "1 pinned \(noun)" : "\(count) pinned \(noun)s")
           .font(.subheadline.weight(.semibold))
           .foregroundStyle(Palette.text)
         Text("Unlock JobTrigger to see them")
@@ -195,12 +221,14 @@ struct LockedView: View {
 /// P20-25: pinned jobs are a Pro feature, so on Free the widget asks for the
 /// upgrade instead of pretending nothing is pinned.
 struct UpgradeView: View {
+  var message: String = "Pinned jobs need Pro. Open JobTrigger to upgrade."
+
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Upgrade to Pro")
         .font(.subheadline.weight(.semibold))
         .foregroundStyle(Palette.text)
-      Text("Pinned jobs need Pro. Open JobTrigger to upgrade.")
+      Text(message)
         .font(.caption)
         .foregroundStyle(Palette.muted)
         .fixedSize(horizontal: false, vertical: true)
@@ -232,7 +260,6 @@ struct JobRow: View {
   }
 }
 
-@main
 struct PinnedJobsWidget: Widget {
   var body: some WidgetConfiguration {
     StaticConfiguration(kind: "PinnedJobsWidget", provider: PinnedJobsProvider()) { entry in
@@ -243,5 +270,28 @@ struct PinnedJobsWidget: Widget {
     // A small widget is one tap target, so it opens the app (pins lead
     // Home); a medium one links each job.
     .supportedFamilies([.systemSmall, .systemMedium])
+  }
+}
+
+/// US-SQ-WIDGET-01: the same widget for pinned SonarQube projects, each row
+/// showing the quality-gate verdict and linking to the project.
+struct PinnedProjectsWidget: Widget {
+  var body: some WidgetConfiguration {
+    StaticConfiguration(
+      kind: "PinnedProjectsWidget", provider: PinnedJobsProvider(key: projectsSnapshotKey)
+    ) { entry in
+      PinnedJobsView(entry: entry, copy: .projects)
+    }
+    .configurationDisplayName("Pinned projects")
+    .description(WidgetCopy.projects.description)
+    .supportedFamilies([.systemSmall, .systemMedium])
+  }
+}
+
+@main
+struct JobTriggerWidgets: WidgetBundle {
+  var body: some Widget {
+    PinnedJobsWidget()
+    PinnedProjectsWidget()
   }
 }

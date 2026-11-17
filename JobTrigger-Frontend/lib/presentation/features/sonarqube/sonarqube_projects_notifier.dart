@@ -1,6 +1,13 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'sonarqube_pins_notifier.dart';
+
+import '../../../core/error/app_failure.dart';
 import '../../../core/error/result.dart';
+import '../../../data/cache/sonarqube_cache.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../../data/repositories/sonarqube_repository_impl.dart';
 import '../../../domain/sonarqube/sonarqube_project.dart';
 import 'sonarqube_gate_style.dart';
@@ -16,9 +23,14 @@ class SonarQubeProjects {
     required this.pagesLoaded,
     this.isLoadingMore = false,
     this.loadMoreFailure,
+    this.savedAt,
   });
 
   final List<SonarQubeProject> projects;
+
+  /// Set when the server could not be reached and this is the copy saved on
+  /// the device (`US-SQ-OFFLINE-01`), from this time. Null for live data.
+  final DateTime? savedAt;
 
   /// How many projects the server says the user can browse.
   final int total;
@@ -29,7 +41,7 @@ class SonarQubeProjects {
   /// offer a retry instead of silently ending the list.
   final Object? loadMoreFailure;
 
-  bool get hasMore => projects.length < total;
+  bool get hasMore => savedAt == null && projects.length < total;
 
   SonarQubeProjects copyWith({
     List<SonarQubeProject>? projects,
@@ -57,12 +69,45 @@ class SonarQubeProjectsNotifier extends _$SonarQubeProjectsNotifier {
   @override
   Future<SonarQubeProjects> build() async {
     final result = await ref.watch(sonarQubeRepositoryProvider).fetchProjects();
-    final page = result.fold((page) => page, (failure) => throw failure);
-    return SonarQubeProjects(
-      projects: page.projects,
-      total: page.total,
-      pagesLoaded: 1,
-    );
+    final credentialId = ref
+        .read(activeSonarQubeCredentialNotifierProvider)
+        ?.id;
+    final cache = ref.read(sonarQubeCacheProvider);
+    switch (result) {
+      case Ok(value: final page):
+        if (credentialId != null) {
+          // Not awaited: the live list never waits on, or fails because of, a
+          // copy being saved.
+          unawaited(
+            cache
+                .writeProjects(credentialId, page.projects, page.total)
+                .catchError((Object _) {}),
+          );
+        }
+        return SonarQubeProjects(
+          projects: page.projects,
+          total: page.total,
+          pagesLoaded: 1,
+        );
+      case Err(:final error):
+        // US-SQ-OFFLINE-01: only "can't reach the server" falls back to the
+        // saved copy. A refused token or a missing permission is shown as
+        // such, never papered over with old data.
+        if (error is NetworkFailure && credentialId != null) {
+          final saved = await cache
+              .read(credentialId)
+              .catchError((Object _) => null);
+          if (saved != null) {
+            return SonarQubeProjects(
+              projects: saved.projects,
+              total: saved.total,
+              pagesLoaded: 1,
+              savedAt: saved.savedAt,
+            );
+          }
+        }
+        throw error;
+    }
   }
 
   /// Appends the next page. A failure keeps what's loaded and records the
@@ -200,5 +245,14 @@ List<SonarQubeProject> filteredSonarQubeProjects(Ref ref) {
         return c != 0 ? c : byName(a, b);
       });
   }
-  return shown;
+  // US-SQ-PIN-01: pinned projects first, each group in the chosen order
+  // (`List.sort` isn't stable, so partition rather than re-sort).
+  final pinned = ref.watch(sonarQubePinnedKeysProvider);
+  if (pinned.isEmpty) return shown;
+  return [
+    for (final p in shown)
+      if (pinned.contains(p.key)) p,
+    for (final p in shown)
+      if (!pinned.contains(p.key)) p,
+  ];
 }

@@ -18,24 +18,52 @@ class HomeWidgetBridge {
   static const _androidProvider =
       'com.sraig.jobtrigger.PinnedJobsWidgetProvider';
 
+  // US-SQ-WIDGET-01: pinned SonarQube projects have their own widget, with its
+  // own key, so the two never overwrite each other.
+  static const _sonarQubeKey = 'sonarqube_snapshot';
+  static const _sonarQubeIOSKind = 'PinnedProjectsWidget';
+  static const _sonarQubeAndroidProvider =
+      'com.sraig.jobtrigger.PinnedProjectsWidgetProvider';
+
   bool _groupSet = false;
 
   Future<void> write(WidgetSnapshot snapshot) =>
       _save(jsonEncode(snapshot.toJson()));
 
-  /// On logout: job names can be sensitive (US-JX-23).
-  Future<void> clear() => _save(null);
+  /// The pinned SonarQube projects' snapshot (`US-SQ-WIDGET-01`).
+  Future<void> writeSonarQube(WidgetSnapshot snapshot) => _save(
+    jsonEncode(snapshot.toJson()),
+    key: _sonarQubeKey,
+    iOSName: _sonarQubeIOSKind,
+    androidName: _sonarQubeAndroidProvider,
+  );
 
-  Future<void> _save(String? json) async {
+  /// On logout: job and project names can be sensitive (US-JX-23).
+  Future<void> clear() async {
+    await _save(null);
+    await _save(
+      null,
+      key: _sonarQubeKey,
+      iOSName: _sonarQubeIOSKind,
+      androidName: _sonarQubeAndroidProvider,
+    );
+  }
+
+  Future<void> _save(
+    String? json, {
+    String key = _key,
+    String iOSName = _iOSKind,
+    String androidName = _androidProvider,
+  }) async {
     try {
       if (!_groupSet) {
         await HomeWidget.setAppGroupId(appGroupId);
         _groupSet = true;
       }
-      await HomeWidget.saveWidgetData<String>(_key, json);
+      await HomeWidget.saveWidgetData<String>(key, json);
       await HomeWidget.updateWidget(
-        iOSName: _iOSKind,
-        qualifiedAndroidName: _androidProvider,
+        iOSName: iOSName,
+        qualifiedAndroidName: androidName,
       );
     } on Object {
       // Best effort: no widget platform (desktop, tests), or none placed.

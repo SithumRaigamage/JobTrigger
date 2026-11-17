@@ -11,6 +11,7 @@ import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'sonarqube_credential_gate.dart';
 import 'sonarqube_project_card.dart';
+import 'sonarqube_saved_banner.dart';
 import 'sonarqube_projects_notifier.dart';
 import 'sonarqube_summaries_notifier.dart';
 import 'sonarqube_summaries_sync.dart';
@@ -228,14 +229,22 @@ class _ProjectList extends ConsumerWidget {
             20,
             16 + glassNavBarClearance(context),
           ),
-          itemCount: projects.length + 1,
-          itemBuilder: (context, index) => index < projects.length
-              ? SonarQubeProjectCard(project: projects[index])
-              : _Footer(
-                  loaded: loaded,
-                  searching: query.isNotEmpty,
-                  onLoadMore: notifier.loadMore,
-                ),
+          itemCount: projects.length + 1 + (loaded?.savedAt == null ? 0 : 1),
+          itemBuilder: (context, index) {
+            // US-SQ-OFFLINE-01: a saved copy says so, above everything.
+            final savedAt = loaded?.savedAt;
+            if (savedAt != null) {
+              if (index == 0) return SonarQubeSavedBanner(savedAt: savedAt);
+              index -= 1;
+            }
+            return index < projects.length
+                ? SonarQubeProjectCard(project: projects[index])
+                : _Footer(
+                    loaded: loaded,
+                    searching: query.isNotEmpty,
+                    onLoadMore: notifier.loadMore,
+                  );
+          },
           separatorBuilder: (_, _) => const SizedBox(height: 10),
         ),
       ),

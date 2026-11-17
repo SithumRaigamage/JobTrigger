@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
@@ -41,6 +43,17 @@ class SonarQubeIssueScreen extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
     final created = issue.creationDate;
+    // US-SQ-ISSUES-04: Copy and Share send the same text, with the web link.
+    String shareText(String baseUrl) => sonarQubeIssueShareText(
+      projectName: project.name,
+      message: issue.message,
+      typeLabel: sonarQubeIssueTypeLabel(issue.type),
+      severityLabel: sonarQubeSeverityLabel(issue.severity),
+      rule: issue.rule,
+      ruleName: contextAsync.value?.ruleName,
+      location: issue.location,
+      link: sonarQubeIssueUri(baseUrl, project.key, issue.key),
+    );
 
     return Scaffold(
       body: SafeArea(
@@ -62,6 +75,32 @@ class SonarQubeIssueScreen extends ConsumerWidget {
                     onPressed: () => context.pop(),
                   ),
                   const Spacer(),
+                  if (credential != null) ...[
+                    IconButton(
+                      icon: const Icon(Icons.copy_rounded, size: 20),
+                      tooltip: 'Copy issue',
+                      onPressed: () async {
+                        await Clipboard.setData(
+                          ClipboardData(text: shareText(credential.baseUrl)),
+                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Issue copied')),
+                          );
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.ios_share_rounded, size: 20),
+                      tooltip: 'Share issue',
+                      onPressed: () => SharePlus.instance.share(
+                        ShareParams(
+                          text: shareText(credential.baseUrl),
+                          subject: issue.message,
+                        ),
+                      ),
+                    ),
+                  ],
                   if (credential != null)
                     IconButton(
                       icon: const Icon(Icons.open_in_new_rounded, size: 22),

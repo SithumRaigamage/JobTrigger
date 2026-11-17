@@ -44,6 +44,8 @@ abstract class AppRoutes {
   static const sonarqubeHotspots = '/sonarqube/project/hotspots';
 
   /// US-SQ-ISSUES-01: the caller's open issues across every project.
+  /// US-SQ-LINK-02: resolves a `jobtrigger://app/sonarqube/project?key=` link.
+  static const sonarqubeOpenLink = '/sonarqube/open';
   static const sonarqubeMyIssues = '/sonarqube/my-issues';
   static const sonarqubeIssueSearch = '/sonarqube/issue-search';
   static const githubWorkflows = '/github/repos/workflows';

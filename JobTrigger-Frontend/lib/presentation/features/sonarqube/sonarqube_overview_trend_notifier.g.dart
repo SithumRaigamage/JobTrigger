@@ -53,7 +53,7 @@ final class SonarQubeOverviewTrendNotifierProvider
 }
 
 String _$sonarQubeOverviewTrendNotifierHash() =>
-    r'b62221bfd5905bd7d60852744cc11b4a07244fee';
+    r'd448675814c095a376d701d9945041b3ddf9c12b';
 
 /// Compares the loaded Overview with the snapshots this device kept, and
 /// saves this visit as the next one. Only a fully loaded Overview counts: a

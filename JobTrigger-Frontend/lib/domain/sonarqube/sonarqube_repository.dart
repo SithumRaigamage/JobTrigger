@@ -37,6 +37,14 @@ abstract class SonarQubeRepository {
     String projectKey,
   );
 
+  /// `GET api/components/show?component=` (`US-SQ-LINK-02`): one project by
+  /// its key, so a deep link can open it without loading the whole list. A
+  /// key that is not a project this user can browse is
+  /// [SonarQubeProjectNotFoundFailure].
+  Future<Result<SonarQubeProject, AppFailure>> fetchProjectByKey(
+    String projectKey,
+  );
+
   /// `GET api/measures/component` for `sonarQubeMeasureKeys`
   /// (`US-SQ-QUALITY-02`). Keyed by metric; a metric the server didn't
   /// compute is simply absent, so the UI can show "—" rather than 0.

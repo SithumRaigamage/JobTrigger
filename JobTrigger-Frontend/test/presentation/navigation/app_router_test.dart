@@ -363,6 +363,48 @@ void main() {
     expect(find.text('Go to Home'), findsOneWidget);
   });
 
+  // US-SQ-LINK-02: jobtrigger://app/sonarqube/project?key=KEY.
+  testWidgets('a SonarQube project link needs a valid key, else Home', (
+    tester,
+  ) async {
+    final container = ProviderContainer(
+      overrides: [credentialsNotifierProvider.overrideWith(_NoCredentials.new)],
+    );
+    addTearDown(container.dispose);
+    container.listen(authNotifierProvider, (_, _) {});
+    await container
+        .read(authNotifierProvider.notifier)
+        .setSession(const User(id: 'u1', email: 'a@b.com'), 'jwt-abc');
+    final router = container.read(appRouterProvider);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // No SonarQube credential: the link says what is missing.
+    router.go('${AppRoutes.sonarqubeProject}?key=acme:api');
+    await tester.pumpAndSettle();
+    expect(
+      router.routerDelegate.currentConfiguration.uri.path,
+      AppRoutes.sonarqubeOpenLink,
+    );
+    expect(find.text('No SonarQube credential'), findsOneWidget);
+
+    // A key that isn't a key never reaches the lookup.
+    for (final bad in ['', '?key=a%20b', '?key=http://evil.example']) {
+      router.go('${AppRoutes.sonarqubeProject}$bad');
+      await tester.pumpAndSettle();
+      expect(
+        router.routerDelegate.currentConfiguration.uri.path,
+        AppRoutes.home,
+        reason: bad,
+      );
+    }
+  });
+
   testWidgets(
     'a pairing link opened while signed out is restored after sign-in (NR-03)',
     (tester) async {

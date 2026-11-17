@@ -14,6 +14,7 @@ void main() {
         'build_watches': '[]',
         'sonarqube_watches': '[]',
         'sonarqube_snapshots_q1': '[]',
+        'sonarqube_pins_q1': '[]',
         'subscription_cache': '{}',
         'pinned_jobs_s1': '[]',
         'pinned_jobs_s2': '[]',

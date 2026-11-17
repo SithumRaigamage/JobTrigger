@@ -44,7 +44,7 @@ final class SonarQubeProjectsNotifierProvider
 }
 
 String _$sonarQubeProjectsNotifierHash() =>
-    r'1fd55ba1533823feeb93b3f79438c9d556d78df9';
+    r'3fd60fe86a31297853a55415145a2f87077b13b0';
 
 /// The active credential's projects, a page at a time.
 /// `sonarQubeRepositoryProvider` rebuilds when the active credential
@@ -298,4 +298,4 @@ final class FilteredSonarQubeProjectsProvider
 }
 
 String _$filteredSonarQubeProjectsHash() =>
-    r'820b98f9aab310d505fe022ae7a9c6c979d70763';
+    r'12cfe43299d9913ea7145492ad5ef11f59f98a4e';

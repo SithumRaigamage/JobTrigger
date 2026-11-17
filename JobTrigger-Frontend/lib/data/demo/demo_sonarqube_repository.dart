@@ -217,6 +217,21 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
   }
 
   @override
+  Future<Result<SonarQubeProject, AppFailure>> fetchProjectByKey(
+    String projectKey,
+  ) async {
+    final page = await fetchProjects();
+    final projects = page.fold(
+      (value) => value.projects,
+      (_) => const <SonarQubeProject>[],
+    );
+    for (final project in projects) {
+      if (project.key == projectKey) return Ok(project);
+    }
+    return const Err(SonarQubeProjectNotFoundFailure());
+  }
+
+  @override
   Future<Result<SonarQubeAnalysisStatus, AppFailure>> fetchAnalysisStatus(
     String projectKey,
   ) async {

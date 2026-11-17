@@ -62,6 +62,7 @@ void main() {
   _batch1();
   _batch1Names();
   _issueSearch();
+  _projectByKey();
   _hotspots();
   _history();
   _worstFiles();
@@ -1155,6 +1156,53 @@ void _issueSearch() {
       },
     );
   }
+}
+
+// US-SQ-LINK-02: a project link looks the project up by key, and only a
+// project (a real SonarQube 26.1 answers `TRK`) may be opened that way.
+void _projectByKey() {
+  test('fetchProjectByKey reads a project from components/show', () async {
+    final adapter = _Adapter(200, {
+      'component': {
+        'key': 'jt-sample',
+        'name': 'JT Sample',
+        'qualifier': 'TRK',
+        'analysisDate': '2026-11-17T06:29:01+0000',
+      },
+    });
+    final result = await SonarQubeRepositoryImpl(
+      _dio(adapter),
+    ).fetchProjectByKey('jt-sample');
+    final project = (result as Ok<SonarQubeProject, AppFailure>).value;
+    expect(project.name, 'JT Sample');
+    expect(project.lastAnalysisDate, isNotNull);
+    expect(adapter.requests.single.path, '/api/components/show');
+    expect(adapter.requests.single.queryParameters['component'], 'jt-sample');
+  });
+
+  test('a file key is not a project', () async {
+    final adapter = _Adapter(200, {
+      'component': {'key': 'jt-sample:src/app.js', 'qualifier': 'FIL'},
+    });
+    final result = await SonarQubeRepositoryImpl(
+      _dio(adapter),
+    ).fetchProjectByKey('jt-sample:src/app.js');
+    expect(
+      (result as Err<SonarQubeProject, AppFailure>).error,
+      isA<SonarQubeProjectNotFoundFailure>(),
+    );
+  });
+
+  test('an unknown key is project-not-found', () async {
+    final adapter = _Adapter(404, <String, dynamic>{});
+    final result = await SonarQubeRepositoryImpl(
+      _dio(adapter),
+    ).fetchProjectByKey('nope');
+    expect(
+      (result as Err<SonarQubeProject, AppFailure>).error,
+      isA<SonarQubeProjectNotFoundFailure>(),
+    );
+  });
 }
 
 // P10-18 leftovers: the cross-project list names its projects in one request

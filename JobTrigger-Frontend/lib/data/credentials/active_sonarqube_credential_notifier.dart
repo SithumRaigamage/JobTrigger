@@ -1,4 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../cache/sonarqube_cache.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/error/app_failure.dart';
@@ -92,6 +94,12 @@ class ActiveSonarQubeCredentialNotifier
         .delete(credential.id);
     if (result case Err()) return result;
 
+    // US-SQ-OFFLINE-01: the deleted credential's saved copy goes with it.
+    try {
+      await ref.read(sonarQubeCacheProvider).clearCredential(credential.id);
+    } on Object {
+      // Best effort: the OS may already have purged the cache directory.
+    }
     await ref.read(sonarQubeCredentialsNotifierProvider.notifier).refresh();
     if (!wasActive) return const Ok(null);
 

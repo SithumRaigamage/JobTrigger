@@ -9,6 +9,7 @@ import '../../../core/network/session_signal.dart';
 import '../../../core/platform/home_widget_bridge.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import '../../../data/cache/job_tree_cache.dart';
+import '../../../data/cache/sonarqube_cache.dart';
 import '../../../data/cache/user_scoped_prefs.dart';
 import '../../../data/demo/demo_data.dart';
 import '../../../data/demo/demo_mode_notifier.dart';
@@ -209,6 +210,12 @@ class AuthNotifier extends _$AuthNotifier {
       await ref.read(jobTreeCacheProvider).clearAll();
     } on Object {
       // Best effort: the OS may already have purged the cache directory.
+    }
+    // US-SQ-OFFLINE-01: nor SonarQube's saved project list.
+    try {
+      await ref.read(sonarQubeCacheProvider).clearAll();
+    } on Object {
+      // Best effort, as above.
     }
     // US-JX-23: nor on the home screen.
     await ref.read(homeWidgetBridgeProvider).clear();

@@ -45,11 +45,12 @@ class SonarQubeOverview {
 
 /// Builds the [SonarQubeOverview] from the loaded projects and whatever
 /// summaries have arrived. Worst first means failed before warning, then the
-/// most bugs plus vulnerabilities, then by name.
+/// most bugs plus vulnerabilities, then by name; pinned projects come first.
 SonarQubeOverview buildSonarQubeOverview(
   List<SonarQubeProject> projects,
-  Map<String, SonarQubeProjectSummary> summaries,
-) {
+  Map<String, SonarQubeProjectSummary> summaries, {
+  Set<String> pinned = const {},
+}) {
   var failing = 0, warning = 0, passing = 0, notAnalysed = 0, unknown = 0;
   var bugs = 0, vulnerabilities = 0, codeSmells = 0;
   final attention = <SonarQubeProject>[];
@@ -84,6 +85,11 @@ SonarQubeOverview buildSonarQubeOverview(
   int rank(SonarQubeProject p) =>
       summaries[p.key]!.gate == QualityGateState.failed ? 0 : 1;
   attention.sort((a, b) {
+    // US-SQ-PIN-01: a pinned project is listed before an unpinned one.
+    final byPin = (pinned.contains(a.key) ? 0 : 1).compareTo(
+      pinned.contains(b.key) ? 0 : 1,
+    );
+    if (byPin != 0) return byPin;
     final byGate = rank(a).compareTo(rank(b));
     if (byGate != 0) return byGate;
     final byScore = summaries[b.key]!.severityScore.compareTo(
