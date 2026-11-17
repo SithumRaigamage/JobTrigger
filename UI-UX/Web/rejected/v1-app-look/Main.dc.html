@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JobTrigger — home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B1120}
+a{color:#93C5FD;text-decoration:none}a:hover{color:#BFDBFE}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="home" hint-size="100%,72px"></dc-import>
+
+  <main style="display: flex; flex-direction: column">
+    <section style="width: 100%; max-width: 1200px; margin: 0 auto; box-sizing: border-box; padding: 88px 20px 72px; display: flex; flex-wrap: wrap; gap: 56px; align-items: center">
+      <div style="flex: 1 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 28px">
+        <span style="align-self: flex-start; padding: 6px 12px; border-radius: 999px; background: #10284A; color: #93C5FD; font-size: 13px; font-weight: 600">Jenkins · GitHub Actions · SonarQube</span>
+        <h1 style="margin: 0; font-size: 60px; line-height: 1.04; font-weight: 800; letter-spacing: -0.035em">Your CI builds,<br>in your pocket.</h1>
+        <p style="margin: 0; max-width: 520px; font-size: 19px; line-height: 1.6; color: #CBD5E1">Trigger jobs, watch console logs live and see why a build failed — from your phone, without opening a laptop.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px">
+          <a href="#download" style="height: 52px; padding: 0 24px; border-radius: 14px; background: #2563EB; color: #FFFFFF; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+            Get the app
+          </a>
+          <a href="SignIn.dc.html" style="height: 52px; padding: 0 22px; border-radius: 14px; background: #1E293B; color: #F1F5F9; font-size: 16px; font-weight: 600; display: flex; align-items: center">Set up servers on the web</a>
+        </div>
+        <p style="margin: 0; font-size: 14px; color: #94A3B8">Free · iOS and Android · Your tokens stay encrypted</p>
+      </div>
+      <div style="flex: 1 1 420px; min-width: 0; display: flex; justify-content: center; align-items: flex-end; gap: 20px">
+        <img src="/_blob/8810b65d8dbf3339798376fdd53741d9" alt="Live build log in JobTrigger" style="width: 210px; border-radius: 30px; border: 1px solid #1F2A3D; margin-bottom: 40px">
+        <img src="/_blob/2be98968e02f8ed6fb96003a911fa5a6" alt="JobTrigger home screen listing Jenkins jobs" style="width: 250px; border-radius: 34px; border: 1px solid #1F2A3D">
+      </div>
+    </section>
+
+    <section style="border-top: 1px solid #1F2A3D; border-bottom: 1px solid #1F2A3D; background: #0F172A">
+      <div style="max-width: 1200px; margin: 0 auto; box-sizing: border-box; padding: 28px 20px; display: flex; flex-wrap: wrap; gap: 16px 40px; align-items: center; justify-content: center; color: #CBD5E1; font-size: 15px; font-weight: 600">
+        <span style="color: #94A3B8; font-weight: 500">Works with</span>
+        <span style="display: flex; align-items: center; gap: 10px"><span style="width: 28px; height: 28px; border-radius: 8px; background: #D33833; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center">J</span>Jenkins</span>
+        <span style="display: flex; align-items: center; gap: 10px"><span style="width: 28px; height: 28px; border-radius: 8px; background: #F1F5F9; color: #0B1120; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center">GH</span>GitHub Actions</span>
+        <span style="display: flex; align-items: center; gap: 10px"><span style="width: 28px; height: 28px; border-radius: 8px; background: #126ED3; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center">SQ</span>SonarQube</span>
+      </div>
+    </section>
+
+    <section style="width: 100%; max-width: 1200px; margin: 0 auto; box-sizing: border-box; padding: 96px 20px 40px; display: flex; flex-direction: column; gap: 48px">
+      <div style="display: flex; flex-direction: column; gap: 12px; max-width: 640px">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #93C5FD">What you can do</span>
+        <h2 style="margin: 0; font-size: 40px; line-height: 1.15; font-weight: 700; letter-spacing: -0.025em">Everything you open Jenkins for, minus the laptop.</h2>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 20px">
+        <div style="flex: 1 1 320px; min-width: 0; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 14px">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          <h3 style="margin: 0; font-size: 19px; font-weight: 600">Trigger with parameters</h3>
+          <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #CBD5E1">Choices, booleans, files and secret parameters — each with the right input, so you never send a broken build.</p>
+        </div>
+        <div style="flex: 1 1 320px; min-width: 0; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 14px">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h13"/></svg>
+          <h3 style="margin: 0; font-size: 19px; font-weight: 600">Live console logs</h3>
+          <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #CBD5E1">Stream the log as it runs, search it, jump to a stage, and share it with your team.</p>
+        </div>
+        <div style="flex: 1 1 320px; min-width: 0; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 14px">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <h3 style="margin: 0; font-size: 19px; font-weight: 600">Know when it's done</h3>
+          <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #CBD5E1">Watch a build and get a notification when it finishes. Pin jobs to your home screen.</p>
+        </div>
+      </div>
+      <a href="Features.dc.html" style="align-self: flex-start; font-size: 16px; font-weight: 600">See all features →</a>
+    </section>
+
+    <section style="width: 100%; max-width: 1200px; margin: 0 auto; box-sizing: border-box; padding: 64px 20px">
+      <div style="background: #111A2B; border: 1px solid #1F2A3D; border-radius: 24px; padding: 48px; display: flex; flex-wrap: wrap; gap: 48px; align-items: center">
+        <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+          <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #93C5FD">Setup without the copy-paste dance</span>
+          <h2 style="margin: 0; font-size: 36px; line-height: 1.15; font-weight: 700; letter-spacing: -0.025em">Paste tokens on your laptop. Open the app. Done.</h2>
+          <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #CBD5E1">Your Jenkins and GitHub tokens live in your browser. Sign in here with your JobTrigger account, paste them in, and your phone picks them up straight away. No emailing yourself a token.</p>
+          <a href="SignIn.dc.html" style="align-self: flex-start; height: 48px; padding: 0 20px; border-radius: 12px; background: #2563EB; color: #FFFFFF; font-size: 15px; font-weight: 600; display: flex; align-items: center">Set up a server</a>
+        </div>
+        <ol style="flex: 1 1 360px; min-width: 0; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px">
+          <li style="display: flex; gap: 16px; align-items: center; padding: 18px; background: #0B1120; border: 1px solid #1F2A3D; border-radius: 14px">
+            <span style="width: 36px; height: 36px; flex: none; border-radius: 999px; background: #10284A; color: #93C5FD; font-weight: 700; display: flex; align-items: center; justify-content: center">1</span>
+            <span style="font-size: 15px; line-height: 1.5">Sign in on the web with your JobTrigger account</span>
+          </li>
+          <li style="display: flex; gap: 16px; align-items: center; padding: 18px; background: #0B1120; border: 1px solid #1F2A3D; border-radius: 14px">
+            <span style="width: 36px; height: 36px; flex: none; border-radius: 999px; background: #10284A; color: #93C5FD; font-weight: 700; display: flex; align-items: center; justify-content: center">2</span>
+            <span style="font-size: 15px; line-height: 1.5">Paste your Jenkins URL, username and API token</span>
+          </li>
+          <li style="display: flex; gap: 16px; align-items: center; padding: 18px; background: #0B1120; border: 1px solid #1F2A3D; border-radius: 14px">
+            <span style="width: 36px; height: 36px; flex: none; border-radius: 999px; background: #0F2E1F; color: #86EFAC; font-weight: 700; display: flex; align-items: center; justify-content: center">3</span>
+            <span style="font-size: 15px; line-height: 1.5">Open JobTrigger on your phone — the server is ready</span>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section style="width: 100%; max-width: 1200px; margin: 0 auto; box-sizing: border-box; padding: 64px 20px; display: flex; flex-wrap: wrap; gap: 40px; align-items: center">
+      <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #93C5FD">Built for people who guard tokens</span>
+        <h2 style="margin: 0; font-size: 36px; line-height: 1.15; font-weight: 700; letter-spacing: -0.025em">Your tokens are encrypted, and your builds go straight to your server.</h2>
+        <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #CBD5E1">The app talks to Jenkins, GitHub and SonarQube directly. Saved tokens are encrypted at rest and kept in your phone's secure storage. An optional Face ID or fingerprint lock guards the app.</p>
+        <a href="Security.dc.html" style="align-self: flex-start; font-size: 16px; font-weight: 600">How we handle your tokens →</a>
+      </div>
+      <div style="flex: 1 1 360px; min-width: 0; display: flex; justify-content: center">
+        <img src="/_blob/4359d568dbce07b367c7932be425d4d7" alt="JobTrigger app lock screen" style="width: 240px; border-radius: 32px; border: 1px solid #1F2A3D">
+      </div>
+    </section>
+
+    <section id="download" style="width: 100%; max-width: 1200px; margin: 0 auto; box-sizing: border-box; padding: 64px 20px 96px">
+      <div style="background: #10284A; border: 1px solid #1D4ED8; border-radius: 24px; padding: 48px; display: flex; flex-wrap: wrap; gap: 40px; align-items: center; justify-content: space-between">
+        <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+          <h2 style="margin: 0; font-size: 36px; line-height: 1.15; font-weight: 700; letter-spacing: -0.025em">Get JobTrigger</h2>
+          <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #CBD5E1">Free on iPhone and Android.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 12px">
+            <a href="https://apps.apple.com/" style="height: 56px; padding: 0 20px; border-radius: 12px; background: #000000; border: 1px solid #475569; color: #FFFFFF; display: flex; align-items: center; gap: 12px">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>
+              <span style="display: flex; flex-direction: column; line-height: 1.15"><span style="font-size: 11px">Download on the</span><span style="font-size: 18px; font-weight: 600">App Store</span></span>
+            </a>
+            <a href="https://play.google.com/" style="height: 56px; padding: 0 20px; border-radius: 12px; background: #000000; border: 1px solid #475569; color: #FFFFFF; display: flex; align-items: center; gap: 12px">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3l14 9-14 9z"/></svg>
+              <span style="display: flex; flex-direction: column; line-height: 1.15"><span style="font-size: 11px">Get it on</span><span style="font-size: 18px; font-weight: 600">Google Play</span></span>
+            </a>
+          </div>
+          <p style="margin: 0; font-size: 13px; color: #CBD5E1">Official store badges replace these in the build.</p>
+        </div>
+        <figure style="margin: 0; display: flex; flex-direction: column; align-items: center; gap: 12px">
+          <div role="img" aria-label="QR code placeholder that opens the store listing" style="width: 168px; height: 168px; box-sizing: border-box; padding: 14px; background: #FFFFFF; border-radius: 16px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 2px">
+            <sc-for list="{{ qr }}" as="cell" hint-placeholder-count="144">
+              <span style="{{ cell.style }}"></span>
+            </sc-for>
+          </div>
+          <figcaption style="font-size: 13px; color: #CBD5E1; text-align: center">On a laptop? Scan to open<br>the store on your phone.</figcaption>
+        </figure>
+      </div>
+    </section>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":3300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // Decorative stand-in for the store QR code; the build renders a real one.
+    const cells = [];
+    for (let i = 0; i < 144; i++) {
+      const r = Math.floor(i / 12), c = i % 12;
+      const finder = (r < 3 && c < 3) || (r < 3 && c > 8) || (r > 8 && c < 3);
+      const on = finder || ((r * 7 + c * 13 + r * c) % 5 < 2);
+      cells.push({ style: 'border-radius: 1px; background: ' + (on ? '#0B1120' : 'transparent') });
+    }
+    return { qr: cells };
+  }
+}
+</script>
+</body>
+</html>

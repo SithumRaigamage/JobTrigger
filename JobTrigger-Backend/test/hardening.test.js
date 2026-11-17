@@ -1,0 +1,103 @@
+const request = require('supertest');
+const { api } = require('./support/api');
+const { expect } = require('chai');
+const express = require('express');
+const { missingConfig, corsOrigins, invalidConfig, trustProxyHops } = require('../config/env');
+const { errorHandler, notFound } = require('../middleware/errorHandler');
+const AppInfo = require('../models/AppInfo');
+
+describe('Error handling (AUD-06)', function() {
+  it('hides internal error details behind a generic 500', async function() {
+    const original = AppInfo.findOne;
+    AppInfo.findOne = async () => {
+      throw new Error('E11000 duplicate key in collection jobtrigger.appinfos');
+    };
+    const logged = console.error;
+    console.error = () => {}; // Expected server-side log; keep output clean.
+    try {
+      const res = await api().get('/api/appinfo');
+      expect(res.status).to.equal(500);
+      expect(res.body.message).to.equal('Server error');
+      // §19: the request id, so a user can quote it in a bug report.
+      expect(res.body.requestId).to.be.a('string');
+      expect(JSON.stringify(res.body)).to.not.match(/E11000|appinfos/);
+    } finally {
+      AppInfo.findOne = original;
+      console.error = logged;
+    }
+  });
+
+  it('answers malformed JSON with a 400', async function() {
+    const res = await api()
+      .post('/api/auth/login')
+      .set('Content-Type', 'application/json')
+      .send('{"email": ');
+    expect(res.status).to.equal(400);
+    expect(res.body).to.deep.equal({ message: 'Malformed JSON body' });
+  });
+
+  it('answers unknown routes with a JSON 404', async function() {
+    const res = await api().get('/api/nope');
+    expect(res.status).to.equal(404);
+    expect(res.body).to.deep.equal({ message: 'Not found' });
+  });
+
+  it('turns a validation error into a 400 naming only the fields', async function() {
+    const probe = express();
+    probe.get('/', () => {
+      const err = new Error('Credential validation failed: secret: Path `secret` is required.');
+      err.name = 'ValidationError';
+      err.errors = { secret: {} };
+      throw err;
+    });
+    probe.use(notFound);
+    probe.use(errorHandler);
+    const res = await request(probe).get('/');
+    expect(res.status).to.equal(400);
+    expect(res.body).to.deep.equal({ message: 'Invalid data', fields: ['secret'] });
+  });
+});
+
+describe('Headers, CORS, and config (AUD-25)', function() {
+  it('sends security headers', async function() {
+    const res = await api().get('/');
+    expect(res.headers['x-content-type-options']).to.equal('nosniff');
+    expect(res.headers['x-powered-by']).to.be.undefined;
+  });
+
+  it('allows no browser origins unless configured', async function() {
+    const res = await api().get('/').set('Origin', 'https://evil.example');
+    expect(res.headers['access-control-allow-origin']).to.be.undefined;
+  });
+
+  it('reads the allow-list from CORS_ORIGINS', function() {
+    expect(corsOrigins({})).to.deep.equal([]);
+    expect(
+      corsOrigins({ CORS_ORIGINS: ' https://a.example , ,https://b.example ' }),
+    ).to.deep.equal(['https://a.example', 'https://b.example']);
+  });
+
+  // AUD-44: only a hop count. `true` or a subnet would let a client pick
+  // the IP the rate limiter sees via X-Forwarded-For.
+  it('accepts only a positive hop count for TRUST_PROXY', function() {
+    expect(trustProxyHops({})).to.equal(null);
+    expect(trustProxyHops({ TRUST_PROXY: ' 1 ' })).to.equal(1);
+    expect(trustProxyHops({ TRUST_PROXY: '2' })).to.equal(2);
+    for (const value of ['true', '0', '-1', 'abc', '10.0.0.0/8', 'loopback', '1.5']) {
+      expect(trustProxyHops({ TRUST_PROXY: value }), value).to.equal(undefined);
+      expect(invalidConfig({ TRUST_PROXY: value }), value).to.match(/TRUST_PROXY/);
+    }
+    expect(invalidConfig({ TRUST_PROXY: '1' })).to.equal(null);
+  });
+
+  it('names missing or blank required config', function() {
+    expect(
+      missingConfig({ JWT_SECRET: 's', MONGODB_URI: 'm', CREDENTIALS_ENCRYPTION_KEY: 'k' }),
+    ).to.deep.equal([]);
+    expect(missingConfig({ JWT_SECRET: '  ' })).to.deep.equal([
+      'JWT_SECRET',
+      'MONGODB_URI',
+      'CREDENTIALS_ENCRYPTION_KEY',
+    ]);
+  });
+});

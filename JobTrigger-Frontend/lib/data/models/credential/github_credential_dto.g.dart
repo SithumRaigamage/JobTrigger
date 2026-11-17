@@ -1,0 +1,36 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'github_credential_dto.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_GitHubCredentialDto _$GitHubCredentialDtoFromJson(Map<String, dynamic> json) =>
+    _GitHubCredentialDto(
+      id: json['_id'] as String,
+      label: json['label'] as String,
+      token: json['token'] as String?,
+      secretMask: json['secretMask'] as String?,
+      defaultOwner: json['defaultOwner'] as String?,
+      isDefault: json['isDefault'] as bool? ?? false,
+      needsReentry: json['needsReentry'] as bool? ?? false,
+      locked: json['locked'] as bool? ?? false,
+      createdAt: json['createdAt'] as String?,
+      updatedAt: json['updatedAt'] as String?,
+    );
+
+Map<String, dynamic> _$GitHubCredentialDtoToJson(
+  _GitHubCredentialDto instance,
+) => <String, dynamic>{
+  '_id': instance.id,
+  'label': instance.label,
+  'token': instance.token,
+  'secretMask': instance.secretMask,
+  'defaultOwner': instance.defaultOwner,
+  'isDefault': instance.isDefault,
+  'needsReentry': instance.needsReentry,
+  'locked': instance.locked,
+  'createdAt': instance.createdAt,
+  'updatedAt': instance.updatedAt,
+};

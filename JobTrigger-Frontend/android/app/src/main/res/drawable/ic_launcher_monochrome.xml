@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed icon layer (P16-02), Android 13+: one colour, the launcher tints it.
+     Same geometry as UI-UX/brand/icon-foreground.svg: the 128-unit mark
+     scaled 0.6 and centred, inside the 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.6"
+        android:scaleY="0.6"
+        android:translateX="15.9"
+        android:translateY="15.6">
+        <path
+            android:pathData="M37,64 H48 M68,64 H78"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="6"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M19,64 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0 M49,64 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="6" />
+        <path
+            android:pathData="M84,46 L84,82 L108,64 Z"
+            android:fillColor="#FFFFFFFF"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="6"
+            android:strokeLineJoin="round" />
+    </group>
+</vector>

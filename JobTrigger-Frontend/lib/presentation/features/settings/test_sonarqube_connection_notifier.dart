@@ -1,0 +1,59 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../../core/error/app_failure.dart';
+import '../../../core/error/result.dart';
+import '../../../data/repositories/sonarqube_repository_impl.dart';
+import '../../../data/datasources/sonarqube_client_factory.dart';
+import '../../../domain/auth/auth_validation.dart';
+import '../../../domain/credential/sonarqube_url.dart';
+
+part 'test_sonarqube_connection_notifier.g.dart';
+
+/// "Test connection" (`US-SQ-CRED-04`) state — mirrors
+/// `TestGitHubConnectionNotifier`'s shape: `state.value` is `null` before
+/// the first test (idle) and `true` after a successful one. SonarQube's
+/// `/api/authentication/validate` has nothing equivalent to GitHub's
+/// `/user` to report back on success (no username), so `bool?` replaces
+/// GitHub's `String?` as the idle/success sentinel — `AsyncValue<void>`
+/// would have made "never tested" and "tested successfully" both render
+/// as `AsyncData(null)`, indistinguishable to the UI.
+@riverpod
+class TestSonarQubeConnectionNotifier
+    extends _$TestSonarQubeConnectionNotifier {
+  @override
+  FutureOr<bool?> build() => null;
+
+  Future<void> test({
+    required String baseUrl,
+    required String token,
+    String? organization,
+  }) async {
+    // AUD-52: the token is never sent to an unusable URL.
+    final urlProblem = sonarQubeUrlProblem(baseUrl);
+    if (urlProblem != null) {
+      state = AsyncError(FormValidationError(urlProblem), StackTrace.current);
+      return;
+    }
+    state = const AsyncLoading();
+    final result = await testSonarQubeConnection(
+      baseUrl: normalizeServerUrl(baseUrl),
+      token: token,
+    );
+    if (result is Err<void, AppFailure>) {
+      state = AsyncError(result.error, StackTrace.current);
+      return;
+    }
+    // The token is valid; now check it can do what the app needs.
+    final access = await checkSonarQubeProjectAccess(
+      baseUrl: normalizeServerUrl(baseUrl),
+      token: token,
+      organization: organization,
+    );
+    state = switch (access) {
+      Ok() => const AsyncData(true),
+      Err(:final error) => AsyncError(error, StackTrace.current),
+    };
+  }
+
+  void reset() => state = const AsyncData(null);
+}

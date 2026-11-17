@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JobTrigger — supported tools</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F8FAFC}
+a{color:#1D4ED8;text-decoration:none}a:hover{color:#1E40AF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F8FAFC; color: #0F172A; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="tools" hint-size="100%,72px"></dc-import>
+
+  <main style="display: flex; flex-direction: column">
+    <section style="background: #0B1120; color: #F1F5F9">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 88px 20px 80px; display: flex; flex-direction: column; gap: 18px">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #93C5FD">Supported tools</span>
+        <h1 style="margin: 0; font-size: 64px; line-height: 1.04; font-weight: 800; letter-spacing: -0.04em">Does it work with my CI?</h1>
+        <p style="margin: 0; font-size: 18px; color: #CBD5E1">Exactly what each tool supports today.</p>
+      </div>
+    </section>
+
+    <div style="width: 100%; max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 72px 20px 104px; display: flex; flex-direction: column; gap: 48px">
+      <section style="display: flex; flex-direction: column; gap: 16px">
+        <h2 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #475569">Available now</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 20px">
+          <sc-for list="{{ tools }}" as="t" hint-placeholder-count="3">
+            <article style="flex: 1 1 320px; min-width: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); padding: 28px; display: flex; flex-direction: column; gap: 18px">
+              <div style="display: flex; align-items: center; gap: 14px">
+                <span style="{{ t.logoStyle }}">{{ t.mark }}</span>
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                  <h3 style="margin: 0; font-size: 20px; font-weight: 700">{{ t.name }}</h3>
+                  <span style="{{ t.badgeStyle }}">{{ t.badge }}</span>
+                </div>
+              </div>
+              <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.5; color: #334155">
+                <sc-for list="{{ t.items }}" as="it" hint-placeholder-count="3">
+                  <li>{{ it.text }}</li>
+                </sc-for>
+              </ul>
+              <p style="margin: 0; margin-top: auto; padding-top: 14px; border-top: 1px solid #E2E8F0; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #475569">Needs: {{ t.needs }}</p>
+            </article>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="display: flex; flex-direction: column; gap: 16px">
+        <h2 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #475569">Planned</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 20px">
+          <div style="flex: 1 1 320px; min-width: 0; border: 1px dashed #94A3B8; border-radius: 20px; padding: 22px; display: flex; align-items: center; gap: 14px">
+            <span style="width: 40px; height: 40px; border-radius: 12px; background: #F1F5F9; color: #334155; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center">GL</span>
+            <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 17px; font-weight: 600">GitLab CI</span><span style="font-size: 13px; color: #475569">Planned · no date yet</span></div>
+          </div>
+          <div style="flex: 1 1 320px; min-width: 0; border: 1px dashed #94A3B8; border-radius: 20px; padding: 22px; display: flex; align-items: center; gap: 14px">
+            <span style="width: 40px; height: 40px; border-radius: 12px; background: #F1F5F9; color: #334155; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center">CC</span>
+            <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 17px; font-weight: 600">CircleCI</span><span style="font-size: 13px; color: #475569">Planned · no date yet</span></div>
+          </div>
+          <div style="flex: 1 1 320px; min-width: 0" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <section id="request" style="background: #0B1120; color: #F1F5F9; border-radius: 24px; padding: 44px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between">
+        <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+          <h2 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.02em">Using something else?</h2>
+          <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #CBD5E1">Tell us which tool you need. Requests from the app and this page land in the same place.</p>
+        </div>
+        <a href="https://github.com/" style="height: 52px; padding: 0 22px; border-radius: 14px; background: #2563EB; color: #FFFFFF; font-size: 16px; font-weight: 600; display: flex; align-items: center">Request a tool</a>
+      </section>
+    </div>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const logo = (bg, fg, size) => 'width: 48px; height: 48px; border-radius: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: ' + size + 'px; background: ' + bg + '; color: ' + fg;
+    const badge = (bg, fg) => 'align-self: flex-start; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: ' + bg + '; color: ' + fg;
+    const tools = [
+      { name: 'Jenkins', mark: 'J', logoStyle: logo('#D33833', '#FFFFFF', 20), badge: 'Full support', badgeStyle: badge('#DCFCE7', '#15803D'), needs: 'URL · username · API token', items: ['Job tree, folders and multibranch', 'Trigger with every parameter type', 'Live logs, stages, tests, artifacts', 'History, trends, queue and nodes', 'Notifications and home-screen widget'] },
+      { name: 'GitHub Actions', mark: 'GH', logoStyle: logo('#0F172A', '#FFFFFF', 16), badge: 'Growing', badgeStyle: badge('#DBEAFE', '#1D4ED8'), needs: 'personal access token', items: ['Repositories and workflows', 'Several GitHub accounts', 'Runs, logs and history — in progress'] },
+      { name: 'SonarQube', mark: 'SQ', logoStyle: logo('#126ED3', '#FFFFFF', 16), badge: 'Growing', badgeStyle: badge('#DBEAFE', '#1D4ED8'), needs: 'server URL · user token', items: ['Projects and quality gates', 'Measures and issues'] },
+    ];
+    return { tools: tools.map((t) => ({ ...t, items: t.items.map((text) => ({ text })) })) };
+  }
+}
+</script>
+</body>
+</html>

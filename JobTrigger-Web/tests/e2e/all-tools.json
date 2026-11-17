@@ -1,0 +1,10 @@
+{
+  "release": "98.0",
+  "tools": {
+    "jenkins": "1.0",
+    "sonarqube": "1.0",
+    "githubActions": "1.0",
+    "gitlab": "99.0",
+    "circleci": "99.0"
+  }
+}

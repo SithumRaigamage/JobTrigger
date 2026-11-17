@@ -1,0 +1,41 @@
+{
+  "name": "lab-trigger-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "mocha --file test/setup.js --recursive --exit --timeout 20000",
+    "test:coverage": "c8 --reporter=lcov --reporter=text npm test",
+    "encrypt-credentials": "node scripts/encrypt-credentials.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@sentry/node": "^11.12.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.9",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.4",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.12.1",
+    "nodemailer": "^10.5.0"
+  },
+  "devDependencies": {
+    "c8": "^9.1.0",
+    "chai": "^6.3.0",
+    "mocha": "^12.0.3",
+    "mongodb-memory-server": "^11.3.0",
+    "supertest": "^7.3.2"
+  },
+  "overrides": {
+    "mocha": {
+      "glob": "^14.0.6",
+      "minimatch": "^11.0.8"
+    }
+  }
+}

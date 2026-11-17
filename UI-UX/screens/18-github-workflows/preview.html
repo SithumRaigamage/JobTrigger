@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Workflows — api-gateway</title>
+</head>
+<body>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+</style>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="padding: 52px 12px 6px; display: flex; align-items: center; gap: 4px">
+    <a href="GitHubRepos.dc.html" aria-label="Back to repositories" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #CBD5E1">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+    </a>
+  </header>
+
+  <main style="flex: 1; overflow: hidden; padding: 0 20px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; flex-direction: column; gap: 4px; padding-bottom: 4px">
+      <span style="font-size: 14px; color: #94A3B8">acme-corp</span>
+      <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">api-gateway</h1>
+    </div>
+
+    <h2 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #94A3B8">Workflows</h2>
+
+    <article style="padding: 14px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; display: flex; align-items: center; gap: 12px">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 15px; font-weight: 600">CI</span>
+        <span style="display: flex; align-items: center; gap: 8px"><span style="padding: 3px 8px; border-radius: 999px; background: #10284A; color: #93C5FD; font-size: 12px; font-weight: 600">In progress</span><span style="font: 400 12px 'JetBrains Mono', monospace; color: #94A3B8">ci.yml</span></span>
+      </div>
+    </article>
+
+    <article style="padding: 14px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; display: flex; align-items: center; gap: 12px">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 15px; font-weight: 600">Deploy</span>
+        <span style="display: flex; align-items: center; gap: 8px"><span style="padding: 3px 8px; border-radius: 999px; background: #0F2E1F; color: #86EFAC; font-size: 12px; font-weight: 600">Success</span><span style="font: 400 12px 'JetBrains Mono', monospace; color: #94A3B8">deploy.yml</span></span>
+      </div>
+      <button type="button" style="height: 40px; padding: 0 14px; border: 0; border-radius: 12px; background: #2563EB; color: #FFFFFF; font: 600 14px Inter, sans-serif; display: flex; align-items: center; gap: 6px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5v14l11-7z"/></svg>Run
+      </button>
+    </article>
+
+    <article style="padding: 14px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; display: flex; align-items: center; gap: 12px">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 15px; font-weight: 600">Nightly security scan</span>
+        <span style="display: flex; align-items: center; gap: 8px"><span style="padding: 3px 8px; border-radius: 999px; background: #3A1418; color: #FCA5A5; font-size: 12px; font-weight: 600">Failed</span><span style="font: 400 12px 'JetBrains Mono', monospace; color: #94A3B8">security.yml</span></span>
+      </div>
+      <button type="button" style="height: 40px; padding: 0 14px; border: 0; border-radius: 12px; background: #2563EB; color: #FFFFFF; font: 600 14px Inter, sans-serif; display: flex; align-items: center; gap: 6px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5v14l11-7z"/></svg>Run
+      </button>
+    </article>
+
+    <h2 style="margin: 8px 0 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #94A3B8">Recent runs</h2>
+    <div style="background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; display: flex; flex-direction: column">
+      <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 0 14px; border-bottom: 1px solid #1F2A3D">
+        <span style="width: 10px; height: 10px; border-radius: 50%; background: #60A5FA; flex: none"></span>
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 500">Add rate-limit headers</span><span style="font: 400 12px 'JetBrains Mono', monospace; color: #94A3B8">CI · main · push · 2m ago</span></span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 0 14px">
+        <span style="width: 10px; height: 10px; border-radius: 50%; background: #4ADE80; flex: none"></span>
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 500">Deploy v3.8.1</span><span style="font: 400 12px 'JetBrains Mono', monospace; color: #94A3B8">Deploy · v3.8.1 · manual · 1h ago</span></span>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

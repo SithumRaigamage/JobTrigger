@@ -1,0 +1,76 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'server_form_notifier.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Add/edit form submit state — see `docs/state-management.md`'s "Feature:
+/// settings / server management" section. Same shape as
+/// `LoginNotifier`/`SignupNotifier`: form field values are passed in at
+/// call time (owned by the widget's `TextEditingController`s), not stored
+/// on the notifier.
+
+@ProviderFor(ServerFormNotifier)
+final serverFormNotifierProvider = ServerFormNotifierProvider._();
+
+/// Add/edit form submit state — see `docs/state-management.md`'s "Feature:
+/// settings / server management" section. Same shape as
+/// `LoginNotifier`/`SignupNotifier`: form field values are passed in at
+/// call time (owned by the widget's `TextEditingController`s), not stored
+/// on the notifier.
+final class ServerFormNotifierProvider
+    extends $AsyncNotifierProvider<ServerFormNotifier, void> {
+  /// Add/edit form submit state — see `docs/state-management.md`'s "Feature:
+  /// settings / server management" section. Same shape as
+  /// `LoginNotifier`/`SignupNotifier`: form field values are passed in at
+  /// call time (owned by the widget's `TextEditingController`s), not stored
+  /// on the notifier.
+  ServerFormNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'serverFormNotifierProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$serverFormNotifierHash();
+
+  @$internal
+  @override
+  ServerFormNotifier create() => ServerFormNotifier();
+}
+
+String _$serverFormNotifierHash() =>
+    r'cf7997e7f50b57cef62d431f90a1949a55c80a8b';
+
+/// Add/edit form submit state — see `docs/state-management.md`'s "Feature:
+/// settings / server management" section. Same shape as
+/// `LoginNotifier`/`SignupNotifier`: form field values are passed in at
+/// call time (owned by the widget's `TextEditingController`s), not stored
+/// on the notifier.
+
+abstract class _$ServerFormNotifier extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

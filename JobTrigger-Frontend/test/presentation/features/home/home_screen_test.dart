@@ -1,0 +1,271 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:job_trigger/core/error/app_failure.dart';
+import 'package:job_trigger/core/error/result.dart';
+import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
+import 'package:job_trigger/domain/credential/jenkins_server.dart';
+import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
+import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifier.dart';
+import 'package:job_trigger/presentation/features/home/home_screen.dart';
+import 'package:job_trigger/presentation/features/home/reachability_watcher.dart';
+import 'package:job_trigger/data/credentials/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/credentials_notifier.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+import '../../../support/fake_jenkins_repository.dart';
+
+const _fakeServer = JenkinsServer(
+  id: 's1',
+  serverName: 'Test Server',
+  jenkinsURL: 'https://jenkins.test',
+  username: 'user',
+  secret: 'secret',
+);
+
+/// The saved-server list loaded, and empty: Home shows "no server" until
+/// the test sets one.
+class _NoSavedServers extends CredentialsNotifier {
+  @override
+  Future<List<JenkinsServer>> build() async => const [];
+}
+
+class _FakeJenkinsRepository extends FakeJenkinsRepository {
+  _FakeJenkinsRepository(this._jobs);
+
+  final List<JenkinsJob> _jobs;
+
+  @override
+  Future<Result<List<JenkinsJob>, AppFailure>> fetchJobTree() async =>
+      Ok(_jobs);
+
+  /// Home browses lazily (P11-05): the root, or one folder's own children.
+  @override
+  Future<Result<List<JenkinsJob>, AppFailure>> fetchFolder(
+    String? folderUrl,
+  ) async {
+    if (folderUrl == null) return Ok(_jobs);
+    List<JenkinsJob>? find(List<JenkinsJob> jobs) {
+      for (final job in jobs) {
+        if (job.url == folderUrl) return job.jobs ?? const [];
+        final nested = job.jobs == null ? null : find(job.jobs!);
+        if (nested != null) return nested;
+      }
+      return null;
+    }
+
+    return Ok(find(_jobs) ?? const []);
+  }
+}
+
+void main() {
+  setUp(() {
+    SharedPreferencesStorePlatform.instance =
+        InMemorySharedPreferencesStore.empty();
+  });
+
+  // P6-06: on Android, the system back gesture must walk up one breadcrumb
+  // level at a time (like a file browser) instead of immediately popping
+  // HomeScreen off the navigator, since folder drill-down is in-place
+  // widget state, not a route per folder.
+  testWidgets(
+    'system back navigates up one breadcrumb level instead of popping the route',
+    (tester) async {
+      const folder = JenkinsJob(
+        name: 'Projects',
+        url: 'https://jenkins.test/job/Projects/',
+        jobs: [],
+      );
+      final repo = _FakeJenkinsRepository([folder]);
+      final container = ProviderContainer(
+        overrides: [
+          jenkinsRepositoryProvider.overrideWithValue(repo),
+          // No 30 s timer left pending when the test ends.
+          reachabilityWatcherProvider.overrideWith((ref) {}),
+          credentialsNotifierProvider.overrideWith(_NoSavedServers.new),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            // A base route beneath HomeScreen, matching the real app
+            // (Home isn't the Navigator's root -- ToolSelection is) so
+            // `Navigator.canPop()` is structurally true and this test
+            // actually exercises `PopScope`'s interception, not just an
+            // unrelated "can't pop a single-route stack" no-op.
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (context) => const HomeScreen(),
+                      ),
+                    ),
+                    child: const Text('go'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(ElevatedButton));
+      // Not pumpAndSettle: with no server yet Home shows a spinner
+      // (P19-02), which animates forever.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // HomeScreen shows a loading state until one is active --
+      // set it only once mounted and watching, same auto-dispose pitfall
+      // as the breadcrumb notifier below.
+      await container
+          .read(activeServerNotifierProvider.notifier)
+          .setActiveServer(_fakeServer);
+      await tester.pumpAndSettle();
+
+      // Drill into the folder only once HomeScreen is mounted and watching
+      // the provider -- doing this beforehand would let the (non-keepAlive)
+      // notifier auto-dispose and reset before anything ever observes it,
+      // the same pitfall hit repeatedly with polling notifiers in Phase 5.
+      container
+          .read(folderBreadcrumbNotifierProvider.notifier)
+          .navigateInto(folder);
+      await tester.pumpAndSettle();
+
+      // PI-05: a live listing names when it was last updated.
+      expect(find.text('Updated just now'), findsOneWidget);
+
+      expect(container.read(folderBreadcrumbNotifierProvider), hasLength(1));
+
+      final navigatorState = tester.state<NavigatorState>(
+        find.byType(Navigator).first,
+      );
+      final popped = await navigatorState.maybePop();
+      await tester.pumpAndSettle();
+
+      expect(popped, isTrue);
+      expect(container.read(folderBreadcrumbNotifierProvider), isEmpty);
+      // The route itself is still there -- HomeScreen intercepted the pop.
+      expect(find.byType(HomeScreen), findsOneWidget);
+    },
+  );
+
+  testWidgets('system back at the root pops the route normally', (
+    tester,
+  ) async {
+    final repo = _FakeJenkinsRepository(const []);
+    final container = ProviderContainer(
+      overrides: [
+        jenkinsRepositoryProvider.overrideWithValue(repo),
+        // No 30 s timer left pending when the test ends.
+        reachabilityWatcherProvider.overrideWith((ref) {}),
+        credentialsNotifierProvider.overrideWith(_NoSavedServers.new),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (context) => const HomeScreen(),
+                    ),
+                  ),
+                  child: const Text('go'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(ElevatedButton));
+    // Not pumpAndSettle: with no server yet Home shows a spinner (P19-02),
+    // which animates forever.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await container
+        .read(activeServerNotifierProvider.notifier)
+        .setActiveServer(_fakeServer);
+    await tester.pumpAndSettle();
+
+    final navigatorState = tester.state<NavigatorState>(
+      find.byType(Navigator).first,
+    );
+    final popped = await navigatorState.maybePop();
+    await tester.pumpAndSettle();
+
+    expect(popped, isTrue);
+    // At the root breadcrumb, PopScope let the real pop through -- HomeScreen
+    // is gone and the base route is back.
+    expect(find.byType(HomeScreen), findsNothing);
+    expect(find.text('go'), findsOneWidget);
+  });
+
+  // P19-02: Home used to show "No Jenkins Server" while the saved servers
+  // were still being fetched, and only the real answer after a tab switch.
+  group('before a server is active', () {
+    Future<void> pumpHome(
+      WidgetTester tester,
+      Future<List<JenkinsServer>> Function() load,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            credentialsNotifierProvider.overrideWith(() => _Credentials(load)),
+          ],
+          child: const MaterialApp(home: HomeScreen()),
+        ),
+      );
+    }
+
+    testWidgets('shows a spinner, not "no server", while loading', (
+      tester,
+    ) async {
+      final pending = Completer<List<JenkinsServer>>();
+      await pumpHome(tester, () => pending.future);
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('No Jenkins Server'), findsNothing);
+    });
+
+    testWidgets('shows "no server" once the list loads empty', (tester) async {
+      await pumpHome(tester, () async => const []);
+      await tester.pumpAndSettle();
+
+      expect(find.text('No Jenkins Server'), findsOneWidget);
+    });
+
+    testWidgets('shows the error with Retry when the list fails to load', (
+      tester,
+    ) async {
+      await pumpHome(tester, () async => throw const NetworkFailure());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Retry Connection'), findsOneWidget);
+      expect(find.text('No Jenkins Server'), findsNothing);
+    });
+  });
+}
+
+class _Credentials extends CredentialsNotifier {
+  _Credentials(this._load);
+
+  final Future<List<JenkinsServer>> Function() _load;
+
+  @override
+  Future<List<JenkinsServer>> build() => _load();
+}

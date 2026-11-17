@@ -1,0 +1,30 @@
+name: Release manifest
+
+# release/tools.json is the one answer to "which tools does this build
+# support". Its copies in the app, the website and the backend must match it
+# (scripts/sync-tools.mjs). No dependencies to install: plain Node.
+
+on:
+  push:
+    branches: [ develop, flutter-migration, feature/** ]
+  pull_request:
+    branches: [ develop, feature/** ]
+
+permissions:
+  contents: read
+
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.x
+
+      - name: Manifest rules and copies
+        run: |
+          node --test scripts/*.test.mjs
+          node scripts/sync-tools.mjs --check

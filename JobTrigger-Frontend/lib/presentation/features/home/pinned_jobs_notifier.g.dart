@@ -1,0 +1,180 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'pinned_jobs_notifier.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Pins for the active server, in the order they were pinned. Rebuilt
+/// (and reloaded) whenever the active server changes: pins belong to a
+/// server, not the app.
+
+@ProviderFor(PinnedJobsNotifier)
+final pinnedJobsNotifierProvider = PinnedJobsNotifierProvider._();
+
+/// Pins for the active server, in the order they were pinned. Rebuilt
+/// (and reloaded) whenever the active server changes: pins belong to a
+/// server, not the app.
+final class PinnedJobsNotifierProvider
+    extends $NotifierProvider<PinnedJobsNotifier, List<PinnedJob>> {
+  /// Pins for the active server, in the order they were pinned. Rebuilt
+  /// (and reloaded) whenever the active server changes: pins belong to a
+  /// server, not the app.
+  PinnedJobsNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'pinnedJobsNotifierProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$pinnedJobsNotifierHash();
+
+  @$internal
+  @override
+  PinnedJobsNotifier create() => PinnedJobsNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<PinnedJob> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<PinnedJob>>(value),
+    );
+  }
+}
+
+String _$pinnedJobsNotifierHash() =>
+    r'102372fcdeef26b863d106e55f708e566e528c48';
+
+/// Pins for the active server, in the order they were pinned. Rebuilt
+/// (and reloaded) whenever the active server changes: pins belong to a
+/// server, not the app.
+
+abstract class _$PinnedJobsNotifier extends $Notifier<List<PinnedJob>> {
+  List<PinnedJob> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<List<PinnedJob>, List<PinnedJob>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<List<PinnedJob>, List<PinnedJob>>,
+              List<PinnedJob>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
+
+/// A pinned job's live status: the job, or null when it no longer exists
+/// (404), so Home can offer to remove the stale pin.
+///
+/// §14 / P13-25: uses the lean status fetch, not the full job detail — the
+/// tile only shows the ball colour and the last build's number.
+
+@ProviderFor(pinnedJobStatus)
+final pinnedJobStatusProvider = PinnedJobStatusFamily._();
+
+/// A pinned job's live status: the job, or null when it no longer exists
+/// (404), so Home can offer to remove the stale pin.
+///
+/// §14 / P13-25: uses the lean status fetch, not the full job detail — the
+/// tile only shows the ball colour and the last build's number.
+
+final class PinnedJobStatusProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<JenkinsJob?>,
+          JenkinsJob?,
+          FutureOr<JenkinsJob?>
+        >
+    with $FutureModifier<JenkinsJob?>, $FutureProvider<JenkinsJob?> {
+  /// A pinned job's live status: the job, or null when it no longer exists
+  /// (404), so Home can offer to remove the stale pin.
+  ///
+  /// §14 / P13-25: uses the lean status fetch, not the full job detail — the
+  /// tile only shows the ball colour and the last build's number.
+  PinnedJobStatusProvider._({
+    required PinnedJobStatusFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'pinnedJobStatusProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$pinnedJobStatusHash();
+
+  @override
+  String toString() {
+    return r'pinnedJobStatusProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<JenkinsJob?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<JenkinsJob?> create(Ref ref) {
+    final argument = this.argument as String;
+    return pinnedJobStatus(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PinnedJobStatusProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$pinnedJobStatusHash() => r'1a4326c9e6fefea867da3843a7f314ca928336ae';
+
+/// A pinned job's live status: the job, or null when it no longer exists
+/// (404), so Home can offer to remove the stale pin.
+///
+/// §14 / P13-25: uses the lean status fetch, not the full job detail — the
+/// tile only shows the ball colour and the last build's number.
+
+final class PinnedJobStatusFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<JenkinsJob?>, String> {
+  PinnedJobStatusFamily._()
+    : super(
+        retry: null,
+        name: r'pinnedJobStatusProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// A pinned job's live status: the job, or null when it no longer exists
+  /// (404), so Home can offer to remove the stale pin.
+  ///
+  /// §14 / P13-25: uses the lean status fetch, not the full job detail — the
+  /// tile only shows the ball colour and the last build's number.
+
+  PinnedJobStatusProvider call(String url) =>
+      PinnedJobStatusProvider._(argument: url, from: this);
+
+  @override
+  String toString() => r'pinnedJobStatusProvider';
+}

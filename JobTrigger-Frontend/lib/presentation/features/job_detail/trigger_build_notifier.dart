@@ -1,0 +1,96 @@
+import 'dart:async';
+
+import 'package:flutter/services.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../../core/error/result.dart';
+import '../../../data/repositories/jenkins_repository_impl.dart';
+import '../../../domain/jenkins/jenkins_job.dart';
+import '../../../domain/jenkins/parameter_file.dart';
+import '../../../domain/jenkins/parameter_values.dart';
+import '../../common_widgets/toast_controller.dart';
+import '../../../data/credentials/active_server_notifier.dart';
+import '../first_run/first_run_notifier.dart';
+import 'job_detail_notifier.dart';
+import 'queue_status_notifier.dart';
+import '../app_lock/app_lock_notifier.dart';
+
+part 'trigger_build_notifier.g.dart';
+
+/// Family-keyed by the job's URL. On success, refreshes `JobDetailNotifier`
+/// and shows a success toast — matching `JobDetailViewModel.triggerBuild`
+/// (Swift). P6-04: the old app's `UINotificationFeedbackGenerator`
+/// `.success`/`.error` calls (`HomeViewModel.swift:97/107`,
+/// `JobDetailViewModel.swift:147/203`) don't have a Flutter equivalent
+/// pair, so `mediumImpact`/`heavyImpact` stand in as a distinguishable
+/// success/error pair.
+@riverpod
+class TriggerBuildNotifier extends _$TriggerBuildNotifier {
+  @override
+  FutureOr<void> build(String jobUrl) {}
+
+  Future<void> trigger({
+    required JenkinsJob job,
+    Map<String, String> parameters = const {},
+    Map<String, ParameterFile> files = const {},
+  }) async {
+    // AUD-64/NEW-04: re-entrancy guard — don't trigger a second build while
+    // the first is in flight.
+    if (state.isLoading) return;
+    // US-JX-21: re-prompt when the user asked for it.
+    final allowed = await ref
+        .read(appLockNotifierProvider.notifier)
+        .confirmSensitive('Confirm to trigger ${job.label}');
+    if (!allowed || !ref.mounted) return;
+    state = const AsyncLoading();
+    final paramToken = ref.read(activeServerNotifierProvider)?.paramToken;
+
+    final result = await ref
+        .read(jenkinsRepositoryProvider)
+        .triggerBuild(
+          jobUrl,
+          isParameterized: job.isParameterized,
+          // Blank secrets are omitted so Jenkins keeps its stored default
+          // (US-JX-01) -- applied here so every trigger path (job detail,
+          // replay) gets it.
+          parameters: triggerParameters(job.parameterDefinitions, parameters),
+          files: triggerFiles(job.parameterDefinitions, files),
+          paramToken: paramToken,
+        );
+
+    switch (result) {
+      case Ok(:final value):
+        // PI-08: the first-run card's "trigger a build" step is done.
+        unawaited(ref.read(firstRunNotifierProvider.notifier).markTriggered());
+        await ref.read(jobDetailNotifierProvider(jobUrl).notifier).refresh();
+        if (value != null) {
+          // US-PIPE-01: start tracking the queue item Jenkins assigned
+          // this trigger, if it sent one back. Fire-and-forget — the UI
+          // reads progress via `queueStatusNotifierProvider`, not this
+          // notifier's own state.
+          unawaited(
+            ref.read(queueStatusNotifierProvider(jobUrl).notifier).track(value),
+          );
+        }
+        state = const AsyncData(null);
+        unawaited(HapticFeedback.mediumImpact());
+        ref
+            .read(toastControllerProvider)
+            .show(
+              type: ToastType.success,
+              title: 'Build Triggered',
+              message: 'A new build for ${job.label} has been requested.',
+            );
+      case Err(:final error):
+        state = AsyncError(error, StackTrace.current);
+        unawaited(HapticFeedback.heavyImpact());
+        ref
+            .read(toastControllerProvider)
+            .show(
+              type: ToastType.error,
+              title: 'Trigger Failed',
+              message: error.message,
+            );
+    }
+  }
+}

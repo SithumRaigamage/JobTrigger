@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Edit server — JobTrigger</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F8FAFC}
+a{color:#1D4ED8;text-decoration:none}a:hover{color:#1E40AF}
+</style>
+</helmet>
+<div style="position: relative; min-height: 100vh; background: #F8FAFC; color: #0F172A; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="servers" signed-in="{{ yes }}" hint-size="100%,72px"></dc-import>
+
+  <main style="flex: 1; width: 100%; max-width: 760px; margin: 0 auto; box-sizing: border-box; padding: 48px 20px 104px; display: flex; flex-direction: column; gap: 28px">
+    <a href="Servers.dc.html" style="align-self: flex-start; font-size: 14px; font-weight: 600">← My servers</a>
+    <div style="display: flex; align-items: center; gap: 14px">
+      <span style="width: 44px; height: 44px; border-radius: 12px; background: #D33833; color: #FFFFFF; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center">J</span>
+      <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.03em">Edit Acme production</h1>
+    </div>
+
+    <form style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); padding: 32px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <label for="name" style="font-size: 13px; font-weight: 600; color: #334155">Name</label>
+        <input id="name" type="text" value="Acme production" style="height: 50px; padding: 0 14px; background: #FFFFFF; border: 1px solid #94A3B8; border-radius: 12px; color: #0F172A; font: 400 16px Inter, sans-serif; outline: none">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <label for="url" style="font-size: 13px; font-weight: 600; color: #334155">Server URL</label>
+        <input id="url" type="url" spellcheck="false" value="https://ci.acme.dev" style="height: 50px; padding: 0 14px; background: #FFFFFF; border: 1px solid #94A3B8; border-radius: 12px; color: #0F172A; font: 400 15px 'JetBrains Mono', monospace; outline: none">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <label for="user" style="font-size: 13px; font-weight: 600; color: #334155">Username</label>
+        <input id="user" type="text" spellcheck="false" value="sam" style="height: 50px; padding: 0 14px; background: #FFFFFF; border: 1px solid #94A3B8; border-radius: 12px; color: #0F172A; font: 400 15px 'JetBrains Mono', monospace; outline: none">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <label for="token" style="font-size: 13px; font-weight: 600; color: #334155">API token</label>
+        <input id="token" type="password" autocomplete="off" aria-describedby="token-hint" placeholder="Leave blank to keep ••••a91f" style="height: 50px; padding: 0 14px; background: #F8FAFC; border: 1px dashed #94A3B8; border-radius: 12px; color: #0F172A; font: 400 15px 'JetBrains Mono', monospace; outline: none">
+        <span id="token-hint" style="font-size: 13px; color: #475569">Paste a new token only if you're rotating it.</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px">
+        <a href="Servers.dc.html" style="height: 52px; padding: 0 28px; border-radius: 14px; background: #2563EB; color: #FFFFFF; font-size: 16px; font-weight: 600; display: flex; align-items: center">Save changes</a>
+        <a href="Servers.dc.html" style="height: 52px; padding: 0 12px; color: #475569; font-size: 15px; font-weight: 600; display: flex; align-items: center">Cancel</a>
+      </div>
+    </form>
+
+    <section aria-labelledby="danger" style="background: #FFFFFF; border: 1px solid #FCA5A5; border-radius: 20px; padding: 24px 28px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between">
+      <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+        <h2 id="danger" style="margin: 0; font-size: 16px; font-weight: 700; color: #B91C1C">Delete this server</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #475569">It disappears from the app on every device. Jenkins itself isn't touched.</p>
+      </div>
+      <button type="button" onClick="{{ openConfirm }}" style="height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #B91C1C; background: #FFFFFF; color: #B91C1C; font: 600 14px Inter, sans-serif; cursor: pointer">Delete server</button>
+    </section>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+
+  <sc-if value="{{ confirming }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; background: rgba(11, 17, 32, 0.6); display: flex; align-items: flex-start; justify-content: center; padding: 200px 20px 20px">
+      <div role="dialog" aria-modal="true" aria-labelledby="dlg-title" style="width: 100%; max-width: 440px; box-sizing: border-box; background: #FFFFFF; border-radius: 20px; box-shadow: 0 24px 48px rgba(15, 23, 42, 0.25); padding: 28px; display: flex; flex-direction: column; gap: 16px">
+        <h2 id="dlg-title" style="margin: 0; font-size: 20px; font-weight: 700">Delete "Acme production"?</h2>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55; color: #475569">You'll need to add it again to use it in the app. This can't be undone.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end">
+          <button type="button" onClick="{{ closeConfirm }}" style="height: 48px; padding: 0 18px; border-radius: 12px; border: 0; background: #F1F5F9; color: #0F172A; font: 600 15px Inter, sans-serif; cursor: pointer">Keep it</button>
+          <a href="Servers.dc.html" style="height: 48px; padding: 0 18px; border-radius: 12px; background: #B91C1C; color: #FFFFFF; font-size: 15px; font-weight: 600; display: flex; align-items: center">Delete</a>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"showDialog":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { confirming: null }; }
+  renderVals() {
+    const confirming = this.state.confirming ?? (this.props.showDialog ?? false);
+    return {
+      yes: true,
+      confirming,
+      openConfirm: () => this.setState({ confirming: true }),
+      closeConfirm: () => this.setState({ confirming: false }),
+    };
+  }
+}
+</script>
+</body>
+</html>

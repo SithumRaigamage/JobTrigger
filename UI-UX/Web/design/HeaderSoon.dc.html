@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Site header (pre-launch)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<header style="width: 100%; background: rgba(11, 17, 32, 0.92); border-bottom: 1px solid #1F2A3D; font-family: Inter, system-ui, sans-serif; color: #F1F5F9">
+  <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; min-height: 72px; padding: 12px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 40px">
+    <a href="MainSoon.dc.html" style="text-decoration: none; display: flex; align-items: center; gap: 10px; color: #F1F5F9; font-size: 18px; font-weight: 800; letter-spacing: -0.02em">
+      <span style="width: 34px; height: 34px; border-radius: 10px; background: #2563EB; color: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+      </span>
+      JobTrigger
+    </a>
+    <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px 28px; font-size: 15px; font-weight: 500">
+      <a href="FeaturesSoon.dc.html" style="text-decoration: none; {{ nav.features }}">Features</a>
+      <a href="ToolsSoon.dc.html" style="text-decoration: none; {{ nav.tools }}">Integrations</a>
+      <a href="Security.dc.html" style="text-decoration: none; {{ nav.security }}">Security</a>
+      <a href="ChangelogSoon.dc.html" style="text-decoration: none; {{ nav.changelog }}">Changelog</a>
+      <a href="Support.dc.html" style="text-decoration: none; {{ nav.support }}">Support</a>
+    </nav>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+            <span style="padding: 4px 10px; border-radius: 999px; background: #1E293B; color: #CBD5E1; font-size: 12px; font-weight: 700">App coming soon</span>
+      <a href="SignIn.dc.html" style="text-decoration: none; height: 44px; padding: 0 18px; border-radius: 999px; background: #F1F5F9; color: #0B1120; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px">Set up servers
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"current":{"editor":"enum","options":["home","features","tools","security","changelog","support","legal"],"default":"home"},"$preview":{"width":1440,"height":72}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const current = this.props.current ?? 'home';
+    const style = (key) => key === current
+      ? 'padding: 10px 0; color: #FFFFFF; box-shadow: inset 0 -2px 0 #2563EB'
+      : 'padding: 10px 0; color: #CBD5E1';
+    return {
+      nav: {
+        features: style('features'), tools: style('tools'), security: style('security'),
+        changelog: style('changelog'), support: style('support'),
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

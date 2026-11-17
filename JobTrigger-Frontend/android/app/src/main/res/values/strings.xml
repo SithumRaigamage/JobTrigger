@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_title">Pinned jobs</string>
+    <string name="widget_empty">Pin jobs in JobTrigger</string>
+    <string name="widget_projects_title">Pinned projects</string>
+    <string name="widget_projects_empty">Pin projects in JobTrigger</string>
+    <string name="widget_projects_description">Your pinned SonarQube projects and their quality gate</string>
+    <string name="widget_projects_upgrade_hint">Pinned projects need Pro. Open JobTrigger to upgrade.</string>
+    <plurals name="widget_projects_locked_count">
+        <item quantity="one">%d pinned project</item>
+        <item quantity="other">%d pinned projects</item>
+    </plurals>
+    <string name="widget_updated">Updated %1$s</string>
+    <string name="widget_description">Your pinned Jenkins jobs at a glance</string>
+    <plurals name="widget_locked_count">
+        <item quantity="one">%d pinned job</item>
+        <item quantity="other">%d pinned jobs</item>
+    </plurals>
+    <string name="widget_locked_hint">Unlock JobTrigger to see them</string>
+    <string name="widget_upgrade_title">Upgrade to Pro</string>
+    <string name="widget_upgrade_hint">Pinned jobs need Pro. Open JobTrigger to upgrade.</string>
+</resources>

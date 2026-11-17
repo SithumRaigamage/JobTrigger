@@ -1,122 +1,130 @@
-# laTrigger Documentation Index
-## iOS Jenkins Build Trigger App
+# JobTrigger Documentation
 
-Welcome to the laTrigger project documentation. This folder contains all SDLC documents for the project.
-
----
-
-## 📚 Document Overview
-
-| # | Document | Description | Status |
-|---|----------|-------------|--------|
-| 01 | [Product Requirements](./01-product-requirements-document.md) | PRD with vision, goals, requirements | Draft |
-| 02 | [User Stories](./02-user-stories.md) | Jira-ready user stories with acceptance criteria | Draft |
-| 03 | [Technical Architecture](./03-technical-architecture.md) | System design, components, data models | Draft |
-| 04 | [Security Design](./04-security-design.md) | Threat model, security controls, compliance | Draft |
-| 05 | [Test Plan](./05-test-plan.md) | Test strategy, test cases, QA processes | Draft |
-| 06 | [Release Plan](./06-release-plan.md) | Release strategy, App Store submission | Draft |
-| 07 | [UX Design](./07-ux-design.md) | UI screens, design system, interactions | Draft |
-| 08 | [Monitoring & Analytics](./08-monitoring-analytics.md) | Crashlytics, analytics events, KPIs | Draft |
-| 09 | [Future Roadmap](./09-future-roadmap.md) | v1.x - v3.x feature roadmap | Draft |
+Complete reference for the JobTrigger Flutter + Node.js project.
 
 ---
 
-## 🎯 Quick Links
+## 🚀 Getting Started
 
-### For Product Managers
-- [Product Requirements Document](./01-product-requirements-document.md)
-- [User Stories](./02-user-stories.md)
-- [Future Roadmap](./09-future-roadmap.md)
-
-### For Developers
-- [Technical Architecture](./03-technical-architecture.md)
-- [Security Design](./04-security-design.md)
-- [Monitoring & Analytics](./08-monitoring-analytics.md)
-
-### For QA Engineers
-- [Test Plan](./05-test-plan.md)
-- [User Stories](./02-user-stories.md) (Acceptance Criteria)
-
-### For Designers
-- [UX Design](./07-ux-design.md)
-- [User Stories](./02-user-stories.md) (User flows)
-
-### For Release Managers
-- [Release Plan](./06-release-plan.md)
-- [Monitoring & Analytics](./08-monitoring-analytics.md)
+- **[Dev Setup Guide](./dev-setup.md)** — Start the backend against Atlas with `setup-dev.sh`
+- **[MongoDB Atlas Setup](./mongodb-cloud-setup.md)** — Create the dev cluster (the only database; no local MongoDB)
+- **[API Reference](./api-reference.md)** — All backend + Jenkins endpoints this app calls
 
 ---
 
-## 📋 SDLC Phases
+## 🏗️ Architecture & Design
 
+- **[Architecture Overview](./architecture.md)** — Layers, data flow, why Riverpod
+- **[Data Models](./data-models.md)** — Every model: Swift → Dart, old → new
+- **[State Management](./state-management.md)** — Riverpod provider structure per feature
+- **[Migration Strategy](./migration-strategy.md)** — Phased rollout, parity checklist, QA gates
+- **[Website Architecture](./web-architecture.md)** — `JobTrigger-Web/` (Next.js): stack, layers, the no-secrets-in-the-browser rule, conventions
+
+## 🗄️ Database
+
+- **[Database Migrations](./database-migrations.md)** — Schema, collections, migration scripts, cleanup
+
+## 🧪 Testing
+
+- **[Integration Testing](./integration-testing.md)** — Real end-to-end tests on a live simulator, via `integration_test` (not Playwright — see why)
+
+## 🔒 Quality & Security
+
+- **[Workspace Audit — 2026-09-29](./audit/2026-09-29-workspace-audit.md)** — Security, bug, UX, performance, and release findings (`AUD-01`…`AUD-41`) with severity and remediation status
+- **[Second audit remediation — Phase 13](../tasks/phase-13-audit-2-remediation.md)** — Record of the second audit (`AUD-42`…`AUD-66`, `P13-01`…`P13-27`): all 27 tasks fixed; password reset deferred (US-AUTH-08); AUD-66 token revocation confirmed by the owner 2026-11-08. Its audit documents (2026-10-20, 2026-10-22) were deleted once closed and remain in git history
+- **[Pipeline security controls](./deployment.md#pipeline-security-controls-p13-18-aud-59)** — What CI checks, and which checks block
+
+## 📊 Market
+
+- **[Competitive analysis — 2026-10-24](./market/competitive-analysis.md)** — Mobile CI/CD apps on the App Store and Google Play (Jenkins, GitHub Actions, multi-tool, SonarQube), feature matrix, where JobTrigger wins, risks, pricing and messaging recommendations, what to monitor
+
+## 💳 Subscriptions (proposal)
+
+- **[Subscription plan — 2026-11-12](./subscription/README.md)** — Workspace analysis, Free/Pro business model, technical design (backend plan checks, RevenueCat, app gates, website), stories (epic SUB) and Phase 20 tasks. Waiting for owner approval
+- **[Improvement plan — implemented 2026-11-16](./implemented/improvement-plan.md)** — Archived record (checked against the code): what was built, the pre-release emergency fixes (`tasks/phase-emergency.md`), the next-release items now delivered, and the owner actions still open
+
+## 🧭 Roadmap proposals (not promoted)
+
+- **[Future tools — 2026-11-16](./future-tools.md)** — Numbered catalogue of 164 tools (`T-001`…`T-164`): every epic doc, the backlog list and about 95 newly listed tools (deploy, mobile, security, testing, flags, incidents, data pipelines); proposed release order after SonarQube; tools not to add
+- **[Product improvements — 2026-11-16](./product-improvements.md)** — 156 improvements beyond new CI/CD tools (`IMP-01`…`IMP-156`): everyday use, alerts, logs, security, firewalled servers, platforms, accessibility, insights, AI, website, backend
+- **[Community plan — 2026-11-16](./community-plan.md)** — 157 community ideas beyond the student plan (`COM-01`…`COM-157`): fair access, learning, meetups, open source, feedback, trust, partnerships
+
+## 📦 Release
+
+- **[Deployment](./deployment.md)** — App Store / Play Store submission process, CI/CD tooling options, what's blocked on store accounts vs. code
+
+---
+
+## 🛠️ Development Guides
+
+- **[Dev Setup](./dev-setup.md)** — What `setup-dev.sh` does
+- **[MongoDB Cloud](./mongodb-cloud-setup.md)** — MongoDB Atlas configuration
+- **[CLAUDE.md](../CLAUDE.md)** — Project rules, conventions, tech stack decisions
+
+---
+
+## 📋 Project Status
+
+- **[Tasks & Phases](../tasks/README.md)** — **The status of record** (AUD-61): phase checklist, what's done. Other documents link here rather than restating status
+
+---
+
+## 🔍 Quick Navigation
+
+| Need | Read |
+|------|------|
+| How to start development | [Dev Setup](./dev-setup.md) |
+| Backend endpoints | [API Reference](./api-reference.md) |
+| App architecture | [Architecture](./architecture.md) |
+| Riverpod setup | [State Management](./state-management.md) |
+| Old → new models | [Data Models](./data-models.md) |
+| Migration timeline | [Migration Strategy](./migration-strategy.md) |
+| Database schema & migrations | [Database Migrations](./database-migrations.md) |
+| Known issues / audit findings | [Workspace Audit](./audit/2026-09-29-workspace-audit.md) |
+| User stories (all epics) | [User Stories](./user-stories/README.md) |
+| Store deployment & CI/CD | [Deployment](./deployment.md) |
+| Project rules | [CLAUDE.md](../CLAUDE.md) |
+| What's left to do | [Tasks](../tasks/README.md) |
+
+---
+
+## ⚡ Common Commands
+
+```bash
+# Seed the Atlas dev database and start the backend (Ctrl+C stops it)
+./setup-dev.sh
+
+# Build Flutter app
+cd JobTrigger-Frontend
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+
+# Run Flutter app
+flutter run -d "iPhone Air"
+
+# Run tests
+flutter test
+
+# Analyze code
+flutter analyze
 ```
-Phase 1: Discovery & Planning    → PRD, User Stories
-Phase 2: UX & Architecture       → UX Design, Technical Architecture
-Phase 3: MVP Development         → Implementation (Sprints 1-4)
-Phase 4: Security & Hardening    → Security Design implementation
-Phase 5: Testing & QA            → Test Plan execution
-Phase 6: Release                 → Release Plan execution
-Phase 7: Enhancements            → Future Roadmap
-```
 
 ---
 
-## 📅 Project Timeline
+## 🔐 Security Rules
 
-| Phase | Duration | Target Date | Documents |
-|-------|----------|-------------|-----------|
-| Discovery | 2 weeks | Feb 2026 | PRD, User Stories |
-| Design | 3 weeks | Mar 2026 | UX Design, Architecture |
-| MVP Build | 8 weeks | May 2026 | - |
-| Hardening | 2 weeks | May 2026 | Security implementation |
-| Testing | 3 weeks | Jun 2026 | Test Plan execution |
-| Release | 2 weeks | Jun 2026 | App Store submission |
+- ⛔ **Never read `.env` files** — they contain credentials
+- ⛔ **Never hardcode base URLs** — use `JobTrigger-Frontend/config/`
+- ✅ **Store tokens in secure storage** — `flutter_secure_storage` only
+- ✅ **Return `AppFailure` from repos** — never leak raw `DioException` to widgets
+
+See [CLAUDE.md](../CLAUDE.md) for full rules.
 
 ---
 
-## 🔄 Document Versioning
+## 📞 Support
 
-All documents follow this versioning scheme:
-- **Draft**: Initial version, under development
-- **Review**: Ready for stakeholder review
-- **Approved**: Signed off by stakeholders
-- **Final**: Published and implemented
-
----
-
-## ✅ Document Status
-
-### Ready for Review
-- [ ] Product Requirements Document
-- [ ] User Stories
-- [ ] Technical Architecture
-- [ ] Security Design
-- [ ] Test Plan
-- [ ] Release Plan
-- [ ] UX Design
-- [ ] Monitoring & Analytics
-- [ ] Future Roadmap
-
----
-
-## 📝 Contributing
-
-1. All documents are written in Markdown
-2. Use the provided templates for consistency
-3. Update the index when adding new documents
-4. Maintain version history in each document
-
----
-
-## 📞 Contacts
-
-| Role | Name | Email |
-|------|------|-------|
-| Product Owner | TBD | |
-| Tech Lead | TBD | |
-| Design Lead | TBD | |
-| QA Lead | TBD | |
-
----
-
-*Last updated: February 7, 2026*
+- Check the relevant doc above
+- Review [CLAUDE.md](../CLAUDE.md) for project conventions
+- Look at [API Reference](./api-reference.md) for endpoint questions
+- Check [Tasks](../tasks/README.md) for status & in-progress work

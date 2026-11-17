@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Create account</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#93C5FD;text-decoration:none}a:hover{color:#BFDBFE}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; padding: 56px 24px 40px; gap: 28px">
+
+  <a href="Login.dc.html" aria-label="Back to log in" style="width: 44px; height: 44px; margin-left: -10px; display: flex; align-items: center; justify-content: center; color: #CBD5E1">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+  </a>
+
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <h1 style="margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.02em">Create your account</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #94A3B8">Your Jenkins and GitHub credentials stay encrypted, tied to this account.</p>
+  </div>
+
+  <form style="display: flex; flex-direction: column; gap: 18px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label for="su-email" style="font-size: 13px; font-weight: 600; color: #CBD5E1">Email</label>
+      <input id="su-email" type="email" autocomplete="email" value="sam@acme.dev" style="height: 50px; padding: 0 14px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 12px; color: #F1F5F9; font: 400 16px Inter, sans-serif; outline: none">
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label for="su-password" style="font-size: 13px; font-weight: 600; color: #CBD5E1">Password</label>
+      <input id="su-password" type="password" autocomplete="new-password" value="correcthorse" aria-describedby="su-strength" style="height: 50px; padding: 0 14px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 12px; color: #F1F5F9; font: 400 16px Inter, sans-serif; outline: none">
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 2px" aria-hidden="true">
+        <span style="height: 4px; border-radius: 2px; background: #4ADE80"></span>
+        <span style="height: 4px; border-radius: 2px; background: #4ADE80"></span>
+        <span style="height: 4px; border-radius: 2px; background: #4ADE80"></span>
+        <span style="height: 4px; border-radius: 2px; background: #1F2A3D"></span>
+      </div>
+      <span id="su-strength" style="font-size: 13px; color: #86EFAC">Good — at least 8 characters</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label for="su-confirm" style="font-size: 13px; font-weight: 600; color: #CBD5E1">Confirm password</label>
+      <input id="su-confirm" type="password" autocomplete="new-password" value="correcthors" aria-invalid="true" aria-describedby="su-confirm-err" style="height: 50px; padding: 0 14px; background: #111A2B; border: 1px solid #F87171; border-radius: 12px; color: #F1F5F9; font: 400 16px Inter, sans-serif; outline: none">
+      <span id="su-confirm-err" style="font-size: 13px; color: #FCA5A5">Passwords don’t match.</span>
+    </div>
+  </form>
+
+  <div style="display: flex; flex-direction: column; gap: 14px; margin-top: auto">
+    <a href="ToolSelection.dc.html" style="height: 52px; border-radius: 14px; background: {{accent}}; color: #FFFFFF; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center">Create account</a>
+    <p style="margin: 0; text-align: center; font-size: 14px; color: #94A3B8">Already have an account? <a href="Login.dc.html" style="font-weight: 600">Log in</a></p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2563EB","options":["#2563EB","#7C3AED","#0F766E","#C2410C"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#2563EB' };
+  }
+}
+</script>
+</body>
+</html>

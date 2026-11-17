@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My servers — JobTrigger</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F8FAFC}
+a{color:#1D4ED8;text-decoration:none}a:hover{color:#1E40AF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F8FAFC; color: #0F172A; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="servers" signed-in="{{ yes }}" hint-size="100%,72px"></dc-import>
+
+  <main style="flex: 1; width: 100%; max-width: 1080px; margin: 0 auto; box-sizing: border-box; padding: 56px 20px 104px; display: flex; flex-direction: column; gap: 36px">
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <h1 style="margin: 0; font-size: 36px; font-weight: 800; letter-spacing: -0.03em">My servers</h1>
+        <p style="margin: 0; font-size: 15px; color: #475569">Changes here show up in the app the next time you open it.</p>
+      </div>
+      <a href="AddServer.dc.html" style="height: 48px; padding: 0 18px; border-radius: 12px; background: #2563EB; color: #FFFFFF; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Add server
+      </a>
+    </div>
+
+    <sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+      <div role="alert" style="padding: 18px 20px; border-radius: 14px; background: #FEE2E2; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between">
+        <span style="font-size: 15px; color: #B91C1C; font-weight: 600">Can't reach JobTrigger right now. Your servers are safe — try again in a moment.</span>
+        <button type="button" style="height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #94A3B8; background: #FFFFFF; color: #0F172A; font: 600 14px Inter, sans-serif; cursor: pointer">Try again</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
+      <section aria-labelledby="g-jenkins" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); overflow: hidden">
+        <h2 id="g-jenkins" style="margin: 0; padding: 18px 22px; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700">
+          <span style="width: 28px; height: 28px; border-radius: 8px; background: #D33833; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center">J</span>Jenkins
+        </h2>
+        <sc-for list="{{ jenkins }}" as="s" hint-placeholder-count="2">
+          <div style="{{ s.rowStyle }}">
+            <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 5px">
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 600">{{ s.name }}</h3>
+                <sc-if value="{{ s.active }}" hint-placeholder-val="{{ false }}">
+                  <span style="padding: 3px 10px; border-radius: 999px; background: #DCFCE7; color: #15803D; font-size: 12px; font-weight: 600">✓ Active</span>
+                </sc-if>
+              </div>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #334155; overflow-wrap: anywhere">{{ s.url }}</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #475569">{{ s.user }} · token {{ s.mask }}</span>
+            </div>
+            <div style="display: flex; gap: 8px">
+              <sc-if value="{{ s.inactive }}" hint-placeholder-val="{{ true }}">
+                <button type="button" onClick="{{ s.activate }}" style="height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid #94A3B8; background: #FFFFFF; color: #0F172A; font: 600 14px Inter, sans-serif; cursor: pointer">Make active</button>
+              </sc-if>
+              <a href="EditServer.dc.html" style="height: 44px; padding: 0 16px; border-radius: 12px; background: #F1F5F9; color: #0F172A; font-size: 14px; font-weight: 600; display: flex; align-items: center">Edit</a>
+            </div>
+          </div>
+        </sc-for>
+      </section>
+
+      <section aria-labelledby="g-github" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); overflow: hidden">
+        <h2 id="g-github" style="margin: 0; padding: 18px 22px; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700">
+          <span style="width: 28px; height: 28px; border-radius: 8px; background: #0F172A; color: #FFFFFF; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center">GH</span>GitHub
+        </h2>
+        <div style="padding: 18px 22px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center">
+          <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 5px">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+              <h3 style="margin: 0; font-size: 16px; font-weight: 600">Acme org</h3>
+              <span style="padding: 3px 10px; border-radius: 999px; background: #DCFCE7; color: #15803D; font-size: 12px; font-weight: 600">✓ Active</span>
+            </div>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #334155">@sam-acme</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #475569">token ••••Q7rM</span>
+          </div>
+          <a href="EditServer.dc.html" style="height: 44px; padding: 0 16px; border-radius: 12px; background: #F1F5F9; color: #0F172A; font-size: 14px; font-weight: 600; display: flex; align-items: center">Edit</a>
+        </div>
+      </section>
+
+      <section aria-labelledby="g-sonar" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); overflow: hidden">
+        <h2 id="g-sonar" style="margin: 0; padding: 18px 22px; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700">
+          <span style="width: 28px; height: 28px; border-radius: 8px; background: #126ED3; color: #FFFFFF; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center">SQ</span>SonarQube
+        </h2>
+        <div style="padding: 24px 22px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between">
+          <span style="font-size: 15px; color: #475569">No SonarQube server yet.</span>
+          <a href="AddServer.dc.html" style="height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #94A3B8; color: #0F172A; font-size: 14px; font-weight: 600; display: flex; align-items: center">Add SonarQube</a>
+        </div>
+      </section>
+    </sc-if>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["list","error"],"default":"list"},"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { active: 'prod' }; }
+  renderVals() {
+    const view = this.props.state ?? 'list';
+    const servers = [
+      { id: 'prod', name: 'Acme production', url: 'https://ci.acme.dev', user: 'sam', mask: '••••a91f' },
+      { id: 'lab', name: 'Home lab', url: 'https://jenkins.home.example:8443', user: 'admin', mask: '••••02cd' },
+    ];
+    const rowBase = 'padding: 18px 22px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center';
+    return {
+      yes: true,
+      isList: view === 'list',
+      isError: view === 'error',
+      jenkins: servers.map((s, i) => ({
+        ...s,
+        active: this.state.active === s.id,
+        inactive: this.state.active !== s.id,
+        rowStyle: rowBase + (i < servers.length - 1 ? '; border-bottom: 1px solid #E2E8F0' : ''),
+        activate: () => this.setState({ active: s.id }),
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

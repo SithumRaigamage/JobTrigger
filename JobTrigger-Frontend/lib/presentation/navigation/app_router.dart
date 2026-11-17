@@ -1,0 +1,589 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../domain/auth/auth_state.dart';
+import '../../domain/diagnostics/connection_diagnosis.dart';
+import '../../domain/github/github_job.dart';
+import '../../domain/github/github_repo.dart';
+import '../../domain/github/github_workflow.dart';
+import '../../domain/github/github_workflow_run.dart';
+import '../../domain/sonarqube/sonarqube_issue.dart';
+import '../../domain/sonarqube/sonarqube_project.dart';
+import '../../domain/jenkins/jenkins_build.dart';
+import '../../domain/jenkins/jenkins_job.dart';
+import '../features/app_info/app_info_screen.dart';
+import '../features/connectivity/connection_help_screen.dart';
+import '../features/connectivity/remote_access_guide_screen.dart';
+import '../features/auth/auth_notifier.dart';
+import '../features/auth/login_screen.dart';
+import '../features/auth/signup_screen.dart';
+import '../../core/theme/app_tokens.dart';
+import '../../core/theme/app_typography.dart';
+import '../common_widgets/pinned_footer_layout.dart';
+import '../features/build_detail/build_detail_screen.dart';
+import '../features/dashboard/dashboard_screen.dart';
+import '../features/build_log/build_log_screen.dart';
+import '../features/github/github_global_history_screen.dart';
+import '../features/github/github_job_log_screen.dart';
+import '../features/github/github_repo_screen.dart';
+import '../features/github/github_run_history_screen.dart';
+import '../features/github/github_run_detail_screen.dart';
+import '../features/github/github_runs_screen.dart';
+import '../features/sonarqube/sonarqube_analysis_screen.dart';
+import '../features/sonarqube/sonarqube_issue_screen.dart';
+import '../features/sonarqube/sonarqube_issues_screen.dart';
+import '../features/sonarqube/sonarqube_overview_screen.dart';
+import '../features/sonarqube/sonarqube_hotspots_screen.dart';
+import '../features/sonarqube/sonarqube_issue_search_screen.dart';
+import '../features/sonarqube/sonarqube_open_link_screen.dart';
+import '../../domain/sonarqube/sonarqube_links.dart';
+import '../features/sonarqube/sonarqube_my_issues_screen.dart';
+import '../features/sonarqube/sonarqube_server_screen.dart';
+import '../features/sonarqube/sonarqube_trends_screen.dart';
+import '../features/sonarqube/sonarqube_worst_files_screen.dart';
+import '../features/sonarqube/sonarqube_project_detail_screen.dart';
+import '../features/sonarqube/sonarqube_project_screen.dart';
+import '../features/github/github_workflow_list_screen.dart';
+import '../features/history/global_history_screen.dart';
+import '../features/history/job_history_screen.dart';
+import '../features/home/home_screen.dart';
+import '../features/job_detail/job_detail_screen.dart';
+import '../features/nodes/nodes_screen.dart';
+import '../features/open_link/open_link_screen.dart';
+import '../features/pairing/pair_screen.dart';
+import '../features/profile/profile_screen.dart';
+import '../features/queue/queue_screen.dart';
+import '../features/settings/settings_screen.dart';
+import '../features/tool_selection/active_tool_notifier.dart';
+import '../features/tool_selection/ci_tool.dart';
+import '../features/tool_selection/tool_selection_screen.dart';
+import 'app_routes.dart';
+import '../features/student/student_verification_screen.dart';
+import '../features/subscription/billing_availability.dart';
+import '../features/subscription/paywall_screen.dart';
+import '../features/subscription/subscription_screen.dart';
+import 'main_scaffold.dart';
+
+part 'app_router.g.dart';
+
+/// Notifies `go_router` to re-run `redirect` whenever `authNotifierProvider`
+/// changes, without recreating the `GoRouter` instance itself (which would
+/// blow away navigation history). Standard riverpod+go_router integration
+/// pattern — see the `refreshListenable` wiring below.
+class _AuthRefreshListenable extends ChangeNotifier {
+  _AuthRefreshListenable(Ref ref) {
+    ref.listen(authNotifierProvider, (previous, next) => notifyListeners());
+  }
+}
+
+const _authRoutes = {AppRoutes.login, AppRoutes.signup};
+
+const _billingRoutes = {
+  AppRoutes.subscription,
+  AppRoutes.paywall,
+  AppRoutes.studentVerification,
+};
+
+/// AUD-51: drill-down routes that only work with an in-app `extra` object.
+/// Deep linking is on for the whole router (US-JX-19), so any app or web
+/// page can fire `jobtrigger://app/home/job`; without its `extra` the
+/// builder's cast threw and the user got Flutter's error screen. Such a
+/// visit goes to Home instead. Only `/open` is meant to come from outside.
+final Map<String, bool Function(Object? extra)> _extraRoutes = {
+  AppRoutes.jobDetail: (extra) => extra is JenkinsJob,
+  AppRoutes.jobHistory: (extra) => extra is JenkinsJob,
+  AppRoutes.buildLog: (extra) => extra is JenkinsBuild,
+  AppRoutes.buildDetail: (extra) => extra is JenkinsBuild,
+  AppRoutes.githubWorkflows: (extra) => extra is GitHubRepo,
+  AppRoutes.githubRuns: (extra) => extra is (GitHubRepo, GitHubWorkflow),
+  AppRoutes.githubHistory: (extra) => extra is (GitHubRepo, GitHubWorkflow),
+  AppRoutes.githubRunDetail: (extra) =>
+      extra is (GitHubRepo, GitHubWorkflow, GitHubWorkflowRun),
+  AppRoutes.githubJobLog: (extra) => extra is (GitHubRepo, int, GitHubJob),
+  AppRoutes.sonarqubeProject: (extra) => extra is SonarQubeProject,
+  AppRoutes.sonarqubeIssues: (extra) => extra is SonarQubeProject,
+  AppRoutes.sonarqubeIssue: (extra) =>
+      extra is (SonarQubeProject, SonarQubeIssue),
+  AppRoutes.sonarqubeAnalyses: (extra) => extra is SonarQubeProject,
+  AppRoutes.sonarqubeHotspots: (extra) => extra is SonarQubeProject,
+  AppRoutes.sonarqubeTrends: (extra) => extra is SonarQubeProject,
+  AppRoutes.sonarqubeWorstFiles: (extra) => extra is SonarQubeProject,
+  AppRoutes.sonarqubeServer: (extra) => true,
+};
+
+/// Module-level (not inside `appRouter`) so identity is stable across
+/// provider rebuilds — required by `GlobalKey<NavigatorState>`. Used by
+/// drill-down detail routes (job detail, build log, job history, app info)
+/// so they always land on the app's root navigator — full-screen over
+/// [MainScaffold]'s tab bar — regardless of which tab pushed them (P6-14;
+/// see `docs/architecture.md`'s `main_scaffold.dart` mapping row and
+/// `tasks/backlog.md`'s now-promoted bottom-tab-bar item).
+final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
+/// Picks which screen occupies the shared "Home" tab slot based on the
+/// active CI tool -- kept as a router-wiring concern, not a conditional
+/// inside either screen: `HomeScreen` and `GitHubRepoScreen` stay fully
+/// independent widgets with no knowledge of each other or of `CiTool`.
+class _ToolAwareHomeScreen extends ConsumerWidget {
+  const _ToolAwareHomeScreen();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeTool = ref.watch(activeToolNotifierProvider);
+    return switch (activeTool) {
+      CiTool.githubActions => const GitHubRepoScreen(),
+      CiTool.sonarqube => const SonarQubeProjectScreen(),
+      _ => const HomeScreen(),
+    };
+  }
+}
+
+/// Same tool-aware routing as [_ToolAwareHomeScreen] for the History tab.
+/// GitHub Actions has no history epic yet (`GH-HIST`, `tasks/phase-8-github-actions.md`
+/// P8-24/25 are unimplemented) -- without this, the branch fell through to
+/// always rendering `GlobalHistoryScreen`, which reads Jenkins' own
+/// `activeServerNotifierProvider` and shows real Jenkins build history even
+/// while GitHub Actions is the selected tool, since the two "active"
+/// notifiers are intentionally independent (`NFR-SEC-03`) and neither knows
+/// about `activeToolNotifierProvider`.
+class _ToolAwareHistoryScreen extends ConsumerWidget {
+  const _ToolAwareHistoryScreen();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeTool = ref.watch(activeToolNotifierProvider);
+    return switch (activeTool) {
+      CiTool.githubActions => const GitHubGlobalHistoryScreen(isTab: true),
+      CiTool.sonarqube => const SonarQubeOverviewScreen(),
+      _ => const GlobalHistoryScreen(),
+    };
+  }
+}
+
+/// Shown for a path the app doesn't have, with a way back
+/// (`UI-UX/screens/23-unknown-route`).
+class _UnknownRouteScreen extends StatelessWidget {
+  const _UnknownRouteScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return _MessageScreen(
+      mark: Text(
+        '404',
+        style: AppTypography.mono(Theme.of(context).textTheme.displayMedium)
+            .copyWith(
+              fontWeight: FontWeight.w700,
+              color: AppTokens.of(context).textMuted.withValues(alpha: 0.4),
+            ),
+      ),
+      title: 'That link didn’t lead anywhere',
+      message:
+          'The build or page may have been deleted, or the link is from an '
+          'older version of the app.',
+      actionLabel: 'Go to Home',
+      onAction: () => context.go(AppRoutes.home),
+    );
+  }
+}
+
+/// A centred mark, heading and explanation with one way out pinned to the
+/// foot — the router's own dead ends.
+class _MessageScreen extends StatelessWidget {
+  const _MessageScreen({
+    required this.mark,
+    required this.title,
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+  });
+
+  final Widget mark;
+  final String title;
+  final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    return Scaffold(
+      body: SafeArea(
+        child: PinnedFooterLayout(
+          // The layout pins its body to the top; a proportional gap sets the
+          // message about a third of the way down, as the design does.
+          body: Padding(
+            padding: EdgeInsets.only(
+              top: MediaQuery.sizeOf(context).height * 0.24,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Decorative: the heading says what happened.
+                ExcludeSemantics(
+                  child: IconTheme.merge(
+                    data: IconThemeData(color: t.textMuted),
+                    child: mark,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Semantics(
+                  header: true,
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: textTheme.headlineSmall,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
+                ),
+              ],
+            ),
+          ),
+          footer: FilledButton(onPressed: onAction, child: Text(actionLabel)),
+        ),
+      ),
+    );
+  }
+}
+
+@Riverpod(keepAlive: true)
+GoRouter appRouter(Ref ref) {
+  final refreshListenable = _AuthRefreshListenable(ref);
+
+  /// A link opened while signed out (a pairing code from NR-03, or any
+  /// US-JX-19 deep link) is kept here and restored as soon as sign-in
+  /// completes; otherwise the scan did nothing on a fresh install.
+  String? pendingLocation;
+
+  return GoRouter(
+    initialLocation: AppRoutes.login,
+    refreshListenable: refreshListenable,
+    redirect: (context, state) {
+      final authAsync = ref.read(authNotifierProvider);
+      // Still rehydrating from secure storage (P2-04) — don't redirect yet;
+      // `refreshListenable` fires again once this resolves.
+      if (authAsync.isLoading) return null;
+
+      final isAuthenticated = authAsync.value is Authenticated;
+      final onAuthRoute = _authRoutes.contains(state.matchedLocation);
+
+      if (isAuthenticated && onAuthRoute) {
+        final target = pendingLocation;
+        pendingLocation = null;
+        return target ?? AppRoutes.toolSelection;
+      }
+      if (!isAuthenticated && !onAuthRoute) {
+        pendingLocation = state.uri.toString();
+        return AppRoutes.login;
+      }
+      // Phase 20: no subscription UI unless billing is on for this build
+      // and account, so a default build is exactly as before.
+      if (_billingRoutes.contains(state.matchedLocation) &&
+          !ref.read(billingAvailableProvider)) {
+        return AppRoutes.home;
+      }
+      // US-SQ-LINK-02: `jobtrigger://app/sonarqube/project?key=KEY` has no
+      // in-app `extra`; a valid key goes to the screen that looks the
+      // project up on the user's own credential. An invalid one falls
+      // through to the guard below and lands on Home (AUD-51).
+      if (state.matchedLocation == AppRoutes.sonarqubeProject &&
+          state.extra == null) {
+        final key = state.uri.queryParameters['key'];
+        if (sonarQubeLinkKeyIsValid(key)) {
+          return Uri(
+            path: AppRoutes.sonarqubeOpenLink,
+            queryParameters: {'key': key},
+          ).toString();
+        }
+      }
+      final acceptsExtra = _extraRoutes[state.matchedLocation];
+      if (acceptsExtra != null && !acceptsExtra(state.extra)) {
+        return AppRoutes.home;
+      }
+      return null;
+    },
+    // AUD-51: an unknown path (say, from a stale or mistyped link).
+    errorBuilder: (context, state) => const _UnknownRouteScreen(),
+    navigatorKey: _rootNavigatorKey,
+    routes: [
+      GoRoute(
+        path: AppRoutes.login,
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.signup,
+        builder: (context, state) => const SignupScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.toolSelection,
+        builder: (context, state) => const ToolSelectionScreen(),
+      ),
+      // Drill-down detail routes: pinned to the root navigator so they
+      // always render full-screen over MainScaffold's tab bar, regardless
+      // of which branch/tab pushed them (P6-14). Without this, a route
+      // nested inside one branch's own subtree would force go_router to
+      // re-resolve into that branch on push, silently flipping the active
+      // tab — e.g. pushing buildLog from the History tab would jump the
+      // tab bar to Home if buildLog lived under Home's branch.
+      GoRoute(
+        path: AppRoutes.jobDetail,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            JobDetailScreen(job: state.extra! as JenkinsJob),
+      ),
+      GoRoute(
+        path: AppRoutes.buildLog,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            BuildLogScreen(jenkinsBuild: state.extra! as JenkinsBuild),
+      ),
+      GoRoute(
+        path: AppRoutes.buildDetail,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            BuildDetailScreen(jenkinsBuild: state.extra! as JenkinsBuild),
+      ),
+      GoRoute(
+        path: AppRoutes.jobHistory,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            JobHistoryScreen(job: state.extra! as JenkinsJob),
+      ),
+      GoRoute(
+        path: AppRoutes.pair,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            PairScreen(query: state.uri.queryParameters),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeServer,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SonarQubeServerScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeWorstFiles,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => SonarQubeWorstFilesScreen(
+          project: state.extra! as SonarQubeProject,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeTrends,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            SonarQubeTrendsScreen(project: state.extra! as SonarQubeProject),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeHotspots,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            SonarQubeHotspotsScreen(project: state.extra! as SonarQubeProject),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeMyIssues,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SonarQubeMyIssuesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeOpenLink,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => SonarQubeOpenLinkScreen(
+          projectKey: state.uri.queryParameters['key'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeIssueSearch,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SonarQubeIssueSearchScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.dashboard,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.openLink,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => OpenLinkScreen(
+          link: state.uri.queryParameters['url'] ?? '',
+          serverId: state.uri.queryParameters['server'],
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.nodes,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const NodesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.queue,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const QueueScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.appInfo,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AppInfoScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.connectionHelp,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => ConnectionHelpScreen(
+          diagnosis: state.extra is ConnectionDiagnosis
+              ? state.extra as ConnectionDiagnosis
+              : null,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.remoteAccessGuide,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const RemoteAccessGuideScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.subscription,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SubscriptionScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentVerification,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const StudentVerificationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.paywall,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            PaywallScreen(reason: state.uri.queryParameters['reason']),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeProject,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => SonarQubeProjectDetailScreen(
+          project: state.extra! as SonarQubeProject,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeIssue,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final (project, issue) =
+              state.extra! as (SonarQubeProject, SonarQubeIssue);
+          return SonarQubeIssueScreen(project: project, issue: issue);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeAnalyses,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            SonarQubeAnalysisScreen(project: state.extra! as SonarQubeProject),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeIssues,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            SonarQubeIssuesScreen(project: state.extra! as SonarQubeProject),
+      ),
+      GoRoute(
+        path: AppRoutes.githubWorkflows,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            GitHubWorkflowListScreen(repo: state.extra! as GitHubRepo),
+      ),
+      GoRoute(
+        path: AppRoutes.githubRuns,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final (repo, workflow) = state.extra! as (GitHubRepo, GitHubWorkflow);
+          return GitHubRunsScreen(repo: repo, workflow: workflow);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.githubGlobalHistory,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const GitHubGlobalHistoryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.githubHistory,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final (repo, workflow) = state.extra! as (GitHubRepo, GitHubWorkflow);
+          return GitHubRunHistoryScreen(repo: repo, workflow: workflow);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.githubJobLog,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final (repo, runId, job) =
+              state.extra! as (GitHubRepo, int, GitHubJob);
+          return GitHubJobLogScreen(repo: repo, runId: runId, job: job);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.githubRunDetail,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final (repo, workflow, run) =
+              state.extra! as (GitHubRepo, GitHubWorkflow, GitHubWorkflowRun);
+          return GitHubRunDetailScreen(
+            repo: repo,
+            workflow: workflow,
+            run: run,
+          );
+        },
+      ),
+      // Persistent bottom tab bar (P6-14) — Home/History/Settings/Profile.
+      // See main_scaffold.dart.
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) => Consumer(
+          builder: (context, ref, _) => MainScaffold(
+            navigationShell: navigationShell,
+            // SonarQube has no run history; its second tab is an overview.
+            overviewTab:
+                ref.watch(activeToolNotifierProvider) == CiTool.sonarqube,
+          ),
+        ),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.home,
+                builder: (context, state) => const _ToolAwareHomeScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.globalHistory,
+                builder: (context, state) => const _ToolAwareHistoryScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.settings,
+                builder: (context, state) => const SettingsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.profile,
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  );
+}

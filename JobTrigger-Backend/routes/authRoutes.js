@@ -1,0 +1,33 @@
+const express = require('express');
+const router = express.Router();
+const authController = require('../controllers/authController');
+const passwordResetController = require('../controllers/passwordResetController');
+const auth = require('../middleware/auth');
+const {
+  loginEmailLimiter,
+  loginLimiter,
+  passwordResetConfirmLimiter,
+  passwordResetEmailLimiter,
+  passwordResetLimiter,
+  refreshLimiter,
+  signupLimiter,
+} = require('../middleware/rateLimit');
+
+router.post('/signup', signupLimiter, authController.signup);
+// Per IP (AUD-05) and per account (AUD-55).
+router.post('/login', loginLimiter, loginEmailLimiter, authController.login);
+router.post('/refresh', refreshLimiter, authController.refresh);
+router.post('/logout-all', auth, authController.logoutAll);
+// AUD-48. Both re-check the current password, and wrong guesses share the
+// login limiter's failure budget.
+router.post('/password', auth, loginLimiter, authController.changePassword);
+// Re-checks the password and changes nothing. Wrong guesses share the login
+// limiter with the two routes above.
+router.post('/verify-password', auth, loginLimiter, authController.verifyPassword);
+router.delete('/account', auth, loginLimiter, authController.deleteAccount);
+// US-AUTH-08: forgotten password, by email. Public by design.
+router.post('/password-reset/request', passwordResetLimiter, passwordResetEmailLimiter,
+  passwordResetController.request);
+router.post('/password-reset/confirm', passwordResetConfirmLimiter, passwordResetController.confirm);
+
+module.exports = router;

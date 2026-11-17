@@ -1,0 +1,85 @@
+name: Security - Secrets, Dependencies, Image
+
+# AUD-59: the controls the pipeline was missing. Each scanner is a pinned
+# release binary verified against its published checksum, so no third-party
+# action code runs with this workflow's token. Weekly too, because new
+# advisories land against code that hasn't changed.
+on:
+  push:
+    branches: [ develop, flutter-migration, feature/** ]
+  pull_request:
+    branches: [ develop, feature/** ]
+  schedule:
+    - cron: '17 4 * * 1'
+
+permissions:
+  contents: read
+
+env:
+  GITLEAKS_VERSION: 8.30.1
+  OSV_SCANNER_VERSION: 2.7.0
+  TRIVY_VERSION: 0.76.0
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # Every commit, not just the tip.
+
+      - name: Install gitleaks
+        run: |
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfLO "$base/$archive"
+          curl -sSfL "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt" | grep " $archive\$" | sha256sum -c -
+          tar xzf "$archive" gitleaks
+
+      # Reviewed historical findings are listed, with reasons, in
+      # .gitleaksignore. --redact keeps any secret out of the log.
+      - name: Scan history for secrets
+        run: ./gitleaks git --redact --no-banner --exit-code 1 .
+
+  dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install osv-scanner
+        run: |
+          base="https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}"
+          curl -sSfLO "$base/osv-scanner_linux_amd64"
+          curl -sSfL "$base/osv-scanner_SHA256SUMS" | grep " osv-scanner_linux_amd64\$" | sha256sum -c -
+          chmod +x osv-scanner_linux_amd64
+
+      # npm audit already gates the backend (nodejs-test.yml); this is the
+      # only check on the Flutter app's pub packages.
+      - name: Scan lockfiles for known vulnerabilities
+        run: |
+          ./osv-scanner_linux_amd64 scan source \
+            -L JobTrigger-Frontend/pubspec.lock \
+            -L JobTrigger-Backend/package-lock.json
+
+  backend-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build the backend image
+        run: docker build -t jobtrigger-backend:ci JobTrigger-Backend
+
+      - name: Install Trivy
+        run: |
+          base="https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}"
+          archive="trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          curl -sSfLO "$base/$archive"
+          curl -sSfL "$base/trivy_${TRIVY_VERSION}_checksums.txt" | grep " $archive\$" | sha256sum -c -
+          tar xzf "$archive" trivy
+
+      # High and critical issues with a fix available fail the build; the
+      # base image's unfixable ones would only be noise here.
+      - name: Scan the image
+        run: |
+          ./trivy image --scanners vuln,secret --severity HIGH,CRITICAL \
+            --ignore-unfixed --exit-code 1 --no-progress jobtrigger-backend:ci

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Site footer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#D9D7D0;text-decoration:none}a:hover{color:#FF5A1F}
+</style>
+</helmet>
+<footer style="width: 100%; background: #111111; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #F6F5F1">
+  <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 64px 20px 32px; display: flex; flex-direction: column; gap: 48px">
+    <div style="display: flex; flex-wrap: wrap; gap: 40px">
+      <div style="flex: 2 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 40px; line-height: 1; font-weight: 800; letter-spacing: -0.03em">JobTrigger<span style="color: #FF5A1F">.</span></span>
+        <p style="margin: 0; max-width: 320px; font-size: 15px; line-height: 1.6; color: #D9D7D0">CI builds from your phone. Jenkins, GitHub Actions, SonarQube.</p>
+      </div>
+      <nav aria-label="Product" style="flex: 1 1 150px; display: flex; flex-direction: column; gap: 12px; font-size: 15px">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A8A69F">PRODUCT</span>
+        <a href="Features.dc.html">Features</a>
+        <a href="Tools.dc.html">Supported tools</a>
+        <a href="Changelog.dc.html">What's new</a>
+        <a href="Main.dc.html#download">Download</a>
+      </nav>
+      <nav aria-label="Trust" style="flex: 1 1 150px; display: flex; flex-direction: column; gap: 12px; font-size: 15px">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A8A69F">TRUST</span>
+        <a href="Security.dc.html">Security</a>
+        <a href="Privacy.dc.html">Privacy policy</a>
+        <a href="Privacy.dc.html">Terms of use</a>
+      </nav>
+      <nav aria-label="Help" style="flex: 1 1 150px; display: flex; flex-direction: column; gap: 12px; font-size: 15px">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A8A69F">HELP</span>
+        <a href="Support.dc.html">Support</a>
+        <a href="Tools.dc.html#request">Request a tool</a>
+        <a href="SignIn.dc.html">Set up servers</a>
+      </nav>
+    </div>
+    <div style="border-top: 1px solid #3D3D3A; padding-top: 20px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A8A69F">
+      <span>© 2026 JOBTRIGGER</span>
+      <span>Jenkins, GitHub and SonarQube are trademarks of their respective owners.</span>
+    </div>
+  </div>
+</footer>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":360}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

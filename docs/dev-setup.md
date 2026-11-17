@@ -1,0 +1,285 @@
+# Development Setup Guide
+
+## 🚀 Quick Start Scripts
+
+### `setup-dev.sh` — Start Development Environment
+
+The database is **MongoDB Atlas** (Phase 17); there is no local MongoDB.
+Set up the dev cluster once with [MongoDB Atlas Setup](./mongodb-cloud-setup.md).
+
+**What it does:**
+- ✅ Checks `JobTrigger-Backend/.env` has an Atlas `MONGODB_URI` (it never
+  prints it: the string holds the database password)
+- ✅ Seeds the Atlas dev database with
+  `JobTrigger-Backend/scripts/setup-migrations.js`: AppInfo, a dev user
+  (`developer@jobtrigger.app` / `SecurePassword123!`) and sample Jenkins
+  credentials (see [Database Migrations](./database-migrations.md)). Safe to
+  repeat: an existing user or server is kept.
+  - That password is published here, so the seed refuses
+    `NODE_ENV=production` and any URI that names production — `prod` in its
+    user, cluster, database or `appName` (AUD-58, P17-04). Seed only your dev
+    cluster.
+  - `SEED_REMOTE=false ./setup-dev.sh` skips seeding.
+- ✅ Starts the Node.js backend on `http://127.0.0.1:5001` in watch mode
+  (restarts on file changes); `Ctrl+C` stops it
+
+**Run it:**
+```bash
+./setup-dev.sh
+```
+
+**What you'll see** (shortened):
+```
+🚀 JobTrigger Development Setup
+ℹ️  Database: MongoDB Atlas (docs/mongodb-cloud-setup.md)
+▶ STEP: Checking the Atlas connection string
+✅ MONGODB_URI found in JobTrigger-Backend/.env
+▶ STEP: Seeding the Atlas dev database
+✅ Development user created: developer@jobtrigger.app
+✅ Seeding completed
+🚀 Starting Backend (Node.js)
+{"level":"info","time":"…","msg":"server.mongo_connected"}
+{"level":"info","time":"…","msg":"server.listening","port":5001}
+```
+
+---
+
+## 🔄 Full Workflow
+
+### Terminal 1: Backend + Database
+
+```bash
+# Seed the Atlas dev database and start the backend
+./setup-dev.sh
+
+# Keep this running
+# Backend listens on http://127.0.0.1:5001
+```
+
+### Terminal 2: Flutter App
+
+```bash
+cd JobTrigger-Frontend
+
+# Run on iOS simulator — quote device names that contain spaces
+flutter run --dart-define-from-file=config/dev.json -d "iPhone Air"
+
+# Or choose interactively
+flutter run
+```
+
+### Terminal 2b: Website (Optional)
+
+The Next.js site in `JobTrigger-Web/` (Phase 15). Node 24; see its
+[README](../JobTrigger-Web/README.md) for environment variables.
+
+```bash
+cd JobTrigger-Web
+npm install          # first time
+npm run dev:portal   # http://localhost:3000, portal on (see below)
+npm run dev          # marketing pages only: the portal shows "isn't available"
+npm run check        # before committing: format, lint, types, tests, build
+```
+
+#### Use the portal locally
+
+The portal (sign in, **My servers**, add and edit servers, account) talks
+to the **backend**, never to the database: browser → website → backend on
+`:5001` → MongoDB Atlas. With the backend running (Terminal 1):
+
+```bash
+cd JobTrigger-Web
+npm run dev:portal
+```
+
+Open <http://localhost:3000/sign-in> and sign in with the seeded dev
+account (`developer@jobtrigger.app` / `SecurePassword123!`) or your own.
+Anything you add appears in the app too: both read the same Atlas data.
+
+`dev:portal` fills the two portal settings unless your shell already sets
+them:
+
+| Setting | Default | Note |
+| --- | --- | --- |
+| `JOBTRIGGER_BACKEND_URL` | `http://127.0.0.1:5001` | The local backend |
+| `SESSION_SECRET` | New random value each start | Never printed or saved. A new one means signing in again after a restart; set your own to stay signed in |
+
+Other `next dev` options pass through: `npm run dev:portal -- -p 3001`.
+
+Under `next dev` the browser console shows "Content Security Policy"
+messages about inline styles. They come from Next.js's own error pop-up,
+which injects styles without the CSP nonce; the site's code isn't
+involved, and production builds don't include it. Next's dev toolbar is
+turned off (`devIndicators: false`) for the same reason: unstyled, it
+covered the logo.
+
+**Deployed portal (Vercel):** it needs the backend at a public `https://`
+address (`docs/deployment.md`, "Website"). Atlas doesn't change that: the
+website reaches the database only through the backend.
+
+### Terminal 3: Seed Data / Testing (Optional)
+
+```bash
+# Seed a new test account
+curl -X POST http://localhost:5001/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"custom@test.dev","password":"password123"}'
+
+# Check backend health
+curl http://localhost:5001/api/appinfo
+```
+
+---
+
+## 🔍 Scanning the code with a local SonarQube
+
+`scripts/sonar-scan.sh` scans this repo with your own SonarQube so it appears
+as the project `JobTrigger` at <http://localhost:9000>. This is the repo's
+own code-quality check; it is separate from the in-app SonarQube feature,
+which is about connecting the app to a SonarQube server.
+
+**Prerequisites:** `brew install sonar-scanner`, a SonarQube running on
+`localhost:9000`, and a user token (SonarQube → avatar → My Account →
+Security → Generate Tokens → *User Token*).
+
+Put the token where the script can find it, either in the git-ignored `.env`
+at the repo root (or `JobTrigger-Backend/.env`) as one line:
+
+```
+SONAR_TOKEN=<your token>
+```
+
+or exported in your shell. Then run:
+
+```bash
+scripts/sonar-scan.sh
+```
+
+Only the `SONAR_TOKEN` line is read from `.env`; the file is never loaded as
+a whole, so its other values stay out of the scan.
+
+The script checks the server and token, scans using `sonar-project.properties`
+for sources and exclusions (so there is one definition; the SonarCloud key and
+organization in that file are left alone), waits for SonarQube to finish
+processing, then prints the dashboard link and quality gate result.
+
+Optional: `WITH_COVERAGE=1` runs the backend tests with coverage first,
+`SONAR_PROJECT_KEY` / `SONAR_PROJECT_NAME` change how the project is listed,
+and `SONAR_HOST_URL` points at a different SonarQube. The Flutter app is
+scanned for size and duplication only: SonarQube Community has no Dart
+analyzer, so Dart gets no language rules.
+
+## 📱 Running on a Physical iPhone
+
+See **[IPHONE.md](../IPHONE.md)** in the repository root: the phone setup,
+`scripts/run-on-iphone.sh` (detects this Mac's Wi-Fi IP, writes the
+git-ignored `config/device.json`, checks the backend and runs the app), and
+how to reach a Jenkins running on this Mac from the phone.
+
+---
+
+## 📋 Environment Variables
+
+**`JobTrigger-Backend/.env`** controls backend behavior:
+
+```env
+# MongoDB Atlas dev cluster (docs/mongodb-cloud-setup.md)
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.<id>.mongodb.net/jobtrigger
+
+# Server port
+PORT=5001
+
+# JWT secret for auth tokens
+JWT_SECRET=supersecretjwtkey_123456
+
+# Required (AUD-03): encrypts stored Jenkins/GitHub/SonarQube secrets.
+# Base64 of 32 random bytes; generate with:
+#   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+# Keep it stable: rows encrypted with it can't be read without it.
+CREDENTIALS_ENCRYPTION_KEY=<generated value>
+
+# Optional: browser origins allowed by CORS, comma-separated. Leave unset
+# for the mobile app, which sends no Origin and needs no CORS.
+# CORS_ORIGINS=https://admin.example.com
+
+# Optional (AUD-05): failed logins per IP per 15 min (default 10), and
+# signups per IP per hour (default 5). Behind a reverse proxy or load
+# balancer, TRUST_PROXY is the number of proxy hops (e.g. 1), so limits
+# apply to the client's IP rather than the proxy's. Only a whole number
+# (1-99) is accepted; anything else stops the server at startup (AUD-44).
+# LOGIN_RATE_LIMIT=10
+# Failed logins per account per 15 min, from any address (AUD-55).
+# LOGIN_EMAIL_RATE_LIMIT=10
+# SIGNUP_RATE_LIMIT=5
+# TRUST_PROXY=1
+```
+
+`JWT_SECRET`, `MONGODB_URI`, and `CREDENTIALS_ENCRYPTION_KEY` are
+required: without any of them, the server
+prints `Missing required configuration: …` and exits instead of starting
+(AUD-25).
+
+> ⚠️ Never commit `.env` to git — credentials stay private
+
+---
+
+## 🛑 Stopping Services
+
+Press `Ctrl+C` in the backend terminal. The Atlas cluster keeps running in
+the cloud; there is nothing local to stop. Start again with
+`./setup-dev.sh`.
+
+---
+
+## ✅ Verify Everything Works
+
+1. **Backend running:**
+   ```bash
+   curl http://localhost:5001/api/appinfo
+   ```
+   Should return app info JSON ✅
+
+2. **Database seeded:**
+   ```bash
+   curl -X POST http://localhost:5001/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"developer@jobtrigger.app","password":"SecurePassword123!"}'
+   ```
+   Should return user + token ✅
+
+3. **App running:**
+   - See login screen on iOS simulator ✅
+   - "Remember me" checkbox visible ✅
+   - Can login with the dev credentials above ✅
+
+---
+
+## 🆘 Troubleshooting
+
+**"Could not connect to MongoDB"** (`server.mongo_connect_failed`)
+- The log line's `hint` says what to check: the Atlas database user, the IP
+  allow list, DNS, or a paused cluster
+- Full table: [MongoDB Atlas Setup](./mongodb-cloud-setup.md#7-troubleshooting)
+
+**"Server won't start"**
+- Check port 5001 is free: `lsof -i :5001`
+- Kill any existing process: `kill -9 <PID>`
+- Try again: `./setup-dev.sh`
+
+**"Seeding refused"**
+- `names production`: the URI has `prod` in its user, cluster, database or
+  `appName`. Point `MONGODB_URI` at the dev cluster
+- `NODE_ENV=production` is set in your shell: unset it
+
+**"Flutter app won't connect to backend"**
+- Ensure backend URL in `JobTrigger-Frontend/config/dev.json` is `http://127.0.0.1:5001`
+- Backend must be running
+- Check phone/simulator can reach localhost
+
+---
+
+## 📚 Related Docs
+
+- [MongoDB Cloud Setup](./mongodb-cloud-setup.md) — Detailed Atlas configuration
+- [API Reference](./api-reference.md) — Backend + Jenkins endpoints
+- [Architecture](./architecture.md) — System design

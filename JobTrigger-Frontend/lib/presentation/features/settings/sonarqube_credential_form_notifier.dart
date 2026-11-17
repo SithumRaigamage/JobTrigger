@@ -1,0 +1,101 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../../core/error/result.dart';
+import '../../../data/repositories/sonarqube_credentials_repository_impl.dart';
+import '../../../domain/auth/auth_validation.dart';
+import '../../../domain/credential/sonarqube_url.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../../data/credentials/sonarqube_credentials_notifier.dart';
+
+import '../subscription/plan_gate.dart';
+import '../tool_selection/ci_tool.dart';
+
+part 'sonarqube_credential_form_notifier.g.dart';
+
+/// Add/edit form submit state — mirrors `GitHubCredentialFormNotifier`'s
+/// shape exactly, including setting a newly-saved `isDefault: true`
+/// credential as active immediately (not just flagging it and hoping a
+/// future rehydrate picks it up — the fix `GitHubCredentialFormNotifier`
+/// needed after the fact, built in here from day one). Form field values
+/// are passed in at call time (owned by the widget's `TextEditingController`s),
+/// not stored on the notifier.
+@riverpod
+class SonarQubeCredentialFormNotifier
+    extends _$SonarQubeCredentialFormNotifier {
+  @override
+  FutureOr<void> build() {}
+
+  /// [id] is null when adding a new credential, non-null when editing one.
+  /// [needsReentry] is true when the stored token could not be decrypted
+  /// (AUD-63) — see `SonarQubeCredential.needsReentry`.
+  Future<void> save({
+    String? id,
+    required String label,
+    required String baseUrl,
+    required String secret,
+    String? defaultOrganization,
+    required bool isDefault,
+    bool needsReentry = false,
+  }) async {
+    // AUD-63: the stored token couldn't be decrypted, so there is nothing
+    // to keep — the user has to type it again. Sending an empty token
+    // would overwrite the stored one with a blank and quietly break the
+    // credential for good.
+    if (needsReentry && secret.trim().isEmpty) {
+      state = AsyncError(
+        const FormValidationError(
+          'Enter the token again — it could not be read from the server.',
+        ),
+        StackTrace.current,
+      );
+      return;
+    }
+    // AUD-52: refuse an unusable URL before it reaches the backend.
+    final urlProblem = sonarQubeUrlProblem(baseUrl);
+    if (urlProblem != null) {
+      state = AsyncError(FormValidationError(urlProblem), StackTrace.current);
+      return;
+    }
+    baseUrl = normalizeServerUrl(baseUrl);
+    state = const AsyncLoading();
+    // P20-25: a new server over the plan's limit goes to the paywall
+    // instead of the backend (which would refuse it the same way).
+    if (id == null) {
+      final blocked = await addCredentialBlock(ref, CiTool.sonarqube);
+      if (blocked != null) {
+        state = AsyncError(blocked, StackTrace.current);
+        return;
+      }
+    }
+    final repository = ref.read(sonarQubeCredentialsRepositoryProvider);
+    final result = id == null
+        ? await repository.add(
+            label: label,
+            baseUrl: baseUrl,
+            secret: secret,
+            defaultOrganization: defaultOrganization,
+            isDefault: isDefault,
+          )
+        : await repository.update(
+            id,
+            label: label,
+            baseUrl: baseUrl,
+            secret: secret,
+            defaultOrganization: defaultOrganization,
+            isDefault: isDefault,
+          );
+
+    switch (result) {
+      case Ok(:final value):
+        await ref.read(sonarQubeCredentialsNotifierProvider.notifier).refresh();
+        if (isDefault) {
+          await ref
+              .read(activeSonarQubeCredentialNotifierProvider.notifier)
+              .setActiveCredential(value);
+        }
+        state = const AsyncData(null);
+      case Err(:final error):
+        state = AsyncError(error, StackTrace.current);
+    }
+  }
+}

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My servers — JobTrigger</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F8FAFC}
+a{color:#1D4ED8;text-decoration:none}a:hover{color:#1E40AF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F8FAFC; color: #0F172A; font-family: Inter, system-ui, sans-serif; display: flex; flex-wrap: wrap">
+  <aside style="flex: 1 1 240px; max-width: 280px; background: #0B1120">
+    <dc-import name="Sidebar" current="servers" hint-size="100%,600px"></dc-import>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 40px clamp(20px, 4vw, 56px) 80px; display: flex; flex-direction: column; gap: 28px">
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.03em">My servers</h1>
+        <p style="margin: 0; font-size: 14px; color: #475569">Changes here show up in the app the next time you open it.</p>
+      </div>
+      <a href="AddServer.dc.html" style="height: 46px; padding: 0 18px; border-radius: 12px; background: #2563EB; color: #FFFFFF; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Add server
+      </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px">
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 18px; display: flex; align-items: center; gap: 14px">
+        <span style="width: 42px; height: 42px; border-radius: 12px; background: #D33833; color: #FFFFFF; font-weight: 800; display: flex; align-items: center; justify-content: center">J</span>
+        <span style="display: flex; flex-direction: column"><span style="font-size: 24px; font-weight: 800">2</span><span style="font-size: 13px; color: #475569">Jenkins servers</span></span>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 18px; display: flex; align-items: center; gap: 14px">
+        <span style="width: 42px; height: 42px; border-radius: 12px; background: #0F172A; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center">GH</span>
+        <span style="display: flex; flex-direction: column"><span style="font-size: 24px; font-weight: 800">1</span><span style="font-size: 13px; color: #475569">GitHub account</span></span>
+      </div>
+      <div style="background: #FFFFFF; border: 1px dashed #94A3B8; border-radius: 18px; padding: 18px; display: flex; align-items: center; gap: 14px">
+        <span style="width: 42px; height: 42px; border-radius: 12px; background: #DBEAFE; color: #1D4ED8; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center">SQ</span>
+        <span style="display: flex; flex-direction: column"><span style="font-size: 24px; font-weight: 800">0</span><a href="AddServer.dc.html" style="font-size: 13px; font-weight: 600">Add SonarQube →</a></span>
+      </div>
+    </div>
+
+    <sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+      <div role="alert" style="padding: 18px 20px; border-radius: 16px; background: #FEE2E2; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between">
+        <span style="font-size: 15px; color: #B91C1C; font-weight: 600">Can't reach JobTrigger right now. Your servers are safe — try again in a moment.</span>
+        <button type="button" style="height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #94A3B8; background: #FFFFFF; color: #0F172A; font: 600 14px Inter, sans-serif; cursor: pointer">Try again</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
+      <section aria-label="Servers" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); overflow: hidden">
+        <div style="overflow-x: auto">
+          <table style="width: 100%; min-width: 760px; border-collapse: collapse; font-size: 14px">
+            <thead>
+              <tr style="background: #F8FAFC; text-align: left; border-bottom: 1px solid #E2E8F0">
+                <th scope="col" style="padding: 12px 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #475569">Server</th>
+                <th scope="col" style="padding: 12px 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #475569">Address</th>
+                <th scope="col" style="padding: 12px 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #475569">Token</th>
+                <th scope="col" style="padding: 12px 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #475569">Status</th>
+                <th scope="col" style="padding: 12px 20px"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ servers }}" as="s" hint-placeholder-count="3">
+                <tr style="border-bottom: 1px solid #F1F5F9">
+                  <th scope="row" style="padding: 16px 20px; text-align: left">
+                    <span style="display: flex; align-items: center; gap: 12px">
+                      <span style="{{ s.logoStyle }}">{{ s.mark }}</span>
+                      <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 700">{{ s.name }}</span><span style="font-size: 12px; font-weight: 500; color: #475569">{{ s.tool }}</span></span>
+                    </span>
+                  </th>
+                  <td style="padding: 16px 20px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #334155">{{ s.addr }}</td>
+                  <td style="padding: 16px 20px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #475569">{{ s.mask }}</td>
+                  <td style="padding: 16px 20px">
+                    <sc-if value="{{ s.active }}" hint-placeholder-val="{{ false }}">
+                      <span style="padding: 4px 10px; border-radius: 999px; background: #DCFCE7; color: #15803D; font-size: 12px; font-weight: 700">✓ Active</span>
+                    </sc-if>
+                    <sc-if value="{{ s.canActivate }}" hint-placeholder-val="{{ true }}">
+                      <button type="button" onClick="{{ s.activate }}" style="height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid #94A3B8; background: #FFFFFF; color: #0F172A; font: 600 13px Inter, sans-serif; cursor: pointer">Make active</button>
+                    </sc-if>
+                  </td>
+                  <td style="padding: 16px 20px; text-align: right"><a href="EditServer.dc.html" style="font-weight: 700">Edit</a></td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["list","error"],"default":"list"},"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { activeJenkins: 'prod' }; }
+  renderVals() {
+    const view = this.props.state ?? 'list';
+    const logo = (bg, fg) => 'width: 36px; height: 36px; flex: none; border-radius: 10px; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; background: ' + bg + '; color: ' + fg;
+    const rows = [
+      { id: 'prod', jenkins: true, name: 'Acme production', tool: 'Jenkins', mark: 'J', logoStyle: logo('#D33833', '#FFFFFF'), addr: 'https://ci.acme.dev · sam', mask: '••••a91f' },
+      { id: 'lab', jenkins: true, name: 'Home lab', tool: 'Jenkins', mark: 'J', logoStyle: logo('#D33833', '#FFFFFF'), addr: 'https://jenkins.home.example:8443 · admin', mask: '••••02cd' },
+      { id: 'gh', jenkins: false, name: 'Acme org', tool: 'GitHub', mark: 'GH', logoStyle: logo('#0F172A', '#FFFFFF'), addr: '@sam-acme', mask: '••••Q7rM' },
+    ];
+    return {
+      isList: view === 'list',
+      isError: view === 'error',
+      servers: rows.map((r) => {
+        const active = r.jenkins ? this.state.activeJenkins === r.id : true;
+        return { ...r, active, canActivate: !active, activate: () => this.setState({ activeJenkins: r.id }) };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

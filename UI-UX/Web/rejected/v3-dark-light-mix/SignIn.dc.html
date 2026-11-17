@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sign in — JobTrigger</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F8FAFC}
+a{color:#1D4ED8;text-decoration:none}a:hover{color:#1E40AF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F8FAFC; color: #0F172A; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="signin" hint-size="100%,72px"></dc-import>
+
+  <main style="flex: 1; display: flex; flex-wrap: wrap">
+    <section style="flex: 1 1 480px; min-width: 0; box-sizing: border-box; padding: 72px 48px 0; background: #0B1120; color: #F1F5F9; display: flex; flex-direction: column; gap: 32px; overflow: hidden">
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <h2 style="margin: 0; font-size: 44px; line-height: 1.08; font-weight: 800; letter-spacing: -0.03em">Paste it once.<br><span style="color: #93C5FD">Your phone has it.</span></h2>
+        <p style="margin: 0; max-width: 400px; font-size: 16px; line-height: 1.6; color: #CBD5E1">Servers you add here appear in the JobTrigger app straight away.</p>
+      </div>
+      <div style="margin-top: auto; display: flex; justify-content: center">
+        <div style="width: 240px; padding: 8px 8px 0; background: #1E293B; border-radius: 38px 38px 0 0">
+          <img src="/_blob/98721b60c3bced2b85f30b4ffb97bb3a" alt="JobTrigger home screen" style="display: block; width: 100%; height: 300px; object-fit: cover; object-position: top; border-radius: 30px 30px 0 0">
+        </div>
+      </div>
+    </section>
+
+    <section style="flex: 1 1 480px; min-width: 0; box-sizing: border-box; padding: 72px 20px; display: flex; justify-content: center">
+      <div style="width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Sign in</h1>
+          <p style="margin: 0; font-size: 15px; line-height: 1.55; color: #475569">Use the same account as the JobTrigger app.</p>
+        </div>
+
+        <sc-if value="{{ isIdle }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="padding: 14px 16px; border-radius: 12px; background: #DBEAFE; color: #1D4ED8; font-size: 14px; line-height: 1.5">You were signed out after 30 minutes without activity. Sign in to pick up where you left off.</div>
+        </sc-if>
+        <sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+          <div role="alert" style="padding: 14px 16px; border-radius: 12px; background: #FEE2E2; color: #B91C1C; font-size: 14px; font-weight: 600">Email or password is incorrect.</div>
+        </sc-if>
+        <sc-if value="{{ isLimited }}" hint-placeholder-val="{{ false }}">
+          <div role="alert" style="padding: 14px 16px; border-radius: 12px; background: #FFEDD5; color: #C2410C; font-size: 14px; font-weight: 600">Too many attempts. Try again in a few minutes.</div>
+        </sc-if>
+
+        <form style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); padding: 28px; display: flex; flex-direction: column; gap: 18px">
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="email" style="font-size: 13px; font-weight: 600; color: #334155">Email</label>
+            <input id="email" type="email" autocomplete="email" value="sam@acme.dev" style="height: 50px; padding: 0 14px; background: #FFFFFF; border: 1px solid #94A3B8; border-radius: 12px; color: #0F172A; font: 400 16px Inter, sans-serif; outline: none">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="password" style="font-size: 13px; font-weight: 600; color: #334155">Password</label>
+            <div style="display: flex; align-items: center; height: 50px; padding: 0 4px 0 14px; background: #FFFFFF; border: 1px solid #94A3B8; border-radius: 12px">
+              <input id="password" type="password" autocomplete="current-password" value="hunter22" style="flex: 1; min-width: 0; background: transparent; border: 0; color: #0F172A; font: 400 16px Inter, sans-serif; outline: none">
+              <button type="button" aria-label="Show password" style="width: 44px; height: 44px; border: 0; background: transparent; color: #475569; display: flex; align-items: center; justify-content: center; cursor: pointer">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <a href="Servers.dc.html" style="height: 52px; border-radius: 14px; background: #2563EB; color: #FFFFFF; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center">Sign in</a>
+          <p style="margin: 0; font-size: 13px; color: #475569">Forgot your password? <a href="Support.dc.html">Contact support</a></p>
+        </form>
+
+        <p style="margin: 0; text-align: center; font-size: 14px; color: #475569">New to JobTrigger? <a href="SignUp.dc.html" style="font-weight: 600">Create an account</a></p>
+      </div>
+    </section>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"notice":{"editor":"enum","options":["none","idle","error","rateLimited"],"default":"none"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const notice = this.props.notice ?? 'none';
+    return { isIdle: notice === 'idle', isError: notice === 'error', isLimited: notice === 'rateLimited' };
+  }
+}
+</script>
+</body>
+</html>

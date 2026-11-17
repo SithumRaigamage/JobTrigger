@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Console log — web-frontend #1207</title>
+</head>
+<body>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+</style>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="padding: 52px 12px 8px; display: flex; align-items: center; gap: 4px">
+    <a href="BuildDetail.dc.html" aria-label="Back to build" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #CBD5E1">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+    </a>
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 1px">
+      <h1 style="margin: 0; font-size: 17px; font-weight: 600">Console</h1>
+      <span style="font: 400 12px 'JetBrains Mono', monospace; color: #94A3B8">web-frontend #1207 · 2,481 lines</span>
+    </div>
+    <button type="button" aria-label="Copy log" style="width: 44px; height: 44px; border: 0; background: transparent; color: #CBD5E1; display: flex; align-items: center; justify-content: center">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+    </button>
+    <button type="button" aria-label="Save full log and share" style="width: 44px; height: 44px; border: 0; background: transparent; color: #CBD5E1; display: flex; align-items: center; justify-content: center">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v13"/></svg>
+    </button>
+  </header>
+
+  <div style="padding: 0 16px 10px; display: flex; gap: 8px">
+    <label style="flex: 1; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 10px; color: #94A3B8">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search log</span>
+      <input type="search" value="FAIL" style="flex: 1; min-width: 0; background: transparent; border: 0; outline: none; color: #F1F5F9; font: 400 14px 'JetBrains Mono', monospace">
+      <span style="font: 400 12px 'JetBrains Mono', monospace; color: #CBD5E1">2 / 3</span>
+    </label>
+  </div>
+
+  <pre aria-label="Console output" style="flex: 1; margin: 0; overflow: hidden; padding: 12px 0; background: #060A14; border-top: 1px solid #1E293B; font: 400 12px/1.7 'JetBrains Mono', monospace; color: #CBD5E1; white-space: pre"><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1201 </span>[Pipeline] stage (Test)</span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1202 </span>+ npm test -- --ci</span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1203 </span><span style="color: #86EFAC">PASS</span> src/cart/cart.spec.ts</span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1204 </span><span style="color: #86EFAC">PASS</span> src/auth/login.spec.ts</span><span style="display: block; padding: 0 16px; background: #2A1216"><span style="color: #94A3B8">1205 </span><span style="color: #FCA5A5; font-weight: 600"><mark style="background: #FDE68A; color: #0B1120; border-radius: 2px">FAIL</mark></span><span style="color: #FECACA"> src/checkout/checkout.spec.ts</span></span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1206 </span>  ● Checkout › applies discount</span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1207 </span></span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1208 </span>    expect(received).toBe(expected)</span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1209 </span>    Expected: <span style="color: #86EFAC">90</span></span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1210 </span>    Received: <span style="color: #FCA5A5">100</span></span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1211 </span></span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1212 </span>      at useCheckoutTotal (src/checkout/</span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1213 </span>         useTotal.ts:41:12)</span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1214 </span></span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1215 </span>Tests:  <span style="color: #FCA5A5">3 failed</span>, <span style="color: #86EFAC">212 passed</span></span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1216 </span>Time:   41.82 s</span><span style="display: block; padding: 0 16px; background: #2A1216"><span style="color: #94A3B8">1217 </span><span style="color: #FECACA">ERROR: script returned exit code 1</span></span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1218 </span>[Pipeline] }</span><span style="display: block; padding: 0 16px"><span style="color: #8291A8">1219 </span>Finished: <span style="color: #FCA5A5; font-weight: 600">FAILURE</span></span></pre>
+
+  <div style="display: flex; gap: 8px; padding: 10px 16px 30px; background: #0B1120; border-top: 1px solid #1E293B">
+    <button type="button" style="flex: 1; height: 44px; border: 0; border-radius: 12px; background: #2A1216; color: #FECACA; font: 600 14px Inter, sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 21h20zM12 10v5M12 18h.01"/></svg>Jump to first error
+    </button>
+    <button type="button" aria-pressed="false" style="height: 44px; padding: 0 16px; border: 1px solid #1F2A3D; border-radius: 12px; background: #111A2B; color: #CBD5E1; font: 600 14px Inter, sans-serif; display: flex; align-items: center; gap: 6px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14m0 0-6-6m6 6 6-6"/></svg>Follow
+    </button>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Site footer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#CBD5E1;text-decoration:none}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<footer style="width: 100%; background: #0B1120; font-family: Inter, system-ui, sans-serif; color: #F1F5F9">
+  <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 64px 20px 36px; display: flex; flex-direction: column; gap: 44px">
+    <div style="display: flex; flex-wrap: wrap; gap: 40px">
+      <div style="flex: 2 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+        <span style="display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700">
+          <span style="width: 34px; height: 34px; border-radius: 10px; background: #2563EB; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          </span>
+          JobTrigger
+        </span>
+        <p style="margin: 0; max-width: 320px; font-size: 14px; line-height: 1.6; color: #94A3B8">Trigger and watch your CI builds from your phone.</p>
+      </div>
+      <nav aria-label="Product" style="flex: 1 1 150px; display: flex; flex-direction: column; gap: 12px; font-size: 14px">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #94A3B8">Product</span>
+        <a href="Features.dc.html">Features</a>
+        <a href="Tools.dc.html">Supported tools</a>
+        <a href="Changelog.dc.html">What's new</a>
+        <a href="Main.dc.html#download">Download</a>
+      </nav>
+      <nav aria-label="Trust" style="flex: 1 1 150px; display: flex; flex-direction: column; gap: 12px; font-size: 14px">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #94A3B8">Trust</span>
+        <a href="Security.dc.html">Security</a>
+        <a href="Privacy.dc.html">Privacy policy</a>
+        <a href="Privacy.dc.html">Terms of use</a>
+      </nav>
+      <nav aria-label="Help" style="flex: 1 1 150px; display: flex; flex-direction: column; gap: 12px; font-size: 14px">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #94A3B8">Help</span>
+        <a href="Support.dc.html">Support</a>
+        <a href="Tools.dc.html#request">Request a tool</a>
+        <a href="SignIn.dc.html">Set up servers</a>
+      </nav>
+    </div>
+    <div style="border-top: 1px solid #1F2A3D; padding-top: 22px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; font-size: 13px; color: #94A3B8">
+      <span>© 2026 JobTrigger</span>
+      <span>Jenkins, GitHub and SonarQube are trademarks of their respective owners.</span>
+    </div>
+  </div>
+</footer>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":340}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

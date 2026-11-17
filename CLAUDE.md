@@ -1,0 +1,202 @@
+# CLAUDE.md — JobTrigger (Flutter Rewrite)
+
+This file orients Claude (or any AI coding agent) working in this repository.
+Read this before touching code. It defines what the project is, how it's
+structured, and the rules for making changes.
+
+## 1. What this project is
+
+JobTrigger is a mobile app for DevOps engineers to trigger, monitor, and
+inspect Jenkins CI/CD builds from a phone. It is being **rewritten from
+SwiftUI (iOS-only) to Flutter (iOS + Android)**, and the client architecture
+is being changed from an MVVM/ObservableObject style to a **layered,
+feature-first Clean Architecture with Riverpod**.
+
+The Node.js/Express + MongoDB backend is **kept, not rewritten** — it only
+stores user accounts and Jenkins server credentials. Flutter talks to:
+1. `JobTrigger-Backend` for auth + credential storage (JWT sent as an
+   `x-auth-token` header, not `Authorization: Bearer`).
+2. Jenkins servers directly over REST + HTTP Basic Auth (no backend proxy).
+
+Do not conflate these two APIs — they have different auth schemes and error
+shapes. See `docs/api-reference.md`.
+
+## 2. Source of truth documents
+
+Read these before starting any task, in this order:
+- `docs/architecture.md` — layers, folder structure, data flow, why Riverpod
+- `docs/data-models.md` — every model, old (Swift/JS) → new (Dart/freezed)
+- `docs/api-reference.md` — every endpoint this app calls, backend + Jenkins
+- `docs/state-management.md` — provider structure per feature
+- `docs/migration-strategy.md` — phased rollout, parity checklist, QA gates
+- `tasks/README.md` — how tasks are organized, then the relevant `tasks/phase-N-*.md`
+- `Releases/README.md` — release management, GitFlow rules, version checklists, and deployment logs (`Releases/vX.Y.Z/`)
+
+Tasks are the unit of work. Don't start coding a feature without finding (or
+creating) its task entry first, and update the task's status when done. When cutting
+or preparing releases, follow `Releases/README.md` and keep `release/tools.json` synced via `node scripts/sync-tools.mjs`.
+
+## 3. Tech stack (locked decisions — don't substitute without discussion)
+
+| Concern | Choice | Notes |
+|---|---|---|
+| Language / SDK | Dart 3.x / Flutter (stable channel) | |
+| State management | `flutter_riverpod` (v3, code-gen via `riverpod_generator`) | No `flutter_bloc`, no `Provider` package, no raw `setState` for anything beyond trivial local widget state. Bumped from the originally-planned v2 in Phase 0 — v2 predates the Flutter/Dart SDK this project targets; v3 is the actively maintained line and the `@riverpod`/`AsyncNotifier` patterns in `docs/architecture.md` and `docs/state-management.md` apply unchanged. |
+| Networking | `dio` | Interceptors for JWT + Basic Auth, logging in debug only |
+| Routing | `go_router` | Typed routes, deep-link ready |
+| Models / JSON | `freezed` + `json_serializable` | All API models are immutable, code-generated |
+| Secure storage | `flutter_secure_storage` | JWT + Jenkins passwords/tokens |
+| Non-secure prefs | `shared_preferences` | Theme, last active server id, feature flags |
+| Testing | `flutter_test`, `mocktail`, `riverpod_test` | Unit tests for repositories/notifiers are mandatory for Phase 2+ |
+| Share sheet | `share_plus` | Added in Phase 5 (P5-12) — the build-log copy/share action, explicitly named by that task's own text. Not a substitution of anything on this list, narrowly scoped to one feature. |
+| App version info | `package_info_plus` | Added in Phase 6 (P6-01) — the profile screen's app version footer needs the real installed version/build number, not a hardcoded string. |
+| File picking | `file_picker` | Added in Phase 11 (P11-06, approved 2026-09-29) — Jenkins file parameters (US-JX-02) need the user to choose a local file for a multipart trigger. Paths only; the app keeps no copy. |
+| Temp files | `path_provider` | Added in Phase 11 (P11-11, approved 2026-09-29) — "Save full log" streams `consoleText` to a temp file to share, then deletes it; also backs artifact streaming (P12-08) and the offline tree cache (P11-23). |
+| Local notifications | `flutter_local_notifications` | Added in Phase 11 (P11-24, approved 2026-09-29) — "notify me when this build finishes" (US-JX-10). Local only; no push server or FCM/APNs account involved. |
+| Background work | `workmanager` | Added in Phase 11 (P11-24, approved 2026-09-29) — a best-effort periodic check of watched builds while the app is closed (US-JX-10). Registered only while at least one watch exists. |
+| Biometric auth | `local_auth` | Added in Phase 11 (P11-25, approved 2026-09-29) — the optional app lock (US-JX-21): Face ID / fingerprint with the device passcode as fallback. Gates the UI only; secrets stay in secure storage either way. |
+| Home-screen widget | `home_widget` | Added in Phase 11 (P11-26, approved 2026-09-29) — hands the pinned-jobs snapshot (US-JX-23) to the native widgets: an iOS WidgetKit extension (`ios/PinnedJobsWidget`, App Group `group.Sraig.Lab-Trigger-frontend`) and an Android `AppWidgetProvider`. The widgets never call Jenkins and hold no credentials. |
+| External links | `url_launcher` | Added in Phase 6 (P6-02) — the app info screen opens privacy policy/terms/licenses URLs and a `mailto:` support link, matching `AppInfoView.swift`'s `openURL` usage exactly. |
+| In-app purchases | `purchases_flutter` (RevenueCat) | Added in Phase 20 (P20-20, approved 2026-11-12 as P20-00) — buying, restoring and reading store prices for JobTrigger Pro on iOS and Android. Imported only by `lib/data/billing/revenuecat_billing_client.dart`; everything else uses the `BillingClient` interface. Its public SDK keys come from `config/*.json` via `app_config.dart` (never in code); with no key the app has no billing. The paywall is our own widget; `purchases_ui_flutter` is not used. |
+| Backend email | `nodemailer` (backend only) | Added in Phase 20 (P20-71, approved 2026-11-12) — SMTP for password reset (US-AUTH-08) and later billing notices. Mailpit from the DevOps lab in development; a real provider only changes configuration. Analytics uses no SDK: plain HTTP to self-hosted Umami (`docs/subscription/04-email-and-analytics.md`). |
+| Crash reporting | `sentry_flutter`, `@sentry/node`, `@sentry/nextjs` | Added in Phase Emergency (E3, approved 2026-11-14) — error reports to a self-hosted GlitchTip (Sentry-compatible), one project per app. Errors only: no tracing, breadcrumbs, screenshots or session replay. Every event passes the scrubber first and waits offline in the SDK cache or a `crash-outbox/` file. Rules in `docs/error-reporting.md`. |
+| Website | Next.js (App Router) + TypeScript, Tailwind CSS, `zod`, `iron-session` | Added in Phase 15 (P15-00, approved 2026-10-26) — the marketing site and setup portal in `JobTrigger-Web/` (epic WEB). A separate Node project; the Flutter rows above don't apply to it. Its stack, layers and rules are in `docs/web-architecture.md`. Hosted on Vercel first, Docker later. |
+| Web checkout | Paddle.js (script from `cdn.paddle.com`, no npm package) | Added in Phase 20 (P20-83, owner-approved 2026-11-12 as P20-00 with the Paddle web checkout) — buying and managing Pro on the website, in `JobTrigger-Web/` only, on `/account/billing` only (the CSP exception is for that route alone). The backend holds Paddle's API key and creates the transaction; the site has only the public client-side token, from `PADDLE_CLIENT_TOKEN`, never in code. Never linked from the mobile app (store rules). |
+
+Do not introduce a second state-management library, a second HTTP client, or
+a second routing package. If a task seems to require it, flag it instead of
+silently adding a dependency. The same applies inside `JobTrigger-Web/`
+against the stack in `docs/web-architecture.md`.
+
+## 4. Architecture in one paragraph
+
+Three layers per feature: **presentation** (widgets + Riverpod notifiers) →
+**domain** (plain Dart entities + repository interfaces, no Flutter imports)
+→ **data** (DTOs, remote data sources, repository implementations). Widgets
+never call `dio` directly and never parse JSON. Notifiers never construct
+`Dio` instances. See `docs/architecture.md` for the full diagram and the
+folder-by-folder mapping from the old SwiftUI project.
+
+## 5. Conventions
+
+- **Feature-first**: everything for "job detail" lives under
+  `lib/presentation/features/job_detail/`, `lib/domain/job/` (shared across
+  features that touch jobs), etc. Don't create a giant flat `screens/` folder.
+- **Naming**: `SomeScreen` (top-level route widget), `SomeView` (non-route
+  composed widget), `SomeNotifier` (Riverpod `AsyncNotifier`/`Notifier`),
+  `SomeRepository` (domain interface), `SomeRepositoryImpl` (data layer).
+- **Errors**: repositories return `Result<T, AppFailure>`-style outcomes (see
+  `docs/architecture.md#error-handling`), never throw raw `DioException` past
+  the data layer. UI maps `AppFailure` to copy, never inspects HTTP status
+  codes directly in a widget.
+- **No business logic in widgets.** If a `build()` method has an `if` that
+  decides *what* to do (not just *how to render*), it belongs in a notifier.
+- **Generated code**: run `dart run build_runner build --delete-conflicting-outputs`
+  after editing any `@freezed`/`@riverpod`/`@JsonSerializable` class. Never
+  hand-edit `*.g.dart` or `*.freezed.dart`.
+- **Commits/PRs**: reference the task id, e.g. `[P3-04] Add credential switch endpoint`.
+
+## 6. Commands
+
+```bash
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs   # after model/provider changes
+flutter analyze                                            # must be clean before PR
+flutter test
+flutter run -d <device>
+```
+
+## 7. What NOT to do
+
+- Don't port SwiftUI `ObservableObject` patterns 1:1 — translate to the
+  Riverpod notifier structure in `docs/state-management.md`, not a literal
+  transliteration.
+- Don't rewrite the Node backend as part of this migration unless a task in
+  `tasks/` explicitly says so. Backend changes are a separate track.
+- Don't hardcode Jenkins or backend base URLs — use `core/config/`.
+- Don't store JWTs, Jenkins passwords, or API tokens in `shared_preferences`
+  — secure storage only.
+- Don't add screens/features not in the original feature matrix without
+  flagging it — scope creep during a rewrite is how migrations stall.
+
+## 8. Security rules
+
+- **Do NOT read or access `.env` files** — they contain sensitive credentials
+  (JWT secrets, database URIs, API keys). Never open, read, or reference
+  `.env`, `.env.local`, `.env.example` for any reason. If you need configuration
+  details, ask the user or check the documented config patterns in `docs/` or
+  `JobTrigger-Frontend/config/`.
+  - **One narrow exception (owner-approved):** to document a new variable,
+    Claude may *append* the new variable name with an empty value (or the
+    documented default for a non-secret flag) to an `.env.example` file,
+    without reading that file. Never read, edit or reorder what is already
+    in it, and never write a real value. `.env` itself, and every other
+    `.env.*` file, stay off limits.
+
+## 9. Development workflow (strict)
+
+1. **Plan + design first (strict).** Before writing or editing any code for a
+   task, present a plan (what will change, which files, why) and, for
+   anything touching UI or data flow, a brief design (screens/states
+   affected, how it fits the layers in §4). Do not start implementation
+   until this has been shared.
+2. **Best practices while developing (strict).** Follow this file's
+   conventions (§5), the locked tech stack (§3), and the layering rules
+   (§4) without exception — no shortcuts, no bypassing `AppFailure`/secure
+   storage/layer boundaries "just this once."
+3. **Wait for approval before proceeding (manual).** After presenting the
+   plan/design, and again after implementing, pause for the user's review
+   and explicit go-ahead rather than chaining straight into the next step
+   unprompted.
+4. **Conventional commits, attributed by author.** Commit messages follow
+   [Conventional Commits](https://www.conventionalcommits.org/) format
+   (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, etc.,
+   optionally scoped, e.g. `fix(backend): ...`), and reference the task id
+   from §5 where one exists. Include the real author/co-author trailer on
+   every commit — never omit attribution.
+
+## 10. Instructions for the owner target the iPhone (strict)
+
+The owner tests on a physical **iPhone**. Whenever you tell the owner how to
+run, test or verify something, write the steps for the iPhone:
+
+- Install and run with `scripts/run-on-iphone.sh` (a profile build; the
+  setup is in `IPHONE.md`). Don't give simulator or Android-emulator steps
+  unless the owner asks for them.
+- Anything the phone connects to (the backend, Jenkins, SonarQube) is
+  reached at the **Mac's Wi-Fi address** (`ipconfig getifaddr en0`), never
+  `localhost`, `127.0.0.1` or `10.0.2.2`, which on the phone mean the phone
+  itself. Give the real address, not a placeholder, when you can read it.
+- Write in-app steps as taps on the phone, using the labels the app really
+  shows (check the code, don't guess).
+- Steps that can only happen on the Mac (running a script, Docker, a web UI
+  such as SonarQube's) stay Mac steps; say so, then say what to do on the
+  phone afterwards.
+
+## 11. Earlier development must keep working (strict)
+
+Work that is already built and verified must not stop working when you add
+or change something. Jenkins is complete: treat it as frozen, and change it
+only to fix a reported bug.
+
+- **Run the whole suite before every PR**, not only the tests for what you
+  touched: `flutter analyze` and `flutter test` in `JobTrigger-Frontend/`,
+  and `npm test` in `JobTrigger-Backend/` when the backend changed. Both
+  must be clean.
+- **Shared code is shared by every tool.** `core/error/app_failure.dart`,
+  the router, the theme, `common_widgets/` and the repository fakes in
+  `test/` serve Jenkins, GitHub Actions and SonarQube alike. A change there
+  must leave the other tools' behaviour and copy exactly as they were:
+  add a tool-specific case instead of changing a shared one.
+- **Never delete or weaken a test to make a change pass.** Update an
+  existing test only when the behaviour was changed on purpose, and say so
+  in the commit and the PR. A failing old test means something broke.
+- **When merging branches, re-run everything on the merged result.** Two
+  branches that each pass can still fail together.
+- **Say what you could not verify.** If something can only be checked on a
+  real server or device, mark it unverified instead of calling it done.
+
+## 12. Current status
+
+Tracked in `tasks/README.md`. Update the phase status table there whenever a
+task moves state — this file doesn't duplicate that tracker.

@@ -1,0 +1,206 @@
+# API Reference
+
+Two distinct APIs, two distinct `Dio` clients, two distinct auth schemes.
+Never share an interceptor or base URL between them.
+
+## 1. Backend API (`JobTrigger-Backend`, JWT in `x-auth-token`)
+
+Since AUD-26, `token` is a **15-minute** access token and `refreshToken` a
+30-day refresh token (both JWTs carrying the user's `tokenVersion`). Both
+live only in secure storage. Tokens issued before this change stay valid
+until they expire.
+
+Base URL from `core/config/app_config.dart`, e.g. `https://api.jobtrigger.app`
+(configurable per build flavor — dev/staging/prod).
+
+| Endpoint | Method | Auth | Request body | Response | Notes |
+|---|---|---|---|---|---|
+| `/api/auth/signup` | POST | Public | `{ email, password }` (strings) | `{ user, token, refreshToken }` | Server enforces the email pattern, a password of 8+ characters, and at most 72 bytes; non-strings get 400 (AUD-04/26). The client checks the same rules first |
+| `/api/auth/login` | POST | Public | `{ email, password }` (strings) | `{ user, token, refreshToken }` | Non-strings get 400; the email is trimmed and lower-cased. On success, store the token in secure storage immediately. **429** after 10 failed attempts per IP in 15 min, or 10 failed attempts on one account from anywhere (AUD-55); signup: 5 per hour per IP. With a `RateLimit` header; the client shows "Too many attempts…" (AUD-05). An unknown email costs the same bcrypt work as a wrong password |
+| `/api/auth/refresh` | POST | Public | `{ refreshToken }` | `{ token, refreshToken, user }` | AUD-26. Called by the backend interceptor on a 401, once per burst of 401s, and the request is replayed. **401** when the refresh token is expired, revoked, or not a refresh token, and the client then signs out. Any other failure (network, 5xx, **429**) keeps the session (NFR-SEC-07). 30 per **user** per 15 min, keyed on the token's subject; requests without a valid token count per IP (AUD-47) |
+| `/api/auth/logout-all` | POST | Token | — | `{ message }` | AUD-26. Bumps `User.tokenVersion`, revoking every access and refresh token on every device, including the caller's |
+| `/api/auth/password` | POST | Token | `{ currentPassword, newPassword }` | `{ token, refreshToken, user }` | AUD-48. Re-checks the current password (wrong: **400** "Current password is incorrect", counted by the login limiter). The new password follows signup's rules. Bumps `tokenVersion`, so every earlier token on every device is revoked; the returned pair keeps the caller signed in |
+| `/api/auth/verify-password` | POST | Token | `{ password }` | `{ message }` | Re-checks the password with the same check as Change password and Delete account (**400** when missing or wrong, shared login rate limit) and changes nothing. Used by the website before it shows a saved token |
+| `/api/auth/account` | DELETE | Token | `{ password }` | `{ message }` | AUD-48. Re-checks the password (**400** when wrong), then deletes every Jenkins, GitHub, and SonarQube credential of the user and the user itself |
+| `/api/auth/password-reset/request` | POST | Public | `{ email }` (string) | `{ message }` | US-AUTH-08. **Always 202** with the same body, whether or not the account exists; the lookup and email happen after the response, so timing doesn't reveal accounts either. Emails one single-use link, to the website: `RESET_PASSWORD_URL?token=…` (default `http://localhost:3000/reset-password`; required and https in production when mail is on), valid 15 minutes. A password is reset on the web only, never in the app; a new request replaces older links. Non-string email: 400. **429** after 5 requests per IP in 15 min or 3 per email per hour |
+| `/api/auth/password-reset/confirm` | POST | Public | `{ token, newPassword }` (strings) | `{ message }` | US-AUTH-08. Bad, used or expired token: **400** "This reset link is invalid or has expired. Ask for a new one." A new password breaking signup's rules is a 400 that leaves the link usable. Success bumps `tokenVersion` (every session on every device is signed out) and deletes the user's other links; the client then signs in. 10 attempts per IP in 15 min |
+| `/api/credentials` | GET | `x-auth-token` | — | `Credential[]` | No `password` or `paramToken`: `secretMask` and `hasParamToken` instead (E4, below). Each credential carries `locked` (P20-13): `true` when it's beyond the user's plan after a downgrade. Locked credentials are listed, editable and deletable, but can't be made active. Same on the GitHub and SonarQube lists |
+| `/api/credentials` | POST | `x-auth-token` | `Credential` (minus id) | `Credential` | **403** `{ message: "This tool is not available yet", code: "TOOL_NOT_AVAILABLE", tool }` when the release manifest (`release/tools.json`) doesn't ship Jenkins yet; checked first, before the plan. **403** `{ message, code: "PLAN_LIMIT", limit }` past the plan (P20-12): `limit` is `maxCredentialsTotal`, `maxCredentialsPerTool` or `multiTool`. Same on the GitHub and SonarQube creates. Never while `BILLING_ENABLED` is off |
+| `/api/credentials/:id` | PUT | `x-auth-token` | Partial `Credential` | `Credential` | |
+| `/api/credentials/:id` | DELETE | `x-auth-token` | — | `{ success }` | If deleting the active server, client must fall back to another `isDefault`/first server |
+| `/api/credentials/switch/:id` | POST | `x-auth-token` | — | `Credential` | Backend flips `isDefault`; client also updates `ActiveServerNotifier` locally for instant UI feedback. A locked credential: **403** `PLAN_LIMIT`, `limit: "locked"` |
+| `/api/sonarqube-credentials` | GET | `x-auth-token` | — | `SonarQubeCredential[]` | Masked, no `token` (E4) |
+| `/api/sonarqube-credentials` | POST | `x-auth-token` | `SonarQubeCredential` (minus id) | `SonarQubeCredential` | Also **403** `TOOL_NOT_AVAILABLE` (as for Jenkins) while the release manifest doesn't ship SonarQube; reads, updates and deletes are never blocked |
+| `/api/sonarqube-credentials/:id` | PUT | `x-auth-token` | Partial `SonarQubeCredential` | `SonarQubeCredential` | |
+| `/api/sonarqube-credentials/:id` | DELETE | `x-auth-token` | — | `{ message }` | |
+| `/api/sonarqube-credentials/switch/:id` | POST | `x-auth-token` | — | `SonarQubeCredential` | Backend flips `isDefault`; client also updates `ActiveSonarQubeCredentialNotifier` locally for instant UI feedback |
+| `/api/appinfo` | GET | Public | — | `AppInfo` | Cache with a short TTL; not worth polling |
+| `/api/devices` | POST | `x-auth-token` | `{ token, platform: "ios" \| "android" }` | 204 | NR-06 (BACKLOG-02): registers this device for server push. Idempotent (one row per token), and a token that signs into another account moves with it. 400 for a missing token or an unknown platform |
+| `/api/devices/:token` | DELETE | `x-auth-token` | — | 204 | NR-06: stops pushing to that token. Owner-scoped; an unknown token is still 204 |
+| `/api/subscription` | GET | `x-auth-token` | — | `{ plan, billingEnabled, status, source, productId, periodEnd, willRenew, manageOnWeb, limits, features, primaryCredentialId }` | P20-14 (US-SUB-01). Clients read `limits` (`maxCredentialsTotal`, `maxCredentialsPerTool`, `maxPinnedJobs`; `null` = unlimited) and `features` (`multiTool`, `backgroundWatch`, `homeWidget`, `insights`), never `plan`. `billingEnabled: false` means everyone is Pro. The plan is the best of the user's sources (app store, web, manual grant); `source` says which one, and `manageOnWeb` is true when Paddle's portal can manage it. `no-store` |
+| `/api/subscription/refresh` | POST | `x-auth-token` | — | same as GET | P20-14. Re-reads the caller from RevenueCat (after a purchase or restore); a RevenueCat outage keeps the stored plan. 10 per 10 min per user |
+| `/api/subscription/primary/:credentialId` | POST | `x-auth-token` | — | same as GET | P20-13 (US-SUB-05). Which saved server stays usable on Free (any tool). Once per 24 h: **403** `PLAN_LIMIT`, `limit: "primaryCooldown"`. Not the caller's: 404 |
+| `/api/billing/revenuecat` | POST | `Authorization` = `REVENUECAT_WEBHOOK_AUTH` | RevenueCat webhook `{ event }` | `{ ok }` | P20-16 (US-SUB-09). Wrong secret: 401. Each `event.id` applied once (duplicate: 200 `duplicate: true`). Every account the event names is re-read from RevenueCat; failure: 500 so RevenueCat retries. Body never logged |
+| `/api/billing/paddle/checkout` | POST | `x-auth-token` | `{ interval: "monthly" \| "yearly" }` | `{ transactionId, environment }` | Website checkout (Paddle). Creates a Paddle transaction whose `custom_data.userId` is set by the server; the website opens it with Paddle.js. Already Pro from any source: **409** `ALREADY_SUBSCRIBED` (no double payment). Billing off or Paddle not set up: 503 |
+| `/api/student` | GET | `x-auth-token` | — | `{ status: "none" }` or `{ id, method, status, universityEmail, rejectionReason, submittedAt, approvedAt, expiresAt }` | Phase 21 (SP-2). The caller's latest student application. `no-store`. Never returns a code, hash or document |
+| `/api/student/email/start` | POST | `x-auth-token` | `{ universityEmail }` | **202** `{ message, expiresInMinutes }` | SP-20. Sends a 6-digit code (10 min, stored as a salted hash) to a listed university domain (`JobTrigger-Backend/config/studentDomains.json`). **400** `domain_not_listed` → use the document upload; **409** `already_used` (one student year per person, ever), `under_review`, `email_used` (that university email was used before, even by a deleted account); **503** when mail is off. 5 per hour per user |
+| `/api/student/email/confirm` | POST | `x-auth-token` | `{ code }` | the application with `status: "approved"` | SP-21. The right code grants Pro for 365 days at once and emails the owner (`STUDENT_ADMIN_EMAIL`). **400** `wrong_code` / `code_expired` / `no_code`; **429** `too_many_attempts` after 5 wrong tries (ask for a new code). 15 per 15 min per user |
+| `/api/student/document` | POST | `x-auth-token` | `{ fullName, data }` (`data` = the file as base64) | **201** the application, `status: "pending"` | Phase 21 (SP-30). For a university not on the list: a student ID or enrolment letter, JPG/PNG/PDF, max 5 MB, checked on the server by the file's leading bytes (**413** `File too large, max 5 MB`, **415** `Only JPG, PNG or PDF files are accepted`). `fullName` is required (2–100 characters, as printed on the ID). Stored encrypted; the owner is emailed the name and an admin link, never the file. **409** `under_review`, `already_used`, `document_used`. This route alone reads a ~7 MB body. 5 per hour per user |
+| `/api/admin/students` | GET | `x-auth-token`, role `superAdmin` | `?status=pending\|approved\|rejected\|expired\|all` (default `pending`), `?q=` (account email or name) | `{ items: [{ id, userId, accountEmail, method, status, fullName, universityEmail, submittedAt, documentMime, documentSize, hasDocument, … }]` | SP-31. Document applications only; never includes the file. Anyone who is not a super admin gets the plain **404** `Not found` on every `/api/admin/*` route (the role is read from the database each time). 120 per minute per user; every action logged by id |
+| `/api/admin/students/:id` | GET | as above | — | one item | SP-31 |
+| `/api/admin/students/:id/document` | GET | as above | — | the file bytes | SP-31. For the website's server to stream to the admin page: `Cache-Control: no-store`, the detected type, `nosniff`, `sandbox` CSP. **410** once deleted |
+| `/api/admin/students/:id/approve` | POST | as above | — | the item, `approved` | SP-31. Grants Pro for 365 days; **409** if already decided or the document was used before. The file is deleted 30 days later (name too), the hash kept |
+| `/api/admin/students/:id/reject` | POST | as above | `{ reason }` (required, ≤ 500) | the item, `rejected` | SP-31. The student sees the reason and can apply again |
+| `/api/billing/paddle/portal` | POST | `x-auth-token` | — | `{ url }` | One-time link to Paddle's customer portal (card, invoices, cancel). No web subscription: 404 |
+| `/api/billing/paddle/webhook` | POST | `Paddle-Signature` (HMAC-SHA256 of `ts:rawBody`, 5 min tolerance) | Paddle event | `{ ok }` | Raw body. Bad signature: 401. `subscription.*` events only; each `event_id` applied once; an older event never overwrites a newer one; writes only the `web` source, so a store subscription is untouched. Body never logged |
+| `/healthz` | GET | Public | — | `{status: "ok"}` or 503 `{status: "unavailable"}` | Container health check (AUD-17); the app doesn't call it |
+
+`BackendApiClient` interceptor: attach a plain `x-auth-token: <token>`
+header from secure storage on every request except signup/login/appinfo;
+on `401`, clear stored session and route to login (see `auth_notifier.dart`).
+**Not** `Authorization: Bearer` — verified directly against
+`JobTrigger-Backend/middleware/auth.js`, which only reads
+`req.header('x-auth-token')`. This doc previously said `Bearer`, which never
+matched the real backend and made every authenticated request 401 silently
+(discovered only once the Flutter client was exercised end-to-end against a
+real running backend, not just tested with mocked Dio adapters).
+
+### Request ids and unreadable secrets (AUD-63, §19)
+
+**`x-request-id`** — every response carries an `x-request-id` header. A
+client-supplied `x-request-id` is echoed back only when it matches
+`^[A-Za-z0-9._-]{1,64}$`; anything else is replaced with a generated UUID
+(the value is written to the server log, so an untrusted one is never
+reused verbatim). A **500** body is `{ message: "Server error", requestId }`
+— quote the `requestId` in a bug report; the message itself stays generic.
+
+The app sends its own `x-request-id` on every backend request (16 hex
+characters, `core/network/request_id.dart`; kept when a request is replayed
+after a token refresh), so the id is known on both sides. A backend 5xx
+becomes `ServerFailure(requestId:)` and the error copy ends with
+`Reference: <id>`. Jenkins and GitHub requests carry no id: those servers
+don't log it.
+
+**`needsReentry`** — every credential object in a response carries
+`needsReentry: true|false`. When the server cannot decrypt a stored secret
+(a key id dropped from the keyring, or a failed GCM tag), the credential is
+still returned: its secret field is `null` and `needsReentry` is `true`.
+One unreadable credential no longer fails the whole list, and no other
+credential is affected. The client should prompt for the secret again and
+`PUT` it back — a `PUT` that supplies a new secret clears the flag. Fields:
+`password` (Jenkins), `token` (GitHub), `token` (SonarQube).
+
+**Secrets are masked in every response (E4, PE-32).** The credential list,
+create, update and switch responses carry **no secret field**. Instead:
+`secretMask` (`••••` plus the last 4 characters; `••••` alone under 8
+characters; `null` when unreadable) and, for Jenkins, `hasParamToken`
+(boolean). `needsReentry` means the same as above, with `secretMask: null`.
+The decrypted values come from one endpoint, which only the phone app calls
+(it needs them to reach Jenkins, GitHub and SonarQube directly); the website
+never does:
+
+| Path | Method | Auth | Response | Notes |
+|---|---|---|---|---|
+| `/api/credentials/:id/secret` | GET | `x-auth-token` | `{ password, paramToken, needsReentry, version }` | Owner only: another user's id is **404**. `Cache-Control: no-store`. 30 per **user** per 10 min (`CREDENTIAL_SECRET_RATE_LIMIT`), then **429**. Called by the app, and by the website's reveal button (`revealSecret`, only when the owner asks). A locked credential: **403** `PLAN_LIMIT`, `limit: "locked"` |
+| `/api/github-credentials/:id/secret` | GET | `x-auth-token` | `{ token, needsReentry, version }` | Same rules |
+| `/api/sonarqube-credentials/:id/secret` | GET | `x-auth-token` | `{ token, needsReentry, version }` | Same rules |
+
+`version` is the credential's `updatedAt` (ISO). The app keeps the secret in
+`flutter_secure_storage` with that version and fetches again when the listed
+`updatedAt` differs; logout clears the store. No log line from any
+credential route carries a secret (`test/credential_secret.test.js`).
+
+## 2. Jenkins API (direct, per-server Basic Auth)
+
+Base URL = active `Credential.jenkinsURL`. A new `Dio` instance (via
+`JenkinsClientFactory`) is created whenever the active server changes, with
+`Authorization: Basic base64(username:password)` set once at construction —
+Jenkins credentials are not JWTs and don't rotate mid-session.
+
+| Endpoint pattern | Method | Purpose | Notes |
+|---|---|---|---|
+| `{baseURL}/api/json` | GET | Connection health check | Used by "test connection" in server add/edit flow; surface job count or the raw HTTP status on failure |
+| `{baseURL}/api/json?tree=jobs[name,url,color,jobs[name,url,color,jobs[...]]]` | GET | Recursive job/folder tree | Depth-limit the `tree` query at 6 levels to match the original app; going deeper risks huge payloads on large Jenkins instances. Fixed at 6 in P11-05 (`jobTreeCrawlDepth`). Now used only for search and global history, while Home browses lazily per folder (see below) |
+| `{jobURL}api/json?tree={detailsTree}` | GET | Job detail: params, health, recent builds | `detailsTree` includes `property[parameterDefinitions[*]],healthReport[*],lastBuild[*],builds[number,url,result,timestamp,duration,building]` |
+| `{jobURL}build` | POST | Trigger build, no params | |
+| `{jobURL}buildWithParameters` | POST | Trigger build with params | Body: `application/x-www-form-urlencoded`, all values stringified. **A blank password parameter is omitted**, because an explicit `''` overrides the stored secret (US-JX-01). A duplicate of an already-queued identical build returns **303** with that queue item as `Location`, which counts as success (AUD-37). An empty Run parameter returns **500** (AUD-38) |
+| `{jobURL}{buildNumber}/stop` | POST | Cancel a running build | Optimistically flip local state to `ABORTED` before the next poll confirms it. A pipeline answers **302** (success), freestyle 200 (AUD-39) |
+| `{buildURL}logText/progressiveText?start={offset}` | GET | Incremental console log | Read `X-Text-Size` (next offset) and `X-More-Data` (bool) response headers; stop polling when `X-More-Data` is absent/false |
+
+### Epic PIPE endpoints (implemented, Phase 7)
+
+| Endpoint pattern | Method | Purpose | Notes |
+|---|---|---|---|
+| `{baseURL}/crumbIssuer/api/json` | GET | CSRF crumb (`NFR-SEC-06`) | Fetched lazily by the client interceptor on the first POST. A 404 means no crumb issuer |
+| `{queueItemURL}api/json` | GET | Track a triggered build's queue item (US-PIPE-01) | Queue-item URL comes from the trigger response's `Location` header |
+| `{buildURL}testReport/api/json` | GET | Test summary (US-PIPE-06) | A 404 means no report, which is a normal state |
+| `{buildURL}artifact/{relativePath}` | HEAD · GET | Artifact size (`Content-Length`, verified on the fixture), then the file streamed to a temp path (US-PIPE-07, AUD-21) | Each path segment is percent-encoded. Over 100 MB asks first. 2 min stall timeout, not the 15s API one |
+| `{buildURL}wfapi/describe` | GET | Pipeline stages (US-PIPE-04) | A 404 means not a pipeline |
+| `{buildURL}wfapi/pendingInputActions` | GET | Paused input step (US-PIPE-05) | A 404 or empty list means nothing is paused. Each input's parameters are `{name, type, description, definition: {defaultVal, choices}}`, which is **not** the job-parameter shape |
+| `{buildURL}input/{id}/proceedEmpty` · `proceed` · `abort` | POST | Approve or reject an input step | `proceed` takes the Stapler form field `json={"parameter":[{"name":…,"value":…}]}`, because plain `name=value` fields get a 400. Permission denied is a **400** HTML page ("You need to have Job/Build permissions…"), mapped to `AuthFailure`. An already-handled input returns 404. Verified in P11-02 |
+
+### Epic JX endpoints (Phase 11, planned)
+
+Each row's status changes from *planned* to *implemented* in the same change
+that ships its task. Response shapes are **provisional** until verified
+against the fixture Jenkins (P11-02, `NFR-TEST-02`).
+
+| Endpoint pattern | Method | Story | Status |
+|---|---|---|---|
+| `{folderURL}api/json?tree=jobs[_class,name,displayName,url,color,description,buildable,lastBuild[…]]` (the root uses `/api/json`) | GET | Lazy per-folder tree (AUD-19/20), US-JX-03 | **implemented** (P11-05) |
+| `{multibranchURL}api/json?tree=views[name,jobs[name]]` | GET | US-JX-03 branch/PR/tag grouping. Verified view names: `default` (branches), `tags`; `change-requests` for PRs | **implemented** (P11-07) |
+| `{multibranchURL}build?delay=0` | POST | US-JX-03 scan repository now. Returns **302** back to the project, which counts as success | **implemented** (P11-07) |
+| `{multibranchURL}indexing/logText/progressiveText` | GET | US-JX-03 scan status and log. There's **no** `indexing/api/json` (404). `X-More-Data` means a scan is running, the same contract as a build log | **implemented** (P11-07) |
+| `{buildURL}execution/node/{id}/wfapi/describe` | GET | US-JX-04 stage steps (`stageFlowNodes[id,name,status,parameterDescription]`). Parallel branches are **flattened into the build's stage list with no parent link**; the app groups them by overlapping time. The parent reports SUCCESS even when a branch failed | **implemented** (P11-08) |
+| `{buildURL}execution/node/{id}/wfapi/log` | GET | US-JX-04 step log (`text`, `hasMore`). `text` is **absent** when the log is empty | **implemented** (P11-08) |
+| `lastSuccessfulBuild[number,url,result,timestamp],lastFailedBuild[…]` (part of the job detail tree) | GET | US-JX-05 | **implemented** (P11-09) |
+| `{jobURL}api/json?tree=allBuilds[…,actions[parameters[name,value],causes[userId]]]{start,end}` | GET | US-JX-06 paging. `builds` is capped at 100 and `allBuilds` isn't. Past the end returns `[]` | **implemented** (P11-10) |
+| `{buildURL}consoleText` | GET | US-JX-07 "Save full log", streamed to a temp file (`dio.download`), shared, then deleted | **implemented** (P11-11) |
+| `{buildURL}logText/progressiveText` | **HEAD** | US-JX-07 log size (`X-Text-Size`, no body), so a huge log opens at its tail. An offset past the end is **not** a probe, because Jenkins returns the whole log | **implemented** (P11-11) |
+| `{buildURL}timestamps/?time=HH:mm:ss&startLine=-N` | GET | US-JX-07 timestamps for freestyle jobs, one per console line; a negative `startLine` counts from the end. Pipelines instead **embed** `[ISO-8601Z] ` at the start of each raw log line, which the decoder lifts off. A job without Timestamper returns 200 with an empty body; 404 means the plugin is missing | **implemented** (P11-11) |
+| `{buildURL}testReport/api/json?tree=…,suites[cases[className,name,status,errorDetails,errorStackTrace,age,duration]{0,200}]` | GET | US-JX-08, capped at 200 cases per suite | **implemented** (P11-12) |
+| `{baseURL}/queue/api/json?tree=items[id,why,inQueueSince,stuck,blocked,task[name,url,color]]` | GET | US-JX-09 server queue (task URL rewritten) | **implemented** (P11-13) |
+| `{baseURL}/queue/cancelItem?id={id}` | POST | US-JX-09. **204** means cancelled; **422** means no permission (not 403); **404** means an unknown id; **500** "not cancellable" means the item already left the queue (maybe started). The app re-reads the queue instead of claiming success | **implemented** (P11-13) |
+| `{baseURL}/computer/api/json?tree=computer[_class,displayName,offline,temporarilyOffline,offlineCauseReason,numExecutors,executors[…],oneOffExecutors[…],monitorData[*]]` | GET | US-JX-12. `monitorData[*]`, because the tree can't address the dotted monitor keys | **implemented** (P11-20) |
+| `{baseURL}/computer/{name}/toggleOffline?offlineMessage=…` | POST | US-JX-12 (`(built-in)` for the controller). Returns **302**; toggles; viewer gets 403 | **implemented** (P11-20) |
+| `{jobURL}enable` · `{jobURL}disable` | POST | US-JX-13. Returns **302** when done. A multibranch branch job returns **403 even for an admin**. Triggering a disabled job returns **409**, mapped to `JobDisabledFailure` | **implemented** (P11-17) |
+| `{buildURL}toggleLogKeep` | POST | US-JX-14 keep forever. Returns **302**. It toggles, so the app re-reads `keepLog` afterwards | **implemented** (P11-18) |
+| `{buildURL}submitDescription` (form `description`) | POST | US-JX-14. Returns **302**. Stored as raw HTML and shown only as plain text (`htmlToPlainText`) | **implemented** (P11-18) |
+| `{buildURL}replay/run` (form `_.mainScript` + Stapler `json` `{"mainScript":…}`) · `{buildURL}replay/` | POST · GET | US-JX-16. Submitting works (**302** to the *job* page, not the new build; verified 2026-09-30, the run logs "Replayed #N"). But the original script is only in the `replay/` HTML page's `_.mainScript` textarea: there's no `api/json` or other machine-readable source, and a user without Replay gets 404 | **won't-do** (P11-27: would need HTML scraping) |
+| `{baseURL}/api/json?tree=views[name,url],primaryView[name]` · `{viewURL}api/json?tree=jobs[…]` | GET | US-JX-17 views. The primary view's URL is the server root. A view's jobs use the same one-level shape as a folder | **implemented** (P11-21) |
+| `{baseURL}/api/json?tree=quietingDown` + the `X-Jenkins` response header | GET | US-JX-18 server status. During quiet-down a trigger still returns **201** (queued, won't start) | **implemented** (P11-16) |
+| `{jobURL}buildWithParameters` as `multipart/form-data` (file part named after the parameter, other parameters as text parts) | POST | US-JX-02 file parameters | **implemented** (P11-06) |
+
+Every POST above goes through the shared Jenkins client, so it gets the CSRF
+crumb and session cookie automatically. A 403 on an admin-flavoured action
+(scan, node toggle, enable/disable, replay) is shown as a *permission*
+message, not "credentials rejected" (see US-JX-12).
+
+### URL rewriting
+
+Every `url` field in Jenkins JSON responses is rewritten to match the
+active `jenkinsURL`'s scheme/host/port before being stored in domain
+entities — see `docs/architecture.md#5-jenkins-url-normalization`. Do this
+rewrite in the repository layer, once, not ad hoc at each call site.
+
+### Polling intervals (match original app unless a task says otherwise)
+
+- Job detail "is it still building": every 5s while `lastBuild.building == true`.
+- Build log progressive streaming: as fast as responses return (no fixed
+  delay needed beyond avoiding a tight loop — ~1s between reads is
+  reasonable if the server responds quickly).
+
+### Error shapes to handle explicitly
+
+- `401` from Jenkins → `AuthFailure` → prompt to re-check credentials
+  for that server (not the global app session — Jenkins auth is per-server).
+- `403` → `PermissionFailure` (P11-07): the credentials are fine, but the user
+  lacks the permission for this action (e.g. `Job/Build`, a scan, a node
+  toggle). The copy is "You don't have permission to do this on this
+  server" and never sends the user off to re-enter correct credentials.
+  Jenkins' input-step endpoints report the same condition as a **400** page,
+  also mapped to `PermissionFailure`.
+- Connection refused / timeout → `NetworkFailure` → shown as "can't reach
+  server", with a retry action.
+- Any other non-2xx → `ServerFailure(statusCode)` → generic message with
+  the status code visible for debugging.

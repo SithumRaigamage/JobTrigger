@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Job — api-gateway</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="padding: 52px 12px 6px; display: flex; align-items: center; gap: 4px">
+    <a href="Main.dc.html" aria-label="Back to jobs" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #CBD5E1">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+    </a>
+    <span style="flex: 1"></span>
+    <a href="JobHistory.dc.html" aria-label="Build history" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #CBD5E1">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+    </a>
+    <button type="button" aria-label="Unpin job" aria-pressed="true" style="width: 44px; height: 44px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; color: #93C5FD">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v4M8 3h8l-1 6 3 4H6l3-4z"/></svg>
+    </button>
+  </header>
+
+  <main style="flex: 1; overflow: hidden; padding: 0 20px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">api-gateway</h1>
+      <p style="margin: 0; font-size: 14px; color: #94A3B8">Builds and deploys the public API gateway.</p>
+    </div>
+
+    <a href="BuildDetail.dc.html" style="display: flex; flex-direction: column; gap: 14px; padding: 16px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 18px">
+      <span style="display: flex; align-items: center; gap: 10px">
+        <span style="padding: 4px 9px; border-radius: 999px; background: #10284A; color: #93C5FD; font-size: 12px; font-weight: 600">Running</span>
+        <span style="flex: 1; font: 500 14px 'JetBrains Mono', monospace; color: #CBD5E1">#482 · 1m 12s</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </span>
+      <span style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px" aria-label="Pipeline: 2 of 5 stages done, Test running">
+        <span style="display: flex; flex-direction: column; gap: 6px"><span style="height: 6px; border-radius: 3px; background: #4ADE80"></span><span style="font-size: 11px; color: #CBD5E1">Checkout</span></span>
+        <span style="display: flex; flex-direction: column; gap: 6px"><span style="height: 6px; border-radius: 3px; background: #4ADE80"></span><span style="font-size: 11px; color: #CBD5E1">Build</span></span>
+        <span style="display: flex; flex-direction: column; gap: 6px"><span style="height: 6px; border-radius: 3px; background: #1E293B; overflow: hidden"><span style="display: block; width: 55%; height: 100%; background: #60A5FA"></span></span><span style="font-size: 11px; font-weight: 600; color: #93C5FD">Test</span></span>
+        <span style="display: flex; flex-direction: column; gap: 6px"><span style="height: 6px; border-radius: 3px; background: #1E293B"></span><span style="font-size: 11px; color: #94A3B8">Package</span></span>
+        <span style="display: flex; flex-direction: column; gap: 6px"><span style="height: 6px; border-radius: 3px; background: #1E293B"></span><span style="font-size: 11px; color: #94A3B8">Deploy</span></span>
+      </span>
+    </a>
+
+    <h2 style="margin: 4px 0 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #94A3B8">Parameters</h2>
+    <form style="display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="p-branch" style="font: 600 12px 'JetBrains Mono', monospace; color: #CBD5E1">BRANCH</label>
+        <input id="p-branch" type="text" value="main" style="height: 46px; padding: 0 14px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 12px; color: #F1F5F9; font: 400 15px 'JetBrains Mono', monospace; outline: none">
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="p-env" style="font: 600 12px 'JetBrains Mono', monospace; color: #CBD5E1">ENVIRONMENT</label>
+          <select id="p-env" style="height: 46px; padding: 0 12px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 12px; color: #F1F5F9; font: 400 15px Inter, sans-serif"><option>staging</option><option>production</option></select>
+        </div>
+        <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; align-self: end; height: 46px; padding: 0 12px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 12px; font: 600 12px 'JetBrains Mono', monospace; color: #CBD5E1">
+          MIGRATE
+          <input type="checkbox" role="switch" checked style="width: 40px; height: 24px; accent-color: {{accent}}">
+        </label>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span id="p-cfg-label" style="font: 600 12px 'JetBrains Mono', monospace; color: #CBD5E1">CONFIG_FILE</span>
+        <button type="button" aria-labelledby="p-cfg-label" style="display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 14px; background: transparent; border: 1px dashed #334155; border-radius: 12px; color: #CBD5E1; font: 500 14px Inter, sans-serif">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 15V3m0 0-4 4m4-4 4 4M4 21h16"/></svg>
+          Choose a file
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <div style="padding: 12px 20px 30px; background: #0B1120; border-top: 1px solid #1E293B">
+    <button type="button" style="width: 100%; height: 52px; border: 0; border-radius: 14px; background: {{accent}}; color: #FFFFFF; font: 600 16px Inter, sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5v14l11-7z"/></svg>
+      Build with parameters
+    </button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2563EB","options":["#2563EB","#7C3AED","#0F766E","#C2410C"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#2563EB' };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Build nodes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="padding: 52px 12px 6px; display: flex; align-items: center; gap: 4px">
+    <a href="Main.dc.html" aria-label="Back to jobs" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #CBD5E1">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+    </a>
+  </header>
+
+  <main style="flex: 1; overflow: hidden; padding: 0 20px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px">
+      <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">Nodes</h1>
+      <p style="margin: 0; font-size: 14px; color: #94A3B8">3 online · 1 offline · 5 of 10 executors busy</p>
+    </div>
+
+    <article style="padding: 14px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="flex: 1; font: 600 15px 'JetBrains Mono', monospace">built-in</span>
+        <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #86EFAC"><span style="width: 8px; height: 8px; border-radius: 50%; background: #4ADE80"></span>Online</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #94A3B8"><span>Executors</span><span style="font-family: 'JetBrains Mono', monospace; color: #CBD5E1">2 / 2 busy</span></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px"><span style="height: 6px; border-radius: 3px; background: #60A5FA"></span><span style="height: 6px; border-radius: 3px; background: #60A5FA"></span></div>
+      </div>
+    </article>
+
+    <article style="padding: 14px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="flex: 1; font: 600 15px 'JetBrains Mono', monospace">linux-agent-01</span>
+        <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #86EFAC"><span style="width: 8px; height: 8px; border-radius: 50%; background: #4ADE80"></span>Online</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #94A3B8"><span>Executors</span><span style="font-family: 'JetBrains Mono', monospace; color: #CBD5E1">3 / 4 busy</span></div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px"><span style="height: 6px; border-radius: 3px; background: #60A5FA"></span><span style="height: 6px; border-radius: 3px; background: #60A5FA"></span><span style="height: 6px; border-radius: 3px; background: #60A5FA"></span><span style="height: 6px; border-radius: 3px; background: #1E293B"></span></div>
+      </div>
+      <div style="display: flex; gap: 6px"><span style="padding: 3px 8px; border-radius: 6px; background: #1E293B; font: 400 12px 'JetBrains Mono', monospace; color: #CBD5E1">linux</span><span style="padding: 3px 8px; border-radius: 6px; background: #1E293B; font: 400 12px 'JetBrains Mono', monospace; color: #CBD5E1">docker</span></div>
+    </article>
+
+    <article style="padding: 14px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="flex: 1; font: 600 15px 'JetBrains Mono', monospace">mac-mini-ios</span>
+        <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #86EFAC"><span style="width: 8px; height: 8px; border-radius: 50%; background: #4ADE80"></span>Online</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #94A3B8"><span>Executors</span><span style="font-family: 'JetBrains Mono', monospace; color: #CBD5E1">0 / 2 busy</span></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px"><span style="height: 6px; border-radius: 3px; background: #1E293B"></span><span style="height: 6px; border-radius: 3px; background: #1E293B"></span></div>
+      </div>
+    </article>
+
+    <article style="padding: 14px; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="flex: 1; font: 600 15px 'JetBrains Mono', monospace; color: #CBD5E1">windows-agent</span>
+        <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #CBD5E1"><span style="width: 8px; height: 8px; border-radius: 50%; border: 2px solid #94A3B8; box-sizing: border-box"></span>Offline</span>
+      </div>
+      <p style="margin: 0; font-size: 13px; line-height: 1.45; color: #94A3B8">Disconnected 3h ago — agent stopped responding.</p>
+    </article>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

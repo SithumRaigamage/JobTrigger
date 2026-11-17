@@ -1,0 +1,67 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'login_notifier.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Form-submit state (loading/error) for the login screen — see
+/// `docs/state-management.md`'s "Feature: auth" section. Owns nothing about
+/// the session itself; on success it delegates to `authNotifierProvider`.
+
+@ProviderFor(LoginNotifier)
+final loginNotifierProvider = LoginNotifierProvider._();
+
+/// Form-submit state (loading/error) for the login screen — see
+/// `docs/state-management.md`'s "Feature: auth" section. Owns nothing about
+/// the session itself; on success it delegates to `authNotifierProvider`.
+final class LoginNotifierProvider
+    extends $AsyncNotifierProvider<LoginNotifier, void> {
+  /// Form-submit state (loading/error) for the login screen — see
+  /// `docs/state-management.md`'s "Feature: auth" section. Owns nothing about
+  /// the session itself; on success it delegates to `authNotifierProvider`.
+  LoginNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'loginNotifierProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$loginNotifierHash();
+
+  @$internal
+  @override
+  LoginNotifier create() => LoginNotifier();
+}
+
+String _$loginNotifierHash() => r'd8d3cbe3ca2fac534ed7f29958bbe65bfe4583de';
+
+/// Form-submit state (loading/error) for the login screen — see
+/// `docs/state-management.md`'s "Feature: auth" section. Owns nothing about
+/// the session itself; on success it delegates to `authNotifierProvider`.
+
+abstract class _$LoginNotifier extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

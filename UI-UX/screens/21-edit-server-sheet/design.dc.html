@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Edit Jenkins server</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #020617; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; position: relative; overflow: hidden">
+
+  <section role="dialog" aria-modal="true" aria-labelledby="srv-title" style="position: absolute; left: 0; right: 0; bottom: 0; top: 56px; padding: 10px 20px 32px; background: #111A2B; border-top: 1px solid #1F2A3D; border-radius: 24px 24px 0 0; display: flex; flex-direction: column; gap: 18px">
+    <span aria-hidden="true" style="align-self: center; width: 40px; height: 5px; border-radius: 3px; background: #334155"></span>
+
+    <div style="display: flex; align-items: center; gap: 8px">
+      <button type="button" style="min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: #93C5FD; font: 500 16px Inter, sans-serif">Cancel</button>
+      <h2 id="srv-title" style="flex: 1; margin: 0; text-align: center; font-size: 17px; font-weight: 600">Edit server</h2>
+      <button type="button" style="min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: #93C5FD; font: 600 16px Inter, sans-serif">Save</button>
+    </div>
+
+    <form style="display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="srv-name" style="font-size: 13px; font-weight: 600; color: #CBD5E1">Name</label>
+        <input id="srv-name" type="text" value="Acme production" style="height: 48px; padding: 0 14px; background: #0B1120; border: 1px solid #1F2A3D; border-radius: 12px; color: #F1F5F9; font: 400 16px Inter, sans-serif; outline: none">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="srv-url" style="font-size: 13px; font-weight: 600; color: #CBD5E1">Server URL</label>
+        <input id="srv-url" type="url" value="https://jenkins.acme.dev" style="height: 48px; padding: 0 14px; background: #0B1120; border: 1px solid #1F2A3D; border-radius: 12px; color: #F1F5F9; font: 400 15px 'JetBrains Mono', monospace; outline: none">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="srv-user" style="font-size: 13px; font-weight: 600; color: #CBD5E1">Username</label>
+        <input id="srv-user" type="text" value="sam" autocomplete="username" style="height: 48px; padding: 0 14px; background: #0B1120; border: 1px solid #1F2A3D; border-radius: 12px; color: #F1F5F9; font: 400 16px Inter, sans-serif; outline: none">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="srv-token" style="font-size: 13px; font-weight: 600; color: #CBD5E1">API token</label>
+        <input id="srv-token" type="password" value="••••••••••••••••" aria-describedby="srv-token-help" style="height: 48px; padding: 0 14px; background: #0B1120; border: 1px solid #1F2A3D; border-radius: 12px; color: #F1F5F9; font: 400 16px 'JetBrains Mono', monospace; outline: none">
+        <span id="srv-token-help" style="font-size: 12px; line-height: 1.4; color: #94A3B8">Use a Jenkins API token, not your password. It’s stored encrypted.</span>
+      </div>
+    </form>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <button type="button" style="height: 48px; border: 1px solid #1F2A3D; border-radius: 14px; background: #1E293B; color: #F1F5F9; font: 600 15px Inter, sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h3l2-5 4 10 2-5h3"/></svg>Test connection
+      </button>
+      <p role="status" style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; color: #86EFAC">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Connected — 17 jobs found
+      </p>
+    </div>
+
+    <button type="button" style="margin-top: auto; height: 48px; border: 0; background: transparent; color: #FCA5A5; font: 600 15px Inter, sans-serif">Delete server</button>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

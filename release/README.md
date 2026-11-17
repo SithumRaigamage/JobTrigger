@@ -1,0 +1,70 @@
+# Release manifest
+
+`tools.json` is the one answer to "which tools does this build support".
+
+```json
+{ "release": "1.0", "tools": { "jenkins": "1.0", "sonarqube": "1.0", "githubActions": "1.0", "gitlab": "1.3", "circleci": "1.3" } }
+```
+
+- `release` is the release being built. Each tool carries the release it ships in.
+- A tool is **released** when its version is less than or equal to `release`
+  (numbers, so `1.10` is after `1.2`). Released tools can be selected, saved
+  and used. The others are shown as "Coming next" with their version.
+- Planned tools with no code yet (`gitlab`, `circleci`) are allowed while their
+  release is ahead. A tool whose release has come must have code
+  (`IMPLEMENTED` in `scripts/tools-manifest.mjs`), or the script refuses it.
+- The version is only a label for the plan: move a tool to another release by
+  editing this one file.
+
+## Changing it
+
+1. Edit `release/tools.json`.
+2. Run `node scripts/sync-tools.mjs`. It validates the file and copies it,
+   byte for byte, to `JobTrigger-Frontend/config/tools.json`,
+   `JobTrigger-Web/src/content/tools.json` and `JobTrigger-Backend/config/tools.json`.
+3. Commit all four files.
+
+CI (`.github/workflows/tools-manifest.yml`) runs `node --test scripts/` and
+`node scripts/sync-tools.mjs --check`; each project also has a test that its
+copy equals the source.
+
+Tests in the app, website and backend run with an all-tools manifest so tools
+hidden in a release stay tested.
+
+## How each project reads it
+
+- **App** (`lib/domain/tools/tool_catalog.dart`): a tool is available when it is
+  implemented *and* released. GitLab CI and CircleCI have no code, so even a
+  manifest that releases them cannot make them selectable.
+- **Website** (`src/content/release.ts`): the integrations page, the portal's
+  tool picker and the feature-status labels (`Coming in <version>` for a built
+  tool in a later release). End-to-end builds swap in
+  `tests/e2e/all-tools.json` (`E2E_ALL_TOOLS=1`, Playwright only).
+- **Backend** (`lib/releasedTools.js`): creating a credential for a tool the
+  release doesn't ship answers `403 TOOL_NOT_AVAILABLE`. Reads, updates and
+  deletes are never blocked.
+
+The manifest calls GitHub Actions `githubActions`; the website's `Tool` type and
+the backend's routes and stored data call it `github`. Each project maps manifest
+ids to its own ids in one place (`MANIFEST_TO_TOOL`, `LOCAL_TOOL`); nothing is
+renamed, and an id a project doesn't know fails loudly.
+
+## Subscription copy
+
+Anything that sells Pro must not name a tool the release doesn't ship or promise
+tools "together" while only one is released. The paywall (`paywall_reason.dart`),
+`/pricing` (`pricingFor` in `content/pricing.ts`) and the Account plan card read
+the manifest; with several tools released they say what they always said.
+
+## Marketing copy and store text
+
+- The website's home hero, tool strip, social preview image, integrations
+  description and sign-in text name the released tools first and the rest only
+  as "coming next" (`JobTrigger-Web/src/content/tool-copy.ts`). With every tool
+  released they read exactly as they always have.
+- **Store text can't follow the manifest.** Rewrite it for each release's tools
+  (`tasks/release-checklist.md`, "Store listing text, per release").
+- CI runs the website's Playwright suite twice: against an all-tools build, and
+  a small smoke run (`release-1.0.spec.ts`) against a build with the real
+  manifest, which must offer Jenkins, SonarQube and GitHub Actions and show
+  GitLab CI and CircleCI only as "Coming next".

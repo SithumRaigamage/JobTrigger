@@ -1,0 +1,50 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-10-23T09:00:00Z"},
+  "title": "JobTrigger Redesign",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Login.dc.html": {"x": 0, "y": 0, "w": 390, "h": 844, "title": "01 Login", "is_interactive": true},
+    "Signup.dc.html": {"x": 470, "y": 0, "w": 390, "h": 844, "title": "02 Signup", "is_interactive": true},
+    "ToolSelection.dc.html": {"x": 940, "y": 0, "w": 390, "h": 844, "title": "03 Tool selection", "is_interactive": true},
+    "AppLock.dc.html": {"x": 1410, "y": 0, "w": 390, "h": 844, "title": "04 App lock"},
+
+    "Main.dc.html": {"x": 0, "y": 1264, "w": 390, "h": 844, "title": "05 Home — Jenkins (dark)", "is_interactive": true},
+    "HomeLight.dc.html": {"x": 470, "y": 1264, "w": 390, "h": 844, "title": "06 Home — Jenkins (light)"},
+    "GitHubRepos.dc.html": {"x": 940, "y": 1264, "w": 390, "h": 844, "title": "07 Home — GitHub repos", "is_interactive": true},
+    "History.dc.html": {"x": 1410, "y": 1264, "w": 390, "h": 844, "title": "08 Global history", "is_interactive": true},
+    "Settings.dc.html": {"x": 1880, "y": 1264, "w": 390, "h": 844, "title": "09 Settings", "is_interactive": true},
+    "Profile.dc.html": {"x": 2350, "y": 1264, "w": 390, "h": 844, "title": "10 Profile", "is_interactive": true},
+
+    "JobDetail.dc.html": {"x": 0, "y": 2528, "w": 390, "h": 844, "title": "11 Job detail", "is_interactive": true},
+    "StageSheet.dc.html": {"x": 470, "y": 2528, "w": 390, "h": 844, "title": "12 Stage detail sheet"},
+    "JobHistory.dc.html": {"x": 940, "y": 2528, "w": 390, "h": 844, "title": "13 Job history", "is_interactive": true},
+    "BuildDetail.dc.html": {"x": 1410, "y": 2528, "w": 390, "h": 844, "title": "14 Build detail", "is_interactive": true},
+    "BuildLog.dc.html": {"x": 1880, "y": 2528, "w": 390, "h": 844, "title": "15 Build log", "is_interactive": true},
+    "Nodes.dc.html": {"x": 2350, "y": 2528, "w": 390, "h": 844, "title": "16 Nodes", "is_interactive": true},
+    "Queue.dc.html": {"x": 2820, "y": 2528, "w": 390, "h": 844, "title": "17 Queue", "is_interactive": true},
+
+    "GitHubWorkflows.dc.html": {"x": 0, "y": 3792, "w": 390, "h": 844, "title": "18 GitHub workflows", "is_interactive": true},
+    "OpenLink.dc.html": {"x": 470, "y": 3792, "w": 390, "h": 844, "title": "19 Open link"},
+    "AppInfo.dc.html": {"x": 940, "y": 3792, "w": 390, "h": 844, "title": "20 App info", "is_interactive": true},
+    "ServerSheet.dc.html": {"x": 1410, "y": 3792, "w": 390, "h": 844, "title": "21 Edit server sheet"},
+    "PasswordDialog.dc.html": {"x": 1880, "y": 3792, "w": 390, "h": 844, "title": "22 Change password dialog"},
+    "NotFound.dc.html": {"x": 2350, "y": 3792, "w": 390, "h": 844, "title": "23 Unknown route", "is_interactive": true},
+    "WidgetNotify.dc.html": {"x": 2820, "y": 3792, "w": 390, "h": 844, "title": "24 Home widget + notification"}
+  },
+  "order": [
+    "Main.dc.html",
+    "Login.dc.html", "Signup.dc.html", "ToolSelection.dc.html", "AppLock.dc.html",
+    "HomeLight.dc.html", "GitHubRepos.dc.html", "History.dc.html", "Settings.dc.html", "Profile.dc.html",
+    "JobDetail.dc.html", "StageSheet.dc.html", "JobHistory.dc.html", "BuildDetail.dc.html", "BuildLog.dc.html", "Nodes.dc.html", "Queue.dc.html",
+    "GitHubWorkflows.dc.html", "OpenLink.dc.html", "AppInfo.dc.html", "ServerSheet.dc.html", "PasswordDialog.dc.html", "NotFound.dc.html", "WidgetNotify.dc.html"
+  ],
+  "notes": {
+    "row1": {"x": 0, "y": -300, "text": "Sign in & setup", "kind": "title1", "maxW": 1800},
+    "row2": {"x": 0, "y": 964, "text": "Main tabs", "kind": "title1", "maxW": 2740},
+    "row3": {"x": 0, "y": 2228, "text": "Jobs & builds", "kind": "title1", "maxW": 3210},
+    "row4": {"x": 0, "y": 3492, "text": "GitHub, links & system", "kind": "title1", "maxW": 3210}
+  },
+  "designSystems": []
+}

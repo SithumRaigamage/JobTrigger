@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JobTrigger — features (pre-launch)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B1120}
+a{color:#93C5FD;text-decoration:none}a:hover{color:#BFDBFE}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="HeaderSoon" current="features" hint-size="100%,72px"></dc-import>
+
+  <main style="display: flex; flex-direction: column">
+    <section style="background-color: #0B1120; background-image: radial-gradient(#1F2A3D 1px, transparent 1px); background-size: 28px 28px; overflow: hidden">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 96px 20px 0; display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center">
+        <span style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #93C5FD">Features</span>
+        <h1 style="margin: 0; max-width: 900px; font-size: 68px; line-height: 1.02; font-weight: 800; letter-spacing: -0.045em">The whole CI loop. <span style="color: #93C5FD">On one screen.</span></h1>
+        <p style="margin: 0; max-width: 620px; font-size: 19px; line-height: 1.6; color: #CBD5E1">Everything below is built today. Anything still on the way is marked.</p>
+        <div aria-label="JobTrigger screens" role="img" style="width: 100%; margin-top: 40px; display: flex; justify-content: center; align-items: flex-end; gap: 16px">
+          <sc-for list="{{ gallery }}" as="g" hint-placeholder-count="5">
+            <div style="{{ g.frameStyle }}">
+              <img src="{{ g.img }}" alt="" style="display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 26px 26px 0 0">
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section style="background: #F8FAFC; color: #0F172A">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 104px 20px; display: flex; flex-direction: column; gap: 40px">
+        <h2 style="margin: 0; max-width: 720px; font-size: 44px; line-height: 1.08; font-weight: 800; letter-spacing: -0.035em">Built for the moments you're away from your desk.</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px">
+          <sc-for list="{{ cards }}" as="c" hint-placeholder-count="9">
+            <article style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 22px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); padding: 26px; display: flex; flex-direction: column; gap: 14px">
+              <span style="{{ c.iconStyle }}">{{ c.glyph }}</span>
+              <h3 style="margin: 0; font-size: 19px; font-weight: 700">{{ c.t }}</h3>
+              <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #475569">{{ c.d }}</p>
+              <span style="{{ c.chipStyle }}">{{ c.chip }}</span>
+            </article>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section style="background: #0B1120">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 104px 20px; display: flex; flex-wrap: wrap; gap: 56px; align-items: center">
+        <div style="flex: 1 1 440px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+          <span style="align-self: flex-start; display: flex; gap: 8px; align-items: center"><span style="padding: 5px 12px; border-radius: 999px; background: #F1F5F9; color: #0B1120; font-size: 13px; font-weight: 700">GitHub Actions</span><span style="padding: 5px 12px; border-radius: 999px; background: #10284A; color: #93C5FD; font-size: 13px; font-weight: 700">Beta</span></span>
+          <h2 style="margin: 0; font-size: 44px; line-height: 1.08; font-weight: 800; letter-spacing: -0.035em">Jenkins and GitHub, side by side.</h2>
+          <p style="margin: 0; font-size: 17px; line-height: 1.65; color: #CBD5E1">Add your GitHub accounts and browse repositories and workflows next to your Jenkins servers. Runs, logs and history are on the way.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px">
+            <span style="padding: 6px 12px; border-radius: 10px; background: #0F2E1F; color: #86EFAC; font-size: 13px; font-weight: 600">✓ Accounts · repos · workflows</span>
+            <span style="padding: 6px 12px; border-radius: 10px; background: #1E293B; color: #CBD5E1; font-size: 13px; font-weight: 600">Coming soon · runs · logs · history</span>
+          </div>
+          <a href="ToolsSoon.dc.html" style="align-self: flex-start; font-size: 16px; font-weight: 600">See every integration →</a>
+        </div>
+        <div style="flex: 1 1 360px; min-width: 0; display: flex; justify-content: center">
+          <div style="width: 260px; padding: 9px; background: #1E293B; border-radius: 44px; box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px #334155">
+            <img src="/_blob/228ae7b2f9d9d270b186370bbd3b462c" alt="GitHub repositories in JobTrigger" style="display: block; width: 100%; border-radius: 35px">
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dc-import name="FooterSoon" hint-size="100%,380px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const shots = [
+      { img: '/_blob/67b7be205ba34a78a5d52899bfec454b', h: 300, rot: -6 },
+      { img: '/_blob/31f898580c045f323769055ee797b0ee', h: 360, rot: -3 },
+      { img: '/_blob/e1bddce979008b06b2fafae929d8849b', h: 420, rot: 0 },
+      { img: '/_blob/2f9245af334b975bad0300659b1eb789', h: 360, rot: 3 },
+      { img: '/_blob/eeca0d0ca3329ba30ab84201be86286a', h: 300, rot: 6 },
+    ];
+    const gallery = shots.map((s) => ({
+      img: s.img,
+      frameStyle: 'flex: 0 1 200px; min-width: 0; height: ' + s.h + 'px; padding: 7px 7px 0; background: #1E293B; border-radius: 33px 33px 0 0; transform: rotate(' + s.rot + 'deg); transform-origin: bottom center; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5)',
+    }));
+    const tones = {
+      blue: ['#DBEAFE', '#1D4ED8'], green: ['#DCFCE7', '#15803D'], red: ['#FEE2E2', '#B91C1C'], orange: ['#FFEDD5', '#C2410C'], slate: ['#F1F5F9', '#334155'],
+    };
+    const raw = [
+      { tone: 'blue', glyph: '▶', t: 'Every parameter type', d: 'Choices, booleans, multi-line text, files and runs — each gets the right input.', chip: 'release/2.4 · staging' },
+      { tone: 'slate', glyph: '••', t: 'Secrets stay secret', d: 'Password parameters are masked, never pre-filled and never saved.', chip: 'DB_PASSWORD ••••••••' },
+      { tone: 'blue', glyph: '≡', t: 'Live console', d: 'Streams as it runs, with colours, search and per-stage logs.', chip: '● streaming · 1m 48s' },
+      { tone: 'red', glyph: '✕', t: 'Failure at a glance', d: 'Failing stage, failing tests and the commits that went in.', chip: '✕ Test · 1 of 215' },
+      { tone: 'green', glyph: '✓', t: 'Build notifications', d: 'Watch a build and get told when it finishes.', chip: '✓ #482 succeeded' },
+      { tone: 'orange', glyph: '▦', t: 'Home-screen widget', d: 'Pinned jobs and their status without opening the app.', chip: '▲ nightly-e2e unstable' },
+      { tone: 'slate', glyph: '⇄', t: 'Many servers', d: 'Work and personal Jenkins; switch in a tap.', chip: '2 servers · 1 active' },
+      { tone: 'blue', glyph: '⌂', t: 'Queue and nodes', d: 'What’s waiting, which agents are busy, take one offline.', chip: '3 queued · 5/6 busy' },
+      { tone: 'green', glyph: '◉', t: 'App lock', d: 'Face ID or fingerprint, with your passcode as backup.', chip: 'Face ID on' },
+    ];
+    const cards = raw.map((c) => {
+      const [bg, fg] = tones[c.tone];
+      return {
+        ...c,
+        iconStyle: 'width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800; background: ' + bg + '; color: ' + fg,
+        chipStyle: 'align-self: flex-start; margin-top: auto; padding: 6px 10px; border-radius: 10px; font-family: \'JetBrains Mono\', monospace; font-size: 12px; background: ' + bg + '; color: ' + fg,
+      };
+    });
+    return { gallery, cards };
+  }
+}
+</script>
+</body>
+</html>

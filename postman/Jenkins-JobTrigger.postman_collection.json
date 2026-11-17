@@ -1,0 +1,1075 @@
+{
+	"info": {
+		"_postman_id": "f8a4b2c1-5d3e-4a9f-b6c8-1e2d3f4a5b6c",
+		"name": "Jenkins Job Trigger API",
+		"description": "# Jenkins Job Trigger API Collection\n\nThis collection contains API endpoints for triggering Jenkins CI/CD pipeline builds with custom parameters.\n\n## Overview\n\nThe laTrigger iOS application uses these endpoints to interact with Jenkins servers to trigger builds, check job status, and manage CI/CD workflows.\n\n## Authentication\n\nAll endpoints require **Basic Authentication**. You need to provide:\n- **Username**: Your Jenkins username\n- **Password**: Your Jenkins API token (not your password)\n\n## Getting Your Jenkins API Token\n\n1. Log in to Jenkins\n2. Click on your username in the top-right corner\n3. Click \"Configure\" in the left sidebar\n4. Under \"API Token\", click \"Add new Token\"\n5. Give it a name and click \"Generate\"\n6. Copy the token and store it securely\n\n## Environment Variables\n\nThis collection uses the following environment variables:\n- `jenkins_base_url`: Base URL of your Jenkins server\n- `jenkins_username`: Your Jenkins username\n- `jenkins_api_token`: Your Jenkins API token\n- `build_token`: Build trigger token configured in Jenkins job\n- `job_path`: Path to the Jenkins job\n\n## Security Notes\n\n⚠️ **Never commit credentials to version control**\n\n- Store credentials in environment variables\n- Use HTTPS in production\n- Rotate API tokens regularly",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Build Triggers",
+			"item": [
+				{
+					"name": "Trigger Build with Parameters",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "RELEASE_VERSION",
+									"value": "1.0.0",
+									"description": "Version number for the release (e.g., 1.0.4)",
+									"type": "text"
+								},
+								{
+									"key": "ENVIRONMENT",
+									"value": "dev",
+									"description": "Target deployment environment: dev, staging, or prod",
+									"type": "text"
+								},
+								{
+									"key": "BRANCH",
+									"value": "main",
+									"description": "Git branch to build from (e.g., main, develop, feature/*)",
+									"type": "text"
+								},
+								{
+									"key": "GIT_REPO_URL",
+									"value": "https://github.com/user-name/repo-name.git",
+									"description": "Full URL of the Git repository",
+									"type": "text"
+								},
+								{
+									"key": "SEND_EMAIL",
+									"value": "true",
+									"description": "Whether to send email notifications (true/false)",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{jenkins_base_url}}/job/{{job_path}}/buildWithParameters?token={{build_token}}",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"job",
+								"{{job_path}}",
+								"buildWithParameters"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{build_token}}",
+									"description": "Authentication token for triggering the build"
+								}
+							]
+						},
+						"description": "Trigger a Jenkins pipeline build with custom parameters.\n\n## Parameters\n\n| Parameter | Description | Required |\n|-----------|-------------|----------|\n| RELEASE_VERSION | Version number for the release | Yes |\n| ENVIRONMENT | Target environment (dev/staging/prod) | Yes |\n| BRANCH | Git branch to build from | Yes |\n| GIT_REPO_URL | Full URL of the Git repository | Yes |\n| SEND_EMAIL | Send email notifications | No |\n\n## Response\n\n- **201 Created**: Build successfully queued\n- **401 Unauthorized**: Invalid credentials\n- **403 Forbidden**: No permission to trigger build\n- **404 Not Found**: Job path not found"
+					},
+					"response": [
+						{
+							"name": "Build Queued Successfully",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/x-www-form-urlencoded",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "RELEASE_VERSION",
+											"value": "1.0.4",
+											"type": "text"
+										},
+										{
+											"key": "ENVIRONMENT",
+											"value": "dev",
+											"type": "text"
+										},
+										{
+											"key": "BRANCH",
+											"value": "main",
+											"type": "text"
+										},
+										{
+											"key": "GIT_REPO_URL",
+											"value": "https://github.com/user-name/repo-name.git",
+											"type": "text"
+										},
+										{
+											"key": "SEND_EMAIL",
+											"value": "true",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{jenkins_base_url}}/job/{{job_path}}/buildWithParameters?token={{build_token}}",
+									"host": [
+										"{{jenkins_base_url}}"
+									],
+									"path": [
+										"job",
+										"{{job_path}}",
+										"buildWithParameters"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{build_token}}"
+										}
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "text",
+							"header": [
+								{
+									"key": "Location",
+									"value": "http://localhost:8080/queue/item/123/"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "Trigger Build - Development",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "RELEASE_VERSION",
+									"value": "1.0.0-dev",
+									"type": "text"
+								},
+								{
+									"key": "ENVIRONMENT",
+									"value": "dev",
+									"type": "text"
+								},
+								{
+									"key": "BRANCH",
+									"value": "develop",
+									"type": "text"
+								},
+								{
+									"key": "GIT_REPO_URL",
+									"value": "{{git_repo_url}}",
+									"type": "text"
+								},
+								{
+									"key": "SEND_EMAIL",
+									"value": "true",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{jenkins_base_url}}/job/{{job_path}}/buildWithParameters?token={{build_token}}",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"job",
+								"{{job_path}}",
+								"buildWithParameters"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{build_token}}"
+								}
+							]
+						},
+						"description": "Pre-configured request for triggering a Development environment build.\n\n- Environment: `dev`\n- Branch: `develop`\n- Email notifications: Enabled"
+					},
+					"response": []
+				},
+				{
+					"name": "Trigger Build - Staging",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "RELEASE_VERSION",
+									"value": "1.0.0-rc1",
+									"type": "text"
+								},
+								{
+									"key": "ENVIRONMENT",
+									"value": "staging",
+									"type": "text"
+								},
+								{
+									"key": "BRANCH",
+									"value": "release/1.0.0",
+									"type": "text"
+								},
+								{
+									"key": "GIT_REPO_URL",
+									"value": "{{git_repo_url}}",
+									"type": "text"
+								},
+								{
+									"key": "SEND_EMAIL",
+									"value": "true",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{jenkins_base_url}}/job/{{job_path}}/buildWithParameters?token={{build_token}}",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"job",
+								"{{job_path}}",
+								"buildWithParameters"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{build_token}}"
+								}
+							]
+						},
+						"description": "Pre-configured request for triggering a Staging environment build.\n\n- Environment: `staging`\n- Branch: `release/1.0.0`\n- Email notifications: Enabled"
+					},
+					"response": []
+				},
+				{
+					"name": "Trigger Build - Production",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "RELEASE_VERSION",
+									"value": "1.0.0",
+									"type": "text"
+								},
+								{
+									"key": "ENVIRONMENT",
+									"value": "prod",
+									"type": "text"
+								},
+								{
+									"key": "BRANCH",
+									"value": "main",
+									"type": "text"
+								},
+								{
+									"key": "GIT_REPO_URL",
+									"value": "{{git_repo_url}}",
+									"type": "text"
+								},
+								{
+									"key": "SEND_EMAIL",
+									"value": "true",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{jenkins_base_url}}/job/{{job_path}}/buildWithParameters?token={{build_token}}",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"job",
+								"{{job_path}}",
+								"buildWithParameters"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{build_token}}"
+								}
+							]
+						},
+						"description": "Pre-configured request for triggering a Production environment build.\n\n⚠️ **WARNING**: This triggers a production deployment!\n\n- Environment: `prod`\n- Branch: `main`\n- Email notifications: Enabled"
+					},
+					"response": []
+				},
+				{
+					"name": "Trigger Build - Simple (No Parameters)",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/job/{{job_path}}/build?token={{build_token}}",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"job",
+								"{{job_path}}",
+								"build"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{build_token}}"
+								}
+							]
+						},
+						"description": "Trigger a simple build without any parameters. Uses default values configured in the Jenkins job."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for triggering Jenkins builds with various configurations."
+		},
+		{
+			"name": "Job Information",
+			"item": [
+				{
+					"name": "Get Job Info",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/job/{{job_path}}/api/json",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"job",
+								"{{job_path}}",
+								"api",
+								"json"
+							]
+						},
+						"description": "Get detailed information about a Jenkins job, including recent builds, health, and configuration."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Last Build Info",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/job/{{job_path}}/lastBuild/api/json",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"job",
+								"{{job_path}}",
+								"lastBuild",
+								"api",
+								"json"
+							]
+						},
+						"description": "Get information about the last build of a Jenkins job."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Last Successful Build",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/job/{{job_path}}/lastSuccessfulBuild/api/json",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"job",
+								"{{job_path}}",
+								"lastSuccessfulBuild",
+								"api",
+								"json"
+							]
+						},
+						"description": "Get information about the last successful build of a Jenkins job."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Last Failed Build",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/job/{{job_path}}/lastFailedBuild/api/json",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"job",
+								"{{job_path}}",
+								"lastFailedBuild",
+								"api",
+								"json"
+							]
+						},
+						"description": "Get information about the last failed build of a Jenkins job."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Specific Build Info",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/job/{{job_path}}/{{build_number}}/api/json",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"job",
+								"{{job_path}}",
+								"{{build_number}}",
+								"api",
+								"json"
+							]
+						},
+						"description": "Get information about a specific build by build number."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Build Console Output",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/job/{{job_path}}/{{build_number}}/consoleText",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"job",
+								"{{job_path}}",
+								"{{build_number}}",
+								"consoleText"
+							]
+						},
+						"description": "Get the console output/log of a specific build."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for retrieving Jenkins job and build information."
+		},
+		{
+			"name": "Queue Management",
+			"item": [
+				{
+					"name": "Get Queue Info",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/queue/api/json",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"queue",
+								"api",
+								"json"
+							]
+						},
+						"description": "Get the current Jenkins build queue with all pending builds."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Queue Item",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/queue/item/{{queue_id}}/api/json",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"queue",
+								"item",
+								"{{queue_id}}",
+								"api",
+								"json"
+							]
+						},
+						"description": "Get information about a specific queued build item."
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Queued Build",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/queue/cancelItem?id={{queue_id}}",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"queue",
+								"cancelItem"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{queue_id}}"
+								}
+							]
+						},
+						"description": "Cancel a queued build that hasn't started yet."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing the Jenkins build queue."
+		},
+		{
+			"name": "Build Control",
+			"item": [
+				{
+					"name": "Stop Running Build",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/job/{{job_path}}/{{build_number}}/stop",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"job",
+								"{{job_path}}",
+								"{{build_number}}",
+								"stop"
+							]
+						},
+						"description": "Stop a currently running build."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Build",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/job/{{job_path}}/{{build_number}}/doDelete",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"job",
+								"{{job_path}}",
+								"{{build_number}}",
+								"doDelete"
+							]
+						},
+						"description": "Delete a specific build from the build history."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for controlling running builds."
+		},
+		{
+			"name": "Server Information",
+			"item": [
+				{
+					"name": "Test Connection (Ping)",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/api/json",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"api",
+								"json"
+							]
+						},
+						"description": "Test connection to the Jenkins server and get basic server information."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Jobs",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/api/json?tree=jobs[name,url,color]",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"api",
+								"json"
+							],
+							"query": [
+								{
+									"key": "tree",
+									"value": "jobs[name,url,color]"
+								}
+							]
+						},
+						"description": "Get a list of all jobs on the Jenkins server with their names, URLs, and status colors."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/me/api/json",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"me",
+								"api",
+								"json"
+							]
+						},
+						"description": "Get information about the currently authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Crumb (CSRF Token)",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{jenkins_username}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{jenkins_api_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{jenkins_base_url}}/crumbIssuer/api/json",
+							"host": [
+								"{{jenkins_base_url}}"
+							],
+							"path": [
+								"crumbIssuer",
+								"api",
+								"json"
+							]
+						},
+						"description": "Get the CSRF crumb token required for some POST requests when CSRF protection is enabled on the Jenkins server."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for getting Jenkins server information and testing connectivity."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Pre-request script for all requests",
+					"// You can add common logic here"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Common test scripts",
+					"pm.test(\"Response time is less than 5000ms\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"pm.test(\"No server errors\", function () {",
+					"    pm.expect(pm.response.code).to.not.be.oneOf([500, 502, 503, 504]);",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "jenkins_base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "job_path",
+			"value": "Projects/job/Hello-World-Node-JS/job/CI/job/CI-Pipleine",
+			"type": "string"
+		},
+		{
+			"key": "build_token",
+			"value": "sithum",
+			"type": "string"
+		},
+		{
+			"key": "build_number",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "queue_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "git_repo_url",
+			"value": "https://github.com/user-name/repo-name.git",
+			"type": "string"
+		}
+	]
+}

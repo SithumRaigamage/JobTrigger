@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JobTrigger — support</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B1120}
+a{color:#93C5FD;text-decoration:none}a:hover{color:#BFDBFE}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B1120; color: #F1F5F9; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="legal" hint-size="100%,72px"></dc-import>
+
+  <main style="width: 100%; max-width: 880px; margin: 0 auto; box-sizing: border-box; padding: 72px 20px 96px; display: flex; flex-direction: column; gap: 40px">
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <h1 style="margin: 0; font-size: 44px; line-height: 1.1; font-weight: 800; letter-spacing: -0.03em">How can we help?</h1>
+      <p style="margin: 0; font-size: 17px; line-height: 1.6; color: #CBD5E1">Most setup problems are one of the four below. If yours isn't, email us.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <sc-for list="{{ faqs }}" as="faq" hint-placeholder-count="4">
+        <div style="background: #111A2B; border: 1px solid #1F2A3D; border-radius: 16px; overflow: hidden">
+          <button type="button" onClick="{{ faq.toggle }}" aria-expanded="{{ faq.expanded }}" style="width: 100%; min-height: 60px; padding: 18px 22px; background: transparent; border: 0; color: #F1F5F9; font: 600 16px Inter, sans-serif; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer">
+            {{ faq.q }}
+            <span aria-hidden="true" style="color: #94A3B8; font-size: 20px">{{ faq.sign }}</span>
+          </button>
+          <sc-if value="{{ faq.open }}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 0; padding: 0 22px 20px; font-size: 15px; line-height: 1.65; color: #CBD5E1">{{ faq.a }}</p>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <section style="background: #111A2B; border: 1px solid #1F2A3D; border-radius: 20px; padding: 32px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between">
+      <div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 0; font-size: 22px; font-weight: 700">Still stuck?</h2>
+        <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #CBD5E1">Tell us your app version and what you tried. Never send us a token — we will never ask for one.</p>
+      </div>
+      <a href="mailto:support@example.com" style="height: 52px; padding: 0 22px; border-radius: 14px; background: #2563EB; color: #FFFFFF; font-size: 16px; font-weight: 600; display: flex; align-items: center">Email support</a>
+    </section>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1600}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { open: 0 }; }
+  renderVals() {
+    const items = [
+      { q: 'I added a server on the website but the app doesn’t show it', a: 'Make sure the app is signed in to the same JobTrigger account. Switch away from the app and back, or pull to refresh on the home screen.' },
+      { q: 'Jenkins says my credentials are wrong', a: 'JobTrigger needs a Jenkins API token, not your Jenkins password if your server uses single sign-on. Create one under your name → Security → API Token.' },
+      { q: 'The app can’t reach my Jenkins server', a: 'If Jenkins is only on your office network or VPN, connect your phone to that network first. The website can save it either way.' },
+      { q: 'I forgot my JobTrigger password', a: 'Password reset isn’t available yet. Email support from the address on your account and we will help you.' },
+    ];
+    const open = this.state.open;
+    return {
+      faqs: items.map((f, i) => ({
+        ...f,
+        open: open === i,
+        expanded: open === i ? 'true' : 'false',
+        sign: open === i ? '−' : '+',
+        toggle: () => this.setState({ open: open === i ? -1 : i }),
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

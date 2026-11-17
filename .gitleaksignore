@@ -1,0 +1,40 @@
+# Gitleaks findings reviewed and accepted (AUD-59 / AUD-66, 2026-10-20).
+# One fingerprint per line: <commit>:<file>:<rule>:<line>. Add a line here
+# only with a reason, and only for something that isn't a live secret or has
+# been revoked; never to make a real leak pass.
+
+# A made-up Jenkins API token: the fixture for "a real API token shows no
+# advisory" (US-JX-22). Not a credential.
+1936746eef726e720705ed88b09c04382612d12d:JobTrigger-Frontend/test/presentation/features/settings/server_token_advisory_test.dart:generic-api-key:41
+
+# AUD-66: history only (the files are gone from the tree). A local Jenkins
+# API token from the SwiftUI era, and a curl example's Authorization header.
+# Public history isn't rewritten; the token must be revoked in that Jenkins
+# instead (owner action, tracked in the audit).
+e6b70af69e16e81da7dff06471a2d85cf4374f8f:Lab-Trigger-frontend/Lab-Trigger-frontend/Resources/jenkins_credentials.json:generic-api-key:6
+e32c78ae40f923b18a66c09a0629d7b56b20c45b:docs/api-spec.md:curl-auth-header:44
+
+# P20 double-check (2026-11-16): every finding below was read and is a made-up
+# test fixture or a shell variable, not a credential.
+# JobTrigger-Web/src/billing/paddle-config.test.ts: P20-83 test fixtures: made-up Paddle client-token shapes ("test_0123456789abcdefghij", "pdl_live_apikey_01hxyz") used to test the token parser. Not credentials.
+cce792c16092423224583224962a45c5691d909e:JobTrigger-Web/src/billing/paddle-config.test.ts:generic-api-key:34
+# JobTrigger-Web/src/features/billing/billing.test.tsx: P20-83 test fixtures: made-up Paddle client-token shapes ("test_0123456789abcdefghij", "pdl_live_apikey_01hxyz") used to test the token parser. Not credentials.
+cce792c16092423224583224962a45c5691d909e:JobTrigger-Web/src/features/billing/billing.test.tsx:generic-api-key:18
+# scripts/sonar-scan.sh: The shell variable "$SONAR_TOKEN:" passed to curl -u, not a value. The token itself is read from the environment (git-ignored file).
+f0e7c9ec16f59714b9ed337d063972cb1bff1f35:scripts/sonar-scan.sh:curl-auth-user:101
+f0e7c9ec16f59714b9ed337d063972cb1bff1f35:scripts/sonar-scan.sh:curl-auth-user:143
+f0e7c9ec16f59714b9ed337d063972cb1bff1f35:scripts/sonar-scan.sh:curl-auth-user:155
+01f4ddb670898b099d84d774bdd1b502d4085f22:scripts/sonar-scan.sh:curl-auth-user:132
+01f4ddb670898b099d84d774bdd1b502d4085f22:scripts/sonar-scan.sh:curl-auth-user:174
+01f4ddb670898b099d84d774bdd1b502d4085f22:scripts/sonar-scan.sh:curl-auth-user:186
+# JobTrigger-Web/tests/e2e/edit-server.spec.ts: Made-up fixture token in a test ("11aabbcc…a91f", "squ_0123…02cd" and similar); the website/app tests prove the app never holds a real secret.
+cb50515127dd7c182ee9e05a7f091c175a2920cb:JobTrigger-Web/tests/e2e/edit-server.spec.ts:generic-api-key:6
+# JobTrigger-Web/tests/e2e/add-server.spec.ts: Made-up fixture token in a test ("11aabbcc…a91f", "squ_0123…02cd" and similar); the website/app tests prove the app never holds a real secret.
+f0a50adcc2c9b3d6ed5b59745e0cb0e16e7e54ef:JobTrigger-Web/tests/e2e/add-server.spec.ts:generic-api-key:5
+# JobTrigger-Web/tests/e2e/servers.spec.ts: Made-up fixture token in a test ("11aabbcc…a91f", "squ_0123…02cd" and similar); the website/app tests prove the app never holds a real secret.
+d4ca0522c6c73a7d4a29bfb88312d3cc35636ad1:JobTrigger-Web/tests/e2e/servers.spec.ts:generic-api-key:6
+# JobTrigger-Web/src/server/credentials-api.test.ts: Made-up fixture token in a test ("11aabbcc…a91f", "squ_0123…02cd" and similar); the website/app tests prove the app never holds a real secret.
+784a061f6eb8162339d3e168f4af1a3153bd587f:JobTrigger-Web/src/server/credentials-api.test.ts:generic-api-key:27
+784a061f6eb8162339d3e168f4af1a3153bd587f:JobTrigger-Web/src/server/credentials-api.test.ts:sonar-api-token:30
+# JobTrigger-Frontend/test/presentation/features/settings/edit_sheet_test.dart: Made-up fixture token in a test ("11aabbcc…a91f", "squ_0123…02cd" and similar); the website/app tests prove the app never holds a real secret.
+8f22dfb4d3e7f89df22c1ae901f9de7b86bd00e8:JobTrigger-Frontend/test/presentation/features/settings/edit_sheet_test.dart:generic-api-key:14

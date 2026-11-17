@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JobTrigger — features</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F8FAFC}
+a{color:#1D4ED8;text-decoration:none}a:hover{color:#1E40AF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F8FAFC; color: #0F172A; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="features" hint-size="100%,72px"></dc-import>
+
+  <main style="display: flex; flex-direction: column">
+    <section style="background: #0B1120; color: #F1F5F9">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 88px 20px 80px; display: flex; flex-direction: column; gap: 18px">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #93C5FD">Features</span>
+        <h1 style="margin: 0; max-width: 860px; font-size: 64px; line-height: 1.04; font-weight: 800; letter-spacing: -0.04em">Run, watch and fix builds from anywhere.</h1>
+        <p style="margin: 0; font-size: 18px; color: #CBD5E1">Everything on this page ships in the current app.</p>
+      </div>
+    </section>
+
+    <sc-for list="{{ rows }}" as="row" hint-placeholder-count="4">
+      <section style="background: {{ row.bg }}">
+        <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 88px 20px; display: flex; flex-wrap: wrap; gap: 56px; align-items: center">
+          <div style="flex: 1 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+            <span style="{{ row.pillStyle }}">{{ row.pill }}</span>
+            <h2 style="margin: 0; font-size: 40px; line-height: 1.1; font-weight: 800; letter-spacing: -0.03em">{{ row.title }}</h2>
+            <p style="margin: 0; font-size: 17px; line-height: 1.65; color: #475569">{{ row.body }}</p>
+          </div>
+          <div style="flex: 1 1 360px; min-width: 0; display: flex; justify-content: center">
+            <div style="width: 260px; padding: 8px; background: #1E293B; border-radius: 42px; box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18)">
+              <img src="{{ row.img }}" alt="{{ row.alt }}" style="display: block; width: 100%; border-radius: 34px">
+            </div>
+          </div>
+        </div>
+      </section>
+    </sc-for>
+
+    <section style="background: #0B1120; color: #F1F5F9">
+      <div style="max-width: 1240px; margin: 0 auto; box-sizing: border-box; padding: 88px 20px; display: flex; flex-direction: column; gap: 32px">
+        <h2 style="margin: 0; font-size: 36px; font-weight: 800; letter-spacing: -0.03em">And the rest</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px">
+          <sc-for list="{{ extras }}" as="x" hint-placeholder-count="6">
+            <div style="flex: 1 1 300px; min-width: 0; background: #111A2B; border: 1px solid #1F2A3D; border-radius: 18px; padding: 24px; display: flex; flex-direction: column; gap: 8px">
+              <h3 style="margin: 0; font-size: 17px; font-weight: 600">{{ x.t }}</h3>
+              <p style="margin: 0; font-size: 15px; line-height: 1.55; color: #CBD5E1">{{ x.d }}</p>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px">
+          <a href="Main.dc.html#download" style="height: 52px; padding: 0 24px; border-radius: 14px; background: #2563EB; color: #FFFFFF; font-size: 16px; font-weight: 600; display: flex; align-items: center">Get the app</a>
+          <a href="Tools.dc.html" style="height: 52px; padding: 0 22px; border-radius: 14px; background: #1E293B; color: #F1F5F9; font-size: 16px; font-weight: 600; display: flex; align-items: center">Supported tools</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2700}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const pill = (bg, fg) => 'align-self: flex-start; padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; background: ' + bg + '; color: ' + fg;
+    const rows = [
+      { pill: 'Trigger', pillStyle: pill('#DBEAFE', '#1D4ED8'), title: 'Any job, with the right inputs', body: 'Browse folders and multibranch pipelines, then start a build. Every parameter type gets a proper input, and secret parameters stay masked and are never saved. Replay a build or approve an input step in a tap.', img: '/_blob/bab7a4ee0caf17edcbc823d7e4a432ff', alt: 'Job detail screen with parameters' },
+      { pill: 'Running', pillStyle: pill('#DBEAFE', '#1D4ED8'), title: 'Console logs that keep up', body: 'The log streams while the build runs, with colours, search and per-stage views. Save the full log or share it with your team.', img: '/_blob/68e86b70d8f844e2fe2d21cc20857a85', alt: 'Streaming console log' },
+      { pill: 'Failed', pillStyle: pill('#FEE2E2', '#B91C1C'), title: 'See why it went red', body: 'Pipeline stages, test results, the commits that went in, artifacts and what triggered it — on one screen. History and trends show whether it is getting worse.', img: '/_blob/6c00e8e1efd647b481919327c7071597', alt: 'Build detail with stages and tests' },
+      { pill: 'Success', pillStyle: pill('#DCFCE7', '#15803D'), title: 'Stop refreshing', body: 'Watch a build and get a notification when it finishes. Pin the jobs you care about to a home-screen widget.', img: '/_blob/570ffb29972bdba5a0f78f0155492143', alt: 'Home-screen widget and notification' },
+    ];
+    return {
+      rows: rows.map((r, i) => ({ ...r, bg: i % 2 ? '#FFFFFF' : '#F8FAFC' })),
+      extras: [
+        { t: 'Many servers', d: 'Work and personal Jenkins, switch in a tap.' },
+        { t: 'GitHub Actions', d: 'Repositories and workflows next to Jenkins.' },
+        { t: 'Nodes and queue', d: 'See what is waiting and which agents are busy.' },
+        { t: 'App lock', d: 'Face ID or fingerprint, passcode as backup.' },
+        { t: 'Open Jenkins links', d: 'Paste a link from chat and jump straight to it.' },
+        { t: 'Light and dark', d: 'Follows your phone, readable in both.' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+import { render, screen, within } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+
+import { SupportView } from "../support/support-view";
+
+import { LicensesView } from "./licenses-view";
+import { PrivacyView } from "./privacy-view";
+import { TermsView } from "./terms-view";
+
+describe("PrivacyView", () => {
+  it("describes crash reporting and how to turn it off (E3)", () => {
+    render(<PrivacyView />);
+
+    expect(screen.getByRole("heading", { level: 2, name: "Crash reports" })).toBeInTheDocument();
+    expect(screen.getByText(/Send crash reports/)).toBeInTheDocument();
+  });
+
+  it("states what is stored and that nothing is tracked", () => {
+    render(<PrivacyView />);
+
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Privacy policy");
+    expect(screen.getByText(/hashed password and your encrypted server details/)).toBeVisible();
+    // Changed on purpose (P20-79): anonymous usage events now exist, sent
+    // from the website's server only; the app sends none.
+    expect(
+      screen.getByText("Anonymous usage counts from the website only. No ad identifiers."),
+    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Anonymous usage data" })).toBeVisible();
+  });
+
+  it("marks itself as the current legal page and keeps placeholders as text", () => {
+    render(<PrivacyView />);
+
+    const nav = screen.getByRole("navigation", { name: "Legal pages" });
+    expect(within(nav).getByRole("link", { name: "Privacy policy" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByText(/Last updated \[DATE\]/)).toBeVisible();
+    expect(screen.queryByRole("link", { name: /PRIVACY EMAIL/ })).not.toBeInTheDocument();
+  });
+});
+
+describe("TermsView", () => {
+  it("is its own page in the legal nav", () => {
+    render(<TermsView />);
+
+    const nav = screen.getByRole("navigation", { name: "Legal pages" });
+    expect(within(nav).getByRole("link", { name: "Terms of use" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(within(nav).getByRole("link", { name: "Terms of use" })).toHaveAttribute(
+      "href",
+      "/terms",
+    );
+  });
+});
+
+describe("LicensesView", () => {
+  it("lists every project's packages with a link to each licence", () => {
+    render(<LicensesView />);
+
+    const nav = screen.getByRole("navigation", { name: "Legal pages" });
+    expect(within(nav).getByRole("link", { name: "Open-source licenses" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    for (const name of ["Mobile app", "Website", "Backend"]) {
+      expect(screen.getByRole("heading", { level: 2, name })).toBeVisible();
+    }
+    expect(screen.getByRole("link", { name: "next" })).toHaveAttribute(
+      "href",
+      "https://www.npmjs.com/package/next",
+    );
+    expect(screen.getByRole("link", { name: "dio" })).toHaveAttribute(
+      "href",
+      "https://pub.dev/packages/dio/license",
+    );
+  });
+});
+
+describe("SupportView", () => {
+  it("lists four topics that jump to their answer, the first open", () => {
+    const { container } = render(<SupportView supportEmail="help@jobtrigger.app" />);
+
+    expect(screen.getByRole("link", { name: /Jenkins tokens/ })).toHaveAttribute(
+      "href",
+      "#faq-jenkins-tokens",
+    );
+    const details = container.querySelectorAll("details");
+    expect(details).toHaveLength(4);
+    expect(details[0]).toHaveAttribute("open");
+    expect(details[1]).not.toHaveAttribute("open");
+  });
+
+  it("emails the backend's support address, as the app does", () => {
+    render(<SupportView supportEmail="help@jobtrigger.app" />);
+
+    expect(screen.getByRole("link", { name: "Email support" })).toHaveAttribute(
+      "href",
+      "mailto:help@jobtrigger.app",
+    );
+  });
+
+  it("says when the support address can't be loaded instead of linking nowhere", () => {
+    render(<SupportView supportEmail={null} />);
+
+    expect(screen.queryByRole("link", { name: "Email support" })).not.toBeInTheDocument();
+    expect(screen.getByText(/Support email is unavailable right now/)).toBeVisible();
+  });
+
+  it("answers the password question from the password-reset status", () => {
+    render(<SupportView supportEmail={null} />);
+
+    expect(screen.getByText(/Password reset isn’t available yet/)).toBeInTheDocument();
+  });
+});
+
+describe("subscriptions in the legal pages (P20-34)", () => {
+  it("terms cover auto-renewal, store refunds and Paddle", () => {
+    render(<TermsView />);
+
+    expect(screen.getByRole("heading", { level: 2, name: "Subscriptions" })).toBeVisible();
+    expect(screen.getByText(/renews automatically/)).toBeVisible();
+    expect(screen.getByText(/handled by Apple or Google/)).toBeVisible();
+    expect(screen.getByText(/Paddle/, { selector: "li" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "pricing page" })).toHaveAttribute("href", "/pricing");
+  });
+
+  it("privacy names RevenueCat and Paddle and what they receive", () => {
+    render(<PrivacyView />);
+
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Subscriptions and payments" }),
+    ).toBeVisible();
+    expect(screen.getByText("RevenueCat")).toBeVisible();
+    expect(screen.getByText("Paddle")).toBeVisible();
+    expect(screen.getByText(/does not receive your email address/)).toBeVisible();
+    // Unchanged claims still hold.
+    expect(screen.getByText(/hashed password and your encrypted server details/)).toBeVisible();
+  });
+});
+
+describe("student verification in the privacy policy (Phase 21)", () => {
+  it("states what is kept, the 30-day deletion and the kept fingerprints", () => {
+    render(<PrivacyView />);
+    const section = document.getElementById("student")!;
+    expect(section).toHaveTextContent("30 days after we decide");
+    expect(section).toHaveTextContent("full name");
+    expect(section).toHaveTextContent("one-way fingerprint");
+    expect(section).toHaveTextContent("SHA-256");
+    expect(section).toHaveTextContent("never the file itself");
+    expect(screen.getAllByRole("link", { name: "Student verification" }).length).toBeGreaterThan(0);
+  });
+
+  it("says deleting the account removes the application and keeps only fingerprints", () => {
+    render(<PrivacyView />);
+    expect(document.getElementById("delete")).toHaveTextContent("any student application");
+    expect(document.getElementById("delete")).toHaveTextContent("Only the one-way");
+  });
+
+  it("mentions the code and the one reminder email under Email", () => {
+    render(<PrivacyView />);
+    expect(document.getElementById("email")).toHaveTextContent("one reminder");
+    expect(document.getElementById("email")).toHaveTextContent("last 7 days");
+  });
+});

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Server saved — JobTrigger</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#111111;text-decoration:underline;text-decoration-color:#FF5A1F;text-underline-offset:3px}a:hover{color:#B83A0B}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F6F5F1; color: #111111; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-direction: column">
+  <dc-import name="Header" current="servers" signed-in="{{ yes }}" hint-size="100%,72px"></dc-import>
+
+  <main style="flex: 1; display: flex; flex-wrap: wrap; border-bottom: 1px solid #111111">
+    <section role="status" style="flex: 2 1 560px; min-width: 0; box-sizing: border-box; padding: 80px 48px; background: #FF5A1F; border-right: 1px solid #111111; display: flex; flex-direction: column; gap: 28px">
+      <span style="align-self: flex-start; padding: 6px 10px; background: #111111; color: #F6F5F1; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 12px">✓ SAVED · ACME PRODUCTION</span>
+      <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 80px; line-height: 0.94; font-weight: 800; letter-spacing: -0.045em">Now pick up<br>your phone.</h1>
+      <p style="margin: 0; max-width: 520px; font-size: 19px; line-height: 1.55">Open JobTrigger — the server is already there. If the app is open, just switch back to it.</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px">
+        <a href="AddServer.dc.html" style="height: 52px; padding: 0 22px; border-radius: 4px; background: #111111; color: #F6F5F1; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center">Add another</a>
+        <a href="Servers.dc.html" style="height: 52px; padding: 0 20px; border-radius: 4px; border: 1px solid #111111; color: #111111; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center">Back to my servers</a>
+      </div>
+    </section>
+
+    <aside style="flex: 1 1 320px; min-width: 0; box-sizing: border-box; padding: 80px 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center">
+      <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -0.02em">No app yet?</h2>
+      <div role="img" aria-label="QR code placeholder that opens the store listing" style="width: 150px; height: 150px; box-sizing: border-box; padding: 10px; background: #FFFFFF; border: 1px solid #111111; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 2px">
+        <sc-for list="{{ qr }}" as="cell" hint-placeholder-count="144">
+          <span style="{{ cell.style }}"></span>
+        </sc-for>
+      </div>
+      <p style="margin: 0; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #3D3D3A">SCAN WITH YOUR PHONE CAMERA</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; font-size: 15px; font-weight: 600">
+        <a href="https://apps.apple.com/">App Store</a><a href="https://play.google.com/">Google Play</a>
+      </div>
+    </aside>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,360px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // Decorative stand-in for the store QR code; the build renders a real one.
+    const cells = [];
+    for (let i = 0; i < 144; i++) {
+      const r = Math.floor(i / 12), c = i % 12;
+      const finder = (r < 3 && c < 3) || (r < 3 && c > 8) || (r > 8 && c < 3);
+      const on = finder || ((r * 5 + c * 11 + r * c) % 5 < 2);
+      cells.push({ style: 'background: ' + (on ? '#111111' : 'transparent') });
+    }
+    return { yes: true, qr: cells };
+  }
+}
+</script>
+</body>
+</html>
