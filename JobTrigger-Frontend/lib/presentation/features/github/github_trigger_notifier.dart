@@ -8,6 +8,7 @@ import '../../../core/error/result.dart';
 import '../../../data/repositories/github_repository_impl.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../app_lock/app_lock_notifier.dart';
+import '../first_run/first_run_notifier.dart';
 import 'github_runs_notifier.dart';
 
 part 'github_trigger_notifier.g.dart';
@@ -68,6 +69,10 @@ class GitHubTriggerNotifier extends _$GitHubTriggerNotifier {
 
     switch (result) {
       case Ok():
+        // PI-08: the first-run card's "trigger a build" step is done.
+        unawaited(
+          this.ref.read(firstRunNotifierProvider.notifier).markTriggered(),
+        );
         state = const AsyncData(null);
         unawaited(HapticFeedback.mediumImpact());
         this.ref

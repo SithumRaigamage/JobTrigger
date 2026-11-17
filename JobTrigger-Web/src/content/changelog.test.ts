@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { afterLaunch, releases, upcomingRelease } from "./changelog";
+import { afterLaunch, firstReleaseVersion, releases, upcomingRelease } from "./changelog";
 
 describe("upcoming changelog entries", () => {
   it("ship every live feature, then beta, in list order", () => {
@@ -29,7 +29,10 @@ describe("upcoming changelog entries", () => {
     expect(afterLaunch().every((item) => item.tag === "Next")).toBe(true);
   });
 
-  it("has no invented releases before launch", () => {
-    expect(releases).toEqual([]);
+  it("has one released v1.0 entry, with real dates", () => {
+    expect(releases).toHaveLength(1);
+    expect(releases[0].version).toBe(firstReleaseVersion);
+    expect(releases[0].date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(releases[0].items.length).toBeGreaterThan(0);
   });
 });

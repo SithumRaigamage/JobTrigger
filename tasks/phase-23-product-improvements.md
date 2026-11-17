@@ -87,13 +87,13 @@ Implemented in five batches, with a full verification and commit after each.
 
 ## Batch 5 — First-run, tokens, what's new
 
-- [ ] PI-08 / IMP-74 **First-run checklist.** Dismissible card on Home:
+- [x] PI-08 / IMP-74 **First-run checklist.** Dismissible card on Home:
       connect a server → trigger a build → turn on alerts. Step one is read
       from the three credential notifiers, step two from a new local
       "has triggered" flag written by the trigger notifiers, step three from
       the watch stores. User-scoped so it clears on logout; hidden in demo
       mode and once dismissed. Tests: step detection, card, dismissal.
-- [ ] PI-09 / IMP-75 **Token wizards.** "How do I get a token?" button in all
+- [x] PI-09 / IMP-75 **Token wizards.** "How do I get a token?" button in all
       three credential edit sheets, opening a short in-app wizard with the
       right scopes and an external link to the token page: Jenkins
       `<base>/me/configure` (existing helper), GitHub with `repo`+`workflow`
@@ -101,7 +101,7 @@ Implemented in five batches, with a full verification and commit after each.
       `<base>/user/account/security` (SonarCloud `/account/security`).
       Add `docs/token-guides.md`. Tests: URL helpers, wizard, each sheet's
       button.
-- [ ] PI-10 / IMP-65 **What's new.** App `WhatsNewSheet` opened from Profile
+- [x] PI-10 / IMP-65 **What's new.** App `WhatsNewSheet` opened from Profile
       and shown once per installed version (`package_info_plus` + a local
       last-seen-version key, deliberately device-level so it survives
       logout). Add a released v1.0 entry to the web changelog

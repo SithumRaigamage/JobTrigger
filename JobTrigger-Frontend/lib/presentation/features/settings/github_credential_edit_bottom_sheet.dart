@@ -11,6 +11,7 @@ import '../subscription/plan_gate.dart';
 import 'edit_sheet.dart';
 import 'github_credential_form_notifier.dart';
 import 'test_github_connection_notifier.dart';
+import 'token_wizard_sheet.dart';
 
 /// Laid out like the Jenkins server sheet (`UI-UX/screens/21-edit-server-sheet`,
 /// see [showEditSheet]). [existing] is null when adding a new credential,
@@ -124,6 +125,7 @@ class _GitHubCredentialEditBottomSheetState
                 : 'ghp_… or github_pat_…',
           ),
         ),
+        const TokenHelpButton(tool: TokenTool.github),
         const SizedBox(height: 16),
         LabeledField(
           label: 'Default org or owner (optional)',

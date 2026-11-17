@@ -90,6 +90,17 @@ void main() {
     expect(find.text('App lock'), findsOneWidget);
   });
 
+  testWidgets("the account section opens What's new", (tester) async {
+    await _pump(tester);
+
+    await tester.scrollUntilVisible(find.text("What's new"), 200);
+    await tester.tap(find.text("What's new"));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Version 1.0'), findsOneWidget);
+    expect(find.text('Got it'), findsOneWidget);
+  });
+
   testWidgets('the CI tool row is the way to switch tool', (tester) async {
     await _pump(tester);
 

@@ -29,6 +29,8 @@ import '../subscription/store_links.dart';
 import '../student/student_verification_screen.dart' show formatStudentDate;
 import '../subscription/subscription_screen.dart' show planLabelFor;
 import '../../common_widgets/external_link.dart';
+import '../../../domain/onboarding/whats_new.dart';
+import '../whats_new/whats_new_sheet.dart';
 
 /// Ported from `ProfileView.swift`, laid out to the P14 design
 /// (`UI-UX/screens/10-profile`). The old app's "Change Password" row was a
@@ -158,6 +160,17 @@ class ProfileScreen extends ConsumerWidget {
                     title: const Text('Change password'),
                     trailing: const _Chevron(),
                     onTap: () => _changePassword(context, ref),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.auto_awesome_outlined),
+                    title: const Text("What's new"),
+                    trailing: const _Chevron(),
+                    onTap: () => showWhatsNewSheet(
+                      context,
+                      version:
+                          packageInfoAsync.value?.version ??
+                          whatsNewReleases.last.version,
+                    ),
                   ),
                   ListTile(
                     leading: const Icon(Icons.info_outline_rounded),

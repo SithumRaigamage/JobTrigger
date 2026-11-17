@@ -11,6 +11,8 @@ void main() {
         'active_server_id': 's1',
         'active_github_credential_id': 'g1',
         'active_sonarqube_credential_id': 'q1',
+        'first_run_triggered': true,
+        'first_run_dismissed': true,
         'build_watches': '[]',
         'server_safety': '{}',
         'sonarqube_watches': '[]',
@@ -26,6 +28,8 @@ void main() {
         'console_wrap': false,
         'app_lock_enabled': true,
         'login_saved_email': 'a@b.com',
+        // An update notice belongs to the device, not the account.
+        'whats_new_seen_version': '1.0.0',
       });
 
       await clearUserScopedPrefs();
@@ -37,6 +41,7 @@ void main() {
         'console_wrap',
         'app_lock_enabled',
         'login_saved_email',
+        'whats_new_seen_version',
       });
     },
   );

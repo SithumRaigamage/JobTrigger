@@ -10,6 +10,7 @@ import '../../../domain/jenkins/parameter_file.dart';
 import '../../../domain/jenkins/parameter_values.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../../../data/credentials/active_server_notifier.dart';
+import '../first_run/first_run_notifier.dart';
 import 'job_detail_notifier.dart';
 import 'queue_status_notifier.dart';
 import '../app_lock/app_lock_notifier.dart';
@@ -59,6 +60,8 @@ class TriggerBuildNotifier extends _$TriggerBuildNotifier {
 
     switch (result) {
       case Ok(:final value):
+        // PI-08: the first-run card's "trigger a build" step is done.
+        unawaited(ref.read(firstRunNotifierProvider.notifier).markTriggered());
         await ref.read(jobDetailNotifierProvider(jobUrl).notifier).refresh();
         if (value != null) {
           // US-PIPE-01: start tracking the queue item Jenkins assigned

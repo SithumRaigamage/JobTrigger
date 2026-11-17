@@ -16,6 +16,7 @@ import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../../../data/credentials/active_github_credential_notifier.dart';
 import '../../../data/credentials/github_credentials_notifier.dart';
+import '../first_run/first_run_checklist_card.dart';
 import 'filtered_github_repos_provider.dart';
 import 'github_repo_search_notifier.dart';
 import 'github_repos_notifier.dart';
@@ -99,6 +100,11 @@ class GitHubRepoScreen extends ConsumerWidget {
                     const _SearchField(),
                   ],
                 ),
+              ),
+              // PI-08: the first-run steps, until done or dismissed.
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: FirstRunChecklistCard(),
               ),
               // PI-05: when the repo list was last loaded.
               const Padding(

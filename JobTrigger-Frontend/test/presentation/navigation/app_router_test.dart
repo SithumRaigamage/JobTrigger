@@ -24,6 +24,9 @@ import 'package:job_trigger/presentation/features/home/home_screen.dart';
 import 'package:job_trigger/data/credentials/active_github_credential_notifier.dart';
 import 'package:job_trigger/data/credentials/active_server_notifier.dart';
 import 'package:job_trigger/data/credentials/credentials_notifier.dart';
+import 'package:job_trigger/data/credentials/github_credentials_notifier.dart';
+import 'package:job_trigger/data/credentials/sonarqube_credentials_notifier.dart';
+import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
 import 'package:job_trigger/presentation/features/tool_selection/active_tool_notifier.dart';
 import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
 import 'package:job_trigger/presentation/navigation/app_router.dart';
@@ -165,8 +168,8 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           jenkinsRepositoryProvider.overrideWithValue(repo),
-          // Home's server chip reads the saved servers (P19-07).
-          credentialsNotifierProvider.overrideWith(_NoCredentials.new),
+          // Home's server chip and first-run card read the saved tools (P19-07, PI-08).
+          ..._noCredentialsOverrides,
           // No 30 s timer left pending when the test ends.
           reachabilityWatcherProvider.overrideWith((ref) {}),
         ],
@@ -264,6 +267,8 @@ void main() {
           gitHubRepositoryProvider.overrideWithValue(
             _FakeGitHubRepository([repo], [workflow]),
           ),
+          ..._noCredentialsOverrides,
+          reachabilityWatcherProvider.overrideWith((ref) {}),
         ],
       );
       addTearDown(container.dispose);
@@ -321,10 +326,10 @@ void main() {
   testWidgets('an extra-only route opened from outside lands on Home', (
     tester,
   ) async {
-    // Home reads the saved servers (P19-02); none, rather than a real fetch
-    // that fails and leaves a retry timer behind.
+    // Home reads the saved servers (P19-02) and tools (PI-08); none,
+    // rather than a real fetch that fails and leaves a retry timer behind.
     final container = ProviderContainer(
-      overrides: [credentialsNotifierProvider.overrideWith(_NoCredentials.new)],
+      overrides: [..._noCredentialsOverrides],
     );
     addTearDown(container.dispose);
     container.listen(authNotifierProvider, (_, _) {});
@@ -368,7 +373,7 @@ void main() {
     tester,
   ) async {
     final container = ProviderContainer(
-      overrides: [credentialsNotifierProvider.overrideWith(_NoCredentials.new)],
+      overrides: [..._noCredentialsOverrides],
     );
     addTearDown(container.dispose);
     container.listen(authNotifierProvider, (_, _) {});
@@ -413,7 +418,7 @@ void main() {
           jenkinsRepositoryProvider.overrideWithValue(
             _FakeJenkinsRepository(const []),
           ),
-          credentialsNotifierProvider.overrideWith(_NoCredentials.new),
+          ..._noCredentialsOverrides,
           reachabilityWatcherProvider.overrideWith((ref) {}),
         ],
       );
@@ -455,3 +460,19 @@ class _NoCredentials extends CredentialsNotifier {
   @override
   Future<List<JenkinsServer>> build() async => const [];
 }
+
+class _NoGitHubCredentials extends GitHubCredentialsNotifier {
+  @override
+  Future<List<GitHubCredential>> build() async => const [];
+}
+
+class _NoSonarQubeCredentials extends SonarQubeCredentialsNotifier {
+  @override
+  Future<List<SonarQubeCredential>> build() async => const [];
+}
+
+final _noCredentialsOverrides = [
+  credentialsNotifierProvider.overrideWith(_NoCredentials.new),
+  gitHubCredentialsNotifierProvider.overrideWith(_NoGitHubCredentials.new),
+  sonarQubeCredentialsNotifierProvider.overrideWith(_NoSonarQubeCredentials.new),
+];

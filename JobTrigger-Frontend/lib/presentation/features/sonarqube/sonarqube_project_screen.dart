@@ -10,6 +10,7 @@ import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
+import '../first_run/first_run_checklist_card.dart';
 import 'sonarqube_credential_gate.dart';
 import 'sonarqube_project_card.dart';
 import 'sonarqube_saved_banner.dart';
@@ -89,6 +90,11 @@ class SonarQubeProjectScreen extends ConsumerWidget {
                     const _Controls(),
                   ],
                 ),
+              ),
+              // PI-08: the first-run steps, until done or dismissed.
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: FirstRunChecklistCard(),
               ),
               // PI-05: when the project list was last loaded. The cached
               // "Saved …" copy stays with SonarQubeSavedBanner in the list.

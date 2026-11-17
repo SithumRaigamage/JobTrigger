@@ -107,7 +107,7 @@ final class BuildWatchNotifierProvider
 }
 
 String _$buildWatchNotifierHash() =>
-    r'ec6f83d3b8e2f9488cd33865153d3928c0f1d7e7';
+    r'9bdc2c1e463e5e475ad54d52102f2651965a34fa';
 
 /// US-JX-10: the builds and jobs the user wants a notification for. While
 /// the app is alive, checks every [_checkEvery]. While it's suspended, the

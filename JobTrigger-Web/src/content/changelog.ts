@@ -18,8 +18,26 @@ export type Release = {
   items: { tag: ChangeTag; text: string }[];
 };
 
-/** Shipped releases, newest first. Empty until v1.0 ships. */
-export const releases: Release[] = [];
+/** Shipped releases, newest first. */
+export const releases: Release[] = [
+  {
+    version: "v1.0",
+    date: "2026-11-17",
+    title: "JobTrigger 1.0",
+    items: [
+      { tag: "New", text: "Jenkins, GitHub Actions and SonarQube in one app" },
+      { tag: "New", text: "Trigger builds and workflows with every parameter they take" },
+      { tag: "New", text: "Live logs, stages, tests and history for every run" },
+      { tag: "New", text: "Notifications with per-watch rules — failures only, or back to green" },
+      { tag: "New", text: "Pinned jobs, saved views, the build queue and nodes" },
+      { tag: "New", text: "Set up servers from your laptop on this website" },
+      {
+        tag: "Improved",
+        text: "Last-updated and offline banners, and status shown by shape and words",
+      },
+    ],
+  },
+];
 
 /** The first release's version: the app's 1.0.0 (pubspec.yaml). */
 export const firstReleaseVersion = "v1.0";
