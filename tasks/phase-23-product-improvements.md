@@ -75,7 +75,7 @@ Implemented in five batches, with a full verification and commit after each.
 
 ## Batch 4 — Notifications
 
-- [ ] PI-07 / IMP-11 **Notification rules per watched item.** Add `WatchRule`
+- [x] PI-07 / IMP-11 **Notification rules per watched item.** Add `WatchRule`
       (`all`, `failuresOnly`, `backToGreenOnly`, `mainBranchOnly`) to
       `BuildWatch` with a JSON default of `all`, so existing watches keep
       their behaviour. `decideWatch` filters by result and, where known, by

@@ -170,4 +170,25 @@ void main() {
     expect(find.byIcon(Icons.notifications_none), findsOneWidget);
     await unmount(tester);
   });
+
+  testWidgets('the bell menu changes which builds notify (PI-07)', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    await chooseWatchJob(tester);
+
+    await tester.tap(find.byTooltip('Notifications'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rule: All builds'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Notification rule'), findsOneWidget);
+    await tester.tap(find.text('Failures only'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Notifications'));
+    await tester.pumpAndSettle();
+    expect(find.text('Rule: Failures only'), findsOneWidget);
+    await unmount(tester);
+  });
 }

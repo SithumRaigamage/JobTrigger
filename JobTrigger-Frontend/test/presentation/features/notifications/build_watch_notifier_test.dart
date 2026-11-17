@@ -183,6 +183,20 @@ void main() {
     expect(scheduler.synced.last, isFalse);
   });
 
+  test('changing a rule persists it without losing the watch (PI-07)', () async {
+    final c = await container();
+    final notifier = c.read(buildWatchNotifierProvider.notifier);
+    await notifier.watchJob(_job);
+    final watch = c.read(buildWatchNotifierProvider).single;
+
+    await notifier.setRule(watch, WatchRule.failuresOnly);
+
+    final updated = c.read(buildWatchNotifierProvider).single;
+    expect(updated.rule, WatchRule.failuresOnly);
+    expect(updated.lastNotified, 9);
+    expect((await BuildWatchStore().load()).single.rule, WatchRule.failuresOnly);
+  });
+
   test('restores saved watches on start', () async {
     await BuildWatchStore().save([
       const BuildWatch(

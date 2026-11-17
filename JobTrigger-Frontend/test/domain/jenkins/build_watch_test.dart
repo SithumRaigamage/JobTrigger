@@ -89,6 +89,89 @@ void main() {
     expect(back.buildNumber, 7);
   });
 
+  group('notification rules (PI-07)', () {
+    test('failuresOnly stays quiet on success but advances', () {
+      final watch = _job.withRule(WatchRule.failuresOnly);
+      final outcome = decideWatch(watch, [_b(8, 'SUCCESS')]);
+      expect(outcome.notify, isNull);
+      expect(outcome.keep!.lastNotified, 8);
+    });
+
+    test('failuresOnly notifies on failure', () {
+      final watch = _job.withRule(WatchRule.failuresOnly);
+      final outcome = decideWatch(watch, [_b(8, 'FAILURE')]);
+      expect(outcome.notify!.title, 'api #8 failed');
+    });
+
+    test('backToGreenOnly notifies after a failure', () {
+      final watch = _job.withRule(WatchRule.backToGreenOnly);
+      final outcome = decideWatch(watch, [
+        _b(9, 'SUCCESS'),
+        _b(8, 'FAILURE'),
+      ]);
+      expect(outcome.notify, isNotNull);
+    });
+
+    test('backToGreenOnly stays quiet after another success', () {
+      final watch = _job.withRule(WatchRule.backToGreenOnly);
+      final outcome = decideWatch(watch, [
+        _b(9, 'SUCCESS'),
+        _b(8, 'SUCCESS'),
+      ]);
+      expect(outcome.notify, isNull);
+      expect(outcome.keep!.lastNotified, 9);
+    });
+
+    test('mainBranchOnly notifies for a main branch', () {
+      const watch = BuildWatch(
+        serverId: 's',
+        jobUrl: 'https://ci/job/repo/job/main/',
+        jobLabel: 'repo/main',
+        lastNotified: 7,
+        rule: WatchRule.mainBranchOnly,
+      );
+      expect(decideWatch(watch, [_b(9, 'SUCCESS')]).notify, isNotNull);
+    });
+
+    test('mainBranchOnly suppresses another branch', () {
+      const watch = BuildWatch(
+        serverId: 's',
+        jobUrl: 'https://ci/job/repo/job/feature%2Flogin/',
+        jobLabel: 'repo/feature/login',
+        lastNotified: 7,
+        rule: WatchRule.mainBranchOnly,
+      );
+      final outcome = decideWatch(watch, [_b(9, 'SUCCESS')]);
+      expect(outcome.notify, isNull);
+      expect(outcome.keep!.lastNotified, 9);
+    });
+
+    test('mainBranchOnly never suppresses an unreadable branch', () {
+      final watch = _job.withRule(WatchRule.mainBranchOnly);
+      expect(decideWatch(watch, [_b(8, 'SUCCESS')]).notify, isNotNull);
+    });
+
+    test('a one-build watch is consumed even when its rule does not match', () {
+      final watch = _build7.withRule(WatchRule.failuresOnly);
+      final outcome = decideWatch(watch, [_b(7, 'SUCCESS')]);
+      expect(outcome.keep, isNull);
+      expect(outcome.notify, isNull);
+    });
+
+    test('the json round-trip keeps the rule', () {
+      final watch = _job.withRule(WatchRule.backToGreenOnly);
+      expect(
+        BuildWatch.fromJson(watch.toJson()).rule,
+        WatchRule.backToGreenOnly,
+      );
+    });
+
+    test('an older stored watch without a rule defaults to all', () {
+      final json = _job.toJson()..remove('rule');
+      expect(BuildWatch.fromJson(json).rule, WatchRule.all);
+    });
+  });
+
   test('a redacted notification names nothing (AUD-54)', () {
     final full = notificationFor(_build7, _b(7, 'FAILURE'));
     final hidden = full.redacted();

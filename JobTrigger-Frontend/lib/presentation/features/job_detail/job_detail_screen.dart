@@ -32,6 +32,7 @@ import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../home/pinned_jobs_notifier.dart';
 import '../notifications/build_watch_notifier.dart';
+import '../notifications/watch_rule_sheet.dart';
 import 'build_status_polling_notifier.dart';
 import 'cancel_build_notifier.dart';
 import 'input_submit_notifier.dart';
@@ -1001,8 +1002,29 @@ class _WatchMenu extends ConsumerWidget {
                 : 'Notify for every build',
           ),
         ),
+        // PI-07: once watching, choose which finished builds notify.
+        if (jobWatch != null)
+          PopupMenuItem(
+            value: () => _editRule(context, ref, jobWatch),
+            child: Text('Rule: ${jobWatch.rule.label}'),
+          ),
+        if (buildWatch != null && running != null)
+          PopupMenuItem(
+            value: () => _editRule(context, ref, buildWatch),
+            child: Text('Rule for #${running.number}: ${buildWatch.rule.label}'),
+          ),
       ],
     );
+  }
+
+  Future<void> _editRule(
+    BuildContext context,
+    WidgetRef ref,
+    BuildWatch watch,
+  ) async {
+    final rule = await showWatchRuleSheet(context, current: watch.rule);
+    if (rule == null || !context.mounted) return;
+    await ref.read(buildWatchNotifierProvider.notifier).setRule(watch, rule);
   }
 
   Future<void> _unwatch(WidgetRef ref, BuildWatch watch) =>

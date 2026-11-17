@@ -15,6 +15,7 @@ import '../../../domain/credential/github_credential.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import '../../../domain/credential/token_hygiene.dart';
 import '../home/server_status_provider.dart';
+import '../../../domain/jenkins/build_watch.dart';
 import '../../../domain/jenkins/server_status.dart';
 import '../../../core/config/app_config.dart';
 import '../../../domain/credential/sonarqube_credential.dart';
@@ -27,6 +28,7 @@ import '../tool_selection/active_tool_notifier.dart';
 import '../tool_selection/ci_tool.dart';
 import '../../../data/credentials/active_github_credential_notifier.dart';
 import '../notifications/build_watch_notifier.dart';
+import '../notifications/watch_rule_sheet.dart';
 import '../../../data/credentials/active_server_notifier.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../../data/credentials/credentials_notifier.dart';
@@ -762,16 +764,25 @@ class _WatchesSection extends ConsumerWidget {
                   leading: const Icon(Icons.notifications_active_outlined),
                   title: Text(watch.jobLabel),
                   subtitle: Text(
-                    watch.isJobWatch
-                        ? 'Every build'
-                        : 'Build #${watch.buildNumber}',
+                    '${watch.isJobWatch ? 'Every build' : 'Build #${watch.buildNumber}'}'
+                    ' · ${watch.rule.label}',
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.close_rounded),
-                    tooltip: 'Stop notifying',
-                    onPressed: () => ref
-                        .read(buildWatchNotifierProvider.notifier)
-                        .unwatch(watch),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.tune_rounded),
+                        tooltip: 'Notification rule',
+                        onPressed: () => _editRule(context, ref, watch),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        tooltip: 'Stop notifying',
+                        onPressed: () => ref
+                            .read(buildWatchNotifierProvider.notifier)
+                            .unwatch(watch),
+                      ),
+                    ],
                   ),
                 ),
             ],
@@ -784,6 +795,17 @@ class _WatchesSection extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  /// PI-07: change which finished builds this watch notifies about.
+  Future<void> _editRule(
+    BuildContext context,
+    WidgetRef ref,
+    BuildWatch watch,
+  ) async {
+    final rule = await showWatchRuleSheet(context, current: watch.rule);
+    if (rule == null || !context.mounted) return;
+    await ref.read(buildWatchNotifierProvider.notifier).setRule(watch, rule);
   }
 }
 
