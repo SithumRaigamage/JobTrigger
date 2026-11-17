@@ -4,13 +4,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
+import 'package:job_trigger/data/cache/server_safety_store.dart';
+import 'package:job_trigger/data/credentials/active_github_credential_notifier.dart';
 import 'package:job_trigger/data/repositories/github_repository_impl.dart';
+import 'package:job_trigger/domain/credential/github_credential.dart';
 import 'package:job_trigger/domain/github/github_job.dart';
 import 'package:job_trigger/domain/github/github_repo.dart';
 import 'package:job_trigger/domain/github/github_workflow.dart';
+import 'package:job_trigger/domain/safety/server_safety.dart';
 import 'package:job_trigger/presentation/features/github/github_run_detail_screen.dart';
 
 import '../../../support/fake_github_repository.dart';
+import '../../../support/plan_gates.dart';
 
 const _repo = GitHubRepo(
   id: 1,
@@ -30,7 +35,12 @@ Future<void> _pump(WidgetTester tester, FakeGitHubRepository fake) async {
   await tester.pumpWidget(
     ProviderScope(
       retry: (retryCount, error) => null,
-      overrides: [gitHubRepositoryProvider.overrideWithValue(fake)],
+      overrides: [
+        gitHubRepositoryProvider.overrideWithValue(fake),
+        // The read-only gate watches the active credential; keep that chain
+        // network-free so no Dio client timer outlives the test.
+        ...savedCredentials(),
+      ],
       child: MaterialApp(
         theme: AppTheme.dark(),
         home: GitHubRunDetailScreen(
@@ -202,4 +212,47 @@ void main() {
     expect(fake.fetchRunCalls, calls);
     await tester.pumpWidget(const SizedBox());
   });
+
+  testWidgets('PI-01: a read-only credential disables Cancel run', (tester) async {
+    final fake = FakeGitHubRepository()
+      ..runResult = Ok(testRun(7, status: 'in_progress', conclusion: null));
+    await tester.pumpWidget(
+      ProviderScope(
+        retry: (retryCount, error) => null,
+        overrides: [
+          gitHubRepositoryProvider.overrideWithValue(fake),
+          activeGitHubCredentialNotifierProvider.overrideWith(
+            _ActiveGitHub.new,
+          ),
+          serverSafetyNotifierProvider.overrideWithValue(
+            const ServerSafety(readOnly: {'githubActions:g1'}),
+          ),
+          ...savedCredentials(),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.dark(),
+          home: GitHubRunDetailScreen(
+            repo: _repo,
+            workflow: _workflow,
+            run: testRun(7, status: 'in_progress', conclusion: null),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.textContaining('read-only on this device'), findsOneWidget);
+    final cancel = tester.widget<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, 'Read-only'),
+    );
+    expect(cancel.onPressed, isNull);
+    expect(fake.cancelCalls, 0);
+    await tester.pumpWidget(const SizedBox());
+  });
+}
+
+class _ActiveGitHub extends ActiveGitHubCredentialNotifier {
+  @override
+  GitHubCredential? build() => const GitHubCredential(id: 'g1', label: 'L', secret: 't');
 }

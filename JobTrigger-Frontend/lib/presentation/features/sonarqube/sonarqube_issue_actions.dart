@@ -6,12 +6,16 @@ import '../../../core/error/app_failure.dart';
 import '../../../core/error/error_message.dart';
 import '../../../core/error/result.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../data/cache/server_safety_store.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../../data/repositories/sonarqube_repository_impl.dart';
 import '../../../domain/jenkins/relative_time.dart';
+import '../../../domain/safety/server_safety.dart';
 import '../../../domain/sonarqube/sonarqube_issue.dart';
 import '../../../domain/sonarqube/sonarqube_issue_actions.dart';
 import '../../../domain/sonarqube/sonarqube_repository.dart';
 import '../../common_widgets/glass_surface.dart';
+import '../../common_widgets/read_only_notice.dart';
 import '../../common_widgets/section_label.dart';
 import 'sonarqube_change_dialogs.dart';
 
@@ -59,12 +63,22 @@ class _ManageState extends ConsumerState<SonarQubeIssueManageCard> {
 
   SonarQubeRepository get _repo => ref.read(sonarQubeRepositoryProvider);
 
+  /// PI-01/IMP-25: write actions are blocked while the active SonarQube
+  /// credential is read-only on this device.
+  bool get _readOnly {
+    final safety = ref.read(serverSafetyNotifierProvider);
+    final active = ref.read(activeSonarQubeCredentialNotifierProvider);
+    return active != null &&
+        safety.isReadOnly(SafetyTool.sonarqube, active.id);
+  }
+
   /// Runs [change] once the user has confirmed, then refreshes from the
   /// server. Returns whether it was applied.
   Future<bool> _apply(
     Future<Result<void, AppFailure>> Function() change,
     String done,
   ) async {
+    if (_readOnly) return false;
     setState(() => _busy = true);
     final result = await change();
     if (!mounted) return false;
@@ -175,6 +189,12 @@ class _ManageState extends ConsumerState<SonarQubeIssueManageCard> {
     final detailAsync = ref.watch(
       sonarQubeIssueDetailProvider(widget.issue.key),
     );
+    final safety = ref.watch(serverSafetyNotifierProvider);
+    final activeCredential = ref.watch(
+      activeSonarQubeCredentialNotifierProvider,
+    );
+    final readOnly = activeCredential != null &&
+        safety.isReadOnly(SafetyTool.sonarqube, activeCredential.id);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -192,11 +212,15 @@ class _ManageState extends ConsumerState<SonarQubeIssueManageCard> {
             data: (detail) => Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (readOnly) ...[
+                  const ReadOnlyNotice(toolLabel: 'SonarQube account'),
+                  const SizedBox(height: 12),
+                ],
                 _Line(
                   label: 'Status',
                   value: sonarQubeIssueStatusLabel(detail.status),
                   action: 'Change',
-                  onPressed: _busy || detail.transitions.isEmpty
+                  onPressed: _busy || readOnly || detail.transitions.isEmpty
                       ? null
                       : () => _changeStatus(detail),
                 ),
@@ -204,14 +228,14 @@ class _ManageState extends ConsumerState<SonarQubeIssueManageCard> {
                   label: 'Assignee',
                   value: detail.assignee ?? 'Unassigned',
                   action: 'Assign',
-                  onPressed: _busy ? null : () => _assign(detail),
+                  onPressed: _busy || readOnly ? null : () => _assign(detail),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _comment,
                   minLines: 2,
                   maxLines: 5,
-                  enabled: !_busy,
+                  enabled: !_busy && !readOnly,
                   decoration: const InputDecoration(
                     labelText: 'Add a comment',
                     helperText: 'Visible to everyone on this project.',
@@ -221,7 +245,7 @@ class _ManageState extends ConsumerState<SonarQubeIssueManageCard> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: FilledButton(
-                    onPressed: _busy ? null : _postComment,
+                    onPressed: _busy || readOnly ? null : _postComment,
                     child: Text(_busy ? 'Working…' : 'Post comment'),
                   ),
                 ),

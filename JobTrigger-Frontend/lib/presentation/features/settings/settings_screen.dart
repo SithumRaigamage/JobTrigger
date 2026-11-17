@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/error/result.dart';
+import '../../../data/cache/server_safety_store.dart';
+import '../../../domain/safety/server_safety.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../domain/credential/server_url.dart';
@@ -351,6 +353,7 @@ class _ServerTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final safety = ref.watch(serverSafetyNotifierProvider);
     return Dismissible(
       key: ValueKey(server.id),
       direction: DismissDirection.endToStart,
@@ -369,6 +372,10 @@ class _ServerTile extends ConsumerWidget {
         isActive: isActive,
         locked: server.locked,
         title: server.serverName,
+        readOnly: safety.isReadOnly(SafetyTool.jenkins, server.id),
+        onReadOnlyChanged: (value) => ref
+            .read(serverSafetyNotifierProvider.notifier)
+            .setReadOnly(SafetyTool.jenkins, server.id, value),
         onActivate: () => _setActiveServer(ref, server),
         onEdit: () async {
           // P14-22: the sheet's own "Delete server" ends the same way a
@@ -471,6 +478,7 @@ class _GitHubCredentialTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final safety = ref.watch(serverSafetyNotifierProvider);
     return Dismissible(
       key: ValueKey(credential.id),
       direction: DismissDirection.endToStart,
@@ -489,6 +497,10 @@ class _GitHubCredentialTile extends ConsumerWidget {
         isActive: isActive,
         locked: credential.locked,
         title: credential.label,
+        readOnly: safety.isReadOnly(SafetyTool.githubActions, credential.id),
+        onReadOnlyChanged: (value) => ref
+            .read(serverSafetyNotifierProvider.notifier)
+            .setReadOnly(SafetyTool.githubActions, credential.id, value),
         onActivate: () => _setActiveCredential(ref, credential),
         onEdit: () async {
           final delete = await showGitHubCredentialEditBottomSheet(
@@ -583,6 +595,7 @@ class _SonarQubeCredentialTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final safety = ref.watch(serverSafetyNotifierProvider);
     return Dismissible(
       key: ValueKey(credential.id),
       direction: DismissDirection.endToStart,
@@ -601,6 +614,10 @@ class _SonarQubeCredentialTile extends ConsumerWidget {
         isActive: isActive,
         locked: credential.locked,
         title: credential.label,
+        readOnly: safety.isReadOnly(SafetyTool.sonarqube, credential.id),
+        onReadOnlyChanged: (value) => ref
+            .read(serverSafetyNotifierProvider.notifier)
+            .setReadOnly(SafetyTool.sonarqube, credential.id, value),
         onActivate: () => _setActiveCredential(ref, credential),
         onEdit: () async {
           final delete = await showSonarQubeCredentialEditBottomSheet(
@@ -781,6 +798,8 @@ class _CredentialRow extends StatelessWidget {
     required this.onActivate,
     required this.onEdit,
     this.details = const [],
+    this.readOnly,
+    this.onReadOnlyChanged,
   });
 
   final bool isActive;
@@ -792,6 +811,10 @@ class _CredentialRow extends StatelessWidget {
   final VoidCallback onActivate;
   final VoidCallback onEdit;
   final List<Widget> details;
+
+  /// PI-01/IMP-25: local read-only toggle. Null hides the switch entirely.
+  final bool? readOnly;
+  final ValueChanged<bool>? onReadOnlyChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -865,6 +888,15 @@ class _CredentialRow extends StatelessWidget {
             ),
           ),
         ),
+        if (readOnly != null)
+          Semantics(
+            label: 'Read-only for $title',
+            child: Switch(
+              key: Key('read_only_$title'),
+              value: readOnly!,
+              onChanged: onReadOnlyChanged,
+            ),
+          ),
         IconButton(
           icon: const Icon(Icons.edit_outlined, size: 20),
           tooltip: 'Edit $title',

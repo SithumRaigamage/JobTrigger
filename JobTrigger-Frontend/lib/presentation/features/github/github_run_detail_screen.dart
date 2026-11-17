@@ -7,10 +7,15 @@ import 'package:go_router/go_router.dart';
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../data/cache/server_safety_store.dart';
+import '../../../data/credentials/active_github_credential_notifier.dart';
 import '../../../domain/github/github_repo.dart';
+import '../../../domain/safety/server_safety.dart';
 import '../../../domain/github/github_workflow.dart';
 import '../../../domain/github/github_workflow_run.dart';
 import '../../../domain/jenkins/relative_time.dart';
+import '../../common_widgets/confirmation_dialog.dart';
+import '../../common_widgets/read_only_notice.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/status_pill.dart';
 import '../../common_widgets/segment_row.dart';
@@ -53,6 +58,17 @@ class GitHubRunDetailScreen extends ConsumerWidget {
         ref.watch(gitHubCancelNotifierProvider(owner, name, run.id)).value ??
         false;
     final cancelling = cancelRequested && current.isActive;
+    // PI-01/02: cancel follows the active credential's read-only flag; a
+    // protected workflow requires the typed name.
+    final safety = ref.watch(serverSafetyNotifierProvider);
+    final activeCredential = ref.watch(activeGitHubCredentialNotifierProvider);
+    final readOnly = activeCredential != null &&
+        safety.isReadOnly(SafetyTool.githubActions, activeCredential.id);
+    final workflowKey = '${repo.fullName}/${workflow.id}';
+    final requiredPhrase =
+        safety.isProtected(SafetyTool.githubActions, workflowKey)
+            ? workflow.name
+            : null;
 
     final t = AppTokens.of(context);
     final textTheme = Theme.of(context).textTheme;
@@ -163,11 +179,26 @@ class GitHubRunDetailScreen extends ConsumerWidget {
                     ),
                     if (current.isActive) ...[
                       const SizedBox(height: 24),
+                      if (readOnly) ...[
+                        const ReadOnlyNotice(toolLabel: 'GitHub account'),
+                        const SizedBox(height: 12),
+                      ],
                       OutlinedButton(
-                        onPressed: cancelling
+                        onPressed: cancelling || readOnly
                             ? null
-                            : () => _confirmCancel(context, ref, current),
-                        child: Text(cancelling ? 'Cancelling…' : 'Cancel run'),
+                            : () => _confirmCancel(
+                              context,
+                              ref,
+                              current,
+                              requiredPhrase,
+                            ),
+                        child: Text(
+                          readOnly
+                              ? 'Read-only'
+                              : cancelling
+                              ? 'Cancelling…'
+                              : 'Cancel run',
+                        ),
                       ),
                     ],
                   ],
@@ -184,27 +215,18 @@ class GitHubRunDetailScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     GitHubWorkflowRun current,
+    String? requiredPhrase,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Cancel run #${current.runNumber}?'),
-        content: const Text(
-          'GitHub will stop the run. This can take a few moments.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep running'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Cancel run'),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Cancel run #${current.runNumber}?',
+      message: 'GitHub will stop the run. This can take a few moments.',
+      confirmLabel: 'Cancel run',
+      destructive: true,
+      requiredPhrase: requiredPhrase,
+      cancelLabel: 'Keep running',
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
     await ref
         .read(
           gitHubCancelNotifierProvider(repo.owner, repo.name, run.id).notifier,

@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../subscription/plan_gate.dart';
 import '../../../core/error/error_message.dart';
+import '../../../data/cache/server_safety_store.dart';
+import '../../../data/credentials/active_server_notifier.dart';
+import '../../../domain/safety/server_safety.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../domain/jenkins/build_progress.dart';
@@ -18,6 +21,7 @@ import '../../../domain/jenkins/relative_time.dart';
 import '../../../domain/jenkins/test_report.dart';
 import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/read_only_notice.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/inline_alert.dart';
@@ -80,6 +84,15 @@ class JobDetailScreen extends ConsumerWidget {
       ),
     );
 
+    // PI-01/IMP-25: Jenkins write actions follow the *active* server's local
+    // read-only flag. PI-02/IMP-24: a protected job needs the typed name.
+    final safety = ref.watch(serverSafetyNotifierProvider);
+    final activeServer = ref.watch(activeServerNotifierProvider);
+    final readOnly = activeServer != null &&
+        safety.isReadOnly(SafetyTool.jenkins, activeServer.id);
+    final protectedJob = safety.isProtected(SafetyTool.jenkins, jobUrl);
+    final requiredPhrase = protectedJob ? (loadedJob?.label ?? job.label) : null;
+
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -124,7 +137,28 @@ class JobDetailScreen extends ConsumerWidget {
                         }
                       },
                     ),
-                    if (loadedJob != null && loadedJob.buildable != null)
+                    // PI-02/IMP-24: protect this job locally so every write
+                    // action below asks the user to type the job name.
+                    IconButton(
+                      icon: Icon(
+                        protectedJob
+                            ? Icons.lock_rounded
+                            : Icons.lock_outline_rounded,
+                      ),
+                      tooltip: protectedJob
+                          ? 'Unprotect this job'
+                          : 'Protect this job',
+                      onPressed: () => ref
+                          .read(serverSafetyNotifierProvider.notifier)
+                          .setProtected(
+                            SafetyTool.jenkins,
+                            jobUrl,
+                            !protectedJob,
+                          ),
+                    ),
+                    if (loadedJob != null &&
+                        loadedJob.buildable != null &&
+                        !readOnly)
                       PopupMenuButton<bool>(
                         tooltip: 'Job options',
                         icon: const Icon(Icons.more_vert_rounded),
@@ -133,6 +167,7 @@ class JobDetailScreen extends ConsumerWidget {
                           ref,
                           loadedJob,
                           enable,
+                          requiredPhrase,
                         ),
                         itemBuilder: (context) => [
                           // US-JX-13.
@@ -160,6 +195,8 @@ class JobDetailScreen extends ConsumerWidget {
                     job: job,
                     formKey: jobUrl,
                     queueItem: queueItem,
+                    readOnly: readOnly,
+                    requiredPhrase: requiredPhrase,
                     onViewLog: job.lastBuild == null
                         ? null
                         : () => context.push(
@@ -185,11 +222,18 @@ class JobDetailScreen extends ConsumerWidget {
                 job: loadedJob,
                 isTriggering: isTriggering,
                 isCancelling: isCancelling,
-                onTrigger: () => _confirmAndTrigger(context, ref, loadedJob),
+                readOnly: readOnly,
+                onTrigger: () => _confirmAndTrigger(
+                  context,
+                  ref,
+                  loadedJob,
+                  requiredPhrase,
+                ),
                 onCancel:
                     (loadedJob.lastBuild != null &&
                         loadedJob.lastBuild!.building)
-                    ? () => _confirmAndCancel(context, ref, loadedJob)
+                    ? () =>
+                        _confirmAndCancel(context, ref, loadedJob, requiredPhrase)
                     : null,
               ),
           ],
@@ -205,6 +249,7 @@ class JobDetailScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     JenkinsJob job,
+    String? requiredPhrase,
   ) async {
     final values = effectiveParameterValues(
       job.parameterDefinitions,
@@ -222,6 +267,7 @@ class JobDetailScreen extends ConsumerWidget {
       message: 'Start a new build of ${job.label}.',
       confirmLabel: 'Trigger',
       details: summary.isEmpty ? null : _ParameterSummaryList(rows: summary),
+      requiredPhrase: requiredPhrase,
     );
     if (!confirmed) return;
     await ref
@@ -235,6 +281,7 @@ class JobDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     JenkinsJob job,
     bool enable,
+    String? requiredPhrase,
   ) async {
     final confirmed = await showConfirmationDialog(
       context,
@@ -245,6 +292,7 @@ class JobDetailScreen extends ConsumerWidget {
                 "until it's enabled again. Running builds carry on.",
       confirmLabel: enable ? 'Enable' : 'Disable',
       destructive: !enable,
+      requiredPhrase: requiredPhrase,
     );
     if (!confirmed) return;
     await ref
@@ -257,6 +305,7 @@ class JobDetailScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     JenkinsJob job,
+    String? requiredPhrase,
   ) async {
     final build = job.lastBuild!;
     final confirmed = await showConfirmationDialog(
@@ -265,6 +314,7 @@ class JobDetailScreen extends ConsumerWidget {
       message: 'This stops the running build of ${job.label}.',
       confirmLabel: 'Cancel build',
       destructive: true,
+      requiredPhrase: requiredPhrase,
     );
     if (!confirmed) return;
     await ref
@@ -314,6 +364,7 @@ class _ActionBar extends StatelessWidget {
     required this.job,
     required this.isTriggering,
     required this.isCancelling,
+    required this.readOnly,
     required this.onTrigger,
     required this.onCancel,
   });
@@ -321,13 +372,18 @@ class _ActionBar extends StatelessWidget {
   final JenkinsJob job;
   final bool isTriggering;
   final bool isCancelling;
+
+  /// PI-01/IMP-25: the active server is read-only on this device.
+  final bool readOnly;
   final VoidCallback onTrigger;
   final VoidCallback? onCancel;
 
   @override
   Widget build(BuildContext context) {
     final t = AppTokens.of(context);
-    final label = job.buildable == false
+    final label = readOnly
+        ? 'Read-only'
+        : job.buildable == false
         ? 'Disabled'
         : isTriggering
         ? 'Triggering…'
@@ -344,33 +400,45 @@ class _ActionBar extends StatelessWidget {
         child: ResponsiveCenter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (onCancel != null) ...[
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: t.failure.foreground,
-                      side: BorderSide(color: t.failure.dot),
-                      minimumSize: const Size(64, 52),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    onPressed: isCancelling ? null : onCancel,
-                    icon: const Icon(Icons.stop_rounded),
-                    label: Text(isCancelling ? 'Stopping…' : 'Stop'),
-                  ),
-                  const SizedBox(width: 12),
+                if (readOnly) ...[
+                  const ReadOnlyNotice(toolLabel: 'server'),
+                  const SizedBox(height: 8),
                 ],
-                Expanded(
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                Row(
+                  children: [
+                    if (onCancel != null) ...[
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: t.failure.foreground,
+                          side: BorderSide(color: t.failure.dot),
+                          minimumSize: const Size(64, 52),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                        onPressed: isCancelling || readOnly
+                            ? null
+                            : onCancel,
+                        icon: const Icon(Icons.stop_rounded),
+                        label: Text(isCancelling ? 'Stopping…' : 'Stop'),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    Expanded(
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                        onPressed:
+                            isTriggering || job.buildable == false || readOnly
+                                ? null
+                                : onTrigger,
+                        icon: const Icon(Icons.play_arrow_rounded),
+                        label: Text(label),
+                      ),
                     ),
-                    onPressed: isTriggering || job.buildable == false
-                        ? null
-                        : onTrigger,
-                    icon: const Icon(Icons.play_arrow_rounded),
-                    label: Text(label),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -386,6 +454,8 @@ class _JobDetailBody extends ConsumerWidget {
     required this.job,
     required this.formKey,
     required this.queueItem,
+    required this.readOnly,
+    required this.requiredPhrase,
     required this.onViewLog,
   });
 
@@ -394,6 +464,8 @@ class _JobDetailBody extends ConsumerWidget {
   /// `ParameterEditsNotifier` key for this job's trigger form.
   final String formKey;
   final QueueItem? queueItem;
+  final bool readOnly;
+  final String? requiredPhrase;
   final VoidCallback? onViewLog;
 
   @override
@@ -439,6 +511,8 @@ class _JobDetailBody extends ConsumerWidget {
             jobUrl: job.url,
             buildUrl: job.lastBuild!.url,
             input: pendingInput,
+            readOnly: readOnly,
+            requiredPhrase: requiredPhrase,
           ),
           const SizedBox(height: 14),
         ],
@@ -526,11 +600,15 @@ class _PendingInputBanner extends ConsumerStatefulWidget {
     required this.jobUrl,
     required this.buildUrl,
     required this.input,
+    required this.readOnly,
+    required this.requiredPhrase,
   });
 
   final String jobUrl;
   final String buildUrl;
   final PendingInput input;
+  final bool readOnly;
+  final String? requiredPhrase;
 
   @override
   ConsumerState<_PendingInputBanner> createState() =>
@@ -589,18 +667,22 @@ class _PendingInputBannerState extends ConsumerState<_PendingInputBanner> {
               ),
             ],
             const SizedBox(height: 12),
+            if (widget.readOnly) ...[
+              const ReadOnlyNotice(toolLabel: 'server'),
+              const SizedBox(height: 12),
+            ],
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 OutlinedButton(
-                  onPressed: isSubmitting
+                  onPressed: isSubmitting || widget.readOnly
                       ? null
                       : () => _confirmAndSubmit(context, proceed: false),
                   child: Text(widget.input.abortText),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
-                  onPressed: isSubmitting
+                  onPressed: isSubmitting || widget.readOnly
                       ? null
                       : () => _confirmAndSubmit(context, proceed: true),
                   child: Text(
@@ -637,6 +719,7 @@ class _PendingInputBannerState extends ConsumerState<_PendingInputBanner> {
               rows: parameterSummary(widget.input.inputs, values),
             )
           : null,
+      requiredPhrase: widget.requiredPhrase,
     );
     if (!confirmed || !context.mounted) return;
 

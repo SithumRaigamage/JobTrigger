@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../data/cache/server_safety_store.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
+import '../../../domain/safety/server_safety.dart';
 import '../../../domain/jenkins/parameter_definition.dart';
 import '../../../domain/jenkins/parameter_values.dart';
 import '../../../domain/jenkins/reconcile_replay_parameters.dart';
+import '../../common_widgets/confirmation_dialog.dart';
+import '../../common_widgets/read_only_notice.dart';
 import '../job_detail/parameter_edits_notifier.dart';
 import '../job_detail/parameter_files_notifier.dart';
 import '../job_detail/parameter_form.dart';
@@ -38,6 +43,16 @@ class _ReplaySheetState extends ConsumerState<ReplaySheet> {
     widget.build.parameterValues,
   );
 
+  /// PI-02/IMP-24: read at tap time — the protection flag can change while
+  /// the sheet is open.
+  String? get _requiredPhrase =>
+      ref.read(serverSafetyNotifierProvider).isProtected(
+            SafetyTool.jenkins,
+            widget.job.url,
+          )
+          ? widget.job.label
+          : null;
+
   @override
   Widget build(BuildContext context) {
     final reconciled = _reconciled;
@@ -48,6 +63,12 @@ class _ReplaySheetState extends ConsumerState<ReplaySheet> {
     final isTriggering = ref
         .watch(triggerBuildNotifierProvider(widget.job.url))
         .isLoading;
+    // PI-01/02: replay is a trigger — block it on a read-only server and
+    // require the typed job name when this job is protected.
+    final safety = ref.watch(serverSafetyNotifierProvider);
+    final activeServer = ref.watch(activeServerNotifierProvider);
+    final readOnly = activeServer != null &&
+        safety.isReadOnly(SafetyTool.jenkins, activeServer.id);
 
     return SafeArea(
       child: Padding(
@@ -89,11 +110,21 @@ class _ReplaySheetState extends ConsumerState<ReplaySheet> {
                       .remove,
                 ),
               ],
+              if (readOnly) ...[
+                const SizedBox(height: 16),
+                const ReadOnlyNotice(toolLabel: 'server'),
+              ],
               const SizedBox(height: 16),
               FilledButton.icon(
-                onPressed: isTriggering ? null : _replay,
+                onPressed: isTriggering || readOnly ? null : _replay,
                 icon: const Icon(Icons.replay),
-                label: Text(isTriggering ? 'Replaying…' : 'Replay'),
+                label: Text(
+                  readOnly
+                      ? 'Read-only'
+                      : isTriggering
+                      ? 'Replaying…'
+                      : 'Replay',
+                ),
               ),
             ],
           ),
@@ -103,6 +134,17 @@ class _ReplaySheetState extends ConsumerState<ReplaySheet> {
   }
 
   Future<void> _replay() async {
+    final phrase = _requiredPhrase;
+    if (phrase != null) {
+      final confirmed = await showConfirmationDialog(
+        context,
+        title: 'Replay ${widget.job.label}?',
+        message: 'This starts a new build with the parameters above.',
+        confirmLabel: 'Replay',
+        requiredPhrase: phrase,
+      );
+      if (!confirmed || !mounted) return;
+    }
     final navigator = Navigator.of(context);
     await ref
         .read(triggerBuildNotifierProvider(widget.job.url).notifier)

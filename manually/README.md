@@ -38,9 +38,7 @@ changes; `IPHONE.md` covers both.
 | [M-16](M-16-firebase-push.md) | Firebase server push | NR-06b | approval needed |
 | [M-17](M-17-github-fallback.md) | GitHub fallback decision | PE-43 | only if M-06 finds a blocker |
 
-## Held for your signal (agent acts, not an owner task)
+## Resolved
 
-- **`SithumRaigamage/jobtrigger-actions-test`** — the throwaway private repo
-  used for the live GitHub verification (M-06). I'm keeping it until you say
-  the GitHub token check is done; the moment you say so, I delete it with
-  `gh repo delete SithumRaigamage/jobtrigger-actions-test`.
+- The throwaway `SithumRaigamage/jobtrigger-actions-test` repo used for the
+  live GitHub verification (M-06) was deleted by the owner on 2026-11-17.

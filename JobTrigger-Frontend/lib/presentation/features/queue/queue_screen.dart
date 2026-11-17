@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../data/cache/server_safety_store.dart';
+import '../../../data/credentials/active_server_notifier.dart';
+import '../../../domain/safety/server_safety.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../domain/jenkins/queue_entry.dart';
@@ -11,6 +14,7 @@ import '../../../domain/jenkins/relative_time.dart';
 import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
+import '../../common_widgets/read_only_notice.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../subscription/plan_gate.dart';
@@ -35,6 +39,11 @@ class QueueScreen extends ConsumerWidget {
       );
     }
     final queue = ref.watch(queueNotifierProvider);
+    // PI-01/IMP-25: a read-only server cannot have its queue cancelled.
+    final safety = ref.watch(serverSafetyNotifierProvider);
+    final activeServer = ref.watch(activeServerNotifierProvider);
+    final readOnly = activeServer != null &&
+        safety.isReadOnly(SafetyTool.jenkins, activeServer.id);
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
     return Scaffold(
@@ -88,6 +97,10 @@ class QueueScreen extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
+                        if (readOnly) ...[
+                          const ReadOnlyNotice(toolLabel: 'server'),
+                          const SizedBox(height: 16),
+                        ],
                         if (items.isEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 48),
@@ -107,7 +120,11 @@ class QueueScreen extends ConsumerWidget {
                             ),
                           ),
                         for (final (i, item) in items.indexed) ...[
-                          _QueueTile(entry: item, position: i + 1),
+                          _QueueTile(
+                            entry: item,
+                            position: i + 1,
+                            readOnly: readOnly,
+                          ),
                           const SizedBox(height: 10),
                         ],
                       ],
@@ -132,12 +149,19 @@ class QueueScreen extends ConsumerWidget {
 }
 
 class _QueueTile extends ConsumerWidget {
-  const _QueueTile({required this.entry, required this.position});
+  const _QueueTile({
+    required this.entry,
+    required this.position,
+    required this.readOnly,
+  });
 
   final QueueEntry entry;
 
   /// 1-based place in the queue.
   final int position;
+
+  /// PI-01/IMP-25: hides the cancel affordance on a read-only server.
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -224,11 +248,12 @@ class _QueueTile extends ConsumerWidget {
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.cancel_outlined, color: t.failure.foreground),
-            tooltip: 'Cancel ${entry.taskName}',
-            onPressed: () => _confirmAndCancel(context, ref),
-          ),
+          if (!readOnly)
+            IconButton(
+              icon: Icon(Icons.cancel_outlined, color: t.failure.foreground),
+              tooltip: 'Cancel ${entry.taskName}',
+              onPressed: () => _confirmAndCancel(context, ref),
+            ),
         ],
       ),
     );

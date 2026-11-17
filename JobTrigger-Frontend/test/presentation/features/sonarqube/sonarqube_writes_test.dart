@@ -6,7 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
+import 'package:job_trigger/data/cache/server_safety_store.dart';
+import 'package:job_trigger/data/credentials/active_sonarqube_credential_notifier.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
+import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
+import 'package:job_trigger/domain/safety/server_safety.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue_actions.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
@@ -222,4 +226,62 @@ void main() {
       isEmpty,
     );
   });
+
+  testWidgets('PI-01: a read-only credential disables all issue writes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 2000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final repo = _Repo();
+    await tester.pumpWidget(
+      ProviderScope(
+        retry: (retryCount, error) => null,
+        overrides: [
+          sonarQubeRepositoryProvider.overrideWithValue(repo),
+          activeSonarQubeCredentialNotifierProvider.overrideWith(
+            _ActiveSonarQube.new,
+          ),
+          serverSafetyNotifierProvider.overrideWithValue(
+            const ServerSafety(readOnly: {'sonarqube:sq1'}),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.dark(),
+          home: const Scaffold(
+            body: SingleChildScrollView(
+              child: SonarQubeIssueManageCard(issue: _issue),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('read-only on this device'), findsOneWidget);
+    // Both write affordances are disabled; not even the dialogs open.
+    expect(
+      tester.widget<TextButton>(find.widgetWithText(TextButton, 'Change')).onPressed,
+      isNull,
+    );
+    expect(
+      tester.widget<TextButton>(find.widgetWithText(TextButton, 'Assign')).onPressed,
+      isNull,
+    );
+    final comment = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Post comment'),
+    );
+    expect(comment.onPressed, isNull);
+    expect(repo.calls, isEmpty);
+  });
+}
+
+class _ActiveSonarQube extends ActiveSonarQubeCredentialNotifier {
+  @override
+  SonarQubeCredential? build() => const SonarQubeCredential(
+    id: 'sq1',
+    label: 'L',
+    baseUrl: 'http://sonar.example:9000',
+    secret: 'squ_secret',
+  );
 }

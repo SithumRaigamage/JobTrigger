@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
+import 'package:job_trigger/data/cache/server_safety_store.dart';
 import 'package:job_trigger/data/repositories/credentials_repository_impl.dart';
 import 'package:job_trigger/data/repositories/github_credentials_repository_impl.dart';
 import 'package:job_trigger/data/repositories/sonarqube_credentials_repository_impl.dart';
@@ -12,6 +13,7 @@ import 'package:job_trigger/domain/credential/github_credentials_repository.dart
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credentials_repository.dart';
+import 'package:job_trigger/domain/safety/server_safety.dart';
 import 'package:job_trigger/presentation/features/settings/settings_screen.dart';
 import 'package:job_trigger/presentation/features/tool_selection/active_tool_notifier.dart';
 import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
@@ -382,6 +384,58 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('Personal'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'PI-01: a saved credential has a read-only switch that persists',
+    (tester) async {
+      const server = JenkinsServer(
+        id: 's1',
+        serverName: 'My Jenkins',
+        jenkinsURL: 'https://jenkins.test',
+        username: 'user',
+        secret: 'pass',
+        isDefault: true,
+      );
+      final container = ProviderContainer(
+        overrides: [
+          credentialsRepositoryProvider.overrideWithValue(
+            _FakeCredentialsRepository(const [server]),
+          ),
+          gitHubCredentialsRepositoryProvider.overrideWithValue(
+            _FakeGitHubCredentialsRepository(const []),
+          ),
+          sonarQubeCredentialsRepositoryProvider.overrideWithValue(
+            _FakeSonarQubeCredentialsRepository(const []),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: SettingsScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final switchFinder = find.byKey(const Key('read_only_My Jenkins'));
+      expect(switchFinder, findsOneWidget);
+      expect(tester.widget<Switch>(switchFinder).value, isFalse);
+
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<Switch>(switchFinder).value, isTrue);
+      // Local-only: no backend/DTO involvement, stored in ServerSafetyStore.
+      expect(
+        container
+            .read(serverSafetyNotifierProvider)
+            .isReadOnly(SafetyTool.jenkins, 's1'),
+        isTrue,
+      );
     },
   );
 }

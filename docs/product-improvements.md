@@ -323,3 +323,7 @@ IMP-24 production confirm, IMP-25 read-only servers, IMP-35 reachability
 check, IMP-36 tunnel guides, IMP-38 last-updated banner, IMP-11 notification
 rules, IMP-74 first-run checklist, IMP-75 token wizards, IMP-51 status by
 shape, IMP-65 what's new.
+
+**Promoted 2026-11-17** to `tasks/phase-23-product-improvements.md` as
+PI-01…PI-10 (owner-approved). Their status of record is that phase file and
+`tasks/README.md`; this section is kept as the proposal's rationale.

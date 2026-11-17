@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/error/result.dart';
+import '../../../data/cache/server_safety_store.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../../data/repositories/sonarqube_repository_impl.dart';
+import '../../../domain/safety/server_safety.dart';
 import '../../../domain/sonarqube/sonarqube_issue_actions.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -186,7 +189,17 @@ class _HotspotRow extends ConsumerWidget {
 
   final SonarQubeHotspot hotspot;
 
+  /// PI-01/IMP-25: reviewing is a write action — no-op on a read-only
+  /// credential, even if a stale button survived a rebuild.
+  bool _readOnly(WidgetRef ref) {
+    final safety = ref.read(serverSafetyNotifierProvider);
+    final active = ref.read(activeSonarQubeCredentialNotifierProvider);
+    return active != null &&
+        safety.isReadOnly(SafetyTool.sonarqube, active.id);
+  }
+
   Future<void> _review(BuildContext context, WidgetRef ref) async {
+    if (_readOnly(ref)) return;
     final repo = ref.read(sonarQubeRepositoryProvider);
     final messenger = ScaffoldMessenger.of(context);
     final review = await pickSonarQubeChoice<SonarQubeHotspotReview>(
@@ -234,6 +247,12 @@ class _HotspotRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppTokens.of(context);
     final textTheme = Theme.of(context).textTheme;
+    final safety = ref.watch(serverSafetyNotifierProvider);
+    final activeCredential = ref.watch(
+      activeSonarQubeCredentialNotifierProvider,
+    );
+    final readOnly = activeCredential != null &&
+        safety.isReadOnly(SafetyTool.sonarqube, activeCredential.id);
     final where = [
       if (hotspot.securityCategory != null) hotspot.securityCategory,
       if (hotspot.location != null) hotspot.location,
@@ -268,14 +287,16 @@ class _HotspotRow extends ConsumerWidget {
         ),
         children: [
           // Batch 7 (US-SQ-WRITE-04): the review decision, confirmed first.
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              icon: const Icon(Icons.fact_check_outlined, size: 18),
-              label: const Text('Review'),
-              onPressed: () => _review(context, ref),
+          // PI-01/IMP-25: hidden on a read-only credential.
+          if (!readOnly)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                icon: const Icon(Icons.fact_check_outlined, size: 18),
+                label: const Text('Review'),
+                onPressed: () => _review(context, ref),
+              ),
             ),
-          ),
           ref
               .watch(sonarQubeHotspotDetailProvider(hotspot.key))
               .when(

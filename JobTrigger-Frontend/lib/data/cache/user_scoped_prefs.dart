@@ -12,6 +12,7 @@ const userScopedPrefKeys = {
   'active_github_credential_id', // ActiveGitHubCredentialNotifier
   'active_sonarqube_credential_id', // ActiveSonarQubeCredentialNotifier
   'build_watches', // BuildWatchStore (US-JX-10)
+  'server_safety', // ServerSafetyStore (PI-01/02, read-only + protected jobs)
   'sonarqube_watches', // SonarQubeWatchStore (US-SQ-WATCH-01)
   'subscription_cache', // SubscriptionRepositoryImpl (P20-22)
 };

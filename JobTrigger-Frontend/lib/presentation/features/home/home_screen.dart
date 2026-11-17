@@ -11,12 +11,14 @@ import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../data/cache/server_safety_store.dart';
 import '../../../data/credentials/active_server_notifier.dart';
 import '../../../data/credentials/credentials_notifier.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import '../../../domain/credential/server_links.dart';
 import '../../../domain/jenkins/branch_kind.dart';
 import '../../../domain/jenkins/build_progress.dart';
+import '../../../domain/safety/server_safety.dart';
 import '../../../domain/jenkins/history_filter.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
@@ -1070,6 +1072,16 @@ class _ScanActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scanning = ref.watch(multibranchScanNotifierProvider(project.url));
+    // PI-01/IMP-25: scanning is a write action — hide it on a read-only
+    // server. PI-02/IMP-24: a protected project asks for the typed name.
+    final safety = ref.watch(serverSafetyNotifierProvider);
+    final activeServer = ref.watch(activeServerNotifierProvider);
+    final readOnly = activeServer != null &&
+        safety.isReadOnly(SafetyTool.jenkins, activeServer.id);
+    final requiredPhrase =
+        safety.isProtected(SafetyTool.jenkins, project.url)
+            ? project.label
+            : null;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1082,11 +1094,11 @@ class _ScanActions extends ConsumerWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
           )
-        else
+        else if (!readOnly)
           IconButton(
             icon: const Icon(Icons.sync),
             tooltip: 'Scan now',
-            onPressed: () => _confirmAndScan(context, ref),
+            onPressed: () => _confirmAndScan(context, ref, requiredPhrase),
           ),
         IconButton(
           icon: const Icon(Icons.receipt_long),
@@ -1106,7 +1118,11 @@ class _ScanActions extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmAndScan(BuildContext context, WidgetRef ref) async {
+  Future<void> _confirmAndScan(
+    BuildContext context,
+    WidgetRef ref,
+    String? requiredPhrase,
+  ) async {
     final confirmed = await showConfirmationDialog(
       context,
       title: 'Scan ${project.label}?',
@@ -1114,6 +1130,7 @@ class _ScanActions extends ConsumerWidget {
           'Jenkins will re-scan the repository for branches, pull requests, '
           'and tags, and may start builds for new ones.',
       confirmLabel: 'Scan',
+      requiredPhrase: requiredPhrase,
     );
     if (!confirmed) return;
     await ref
