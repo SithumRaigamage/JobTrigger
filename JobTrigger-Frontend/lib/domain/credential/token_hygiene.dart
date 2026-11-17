@@ -17,3 +17,24 @@ Uri jenkinsTokenPageUrl(String jenkinsUrl) {
       : jenkinsUrl;
   return Uri.parse('$base/me/configure');
 }
+
+/// PI-09 / IMP-75: GitHub's token page, pre-filled with the classic scopes
+/// this app needs (`repo` for private repositories, `workflow` to dispatch).
+Uri gitHubTokenPageUrl() => Uri.parse(
+  'https://github.com/settings/tokens/new'
+  '?scopes=repo,workflow&description=JobTrigger',
+);
+
+/// PI-09 / IMP-75: SonarQube's user-token page. SonarCloud has its own
+/// account-security page; a self-hosted Server nests it under the user.
+Uri sonarQubeTokenPageUrl(String baseUrl) {
+  final trimmed = baseUrl.trim();
+  final base = trimmed.endsWith('/')
+      ? trimmed.substring(0, trimmed.length - 1)
+      : trimmed;
+  final host = Uri.tryParse(base)?.host.toLowerCase() ?? '';
+  if (host == 'sonarcloud.io' || host.endsWith('.sonarcloud.io')) {
+    return Uri.parse('https://sonarcloud.io/account/security');
+  }
+  return Uri.parse('$base/user/account/security');
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
@@ -7,13 +8,18 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../../domain/sonarqube/sonarqube_overview.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
+import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'sonarqube_credential_gate.dart';
 import 'sonarqube_project_card.dart';
 import 'sonarqube_projects_notifier.dart';
+import 'sonarqube_overview_trend_notifier.dart';
+import 'sonarqube_pins_notifier.dart';
+import 'sonarqube_saved_banner.dart';
 import 'sonarqube_summaries_notifier.dart';
 import 'sonarqube_summaries_sync.dart';
 
@@ -59,7 +65,41 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
                       header: true,
                       child: Text('Overview', style: textTheme.headlineLarge),
                     ),
+                    const SizedBox(height: 8),
+                    // US-SQ-ISSUES-01: what is assigned to you, across every
+                    // project, from the one place that already lists them all.
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () =>
+                            context.push(AppRoutes.sonarqubeMyIssues),
+                        icon: const Icon(
+                          Icons.assignment_ind_outlined,
+                          size: 18,
+                        ),
+                        label: const Text('My issues'),
+                      ),
+                    ),
+                    // US-SQ-ISSUES-03: find an issue by rule, tag, file or key.
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () =>
+                            context.push(AppRoutes.sonarqubeIssueSearch),
+                        icon: const Icon(Icons.search_rounded, size: 18),
+                        label: const Text('Search issues'),
+                      ),
+                    ),
                   ],
+                ),
+              ),
+              // PI-05: when these numbers were last loaded. The cached
+              // "Saved …" copy stays with SonarQubeSavedBanner in the body.
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: DataFreshnessBanner(
+                  freshnessKey: sonarqubeProjectsFreshnessKey,
+                  showOffline: false,
                 ),
               ),
               Expanded(
@@ -76,7 +116,21 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
                     final overview = buildSonarQubeOverview(
                       loaded.projects,
                       summaries.byKey,
+                      pinned: ref.watch(sonarQubePinnedKeysProvider),
                     );
+                    // US-SQ-OVERVIEW-02: compare with, and add to, the snapshots
+                    // kept on this device once every gate verdict has arrived.
+                    if (overview.unknown == 0 &&
+                        loaded.projects.isNotEmpty &&
+                        loaded.savedAt == null) {
+                      WidgetsBinding.instance.addPostFrameCallback(
+                        (_) => ref
+                            .read(
+                              sonarQubeOverviewTrendNotifierProvider.notifier,
+                            )
+                            .record(overview),
+                      );
+                    }
                     return RefreshIndicator(
                       onRefresh: projectsNotifier.refresh,
                       child: ListView(
@@ -88,11 +142,19 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
                           16 + glassNavBarClearance(context),
                         ),
                         children: [
+                          if (loaded.savedAt != null)
+                            SonarQubeSavedBanner(savedAt: loaded.savedAt!),
                           if (loaded.projects.isEmpty)
                             const _Message('No projects found')
                           else ...[
                             _Counts(overview: overview),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
+                            _TrendLine(
+                              state: ref.watch(
+                                sonarQubeOverviewTrendNotifierProvider,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
                             _Status(
                               overview: overview,
                               summaries: summaries,
@@ -447,5 +509,59 @@ class _Partial extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// "Since you last looked" (`US-SQ-OVERVIEW-02`). The label is deliberately
+/// not "over time": SonarQube keeps no portfolio history, so this is only
+/// what this device saw, and the first visit says the trend starts now.
+class _TrendLine extends StatelessWidget {
+  const _TrendLine({required this.state});
+
+  final SonarQubeTrendState state;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!state.recorded) return const SizedBox.shrink();
+    final t = AppTokens.of(context);
+    final style = Theme.of(
+      context,
+    ).textTheme.bodySmall?.copyWith(color: t.textMuted);
+    final trend = state.trend;
+    if (trend == null) {
+      return Text(
+        'The trend starts now: this device keeps a count each time you look, '
+        'so the next visit can show the change.',
+        textAlign: TextAlign.center,
+        style: style,
+      );
+    }
+    final change = trend.failingChange;
+    final what = switch (change) {
+      0 => 'Same number failing as',
+      > 0 => '$change more failing than',
+      _ => '${-change} fewer failing than',
+    };
+    final colour = change > 0
+        ? t.status(StatusTone.failure).foreground
+        : change < 0
+        ? t.status(StatusTone.success).foreground
+        : t.textMuted;
+    return Semantics(
+      label: '$what ${_ago(trend.since)}',
+      child: Text(
+        '$what ${_ago(trend.since)}',
+        textAlign: TextAlign.center,
+        style: style?.copyWith(color: colour, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  static String _ago(DateTime then) {
+    final gap = DateTime.now().difference(then);
+    if (gap.inDays >= 2) return '${gap.inDays} days ago';
+    if (gap.inDays == 1) return 'yesterday';
+    if (gap.inHours >= 1) return '${gap.inHours} h ago';
+    return 'a little while ago';
   }
 }

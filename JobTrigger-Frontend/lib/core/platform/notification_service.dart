@@ -28,6 +28,17 @@ class NotificationService {
     visibility: NotificationVisibility.private,
   );
 
+  /// US-SQ-WATCH-01: its own channel, so someone who silences build results
+  /// still hears about a failing quality gate (and the reverse).
+  static const _gateChannel = AndroidNotificationDetails(
+    'quality_gates',
+    'Quality gates',
+    channelDescription: 'When a watched SonarQube project fails its gate',
+    importance: Importance.high,
+    priority: Priority.high,
+    visibility: NotificationVisibility.private,
+  );
+
   /// Payloads of tapped notifications, for the app to open: an in-app
   /// `jobtrigger://app/open?…` link, or a bare job URL from a notification
   /// posted before AUD-45.
@@ -75,6 +86,26 @@ class NotificationService {
         await ios?.requestPermissions(alert: true, sound: true) ??
         true;
     return granted;
+  }
+
+  /// A notification whose text the caller composed (US-SQ-WATCH-01), so a
+  /// gate watch doesn't have to pretend to be a build. No payload: SonarQube
+  /// deep links arrive with batch 5.
+  Future<void> showAlert({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    await initialize();
+    await _plugin.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: const NotificationDetails(
+        android: _gateChannel,
+        iOS: DarwinNotificationDetails(),
+      ),
+    );
   }
 
   Future<void> show(BuildNotification notification) async {

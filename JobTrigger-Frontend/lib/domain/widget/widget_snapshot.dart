@@ -1,5 +1,6 @@
 import '../jenkins/jenkins_job.dart';
 import '../jenkins/jenkins_link.dart';
+import '../sonarqube/sonarqube_links.dart';
 
 /// A pinned job's status as the home-screen widget shows it (US-JX-23).
 enum WidgetJobStatus { success, failure, unstable, running, other }
@@ -117,5 +118,48 @@ WidgetJob _widgetJob(String label, String url, JenkinsJob? job) {
     statusText: text,
     buildNumber: job?.lastBuild?.number,
     buildTimestamp: job?.lastBuild?.timestamp.toInt(),
+  );
+}
+
+/// A pinned SonarQube project and its last known gate verdict, or null while
+/// unknown (`US-SQ-WIDGET-01`).
+typedef PinnedProjectStatus = ({String key, String name, String? gate});
+
+/// The widget snapshot for pinned SonarQube projects, in the same shape the
+/// native widgets already read for Jenkins jobs: a row per project, with the
+/// gate verdict spelled out (never colour alone) and `jobtrigger://app/
+/// sonarqube/project?key=` as the link (`US-SQ-LINK-02`). Names and verdicts
+/// only: no credential, token or server address ever reaches the widget.
+///
+/// [gate] is `passed`, `warning`, `failed` or `none` (a project that has not
+/// been analysed); null while it has not loaded. [hideNames] is the app lock
+/// (AUD-54), exactly as for jobs.
+WidgetSnapshot buildSonarQubeWidgetSnapshot(
+  List<PinnedProjectStatus> pins, {
+  required DateTime now,
+  bool hideNames = false,
+}) => hideNames
+    ? WidgetSnapshot(jobs: const [], updatedAt: now, lockedCount: pins.length)
+    : WidgetSnapshot(
+        jobs: [
+          for (final pin in pins.take(WidgetSnapshot.maxJobs))
+            _widgetProject(pin),
+        ],
+        updatedAt: now,
+      );
+
+WidgetJob _widgetProject(PinnedProjectStatus pin) {
+  final (status, text) = switch (pin.gate) {
+    'passed' => (WidgetJobStatus.success, 'Passed'),
+    'failed' => (WidgetJobStatus.failure, 'Failed'),
+    'warning' => (WidgetJobStatus.unstable, 'Warning'),
+    'none' => (WidgetJobStatus.other, 'Not analyzed'),
+    _ => (WidgetJobStatus.other, 'Unknown'),
+  };
+  return WidgetJob(
+    label: pin.name,
+    link: sonarQubeAppLink(pin.key).toString(),
+    status: status,
+    statusText: text,
   );
 }

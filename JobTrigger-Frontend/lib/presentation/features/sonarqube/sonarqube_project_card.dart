@@ -11,6 +11,7 @@ import '../../common_widgets/status_pill.dart';
 import '../../navigation/app_routes.dart';
 import 'sonarqube_gate_style.dart';
 import 'sonarqube_last_analysis.dart';
+import 'sonarqube_pins_notifier.dart';
 import 'sonarqube_summaries_notifier.dart';
 
 /// One project: its name and key, its quality-gate verdict, the headline
@@ -57,6 +58,7 @@ class SonarQubeProjectCard extends ConsumerWidget {
                     tone: gateTone(summary.gate),
                   ),
                 ],
+                SonarQubePinButton(project: project),
               ],
             ),
             const SizedBox(height: 2),
@@ -168,6 +170,31 @@ class _Stat extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Pin or unpin [project] (`US-SQ-PIN-01`). Compact so it fits a card's
+/// header row.
+class SonarQubePinButton extends ConsumerWidget {
+  const SonarQubePinButton({required this.project, super.key});
+
+  final SonarQubeProject project;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pinned = ref.watch(
+      sonarQubePinnedKeysProvider.select((keys) => keys.contains(project.key)),
+    );
+    return IconButton(
+      visualDensity: VisualDensity.compact,
+      constraints: const BoxConstraints.tightFor(width: 36, height: 28),
+      padding: EdgeInsets.zero,
+      iconSize: 20,
+      tooltip: sonarQubePinLabel(pinned: pinned, name: project.name),
+      icon: Icon(pinned ? Icons.push_pin_rounded : Icons.push_pin_outlined),
+      onPressed: () =>
+          ref.read(sonarQubePinsNotifierProvider.notifier).toggle(project),
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'sonarqube_issue_grouping.dart';
+
 /// One issue raised against a project (`US-SQ-QUALITY-03`) —
 /// `GET api/issues/search`'s `issues[]`.
 class SonarQubeIssue {
@@ -15,6 +17,8 @@ class SonarQubeIssue {
     this.author,
     this.status,
     this.creationDate,
+    this.project,
+    this.projectName,
   });
 
   final String key;
@@ -48,6 +52,19 @@ class SonarQubeIssue {
   final String? status;
   final DateTime? creationDate;
 
+  /// The project's key (`api/issues/search`'s `project`), set for the
+  /// cross-project list (`US-SQ-ISSUES-01`) where a row has no project page
+  /// to imply it.
+  final String? project;
+
+  /// The project's name when it could be looked up; the row falls back to
+  /// [project] rather than showing nothing.
+  final String? projectName;
+
+  /// What a cross-project row calls its project.
+  String? get projectLabel =>
+      (projectName?.isNotEmpty ?? false) ? projectName : project;
+
   /// `src/Foo.java:42`, `src/Foo.java`, or null.
   String? get location =>
       file == null ? null : (line == null ? file : '$file:$line');
@@ -59,6 +76,28 @@ class SonarQubeIssue {
 
   @override
   int get hashCode => key.hashCode;
+}
+
+/// What a cross-project issue search looks for (`US-SQ-ISSUES-03`).
+///
+/// SonarQube's `api/issues/search` has **no free-text parameter** (checked
+/// against the server's own web-service listing, 26.1: the list has `rules`,
+/// `tags`, `files`, `issues` and others, but no `q`; an unknown `q` is
+/// silently ignored and returns everything). So the search is by one of the
+/// filters the server really has, each exact and server-side.
+enum SonarQubeIssueSearchField {
+  rule('Rule', 'java:S1135', 'rules'),
+  tag('Tag', 'security', 'tags'),
+  file('File path', 'src/app.js', 'files'),
+  issueKey('Issue key', 'AZ…', 'issues');
+
+  const SonarQubeIssueSearchField(this.label, this.hint, this.param);
+
+  final String label;
+  final String hint;
+
+  /// The `api/issues/search` parameter this field filters by.
+  final String param;
 }
 
 /// The issue types and severities the filter offers, in display order.
@@ -162,10 +201,18 @@ class SonarQubeIssueFilter {
 
 /// One page of issues and how many exist in total under the filter.
 class SonarQubeIssuePage {
-  const SonarQubeIssuePage({required this.issues, required this.total});
+  const SonarQubeIssuePage({
+    required this.issues,
+    required this.total,
+    this.groups = const [],
+  });
 
   final List<SonarQubeIssue> issues;
   final int total;
+
+  /// The server's counts per group when a grouping was asked for
+  /// (`US-SQ-ISSUES-02`); empty otherwise.
+  final List<SonarQubeIssueGroup> groups;
 }
 
 /// Issues per page.

@@ -19,7 +19,19 @@ import org.json.JSONObject
  * writes (`HomeWidgetBridge`); it never fetches from Jenkins and holds no
  * credentials. A tap opens the job through the US-JX-19 deep link.
  */
-class PinnedJobsWidgetProvider : HomeWidgetProvider() {
+open class PinnedJobsWidgetProvider : HomeWidgetProvider() {
+
+    /** The shared-preferences key the app writes this widget's snapshot under. */
+    protected open val snapshotKey: String = "snapshot"
+
+    /** `US-SQ-WIDGET-01`'s widget reuses everything but the words. */
+    protected open fun title(context: Context): String = context.getString(R.string.widget_title)
+    protected open fun emptyText(context: Context): String = context.getString(R.string.widget_empty)
+    protected open fun upgradeHint(context: Context): String =
+        context.getString(R.string.widget_upgrade_hint)
+    protected open fun lockedCount(context: Context, count: Int): String =
+        context.resources.getQuantityString(R.plurals.widget_locked_count, count, count)
+
 
     override fun onUpdate(
         context: Context,
@@ -49,7 +61,7 @@ class PinnedJobsWidgetProvider : HomeWidgetProvider() {
         data: SharedPreferences,
     ) {
         val views = RemoteViews(context.packageName, R.layout.pinned_jobs_widget)
-        val snapshot = data.getString(SNAPSHOT_KEY, null)?.let {
+        val snapshot = data.getString(snapshotKey, null)?.let {
             runCatching { JSONObject(it) }.getOrNull()
         }
         val jobs = snapshot?.optJSONArray("jobs")
@@ -58,6 +70,9 @@ class PinnedJobsWidgetProvider : HomeWidgetProvider() {
         val capacity = if (minHeight in 1 until MEDIUM_MIN_HEIGHT_DP) 2 else ROWS.size
 
         views.setOnClickPendingIntent(R.id.widget_root, openApp(context, widgetId))
+        views.setTextViewText(R.id.widget_title, title(context))
+        views.setTextViewText(R.id.widget_empty, emptyText(context))
+        views.setTextViewText(R.id.widget_upgrade_hint, upgradeHint(context))
 
         // AUD-54: the app lock is on, so the snapshot carries only how many
         // jobs are pinned (P14-25).
@@ -66,10 +81,19 @@ class PinnedJobsWidgetProvider : HomeWidgetProvider() {
         views.setViewVisibility(R.id.widget_header, if (locked) View.GONE else View.VISIBLE)
         if (locked) {
             val pinned = snapshot!!.optInt("lockedCount")
-            views.setTextViewText(
-                R.id.widget_locked_count,
-                context.resources.getQuantityString(R.plurals.widget_locked_count, pinned, pinned),
-            )
+            views.setTextViewText(R.id.widget_locked_count, lockedCount(context, pinned))
+            views.setViewVisibility(R.id.widget_empty, View.GONE)
+            ROWS.forEach { views.setViewVisibility(it.root, View.GONE) }
+            manager.updateAppWidget(widgetId, views)
+            return
+        }
+
+        // P20-25: pinned jobs need Pro, so on Free the app writes this flag
+        // with no jobs. Say why instead of looking empty.
+        val upgrade = snapshot?.optBoolean("upgradeRequired", false) == true
+        views.setViewVisibility(R.id.widget_upgrade, if (upgrade) View.VISIBLE else View.GONE)
+        views.setViewVisibility(R.id.widget_header, if (upgrade) View.GONE else View.VISIBLE)
+        if (upgrade) {
             views.setViewVisibility(R.id.widget_empty, View.GONE)
             ROWS.forEach { views.setViewVisibility(it.root, View.GONE) }
             manager.updateAppWidget(widgetId, views)
@@ -154,7 +178,6 @@ class PinnedJobsWidgetProvider : HomeWidgetProvider() {
     private data class Row(val root: Int, val dot: Int, val label: Int, val status: Int)
 
     private companion object {
-        const val SNAPSHOT_KEY = "snapshot"
         const val MEDIUM_MIN_HEIGHT_DP = 110
 
         val ROWS = listOf(

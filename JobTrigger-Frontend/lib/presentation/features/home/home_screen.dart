@@ -6,17 +6,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../student/student_expiry_notice.dart';
+import '../first_run/first_run_checklist_card.dart';
 import '../subscription/plan_gate.dart';
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../data/cache/server_safety_store.dart';
 import '../../../data/credentials/active_server_notifier.dart';
 import '../../../data/credentials/credentials_notifier.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import '../../../domain/credential/server_links.dart';
 import '../../../domain/jenkins/branch_kind.dart';
 import '../../../domain/jenkins/build_progress.dart';
+import '../../../domain/safety/server_safety.dart';
 import '../../../domain/jenkins/history_filter.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
@@ -25,6 +28,7 @@ import '../../../domain/jenkins/job_status_summary.dart';
 import '../../../domain/jenkins/relative_time.dart';
 import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/external_link.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/inline_alert.dart';
@@ -33,6 +37,7 @@ import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/secret_reentry_notice.dart';
 import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_indicator.dart';
+import '../../common_widgets/status_mark.dart';
 import '../../common_widgets/status_pill.dart';
 import '../../common_widgets/status_tile.dart';
 import '../../common_widgets/toast_controller.dart';
@@ -251,13 +256,15 @@ class _Header extends ConsumerWidget {
           const _OfflineBanner(),
           const _QuietDownBanner(),
           const StudentExpiryBanner(),
+          // PI-08: only at the root, not while browsing a folder.
+          if (folder == null) const FirstRunChecklistCard(),
         ],
       ),
     );
   }
 }
 
-/// The active server, with a dot for whether it's reachable. Tapping it
+/// The active server, marked Online/Offline in shape and words. Tapping it
 /// drops down the saved servers to switch between (P19-07); "Manage
 /// servers…" leads on to Settings, where they're added, edited and removed.
 class _ServerChip extends ConsumerWidget {
@@ -324,13 +331,17 @@ class _ServerChip extends ConsumerWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: offline ? t.neutral.dot : t.success.dot,
-                    ),
+                  StatusMark(
+                    // PI-06: shape and words instead of a bare colour dot.
+                    tone: offline ? StatusTone.neutral : StatusTone.success,
+                    label: offline ? 'Offline' : 'Online',
+                    // Connectivity, not a selection check (the server menu
+                    // uses a check for the active server).
+                    icon: offline
+                        ? Icons.cloud_off_rounded
+                        : Icons.wifi_rounded,
+                    iconSize: 14,
+                    spacing: 4,
                   ),
                   const SizedBox(width: 8),
                   Flexible(
@@ -472,6 +483,13 @@ class _MoreMenu extends ConsumerWidget {
         }
       },
       itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: AppRoutes.dashboard,
+          child: ListTile(
+            leading: Icon(Icons.dashboard_outlined),
+            title: Text('Dashboard'),
+          ),
+        ),
         const PopupMenuItem(
           value: _openLinkAction,
           child: ListTile(
@@ -1063,6 +1081,16 @@ class _ScanActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scanning = ref.watch(multibranchScanNotifierProvider(project.url));
+    // PI-01/IMP-25: scanning is a write action — hide it on a read-only
+    // server. PI-02/IMP-24: a protected project asks for the typed name.
+    final safety = ref.watch(serverSafetyNotifierProvider);
+    final activeServer = ref.watch(activeServerNotifierProvider);
+    final readOnly = activeServer != null &&
+        safety.isReadOnly(SafetyTool.jenkins, activeServer.id);
+    final requiredPhrase =
+        safety.isProtected(SafetyTool.jenkins, project.url)
+            ? project.label
+            : null;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1075,11 +1103,11 @@ class _ScanActions extends ConsumerWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
           )
-        else
+        else if (!readOnly)
           IconButton(
             icon: const Icon(Icons.sync),
             tooltip: 'Scan now',
-            onPressed: () => _confirmAndScan(context, ref),
+            onPressed: () => _confirmAndScan(context, ref, requiredPhrase),
           ),
         IconButton(
           icon: const Icon(Icons.receipt_long),
@@ -1099,7 +1127,11 @@ class _ScanActions extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmAndScan(BuildContext context, WidgetRef ref) async {
+  Future<void> _confirmAndScan(
+    BuildContext context,
+    WidgetRef ref,
+    String? requiredPhrase,
+  ) async {
     final confirmed = await showConfirmationDialog(
       context,
       title: 'Scan ${project.label}?',
@@ -1107,6 +1139,7 @@ class _ScanActions extends ConsumerWidget {
           'Jenkins will re-scan the repository for branches, pull requests, '
           'and tags, and may start builds for new ones.',
       confirmLabel: 'Scan',
+      requiredPhrase: requiredPhrase,
     );
     if (!confirmed) return;
     await ref
@@ -1255,28 +1288,15 @@ class _ViewPickerTitle extends ConsumerWidget {
   }
 }
 
-/// US-JX-20: Home is showing the last saved listing because the server
-/// can't be reached. Anything that changes Jenkins needs the connection
-/// back; job detail says so itself when opened.
+/// PI-05: Home's "Updated 2m ago" / offline notice. Delegates to the shared
+/// freshness banner so the Jenkins offline copy stays in one place; the
+/// server chip and pull-to-refresh still read
+/// [offlineSnapshotNotifierProvider] directly.
 class _OfflineBanner extends ConsumerWidget {
   const _OfflineBanner();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final savedAt = ref.watch(offlineSnapshotNotifierProvider);
-    if (savedAt == null) return const SizedBox.shrink();
-    final local = savedAt.toLocal();
-    String two(int value) => value.toString().padLeft(2, '0');
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: InlineAlert(
-        icon: Icons.cloud_off_rounded,
-        tone: StatusTone.neutral,
-        message:
-            'Offline — showing data from ${two(local.hour)}:'
-            '${two(local.minute)}. Builds can\'t be started or changed '
-            'until you\'re back online.',
-      ),
-    );
+    return const DataFreshnessBanner(freshnessKey: homeFreshnessKey);
   }
 }

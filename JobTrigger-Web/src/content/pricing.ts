@@ -90,10 +90,11 @@ export const pricingPromises = [
 
 /**
  * The plans, the comparison and the promises for [release] (release/tools.json).
- * The constants above are the wording once several tools are released; while
- * only one is (release 1.0, Jenkins), nothing may suggest tools "together" or
- * name tools the release doesn't ship, so those two lines change. With
- * several released tools this returns the constants unchanged.
+ * The constants above are the wording once several tools are released — the
+ * shipped 1.0 ships Jenkins, GitHub Actions and SonarQube. A hypothetical
+ * single-tool release still must not suggest tools "together" or name tools it
+ * doesn't ship, so those two lines change in that case. With several released
+ * tools this returns the constants unchanged.
  */
 export function pricingFor(release: ReleaseView): {
   plans: readonly Plan[];

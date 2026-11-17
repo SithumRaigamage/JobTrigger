@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,20 +8,25 @@ import 'package:go_router/go_router.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_overview_trend.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:job_trigger/data/cache/sonarqube_cache.dart';
 import 'package:job_trigger/data/credentials/active_sonarqube_credential_notifier.dart';
 import 'package:job_trigger/data/credentials/sonarqube_credentials_notifier.dart';
 import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_issue_grouping.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project_summary.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_overview_screen.dart';
 import 'package:job_trigger/presentation/navigation/main_scaffold.dart';
+import '../../../support/sonarqube_insights_defaults.dart';
 
-class _Repo implements SonarQubeRepository {
+class _Repo with SonarQubeInsightsDefaults implements SonarQubeRepository {
   @override
   Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
     SonarQubeIssue issue,
@@ -66,6 +74,7 @@ class _Repo implements SonarQubeRepository {
     String projectKey, {
     SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
     int page = 1,
+    SonarQubeIssueGrouping grouping = SonarQubeIssueGrouping.none,
   }) => throw UnimplementedError();
 
   @override
@@ -119,6 +128,7 @@ Future<void> _pump(
   WidgetTester tester,
   _Repo repo, {
   bool credential = true,
+  SonarQubeCache? cache,
 }) async {
   tester.view.physicalSize = const Size(800, 2400);
   tester.view.devicePixelRatio = 1;
@@ -132,6 +142,7 @@ Future<void> _pump(
         ),
         sonarQubeCredentialsNotifierProvider.overrideWith(_NoSaved.new),
         sonarQubeRepositoryProvider.overrideWithValue(repo),
+        if (cache != null) sonarQubeCacheProvider.overrideWithValue(cache),
       ],
       child: MaterialApp(
         theme: AppTheme.dark(),
@@ -171,6 +182,41 @@ void main() {
       expect(find.text('Healthy'), findsNothing);
       expect(find.text('Not analyzed yet'.toUpperCase()), findsOneWidget);
       expect(find.text('Untouched'), findsOneWidget);
+    });
+
+    testWidgets('the first visit says the trend starts now '
+        '(US-SQ-OVERVIEW-02)', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final repo = _Repo([_p('bad', 'Broken')])..summaries['bad'] = _failed;
+
+      await _pump(tester, repo);
+
+      expect(find.textContaining('The trend starts now'), findsOneWidget);
+    });
+
+    testWidgets('shows the change in failing projects since the last look '
+        '(US-SQ-OVERVIEW-02)', (tester) async {
+      final yesterday = SonarQubeOverviewSnapshot(
+        at: DateTime.now().subtract(const Duration(days: 1, hours: 1)),
+        failing: 0,
+        warning: 0,
+        passing: 1,
+      );
+      SharedPreferences.setMockInitialValues({
+        'sonarqube_snapshots_c': '[${_json(yesterday)}]',
+      });
+      final repo = _Repo([_p('bad', 'Broken')])..summaries['bad'] = _failed;
+
+      await _pump(tester, repo);
+
+      expect(find.text('1 more failing than yesterday'), findsOneWidget);
+      expect(find.textContaining('The trend starts now'), findsNothing);
+      // This visit was saved for next time, with counts only.
+      final saved = (await SharedPreferences.getInstance()).getString(
+        'sonarqube_snapshots_c',
+      )!;
+      expect(saved, isNot(contains('Broken')));
+      expect('{'.allMatches(saved), hasLength(2));
     });
 
     testWidgets('when everything passes it says so', (tester) async {
@@ -259,7 +305,11 @@ void main() {
     ) async {
       final repo = _Repo(const [])
         ..projectsResult = const Err(NetworkFailure());
-      await _pump(tester, repo);
+      // Nothing saved yet (US-SQ-OFFLINE-01: with a saved copy, the list would
+      // show it instead; see sonarqube_cache_test).
+      final empty = Directory.systemTemp.createTempSync('sq_empty_');
+      addTearDown(() => empty.deleteSync(recursive: true));
+      await _pump(tester, repo, cache: SonarQubeCache(() async => empty));
 
       expect(find.textContaining("Can't reach the server"), findsOneWidget);
       expect(find.text('Retry Connection'), findsOneWidget);
@@ -327,3 +377,5 @@ void main() {
     });
   });
 }
+
+String _json(SonarQubeOverviewSnapshot s) => jsonEncode(s.toJson());

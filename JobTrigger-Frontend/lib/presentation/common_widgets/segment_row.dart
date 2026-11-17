@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_tokens.dart';
+import 'status_mark.dart';
 
 /// How a [SegmentRow] draws one segment's label.
 enum SegmentEmphasis {
@@ -22,6 +24,8 @@ class SegmentItem {
     required this.label,
     required this.semanticsLabel,
     required this.color,
+    this.tone,
+    this.statusLabel,
     this.emphasis = SegmentEmphasis.normal,
     this.onTap,
   });
@@ -33,6 +37,11 @@ class SegmentItem {
 
   /// The bar colour; ignored for [SegmentEmphasis.notRun].
   final Color color;
+
+  /// PI-06: when set, the segment also renders a [StatusMark] with this tone
+  /// and [statusLabel], so the meaning is not carried by [color] alone.
+  final StatusTone? tone;
+  final String? statusLabel;
   final SegmentEmphasis emphasis;
   final VoidCallback? onTap;
 }
@@ -60,7 +69,7 @@ class SegmentRow extends StatelessWidget {
       );
     }
     return SizedBox(
-      height: 44,
+      height: 62,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: segments.length,
@@ -116,6 +125,22 @@ class _Segment extends StatelessWidget {
                       : t.textSecondary,
                 ),
               ),
+              if (item.tone != null && item.statusLabel != null) ...[
+                const SizedBox(height: 2),
+                StatusMark(
+                  tone: item.tone!,
+                  label: item.statusLabel!,
+                  iconSize: 12,
+                  spacing: 3,
+                  // The parent Semantics already announces the full status;
+                  // this is the visual shape-and-words pair only.
+                  semanticsLabel: item.semanticsLabel,
+                  labelStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontSize: 10,
+                    color: t.status(item.tone!).foreground,
+                  ),
+                ),
+              ],
             ],
           ),
         ),

@@ -22,6 +22,7 @@ saved per server inside the app and can be edited there.
 | Option | Needs the Mac on? | Public exposure | Good for |
 | --- | --- | --- | --- |
 | **A. Tailscale** (recommended) | Yes | None (private VPN) | Testing and daily use of your own Mac's backend and Jenkins |
+| **A2. WireGuard** | Yes | None (private VPN) | Same, when you want to run the VPN yourself |
 | **B. Deploy the backend** | No (backend only) | HTTPS backend | TestFlight and real release builds |
 | **C. Tunnel** (Cloudflare Tunnel, ngrok) | Yes | Public URL | Short demos only. Avoid for Jenkins. |
 
@@ -93,6 +94,81 @@ so you don't repeat IPHONE.md section 6.
 - Keep `./setup-dev.sh` and the Jenkins container running
   (`--restart unless-stopped` keeps Jenkins up across reboots).
 
+## 3A. Option A2: WireGuard (step by step)
+
+WireGuard is another private VPN: the phone gets a `10.x`/`172.x` address
+that routes to the Mac from any network. Use it instead of Tailscale when you
+want to host the VPN yourself. Nothing is opened to the internet.
+
+### 3A.1 Set up the tunnel
+
+1. Install WireGuard on the Mac (`brew install --cask wireguard`) and on the
+   iPhone (App Store).
+2. Pick a VPN subnet that does **not** overlap your home LAN, for example
+   `10.9.0.0/24`. Generate a key pair for the server and one for the phone:
+
+   ```bash
+   wg genkey | tee server.key | wg pubkey > server.pub
+   wg genkey | tee phone.key  | wg pubkey > phone.pub
+   ```
+
+3. Create `/etc/wireguard/wg0.conf` on the Mac (or use the WireGuard mac app
+   to import the same settings). Replace the private keys and the public IP
+   of your home router:
+
+   ```ini
+   [Interface]
+   Address = 10.9.0.1/24
+   ListenPort = 51820
+   PrivateKey = <server.key>
+   PostUp   = sysctl -w net.inet.ip.forwarding=1
+   PostDown = sysctl -w net.inet.ip.forwarding=0
+
+   [Peer]
+   PublicKey = <phone.pub>
+   AllowedIPs = 10.9.0.2/32
+   ```
+
+4. Forward UDP **51820** from your home router to the Mac, and start the
+   interface: `sudo wg-quick up wg0` (or activate the tunnel in the mac app).
+   A router port-forward here is for WireGuard's encrypted VPN only — do not
+   forward the backend or Jenkins ports.
+
+### 3A.2 Add the phone
+
+1. In the iPhone WireGuard app, create a tunnel from a blank config:
+
+   ```ini
+   [Interface]
+   Address = 10.9.0.2/32
+   PrivateKey = <phone.key>
+   DNS = 1.1.1.1
+
+   [Peer]
+   PublicKey = <server.pub>
+   Endpoint = <home-router-public-ip>:51820
+   AllowedIPs = 10.9.0.0/24, 192.168.1.0/24
+   PersistentKeepalive = 25
+   ```
+
+   The second `AllowedIPs` entry lets the phone reach the Mac's **LAN**
+   address as well as the VPN address, so an existing `192.168.x.x` backend
+   keeps working. Change it to your actual LAN subnet.
+
+2. Activate the tunnel, turn Wi-Fi off, and check in Safari that
+   `http://10.9.0.1:5001/healthz` and `http://10.9.0.1:8080` answer (use
+   `192.168.1.24` instead if you kept the LAN address).
+
+### 3A.3 Point the app at it
+
+1. Rebuild with the reachable address, e.g.
+   `BACKEND_HOST=10.9.0.1 scripts/run-on-iphone.sh` (or the LAN IP if you
+   routed that subnet in `AllowedIPs`).
+2. Set the Jenkins server URL in the app to the same address and port, and
+   set Manage Jenkins → System → Jenkins URL to match.
+3. Keep the WireGuard tunnel on whenever you use the app away from home, and
+   keep the Mac awake as in 3.6.
+
 ## 4. Option B: deploy the backend
 
 Use this when the app must work without your Mac, or for TestFlight.
@@ -110,11 +186,40 @@ Use this when the app must work without your Mac, or for TestFlight.
 
 ## 5. Option C: tunnel (not recommended)
 
-`cloudflared tunnel --url http://localhost:5001` gives an `https://` URL
-that forwards to your backend. It works for a quick demo, but the URL is
-public and changes each run (unless you configure a named tunnel), so the
-app must be rebuilt each time. Do **not** tunnel Jenkins: it would be
-exposed to the internet.
+A tunnel gives the backend a public `https://` address without a router
+port-forward. It is fine for a short demo; the address is public, so **do not
+tunnel Jenkins** — use Tailscale or WireGuard for Jenkins.
+
+### 5.1 Quick, random URL (try-it-now)
+
+```bash
+brew install cloudflare/cloudflare/cloudflared   # or download from Cloudflare
+cloudflared tunnel --url http://localhost:5001
+```
+
+Copy the `https://<random>.trycloudflare.com` URL Cloudflare prints, then
+rebuild with `BACKEND_BASE_URL=https://<random>.trycloudflare.com` in
+`config/device.json`. The address changes every run, so you rebuild each
+time. For a stable address, use a named tunnel.
+
+### 5.2 Named tunnel (stable URL)
+
+1. Sign in to Cloudflare and add your domain. In **Zero Trust → Networks →
+   Tunnels**, create a tunnel and copy its token.
+2. Install `cloudflared` (above) and run the `cloudflared service install
+   <token>` command Cloudflare shows. It connects the Mac to Cloudflare on
+   boot; no inbound ports are opened.
+3. In the tunnel's **Public Hostname** settings add a hostname such as
+   `jobtrigger.example.com` with service `HTTP` → `localhost:5001` (the
+   backend's port). Cloudflare terminates TLS, so the app sees HTTPS.
+4. Create `JobTrigger-Frontend/config/device.json` with
+   `BACKEND_BASE_URL=https://jobtrigger.example.com` and rebuild with
+   `scripts/run-on-iphone.sh`. Release builds require `https://`, so this is
+   the only tunnel shape they accept.
+5. Leave the `cloudflared` service and the Mac's backend running. If Safari
+   on the phone can open the hostname, the app can reach it too.
+6. Do **not** add a second public hostname for Jenkins. Keep Jenkins on
+   Tailscale/WireGuard and edit its server URL in the app as in 3.4 / 3A.3.
 
 ## 6. Security notes
 
@@ -134,5 +239,7 @@ exposed to the internet.
 | Backend works, Jenkins doesn't | Server URL in the app still uses the old address | Edit the server URL (3.4) |
 | Jenkins links open `localhost` or the old IP | Jenkins URL not updated | 3.4 step 1 |
 | Login fails with a named host (`*.ts.net`) | ATS blocks `http://` to hostnames | Use the `100.x.y.z` IP |
+| The app says the certificate isn't trusted | Self-signed cert, wrong hostname, or wrong device date/time | Check the date/time and the address; use a private VPN or a trusted certificate (5.2) |
+| A `100.x.y.z` address won't connect | Tailscale off on the phone, or a different account | Turn Tailscale on and use the same account as the Mac |
 | App closes at launch | `--release` build with an `http://` backend | Use `profile`, or deploy HTTPS (section 4) |
 | App stops opening after a week | Free Apple ID 7-day limit | Reinstall with `scripts/run-on-iphone.sh` |

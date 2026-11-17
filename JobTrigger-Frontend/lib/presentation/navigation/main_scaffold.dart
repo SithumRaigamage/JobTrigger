@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../common_widgets/glass_surface.dart';
+import '../features/whats_new/whats_new_gate.dart';
 
 /// Persistent bottom tab shell (P6-14). Wraps go_router's
 /// `StatefulShellRoute.indexedStack` branches (Home/History/Settings/
@@ -51,7 +52,7 @@ class MainScaffold extends StatelessWidget {
         // 01/04). Each branch screen adds matching bottom padding to its
         // scrollable so the last item isn't hidden behind the bar.
         extendBody: true,
-        body: navigationShell,
+        body: WhatsNewGate(child: navigationShell),
         bottomNavigationBar: GlassSurface.chrome(
           child: NavigationBar(
             backgroundColor: Colors.transparent,

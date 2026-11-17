@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
@@ -18,6 +20,7 @@ import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_pill.dart';
 import '../../navigation/main_scaffold.dart';
+import 'sonarqube_issue_actions.dart';
 import 'sonarqube_issue_context.dart';
 
 /// One issue in full (`US-SQ-QUALITY-06`): what is wrong, where, which rule
@@ -41,6 +44,17 @@ class SonarQubeIssueScreen extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
     final created = issue.creationDate;
+    // US-SQ-ISSUES-04: Copy and Share send the same text, with the web link.
+    String shareText(String baseUrl) => sonarQubeIssueShareText(
+      projectName: project.name,
+      message: issue.message,
+      typeLabel: sonarQubeIssueTypeLabel(issue.type),
+      severityLabel: sonarQubeSeverityLabel(issue.severity),
+      rule: issue.rule,
+      ruleName: contextAsync.value?.ruleName,
+      location: issue.location,
+      link: sonarQubeIssueUri(baseUrl, project.key, issue.key),
+    );
 
     return Scaffold(
       body: SafeArea(
@@ -62,6 +76,32 @@ class SonarQubeIssueScreen extends ConsumerWidget {
                     onPressed: () => context.pop(),
                   ),
                   const Spacer(),
+                  if (credential != null) ...[
+                    IconButton(
+                      icon: const Icon(Icons.copy_rounded, size: 20),
+                      tooltip: 'Copy issue',
+                      onPressed: () async {
+                        await Clipboard.setData(
+                          ClipboardData(text: shareText(credential.baseUrl)),
+                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Issue copied')),
+                          );
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.ios_share_rounded, size: 20),
+                      tooltip: 'Share issue',
+                      onPressed: () => SharePlus.instance.share(
+                        ShareParams(
+                          text: shareText(credential.baseUrl),
+                          subject: issue.message,
+                        ),
+                      ),
+                    ),
+                  ],
                   if (credential != null)
                     IconButton(
                       icon: const Icon(Icons.open_in_new_rounded, size: 22),
@@ -135,7 +175,10 @@ class SonarQubeIssueScreen extends ConsumerWidget {
                         label: 'Effort',
                         child: Text('${issue.effort} to fix'),
                       ),
-                    if (issue.status != null)
+                    // With a credential the Manage card below shows the
+                    // server's current status; this is the list's, possibly
+                    // older, copy.
+                    if (issue.status != null && credential == null)
                       _Fact(
                         label: 'Status',
                         child: Text(_humanStatus(issue.status!)),
@@ -166,6 +209,12 @@ class SonarQubeIssueScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+              // Batch 7: assign, change status, comment. Only with a credential,
+              // and every action confirms first.
+              if (credential != null) ...[
+                const SizedBox(height: 24),
+                SonarQubeIssueManageCard(issue: issue),
+              ],
               if (issue.component != null && issue.line != null) ...[
                 const SizedBox(height: 24),
                 const SectionLabel('Code'),

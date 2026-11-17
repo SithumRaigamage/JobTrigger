@@ -11,13 +11,15 @@ import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project_summary.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_issue_grouping.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_project_screen.dart';
 import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
+import '../../../support/sonarqube_insights_defaults.dart';
 
-class _Repo implements SonarQubeRepository {
+class _Repo with SonarQubeInsightsDefaults implements SonarQubeRepository {
   @override
   Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
     SonarQubeIssue issue,
@@ -75,6 +77,7 @@ class _Repo implements SonarQubeRepository {
     String projectKey, {
     SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
     int page = 1,
+    SonarQubeIssueGrouping grouping = SonarQubeIssueGrouping.none,
   }) => throw UnimplementedError();
 
   @override
@@ -163,6 +166,8 @@ void main() {
     expect(find.text('Analyzed 3h ago'), findsOneWidget);
     expect(find.text('Web App'), findsOneWidget);
     expect(find.text('Never analyzed'), findsOneWidget);
+    // PI-05: a live load shows when this list was last updated.
+    expect(find.text('Updated just now'), findsOneWidget);
   });
 
   testWidgets('search matches name or key, and says when nothing matches', (

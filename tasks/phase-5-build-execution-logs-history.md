@@ -5,8 +5,7 @@ parameters), watch live status, stream logs, cancel builds, and view
 history. Budget the most time here.
 
 Dev-complete as of this phase; the one open item (P5-13's real-device jank
-test) is tracked in `tasks/release-checklist.md`, not here — it's blocked
-on external device access, not on more development work.
+test) is MANUAL (owner, on hold: no Android device), see `tasks/MANUAL.md` M-02.
 
 ## Job detail & triggering
 
@@ -88,7 +87,7 @@ on external device access, not on more development work.
 - [x] P5-12 Copy/share log action (`share_plus` + `Clipboard`). Added
       `share_plus` as a new dependency — explicitly named by this task's
       own text, not an inference; documented in `CLAUDE.md §3`.
-- [ ] P5-13 Perf test: load a multi-thousand-line log fixture, confirm no
+- [ ] P5-13 **MANUAL (owner, M-02):** On hold, the owner has no Android device. Perf test: load a multi-thousand-line log fixture, confirm no
       jank scrolling on a mid-range Android device, not just iOS simulator.
       **Partially done, left unchecked.** No Android device/emulator is
       available in this environment (same limitation hit in earlier

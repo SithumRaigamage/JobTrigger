@@ -62,6 +62,7 @@ backend's rate limits apply to both calls. So:
 | Runtime | Node 24, npm | Same as the backend; pinned in `.nvmrc` and `engines` |
 | Crash reporting | `@sentry/nextjs` → self-hosted GlitchTip | E3: errors only, scrubbed in `beforeSend`; see `docs/error-reporting.md` |
 | Web checkout | Paddle.js (`https://cdn.paddle.com/paddle/v2/paddle.js`, no npm package) | P20-83. Loaded only by `/account/billing` (`features/billing/billing-actions.tsx`); the CSP exception exists for that route only. No Paddle API key on the site: the backend holds it and creates the transaction. Paddle is the seller (merchant of record) |
+| Pairing QR | `qrcode` | NR-03: the code on `/servers` that opens a server in the app. Built on the server into an SVG by `features/servers/pair-codes.ts`, so no client script runs and the CSP is unchanged. It carries the server's name, address and username — never a token |
 | Hosting | Vercel first, Docker (`output: "standalone"`) later | P15-22, P15-23 |
 
 No second HTTP client (use the built-in `fetch`), no client-side data

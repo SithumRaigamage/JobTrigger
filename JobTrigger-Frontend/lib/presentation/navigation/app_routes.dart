@@ -14,6 +14,13 @@ abstract class AppRoutes {
   static const buildDetail = '/home/job/build';
   static const jobHistory = '/home/job/history';
   static const queue = '/home/queue';
+
+  /// NR-02: the unified dashboard across every configured tool.
+  static const dashboard = '/dashboard';
+
+  /// NR-03: `jobtrigger://app/pair?url=<server>&name=<label>` — what the
+  /// website's pairing QR opens.
+  static const pair = '/pair';
   static const nodes = '/home/nodes';
 
   /// US-JX-19: `jobtrigger://app/open?url=<Jenkins URL>` lands here.
@@ -23,6 +30,24 @@ abstract class AppRoutes {
   static const sonarqubeIssue = '/sonarqube/project/issues/detail';
   static const sonarqubeAnalyses = '/sonarqube/project/analyses';
   static const sonarqubeIssues = '/sonarqube/project/issues';
+
+  /// US-SQ-SERVER-01: the server's version and status.
+  static const sonarqubeServer = '/sonarqube/server';
+
+  /// US-SQ-QUALITY-12: a project's worst files for a measure.
+  static const sonarqubeWorstFiles = '/sonarqube/project/worst-files';
+
+  /// US-SQ-QUALITY-11: a measure's history for a project.
+  static const sonarqubeTrends = '/sonarqube/project/trends';
+
+  /// US-SQ-HOTSPOT-01: a project's security hotspots.
+  static const sonarqubeHotspots = '/sonarqube/project/hotspots';
+
+  /// US-SQ-ISSUES-01: the caller's open issues across every project.
+  /// US-SQ-LINK-02: resolves a `jobtrigger://app/sonarqube/project?key=` link.
+  static const sonarqubeOpenLink = '/sonarqube/open';
+  static const sonarqubeMyIssues = '/sonarqube/my-issues';
+  static const sonarqubeIssueSearch = '/sonarqube/issue-search';
   static const githubWorkflows = '/github/repos/workflows';
   static const githubRuns = '/github/repos/workflows/runs';
   static const githubGlobalHistory = '/github/history';
@@ -34,6 +59,10 @@ abstract class AppRoutes {
   static const settings = '/settings';
   static const profile = '/profile';
   static const appInfo = '/profile/app-info';
+
+  /// PI-03/PI-04: "Why can't I reach it?" and the tunnel walkthroughs.
+  static const connectionHelp = '/connection-help';
+  static const remoteAccessGuide = '/connection-help/remote-access';
 
   /// Phase 20: both reachable only when billing is available
   /// (`billingAvailableProvider`); otherwise they go to Home.

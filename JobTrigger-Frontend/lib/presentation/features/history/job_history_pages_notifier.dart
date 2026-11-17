@@ -5,6 +5,7 @@ import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/history_filter.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
+import '../../common_widgets/data_freshness.dart';
 
 part 'job_history_pages_notifier.g.dart';
 
@@ -42,6 +43,7 @@ class JobHistoryPagesNotifier extends _$JobHistoryPagesNotifier {
   @override
   Future<HistoryPages> build(String jobUrl) async {
     final page = await _fetch(0);
+    recordFreshness(ref, jobHistoryFreshnessKey(jobUrl));
     return HistoryPages(builds: page, hasMore: page.length == historyPageSize);
   }
 

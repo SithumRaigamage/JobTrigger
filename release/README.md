@@ -3,7 +3,7 @@
 `tools.json` is the one answer to "which tools does this build support".
 
 ```json
-{ "release": "1.0", "tools": { "jenkins": "1.0", "sonarqube": "1.1", "githubActions": "1.2" } }
+{ "release": "1.0", "tools": { "jenkins": "1.0", "sonarqube": "1.0", "githubActions": "1.0", "gitlab": "1.3", "circleci": "1.3" } }
 ```
 
 - `release` is the release being built. Each tool carries the release it ships in.
@@ -37,8 +37,9 @@ hidden in a release stay tested.
   implemented *and* released. GitLab CI and CircleCI have no code, so even a
   manifest that releases them cannot make them selectable.
 - **Website** (`src/content/release.ts`): the integrations page, the portal's
-  tool picker and the feature-status labels ("Coming in 1.2"). End-to-end
-  builds swap in `tests/e2e/all-tools.json` (`E2E_ALL_TOOLS=1`, Playwright only).
+  tool picker and the feature-status labels (`Coming in <version>` for a built
+  tool in a later release). End-to-end builds swap in
+  `tests/e2e/all-tools.json` (`E2E_ALL_TOOLS=1`, Playwright only).
 - **Backend** (`lib/releasedTools.js`): creating a credential for a tool the
   release doesn't ship answers `403 TOOL_NOT_AVAILABLE`. Reads, updates and
   deletes are never blocked.
@@ -65,5 +66,5 @@ the manifest; with several tools released they say what they always said.
   (`tasks/release-checklist.md`, "Store listing text, per release").
 - CI runs the website's Playwright suite twice: against an all-tools build, and
   a small smoke run (`release-1.0.spec.ts`) against a build with the real
-  manifest, which must show Jenkins as the only selectable tool and never ask
-  for GitHub or SonarQube.
+  manifest, which must offer Jenkins, SonarQube and GitHub Actions and show
+  GitLab CI and CircleCI only as "Coming next".

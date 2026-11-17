@@ -3,7 +3,17 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../core/error/app_failure.dart';
 import '../../core/error/result.dart';
 import '../../domain/sonarqube/sonarqube_analysis.dart';
+import '../../domain/sonarqube/sonarqube_analysis_status.dart';
+import '../../domain/sonarqube/sonarqube_hotspot.dart';
+import '../../domain/sonarqube/sonarqube_branch_ref.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
+import '../../domain/sonarqube/sonarqube_issue_actions.dart';
+import '../../domain/sonarqube/sonarqube_issue_grouping.dart';
+import '../../domain/sonarqube/sonarqube_measure_history.dart';
+import '../../domain/sonarqube/sonarqube_worst_files.dart';
+import '../../domain/sonarqube/sonarqube_measure_delta.dart';
+import '../../domain/sonarqube/sonarqube_metrics.dart';
+import '../../domain/sonarqube/sonarqube_server_info.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
 import '../../domain/sonarqube/sonarqube_project_summary.dart';
 import '../../domain/sonarqube/sonarqube_quality_gate.dart';
@@ -127,6 +137,328 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
     });
   }
 
+  @override
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchMyIssues({
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  }) async {
+    if (page > 1) return const Ok(SonarQubeIssuePage(issues: [], total: 0));
+    // Two of the demo issues are "yours", so the list is never empty.
+    const mine = {'demo-2', 'demo-3'};
+    final matching = [
+      for (final issue in _issues)
+        if (mine.contains(issue.key) &&
+            (filter.types.isEmpty || filter.types.contains(issue.type)) &&
+            (filter.severities.isEmpty ||
+                filter.severities.contains(issue.severity)))
+          SonarQubeIssue(
+            key: issue.key,
+            type: issue.type,
+            severity: issue.severity,
+            message: issue.message,
+            file: issue.file,
+            line: issue.line,
+            component: issue.component,
+            rule: issue.rule,
+            effort: issue.effort,
+            tags: issue.tags,
+            author: issue.author,
+            status: issue.status,
+            creationDate: issue.creationDate,
+            project: _bad,
+            projectName: 'Demo app',
+          ),
+    ];
+    return Ok(SonarQubeIssuePage(issues: matching, total: matching.length));
+  }
+
+  @override
+  Future<Result<SonarQubeIssuePage, AppFailure>> searchIssues(
+    String term, {
+    SonarQubeIssueSearchField field = SonarQubeIssueSearchField.rule,
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  }) async {
+    if (page > 1) return const Ok(SonarQubeIssuePage(issues: [], total: 0));
+    final needle = term.trim().toLowerCase();
+    bool hit(SonarQubeIssue i) => switch (field) {
+      SonarQubeIssueSearchField.rule => (i.rule ?? '').toLowerCase() == needle,
+      SonarQubeIssueSearchField.tag => i.tags.any(
+        (t) => t.toLowerCase() == needle,
+      ),
+      SonarQubeIssueSearchField.file => (i.file ?? '').toLowerCase() == needle,
+      SonarQubeIssueSearchField.issueKey => i.key.toLowerCase() == needle,
+    };
+    final matching = [
+      for (final issue in _issues)
+        if (needle.isNotEmpty &&
+            hit(issue) &&
+            (filter.types.isEmpty || filter.types.contains(issue.type)) &&
+            (filter.severities.isEmpty ||
+                filter.severities.contains(issue.severity)))
+          SonarQubeIssue(
+            key: issue.key,
+            type: issue.type,
+            severity: issue.severity,
+            message: issue.message,
+            file: issue.file,
+            line: issue.line,
+            component: issue.component,
+            rule: issue.rule,
+            effort: issue.effort,
+            tags: issue.tags,
+            author: issue.author,
+            status: issue.status,
+            creationDate: issue.creationDate,
+            project: _bad,
+            projectName: 'Demo app',
+          ),
+    ];
+    return Ok(SonarQubeIssuePage(issues: matching, total: matching.length));
+  }
+
+  @override
+  Future<Result<SonarQubeProject, AppFailure>> fetchProjectByKey(
+    String projectKey,
+  ) async {
+    final page = await fetchProjects();
+    final projects = page.fold(
+      (value) => value.projects,
+      (_) => const <SonarQubeProject>[],
+    );
+    for (final project in projects) {
+      if (project.key == projectKey) return Ok(project);
+    }
+    return const Err(SonarQubeProjectNotFoundFailure());
+  }
+
+  // The demo never writes (E2): it reads sample data and refuses every change,
+  // the way it refuses the other tools' writes.
+  @override
+  Future<Result<SonarQubeIssueDetail, AppFailure>> fetchIssueDetail(
+    String issueKey,
+  ) async => const Ok(
+    SonarQubeIssueDetail(
+      status: 'OPEN',
+      transitions: ['confirm', 'falsepositive'],
+    ),
+  );
+
+  @override
+  Future<Result<void, AppFailure>> assignIssue(
+    String issueKey,
+    String assignee,
+  ) async => const Err(DemoUnavailableFailure());
+
+  @override
+  Future<Result<void, AppFailure>> transitionIssue(
+    String issueKey,
+    String transition,
+  ) async => const Err(DemoUnavailableFailure());
+
+  @override
+  Future<Result<void, AppFailure>> addIssueComment(
+    String issueKey,
+    String text,
+  ) async => const Err(DemoUnavailableFailure());
+
+  @override
+  Future<Result<void, AppFailure>> reviewHotspot(
+    String hotspotKey,
+    SonarQubeHotspotReview review, {
+    String? comment,
+  }) async => const Err(DemoUnavailableFailure());
+
+  @override
+  Future<Result<SonarQubeAnalysisStatus, AppFailure>> fetchAnalysisStatus(
+    String projectKey,
+  ) async {
+    if (projectKey != _good && projectKey != _bad) {
+      return const Err(SonarQubeProjectNotFoundFailure());
+    }
+    // A finished analysis: the demo has no pending scan to show off.
+    return Ok(
+      SonarQubeAnalysisStatus(
+        current: SonarQubeCeTask(
+          status: 'SUCCESS',
+          type: 'REPORT',
+          executedAt: _now,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Future<Result<Map<String, String>, AppFailure>> fetchNewCodeMeasures(
+    String projectKey,
+  ) async {
+    if (projectKey == _good) {
+      return const Ok({
+        'new_bugs': '0',
+        'new_vulnerabilities': '0',
+        'new_code_smells': '2',
+        'new_coverage': '94.2',
+        'new_duplicated_lines_density': '0',
+        'new_lines': '180',
+      });
+    }
+    if (projectKey != _bad) return const Err(SonarQubeProjectNotFoundFailure());
+    return const Ok({
+      'new_bugs': '1',
+      'new_vulnerabilities': '0',
+      'new_code_smells': '9',
+      'new_coverage': '41.7',
+      'new_duplicated_lines_density': '3.4',
+      'new_lines': '620',
+    });
+  }
+
+  @override
+  Future<Result<List<SonarQubeMeasureDelta>, AppFailure>> fetchMeasureDeltas(
+    String projectKey, {
+    List<String> metricKeys = sonarQubeMeasureKeys,
+  }) async {
+    if (projectKey != _good && projectKey != _bad) {
+      return const Err(SonarQubeProjectNotFoundFailure());
+    }
+    final worse = projectKey == _bad;
+    return Ok([
+      if (metricKeys.contains('coverage'))
+        SonarQubeMeasureDelta(
+          metricKey: 'coverage',
+          previous: worse ? 66 : 90.9,
+          current: worse ? 62.3 : 91.4,
+        ),
+      if (metricKeys.contains('bugs'))
+        SonarQubeMeasureDelta(
+          metricKey: 'bugs',
+          previous: worse ? 1 : 0,
+          current: worse ? 3 : 0,
+        ),
+      if (metricKeys.contains('code_smells'))
+        SonarQubeMeasureDelta(
+          metricKey: 'code_smells',
+          previous: worse ? 48 : 13,
+          current: worse ? 57 : 12,
+        ),
+    ]);
+  }
+
+  @override
+  Future<Result<SonarQubeMeasureHistory, AppFailure>> fetchMeasureHistory(
+    String projectKey,
+    String metric,
+  ) async => Ok(
+    SonarQubeMeasureHistory(
+      metric: metric,
+      unit: sonarQubeTrendMetrics
+          .firstWhere(
+            (m) => m.metric == metric,
+            orElse: () => SonarQubeTrendMetric(metric, metric, ''),
+          )
+          .unit,
+      points: [
+        SonarQubeMeasurePoint(date: DateTime(2026, 10, 1), value: 71),
+        SonarQubeMeasurePoint(date: DateTime(2026, 10, 15), value: 74.5),
+        SonarQubeMeasurePoint(date: DateTime(2026, 11, 1), value: 69.2),
+        SonarQubeMeasurePoint(date: DateTime(2026, 11, 15), value: 77.8),
+      ],
+    ),
+  );
+
+  @override
+  Future<Result<SonarQubeServerInfo, AppFailure>> fetchServerInfo() async =>
+      const Ok(SonarQubeServerInfo(version: '10.6.0.92116', status: 'UP'));
+
+  @override
+  Future<Result<SonarQubeRefChoices, AppFailure>> fetchProjectRefs(
+    String projectKey,
+  ) async => Ok(
+    parseSonarQubeRefs(
+      branches: {
+        'branches': [
+          {'name': 'main', 'isMain': true},
+          {'name': 'feature/login', 'isMain': false},
+        ],
+      },
+      pullRequests: {
+        'pullRequests': [
+          {'key': '42', 'title': 'Add login'},
+        ],
+      },
+    ),
+  );
+
+  @override
+  Future<Result<SonarQubeWorstFiles, AppFailure>> fetchWorstFiles(
+    String projectKey,
+    SonarQubeFileMetric metric,
+  ) async => Ok(
+    SonarQubeWorstFiles(
+      metric: metric.metric,
+      unit: metric.unit,
+      files: const [
+        SonarQubeFileMeasures(path: 'src/legacy/report.ts', value: 0),
+        SonarQubeFileMeasures(path: 'src/config/auth.ts', value: 12.5),
+        SonarQubeFileMeasures(path: 'src/net/client.ts', value: 31.0),
+      ],
+    ),
+  );
+
+  @override
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchFileIssues(
+    String componentKey,
+  ) async => Ok(SonarQubeIssuePage(issues: _issues.take(2).toList(), total: 2));
+
+  static const _hotspots = [
+    SonarQubeHotspot(
+      key: 'demo-h1',
+      message: 'Make sure this password is not hard-coded.',
+      status: 'TO_REVIEW',
+      securityCategory: 'weak-cryptography',
+      vulnerabilityProbability: 'HIGH',
+      file: 'src/config/auth.ts',
+      line: 18,
+    ),
+    SonarQubeHotspot(
+      key: 'demo-h2',
+      message: 'Make sure the permissive CORS header is intended.',
+      status: 'REVIEWED',
+      securityCategory: 'others',
+      vulnerabilityProbability: 'MEDIUM',
+      file: 'src/net/client.ts',
+      line: 54,
+    ),
+  ];
+
+  @override
+  Future<Result<SonarQubeHotspotPage, AppFailure>> fetchHotspots(
+    String projectKey, {
+    bool reviewed = false,
+    int page = 1,
+  }) async {
+    if (projectKey != _bad || page > 1) {
+      return const Ok(SonarQubeHotspotPage(hotspots: [], total: 0));
+    }
+    final matching = [
+      for (final hotspot in _hotspots)
+        if (hotspot.isReviewed == reviewed) hotspot,
+    ];
+    return Ok(SonarQubeHotspotPage(hotspots: matching, total: matching.length));
+  }
+
+  @override
+  Future<Result<SonarQubeHotspotDetail, AppFailure>> fetchHotspotDetail(
+    String hotspotKey,
+  ) async => const Ok(
+    SonarQubeHotspotDetail(
+      ruleName: 'Hard-coded credentials',
+      snippet: [
+        SonarQubeSourceLine(number: 18, code: 'const password = \'hunter2\';'),
+      ],
+    ),
+  );
+
   static const _issues = [
     SonarQubeIssue(
       key: 'demo-1',
@@ -175,6 +507,7 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
     String projectKey, {
     SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
     int page = 1,
+    SonarQubeIssueGrouping grouping = SonarQubeIssueGrouping.none,
   }) async {
     if (projectKey != _bad || page > 1) {
       return const Ok(SonarQubeIssuePage(issues: [], total: 0));
@@ -186,7 +519,20 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
                 filter.severities.contains(issue.severity)))
           issue,
     ];
-    return Ok(SonarQubeIssuePage(issues: matching, total: matching.length));
+    return Ok(
+      SonarQubeIssuePage(
+        issues: matching,
+        total: matching.length,
+        groups: grouping.isGrouped
+            ? [
+                SonarQubeIssueGroup(
+                  label: 'src/main.dart',
+                  count: matching.length,
+                ),
+              ]
+            : const [],
+      ),
+    );
   }
 
   @override

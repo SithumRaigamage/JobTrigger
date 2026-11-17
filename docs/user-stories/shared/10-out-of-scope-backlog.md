@@ -40,6 +40,14 @@ Codemagic ([22-codemagic.md](../codemagic/22-codemagic.md)).
 **Reason deferred:** requires a push infrastructure decision (APNs/FCM,
 backend fan-out) not present in the current backend or architecture docs —
 a backend-track initiative, not a client-only addition.
+**Backend half built 2026-11-16 (NR-06):** the decision is FCM HTTP v1 for
+both stores (APNs via Firebase's APNs key, one code path). The backend now
+has `DeviceToken`, `POST /api/devices`, `DELETE /api/devices/:token` and
+`lib/push.js`'s `sendToUser`, all no-op until `FCM_SERVICE_ACCOUNT` is set.
+Still deferred: the Firebase project and its keys, the app's token upload
+(`firebase_messaging` is a new package needing §3 approval), and a trigger —
+which needs the backend to watch builds on Jenkins, the architecture change
+this entry warned about.
 
 ### BACKLOG-03 — Home-screen widget
 **Promoted 2026-09-29** to `US-JX-23` (`jenkins/16-jenkins-extended.md`). The security concern below is addressed there: the widget only renders an app-written snapshot, holds no credentials, and never fetches itself.

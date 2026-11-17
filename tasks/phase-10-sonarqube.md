@@ -200,7 +200,7 @@ would be unrelated scope creep for this phase.
       the project detail screen.
 ## Cross-cutting
 
-- [ ] P10-14 `NFR-SEC-03` verification: a live test confirming a SonarQube
+- [ ] P10-14 **MANUAL (owner, M-03):** Only the iPhone check remains (automated and live parts are done, below). `NFR-SEC-03` verification: a live test confirming a SonarQube
       401 never triggers Jenkins/GitHub's auth handling or the backend's
       global logout, and vice versa — four independent auth failure
       domains, not two or three.
@@ -220,6 +220,16 @@ would be unrelated scope creep for this phase.
       scripted tests. Unverified: that the app, with a real token, keeps the
       backend session and the Jenkins/GitHub clients after that 401. This
       needs a SonarQube user token and the iPhone.
+      **2026-11-17 (left unchecked):** with a real user token on a throwaway
+      SonarQube 26.1 (the lab's own admin password has been changed from the
+      default, so a separate disposable server was used), the app's own client
+      and repository were run against the real server: an invalid token is an
+      `AuthFailure` (401), and a valid read-only user's refused change is the
+      403 `SonarQubeWriteDeniedFailure`, never `AuthFailure`
+      (`test/live/sonarqube_live_test.dart`). **Only the iPhone check stays
+      open:** that after a SonarQube 401 the app keeps the backend session and
+      the Jenkins/GitHub clients (the isolation tests prove it with scripted
+      adapters).
 - [x] P10-16 **Fixes and improvements after the owner's local-server test
       (2026-11-08).** The owner tested every SonarQube screen against a local
       server. Four changes, none touching Jenkins or GitHub behaviour:
@@ -274,7 +284,7 @@ would be unrelated scope creep for this phase.
       Not verified on a real server: `api/measures/search`,
       `api/sources/show` (response shape) and `api/rules/show` follow
       SonarQube's documentation; the owner's iPhone test is the check.
-- [ ] P10-15 Full real-server verification pass: every SQ-CRED/PROJ/QUALITY
+- [ ] P10-15 **MANUAL (owner, M-03, M-04):** Only the iPhone pass and SonarCloud remain (the endpoint pass against a real server is done, below). Full real-server verification pass: every SQ-CRED/PROJ/QUALITY
       task above manually verified against a real SonarCloud organization
       and a real self-hosted SonarQube Server instance (both flavors, per
       the epic's own scope note) before this phase is marked done.
@@ -284,8 +294,63 @@ would be unrelated scope creep for this phase.
       was not tried. The whole pass is the owner's, on the iPhone: create a
       user token in the lab SonarQube (My Account → Security), then add it in
       the app against `http://<Mac Wi-Fi address>:9000`.
+      **2026-11-17 (left unchecked): the endpoint half is done.** A disposable
+      SonarQube 26.1.0 Community Build was started (port 9001), a user token
+      created through the web API, a sample project scanned, and the app's own
+      client/repository run against it (`flutter test test/live/…`, 8 tests):
+      projects and summaries, project by key, gate, measures, new-code
+      measures, deltas and history, analyses and analysis status, server
+      info, branch list, issues, my issues, the four issue searches, file
+      issues, worst files for every metric, issue context (rule + code),
+      hotspots and detail, and all four writes. Findings: no `q` on
+      `api/issues/search`, `api/sources/show` takes no branch, and `assign`
+      wants `_me`. **Open, and only the owner's:** the same pass through the app
+      on the iPhone, and SonarCloud (no organization or account was
+      available). Branch and pull-request endpoints answer on a Community
+      Build only with an empty list, so the live branch case is unverified.
 
-## Planned batches (documented 2026-11-09, none started)
+## Audit of the built work (2026-11-17)
+
+Scope: P10-00..13, P10-16..20 and the built part of P10-21, read against
+this file and `docs/user-stories/sonarqube/14-sonarqube.md`. **The code was
+read, not run:** the environment had no Flutter SDK and no network, so
+`flutter analyze`, `flutter test` and the backend's `npm test` (which
+downloads MongoDB) were not run. The full suite has to run before this
+branch is merged (`CLAUDE.md` §11).
+
+Matches its description: the backend routes (now built on the shared
+credential controller factory, with the PE-32 `/:id/secret` route), the
+credential stack and its own `active_sonarqube_credential_id` key, the
+project list (`search_projects` with fallback, `f=analysisDate`, paging),
+gate, measures, issues (10,000-result cap), analysis history, my issues
+(`assignees=__me__`), analysis status, new-code measures, deltas, gate
+watches on their own `quality_gates` channel sharing the plan's
+`backgroundWatch` limit, hotspots, trends, worst files, languages,
+grouping, the branch picker and the server screen. The live repository, the
+demo repository and the interface all declare the same 18 reads.
+
+Fixed:
+- **P10-19**: the background check did not redact gate alerts while the app
+  lock was on, so the project name and failing condition reached the lock
+  screen (AUD-54). Only the in-app timer redacted them. Commit `e9e53bb`.
+- **P10-20**: a file key whose project key has no `:` (`web:src/app.ts`)
+  was not traced back to its project, so a file's issues on a chosen branch
+  or pull request came from the main branch. Commit `0696a55`, with a test.
+- Tracker text: P10-20, the README row, this file's batch heading, the
+  backlog entry and the stories doc's "not started" line.
+
+**Resolved 2026-11-17 (P10-21):** the issue page's code context
+(`api/sources/show`) does **not** accept `branch` or `pullRequest` — checked in
+SonarQube 26.1.0's own web-service listing (`key`, `from`, `to` only). The
+internal `api/sources/lines` does accept both. So a source lookup on a chosen
+branch or pull request is rerouted to `lines` inside the SonarQube client's
+existing ref interceptor, and its answer is converted back to `show`'s shape;
+on the main branch nothing changes. Proven by `sonarqube_sources_reroute_test`
+(a branch, a pull request, and main left alone). `lines` is an *internal*
+endpoint, and branches need a Developer Edition, so the live branch case is
+unverified: the throwaway server is a Community Build and accepts no branch.
+
+## Planned batches (documented 2026-11-09; batches 1–4 built 2026-11-17)
 
 Listed for the owner on 2026-11-08 and written up as user stories on
 2026-11-09 under "Planned work" in
@@ -294,40 +359,195 @@ starts until the owner picks it and approves its plan** (`CLAUDE.md` §9).
 Suggested order: P10-18, then P10-19, then as picked. Every batch ends with
 the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
 
-- [ ] P10-18 **Batch 1: understand why a gate fails, and what is mine.**
+- [x] P10-18 **Batch 1: understand why a gate fails, and what is mine.**
       `US-SQ-ISSUES-01` (my issues across projects), `US-SQ-CE-01`
       (analysis running, queued or failed), `US-SQ-QUALITY-07` (all gate
-      conditions), `US-SQ-QUALITY-08` (new code vs overall; **check how the
-      owner's server reports new-code values first**),
+      conditions), `US-SQ-QUALITY-08` (new code vs overall),
       `US-SQ-QUALITY-09` (compare with the previous analysis). Read-only.
-- [ ] P10-19 **Batch 2: alerts.** `US-SQ-WATCH-01` (notify when a watched
+      *Built 2026-11-17.* The gate card lists every condition, failing first
+      (`_AllConditionRow`); an analysis banner says "Analysing…”, "Queued” or
+      "Last analysis failed” with the server's reason and time
+      (`api/ce/component`); an Overall / New code switch appears **only** when
+      the server reports new-code values, and new code is requested as the
+      `new_*` metric keys directly — that is the version-tolerant answer to
+      the "check how the server reports it first” note: whatever it computes
+      comes back, and nothing is invented for a metric it does not compute.
+      Measures show their change since the previous analysis
+      (`api/measures/search_history?ps=2`), worse in the failure colour. New
+      **My issues** screen at `/sonarqube/my-issues`, reached from the
+      Overview's "My issues” button: `assignees=__me__&resolved=false` with no
+      `componentKeys`, server-side type/severity filters, "Load more”, and
+      project names resolved with **one** `api/components/search_projects`
+      request per page — or none when the names are already cached; a failed
+      or refused lookup leaves the project key in the row, never an error.
+      The Overall / New code chips sit on their own wrapping row, so the
+      section also holds at 320 dp. Tests: 7 domain + 10 widget (including a
+      320 dp no-overflow test) + 5 repository; whole suite green. The
+      four-method test stub lives in `test/support/sonarqube_insights_defaults.dart`,
+      not in `lib/`, so production code cannot answer these reads with
+      empty data.
+      **Not verified** (needs the owner's server): `assignees=__me__`, Browse
+      permission on `api/ce/component`, and which `new_*` metrics the server
+      actually computes. The project **card** still does not say
+      "Analysing…”/"Queued” — that needs one CE request per card, so it goes
+      with P10-19, which polls a project anyway.
+- [x] P10-19 **Batch 2: alerts.** `US-SQ-WATCH-01` (notify when a watched
       project fails its gate). Local notifications and a best-effort
       background check, reusing the Jenkins watch; no new dependency. Only
       verifiable on a real device with a real analysis.
-- [ ] P10-20 **Batch 3: deeper project views.** `US-SQ-QUALITY-10` (branch
-      and pull request picker; **edition-dependent, hidden when the server
-      lists only the main branch**), `US-SQ-HOTSPOT-01`,
-      `US-SQ-QUALITY-11` (trends; **needs a decision on the chart: custom
-      painter or a flagged dependency**), `US-SQ-QUALITY-12`,
-      `US-SQ-QUALITY-13`, `US-SQ-ISSUES-02`. Read-only; any can be taken
-      alone.
-- [ ] P10-21 **Batch 4: across projects and the server.**
-      `US-SQ-ISSUES-03` (search issues), `US-SQ-SERVER-01` (version and
-      status), `US-SQ-OVERVIEW-02` (failing-projects trend, from the app's
-      own device-side snapshots). Read-only.
-- [ ] P10-22 **Batch 5: shortcuts and offline.** `US-SQ-PIN-01` (local pins),
-      `US-SQ-WIDGET-01` (home-screen widget; native work on both platforms,
-      device-only check), `US-SQ-OFFLINE-01`, `US-SQ-LINK-02` (deep links),
-      `US-SQ-ISSUES-04` (copy and share). Reuses plumbing from Phase 11.
-- [ ] P10-23 **Batch 6: connecting the tools.** `US-SQ-XTOOL-01..03`
-      (Jenkins build or GitHub run beside the SonarQube gate; scan from
-      Jenkins). **Edits Jenkins and GitHub screens**, so it needs the
-      owner's explicit go-ahead and the diff shown first; Jenkins is frozen
-      except for bug fixes. The link between a job or repo and a project is
-      stored on the device only; credentials are never shared between tools.
-- [ ] P10-24 **Batch 7: changing data on the server.** `US-SQ-WRITE-01..04`
-      (assign, change status, comment, review a hotspot). **The first writes
-      in this epic**, so it is last and needs its own approval; needs a token
-      whose user may modify issues; every action confirms and nothing changes
-      on screen before the server answers.
+      *Built 2026-11-17.* A "Notify me when the gate fails" switch on the
+      project page, with the story's honest limits written under it. Watches
+      live in `shared_preferences` (`SonarQubeWatchStore`: credential id,
+      project key and name, the analysis judged and its verdict — no token,
+      no issue text). `decideGateWatch` is pure: new analysis + failing gate
+      = one notification naming the project and the first failing condition
+      ("Coverage on new code is 62.1%, below 80%"); the same analysis never
+      notifies twice; a server that reports no time only notifies on a change
+      of verdict. The in-app timer checks every 5 minutes while the app is
+      open, and the existing `workmanager` task runs
+      `runSonarQubeWatchCheck` in its own isolate — one scheduler entry for
+      both watch kinds, unregistered when the last watch of either kind goes.
+      Gate alerts use their own Android channel (`quality_gates`), and the
+      app lock redacts them (AUD-54). Deleting the credential drops its
+      watches; an unreachable server keeps them. Shares the plan's
+      `backgroundWatch` limit with Jenkins. Tests: 5 domain (decision) + 6
+      runner (once per analysis, no repeated notify without a date, transient
+      keeps, deleted credential drops, unreachable keeps, concurrent add
+      survives) + a `showAlert` seam on `NotificationService`.
+      **Not verified:** the story itself says it needs a real device and a
+      real analysis — an actual gate failure arriving as a notification, and
+      iOS's background scheduling, are the owner's check.
+- [x] P10-20 **Batch 3: deeper project views.** *Built 2026-11-17, all six
+      stories, read-only.*
+      - `US-SQ-HOTSPOT-01`: security hotspots list with inline rule and code
+        (`api/hotspots/search`, `api/hotspots/show`).
+      - `US-SQ-QUALITY-11`: trends over time, drawn with a small custom
+        painter (no chart dependency), from `api/measures/search_history`.
+      - `US-SQ-QUALITY-12`: worst files (`api/measures/component_tree`) and
+        each file's own issues.
+      - `US-SQ-QUALITY-13`: language breakdown under the measures, in its own
+        section on the project page.
+      - `US-SQ-ISSUES-02`: group issues by file, rule or severity.
+      - `US-SQ-QUALITY-10`: branch and pull request picker, hidden when the
+        server lists only the main branch; the choice is remembered per
+        project and carried by an interceptor on the SonarQube client to
+        every project-scoped call. Fixed 2026-11-17 (audit): a file key such
+        as `web:src/app.ts` now resolves to its project, so a file's issues
+        follow the chosen branch.
+      **Not verified:** branches and pull requests need a Developer Edition
+      or SonarCloud; the owner's lab server is a Community Build, which only
+      shows the picker's "hidden" state.
+- [x] P10-21 **Batch 4: across projects and the server.** *Built
+      2026-11-17, all three stories, read-only.*
+      - `US-SQ-SERVER-01`: version and status screen (built earlier the same
+        day).
+      - `US-SQ-ISSUES-03`: **Search issues** from the Overview, by rule, tag,
+        file path or issue key. **Finding (verified on a real SonarQube
+        26.1.0 scanned with a sample project):** `api/issues/search` has *no*
+        free-text `q` parameter; an unknown `q` is silently ignored and
+        returns every issue, so the story's "text search" cannot be built as
+        written. The screen therefore offers the four exact filters the
+        server really has (`rules`, `tags`, `files`, `issues`), each checked
+        live (`rules=javascript:S1135` → 1, `tags=bad-practice` → 3,
+        `files=src/app.js` → 11, `issues=<key>` → 1). "No issues match" when
+        empty; type/severity chips and paging are shared with My issues.
+      - `US-SQ-OVERVIEW-02`: "since you last looked". Counts only (no keys or
+        names) are kept per credential in `shared_preferences`
+        (`sonarqube_snapshots_<id>`, last 30, cleared at logout). The trend
+        compares with the newest snapshot at least one hour old, so opening
+        the tab twice does not erase yesterday's comparison. First visit:
+        "The trend starts now". Only a fully loaded Overview is recorded.
+      - Also fixed in the audit's open question (see P10-21 note below): the
+        issue page's code follows the chosen branch.
+      Tests: 7 trend (pure), 2 trend on the screen, 8 repository (four
+      search fields × request mapping, plus paging), 2 search screen, 3
+      source reroute. **Not verified:** on the iPhone.
+- [x] P10-22 **Batch 5: shortcuts and offline.** *Built 2026-11-17, all five
+      stories; the home-screen widget's native code compiles on iOS only.*
+      - `US-SQ-PIN-01`: pin button on every project card and the project
+        page; pinned projects sort first in the list and the Overview's
+        needs-attention list. Local, per credential (`sonarqube_pins_<id>`,
+        cleared at logout), no plan limit.
+      - `US-SQ-OFFLINE-01`: the first page of projects and their card numbers
+        are saved in the platform cache directory (same place and rules as the
+        Jenkins tree cache; cleared at logout and when a credential is
+        deleted). Only a *network* failure falls back to it; a 401/403 is never
+        answered with old data. The list and Overview say "Saved 2h ago ·
+        can't reach the server". **Limit:** the project page's gate, issues and
+        measures are not cached; only the list and the card numbers.
+      - `US-SQ-LINK-02`: `jobtrigger://app/sonarqube/project?key=KEY` (key
+        only, validated, never a server or token; a bad key lands on Home).
+        Looks the key up with `api/components/show` (only a project, `TRK`,
+        is opened), says what is missing when there is no credential.
+      - `US-SQ-ISSUES-04`: Copy and Share on the issue page (message, type,
+        severity, location, rule, web link; no token).
+      - `US-SQ-WIDGET-01`: a second widget, "Pinned projects", on iOS (a
+        `WidgetBundle` in the existing extension) and Android (a subclass of
+        the pinned-jobs provider, own receiver and strings). Same snapshot
+        shape under its own key; carries names and verdicts only, honours the
+        app lock and the plan gate as the jobs widget does.
+      Tests: pins 3, offline 6, link/share 4 + a router test, widget snapshot
+      4 + sync 3, repository 3. `flutter build ios --simulator` succeeds with
+      the new widget. **Not verified:** the widget on a device (both
+      platforms); the Android Kotlin/XML changes were **not compiled**, because
+      this Mac's Android NDK install is broken (empty
+      `ndk/28.2.13676358`, no `sdkmanager`) and installing one was not
+      permitted in this session.
+- [x] P10-23 **Batch 6: connecting the tools.** *Built 2026-11-17, all three
+      stories; the owner approved the Jenkins/GitHub edits in the 2026-11-17
+      instruction and asked to see the diff (below).*
+      - `US-SQ-XTOOL-01` (Jenkins build page) and `-03` (GitHub run page): a
+        "SonarQube quality gate" card. Link a job or repo to a project once;
+        the build/run page then shows the gate and taps through to the
+        project; unlink confirms. The link is `sonarqube_links_<SonarQube
+        credential id>` in `shared_preferences`: project key and name against a
+        job URL or `owner/name`. No credential of any tool is stored or shared;
+        the card only ever calls SonarQube with the SonarQube credential.
+      - `US-SQ-XTOOL-02`: on the project page, a linked Jenkins job adds
+        "Scan now with Jenkins", which opens that job through the existing
+        open-link flow, where the **unchanged** Jenkins trigger and
+        confirmation run; the project page's analysis status (CE-01) follows
+        the result on refresh.
+      - **Jenkins/GitHub diff: 14 added lines in two files, nothing removed**
+        (`build_detail_screen.dart`: 2 imports + one widget after the upstream
+        link; `github_run_detail_screen.dart`: 2 imports + one widget before
+        the Jobs list).
+      - **Regression caught and fixed before merge (CLAUDE.md §11):** the
+        first version watched the SonarQube credential provider, which fetches
+        the credential list from the backend, so a GitHub page for someone who
+        never set SonarQube up made a new network call and three GitHub run
+        tests failed on a pending retry timer. The card now first checks a
+        local-only preference (`active_sonarqube_credential_id`); without it
+        nothing SonarQube is read and the page is exactly as before, proved
+        by a test that throws if the provider is touched. No existing test
+        was changed.
+      Tests: 7 card/links. **Not verified:** on a device, and a Jenkins job
+      or GitHub repo linked to a real project end to end.
+- [x] P10-24 **Batch 7: changing data on the server.** *Built 2026-11-17, all
+      four stories. The first writes in this epic; the owner approved them in
+      the 2026-11-17 instruction.*
+      - `US-SQ-WRITE-01` assign (me / someone else by login / unassign),
+        `-02` change status (only the transitions the server lists for that
+        issue, read from `api/issues/search?additionalFields=transitions`),
+        `-03` comment (form body, with "Visible to everyone on this project"),
+        `-04` review a hotspot (Safe / Fixed / Acknowledged / back to review,
+        optional comment).
+      - Every action confirms first; the screen shows the server's answer
+        only (the issue is re-read after a success; a refused comment keeps
+        its text). A 403 is the new `SonarQubeWriteDeniedFailure` ("isn't
+        allowed to make this change … Nothing was changed"); a refused change
+        shows SonarQube's own explanation. Demo mode refuses every write.
+      - **Found live and fixed:** `api/issues/assign` does not accept
+        `__me__` (that is only for `api/issues/search`); it answers "Unknown
+        user: __me__" and wants `_me`. Unit tests alone would not have shown
+        this.
+      **Verified on a real SonarQube 26.1** (`test/live/sonarqube_live_test.dart`,
+      8 tests): assign/unassign, comment (with `& " ? =` in it), confirm →
+      unconfirm, an unoffered transition explained by the server, hotspot
+      review and put back, an invalid token is `AuthFailure` (401, never a
+      permission failure), and a read-only user's changes are refused with
+      `SonarQubeWriteDeniedFailure` while browsing still works, nothing
+      changed. Unit/widget tests: 6 screen, 4 repository, 1 copy. **Not
+      verified:** on the iPhone.
+
 

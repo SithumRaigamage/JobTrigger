@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/responsive_center.dart';
+import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
+import '../first_run/first_run_checklist_card.dart';
 import 'sonarqube_credential_gate.dart';
 import 'sonarqube_project_card.dart';
+import 'sonarqube_saved_banner.dart';
 import 'sonarqube_projects_notifier.dart';
 import 'sonarqube_summaries_notifier.dart';
 import 'sonarqube_summaries_sync.dart';
@@ -47,9 +52,23 @@ class SonarQubeProjectScreen extends ConsumerWidget {
                       style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
                     ),
                     const SizedBox(height: 4),
-                    Semantics(
-                      header: true,
-                      child: Text('Projects', style: textTheme.headlineLarge),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              'Projects',
+                              style: textTheme.headlineLarge,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.dashboard_outlined),
+                          tooltip: 'Dashboard',
+                          onPressed: () => context.push(AppRoutes.dashboard),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 14),
                     Semantics(
@@ -70,6 +89,20 @@ class SonarQubeProjectScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     const _Controls(),
                   ],
+                ),
+              ),
+              // PI-08: the first-run steps, until done or dismissed.
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: FirstRunChecklistCard(),
+              ),
+              // PI-05: when the project list was last loaded. The cached
+              // "Saved …" copy stays with SonarQubeSavedBanner in the list.
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: DataFreshnessBanner(
+                  freshnessKey: sonarqubeProjectsFreshnessKey,
+                  showOffline: false,
                 ),
               ),
               Expanded(
@@ -212,14 +245,22 @@ class _ProjectList extends ConsumerWidget {
             20,
             16 + glassNavBarClearance(context),
           ),
-          itemCount: projects.length + 1,
-          itemBuilder: (context, index) => index < projects.length
-              ? SonarQubeProjectCard(project: projects[index])
-              : _Footer(
-                  loaded: loaded,
-                  searching: query.isNotEmpty,
-                  onLoadMore: notifier.loadMore,
-                ),
+          itemCount: projects.length + 1 + (loaded?.savedAt == null ? 0 : 1),
+          itemBuilder: (context, index) {
+            // US-SQ-OFFLINE-01: a saved copy says so, above everything.
+            final savedAt = loaded?.savedAt;
+            if (savedAt != null) {
+              if (index == 0) return SonarQubeSavedBanner(savedAt: savedAt);
+              index -= 1;
+            }
+            return index < projects.length
+                ? SonarQubeProjectCard(project: projects[index])
+                : _Footer(
+                    loaded: loaded,
+                    searching: query.isNotEmpty,
+                    onLoadMore: notifier.loadMore,
+                  );
+          },
           separatorBuilder: (_, _) => const SizedBox(height: 10),
         ),
       ),

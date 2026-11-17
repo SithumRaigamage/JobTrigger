@@ -127,6 +127,10 @@ backend from the store webhooks.
 - `src/server/analytics.ts` (`server-only`): `track()` posts to Umami from
   server actions and server components. No tracker script, no CSP change.
 - Env: `UMAMI_URL`, `UMAMI_WEBSITE_ID`; unset → no-op.
+- Wired so far (P20-30, 2026-11-16): `signup`, `server_added`,
+  `pricing_view` (`/pricing` renders per request so a visit counts, not a
+  build) and `limit_hit` (with the backend's `limit`) from the add-server
+  and make-active actions. The app-only rows stay unsent by design (§4.2).
 
 ### 4.4 Backend
 

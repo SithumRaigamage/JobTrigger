@@ -8,12 +8,14 @@ import 'package:job_trigger/data/repositories/sonarqube_repository_impl.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project_summary.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_analysis.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_issue_grouping.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_project.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_quality_gate.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_repository.dart';
 import 'package:job_trigger/presentation/features/sonarqube/sonarqube_analysis_screen.dart';
+import '../../../support/sonarqube_insights_defaults.dart';
 
-class _Repo implements SonarQubeRepository {
+class _Repo with SonarQubeInsightsDefaults implements SonarQubeRepository {
   @override
   Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
     SonarQubeIssue issue,
@@ -41,6 +43,7 @@ class _Repo implements SonarQubeRepository {
     String projectKey, {
     SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
     int page = 1,
+    SonarQubeIssueGrouping grouping = SonarQubeIssueGrouping.none,
   }) => throw UnimplementedError();
 
   @override

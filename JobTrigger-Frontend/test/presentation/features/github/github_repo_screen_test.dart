@@ -124,5 +124,7 @@ void main() {
     expect(find.text('Private'), findsOneWidget);
     expect(find.text('Public'), findsOneWidget);
     expect(find.text('trunk'), findsOneWidget);
+    // PI-05: a live load shows when this list was last updated.
+    expect(find.text('Updated just now'), findsOneWidget);
   });
 }

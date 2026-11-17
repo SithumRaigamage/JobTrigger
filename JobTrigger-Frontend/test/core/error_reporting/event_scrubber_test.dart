@@ -40,6 +40,34 @@ SentryEvent _dirty() => SentryEvent(
 String _basic() => 'dXNlcjo$_token'.substring(0, 24);
 
 void main() {
+  test('keeps Sentry\'s own event and trace ids, which look like a token '
+      '(found live on GlitchTip: the host rejected "[redacted]")', () {
+    final clean = scrubEventJson({
+      'event_id': '0123456789abcdef0123456789abcdef',
+      'message': 'token=abcdefabcdefabcdefabcdefabcdefab',
+      'contexts': {
+        'trace': {
+          'trace_id': 'fedcba9876543210fedcba9876543210',
+          'span_id': '0123456789abcdef',
+        },
+      },
+    })!;
+    expect(clean['event_id'], '0123456789abcdef0123456789abcdef');
+    expect(
+      (clean['contexts'] as Map)['trace']['trace_id'],
+      'fedcba9876543210fedcba9876543210',
+    );
+    // Everything else is still scrubbed.
+    expect(clean['message'], isNot(contains('abcdefabcdef')));
+  });
+
+  test('an event_id that is not plain hex is still redacted', () {
+    final clean = scrubEventJson({
+      'event_id': 'token=abcdefabcdefabcdefabcdef',
+    })!;
+    expect(clean['event_id'], isNot(contains('abcdef')));
+  });
+
   group('scrubEvent', () {
     test('removes the token from the message, headers and URL', () {
       final clean = scrubEvent(_dirty())!;

@@ -490,6 +490,13 @@ class _Notifications implements NotificationService {
   Future<bool> requestPermission() async => true;
 
   @override
+  Future<void> showAlert({
+    required int id,
+    required String title,
+    required String body,
+  }) async {}
+
+  @override
   Future<void> show(BuildNotification notification) async {}
 }
 
@@ -500,7 +507,10 @@ class _Scheduler implements BackgroundWatchScheduler {
   final synced = <bool>[];
 
   @override
-  Future<void> sync({required bool hasWatches}) async => synced.add(hasWatches);
+  Future<void> sync({
+    required bool hasWatches,
+    bool hasGateWatches = false,
+  }) async => synced.add(hasWatches);
 }
 
 class _JenkinsRepo implements CredentialsRepository {

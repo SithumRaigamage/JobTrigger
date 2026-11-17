@@ -10,6 +10,7 @@ import '../../../domain/jenkins/history_filter.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../../../data/credentials/active_server_notifier.dart';
@@ -46,6 +47,16 @@ class JobHistoryScreen extends ConsumerWidget {
                     tooltip: 'Back',
                     onPressed: () => Navigator.of(context).maybePop(),
                   ),
+                ),
+              ),
+            ),
+            // PI-05: when this job's history was last loaded.
+            ResponsiveCenter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: DataFreshnessBanner(
+                  freshnessKey: jobHistoryFreshnessKey(job.url),
+                  showOffline: false,
                 ),
               ),
             ),

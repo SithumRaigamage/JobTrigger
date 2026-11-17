@@ -34,8 +34,8 @@ Phase 0–6 task without first moving the item here into an actual phase file
     Rundeck, Puppet Enterprise, Chef Automate, Salt.
   - *Containers and orchestration:* Kubernetes, OpenShift, Rancher, Nomad,
     Portainer, AWS ECS.
-  - *Code quality and security:* SonarQube (backend credentials already
-    exist), Snyk, Codecov, Coveralls, Checkmarx, Veracode, GitGuardian,
+  - *Code quality and security:* SonarQube (integrated, see
+    `tasks/phase-10-sonarqube.md`), Snyk, Codecov, Coveralls, Checkmarx, Veracode, GitGuardian,
     Dependabot.
   - *Artifacts and registries:* JFrog Artifactory, Sonatype Nexus, Harbor,
     Docker Hub, GitHub Container Registry.
@@ -43,6 +43,38 @@ Phase 0–6 task without first moving the item here into an actual phase file
     Connect, Google Play Console, Firebase App Distribution.
   - *Monitoring and incidents:* Datadog, Grafana, Prometheus /
     Alertmanager, PagerDuty, Sentry.
+  - *Added 2026-11-16* (details, release order and tools not to add:
+    `docs/future-tools.md`):
+    - *Deploy and hosting:* Vercel, Netlify, Render, Railway, Fly.io,
+      Heroku, Cloudflare Pages / Workers Builds, DigitalOcean App
+      Platform, AWS Amplify Hosting, Coolify, Dokploy.
+    - *Mobile:* Expo EAS, Appcircle, Firebase Test Lab.
+    - *Security:* OWASP Dependency-Track, DefectDojo, Semgrep AppSec
+      Platform, GitHub code scanning / secret scanning, Trivy Operator.
+    - *Testing services:* BrowserStack, Sauce Labs, Cypress Cloud,
+      Allure TestOps / ReportPortal.
+    - *Feature flags:* LaunchDarkly, Unleash, Flagsmith, GrowthBook.
+    - *Uptime and incidents:* GlitchTip, Uptime Kuma, UptimeRobot,
+      Better Stack, incident.io, Atlassian Statuspage, New Relic.
+    - *Issue tracking (build actions):* Jira, Linear, GitHub Issues.
+    - *Data and ML pipelines:* Apache Airflow, Dagster+, Prefect Cloud,
+      Kubeflow Pipelines.
+    - *Registries and platform:* AWS ECR, Google Artifact Registry,
+      Quay.io, Backstage.
+    - *Workflow automation:* n8n.
+    - *Second batch:* AppVeyor, Buddy, Dagger Cloud, Depot, Gradle
+      Develocity, BuildBuddy, Nx Cloud, Unity Build Automation, Google
+      Cloud Run, Google Cloud Deploy, AWS CloudFormation, AWS Elastic
+      Beanstalk, Firebase Hosting, Kargo, Flagger, Statsig, ConfigCat,
+      PostHog, Mend, Aikido Security, Socket, JFrog Xray, Wiz, Cortex
+      Cloud, HashiCorp Vault (health only), Infisical (sync status only),
+      Cloudsmith, Azure Container Registry, Chromatic, Percy, LambdaTest,
+      Currents, Grafana Cloud k6, Lighthouse CI server, Splunk On-Call,
+      Grafana Cloud IRM, Dynatrace, Honeycomb, Elastic Observability,
+      Zabbix, Checkly, Healthchecks.io, Cronitor, Jira Service
+      Management, ServiceNow change approvals, dbt Cloud, Databricks
+      Jobs, Temporal Cloud, Weights & Biases.
+    - Full numbered catalogue of all 164 tools: `docs/future-tools.md` §7.
 - Push notifications for build completion/failure. *(Local, on-device
   notifications promoted 2026-09-29 → `phase-11-jenkins-extended.md`
   P11-24 / US-JX-10; true server push remains here.)*
@@ -84,9 +116,11 @@ Phase 0–6 task without first moving the item here into an actual phase file
   share-intent plugin such as `receive_sharing_intent`, which isn't in
   `CLAUDE.md` §3. The `jobtrigger://` scheme covers the need (P11-22; its in-app paste
   action was removed in P19-06 — Home's "Open Jenkins link" now opens the
-  server in the browser). Also: a deep link opened
-  while signed out is dropped at login; resuming it after sign-in is a
-  small follow-up.
+  server in the browser). ~~Also: a deep link opened while signed out is
+  dropped at login.~~ **Fixed 2026-11-17:** `app_router.dart`'s `redirect`
+  keeps the blocked location and restores it the moment sign-in completes,
+  so a pairing code scanned on a fresh install lands on the pairing sheet;
+  `test/presentation/navigation/app_router_test.dart` covers it.
 
 ## Owner actions waiting (added 2026-11-16)
 
@@ -134,13 +168,16 @@ left alone.
   slow connection and the owner will reinstall it on a fast one. Until then,
   no Android build or run of the subscription work (P20-20..P20-27,
   including `purchases_flutter`) has been done; treat it as unverified.
-- **LAUNCH BLOCKER: native home-screen widget "Upgrade to Pro" copy**
-  (noted 2026-11-16). On Free with billing on, the app writes an
-  `upgradeRequired: true` snapshot with no jobs (P20-25), but the iOS
-  (`ios/PinnedJobsWidget`) and Android (`PinnedJobsWidgetProvider.kt`)
-  widgets still show their ordinary empty state. Adding the copy needs a
-  device build of each widget, so the native code was deliberately not
-  changed blind. Do before enabling billing for users.
+- **Native home-screen widget "Upgrade to Pro" copy** — **written
+  2026-11-17, unverified on a device.** On Free with billing on, the app
+  writes an `upgradeRequired: true` snapshot with no jobs (P20-25); the iOS
+  widget (`UpgradeView` in `ios/PinnedJobsWidget/PinnedJobsWidget.swift`)
+  and the Android one (`R.id.widget_upgrade` in
+  `PinnedJobsWidgetProvider.kt`, its layout and strings) now say "Upgrade to
+  Pro — Pinned jobs need Pro. Open JobTrigger to upgrade." instead of their
+  empty state. Still to check: add the widget on an iPhone after flipping a
+  build to Free (`scripts/run-on-iphone.sh`), and on Android once the NDK is
+  reinstalled. Do before enabling billing for users.
 - **Paddle sandbox and CSP hosts** (P20-85, noted 2026-11-16). The billing
   page, its CSP allowance and the checkout/portal calls are built against
   Paddle's documented hosts but have never run against a real sandbox. After

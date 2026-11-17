@@ -1,6 +1,14 @@
 # JobTrigger — Improvement Plan
 
-Written 2026-11-14. Covers the whole product: the Flutter app
+**Archived as implemented on 2026-11-16.** Everything in this plan that can
+be built from the codebase was built, analysed and tested — see the status
+block below and `tasks/README.md`. The only lines still open are owner
+actions (store accounts, Firebase/APNs keys, production secrets, the deploy
+and the App Review account), listed under "Left when this plan closed". This
+file lives in `docs/implemented/` as the record of what was done and why;
+new work belongs in `tasks/`.
+
+Originally written 2026-11-14. Covers the whole product: the Flutter app
 (`JobTrigger-Frontend`), the website and setup portal (`JobTrigger-Web`) and
 the backend (`JobTrigger-Backend`). The website and the app are both primary:
 people set up their servers on the web and use them on the phone.
@@ -11,6 +19,17 @@ them already exist (`docs/user-stories/`).
 Every "Already done" line below was checked against the code on 2026-11-14,
 not only against the task files. Where an earlier summary was wrong, the
 correction is noted.
+
+**Closed 2026-11-16: every developer-actionable item in this plan is built.**
+That is the unified dashboard (NR-02), log section folding (NR-01), QR-code
+pairing (NR-03), the website's analytics events (P20-30/NR-05) and the
+backend half of server push (NR-06), on top of the Emergency work and the
+error copy that were already in place. What is left needs an account, a key
+or a deploy target the owner holds: store and RevenueCat accounts
+(P20-40..42), the Firebase project and APNs key plus the app's push SDK
+(NR-06b), the real values for `site-details.ts`, the production deploy and
+the App Review account. Each line says which. Tracker:
+`tasks/phase-22-next-release.md`.
 
 ## Already done
 
@@ -65,18 +84,28 @@ Checked in the code, not only in the task files.
   `security/secretMaterialScan.js`.
 - Two security audits, all findings fixed (Phases 12 and 13).
 
-## Planned but not built
+## Left when this plan closed (owner actions)
 
-- **Subscriptions (Phase 20)** — in progress on `feat/subscription-billing`:
-  26 of 57 tasks done (plans, limits, RevenueCat and Paddle webhooks,
-  mailer, analytics). The app's paywall and purchase screens are not built.
-  *The tracker in `tasks/README.md` still says "todo, waiting for approval",
-  but P20-00 was approved on 2026-11-12. Update it when the branch merges.*
+Nothing here can be done from the codebase alone: each line needs an
+account, a key or a deploy target the owner holds.
+
+- **Subscriptions (Phase 20)** — the app's paywall, subscription screen,
+  gates and billing client are built (P20-20..27, P20-84), the backend has
+  plans, limits, RevenueCat and Paddle webhooks, the mailer and analytics,
+  and the site has plans, pricing, billing and the student plan. Left: store
+  and RevenueCat setup (P20-40..42) and the sandbox and production passes
+  (P20-51..63).
 - **Website go-live** — the portal works, but it needs the backend deployed
-  at a public `https://` address (P15-22), Vercel connected, and the store
-  links (P15-24).
-- **Server push notifications** (BACKLOG-02) — only on-device notifications
-  exist.
+  at a public `https://` address (P15-22), Vercel connected, the real values
+  in `site-details.ts` (PE-03), and the store links (P15-24).
+- **Server push (BACKLOG-02)** — the backend half is built (NR-06:
+  `DeviceToken`, `POST /api/devices`, `DELETE /api/devices/:token`, an FCM
+  HTTP v1 sender, all inert until `FCM_SERVICE_ACCOUNT` is set). Left
+  (NR-06b): the Firebase project with its APNs key and the two config files,
+  the app's `firebase_messaging` token upload and permission prompt (a new
+  package, §3), and a server-side trigger — which means the backend polling
+  Jenkins, the architecture change this backlog entry warned about. On-device
+  notifications remain the only ones until then.
 - **Store release** — icons and screenshots, TestFlight / Play internal
   testing, dogfooding, public release (`tasks/release-checklist.md`).
 
@@ -103,18 +132,39 @@ release:
    (P8-20 tests, P8-26 auth isolation, P8-27 full test pass with a real
    token) so it can ship as a supported tool.
 
+*(2026-11-16: all five are dev-complete. What each still needs is an owner
+step — E1's real values in `site-details.ts` (PE-03), E3's GlitchTip DSNs
+(PE-19c), E4's production key and backfill (PE-30/31), E5's real-token
+checks (PE-41/42) and the App Review account (PE-18). Detail in
+`tasks/phase-emergency.md`.)*
+
 ## Next release
 
 - A unified home dashboard: failing builds, running jobs and pinned items
   across Jenkins, GitHub Actions and SonarQube on one screen.
+  *(Done 2026-11-16 — NR-02, `tasks/phase-22-next-release.md`.)*
 - "Jump to first error" in logs, and folding of noisy log sections.
-- Subscriptions in the app (finish Phase 20).
+  *(Folding done 2026-11-16 (NR-01, `tasks/phase-22-next-release.md`); jump
+  to first error was already built.)*
+- Subscriptions in the app (finish Phase 20). *(App and site built; left:
+  store/RevenueCat setup and the sandbox passes, all owner actions. Site
+  analytics events done 2026-11-16, P20-30.)*
 - Website go-live (P15-22, P15-24).
 - Server push notifications for failures and approvals (BACKLOG-02).
+  *(2026-11-16 — NR-06: the backend half is built and tested (device
+  registry, FCM HTTP v1 sender, no-op without credentials). Left, in
+  `tasks/phase-22-next-release.md` NR-06b: the Firebase project and its
+  keys (owner), the app's token upload and permission prompt (a new package
+  and Firebase config files, needing approval), and a server-side trigger
+  — which means the backend polling Jenkins, a deliberate architecture
+  change. On-device notifications remain the only ones until then.)*
 - QR-code pairing between the website and the app, so nobody types a
-  server URL on a phone.
+  server URL on a phone. *(Done 2026-11-16 — NR-03: a code per saved Jenkins
+  server on `/servers`, opened by the phone's own camera app; no camera
+  package needed.)*
 - Clearer error copy for a bad token, an unreachable server and an expired
-  session, in both the app and the portal.
+  session, in both the app and the portal. *(Checked 2026-11-16: already
+  built in both; re-check on the iPhone before closing.)*
 
 ## Later
 
@@ -127,3 +177,8 @@ release:
 - Multi-account support (`tasks/backlog.md`).
 - New tools, each from its epic doc: GitLab CI, CircleCI, Azure DevOps,
   Argo CD, Bitrise, Codemagic.
+
+More proposals (2026-11-16, none promoted): 164 tools and their order in
+`docs/future-tools.md` (T-001…164), product improvements in
+`docs/product-improvements.md` (IMP-01…156), community ideas in
+`docs/community-plan.md` (COM-01…157).

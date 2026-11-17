@@ -446,7 +446,7 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       from the history icon on the repositories screen.
 ## Cross-cutting
 
-- [ ] P8-26 `NFR-SEC-03` verification: a live test confirming a GitHub
+- [ ] P8-26 **MANUAL (owner, M-06):** Only the in-app fine-grained-token check and the iPhone remain (live API half done, below). `NFR-SEC-03` verification: a live test confirming a GitHub
       401 never triggers Jenkins' per-server auth handling or the
       backend's global logout, and vice versa — three independent auth
       failure domains, not two.
@@ -459,8 +459,36 @@ lands, per `CLAUDE.md` §9 — same cadence Phase 7 used.
       credentials; neither client carries the other's token. Still open: the
       live check against a real GitHub account, which needs the owner's
       token.
-- [ ] P8-27 Full `NFR-TEST-03` pass: every GH-CRED/REPO/RUN/LOG/HIST task
+      **2026-11-17 (left unchecked).** The app's own GitHub client and
+      repository were run against the real API with the owner's `gh` login
+      (`test/live/github_live_test.dart`): an invalid token is an
+      `AuthFailure`, kept apart from permission failures. **Still open, and
+      only the owner's:** the in-app check with a *fine-grained personal
+      access token* (a fine-grained token cannot be created through the API),
+      and then the iPhone: that after a GitHub 401 the app keeps the backend
+      session and the Jenkins/SonarQube clients.
+- [ ] P8-27 **MANUAL (owner, M-06):** Only the fine-grained-token check and the iPhone walk-through remain (API half done, below). Full `NFR-TEST-03` pass: every GH-CRED/REPO/RUN/LOG/HIST task
       above manually verified against a real GitHub repository with real
       Actions workflows (including at least one with `workflow_dispatch`
       inputs, one without, and one disabled workflow) before this phase
       is marked done.
+      **2026-11-17 (left unchecked): the API half is done.** A private
+      throwaway repository, `SithumRaigamage/jobtrigger-actions-test`, was
+      created with three workflows: "With inputs" (a `workflow_dispatch` with a
+      choice, a boolean and a string input), "No inputs" (a bare
+      `workflow_dispatch`) and "Disabled one" (disabled with `gh workflow
+      disable`). Run through the app's own repository
+      (`test/live/github_live_test.dart`, 5 tests, all passing): the repo and
+      all three workflows are listed with `active` / `active` /
+      `disabled_manually`; dispatch with inputs queues a `workflow_dispatch`
+      run whose log shows the inputs; the run, its jobs, steps and job log
+      read correctly; a bare dispatch works and extra inputs on it are
+      rejected with GitHub's explanation (`DispatchRejectedFailure`);
+      dispatching the disabled workflow is rejected with "Cannot trigger a
+      'workflow_dispatch' on a disabled workflow". **Open, and only the
+      owner's:** create a fine-grained PAT (GitHub → Settings → Developer
+      settings → Fine-grained tokens, repository access: only
+      `jobtrigger-actions-test`, permissions: Actions Read and write,
+      Metadata Read), add it in the app under Settings, and walk the screens
+      on the iPhone. Delete the repo when done:
+      `gh repo delete SithumRaigamage/jobtrigger-actions-test`.

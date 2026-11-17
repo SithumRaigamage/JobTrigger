@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_tokens.dart';
+import '../../common_widgets/confirmation_dialog.dart';
 import '../../../domain/github/github_repo.dart';
 import '../../../domain/github/github_workflow.dart';
 import '../../../domain/github/workflow_inputs.dart';
@@ -14,22 +15,31 @@ Future<void> showGitHubTriggerSheet(
   BuildContext context, {
   required GitHubRepo repo,
   required GitHubWorkflow workflow,
+  String? requiredPhrase,
 }) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
-  builder: (_) => GitHubTriggerSheet(repo: repo, workflow: workflow),
+  builder: (_) => GitHubTriggerSheet(
+    repo: repo,
+    workflow: workflow,
+    requiredPhrase: requiredPhrase,
+  ),
 );
 
 class GitHubTriggerSheet extends ConsumerStatefulWidget {
   const GitHubTriggerSheet({
     required this.repo,
     required this.workflow,
+    this.requiredPhrase,
     super.key,
   });
 
   final GitHubRepo repo;
   final GitHubWorkflow workflow;
+
+  /// PI-02/IMP-24: the workflow name to type when it is protected.
+  final String? requiredPhrase;
 
   @override
   ConsumerState<GitHubTriggerSheet> createState() => _GitHubTriggerSheetState();
@@ -76,36 +86,24 @@ class _GitHubTriggerSheetState extends ConsumerState<GitHubTriggerSheet> {
     }
     setState(() => _error = null);
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Run ${widget.workflow.name}?'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${widget.repo.fullName} on $branch'),
-            if (cleaned.inputs.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              const Text('Inputs'),
-              for (final e in cleaned.inputs.entries)
-                Text('${e.key} = ${e.value}'),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Run workflow'),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Run ${widget.workflow.name}?',
+      message: '${widget.repo.fullName} on $branch',
+      confirmLabel: 'Run workflow',
+      requiredPhrase: widget.requiredPhrase,
+      details: cleaned.inputs.isEmpty
+          ? null
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Inputs'),
+                for (final e in cleaned.inputs.entries)
+                  Text('${e.key} = ${e.value}'),
+              ],
+            ),
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
     final notifier = ref.read(
       gitHubTriggerNotifierProvider(

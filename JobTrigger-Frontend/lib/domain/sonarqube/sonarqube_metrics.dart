@@ -18,6 +18,20 @@ const sonarQubeExtraMeasureKeys = [
   'sqale_index',
 ];
 
+/// New-code measures (`US-SQ-QUALITY-08`): the numbers the quality gate is
+/// judged on. Requested by key rather than through a `period` parameter, so
+/// the same call works on servers that report new code a `period` at a time
+/// and on newer ones that always compute `new_*`; a server that computes
+/// none simply returns none, and the switch stays hidden.
+const sonarQubeNewCodeMetricKeys = [
+  'new_bugs',
+  'new_vulnerabilities',
+  'new_code_smells',
+  'new_coverage',
+  'new_duplicated_lines_density',
+  'new_lines',
+];
+
 const _labels = {
   'sqale_index': 'Technical debt',
   'coverage': 'Coverage',

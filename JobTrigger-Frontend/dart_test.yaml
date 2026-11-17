@@ -5,3 +5,8 @@ tags:
   fixture:
     skip: "Needs the fixture Jenkins — run tools/jenkins-fixture/fixture.sh up, then fixture.sh test"
     timeout: 5m
+
+  # Real-server verification of the SonarQube client (P10-14 / P10-15). The
+  # tests skip themselves unless SONARQUBE_LIVE_URL, _TOKEN and _PROJECT are
+  # set; see the header of test/live/sonarqube_live_test.dart.
+  live: {}

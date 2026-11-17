@@ -9,7 +9,7 @@ import { Trust } from "@/features/marketing/home/trust";
 export const metadata = pageMetadata({
   title: null,
   description:
-    "Trigger Jenkins jobs, watch logs stream live and know the moment a build breaks — from your phone. Set up your servers on the web.",
+    "Trigger Jenkins jobs, dispatch GitHub Actions workflows and check SonarQube quality gates — from your phone. Set up your servers on the web.",
   path: "/",
 });
 

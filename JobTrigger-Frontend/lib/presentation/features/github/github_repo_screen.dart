@@ -8,6 +8,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../domain/github/github_repo.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/credential_load_gate.dart';
+import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/no_active_github_credential_view.dart';
 import '../../common_widgets/responsive_center.dart';
@@ -15,6 +16,7 @@ import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../../../data/credentials/active_github_credential_notifier.dart';
 import '../../../data/credentials/github_credentials_notifier.dart';
+import '../first_run/first_run_checklist_card.dart';
 import 'filtered_github_repos_provider.dart';
 import 'github_repo_search_notifier.dart';
 import 'github_repos_notifier.dart';
@@ -74,6 +76,11 @@ class GitHubRepoScreen extends ConsumerWidget {
                         _AccountChip(label: activeCredential.label),
                         const Spacer(),
                         IconButton(
+                          icon: const Icon(Icons.dashboard_outlined),
+                          tooltip: 'Dashboard',
+                          onPressed: () => context.push(AppRoutes.dashboard),
+                        ),
+                        IconButton(
                           icon: const Icon(Icons.history_rounded),
                           tooltip: 'Recent activity',
                           onPressed: () =>
@@ -92,6 +99,19 @@ class GitHubRepoScreen extends ConsumerWidget {
                     const SizedBox(height: 14),
                     const _SearchField(),
                   ],
+                ),
+              ),
+              // PI-08: the first-run steps, until done or dismissed.
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: FirstRunChecklistCard(),
+              ),
+              // PI-05: when the repo list was last loaded.
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: DataFreshnessBanner(
+                  freshnessKey: gitHubReposFreshnessKey,
+                  showOffline: false,
                 ),
               ),
               Expanded(

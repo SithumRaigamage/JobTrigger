@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
+import '../../common_widgets/data_freshness.dart';
 
 part 'job_detail_notifier.g.dart';
 
@@ -15,7 +16,9 @@ class JobDetailNotifier extends _$JobDetailNotifier {
     final result = await ref
         .watch(jenkinsRepositoryProvider)
         .fetchJobDetail(jobUrl);
-    return result.fold((job) => job, (failure) => throw failure);
+    final job = result.fold((job) => job, (failure) => throw failure);
+    recordFreshness(ref, jobDetailFreshnessKey(jobUrl));
+    return job;
   }
 
   Future<void> refresh() async => ref.invalidateSelf();

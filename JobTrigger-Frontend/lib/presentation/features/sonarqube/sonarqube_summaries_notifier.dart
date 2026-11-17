@@ -1,6 +1,11 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/error/app_failure.dart';
 import '../../../core/error/result.dart';
+import '../../../data/cache/sonarqube_cache.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../../data/repositories/sonarqube_repository_impl.dart';
 import '../../../domain/sonarqube/sonarqube_project_summary.dart';
 
@@ -65,15 +70,41 @@ class SonarQubeSummariesNotifier extends _$SonarQubeSummariesNotifier {
         .fetchProjectSummaries(missing);
     if (!ref.mounted) return;
     final stillPending = {...state.pending}..removeAll(missing);
-    state = switch (result) {
-      Ok(:final value) => state.copyWith(
-        byKey: {...state.byKey, ...value},
-        pending: stillPending,
-      ),
-      Err(:final error) => state.copyWith(
-        pending: stillPending,
-        failure: error,
-      ),
-    };
+    final credentialId = ref
+        .read(activeSonarQubeCredentialNotifierProvider)
+        ?.id;
+    final cache = ref.read(sonarQubeCacheProvider);
+    switch (result) {
+      case Ok(:final value):
+        state = state.copyWith(
+          byKey: {...state.byKey, ...value},
+          pending: stillPending,
+        );
+        if (credentialId != null) {
+          unawaited(
+            cache.mergeSummaries(credentialId, value).catchError((Object _) {}),
+          );
+        }
+      case Err(:final error):
+        // The failure is shown at once; with no connection, saved numbers
+        // then take its place (US-SQ-OFFLINE-01: the list says it is a saved
+        // copy). Any other failure stays as it is.
+        state = state.copyWith(pending: stillPending, failure: error);
+        if (error is! NetworkFailure || credentialId == null) return;
+        final saved = await cache
+            .read(credentialId)
+            .catchError((Object _) => null);
+        if (!ref.mounted) return;
+        final fromCopy = {
+          for (final key in missing)
+            if (saved?.summaries[key] != null) key: saved!.summaries[key]!,
+        };
+        if (fromCopy.isNotEmpty) {
+          state = state.copyWith(
+            byKey: {...state.byKey, ...fromCopy},
+            clearFailure: true,
+          );
+        }
+    }
   }
 }

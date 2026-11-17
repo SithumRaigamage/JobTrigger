@@ -538,7 +538,8 @@ So that I can see more than the app shows
 
 ## Planned work — documented 2026-11-09
 
-Everything below is **proposed and not started**. It was listed for the owner
+Each story below carries its own **Status** line (batches 1–3 built and
+batch 4 started 2026-11-17; the rest proposed). It was listed for the owner
 on 2026-11-08, after the first SonarQube build-out (`P10-07`…`P10-17`) was
 tested on the iPhone, and is recorded here on 2026-11-09 so it is not lost. Each
 batch becomes a task in `tasks/phase-10-sonarqube.md` (`P10-18`…`P10-24`).
@@ -571,7 +572,7 @@ First in line (recommended to the owner on 2026-11-08). All five are `GET`s over
 ### US-SQ-ISSUES-01 — My issues across every project
 
 **Batch:** 1 · **Priority:** Should · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-18)
 **Dependencies:** US-SQ-QUALITY-03, US-SQ-OVERVIEW-01
 
 As a user
@@ -596,7 +597,7 @@ So that I know what is mine to fix without opening each project
 ### US-SQ-CE-01 — Analysis status: running, queued or failed
 
 **Batch:** 1 · **Priority:** Should · **Effort:** S–M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-18)
 **Dependencies:** US-SQ-QUALITY-04
 
 As a user
@@ -621,7 +622,7 @@ So that I don't mistake a stale result for a current one
 ### US-SQ-QUALITY-07 — All gate conditions, passing ones too
 
 **Batch:** 1 · **Priority:** Should · **Effort:** S
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-18)
 **Dependencies:** US-SQ-QUALITY-01
 
 As a user
@@ -642,7 +643,7 @@ So that I know how close a passing project is to failing
 ### US-SQ-QUALITY-08 — New code versus overall code
 
 **Batch:** 1 · **Priority:** Should · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-18)
 **Dependencies:** US-SQ-QUALITY-02
 
 As a user
@@ -664,7 +665,7 @@ So that I see the numbers the quality gate is actually judged on
 ### US-SQ-QUALITY-09 — Compare with the previous analysis
 
 **Batch:** 1 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-18)
 **Dependencies:** US-SQ-QUALITY-04
 
 As a user
@@ -689,7 +690,7 @@ After batch 1. This is what makes the app useful when it is closed. It reuses th
 ### US-SQ-WATCH-01 — Notify me when a gate fails after a new scan
 
 **Batch:** 2 · **Priority:** Should · **Effort:** M–L
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-19)
 **Dependencies:** US-SQ-CE-01, `US-JX-10`'s watch plumbing
 
 As a user
@@ -722,7 +723,7 @@ Read-only depth for one project. Independent of each other; any can be taken alo
 ### US-SQ-QUALITY-10 — Branch and pull request picker
 
 **Batch:** 3 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-20)
 **Dependencies:** US-SQ-QUALITY-02
 
 As a user
@@ -740,11 +741,28 @@ So that I can check a change before it merges
 **Notes**
 - **Edition-dependent**: SonarQube Community Build may only analyse the main branch; branches and pull requests need an edition that supports them. Hide the picker rather than show a dead one.
 - Every project call then carries a `branch` or `pullRequest` parameter.
+- **Built 2026-11-17:** choices come from both `api/project_branches/list`
+  and `api/project_pull_requests/list` (main excluded, malformed entries
+  skipped); a server where either call fails simply offers no choices and
+  the picker stays hidden. The selection is one `SonarQubeBranchRef` state;
+  the SonarQube `Dio` is rebuilt with it, and an interceptor adds `branch=`
+  or `pullRequest=` to the project-scoped endpoints only (gate, measures,
+  measures history, component tree, issues, hotspots, analyses, ce/component),
+  never to the branch or PR listings themselves. So one tap reloads the gate,
+  measures, issues, hotspots, trends and worst files for that ref, since
+  every notifier already watches the repository. Main branch adds no
+  parameter at all. The selection is **per project** (a map keyed by project
+  key, defaulting to main), so switching one project leaves the others as
+  they were. The interceptor resolves a request's project from its own
+  `project`/`projectKey`/`component`/`componentKeys` parameter. Widget tests
+  cover the picker: hidden when only main exists, showing the choices
+  otherwise, and choosing one re-querying the gate. Not verified against an
+  edition that serves branches or pull requests.
 
 ### US-SQ-HOTSPOT-01 — Security hotspots
 
 **Batch:** 3 · **Priority:** Should · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-20)
 **Dependencies:** US-SQ-QUALITY-03
 
 As a user
@@ -762,11 +780,17 @@ So that I know which security-sensitive code still needs a review
 **Notes**
 - Reviewing a hotspot is a write and is `US-SQ-WRITE-04`, not this story.
 - `api/hotspots/show` for the detail.
+- **Built 2026-11-17:** project page → *Security hotspots*; *To review* /
+  *Reviewed* chips ask the server for each (`status=TO_REVIEW|REVIEWED`,
+  `ps=50`, *Load more*); a row shows its category, `file:line` and the
+  probability spelled out ("High probability") rather than as a colour, and
+  expanding it loads the rule's name plus the same code snippet an issue page
+  shows. Not verified against a real server.
 
 ### US-SQ-QUALITY-11 — Trends over time
 
 **Batch:** 3 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-20)
 **Dependencies:** US-SQ-QUALITY-04
 
 As a user
@@ -783,11 +807,21 @@ So that I can tell whether the project is getting better
 **Notes**
 - No chart library is in the locked stack (`CLAUDE.md` §3): either a small custom painter, or a flagged dependency request. **Decide in the plan, don't add silently.**
 - The chart must also be readable without colour (labels, not only a line).
+- **Decided and built 2026-11-17: a small custom painter, no dependency.**
+  Project page → *Trends*, chips for Coverage / Bugs / Code smells /
+  Duplication from `api/measures/search_history` (points the server sends
+  without a value are dropped, `DateTime.tryParse` guards the date). The
+  painter draws a grid with each value written as text, the line, its dots
+  and both end dates; a tap picks the nearest point
+  (`nearestSonarQubePointIndex`, pure and tested) and the date · value is
+  written under the chart, so nothing depends on colour. Fewer than two
+  points says "Not enough history yet". A semantics label states lowest,
+  highest and their dates. Not verified against a real server.
 
 ### US-SQ-QUALITY-12 — Worst files
 
 **Batch:** 3 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-20)
 **Dependencies:** US-SQ-QUALITY-03
 
 As a user
@@ -803,11 +837,19 @@ So that I know where to start
 
 **Notes**
 - Uses `strategy=leaves`, `qualifiers=FIL`, `s=metric`, `metricSort`, `ps=10`.
+- **Built 2026-11-17:** project page → *Worst files*, four rankings with
+  their own direction — *Least covered* sorts ascending (no coverage is
+  worst), *Most duplicated*, *Most issues* and *Most complex* sort
+  descending. A file the server sends no value for shows `—`, not `0%`.
+  Tapping a file opens a sheet with that file's open issues
+  (`api/issues/search?componentKeys=<projectKey>:<path>`, through the same
+  parsing as every issue list); a file with none says so. Not verified
+  against a real server.
 
 ### US-SQ-QUALITY-13 — Language breakdown
 
 **Batch:** 3 · **Priority:** Could · **Effort:** S
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-20)
 **Dependencies:** US-SQ-QUALITY-02
 
 As a user
@@ -823,11 +865,20 @@ So that I understand what the project is made of
 
 **Notes**
 - The metric is a `;`-separated string and needs parsing; keep that in the domain layer with tests.
+- **Built 2026-11-17:** `SonarQubeLanguageBreakdown.parse` in the domain
+  (tested): biggest first, ties by name, share rounded, fragments that are
+  not `name=<positive int>` skipped, all-zero or absent = empty. The section
+  sits under the measures on the project page as bars with "1200 lines ·
+  78%" written out, and is left off entirely when the server reports
+  nothing — no empty heading. It rides in the existing measures call
+  (`fetchMeasures` now also asks for `ncloc_language_distribution`), so a
+  server without it costs no extra request. Not verified against a real
+  server.
 
 ### US-SQ-ISSUES-02 — Group issues by file, rule or severity
 
 **Batch:** 3 · **Priority:** Could · **Effort:** S–M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-20)
 **Dependencies:** US-SQ-QUALITY-03
 
 As a user
@@ -843,6 +894,14 @@ So that a long list becomes something I can scan
 
 **Notes**
 - Keeps the server-side filtering and paging of `US-SQ-QUALITY-03`.
+- **Built 2026-11-17:** chips above the list — No grouping / By file / By
+  rule / By severity. Choosing one asks the server for that facet
+  (`facets=files|rules|severities`) and the body becomes the groups with the
+  server's counts, biggest first, so the numbers are right beyond the first
+  page; the filter chips still narrow both. No grouping asks for no facet at
+  all, so a server that charges for facets is not charged for nothing. A
+  facet the server omits leaves the usual issue list in place rather than an
+  empty group screen.
 
 ## Batch 4 — Across projects and the server (2026-11-09)
 
@@ -851,7 +910,7 @@ Read-only views that span projects, plus the server itself.
 ### US-SQ-ISSUES-03 — Search issues across projects
 
 **Batch:** 4 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-21), changed from "text"
 **Dependencies:** US-SQ-ISSUES-01
 
 As a user
@@ -867,11 +926,12 @@ So that I can find a known problem wherever it is
 
 **Notes**
 - The exact text-search parameter is confirmed against the owner's server in the plan; not assumed here.
+- **Built 2026-11-17, and the parameter does not exist.** `api/issues/search` has no `q` (SonarQube 26.1's own web-service listing; an unknown `q` is silently ignored and returns everything). Search is therefore by an exact server-side filter: rule (`rules`), tag (`tags`), file path (`files`) or issue key (`issues`). Free text over the message is not offered, because filtering it on the device would only cover what is loaded.
 
 ### US-SQ-SERVER-01 — Server health and version
 
 **Batch:** 4 · **Priority:** Could · **Effort:** S
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-21)
 **Dependencies:** US-SQ-CRED-04
 
 As a user
@@ -887,11 +947,19 @@ So that I can tell a server problem from an app problem
 
 **Notes**
 - `api/system/health` and the background-task queue need administrator rights; shown only if the token allows it, never required.
+- **Built 2026-11-17:** project page → *Server version and status*. Version
+  from `api/server/version`, status from `api/system/status`, made readable
+  (`UP` → "Up") with a sentence for the cases people actually hit —
+  starting, maintenance — and an unreachable server reuses the app's error
+  view with retry. Edition is not shown, and the page says why: the
+  endpoints that report it need administrator rights, so nothing is asked
+  for that would 403 for a normal token. Not verified against a real
+  server.
 
 ### US-SQ-OVERVIEW-02 — Overview trend: are more projects failing?
 
 **Batch:** 4 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-21)
 **Dependencies:** US-SQ-OVERVIEW-01
 
 As a user
@@ -907,6 +975,7 @@ So that I see the direction, not only today's count
 
 **Notes**
 - SonarQube has no portfolio-level history for this, so the app would **store its own small snapshots on the device** (counts only, no secrets, in `shared_preferences`). Honest label: "since you last looked", not "over time".
+- **Built 2026-11-17:** compares with the newest snapshot at least an hour old, so two quick visits do not erase "yesterday"; keeps 30 per credential; counts only; first visit says the trend starts now.
 - The alternative is computing it from each project's history, which costs one request per project; rejected for the rate-limit-style reasons of `US-GH-HIST-02`.
 
 ## Batch 5 — Shortcuts and offline (2026-11-09)
@@ -916,7 +985,7 @@ Convenience that mostly reuses plumbing the Jenkins work already built.
 ### US-SQ-PIN-01 — Pin projects
 
 **Batch:** 5 · **Priority:** Should · **Effort:** S–M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-22)
 **Dependencies:** US-SQ-PROJ-03
 
 As a user
@@ -937,7 +1006,7 @@ So that they sit at the top of the list and the Overview
 ### US-SQ-WIDGET-01 — Home-screen widget for pinned projects
 
 **Batch:** 5 · **Priority:** Could · **Effort:** L
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-22)
 **Dependencies:** US-SQ-PIN-01, `US-JX-23`'s widget plumbing
 
 As a user
@@ -958,7 +1027,7 @@ So that I check them without opening the app
 ### US-SQ-OFFLINE-01 — Offline copy of the last data
 
 **Batch:** 5 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-22)
 **Dependencies:** US-SQ-PROJ-03
 
 As a user
@@ -978,7 +1047,7 @@ So that I can still check a project on the train
 ### US-SQ-LINK-02 — Deep links to a project
 
 **Batch:** 5 · **Priority:** Could · **Effort:** S
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-22)
 **Dependencies:** US-SQ-LINK-01
 
 As a user
@@ -998,7 +1067,7 @@ So that a teammate's message can take me straight to it
 ### US-SQ-ISSUES-04 — Copy and share an issue
 
 **Batch:** 5 · **Priority:** Could · **Effort:** S
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-22)
 **Dependencies:** US-SQ-QUALITY-06
 
 As a user
@@ -1022,7 +1091,7 @@ Touches the Jenkins and GitHub screens, so it needs the owner's explicit go-ahea
 ### US-SQ-XTOOL-01 — Show a project's SonarQube gate on a Jenkins build
 
 **Batch:** 6 · **Priority:** Could · **Effort:** M–L
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-23)
 **Dependencies:** US-SQ-PROJ-01, a Jenkins build page
 
 As a user
@@ -1046,7 +1115,7 @@ So that I know whether a build also passed its quality gate
 ### US-SQ-XTOOL-02 — Scan from Jenkins
 
 **Batch:** 6 · **Priority:** Could · **Effort:** L
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-23)
 **Dependencies:** US-SQ-XTOOL-01
 
 As a user
@@ -1066,7 +1135,7 @@ So that a re-scan is one flow on my phone
 ### US-SQ-XTOOL-03 — Show the gate beside a GitHub workflow run
 
 **Batch:** 6 · **Priority:** Could · **Effort:** M–L
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-23)
 **Dependencies:** US-SQ-PROJ-01, GitHub run detail
 
 As a user
@@ -1088,7 +1157,7 @@ So that I see build and quality together
 ### US-SQ-WRITE-01 — Assign an issue
 
 **Batch:** 7 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-24)
 **Dependencies:** US-SQ-QUALITY-06
 
 As a user
@@ -1105,11 +1174,12 @@ So that it has an owner
 
 **Notes**
 - Looking up assignable users (`api/users/search`) may need extra permission; the plan handles its absence.
+- **Built 2026-11-17:** no user lookup (it needs administrator rights): assign to *me* (`_me`, which `assign` wants; `__me__` is only for search), to a login the user types, or unassign.
 
 ### US-SQ-WRITE-02 — Change an issue's status
 
 **Batch:** 7 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-24)
 **Dependencies:** US-SQ-QUALITY-06
 
 As a user
@@ -1127,7 +1197,7 @@ So that the list reflects my decision
 ### US-SQ-WRITE-03 — Comment on an issue
 
 **Batch:** 7 · **Priority:** Could · **Effort:** S–M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-24)
 **Dependencies:** US-SQ-QUALITY-06
 
 As a user
@@ -1145,7 +1215,7 @@ So that I can leave context for the team
 ### US-SQ-WRITE-04 — Review a security hotspot
 
 **Batch:** 7 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-24)
 **Dependencies:** US-SQ-HOTSPOT-01
 
 As a user

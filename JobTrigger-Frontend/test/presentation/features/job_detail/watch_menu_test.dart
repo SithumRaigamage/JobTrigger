@@ -79,6 +79,13 @@ class _Notifications implements NotificationService {
   Future<bool> requestPermission() async => granted;
 
   @override
+  Future<void> showAlert({
+    required int id,
+    required String title,
+    required String body,
+  }) async {}
+
+  @override
   Future<void> show(BuildNotification notification) async {}
 }
 
@@ -87,7 +94,10 @@ class _Scheduler implements BackgroundWatchScheduler {
   bool get isSupported => true;
 
   @override
-  Future<void> sync({required bool hasWatches}) async {}
+  Future<void> sync({
+    required bool hasWatches,
+    bool hasGateWatches = false,
+  }) async {}
 }
 
 void main() {
@@ -158,6 +168,27 @@ void main() {
       findsOneWidget,
     );
     expect(find.byIcon(Icons.notifications_none), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('the bell menu changes which builds notify (PI-07)', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    await chooseWatchJob(tester);
+
+    await tester.tap(find.byTooltip('Notifications'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rule: All builds'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Notification rule'), findsOneWidget);
+    await tester.tap(find.text('Failures only'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Notifications'));
+    await tester.pumpAndSettle();
+    expect(find.text('Rule: Failures only'), findsOneWidget);
     await unmount(tester);
   });
 }

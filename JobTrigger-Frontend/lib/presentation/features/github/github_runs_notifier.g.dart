@@ -61,7 +61,7 @@ final class GitHubRunsNotifierProvider
 }
 
 String _$gitHubRunsNotifierHash() =>
-    r'4253e40abc6ff5fd3bed876f886572b9b22208f4';
+    r'4aaee8934ae174f68b1310461e3592080bb3d9fa';
 
 /// Fetches one workflow's recent runs (`US-GH-RUN-01`), keyed by
 /// `(owner, repo, workflowId)` — a family provider since the runs screen

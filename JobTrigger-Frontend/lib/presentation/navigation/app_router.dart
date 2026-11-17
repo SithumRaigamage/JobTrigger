@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/auth/auth_state.dart';
+import '../../domain/diagnostics/connection_diagnosis.dart';
 import '../../domain/github/github_job.dart';
 import '../../domain/github/github_repo.dart';
 import '../../domain/github/github_workflow.dart';
@@ -13,6 +14,8 @@ import '../../domain/sonarqube/sonarqube_project.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../features/app_info/app_info_screen.dart';
+import '../features/connectivity/connection_help_screen.dart';
+import '../features/connectivity/remote_access_guide_screen.dart';
 import '../features/auth/auth_notifier.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/signup_screen.dart';
@@ -20,6 +23,7 @@ import '../../core/theme/app_tokens.dart';
 import '../../core/theme/app_typography.dart';
 import '../common_widgets/pinned_footer_layout.dart';
 import '../features/build_detail/build_detail_screen.dart';
+import '../features/dashboard/dashboard_screen.dart';
 import '../features/build_log/build_log_screen.dart';
 import '../features/github/github_global_history_screen.dart';
 import '../features/github/github_job_log_screen.dart';
@@ -31,6 +35,14 @@ import '../features/sonarqube/sonarqube_analysis_screen.dart';
 import '../features/sonarqube/sonarqube_issue_screen.dart';
 import '../features/sonarqube/sonarqube_issues_screen.dart';
 import '../features/sonarqube/sonarqube_overview_screen.dart';
+import '../features/sonarqube/sonarqube_hotspots_screen.dart';
+import '../features/sonarqube/sonarqube_issue_search_screen.dart';
+import '../features/sonarqube/sonarqube_open_link_screen.dart';
+import '../../domain/sonarqube/sonarqube_links.dart';
+import '../features/sonarqube/sonarqube_my_issues_screen.dart';
+import '../features/sonarqube/sonarqube_server_screen.dart';
+import '../features/sonarqube/sonarqube_trends_screen.dart';
+import '../features/sonarqube/sonarqube_worst_files_screen.dart';
 import '../features/sonarqube/sonarqube_project_detail_screen.dart';
 import '../features/sonarqube/sonarqube_project_screen.dart';
 import '../features/github/github_workflow_list_screen.dart';
@@ -40,6 +52,7 @@ import '../features/home/home_screen.dart';
 import '../features/job_detail/job_detail_screen.dart';
 import '../features/nodes/nodes_screen.dart';
 import '../features/open_link/open_link_screen.dart';
+import '../features/pairing/pair_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/queue/queue_screen.dart';
 import '../features/settings/settings_screen.dart';
@@ -94,6 +107,10 @@ final Map<String, bool Function(Object? extra)> _extraRoutes = {
   AppRoutes.sonarqubeIssue: (extra) =>
       extra is (SonarQubeProject, SonarQubeIssue),
   AppRoutes.sonarqubeAnalyses: (extra) => extra is SonarQubeProject,
+  AppRoutes.sonarqubeHotspots: (extra) => extra is SonarQubeProject,
+  AppRoutes.sonarqubeTrends: (extra) => extra is SonarQubeProject,
+  AppRoutes.sonarqubeWorstFiles: (extra) => extra is SonarQubeProject,
+  AppRoutes.sonarqubeServer: (extra) => true,
 };
 
 /// Module-level (not inside `appRouter`) so identity is stable across
@@ -240,6 +257,11 @@ class _MessageScreen extends StatelessWidget {
 GoRouter appRouter(Ref ref) {
   final refreshListenable = _AuthRefreshListenable(ref);
 
+  /// A link opened while signed out (a pairing code from NR-03, or any
+  /// US-JX-19 deep link) is kept here and restored as soon as sign-in
+  /// completes; otherwise the scan did nothing on a fresh install.
+  String? pendingLocation;
+
   return GoRouter(
     initialLocation: AppRoutes.login,
     refreshListenable: refreshListenable,
@@ -252,13 +274,34 @@ GoRouter appRouter(Ref ref) {
       final isAuthenticated = authAsync.value is Authenticated;
       final onAuthRoute = _authRoutes.contains(state.matchedLocation);
 
-      if (isAuthenticated && onAuthRoute) return AppRoutes.toolSelection;
-      if (!isAuthenticated && !onAuthRoute) return AppRoutes.login;
+      if (isAuthenticated && onAuthRoute) {
+        final target = pendingLocation;
+        pendingLocation = null;
+        return target ?? AppRoutes.toolSelection;
+      }
+      if (!isAuthenticated && !onAuthRoute) {
+        pendingLocation = state.uri.toString();
+        return AppRoutes.login;
+      }
       // Phase 20: no subscription UI unless billing is on for this build
       // and account, so a default build is exactly as before.
       if (_billingRoutes.contains(state.matchedLocation) &&
           !ref.read(billingAvailableProvider)) {
         return AppRoutes.home;
+      }
+      // US-SQ-LINK-02: `jobtrigger://app/sonarqube/project?key=KEY` has no
+      // in-app `extra`; a valid key goes to the screen that looks the
+      // project up on the user's own credential. An invalid one falls
+      // through to the guard below and lands on Home (AUD-51).
+      if (state.matchedLocation == AppRoutes.sonarqubeProject &&
+          state.extra == null) {
+        final key = state.uri.queryParameters['key'];
+        if (sonarQubeLinkKeyIsValid(key)) {
+          return Uri(
+            path: AppRoutes.sonarqubeOpenLink,
+            queryParameters: {'key': key},
+          ).toString();
+        }
       }
       final acceptsExtra = _extraRoutes[state.matchedLocation];
       if (acceptsExtra != null && !acceptsExtra(state.extra)) {
@@ -314,6 +357,58 @@ GoRouter appRouter(Ref ref) {
             JobHistoryScreen(job: state.extra! as JenkinsJob),
       ),
       GoRoute(
+        path: AppRoutes.pair,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            PairScreen(query: state.uri.queryParameters),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeServer,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SonarQubeServerScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeWorstFiles,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => SonarQubeWorstFilesScreen(
+          project: state.extra! as SonarQubeProject,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeTrends,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            SonarQubeTrendsScreen(project: state.extra! as SonarQubeProject),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeHotspots,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            SonarQubeHotspotsScreen(project: state.extra! as SonarQubeProject),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeMyIssues,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SonarQubeMyIssuesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeOpenLink,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => SonarQubeOpenLinkScreen(
+          projectKey: state.uri.queryParameters['key'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.sonarqubeIssueSearch,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SonarQubeIssueSearchScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.dashboard,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.openLink,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => OpenLinkScreen(
@@ -335,6 +430,20 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.appInfo,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AppInfoScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.connectionHelp,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => ConnectionHelpScreen(
+          diagnosis: state.extra is ConnectionDiagnosis
+              ? state.extra as ConnectionDiagnosis
+              : null,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.remoteAccessGuide,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const RemoteAccessGuideScreen(),
       ),
       GoRoute(
         path: AppRoutes.subscription,

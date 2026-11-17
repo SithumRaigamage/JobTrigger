@@ -22,6 +22,7 @@ PinnedStatus _pin(JenkinsJob? job, {String label = 'api'}) =>
     (label: label, url: 'https://ci/job/$label/', job: job);
 
 void main() {
+  sonarQubeWidgetTests();
   final now = DateTime(2026, 9, 30, 12);
 
   test('maps ball colors to a status and spelled-out text (US-JX-23)', () {
@@ -101,5 +102,69 @@ void main() {
     final snapshot = buildWidgetSnapshot([_pin(_job('red'))], now: now);
     expect(snapshot.isLocked, isFalse);
     expect(snapshot.toJson()['lockedCount'], isNull);
+  });
+}
+
+void sonarQubeWidgetTests() {
+  group('pinned SonarQube projects (US-SQ-WIDGET-01)', () {
+    final now = DateTime(2026, 11, 17, 12);
+
+    test('spells the verdict out and links the project by key only', () {
+      final snapshot = buildSonarQubeWidgetSnapshot([
+        (key: 'acme:api', name: 'API', gate: 'failed'),
+        (key: 'web', name: 'Web', gate: 'passed'),
+        (key: 'old', name: 'Old', gate: 'none'),
+        (key: 'warn', name: 'Warn', gate: 'warning'),
+        (key: 'late', name: 'Late', gate: null),
+      ], now: now);
+
+      expect(snapshot.jobs.map((j) => j.statusText), [
+        'Failed',
+        'Passed',
+        'Not analyzed',
+        'Warning',
+      ]);
+      expect(snapshot.jobs.map((j) => j.status), [
+        WidgetJobStatus.failure,
+        WidgetJobStatus.success,
+        WidgetJobStatus.other,
+        WidgetJobStatus.unstable,
+      ]);
+      expect(
+        snapshot.jobs.first.link,
+        'jobtrigger://app/sonarqube/project?key=acme%3Aapi',
+      );
+      // At most four rows, like the jobs widget.
+      expect(snapshot.jobs, hasLength(WidgetSnapshot.maxJobs));
+    });
+
+    test('an unloaded verdict is Unknown, never a pass', () {
+      final snapshot = buildSonarQubeWidgetSnapshot([
+        (key: 'a', name: 'A', gate: null),
+      ], now: now);
+      expect(snapshot.jobs.single.statusText, 'Unknown');
+    });
+
+    test('the app lock leaves only a count: no names, no verdicts', () {
+      final snapshot = buildSonarQubeWidgetSnapshot(
+        [
+          (key: 'a', name: 'Secret project', gate: 'failed'),
+          (key: 'b', name: 'Other', gate: 'passed'),
+        ],
+        now: now,
+        hideNames: true,
+      );
+      expect(snapshot.jobs, isEmpty);
+      expect(snapshot.lockedCount, 2);
+      expect(snapshot.toJson().toString(), isNot(contains('Secret')));
+    });
+
+    test('holds no credential, token or server address', () {
+      final json = buildSonarQubeWidgetSnapshot([
+        (key: 'a', name: 'A', gate: 'passed'),
+      ], now: now).toJson().toString();
+      expect(json, isNot(contains('http')));
+      expect(json, isNot(contains('token')));
+    });
   });
 }

@@ -14,6 +14,7 @@ import '../subscription/plan_gate.dart';
 import 'edit_sheet.dart';
 import 'sonarqube_credential_form_notifier.dart';
 import 'test_sonarqube_connection_notifier.dart';
+import 'token_wizard_sheet.dart';
 
 /// Laid out like the Jenkins server sheet (`UI-UX/screens/21-edit-server-sheet`,
 /// see [showEditSheet]). [existing] is null when adding a new credential,
@@ -155,6 +156,7 @@ class _SonarQubeCredentialEditBottomSheetState
                 : 'squ_…',
           ),
         ),
+        TokenHelpButton(tool: TokenTool.sonarqube, baseUrl: url),
         const SizedBox(height: 16),
         LabeledField(
           label: 'Organization (optional)',

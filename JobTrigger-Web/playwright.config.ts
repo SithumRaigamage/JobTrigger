@@ -25,8 +25,9 @@ export default defineConfig({
       testIgnore: /release-1\.0/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 360, height: 780 } },
     },
-    // The shipped manifest (release 1.0, Jenkins only), not the all-tools one
-    // the specs above run against: a small smoke run, see release-1.0.spec.ts.
+    // The shipped manifest (release 1.0: Jenkins, SonarQube and GitHub
+    // Actions), not the all-tools one the specs above run against: a small
+    // smoke run, see release-1.0.spec.ts.
     {
       name: "release-1.0",
       testMatch: /release-1\.0\.spec/,

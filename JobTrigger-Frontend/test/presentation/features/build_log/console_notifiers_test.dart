@@ -74,12 +74,26 @@ void main() {
     final (container, _) = _setUp('');
     await container
         .read(consolePrefsNotifierProvider.notifier)
-        .update(const ConsolePrefs(wrap: false, fontStep: 2, timestamps: true));
+        .update(
+          const ConsolePrefs(
+            wrap: false,
+            fontStep: 2,
+            timestamps: true,
+            foldSections: false,
+          ),
+        );
 
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getBool('console_wrap'), isFalse);
     expect(prefs.getInt('console_font_step'), 2);
     expect(prefs.getBool('console_timestamps'), isTrue);
+    expect(prefs.getBool('console_folds'), isFalse);
+  });
+
+  test('folding repeated log lines is on by default (NR-01)', () async {
+    final (container, _) = _setUp('');
+
+    expect(container.read(consolePrefsNotifierProvider).foldSections, isTrue);
   });
 
   test('search finds lines and steps through matches, wrapping', () async {

@@ -47,4 +47,31 @@ describe("ServersView", () => {
       "/servers/jenkins/j1",
     );
   });
+
+  it("shows a pairing code per server when the page provides one (NR-03)", () => {
+    render(
+      <ServersView
+        servers={[jenkins]}
+        failure={null}
+        pairCodes={[{ id: "j1", name: "Acme production", svg: "<svg data-qr></svg>" }]}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Pair with your phone" })).toBeVisible();
+    expect(screen.getByText("Scan with your phone’s camera")).toBeVisible();
+    expect(document.querySelector("svg[data-qr]")).not.toBeNull();
+  });
+
+  it("shows no pairing codes in the demo", () => {
+    render(
+      <ServersView
+        servers={[jenkins]}
+        failure={null}
+        preview
+        pairCodes={[{ id: "j1", name: "Acme production", svg: "<svg data-qr></svg>" }]}
+      />,
+    );
+
+    expect(screen.queryByRole("heading", { name: "Pair with your phone" })).toBeNull();
+  });
 });

@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../navigation/app_routes.dart';
 
 /// Ported from `Shared/Components/ConnectionErrorView.swift`. Generic over
 /// [message] so it covers both `NetworkFailure` cases from
 /// `docs/api-reference.md` — unreachable backend and unreachable Jenkins
-/// server — rather than hardcoding "backend server" like the original.
+/// server — rather than hardcoded "backend server" like the original.
+///
+/// PI-03: every connection error offers a "Why can't I reach it?" action that
+/// opens the help screen. Callers can pass [onHelp] to override it (tests, or
+/// a screen with a more specific destination).
 class ConnectionErrorView extends StatelessWidget {
   const ConnectionErrorView({
     super.key,
     required this.onRetry,
     this.message =
         'Unable to reach the server.\nPlease check your connection and try again.',
+    this.onHelp,
   });
 
   final VoidCallback onRetry;
   final String message;
+  final VoidCallback? onHelp;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +57,12 @@ class ConnectionErrorView extends StatelessWidget {
           FilledButton(
             onPressed: onRetry,
             child: const Text('Retry Connection'),
+          ),
+          TextButton.icon(
+            onPressed: onHelp ?? () => context.push(AppRoutes.connectionHelp),
+            style: TextButton.styleFrom(minimumSize: const Size(0, 48)),
+            icon: const Icon(Icons.help_outline_rounded),
+            label: const Text("Why can't I reach it?"),
           ),
         ],
       ),

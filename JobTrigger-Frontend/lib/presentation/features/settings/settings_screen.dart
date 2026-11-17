@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/error_message.dart';
 import '../../../core/error/result.dart';
+import '../../../data/cache/server_safety_store.dart';
+import '../../../domain/safety/server_safety.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../domain/credential/server_url.dart';
@@ -13,6 +15,7 @@ import '../../../domain/credential/github_credential.dart';
 import '../../../domain/credential/jenkins_server.dart';
 import '../../../domain/credential/token_hygiene.dart';
 import '../home/server_status_provider.dart';
+import '../../../domain/jenkins/build_watch.dart';
 import '../../../domain/jenkins/server_status.dart';
 import '../../../core/config/app_config.dart';
 import '../../../domain/credential/sonarqube_credential.dart';
@@ -25,6 +28,7 @@ import '../tool_selection/active_tool_notifier.dart';
 import '../tool_selection/ci_tool.dart';
 import '../../../data/credentials/active_github_credential_notifier.dart';
 import '../notifications/build_watch_notifier.dart';
+import '../notifications/watch_rule_sheet.dart';
 import '../../../data/credentials/active_server_notifier.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../../data/credentials/credentials_notifier.dart';
@@ -351,6 +355,7 @@ class _ServerTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final safety = ref.watch(serverSafetyNotifierProvider);
     return Dismissible(
       key: ValueKey(server.id),
       direction: DismissDirection.endToStart,
@@ -369,6 +374,10 @@ class _ServerTile extends ConsumerWidget {
         isActive: isActive,
         locked: server.locked,
         title: server.serverName,
+        readOnly: safety.isReadOnly(SafetyTool.jenkins, server.id),
+        onReadOnlyChanged: (value) => ref
+            .read(serverSafetyNotifierProvider.notifier)
+            .setReadOnly(SafetyTool.jenkins, server.id, value),
         onActivate: () => _setActiveServer(ref, server),
         onEdit: () async {
           // P14-22: the sheet's own "Delete server" ends the same way a
@@ -471,6 +480,7 @@ class _GitHubCredentialTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final safety = ref.watch(serverSafetyNotifierProvider);
     return Dismissible(
       key: ValueKey(credential.id),
       direction: DismissDirection.endToStart,
@@ -489,6 +499,10 @@ class _GitHubCredentialTile extends ConsumerWidget {
         isActive: isActive,
         locked: credential.locked,
         title: credential.label,
+        readOnly: safety.isReadOnly(SafetyTool.githubActions, credential.id),
+        onReadOnlyChanged: (value) => ref
+            .read(serverSafetyNotifierProvider.notifier)
+            .setReadOnly(SafetyTool.githubActions, credential.id, value),
         onActivate: () => _setActiveCredential(ref, credential),
         onEdit: () async {
           final delete = await showGitHubCredentialEditBottomSheet(
@@ -583,6 +597,7 @@ class _SonarQubeCredentialTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final safety = ref.watch(serverSafetyNotifierProvider);
     return Dismissible(
       key: ValueKey(credential.id),
       direction: DismissDirection.endToStart,
@@ -601,6 +616,10 @@ class _SonarQubeCredentialTile extends ConsumerWidget {
         isActive: isActive,
         locked: credential.locked,
         title: credential.label,
+        readOnly: safety.isReadOnly(SafetyTool.sonarqube, credential.id),
+        onReadOnlyChanged: (value) => ref
+            .read(serverSafetyNotifierProvider.notifier)
+            .setReadOnly(SafetyTool.sonarqube, credential.id, value),
         onActivate: () => _setActiveCredential(ref, credential),
         onEdit: () async {
           final delete = await showSonarQubeCredentialEditBottomSheet(
@@ -745,16 +764,25 @@ class _WatchesSection extends ConsumerWidget {
                   leading: const Icon(Icons.notifications_active_outlined),
                   title: Text(watch.jobLabel),
                   subtitle: Text(
-                    watch.isJobWatch
-                        ? 'Every build'
-                        : 'Build #${watch.buildNumber}',
+                    '${watch.isJobWatch ? 'Every build' : 'Build #${watch.buildNumber}'}'
+                    ' · ${watch.rule.label}',
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.close_rounded),
-                    tooltip: 'Stop notifying',
-                    onPressed: () => ref
-                        .read(buildWatchNotifierProvider.notifier)
-                        .unwatch(watch),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.tune_rounded),
+                        tooltip: 'Notification rule',
+                        onPressed: () => _editRule(context, ref, watch),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        tooltip: 'Stop notifying',
+                        onPressed: () => ref
+                            .read(buildWatchNotifierProvider.notifier)
+                            .unwatch(watch),
+                      ),
+                    ],
                   ),
                 ),
             ],
@@ -767,6 +795,17 @@ class _WatchesSection extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  /// PI-07: change which finished builds this watch notifies about.
+  Future<void> _editRule(
+    BuildContext context,
+    WidgetRef ref,
+    BuildWatch watch,
+  ) async {
+    final rule = await showWatchRuleSheet(context, current: watch.rule);
+    if (rule == null || !context.mounted) return;
+    await ref.read(buildWatchNotifierProvider.notifier).setRule(watch, rule);
   }
 }
 
@@ -781,6 +820,8 @@ class _CredentialRow extends StatelessWidget {
     required this.onActivate,
     required this.onEdit,
     this.details = const [],
+    this.readOnly,
+    this.onReadOnlyChanged,
   });
 
   final bool isActive;
@@ -792,6 +833,10 @@ class _CredentialRow extends StatelessWidget {
   final VoidCallback onActivate;
   final VoidCallback onEdit;
   final List<Widget> details;
+
+  /// PI-01/IMP-25: local read-only toggle. Null hides the switch entirely.
+  final bool? readOnly;
+  final ValueChanged<bool>? onReadOnlyChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -865,6 +910,15 @@ class _CredentialRow extends StatelessWidget {
             ),
           ),
         ),
+        if (readOnly != null)
+          Semantics(
+            label: 'Read-only for $title',
+            child: Switch(
+              key: Key('read_only_$title'),
+              value: readOnly!,
+              onChanged: onReadOnlyChanged,
+            ),
+          ),
         IconButton(
           icon: const Icon(Icons.edit_outlined, size: 20),
           tooltip: 'Edit $title',

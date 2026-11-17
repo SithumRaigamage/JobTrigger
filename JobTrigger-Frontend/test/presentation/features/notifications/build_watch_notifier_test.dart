@@ -56,6 +56,13 @@ class _Notifications implements NotificationService {
   Future<bool> requestPermission() async => granted;
 
   @override
+  Future<void> showAlert({
+    required int id,
+    required String title,
+    required String body,
+  }) async {}
+
+  @override
   Future<void> show(BuildNotification notification) async {}
 }
 
@@ -66,7 +73,10 @@ class _Scheduler implements BackgroundWatchScheduler {
   final synced = <bool>[];
 
   @override
-  Future<void> sync({required bool hasWatches}) async => synced.add(hasWatches);
+  Future<void> sync({
+    required bool hasWatches,
+    bool hasGateWatches = false,
+  }) async => synced.add(hasWatches);
 }
 
 const _job = JenkinsJob(
@@ -171,6 +181,20 @@ void main() {
     expect(c.read(buildWatchNotifierProvider), isEmpty);
     expect(await BuildWatchStore().load(), isEmpty);
     expect(scheduler.synced.last, isFalse);
+  });
+
+  test('changing a rule persists it without losing the watch (PI-07)', () async {
+    final c = await container();
+    final notifier = c.read(buildWatchNotifierProvider.notifier);
+    await notifier.watchJob(_job);
+    final watch = c.read(buildWatchNotifierProvider).single;
+
+    await notifier.setRule(watch, WatchRule.failuresOnly);
+
+    final updated = c.read(buildWatchNotifierProvider).single;
+    expect(updated.rule, WatchRule.failuresOnly);
+    expect(updated.lastNotified, 9);
+    expect((await BuildWatchStore().load()).single.rule, WatchRule.failuresOnly);
   });
 
   test('restores saved watches on start', () async {

@@ -201,13 +201,56 @@ Router restarts and different networks change the Mac's IP. Then:
 
 Check the current address any time with `ipconfig getifaddr en0`.
 
+### 6.1 Home Wi-Fi and your iPhone's Personal Hotspot
+
+Development works with the Mac on your home Wi-Fi **and** on your iPhone's
+**Personal Hotspot** (over Wi-Fi or the USB cable), with the same install
+and the same saved servers. The trick is the Mac's **name** instead of its
+address: the IP changes between networks (`192.168.1.x` at home,
+`172.20.10.x` on the hotspot), the name doesn't. Find it on the Mac in
+**System Settings → General → Sharing → Local hostname**, e.g.
+`Sithums-MacBook-Pro.local`. Development only: release builds don't change.
+
+**Once (on the Mac):**
+
+1. **MongoDB Atlas must accept mobile data.** On the hotspot the backend
+   reaches Atlas over your phone's mobile data, whose public address keeps
+   changing. In the **development** Atlas project: **Security → Network
+   Access → Add IP Address → Allow Access from Anywhere** (`0.0.0.0/0`).
+   The database password still protects it. Never do this for production.
+2. **Jenkins (and SonarQube) must listen on the network**, not only
+   `127.0.0.1` (section 5.1; in the DevOps lab, `JENKINS_BIND=0.0.0.0` and
+   `SONAR_BIND=0.0.0.0`).
+3. **Jenkins URL** (5.3) = `http://<Mac name>.local:8080/`.
+4. Run `scripts/run-on-iphone.sh`. It prints
+   `✓ Using the Mac's name <Mac name>.local` and builds the app with it.
+
+**Once (on the iPhone):**
+
+1. In Safari, open `http://<Mac name>.local:5001/healthz`, once on your
+   Wi-Fi and once with the Mac on the hotspot. Both must load.
+2. In the app: **Settings** tab → **Jenkins servers** → tap your server →
+   change **Server URL** to `http://<Mac name>.local:8080` (or **Add** it
+   that way).
+
+**After that:** switch the Mac between your Wi-Fi and the hotspot and keep
+using the app. No re-run and no server switching. Run the script again only
+when you want a new build.
+
+**If Safari can't open the name on one network** (some routers block the
+name lookup), fall back to raw addresses: `USE_IP=1
+scripts/run-on-iphone.sh` after each network switch, and save Jenkins twice
+in the app, as `Jenkins (home)` with the home IP and `Jenkins (hotspot)`
+with the `172.20.10.x` one. Switch on **Home** by tapping the server name
+at the top.
+
 ## 7. How long an install keeps working
 
 - **Away from the cable:** a profile build opens from the home screen
   without the Mac attached. A debug build may not, on recent iOS.
 - **Away from the Mac:** the app still needs the backend (and Jenkins) on
-  your Mac, running, with the phone on the **same Wi-Fi**. On mobile data
-  or another network it can't reach them.
+  your Mac, running, with the phone on the **same Wi-Fi**, or sharing
+  its **Personal Hotspot** with the Mac (6.1). Otherwise it can't reach them.
 - **Expiry:** with the paid team (`QRCA2Z2HYQ`) the install keeps opening
   for about a year. With a free (personal) Apple ID it stops opening after
   **7 days**; run `scripts/run-on-iphone.sh` again to reinstall.
@@ -219,7 +262,10 @@ Check the current address any time with `ipconfig getifaddr en0`.
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
-| Script: "No Wi-Fi address found" | The Mac isn't on Wi-Fi (or uses another interface) | Join the Wi-Fi, or `BACKEND_HOST=<IP> scripts/run-on-iphone.sh` |
+| Script: "No network address found" | The Mac isn't on Wi-Fi or the hotspot | Join one, or `BACKEND_HOST=<IP> scripts/run-on-iphone.sh` |
+| On the hotspot: "The backend doesn't answer", backend log says `Server selection timed out` | Atlas doesn't accept mobile data's address | 6.1, step 1 (Network Access) |
+| On one network the app can't reach Jenkins | The saved server uses an IP, not the Mac's name | Edit the server to `http://<Mac name>.local:8080` (6.1) |
+| Safari can't open `http://<Mac name>.local:5001/healthz` | The network blocks name lookups | `USE_IP=1` fallback (end of 6.1) |
 | Script: "The backend doesn't answer" | Backend not started, or crashed | `./setup-dev.sh` in another terminal; read its last line |
 | Script: "No iPhone found" | Locked, untrusted, not paired for development, or Developer Mode off | Step 1; then `flutter devices` should list it |
 | `flutter devices`: "not paired with this Mac for development" (code -29) | "Trust This Computer" was done, but not Xcode's pairing | Step 1.2. Still stuck? On the phone: **Settings → General → Transfer or Reset iPhone → Reset → Reset Location & Privacy** (privacy settings and trusted computers only, not your data), replug, **Trust**, pair again |

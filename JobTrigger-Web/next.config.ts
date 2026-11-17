@@ -25,8 +25,9 @@ const nextConfig: NextConfig = {
   experimental: { serverActions: { bodySizeLimit: "8mb" } },
   turbopack: {
     // End-to-end builds only (playwright.config.ts): the specs add GitHub and
-    // SonarQube servers, which release 1.0's manifest hides, so they build
-    // against an all-tools manifest. A normal build never sets this.
+    // SonarQube servers and run against a fixed all-tools manifest,
+    // independent of what the shipped release happens to hide. A normal build
+    // never sets this.
     ...(process.env.E2E_ALL_TOOLS === "1"
       ? { resolveAlias: { "@/content/tools.json": "./tests/e2e/all-tools.json" } }
       : {}),

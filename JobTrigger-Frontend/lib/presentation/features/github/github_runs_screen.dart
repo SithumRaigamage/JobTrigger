@@ -6,11 +6,16 @@ import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../data/cache/server_safety_store.dart';
+import '../../../data/credentials/active_github_credential_notifier.dart';
+import '../../../domain/safety/server_safety.dart';
 import '../../../domain/github/github_repo.dart';
 import '../../../domain/github/github_workflow.dart';
 import '../../../domain/github/github_workflow_run.dart';
 import '../../../domain/jenkins/relative_time.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/data_freshness.dart';
+import '../../common_widgets/read_only_notice.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_pill.dart';
@@ -42,6 +47,15 @@ class GitHubRunsScreen extends ConsumerWidget {
       workflow.id,
     );
     final runsAsync = ref.watch(provider);
+    // PI-01/02: GitHub write actions follow the active credential's local
+    // read-only flag; a protected workflow asks for the typed name.
+    final workflowKey = '${repo.fullName}/${workflow.id}';
+    final safety = ref.watch(serverSafetyNotifierProvider);
+    final activeCredential = ref.watch(activeGitHubCredentialNotifierProvider);
+    final readOnly = activeCredential != null &&
+        safety.isReadOnly(SafetyTool.githubActions, activeCredential.id);
+    final protectedWorkflow =
+        safety.isProtected(SafetyTool.githubActions, workflowKey);
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
 
@@ -54,13 +68,34 @@ class GitHubRunsScreen extends ConsumerWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    icon: const Icon(Icons.chevron_left_rounded, size: 28),
-                    tooltip: 'Back',
-                    onPressed: () => context.pop(),
-                  ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left_rounded, size: 28),
+                      tooltip: 'Back',
+                      onPressed: () => context.pop(),
+                    ),
+                    const Spacer(),
+                    // PI-02/IMP-24: protect this workflow locally so both
+                    // dispatch and cancel require the typed name.
+                    IconButton(
+                      icon: Icon(
+                        protectedWorkflow
+                            ? Icons.lock_rounded
+                            : Icons.lock_outline_rounded,
+                      ),
+                      tooltip: protectedWorkflow
+                          ? 'Unprotect this workflow'
+                          : 'Protect this workflow',
+                      onPressed: () => ref
+                          .read(serverSafetyNotifierProvider.notifier)
+                          .setProtected(
+                            SafetyTool.githubActions,
+                            workflowKey,
+                            !protectedWorkflow,
+                          ),
+                    ),
+                  ],
                 ),
               ),
               Padding(
@@ -81,18 +116,27 @@ class GitHubRunsScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    if (readOnly) ...[
+                      const ReadOnlyNotice(toolLabel: 'GitHub account'),
+                      const SizedBox(height: 12),
+                    ],
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: [
                         FilledButton.icon(
-                          onPressed: () => showGitHubTriggerSheet(
-                            context,
-                            repo: repo,
-                            workflow: workflow,
-                          ),
+                          onPressed: readOnly
+                              ? null
+                              : () => showGitHubTriggerSheet(
+                                context,
+                                repo: repo,
+                                workflow: workflow,
+                                requiredPhrase: protectedWorkflow
+                                    ? workflow.name
+                                    : null,
+                              ),
                           icon: const Icon(Icons.play_arrow_rounded),
-                          label: const Text('Run workflow'),
+                          label: Text(readOnly ? 'Read-only' : 'Run workflow'),
                         ),
                         OutlinedButton.icon(
                           onPressed: () => context.push(
@@ -105,6 +149,18 @@ class GitHubRunsScreen extends ConsumerWidget {
                       ],
                     ),
                   ],
+                ),
+              ),
+              // PI-05: when these runs were last loaded.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: DataFreshnessBanner(
+                  freshnessKey: gitHubRunsFreshnessKey(
+                    repo.owner,
+                    repo.name,
+                    workflow.id,
+                  ),
+                  showOffline: false,
                 ),
               ),
               Expanded(

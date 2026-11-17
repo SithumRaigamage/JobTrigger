@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/presentation/common_widgets/labeled_field.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
+import 'package:job_trigger/data/cache/server_safety_store.dart';
+import 'package:job_trigger/data/credentials/active_server_notifier.dart';
 import 'package:job_trigger/data/repositories/credentials_repository_impl.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/credential/credentials_repository.dart';
@@ -16,6 +18,7 @@ import 'package:job_trigger/domain/jenkins/parameter_definition.dart';
 import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
+import 'package:job_trigger/domain/safety/server_safety.dart';
 import 'package:job_trigger/presentation/features/job_detail/job_detail_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../support/fake_jenkins_repository.dart';
@@ -207,5 +210,54 @@ void main() {
       expect(find.textContaining('Last success'), findsNothing);
       expect(find.textContaining('Last failure'), findsNothing);
     },
+  );
+
+  testWidgets('PI-01: a read-only server disables the Jenkins write actions', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final repository = _RecordingRepository();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          jenkinsRepositoryProvider.overrideWithValue(repository),
+          credentialsRepositoryProvider.overrideWithValue(
+            _NoServersRepository(),
+          ),
+          activeServerNotifierProvider.overrideWith(_ActiveServer.new),
+          serverSafetyNotifierProvider.overrideWithValue(
+            const ServerSafety(readOnly: {'jenkins:s1'}),
+          ),
+        ],
+        child: const MaterialApp(home: JobDetailScreen(job: _job)),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.textContaining('read-only on this device'), findsWidgets);
+    expect(find.text('Read-only'), findsOneWidget);
+    // Both action-bar buttons are present but disabled while read-only.
+    expect(
+      tester.widget<OutlinedButton>(find.widgetWithText(OutlinedButton, 'Stop')).onPressed,
+      isNull,
+    );
+    final trigger = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Read-only'),
+    );
+    expect(trigger.onPressed, isNull);
+    expect(repository.triggerCalls, 0);
+  });
+}
+
+/// A Jenkins server id that matches the read-only flag seeded in the test.
+class _ActiveServer extends ActiveServerNotifier {
+  @override
+  JenkinsServer? build() => const JenkinsServer(
+    id: 's1',
+    serverName: 's1',
+    jenkinsURL: 'https://jenkins.test',
+    username: 'u',
+    secret: 's',
   );
 }

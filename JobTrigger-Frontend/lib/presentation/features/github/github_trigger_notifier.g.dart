@@ -63,7 +63,7 @@ final class GitHubTriggerNotifierProvider
 }
 
 String _$gitHubTriggerNotifierHash() =>
-    r'f1a42aa4c7568eda4d062829c359b152421f0411';
+    r'b1d8f2868f576ded9653bb33e254e1b59e71107d';
 
 /// Dispatches a workflow (`US-GH-RUN-02`), keyed by `(owner, repo,
 /// workflowId)`. GitHub's 204 carries no run id, so there is nothing to

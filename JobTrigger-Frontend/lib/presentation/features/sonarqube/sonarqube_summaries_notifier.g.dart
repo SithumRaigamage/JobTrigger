@@ -52,7 +52,7 @@ final class SonarQubeSummariesNotifierProvider
 }
 
 String _$sonarQubeSummariesNotifierHash() =>
-    r'd2e96a48049ed5700d033c52ab17520b53662b22';
+    r'532872697116b66840f4f4974fdfd1c162136f2f';
 
 /// Fetches summaries for whatever projects are on screen, once each, in
 /// batches. A failure leaves the projects as they were and can be retried.

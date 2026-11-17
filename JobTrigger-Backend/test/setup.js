@@ -9,7 +9,8 @@ process.env.LOGIN_EMAIL_RATE_LIMIT = '10000';
 process.env.SIGNUP_RATE_LIMIT = '10000';
 process.env.REFRESH_RATE_LIMIT = '10000';
 // Every test runs with every tool released (the shipped manifest is release
-// 1.0, Jenkins only), so tools a release hides stay tested. The suites about
+// 1.0 with Jenkins, SonarQube and GitHub Actions; GitLab/CircleCI are still
+// planned), so tools a release hides stay tested. The suites about
 // the release gate set their own manifest and restore this one.
 const releasedTools = require('../lib/releasedTools');
 releasedTools.useManifest(releasedTools.allToolsManifest());

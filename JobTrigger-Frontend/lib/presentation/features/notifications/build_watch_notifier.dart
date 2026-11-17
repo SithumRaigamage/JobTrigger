@@ -135,6 +135,15 @@ class BuildWatchNotifier extends _$BuildWatchNotifier {
     ],
   );
 
+  /// PI-07: change which finished builds [watch] notifies about, keeping
+  /// its identity, build number, and last-notified marker.
+  Future<void> setRule(BuildWatch watch, WatchRule rule) => _edit(
+    (watches) => [
+      for (final existing in watches)
+        if (existing.key == watch.key) existing.withRule(rule) else existing,
+    ],
+  );
+
   /// Applies [change] to what's stored now (the background task may have
   /// written since), not to this notifier's possibly older copy.
   Future<void> _edit(

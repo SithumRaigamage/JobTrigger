@@ -34,8 +34,11 @@ sealed class AppFailure {
           ),
           null => const UnknownFailure(),
         };
-      case DioExceptionType.cancel:
       case DioExceptionType.badCertificate:
+        // PI-03 / IMP-35: a certificate problem is a configuration issue,
+        // not an unknown error — the connection help explains the fix.
+        return const BadCertificateFailure();
+      case DioExceptionType.cancel:
       case DioExceptionType.transformTimeout:
       case DioExceptionType.unknown:
         return UnknownFailure(exception.message);
@@ -88,6 +91,9 @@ sealed class AppFailure {
   String get message => switch (this) {
     NetworkFailure() =>
       "Can't reach the server. Check your connection and try again.",
+    BadCertificateFailure() =>
+      'The server’s security certificate isn’t trusted. Check the address '
+          'and your device’s date and time.',
     AuthFailure() =>
       'Your credentials were rejected. Please check them and try again.',
     PermissionFailure() =>
@@ -116,6 +122,10 @@ sealed class AppFailure {
     SonarQubeAccessDeniedFailure() =>
       "Your SonarQube user isn't allowed to see this. Use a token for a user "
           'who can browse the projects, then try again.',
+    SonarQubeWriteDeniedFailure() =>
+      "Your SonarQube user isn't allowed to make this change. The token's "
+          'user needs permission to administer issues (or review security '
+          'hotspots) on this project. Nothing was changed.',
     SonarQubeProjectNotFoundFailure() =>
       "SonarQube doesn't have that project any more. Go back and refresh "
           'the list.',
@@ -133,6 +143,14 @@ sealed class AppFailure {
 
 final class NetworkFailure extends AppFailure {
   const NetworkFailure();
+}
+
+/// PI-03 / IMP-35: the server's TLS certificate could not be verified.
+/// Split out of the generic `DioExceptionType.unknown` bucket so the
+/// connection-help screen can give certificate-specific advice. Expected,
+/// so crash reporting ignores it like the other configuration failures.
+final class BadCertificateFailure extends AppFailure {
+  const BadCertificateFailure();
 }
 
 /// Auth failure from a 401/403. Note: this is failure scoped to whichever
@@ -238,6 +256,14 @@ final class SonarQubeOrganizationNotFoundFailure extends AppFailure {
 /// SonarQube-only.
 final class SonarQubeAccessDeniedFailure extends AppFailure {
   const SonarQubeAccessDeniedFailure();
+}
+
+/// SonarQube answered 403 to a **change** (`US-SQ-WRITE-*`): the token is
+/// valid and the user may browse, but may not modify issues or review
+/// hotspots on this project. Distinct from [SonarQubeAccessDeniedFailure],
+/// whose copy is about browsing. SonarQube-only.
+final class SonarQubeWriteDeniedFailure extends AppFailure {
+  const SonarQubeWriteDeniedFailure();
 }
 
 /// SonarQube answered 404 for a project that was in the list: it was

@@ -42,4 +42,28 @@ void main() {
       'https://ci.test/jenkins/me/configure',
     );
   });
+
+  group('PI-09 token pages', () {
+    test('GitHub pre-fills the classic scopes JobTrigger needs', () {
+      final url = gitHubTokenPageUrl();
+      expect(url.host, 'github.com');
+      expect(url.path, '/settings/tokens/new');
+      expect(url.queryParameters['scopes'], 'repo,workflow');
+      expect(url.queryParameters['description'], 'JobTrigger');
+    });
+
+    test('SonarQube uses the user account security page', () {
+      expect(
+        sonarQubeTokenPageUrl('https://sonar.example.com/').toString(),
+        'https://sonar.example.com/user/account/security',
+      );
+    });
+
+    test('SonarCloud uses its own account security page', () {
+      expect(
+        sonarQubeTokenPageUrl('https://sonarcloud.io').toString(),
+        'https://sonarcloud.io/account/security',
+      );
+    });
+  });
 }

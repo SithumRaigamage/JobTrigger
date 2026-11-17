@@ -21,6 +21,7 @@ class ConsolePrefs {
     this.wrap = true,
     this.fontStep = 1,
     this.timestamps = false,
+    this.foldSections = true,
   });
 
   /// Wrap long lines (true) or scroll horizontally (false).
@@ -30,16 +31,24 @@ class ConsolePrefs {
   final int fontStep;
   final bool timestamps;
 
+  /// Collapse runs of near-identical lines into one summary row (NR-01).
+  final bool foldSections;
+
   static const fontSizes = [10.0, 12.0, 14.0];
 
   double get fontSize => fontSizes[fontStep.clamp(0, 2)];
 
-  ConsolePrefs copyWith({bool? wrap, int? fontStep, bool? timestamps}) =>
-      ConsolePrefs(
-        wrap: wrap ?? this.wrap,
-        fontStep: fontStep ?? this.fontStep,
-        timestamps: timestamps ?? this.timestamps,
-      );
+  ConsolePrefs copyWith({
+    bool? wrap,
+    int? fontStep,
+    bool? timestamps,
+    bool? foldSections,
+  }) => ConsolePrefs(
+    wrap: wrap ?? this.wrap,
+    fontStep: fontStep ?? this.fontStep,
+    timestamps: timestamps ?? this.timestamps,
+    foldSections: foldSections ?? this.foldSections,
+  );
 }
 
 @riverpod
@@ -47,6 +56,7 @@ class ConsolePrefsNotifier extends _$ConsolePrefsNotifier {
   static const _wrapKey = 'console_wrap';
   static const _fontKey = 'console_font_step';
   static const _timestampsKey = 'console_timestamps';
+  static const _foldsKey = 'console_folds';
 
   @override
   ConsolePrefs build() {
@@ -61,6 +71,7 @@ class ConsolePrefsNotifier extends _$ConsolePrefsNotifier {
       wrap: prefs.getBool(_wrapKey) ?? true,
       fontStep: prefs.getInt(_fontKey) ?? 1,
       timestamps: prefs.getBool(_timestampsKey) ?? false,
+      foldSections: prefs.getBool(_foldsKey) ?? true,
     );
   }
 
@@ -70,6 +81,7 @@ class ConsolePrefsNotifier extends _$ConsolePrefsNotifier {
     await prefs.setBool(_wrapKey, next.wrap);
     await prefs.setInt(_fontKey, next.fontStep);
     await prefs.setBool(_timestampsKey, next.timestamps);
+    await prefs.setBool(_foldsKey, next.foldSections);
   }
 }
 

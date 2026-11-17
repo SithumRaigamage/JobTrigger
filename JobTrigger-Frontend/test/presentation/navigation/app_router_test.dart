@@ -24,6 +24,9 @@ import 'package:job_trigger/presentation/features/home/home_screen.dart';
 import 'package:job_trigger/data/credentials/active_github_credential_notifier.dart';
 import 'package:job_trigger/data/credentials/active_server_notifier.dart';
 import 'package:job_trigger/data/credentials/credentials_notifier.dart';
+import 'package:job_trigger/data/credentials/github_credentials_notifier.dart';
+import 'package:job_trigger/data/credentials/sonarqube_credentials_notifier.dart';
+import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
 import 'package:job_trigger/presentation/features/tool_selection/active_tool_notifier.dart';
 import 'package:job_trigger/presentation/features/tool_selection/ci_tool.dart';
 import 'package:job_trigger/presentation/navigation/app_router.dart';
@@ -165,8 +168,8 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           jenkinsRepositoryProvider.overrideWithValue(repo),
-          // Home's server chip reads the saved servers (P19-07).
-          credentialsNotifierProvider.overrideWith(_NoCredentials.new),
+          // Home's server chip and first-run card read the saved tools (P19-07, PI-08).
+          ..._noCredentialsOverrides,
           // No 30 s timer left pending when the test ends.
           reachabilityWatcherProvider.overrideWith((ref) {}),
         ],
@@ -264,6 +267,8 @@ void main() {
           gitHubRepositoryProvider.overrideWithValue(
             _FakeGitHubRepository([repo], [workflow]),
           ),
+          ..._noCredentialsOverrides,
+          reachabilityWatcherProvider.overrideWith((ref) {}),
         ],
       );
       addTearDown(container.dispose);
@@ -321,10 +326,10 @@ void main() {
   testWidgets('an extra-only route opened from outside lands on Home', (
     tester,
   ) async {
-    // Home reads the saved servers (P19-02); none, rather than a real fetch
-    // that fails and leaves a retry timer behind.
+    // Home reads the saved servers (P19-02) and tools (PI-08); none,
+    // rather than a real fetch that fails and leaves a retry timer behind.
     final container = ProviderContainer(
-      overrides: [credentialsNotifierProvider.overrideWith(_NoCredentials.new)],
+      overrides: [..._noCredentialsOverrides],
     );
     addTearDown(container.dispose);
     container.listen(authNotifierProvider, (_, _) {});
@@ -362,9 +367,112 @@ void main() {
     expect(find.text('That link didn’t lead anywhere'), findsOneWidget);
     expect(find.text('Go to Home'), findsOneWidget);
   });
+
+  // US-SQ-LINK-02: jobtrigger://app/sonarqube/project?key=KEY.
+  testWidgets('a SonarQube project link needs a valid key, else Home', (
+    tester,
+  ) async {
+    final container = ProviderContainer(
+      overrides: [..._noCredentialsOverrides],
+    );
+    addTearDown(container.dispose);
+    container.listen(authNotifierProvider, (_, _) {});
+    await container
+        .read(authNotifierProvider.notifier)
+        .setSession(const User(id: 'u1', email: 'a@b.com'), 'jwt-abc');
+    final router = container.read(appRouterProvider);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // No SonarQube credential: the link says what is missing.
+    router.go('${AppRoutes.sonarqubeProject}?key=acme:api');
+    await tester.pumpAndSettle();
+    expect(
+      router.routerDelegate.currentConfiguration.uri.path,
+      AppRoutes.sonarqubeOpenLink,
+    );
+    expect(find.text('No SonarQube credential'), findsOneWidget);
+
+    // A key that isn't a key never reaches the lookup.
+    for (final bad in ['', '?key=a%20b', '?key=http://evil.example']) {
+      router.go('${AppRoutes.sonarqubeProject}$bad');
+      await tester.pumpAndSettle();
+      expect(
+        router.routerDelegate.currentConfiguration.uri.path,
+        AppRoutes.home,
+        reason: bad,
+      );
+    }
+  });
+
+  testWidgets(
+    'a pairing link opened while signed out is restored after sign-in (NR-03)',
+    (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          jenkinsRepositoryProvider.overrideWithValue(
+            _FakeJenkinsRepository(const []),
+          ),
+          ..._noCredentialsOverrides,
+          reachabilityWatcherProvider.overrideWith((ref) {}),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(authNotifierProvider, (_, _) {});
+
+      final router = container.read(appRouterProvider);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Signed out, the link can only land on /login -- and must be kept.
+      const link =
+          '/pair?url=http%3A%2F%2Fjenkins.test%3A8080&name=CI&username=admin';
+      router.go(link);
+      await tester.pumpAndSettle();
+      expect(
+        router.routerDelegate.currentConfiguration.uri.path,
+        AppRoutes.login,
+      );
+
+      await container
+          .read(authNotifierProvider.notifier)
+          .setSession(const User(id: 'u1', email: 'a@b.com'), 'jwt-abc');
+      await tester.pumpAndSettle();
+
+      final restored = router.routerDelegate.currentConfiguration.uri;
+      expect(restored.path, AppRoutes.pair);
+      expect(restored.queryParameters['name'], 'CI');
+    },
+  );
 }
 
 class _NoCredentials extends CredentialsNotifier {
   @override
   Future<List<JenkinsServer>> build() async => const [];
 }
+
+class _NoGitHubCredentials extends GitHubCredentialsNotifier {
+  @override
+  Future<List<GitHubCredential>> build() async => const [];
+}
+
+class _NoSonarQubeCredentials extends SonarQubeCredentialsNotifier {
+  @override
+  Future<List<SonarQubeCredential>> build() async => const [];
+}
+
+final _noCredentialsOverrides = [
+  credentialsNotifierProvider.overrideWith(_NoCredentials.new),
+  gitHubCredentialsNotifierProvider.overrideWith(_NoGitHubCredentials.new),
+  sonarQubeCredentialsNotifierProvider.overrideWith(_NoSonarQubeCredentials.new),
+];

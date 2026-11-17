@@ -229,3 +229,140 @@ abstract class _$SonarQubeMeasuresNotifier
     return element.handleCreate(ref, () => build(_$args));
   }
 }
+
+/// The branch and pull-request choices for a project (`US-SQ-QUALITY-10`).
+
+@ProviderFor(sonarQubeProjectRefs)
+final sonarQubeProjectRefsProvider = SonarQubeProjectRefsFamily._();
+
+/// The branch and pull-request choices for a project (`US-SQ-QUALITY-10`).
+
+final class SonarQubeProjectRefsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SonarQubeRefChoices>,
+          SonarQubeRefChoices,
+          FutureOr<SonarQubeRefChoices>
+        >
+    with
+        $FutureModifier<SonarQubeRefChoices>,
+        $FutureProvider<SonarQubeRefChoices> {
+  /// The branch and pull-request choices for a project (`US-SQ-QUALITY-10`).
+  SonarQubeProjectRefsProvider._({
+    required SonarQubeProjectRefsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'sonarQubeProjectRefsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$sonarQubeProjectRefsHash();
+
+  @override
+  String toString() {
+    return r'sonarQubeProjectRefsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<SonarQubeRefChoices> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SonarQubeRefChoices> create(Ref ref) {
+    final argument = this.argument as String;
+    return sonarQubeProjectRefs(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SonarQubeProjectRefsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$sonarQubeProjectRefsHash() =>
+    r'e8e8920d849c04787753abe74a7b87a381ca1e6a';
+
+/// The branch and pull-request choices for a project (`US-SQ-QUALITY-10`).
+
+final class SonarQubeProjectRefsFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SonarQubeRefChoices>, String> {
+  SonarQubeProjectRefsFamily._()
+    : super(
+        retry: null,
+        name: r'sonarQubeProjectRefsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// The branch and pull-request choices for a project (`US-SQ-QUALITY-10`).
+
+  SonarQubeProjectRefsProvider call(String projectKey) =>
+      SonarQubeProjectRefsProvider._(argument: projectKey, from: this);
+
+  @override
+  String toString() => r'sonarQubeProjectRefsProvider';
+}
+
+/// The server's version and status (`US-SQ-SERVER-01`), for telling a server
+/// problem from an app problem.
+
+@ProviderFor(sonarQubeServerInfo)
+final sonarQubeServerInfoProvider = SonarQubeServerInfoProvider._();
+
+/// The server's version and status (`US-SQ-SERVER-01`), for telling a server
+/// problem from an app problem.
+
+final class SonarQubeServerInfoProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SonarQubeServerInfo>,
+          SonarQubeServerInfo,
+          FutureOr<SonarQubeServerInfo>
+        >
+    with
+        $FutureModifier<SonarQubeServerInfo>,
+        $FutureProvider<SonarQubeServerInfo> {
+  /// The server's version and status (`US-SQ-SERVER-01`), for telling a server
+  /// problem from an app problem.
+  SonarQubeServerInfoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'sonarQubeServerInfoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$sonarQubeServerInfoHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<SonarQubeServerInfo> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SonarQubeServerInfo> create(Ref ref) {
+    return sonarQubeServerInfo(ref);
+  }
+}
+
+String _$sonarQubeServerInfoHash() =>
+    r'b0886c927a021c5c62835dfa8a18791e8a4340d3';

@@ -5,8 +5,18 @@ import '../../core/error/app_failure.dart';
 import '../../core/error/guard.dart';
 import '../../core/error/result.dart';
 import '../../domain/sonarqube/sonarqube_analysis.dart';
+import '../../domain/sonarqube/sonarqube_analysis_status.dart';
+import '../../domain/sonarqube/sonarqube_branch_ref.dart';
+import '../../domain/sonarqube/sonarqube_hotspot.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
+import '../../domain/sonarqube/sonarqube_issue_actions.dart';
+import '../../domain/sonarqube/sonarqube_issue_grouping.dart';
+import '../../domain/sonarqube/sonarqube_language_breakdown.dart';
+import '../../domain/sonarqube/sonarqube_measure_history.dart';
+import '../../domain/sonarqube/sonarqube_worst_files.dart';
+import '../../domain/sonarqube/sonarqube_measure_delta.dart';
 import '../../domain/sonarqube/sonarqube_metrics.dart';
+import '../../domain/sonarqube/sonarqube_server_info.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
 import '../../domain/sonarqube/sonarqube_project_summary.dart';
 import '../../domain/sonarqube/sonarqube_quality_gate.dart';
@@ -157,6 +167,148 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
     };
   }, recover: _projectRecover);
 
+  @override
+  Future<Result<SonarQubeProject, AppFailure>> fetchProjectByKey(
+    String projectKey,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/components/show',
+      queryParameters: {'component': projectKey},
+    );
+    final component = response.data?['component'] as Map<String, dynamic>?;
+    // Only a project qualifies: `components/show` also answers for a file or
+    // a directory key, which a project link must not open as a project.
+    if (component == null || component['qualifier'] != 'TRK') {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: Response<void>(
+          requestOptions: response.requestOptions,
+          statusCode: 404,
+        ),
+        type: DioExceptionType.badResponse,
+      );
+    }
+    return SonarQubeProject(
+      key: component['key'] as String? ?? projectKey,
+      name: (component['name'] as String?)?.isNotEmpty ?? false
+          ? component['name'] as String
+          : projectKey,
+      lastAnalysisDate: _sonarDate(component['analysisDate'] as String?),
+    );
+  }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeIssueDetail, AppFailure>> fetchIssueDetail(
+    String issueKey,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/issues/search',
+      queryParameters: {
+        'issues': issueKey,
+        'additionalFields': 'transitions,comments',
+        if (_organization != null) 'organization': _organization,
+      },
+    );
+    final issues = response.data?['issues'] as List<dynamic>? ?? const [];
+    if (issues.isEmpty) {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: Response<void>(
+          requestOptions: response.requestOptions,
+          statusCode: 404,
+        ),
+        type: DioExceptionType.badResponse,
+      );
+    }
+    final issue = issues.first as Map<String, dynamic>;
+    final assignee = issue['assignee'] as String?;
+    return SonarQubeIssueDetail(
+      status: issue['status'] as String? ?? '',
+      assignee: (assignee?.isEmpty ?? true) ? null : assignee,
+      transitions: [
+        ...(issue['transitions'] as List<dynamic>? ?? const []).cast<String>(),
+      ],
+      comments: [
+        for (final c
+            in (issue['comments'] as List<dynamic>? ?? const [])
+                .cast<Map<String, dynamic>>())
+          SonarQubeIssueComment(
+            login: c['login'] as String?,
+            text:
+                (c['markdown'] as String?) ?? (c['htmlText'] as String?) ?? '',
+            createdAt: _sonarDate(c['createdAt'] as String?),
+          ),
+      ],
+    );
+  }, recover: _projectRecover);
+
+  /// One form-encoded `POST`. Values travel in the body, never built into the
+  /// URL by hand (`US-SQ-WRITE-03`).
+  Future<Result<void, AppFailure>> _write(
+    String path,
+    Map<String, String> form,
+  ) => guardRequest(
+    () async {
+      await _dio.post<dynamic>(
+        path,
+        data: form,
+        options: Options(contentType: Headers.formUrlEncodedContentType),
+      );
+    },
+    recover: (exception) {
+      final status = exception.response?.statusCode;
+      if (status == 403) return const Err(SonarQubeWriteDeniedFailure());
+      // SonarQube explains a refused change itself, e.g. a transition that
+      // is not allowed from the issue's current state.
+      final errors = (exception.response?.data is Map<String, dynamic>)
+          ? (exception.response!.data as Map<String, dynamic>)['errors']
+          : null;
+      if ((status == 400 || status == 404 || status == 409) &&
+          errors is List &&
+          errors.isNotEmpty &&
+          errors.first is Map<String, dynamic>) {
+        final msg = (errors.first as Map<String, dynamic>)['msg'];
+        if (msg is String && msg.isNotEmpty) {
+          return Err(RejectedRequestFailure(msg));
+        }
+      }
+      return null;
+    },
+  );
+
+  @override
+  Future<Result<void, AppFailure>> assignIssue(
+    String issueKey,
+    String assignee,
+  ) => _write('/api/issues/assign', {'issue': issueKey, 'assignee': assignee});
+
+  @override
+  Future<Result<void, AppFailure>> transitionIssue(
+    String issueKey,
+    String transition,
+  ) => _write('/api/issues/do_transition', {
+    'issue': issueKey,
+    'transition': transition,
+  });
+
+  @override
+  Future<Result<void, AppFailure>> addIssueComment(
+    String issueKey,
+    String text,
+  ) => _write('/api/issues/add_comment', {'issue': issueKey, 'text': text});
+
+  @override
+  Future<Result<void, AppFailure>> reviewHotspot(
+    String hotspotKey,
+    SonarQubeHotspotReview review, {
+    String? comment,
+  }) => _write('/api/hotspots/change_status', {
+    'hotspot': hotspotKey,
+    'status': review.status,
+    'resolution': ?review.resolution,
+    if (comment != null && comment.trim().isNotEmpty) 'comment': comment.trim(),
+  });
+
   /// SonarQube-specific wording for the two refusals that mean something
   /// particular here, for calls about one project. Everything else keeps the
   /// shared mapping.
@@ -197,15 +349,25 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
   @override
   Future<Result<Map<String, String>, AppFailure>> fetchMeasures(
     String projectKey,
+  ) => _measureMap(projectKey, [
+    ...sonarQubeMeasureKeys,
+    ...sonarQubeExtraMeasureKeys,
+    // US-SQ-QUALITY-13: the same call, so a server without it costs nothing.
+    sonarQubeLanguageMetricKey,
+  ]);
+
+  /// One `api/measures/component` call for [metricKeys] (`US-SQ-QUALITY-02`,
+  /// and the new-code set in `US-SQ-QUALITY-08`). A metric the server did
+  /// not compute is absent, never zero.
+  Future<Result<Map<String, String>, AppFailure>> _measureMap(
+    String projectKey,
+    List<String> metricKeys,
   ) => guardRequest(() async {
     final response = await _dio.get<Map<String, dynamic>>(
       '/api/measures/component',
       queryParameters: {
         'component': projectKey,
-        'metricKeys': [
-          ...sonarQubeMeasureKeys,
-          ...sonarQubeExtraMeasureKeys,
-        ].join(','),
+        'metricKeys': metricKeys.join(','),
       },
     );
     final component = response.data?['component'] as Map<String, dynamic>?;
@@ -216,11 +378,15 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
     };
   }, recover: _projectRecover);
 
+  static DateTime? _sonarDate(String? raw) =>
+      raw == null ? null : DateTime.tryParse(raw);
+
   @override
   Future<Result<SonarQubeIssuePage, AppFailure>> fetchIssues(
     String projectKey, {
     SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
     int page = 1,
+    SonarQubeIssueGrouping grouping = SonarQubeIssueGrouping.none,
   }) => guardRequest(() async {
     // Order matters only for a stable request; the server treats these as
     // sets.
@@ -234,6 +400,7 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
         'componentKeys': projectKey,
         'resolved': 'false',
         'ps': sonarQubeIssuesPageSize,
+        if (grouping.isGrouped) 'facets': grouping.facet,
         'p': page,
         if (filter.types.isNotEmpty)
           'types': join(filter.types, sonarQubeIssueTypes),
@@ -248,6 +415,7 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
         issues.length;
     return SonarQubeIssuePage(
       total: total,
+      groups: sonarQubeIssueGroups(data['facets'], grouping),
       issues: [
         for (final i in issues.cast<Map<String, dynamic>>())
           SonarQubeIssue(
@@ -274,6 +442,403 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
       ],
     );
   }, recover: _projectRecover);
+
+  /// Project keys → names for the cross-project issue list
+  /// (`US-SQ-ISSUES-01`): **one** request for the whole page, or none at all
+  /// when every name is already cached. A failure leaves the names out and
+  /// the rows show the project keys — a nicety, never an error.
+  final Map<String, String> _projectNames = {};
+
+  Future<Map<String, String>> _resolveProjectNames(Set<String> keys) async {
+    final wanted = [
+      for (final key in keys)
+        if (key.isNotEmpty && !_projectNames.containsKey(key)) key,
+    ];
+    if (wanted.isNotEmpty) {
+      try {
+        // `projects` filters the same endpoint the overview already uses, so
+        // one call names every project on the page.
+        final response = await _dio.get<Map<String, dynamic>>(
+          '/api/components/search_projects',
+          queryParameters: {
+            'projects': wanted.join(','),
+            'ps': wanted.length,
+            if (_organization != null) 'organization': _organization,
+          },
+        );
+        final components =
+            (response.data?['components'] as List<dynamic>? ?? const [])
+                .cast<Map<String, dynamic>>();
+        for (final component in components) {
+          final key = component['key'] as String?;
+          final name = component['name'] as String?;
+          if (key != null && name != null && name.isNotEmpty) {
+            _projectNames[key] = name;
+          }
+        }
+      } on DioException {
+        // The list still works with keys alone.
+      }
+    }
+    return {
+      for (final key in keys)
+        if (_projectNames[key] != null) key: _projectNames[key]!,
+    };
+  }
+
+  @override
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchMyIssues({
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  }) => _searchAcrossProjects(filter: filter, page: page, assignedToMe: true);
+
+  @override
+  Future<Result<SonarQubeIssuePage, AppFailure>> searchIssues(
+    String term, {
+    SonarQubeIssueSearchField field = SonarQubeIssueSearchField.rule,
+    SonarQubeIssueFilter filter = const SonarQubeIssueFilter(),
+    int page = 1,
+  }) => _searchAcrossProjects(
+    filter: filter,
+    page: page,
+    search: (field, term.trim()),
+  );
+
+  /// The one `api/issues/search` call with no `componentKeys`, shared by
+  /// "My issues" (`US-SQ-ISSUES-01`) and the text/rule search
+  /// (`US-SQ-ISSUES-03`).
+  Future<Result<SonarQubeIssuePage, AppFailure>> _searchAcrossProjects({
+    required SonarQubeIssueFilter filter,
+    required int page,
+    bool assignedToMe = false,
+    (SonarQubeIssueSearchField, String)? search,
+  }) => guardRequest(() async {
+    String join(Set<String> values, List<String> order) => ([
+      ...order.where(values.contains),
+      ...values.where((v) => !order.contains(v)),
+    ]).join(',');
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/issues/search',
+      queryParameters: {
+        // `__me__` is SonarQube's own shorthand for the token's user.
+        if (assignedToMe) 'assignees': '__me__',
+        if (search != null && search.$2.isNotEmpty) search.$1.param: search.$2,
+        'resolved': 'false',
+        'ps': sonarQubeIssuesPageSize,
+        'p': page,
+        if (_organization != null) 'organization': _organization,
+        if (filter.types.isNotEmpty)
+          'types': join(filter.types, sonarQubeIssueTypes),
+        if (filter.severities.isNotEmpty)
+          'severities': join(filter.severities, sonarQubeIssueSeverities),
+      },
+    );
+    final data = response.data ?? const <String, dynamic>{};
+    final raw = (data['issues'] as List<dynamic>? ?? const [])
+        .cast<Map<String, dynamic>>();
+    final names = await _resolveProjectNames({
+      for (final i in raw) i['project'] as String? ?? '',
+    });
+    final total =
+        (data['paging'] as Map<String, dynamic>?)?['total'] as int? ??
+        raw.length;
+    return SonarQubeIssuePage(
+      total: total,
+      issues: [
+        for (final i in raw)
+          SonarQubeIssue(
+            key: i['key'] as String? ?? '',
+            type: i['type'] as String? ?? '',
+            severity: i['severity'] as String? ?? '',
+            message: i['message'] as String? ?? '',
+            file: _fileOf(
+              i['component'] as String?,
+              i['project'] as String? ?? '',
+            ),
+            line: i['line'] as int?,
+            component: i['component'] as String?,
+            rule: i['rule'] as String?,
+            effort: i['effort'] as String?,
+            tags: [...(i['tags'] as List<dynamic>? ?? const []).cast<String>()],
+            author: (i['author'] as String?)?.isEmpty ?? true
+                ? null
+                : i['author'] as String?,
+            status: i['status'] as String?,
+            creationDate: _sonarDate(i['creationDate'] as String?),
+            project: i['project'] as String?,
+            projectName: names[i['project'] as String?],
+          ),
+      ],
+    );
+  }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeAnalysisStatus, AppFailure>> fetchAnalysisStatus(
+    String projectKey,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/ce/component',
+      queryParameters: {'component': projectKey},
+    );
+    final data = response.data ?? const <String, dynamic>{};
+    SonarQubeCeTask? task(Map<String, dynamic>? raw) => raw == null
+        ? null
+        : SonarQubeCeTask(
+            status: raw['status'] as String? ?? '',
+            type: raw['type'] as String?,
+            submittedAt: _sonarDate(raw['submittedAt'] as String?),
+            executedAt: _sonarDate(raw['executedAt'] as String?),
+            errorMessage: (raw['errorMessage'] as String?)?.isEmpty ?? true
+                ? null
+                : raw['errorMessage'] as String?,
+          );
+    final queue = <SonarQubeCeTask>[];
+    for (final t
+        in (data['queue'] as List<dynamic>? ?? const [])
+            .cast<Map<String, dynamic>>()) {
+      final parsed = task(t);
+      if (parsed != null) queue.add(parsed);
+    }
+    return SonarQubeAnalysisStatus(
+      current: task(data['current'] as Map<String, dynamic>?),
+      queue: queue,
+    );
+  }, recover: _projectRecover);
+
+  @override
+  Future<Result<Map<String, String>, AppFailure>> fetchNewCodeMeasures(
+    String projectKey,
+  ) => _measureMap(projectKey, sonarQubeNewCodeMetricKeys);
+
+  @override
+  Future<Result<List<SonarQubeMeasureDelta>, AppFailure>> fetchMeasureDeltas(
+    String projectKey, {
+    List<String> metricKeys = sonarQubeMeasureKeys,
+  }) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/measures/search_history',
+      queryParameters: {
+        'component': projectKey,
+        'metrics': metricKeys.join(','),
+        'ps': 2,
+      },
+    );
+    final measures = (response.data?['measures'] as List<dynamic>? ?? const [])
+        .cast<Map<String, dynamic>>();
+    final deltas = <SonarQubeMeasureDelta>[];
+    for (final m in measures) {
+      // ps=2 gives the newest point first; one point is not a change.
+      final history = (m['history'] as List<dynamic>? ?? const [])
+          .cast<Map<String, dynamic>>();
+      if (history.length < 2) continue;
+      final delta = sonarQubeMeasureDelta(
+        m['metric'] as String? ?? '',
+        history[1]['value'] as String?,
+        history[0]['value'] as String?,
+      );
+      if (delta != null) deltas.add(delta);
+    }
+    return deltas;
+  }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeServerInfo, AppFailure>> fetchServerInfo() =>
+      guardRequest(() async {
+        final version = await _dio.get<dynamic>('/api/server/version');
+        final status = await _dio.get<Map<String, dynamic>>(
+          '/api/system/status',
+        );
+        return SonarQubeServerInfo(
+          version: '${version.data ?? ''}'.trim(),
+          status: '${status.data?['status'] ?? ''}'.trim(),
+        );
+      }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeRefChoices, AppFailure>> fetchProjectRefs(
+    String projectKey,
+  ) => guardRequest(() async {
+    // A Community Build has no such endpoints; a missing list is simply no
+    // choice, which is how the picker stays hidden there.
+    Future<Object?> list(String path) async {
+      try {
+        final response = await _dio.get<Map<String, dynamic>>(
+          path,
+          queryParameters: {'project': projectKey},
+        );
+        return response.data;
+      } on DioException {
+        return null;
+      }
+    }
+
+    return parseSonarQubeRefs(
+      branches: await list('/api/project_branches/list'),
+      pullRequests: await list('/api/project_pull_requests/list'),
+    );
+  }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeWorstFiles, AppFailure>> fetchWorstFiles(
+    String projectKey,
+    SonarQubeFileMetric metric,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/measures/component_tree',
+      queryParameters: {
+        'component': projectKey,
+        'metricKeys': metric.metric,
+        'strategy': 'leaves',
+        'qualifiers': 'FIL',
+        's': 'metric',
+        'metricSort': metric.metric,
+        'asc': metric.lowestFirst,
+        'ps': sonarQubeWorstFilesLimit,
+      },
+    );
+    final components =
+        (response.data?['components'] as List<dynamic>? ?? const [])
+            .cast<Map<String, dynamic>>();
+    return SonarQubeWorstFiles(
+      metric: metric.metric,
+      unit: metric.unit,
+      files: [
+        for (final component in components)
+          SonarQubeFileMeasures(
+            path: _fileOf(component['key'] as String?, projectKey) ?? '',
+            value: _measureValue(component),
+          ),
+      ],
+    );
+  }, recover: _projectRecover);
+
+  /// The first measure's `value` (period values are ignored).
+  static num? _measureValue(Map<String, dynamic> component) {
+    final measures = component['measures'] as List<dynamic>? ?? const [];
+    if (measures.isEmpty) return null;
+    final value = (measures.first as Map<String, dynamic>)['value'];
+    return value == null ? null : num.tryParse(value as String);
+  }
+
+  @override
+  // A component key is what `componentKeys` takes, so the file's own issues
+  // come back through the same parsing as every other issue list.
+  Future<Result<SonarQubeIssuePage, AppFailure>> fetchFileIssues(
+    String componentKey,
+  ) => fetchIssues(componentKey);
+
+  @override
+  Future<Result<SonarQubeMeasureHistory, AppFailure>> fetchMeasureHistory(
+    String projectKey,
+    String metric,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/measures/search_history',
+      queryParameters: {'component': projectKey, 'metrics': metric, 'ps': 100},
+    );
+    final measures = response.data?['measures'] as List<dynamic>? ?? const [];
+    final history = measures.isEmpty
+        ? const <dynamic>[]
+        : ((measures.first as Map<String, dynamic>)['history']
+                      as List<dynamic>? ??
+                  const [])
+              .cast<Map<String, dynamic>>();
+    final metricDef = sonarQubeTrendMetrics.firstWhere(
+      (m) => m.metric == metric,
+      orElse: () => SonarQubeTrendMetric(metric, metric, ''),
+    );
+    return SonarQubeMeasureHistory(
+      metric: metric,
+      unit: metricDef.unit,
+      points: [
+        for (final point in history)
+          if (point['value'] != null &&
+              DateTime.tryParse(point['date'] as String? ?? '') != null)
+            SonarQubeMeasurePoint(
+              date: DateTime.parse(point['date'] as String),
+              value: num.parse(point['value'] as String),
+            ),
+      ]..sort((a, b) => a.date.compareTo(b.date)),
+    );
+  }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeHotspotPage, AppFailure>> fetchHotspots(
+    String projectKey, {
+    bool reviewed = false,
+    int page = 1,
+  }) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/hotspots/search',
+      queryParameters: {
+        'project': projectKey,
+        'status': reviewed ? 'REVIEWED' : 'TO_REVIEW',
+        'ps': sonarQubeHotspotsPageSize,
+        'p': page,
+      },
+    );
+    final data = response.data ?? const <String, dynamic>{};
+    final raw = (data['hotspots'] as List<dynamic>? ?? const [])
+        .cast<Map<String, dynamic>>();
+    final total =
+        (data['paging'] as Map<String, dynamic>?)?['total'] as int? ??
+        raw.length;
+    return SonarQubeHotspotPage(
+      total: total,
+      hotspots: [
+        for (final h in raw)
+          SonarQubeHotspot(
+            key: h['key'] as String? ?? '',
+            message: h['message'] as String? ?? '',
+            status: h['status'] as String? ?? '',
+            securityCategory: h['securityCategory'] as String?,
+            vulnerabilityProbability: h['vulnerabilityProbability'] as String?,
+            file: _fileOf(h['component'] as String?, projectKey),
+            line: h['line'] as int?,
+            component: h['component'] as String?,
+          ),
+      ],
+    );
+  }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeHotspotDetail, AppFailure>> fetchHotspotDetail(
+    String hotspotKey,
+  ) async {
+    final show = await guardRequest<Map<String, dynamic>>(() async {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/hotspots/show',
+        queryParameters: {'hotspot': hotspotKey},
+      );
+      return response.data?['hotspot'] as Map<String, dynamic>? ??
+          const <String, dynamic>{};
+    }, recover: _projectRecover);
+    final Map<String, dynamic> hotspot;
+    switch (show) {
+      case Ok(:final value):
+        hotspot = value;
+      case Err(:final error):
+        return Err(error);
+    }
+    final component =
+        (hotspot['component'] as Map<String, dynamic>?)?['key'] as String?;
+    final line =
+        hotspot['line'] as int? ??
+        (hotspot['textRange'] as Map<String, dynamic>?)?['startLine'] as int?;
+    // Same snippet rule as an issue: no component or line, no snippet.
+    final snippet = component == null || line == null
+        ? const Ok<List<SonarQubeSourceLine>, AppFailure>([])
+        : await _snippet(component, line);
+    return Ok(
+      SonarQubeHotspotDetail(
+        ruleName:
+            (hotspot['rule'] as Map<String, dynamic>?)?['name'] as String?,
+        snippet: snippet is Ok<List<SonarQubeSourceLine>, AppFailure>
+            ? snippet.value
+            : const [],
+      ),
+    );
+  }
 
   @override
   Future<Result<SonarQubeIssueContext, AppFailure>> fetchIssueContext(
