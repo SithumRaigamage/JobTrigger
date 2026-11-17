@@ -11,6 +11,7 @@
 - [ ] **Onboarding & Sign-in**:
   - Test new account registration on production backend (`https://api.jobtrigger.app`).
   - Verify email verification / password reset flow via production SMTP.
+  - Verify `GET https://api.jobtrigger.app/healthz` returns `200 OK` (the container health check; the app does not call it).
 - [ ] **CI Server Connectivity**:
   - Jenkins: Connect live Jenkins server, verify CSRF crumb negotiation and job tree loading.
   - SonarQube: Connect SonarQube / SonarCloud server, inspect quality gates and issues.

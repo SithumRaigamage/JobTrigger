@@ -19,6 +19,8 @@
 - **Build Target**: `JobTrigger-Backend/Dockerfile`
 - **Production URL**: `https://api.jobtrigger.app`
 - **Database**: MongoDB Atlas Production Cluster
+- **iOS Bundle ID**: `Sraig.Lab-Trigger-frontend` (`PRODUCT_BUNDLE_IDENTIFIER` in `JobTrigger-Frontend/ios/Runner.xcodeproj`)
+- **Android Package Name**: `com.sraig.jobtrigger` (application id in `JobTrigger-Frontend/android/app/build.gradle`)
 - **Environment Verification**:
   ```bash
   NODE_ENV=production
@@ -32,6 +34,10 @@
   SMTP_PORT=587
   SMTP_USER=...
   SMTP_PASS=...
+  SENTRY_DSN=https://<key>@<host>/<project-id>
+  BILLING_ENABLED=false
+  REVENUECAT_SECRET_API_KEY=appl_...
+  REVENUECAT_WEBHOOK_AUTH=<matching-secret-token>
   ```
 - **Verification**: `GET https://api.jobtrigger.app/healthz` returns `200 OK`.
 
@@ -42,6 +48,7 @@
 - **Platform**: Vercel
 - **Root Directory**: `JobTrigger-Web`
 - **Domain**: `https://jobtrigger.app`
+- **Web version**: `1.0.0` (`JobTrigger-Web/package.json`)
 - **Environment Variables**:
   ```bash
   JOBTRIGGER_BACKEND_URL=https://api.jobtrigger.app
@@ -49,7 +56,11 @@
   SITE_URL=https://jobtrigger.app
   UMAMI_URL=...
   UMAMI_WEBSITE_ID=...
+  PADDLE_CLIENT_TOKEN=live_...
+  PADDLE_ENV=production
+  SENTRY_DSN=https://<key>@<host>/<project-id>
   ```
+- **Token guides**: `docs/token-guides.md` — mirrors the in-app token wizards for Jenkins, GitHub and SonarQube.
 - **Post-Deploy Check**: `https://jobtrigger.app/changelog` renders the v1.0 release entry cleanly.
 
 ---
