@@ -9,6 +9,8 @@ typed config object by `core/config/app_config.dart` (Phase 1).
 | `staging.json` | Staging | `BACKEND_BASE_URL` is a placeholder (`https://api-staging.jobtrigger.app`) — no staging deployment exists yet. Update when one does. |
 | `prod.json` | Production | `BACKEND_BASE_URL` is a placeholder (`https://api.jobtrigger.app`, matching the example in `docs/api-reference.md`) — update when the backend is actually deployed. |
 | `device.json` | Generated local device config | **Git-ignored, not committed.** Written by `scripts/run-flutter.sh` or the iPhone-specific `scripts/run-on-iphone.sh` with a reachable Mac LAN/Tailscale address. |
+| `sentry.json` | Release secret | **Git-ignored, not committed.** `SENTRY_DSN` for crash reports; merged by `scripts/build-release.sh`. |
+| `billing.json` | Release secret | **Git-ignored, not committed.** `REVENUECAT_IOS_KEY` / `REVENUECAT_ANDROID_KEY`; merged by `scripts/build-release.sh`. |
 
 ## `WEBSITE_BASE_URL`
 
@@ -23,29 +25,50 @@ non-dev build without it hides the link.
 
 Where crash reports go (E3): a GlitchTip DSN for the `jobtrigger-app`
 project. **Not committed** in `dev.json`, `staging.json` or `prod.json`.
-Leave it out and reporting is off (tests, CI, a plain `flutter run`). Give it
-with a second define file, e.g. a git-ignored `config/sentry.json`
-(`{"SENTRY_DSN": "…"}`) added as
-`--dart-define-from-file=config/sentry.json`, or for the iPhone run
-`SENTRY_DSN_APP=… scripts/run-on-iphone.sh`. See `docs/error-reporting.md`.
+Leave it out and reporting is off (tests, CI, a plain `flutter run`). For a
+release build, put it in the git-ignored `config/sentry.json`
+(`{"SENTRY_DSN": "…"}`) and build with `scripts/build-release.sh`, which
+merges it in; a `SENTRY_DSN` environment variable works too. For the iPhone
+run, `SENTRY_DSN_APP=… scripts/run-on-iphone.sh`. See
+`docs/error-reporting.md`.
 
 ## `REVENUECAT_IOS_KEY` / `REVENUECAT_ANDROID_KEY`
 
 RevenueCat's public SDK keys (Phase 20), one per store. **Not committed** in
 any `config/*.json`. Leave them out and the app has no billing: it never
 starts the purchase SDK and offers nothing to buy, which is also how a build
-behaves while `BILLING_ENABLED` is off on the backend. Give them with a
-second, git-ignored define file such as `config/billing.json`
-(`{"REVENUECAT_IOS_KEY": "…", "REVENUECAT_ANDROID_KEY": "…"}`) added as
-`--dart-define-from-file=config/billing.json`. The backend's secret REST key
-is never in the app.
+behaves while `BILLING_ENABLED` is off on the backend. For a release build,
+put them in the git-ignored `config/billing.json`
+(`{"REVENUECAT_IOS_KEY": "…", "REVENUECAT_ANDROID_KEY": "…"}`) and build
+with `scripts/build-release.sh`, which merges it in and fails if the key for
+the target platform is missing; the same names work as environment
+variables. The backend's secret REST key is never in the app.
+
+## `BILLING_PREVIEW`
+
+Dev-only (P24-04): set to `true` and the app shows the subscription UI with
+static offers (the website's two plans) instead of needing RevenueCat keys —
+the Profile "Subscription" row, the Subscription screen and the paywall
+render, while Subscribe always fails ("Preview build: no store is
+connected") and Restore finds nothing. The launchers write it into
+`device.json` for every dev run; opt out with `BILLING_PREVIEW=0
+scripts/run-on-iphone.sh`. `AppConfig` ignores the flag in release builds,
+so store submissions can never preview billing, and `staging.json`/
+`prod.json` never set it.
 
 ## Usage
 
 ```bash
 ./scripts/run-flutter.sh --target=ios-simulator
-flutter build --dart-define-from-file=config/staging.json
-flutter build --dart-define-from-file=config/prod.json
+
+# Release builds: merge the environment config with the git-ignored secrets
+# (config/sentry.json, config/billing.json, or the environment variables).
+./scripts/build-release.sh appbundle
+./scripts/build-release.sh ipa
+./scripts/build-release.sh --check ipa   # validate keys, build nothing
+
+# Unsigned verification build with no secrets (never for a store upload):
+./scripts/build-release.sh --allow-missing apk
 ```
 
 Never hardcode these values elsewhere — `AppConfig` (Phase 1) is the only

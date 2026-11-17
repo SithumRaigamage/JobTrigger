@@ -24,9 +24,14 @@ Every release build passes the environment's config (AUD-43). Without it
 the app refuses to start rather than silently talking to the dev backend:
 
 ```bash
-flutter build appbundle --release --dart-define-from-file=config/prod.json
-flutter build ipa --release --dart-define-from-file=config/prod.json
+scripts/build-release.sh appbundle
+scripts/build-release.sh ipa
 ```
+
+The script merges `config/prod.json` with the git-ignored `config/sentry.json`
+and `config/billing.json` (or `SENTRY_DSN` / `REVENUECAT_*_KEY` environment
+variables) into one temporary define file, and refuses a store build that is
+missing them. Nothing secret is committed; `config/prod.json` stays plain.
 
 - **Android**: `flutter build appbundle --release` (with the flag above) → produces a `.aab` →
   upload to Play Console, start on the **internal testing** track, not
@@ -116,8 +121,8 @@ them.
 
    `storeFile` may be absolute, or relative to `android/`.
 
-3. `flutter build appbundle --release --dart-define-from-file=config/prod.json`
-   (for Play) or the same with `apk`. To check which key signed an APK:
+3. `scripts/build-release.sh appbundle` (for Play) or `scripts/build-release.sh apk`.
+   To check which key signed an APK:
    `apksigner verify --print-certs build/app/outputs/flutter-apk/app-release.apk`.
 
 Behaviour, verified 2026-09-30:

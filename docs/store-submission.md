@@ -99,8 +99,8 @@ backend (`app_config.dart`). Never commit a DSN or key.
 ## Archive and upload — iOS
 
 ```bash
-cd JobTrigger-Frontend
-flutter build ipa --release --dart-define-from-file=config/prod.json
+scripts/build-release.sh ipa
+# uses config/prod.json + the git-ignored config/sentry.json and config/billing.json
 # -> build/ios/ipa/*.ipa (needs the Apple Distribution certificate and profiles)
 xcrun altool --upload-app -f build/ios/ipa/*.ipa -t ios \
   --apiKey <APP_STORE_CONNECT_KEY_ID> --apiIssuer <ISSUER_ID>
@@ -114,8 +114,7 @@ the privacy answers, the review notes and the review account.
 ## Archive and upload — Android
 
 ```bash
-cd JobTrigger-Frontend
-flutter build appbundle --release --dart-define-from-file=config/prod.json
+scripts/build-release.sh appbundle
 # -> build/app/outputs/bundle/release/app-release.aab, signed with the upload
 #    key from android/key.properties (docs/deployment.md)
 ```

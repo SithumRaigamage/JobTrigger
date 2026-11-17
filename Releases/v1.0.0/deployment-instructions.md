@@ -58,12 +58,12 @@ JobTrigger uses **Umami** for cookie-free, privacy-preserving analytics (no cook
 3. Copy your unique **Website ID** (UUID format).
 4. In your Vercel deployment (or `JobTrigger-Web/.env.local`), configure:
    ```env
-   NEXT_PUBLIC_UMAMI_WEBSITE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-   UMAMI_SCRIPT_URL=https://cloud.umami.is/script.js
+   UMAMI_URL=https://cloud.umami.is
+   UMAMI_WEBSITE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    ```
 5. *(Optional Backend API Analytics)*: In `JobTrigger-Backend/.env`, provide:
    ```env
-   UMAMI_API_URL=https://api-gateway.umami.dev
+   UMAMI_URL=https://api-gateway.umami.dev
    UMAMI_WEBSITE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    ```
 
@@ -89,15 +89,13 @@ The apps include built-in PII and credential scrubbing (`event_scrubber.dart`) t
      ```env
      SENTRY_DSN=https://<key>@<host>/<project-id>
      ```
-   * **Flutter App**: Add DSN to `JobTrigger-Frontend/config/prod.json`:
+   * **Flutter App**: put the DSN in the git-ignored
+     `JobTrigger-Frontend/config/sentry.json` — never in `prod.json`:
      ```json
-     {
-       "ENVIRONMENT": "prod",
-       "BACKEND_BASE_URL": "https://api.jobtrigger.app",
-       "WEBSITE_BASE_URL": "https://jobtrigger.app",
-       "SENTRY_DSN": "https://<key>@<host>/<project-id>"
-     }
+     { "SENTRY_DSN": "https://<key>@<host>/<project-id>" }
      ```
+     `scripts/build-release.sh` merges that file into the build, so nothing
+     secret is committed. A `SENTRY_DSN` environment variable works too.
 5. **App Store & Play Privacy Compliance**:
    Ensure `tracesSampleRate = 0` (performance monitoring disabled) so you don't collect performance tracking data without user consent.
 
@@ -119,7 +117,8 @@ Real-time build alerts use Firebase Cloud Messaging (FCM).
 
 ### Step 3: Configure iOS App (Apple Push Notifications)
 1. Add an iOS App in Firebase Console:
-   * **Apple Bundle ID**: `com.sraig.jobtrigger`
+   * **Apple Bundle ID**: `Sraig.Lab-Trigger-frontend` (the value in
+     `PRODUCT_BUNDLE_IDENTIFIER`; Android stays `com.sraig.jobtrigger`)
 2. Download `GoogleService-Info.plist` and place it in:
    `JobTrigger-Frontend/ios/Runner/GoogleService-Info.plist`
 3. In Apple Developer Account → Certificates, Identifiers & Profiles → Keys:
@@ -148,12 +147,12 @@ JobTrigger uses **RevenueCat** for in-app mobile subscriptions and **Paddle** fo
 4. Configure Products:
    * **App Store Connect**:
      * Subscriptions → Subscription Group `JobTrigger Pro`.
-     * Product 1: `jobtrigger_pro_monthly` ($2.99/mo).
+     * Product 1: `jobtrigger_pro_monthly` ($9.99/mo).
      * Product 2: `jobtrigger_pro_yearly` ($29.99/yr, 7-day free trial).
    * **Google Play Console**:
      * Monetize → Subscriptions.
      * Product: `jobtrigger-pro`.
-     * Base plan 1: Monthly ($2.99).
+     * Base plan 1: Monthly ($9.99).
      * Base plan 2: Yearly ($29.99 with 7-day trial).
 5. Link Products to Entitlement in RevenueCat under **Default Offering**:
    * `$rc_monthly` → `jobtrigger_pro_monthly` / `jobtrigger-pro:monthly`
@@ -167,12 +166,16 @@ JobTrigger uses **RevenueCat** for in-app mobile subscriptions and **Paddle** fo
      ```env
      REVENUECAT_SECRET_API_KEY=appl_...
      REVENUECAT_WEBHOOK_AUTH=<matching-secret-token>
+     BILLING_ENABLED=true
      ```
-   * `JobTrigger-Frontend/config/prod.json`:
+   * Billing is off unless `BILLING_ENABLED=true`; without it the app
+     shows no subscription UI even when the keys are present.
+   * `JobTrigger-Frontend/config/billing.json` (git-ignored, merged by
+     `scripts/build-release.sh`; `prod.json` stays free of keys):
      ```json
      {
-       "REVENUECAT_APPLE_KEY": "appl_...",
-       "REVENUECAT_GOOGLE_KEY": "goog_..."
+       "REVENUECAT_IOS_KEY": "appl_...",
+       "REVENUECAT_ANDROID_KEY": "goog_..."
      }
      ```
 
@@ -186,11 +189,14 @@ JobTrigger uses **RevenueCat** for in-app mobile subscriptions and **Paddle** fo
      ```env
      PADDLE_WEBHOOK_SECRET=pdl_ntfset_...
      PADDLE_API_KEY=...
+     PADDLE_PRICE_MONTHLY=pri_...
+     PADDLE_PRICE_YEARLY=pri_...
+     PADDLE_ENV=production
      ```
    * `JobTrigger-Web/.env.local` / Vercel:
      ```env
-     NEXT_PUBLIC_PADDLE_CLIENT_TOKEN=live_...
-     NEXT_PUBLIC_PADDLE_ENV=production
+     PADDLE_CLIENT_TOKEN=live_...
+     PADDLE_ENV=production
      ```
 
 ---
@@ -221,7 +227,8 @@ Used for password reset, student verification codes, and renewal notices.
    * The app profile footer opens `mailto:support@jobtrigger.app`.
 3. **Help & Guides**:
    * Remote access help hosted at `docs/remote-access.md` and in-app `RemoteAccessGuideScreen`.
-   * Token generation help in-app and at `docs/token-guides.md`.
+   * Token generation help in the app's **How do I get a token?** sheet
+     (Settings → add or edit a server → the link under the token field).
 
 ### C. Student Verification Setup
 1. In `JobTrigger-Backend/.env`:
@@ -244,11 +251,13 @@ Used for password reset, student verification codes, and renewal notices.
   git tag -a v1.0.0 -m "Release 1.0.0: Jenkins, SonarQube, and GitHub Actions"
   git push origin v1.0.0
   ```
-- [ ] 5. Build release APK:
+- [ ] 5. Build release APK (Sentry DSN and store keys come from the
+  git-ignored `config/sentry.json` / `config/billing.json`):
   ```bash
-  cd JobTrigger-Frontend
-  flutter build apk --release --dart-define-from-file=config/prod.json
+  scripts/build-release.sh apk
   ```
+  It fails if the DSN or the Android key is missing, so a store build can
+  never silently ship without crash reporting or billing.
 - [ ] 6. Publish GitHub release:
   ```bash
   gh release create v1.0.0 \
@@ -260,13 +269,13 @@ Used for password reset, student verification codes, and renewal notices.
 ### Phase 2: Production Backend Deployment
 - [ ] 1. Spin up MongoDB Atlas production cluster (M0 free).
 - [ ] 2. Deploy `JobTrigger-Backend` (Render Docker / Railway).
-- [ ] 3. Populate production environment variables (`JWT_SECRET`, `CREDENTIALS_ENCRYPTION_KEY`, `MONGODB_URI`, `SMTP_*`, `CORS_ORIGIN`).
+- [ ] 3. Populate production environment variables (`JWT_SECRET`, `CREDENTIALS_ENCRYPTION_KEY`, `MONGODB_URI`, `SMTP_*`, `CORS_ORIGINS`).
 - [ ] 4. Run database index check / initialization.
-- [ ] 5. Verify `GET https://api.jobtrigger.app/health` returns `200 OK`.
+- [ ] 5. Verify `GET https://api.jobtrigger.app/healthz` returns `200 OK`.
 
 ### Phase 3: Web Deployment (Vercel)
 - [ ] 1. Import `JobTrigger-Web` into Vercel.
-- [ ] 2. Configure environment variables (`JOBTRIGGER_BACKEND_URL=https://api.jobtrigger.app`, `SESSION_SECRET`).
+- [ ] 2. Configure environment variables (`JOBTRIGGER_BACKEND_URL=https://api.jobtrigger.app`, `SESSION_SECRET`, `SITE_URL=https://jobtrigger.app`).
 - [ ] 3. Attach custom domain `jobtrigger.app`.
 - [ ] 4. Test sign-in, changelog display, and pricing tables.
 
@@ -279,8 +288,7 @@ Used for password reset, student verification codes, and renewal notices.
 - [ ] 2. Configure `JobTrigger-Frontend/android/key.properties`.
 - [ ] 3. Build production Android App Bundle:
   ```bash
-  cd JobTrigger-Frontend
-  flutter build appbundle --release --dart-define-from-file=config/prod.json
+  scripts/build-release.sh appbundle
   ```
 - [ ] 4. Create app listing in Google Play Console.
 - [ ] 5. Upload 7 store screenshots from `release/store-screenshots/android-2by1/`.
