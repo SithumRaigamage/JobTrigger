@@ -116,6 +116,10 @@ sealed class AppFailure {
     SonarQubeAccessDeniedFailure() =>
       "Your SonarQube user isn't allowed to see this. Use a token for a user "
           'who can browse the projects, then try again.',
+    SonarQubeWriteDeniedFailure() =>
+      "Your SonarQube user isn't allowed to make this change. The token's "
+          'user needs permission to administer issues (or review security '
+          'hotspots) on this project. Nothing was changed.',
     SonarQubeProjectNotFoundFailure() =>
       "SonarQube doesn't have that project any more. Go back and refresh "
           'the list.',
@@ -238,6 +242,14 @@ final class SonarQubeOrganizationNotFoundFailure extends AppFailure {
 /// SonarQube-only.
 final class SonarQubeAccessDeniedFailure extends AppFailure {
   const SonarQubeAccessDeniedFailure();
+}
+
+/// SonarQube answered 403 to a **change** (`US-SQ-WRITE-*`): the token is
+/// valid and the user may browse, but may not modify issues or review
+/// hotspots on this project. Distinct from [SonarQubeAccessDeniedFailure],
+/// whose copy is about browsing. SonarQube-only.
+final class SonarQubeWriteDeniedFailure extends AppFailure {
+  const SonarQubeWriteDeniedFailure();
 }
 
 /// SonarQube answered 404 for a project that was in the list: it was

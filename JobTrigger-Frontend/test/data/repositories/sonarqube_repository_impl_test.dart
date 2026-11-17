@@ -12,6 +12,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_hotspot.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_delta.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_branch_ref.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_issue_actions.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue_grouping.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_history.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_worst_files.dart';
@@ -63,6 +64,7 @@ void main() {
   _batch1Names();
   _issueSearch();
   _projectByKey();
+  _writes();
   _hotspots();
   _history();
   _worstFiles();
@@ -1201,6 +1203,116 @@ void _projectByKey() {
     expect(
       (result as Err<SonarQubeProject, AppFailure>).error,
       isA<SonarQubeProjectNotFoundFailure>(),
+    );
+  });
+}
+
+// Batch 7: the first writes. Shapes below were checked against a real
+// SonarQube 26.1 (see test/live/sonarqube_live_test.dart).
+void _writes() {
+  group('writes (batch 7)', () {
+    test('each change is one form-encoded POST, values in the body', () async {
+      final adapter = _Adapter(200, <String, dynamic>{});
+      final repo = SonarQubeRepositoryImpl(_dio(adapter));
+
+      await repo.assignIssue('i1', '_me');
+      await repo.transitionIssue('i1', 'falsepositive');
+      await repo.addIssueComment('i1', 'a & b = "c"? #1');
+      await repo.reviewHotspot(
+        'h1',
+        SonarQubeHotspotReview.safe,
+        comment: ' fine ',
+      );
+      await repo.reviewHotspot('h1', SonarQubeHotspotReview.toReview);
+
+      final r = adapter.requests;
+      expect(r.map((o) => o.method), everyElement('POST'));
+      expect(r.map((o) => o.path), [
+        '/api/issues/assign',
+        '/api/issues/do_transition',
+        '/api/issues/add_comment',
+        '/api/hotspots/change_status',
+        '/api/hotspots/change_status',
+      ]);
+      // Nothing is built into the URL by hand.
+      expect(r.every((o) => o.queryParameters.isEmpty), isTrue);
+      expect(r[0].data, {'issue': 'i1', 'assignee': '_me'});
+      expect(r[1].data, {'issue': 'i1', 'transition': 'falsepositive'});
+      expect(r[2].data, {'issue': 'i1', 'text': 'a & b = "c"? #1'});
+      expect(r[3].data, {
+        'hotspot': 'h1',
+        'status': 'REVIEWED',
+        'resolution': 'SAFE',
+        'comment': 'fine',
+      });
+      // Back to review sends no resolution.
+      expect(r[4].data, {'hotspot': 'h1', 'status': 'TO_REVIEW'});
+      expect(r[0].contentType, contains('x-www-form-urlencoded'));
+    });
+
+    test('a 403 is the write-denied failure, not the browse one', () async {
+      final result = await SonarQubeRepositoryImpl(
+        _dio(
+          _Adapter(403, {
+            'errors': [
+              {'msg': 'Insufficient privileges'},
+            ],
+          }),
+        ),
+      ).transitionIssue('i1', 'confirm');
+      expect(
+        (result as Err<void, AppFailure>).error,
+        isA<SonarQubeWriteDeniedFailure>(),
+      );
+    });
+
+    test('a refused change carries the server\'s own explanation', () async {
+      final result = await SonarQubeRepositoryImpl(
+        _dio(
+          _Adapter(400, {
+            'errors': [
+              {'msg': 'Transition from state RESOLVED does not exist: confirm'},
+            ],
+          }),
+        ),
+      ).transitionIssue('i1', 'confirm');
+      final failure = (result as Err<void, AppFailure>).error;
+      expect(failure, isA<RejectedRequestFailure>());
+      expect(failure.message, contains('does not exist'));
+    });
+
+    test(
+      'issue detail reads status, assignee, offered transitions, comments',
+      () async {
+        final adapter = _Adapter(200, {
+          'issues': [
+            {
+              'key': 'i1',
+              'status': 'OPEN',
+              'assignee': 'admin',
+              'transitions': ['confirm', 'falsepositive'],
+              'comments': [
+                {
+                  'login': 'admin',
+                  'markdown': 'hi',
+                  'createdAt': '2026-11-17T06:00:00+0000',
+                },
+              ],
+            },
+          ],
+        });
+        final detail =
+            (await SonarQubeRepositoryImpl(_dio(adapter)).fetchIssueDetail('i1')
+                    as Ok<SonarQubeIssueDetail, AppFailure>)
+                .value;
+        expect(detail.assignee, 'admin');
+        expect(detail.transitions, ['confirm', 'falsepositive']);
+        expect(detail.comments.single.text, 'hi');
+        expect(
+          adapter.requests.single.queryParameters['additionalFields'],
+          'transitions,comments',
+        );
+      },
     );
   });
 }

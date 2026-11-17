@@ -220,6 +220,16 @@ would be unrelated scope creep for this phase.
       scripted tests. Unverified: that the app, with a real token, keeps the
       backend session and the Jenkins/GitHub clients after that 401. This
       needs a SonarQube user token and the iPhone.
+      **2026-11-17 (left unchecked):** with a real user token on a throwaway
+      SonarQube 26.1 (the lab's own admin password has been changed from the
+      default, so a separate disposable server was used), the app's own client
+      and repository were run against the real server: an invalid token is an
+      `AuthFailure` (401), and a valid read-only user's refused change is the
+      403 `SonarQubeWriteDeniedFailure`, never `AuthFailure`
+      (`test/live/sonarqube_live_test.dart`). **Only the iPhone check stays
+      open:** that after a SonarQube 401 the app keeps the backend session and
+      the Jenkins/GitHub clients (the isolation tests prove it with scripted
+      adapters).
 - [x] P10-16 **Fixes and improvements after the owner's local-server test
       (2026-11-08).** The owner tested every SonarQube screen against a local
       server. Four changes, none touching Jenkins or GitHub behaviour:
@@ -284,6 +294,20 @@ would be unrelated scope creep for this phase.
       was not tried. The whole pass is the owner's, on the iPhone: create a
       user token in the lab SonarQube (My Account → Security), then add it in
       the app against `http://<Mac Wi-Fi address>:9000`.
+      **2026-11-17 (left unchecked): the endpoint half is done.** A disposable
+      SonarQube 26.1.0 Community Build was started (port 9001), a user token
+      created through the web API, a sample project scanned, and the app's own
+      client/repository run against it (`flutter test test/live/…`, 8 tests):
+      projects and summaries, project by key, gate, measures, new-code
+      measures, deltas and history, analyses and analysis status, server
+      info, branch list, issues, my issues, the four issue searches, file
+      issues, worst files for every metric, issue context (rule + code),
+      hotspots and detail, and all four writes. Findings: no `q` on
+      `api/issues/search`, `api/sources/show` takes no branch, and `assign`
+      wants `_me`. **Open, and only the owner's:** the same pass through the app
+      on the iPhone, and SonarCloud (no organization or account was
+      available). Branch and pull-request endpoints answer on a Community
+      Build only with an empty list, so the live branch case is unverified.
 
 ## Audit of the built work (2026-11-17)
 
@@ -475,9 +499,31 @@ the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
       owner's explicit go-ahead and the diff shown first; Jenkins is frozen
       except for bug fixes. The link between a job or repo and a project is
       stored on the device only; credentials are never shared between tools.
-- [ ] P10-24 **Batch 7: changing data on the server.** `US-SQ-WRITE-01..04`
-      (assign, change status, comment, review a hotspot). **The first writes
-      in this epic**, so it is last and needs its own approval; needs a token
-      whose user may modify issues; every action confirms and nothing changes
-      on screen before the server answers.
+- [x] P10-24 **Batch 7: changing data on the server.** *Built 2026-11-17, all
+      four stories. The first writes in this epic; the owner approved them in
+      the 2026-11-17 instruction.*
+      - `US-SQ-WRITE-01` assign (me / someone else by login / unassign),
+        `-02` change status (only the transitions the server lists for that
+        issue, read from `api/issues/search?additionalFields=transitions`),
+        `-03` comment (form body, with "Visible to everyone on this project"),
+        `-04` review a hotspot (Safe / Fixed / Acknowledged / back to review,
+        optional comment).
+      - Every action confirms first; the screen shows the server's answer
+        only (the issue is re-read after a success; a refused comment keeps
+        its text). A 403 is the new `SonarQubeWriteDeniedFailure` ("isn't
+        allowed to make this change … Nothing was changed"); a refused change
+        shows SonarQube's own explanation. Demo mode refuses every write.
+      - **Found live and fixed:** `api/issues/assign` does not accept
+        `__me__` (that is only for `api/issues/search`); it answers "Unknown
+        user: __me__" and wants `_me`. Unit tests alone would not have shown
+        this.
+      **Verified on a real SonarQube 26.1** (`test/live/sonarqube_live_test.dart`,
+      8 tests): assign/unassign, comment (with `& " ? =` in it), confirm →
+      unconfirm, an unoffered transition explained by the server, hotspot
+      review and put back, an invalid token is `AuthFailure` (401, never a
+      permission failure), and a read-only user's changes are refused with
+      `SonarQubeWriteDeniedFailure` while browsing still works, nothing
+      changed. Unit/widget tests: 6 screen, 4 repository, 1 copy. **Not
+      verified:** on the iPhone.
+
 

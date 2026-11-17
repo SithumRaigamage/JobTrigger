@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/error/error_message.dart';
+import '../../../core/error/result.dart';
+import '../../../data/repositories/sonarqube_repository_impl.dart';
+import '../../../domain/sonarqube/sonarqube_issue_actions.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../domain/sonarqube/sonarqube_hotspot.dart';
@@ -11,11 +14,12 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/main_scaffold.dart';
+import 'sonarqube_change_dialogs.dart';
 import 'sonarqube_hotspots_notifier.dart';
 
 /// `US-SQ-HOTSPOT-01`: a project's security hotspots, the ones still to
 /// review or the reviewed ones, each expandable to its rule and code.
-/// Read-only — reviewing is `US-SQ-WRITE-04`.
+/// Reviewing a hotspot is a change (`US-SQ-WRITE-04`) and asks first.
 class SonarQubeHotspotsScreen extends ConsumerStatefulWidget {
   const SonarQubeHotspotsScreen({required this.project, super.key});
 
@@ -182,6 +186,50 @@ class _HotspotRow extends ConsumerWidget {
 
   final SonarQubeHotspot hotspot;
 
+  Future<void> _review(BuildContext context, WidgetRef ref) async {
+    final repo = ref.read(sonarQubeRepositoryProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final review = await pickSonarQubeChoice<SonarQubeHotspotReview>(
+      context,
+      title: 'Review this hotspot',
+      choices: [
+        for (final r in SonarQubeHotspotReview.values)
+          // Offer only decisions that differ from where it already is.
+          if (!(r == SonarQubeHotspotReview.toReview && !hotspot.isReviewed))
+            (r.label, r),
+      ],
+    );
+    if (review == null || !context.mounted) return;
+    final comment = await askSonarQubeText(
+      context,
+      title: 'Comment (optional)',
+      label: 'Visible to everyone on this project',
+      confirmLabel: 'Next',
+      maxLines: 3,
+    );
+    if (!context.mounted) return;
+    final yes = await confirmSonarQubeChange(
+      context,
+      title: 'Mark as ${review.label.toLowerCase()}?',
+      body: 'This changes the hotspot on SonarQube for everyone.',
+      confirmLabel: 'Confirm',
+    );
+    if (!yes) return;
+    final result = await repo.reviewHotspot(
+      hotspot.key,
+      review,
+      comment: comment,
+    );
+    switch (result) {
+      case Ok():
+        // The list is re-read: it changes because the server now says so.
+        ref.invalidate(sonarQubeHotspotsNotifierProvider);
+        messenger.showSnackBar(const SnackBar(content: Text('Review saved')));
+      case Err(:final error):
+        messenger.showSnackBar(SnackBar(content: Text(describeError(error))));
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppTokens.of(context);
@@ -219,6 +267,15 @@ class _HotspotRow extends ConsumerWidget {
           ],
         ),
         children: [
+          // Batch 7 (US-SQ-WRITE-04): the review decision, confirmed first.
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              icon: const Icon(Icons.fact_check_outlined, size: 18),
+              label: const Text('Review'),
+              onPressed: () => _review(context, ref),
+            ),
+          ),
           ref
               .watch(sonarQubeHotspotDetailProvider(hotspot.key))
               .when(

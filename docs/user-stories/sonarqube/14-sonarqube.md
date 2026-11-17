@@ -1157,7 +1157,7 @@ So that I see build and quality together
 ### US-SQ-WRITE-01 — Assign an issue
 
 **Batch:** 7 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-24)
 **Dependencies:** US-SQ-QUALITY-06
 
 As a user
@@ -1174,11 +1174,12 @@ So that it has an owner
 
 **Notes**
 - Looking up assignable users (`api/users/search`) may need extra permission; the plan handles its absence.
+- **Built 2026-11-17:** no user lookup (it needs administrator rights): assign to *me* (`_me`, which `assign` wants; `__me__` is only for search), to a login the user types, or unassign.
 
 ### US-SQ-WRITE-02 — Change an issue's status
 
 **Batch:** 7 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-24)
 **Dependencies:** US-SQ-QUALITY-06
 
 As a user
@@ -1196,7 +1197,7 @@ So that the list reflects my decision
 ### US-SQ-WRITE-03 — Comment on an issue
 
 **Batch:** 7 · **Priority:** Could · **Effort:** S–M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-24)
 **Dependencies:** US-SQ-QUALITY-06
 
 As a user
@@ -1214,7 +1215,7 @@ So that I can leave context for the team
 ### US-SQ-WRITE-04 — Review a security hotspot
 
 **Batch:** 7 · **Priority:** Could · **Effort:** M
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-24)
 **Dependencies:** US-SQ-HOTSPOT-01
 
 As a user

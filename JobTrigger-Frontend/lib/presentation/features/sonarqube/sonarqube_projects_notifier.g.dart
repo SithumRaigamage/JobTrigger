@@ -44,7 +44,7 @@ final class SonarQubeProjectsNotifierProvider
 }
 
 String _$sonarQubeProjectsNotifierHash() =>
-    r'3fd60fe86a31297853a55415145a2f87077b13b0';
+    r'0d8f059b23728fd09a1049e4a06ec6ba92af6370';
 
 /// The active credential's projects, a page at a time.
 /// `sonarQubeRepositoryProvider` rebuilds when the active credential

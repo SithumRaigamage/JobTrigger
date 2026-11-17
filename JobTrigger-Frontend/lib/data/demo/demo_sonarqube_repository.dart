@@ -7,6 +7,7 @@ import '../../domain/sonarqube/sonarqube_analysis_status.dart';
 import '../../domain/sonarqube/sonarqube_hotspot.dart';
 import '../../domain/sonarqube/sonarqube_branch_ref.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
+import '../../domain/sonarqube/sonarqube_issue_actions.dart';
 import '../../domain/sonarqube/sonarqube_issue_grouping.dart';
 import '../../domain/sonarqube/sonarqube_measure_history.dart';
 import '../../domain/sonarqube/sonarqube_worst_files.dart';
@@ -230,6 +231,43 @@ class DemoSonarQubeRepository implements SonarQubeRepository {
     }
     return const Err(SonarQubeProjectNotFoundFailure());
   }
+
+  // The demo never writes (E2): it reads sample data and refuses every change,
+  // the way it refuses the other tools' writes.
+  @override
+  Future<Result<SonarQubeIssueDetail, AppFailure>> fetchIssueDetail(
+    String issueKey,
+  ) async => const Ok(
+    SonarQubeIssueDetail(
+      status: 'OPEN',
+      transitions: ['confirm', 'falsepositive'],
+    ),
+  );
+
+  @override
+  Future<Result<void, AppFailure>> assignIssue(
+    String issueKey,
+    String assignee,
+  ) async => const Err(DemoUnavailableFailure());
+
+  @override
+  Future<Result<void, AppFailure>> transitionIssue(
+    String issueKey,
+    String transition,
+  ) async => const Err(DemoUnavailableFailure());
+
+  @override
+  Future<Result<void, AppFailure>> addIssueComment(
+    String issueKey,
+    String text,
+  ) async => const Err(DemoUnavailableFailure());
+
+  @override
+  Future<Result<void, AppFailure>> reviewHotspot(
+    String hotspotKey,
+    SonarQubeHotspotReview review, {
+    String? comment,
+  }) async => const Err(DemoUnavailableFailure());
 
   @override
   Future<Result<SonarQubeAnalysisStatus, AppFailure>> fetchAnalysisStatus(

@@ -4,6 +4,7 @@ import 'package:job_trigger/domain/sonarqube/sonarqube_analysis_status.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_hotspot.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_branch_ref.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_issue.dart';
+import 'package:job_trigger/domain/sonarqube/sonarqube_issue_actions.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_server_info.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_measure_history.dart';
 import 'package:job_trigger/domain/sonarqube/sonarqube_worst_files.dart';
@@ -36,6 +37,31 @@ mixin SonarQubeInsightsDefaults {
   ) async => Ok(
     SonarQubeProject(key: projectKey, name: projectKey, lastAnalysisDate: null),
   );
+
+  Future<Result<SonarQubeIssueDetail, AppFailure>> fetchIssueDetail(
+    String issueKey,
+  ) async => const Ok(SonarQubeIssueDetail(status: 'OPEN'));
+
+  Future<Result<void, AppFailure>> assignIssue(
+    String issueKey,
+    String assignee,
+  ) async => const Ok(null);
+
+  Future<Result<void, AppFailure>> transitionIssue(
+    String issueKey,
+    String transition,
+  ) async => const Ok(null);
+
+  Future<Result<void, AppFailure>> addIssueComment(
+    String issueKey,
+    String text,
+  ) async => const Ok(null);
+
+  Future<Result<void, AppFailure>> reviewHotspot(
+    String hotspotKey,
+    SonarQubeHotspotReview review, {
+    String? comment,
+  }) async => const Ok(null);
 
   Future<Result<SonarQubeAnalysisStatus, AppFailure>> fetchAnalysisStatus(
     String projectKey,

@@ -9,6 +9,7 @@ import '../../domain/sonarqube/sonarqube_analysis_status.dart';
 import '../../domain/sonarqube/sonarqube_branch_ref.dart';
 import '../../domain/sonarqube/sonarqube_hotspot.dart';
 import '../../domain/sonarqube/sonarqube_issue.dart';
+import '../../domain/sonarqube/sonarqube_issue_actions.dart';
 import '../../domain/sonarqube/sonarqube_issue_grouping.dart';
 import '../../domain/sonarqube/sonarqube_language_breakdown.dart';
 import '../../domain/sonarqube/sonarqube_measure_history.dart';
@@ -195,6 +196,118 @@ class SonarQubeRepositoryImpl implements SonarQubeRepository {
       lastAnalysisDate: _sonarDate(component['analysisDate'] as String?),
     );
   }, recover: _projectRecover);
+
+  @override
+  Future<Result<SonarQubeIssueDetail, AppFailure>> fetchIssueDetail(
+    String issueKey,
+  ) => guardRequest(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/issues/search',
+      queryParameters: {
+        'issues': issueKey,
+        'additionalFields': 'transitions,comments',
+        if (_organization != null) 'organization': _organization,
+      },
+    );
+    final issues = response.data?['issues'] as List<dynamic>? ?? const [];
+    if (issues.isEmpty) {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: Response<void>(
+          requestOptions: response.requestOptions,
+          statusCode: 404,
+        ),
+        type: DioExceptionType.badResponse,
+      );
+    }
+    final issue = issues.first as Map<String, dynamic>;
+    final assignee = issue['assignee'] as String?;
+    return SonarQubeIssueDetail(
+      status: issue['status'] as String? ?? '',
+      assignee: (assignee?.isEmpty ?? true) ? null : assignee,
+      transitions: [
+        ...(issue['transitions'] as List<dynamic>? ?? const []).cast<String>(),
+      ],
+      comments: [
+        for (final c
+            in (issue['comments'] as List<dynamic>? ?? const [])
+                .cast<Map<String, dynamic>>())
+          SonarQubeIssueComment(
+            login: c['login'] as String?,
+            text:
+                (c['markdown'] as String?) ?? (c['htmlText'] as String?) ?? '',
+            createdAt: _sonarDate(c['createdAt'] as String?),
+          ),
+      ],
+    );
+  }, recover: _projectRecover);
+
+  /// One form-encoded `POST`. Values travel in the body, never built into the
+  /// URL by hand (`US-SQ-WRITE-03`).
+  Future<Result<void, AppFailure>> _write(
+    String path,
+    Map<String, String> form,
+  ) => guardRequest(
+    () async {
+      await _dio.post<dynamic>(
+        path,
+        data: form,
+        options: Options(contentType: Headers.formUrlEncodedContentType),
+      );
+    },
+    recover: (exception) {
+      final status = exception.response?.statusCode;
+      if (status == 403) return const Err(SonarQubeWriteDeniedFailure());
+      // SonarQube explains a refused change itself, e.g. a transition that
+      // is not allowed from the issue's current state.
+      final errors = (exception.response?.data is Map<String, dynamic>)
+          ? (exception.response!.data as Map<String, dynamic>)['errors']
+          : null;
+      if ((status == 400 || status == 404 || status == 409) &&
+          errors is List &&
+          errors.isNotEmpty &&
+          errors.first is Map<String, dynamic>) {
+        final msg = (errors.first as Map<String, dynamic>)['msg'];
+        if (msg is String && msg.isNotEmpty) {
+          return Err(RejectedRequestFailure(msg));
+        }
+      }
+      return null;
+    },
+  );
+
+  @override
+  Future<Result<void, AppFailure>> assignIssue(
+    String issueKey,
+    String assignee,
+  ) => _write('/api/issues/assign', {'issue': issueKey, 'assignee': assignee});
+
+  @override
+  Future<Result<void, AppFailure>> transitionIssue(
+    String issueKey,
+    String transition,
+  ) => _write('/api/issues/do_transition', {
+    'issue': issueKey,
+    'transition': transition,
+  });
+
+  @override
+  Future<Result<void, AppFailure>> addIssueComment(
+    String issueKey,
+    String text,
+  ) => _write('/api/issues/add_comment', {'issue': issueKey, 'text': text});
+
+  @override
+  Future<Result<void, AppFailure>> reviewHotspot(
+    String hotspotKey,
+    SonarQubeHotspotReview review, {
+    String? comment,
+  }) => _write('/api/hotspots/change_status', {
+    'hotspot': hotspotKey,
+    'status': review.status,
+    'resolution': ?review.resolution,
+    if (comment != null && comment.trim().isNotEmpty) 'comment': comment.trim(),
+  });
 
   /// SonarQube-specific wording for the two refusals that mean something
   /// particular here, for calls about one project. Everything else keeps the

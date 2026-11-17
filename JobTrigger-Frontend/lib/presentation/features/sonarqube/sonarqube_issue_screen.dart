@@ -20,6 +20,7 @@ import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_pill.dart';
 import '../../navigation/main_scaffold.dart';
+import 'sonarqube_issue_actions.dart';
 import 'sonarqube_issue_context.dart';
 
 /// One issue in full (`US-SQ-QUALITY-06`): what is wrong, where, which rule
@@ -174,7 +175,10 @@ class SonarQubeIssueScreen extends ConsumerWidget {
                         label: 'Effort',
                         child: Text('${issue.effort} to fix'),
                       ),
-                    if (issue.status != null)
+                    // With a credential the Manage card below shows the
+                    // server's current status; this is the list's, possibly
+                    // older, copy.
+                    if (issue.status != null && credential == null)
                       _Fact(
                         label: 'Status',
                         child: Text(_humanStatus(issue.status!)),
@@ -205,6 +209,12 @@ class SonarQubeIssueScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+              // Batch 7: assign, change status, comment. Only with a credential,
+              // and every action confirms first.
+              if (credential != null) ...[
+                const SizedBox(height: 24),
+                SonarQubeIssueManageCard(issue: issue),
+              ],
               if (issue.component != null && issue.line != null) ...[
                 const SizedBox(height: 24),
                 const SectionLabel('Code'),

@@ -30,6 +30,10 @@ void main() {
       allOf(contains('SonarQube'), contains('browse')),
     );
     expect(
+      const SonarQubeWriteDeniedFailure().message,
+      allOf(contains('make this change'), contains('Nothing was changed')),
+    );
+    expect(
       const SonarQubeProjectNotFoundFailure().message,
       allOf(contains('project'), contains('refresh')),
     );

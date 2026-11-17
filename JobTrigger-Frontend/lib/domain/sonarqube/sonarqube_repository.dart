@@ -6,6 +6,7 @@ import 'sonarqube_branch_ref.dart';
 import 'sonarqube_analysis_status.dart';
 import 'sonarqube_hotspot.dart';
 import 'sonarqube_issue.dart';
+import 'sonarqube_issue_actions.dart';
 import 'sonarqube_issue_grouping.dart';
 import 'sonarqube_measure_history.dart';
 import 'sonarqube_worst_files.dart';
@@ -16,9 +17,11 @@ import 'sonarqube_project_summary.dart';
 import 'sonarqube_quality_gate.dart';
 
 /// SonarQube data access — independent of the Jenkins and GitHub
-/// repositories (`NFR-SEC-03`). Read-only by design: SonarQube here is a
-/// code-quality viewer, with nothing to trigger or cancel. Grown one method
-/// per SQ task, as `GitHubRepository` was.
+/// repositories (`NFR-SEC-03`). A code-quality viewer: everything is a read,
+/// with nothing to trigger or cancel, **except** the four changes of batch 7
+/// (assign, change status, comment, review a hotspot), which are the only
+/// writes and are marked as such below. Grown one method per SQ task, as
+/// `GitHubRepository` was.
 abstract class SonarQubeRepository {
   /// The projects the credential's user can browse (`US-SQ-PROJ-01`), one
   /// [page] (1-based) of [pageSize] at a time. Uses `api/components/
@@ -169,6 +172,46 @@ abstract class SonarQubeRepository {
     String hotspotKey,
   );
 
+  /// `GET api/issues/search?issues=&additionalFields=transitions,comments`
+  /// (`US-SQ-WRITE-01..03`): the issue's current status and assignee, the
+  /// transitions the server offers for it and its comments.
+  Future<Result<SonarQubeIssueDetail, AppFailure>> fetchIssueDetail(
+    String issueKey,
+  );
+
+  // ---- The first writes in this epic (batch 7). Each is one `POST`, sent as
+  // a form body, and returns only whether the server accepted it: callers
+  // re-read the issue afterwards instead of assuming the result. A 403 is
+  // [SonarQubeWriteDeniedFailure].
+
+  /// `POST api/issues/assign` (`US-SQ-WRITE-01`). [assignee] is a login,
+  /// [sonarQubeAssignToMe] for the token's own user, or empty to unassign.
+  /// (Found against a real server: `api/issues/search` takes `__me__` but
+  /// `assign` answers "Unknown user: __me__" and wants `_me`.)
+  Future<Result<void, AppFailure>> assignIssue(
+    String issueKey,
+    String assignee,
+  );
+
+  /// `POST api/issues/do_transition` (`US-SQ-WRITE-02`).
+  Future<Result<void, AppFailure>> transitionIssue(
+    String issueKey,
+    String transition,
+  );
+
+  /// `POST api/issues/add_comment` (`US-SQ-WRITE-03`).
+  Future<Result<void, AppFailure>> addIssueComment(
+    String issueKey,
+    String text,
+  );
+
+  /// `POST api/hotspots/change_status` (`US-SQ-WRITE-04`).
+  Future<Result<void, AppFailure>> reviewHotspot(
+    String hotspotKey,
+    SonarQubeHotspotReview review, {
+    String? comment,
+  });
+
   /// What an issue's page shows besides the issue (`US-SQ-QUALITY-06`): the
   /// rule's name (`api/rules/show`) and the code around it
   /// (`api/sources/show`), fetched together. One failing leaves the other; if
@@ -180,3 +223,6 @@ abstract class SonarQubeRepository {
 
 /// `ps` for `api/projects/search`; 500 is SonarQube's maximum.
 const sonarQubeProjectsPageSize = 500;
+
+/// What `api/issues/assign` calls the token's own user.
+const sonarQubeAssignToMe = '_me';
