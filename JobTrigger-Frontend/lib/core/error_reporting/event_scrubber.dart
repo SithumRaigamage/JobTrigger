@@ -116,6 +116,33 @@ bool hasResidue(String text) {
   return false;
 }
 
+/// Sentry's own identifiers (`event_id`, the trace and span ids) are random
+/// 16/32-character hex strings, the same shape as a Jenkins API token, so the
+/// token rule redacted them and the host rejected the event ("event_id: Input
+/// should be a valid UUID", found live on the lab's GlitchTip, P6-08). They
+/// carry nothing about the user, so the originals are put back, and only when
+/// they really are plain hex.
+void _restoreIdentifiers(
+  Map<String, dynamic> original,
+  Map<String, dynamic> clean,
+) {
+  final hex = RegExp(r'^[0-9a-fA-F-]{16,36}$');
+  final id = original['event_id'];
+  if (id is String && hex.hasMatch(id)) clean['event_id'] = id;
+  final trace = (original['contexts'] is Map)
+      ? (original['contexts'] as Map)['trace']
+      : null;
+  final cleanContexts = clean['contexts'];
+  if (trace is Map && cleanContexts is Map && cleanContexts['trace'] is Map) {
+    for (final key in ['trace_id', 'span_id', 'parent_span_id']) {
+      final value = trace[key];
+      if (value is String && hex.hasMatch(value)) {
+        (cleanContexts['trace'] as Map)[key] = value;
+      }
+    }
+  }
+}
+
 /// The scrubbed copy of a Sentry event as JSON, or null to drop it.
 Map<String, dynamic>? scrubEventJson(Map<String, dynamic> event) {
   try {
@@ -143,7 +170,10 @@ Map<String, dynamic>? scrubEventJson(Map<String, dynamic> event) {
     } else {
       clean.remove('user');
     }
+    // The residue check runs first: the identifiers below are hex, the shape
+    // it looks for, and are only put back once everything else is verified.
     if (hasResidue(clean.toString())) return null;
+    _restoreIdentifiers(event, clean);
     return clean;
   } on Object {
     return null;
