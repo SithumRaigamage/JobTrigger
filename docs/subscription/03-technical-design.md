@@ -249,7 +249,7 @@ Both stores reject paywalls that miss these, so they're acceptance
 criteria, not polish:
 
 - Price, billing period and what the trial converts to, in the store's
-  localised price string (never a hard-coded "$3.99").
+  localised price string (never a hard-coded "$9.99").
 - "Auto-renews until cancelled; cancel any time in your App Store /
   Google Play settings."
 - Links to Terms of Use and Privacy Policy (already in `AppInfo`).

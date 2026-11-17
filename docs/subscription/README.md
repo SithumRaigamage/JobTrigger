@@ -25,7 +25,7 @@ Read in this order:
 
 - **Free:** one tool, one saved server, every core feature for it.
 - **Pro:** every tool, unlimited servers, background notifications,
-  widget, unlimited pins, insights. Suggested $3.99/month or $29.99/year
+  widget, unlimited pins, insights. Suggested $9.99/month or $29.99/year
   with a 7-day trial on yearly.
 - **Payments:** App Store and Google Play in-app purchase through
   RevenueCat; website checkout later through a merchant of record (Stripe

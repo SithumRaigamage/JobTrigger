@@ -81,8 +81,8 @@ nothing the user already saved is ever deleted by a downgrade.
 
 | Plan | Price (USD tier) | Notes |
 |---|---|---|
-| Pro monthly | **$3.99** | Above the $0–$2 anchor, justified by multi-tool + sync. |
-| Pro yearly | **$29.99** (~37% off) | Default-selected on the paywall; better retention. |
+| Pro monthly | **$9.99** | Premium tier for a whole CI estate: multi-tool, unlimited servers, insights. |
+| Pro yearly | **$29.99** (~75% off) | Default-selected on the paywall; better retention. |
 | Free trial | **7 days**, yearly plan only | Long enough to set up a second tool; short enough to decide. |
 | Launch offer | Yearly at $19.99 for the first 3 months after launch | Optional; an intro offer in both stores. |
 
@@ -131,8 +131,8 @@ more ways to get billing wrong.
 | Website (Vercel hobby/pro) | $0–20 |
 | **Fixed total** | **~$15–40** |
 
-Net per Pro user after the 15% store fee: ~$3.39/month (monthly) or
-~$2.12/month (yearly at $29.99). **Break-even is roughly 6–20 paying
+Net per Pro user after the 15% store fee: ~$8.49/month (monthly) or
+~$2.12/month (yearly at $29.99). **Break-even is roughly 2–19 paying
 users**, so the risk is distribution, not cost.
 
 ## 7. Metrics to watch

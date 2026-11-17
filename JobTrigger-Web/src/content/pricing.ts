@@ -44,7 +44,7 @@ export const plans = [
     id: "pro",
     name: "Pro",
     tagline: "Your whole CI estate.",
-    price: "$3.99 / month",
+    price: "$9.99 / month",
     priceNote:
       "Or $29.99 / year, with a 7-day free trial on the yearly plan. Prices are in USD; the App Store and Google Play show your local price.",
     highlights: [

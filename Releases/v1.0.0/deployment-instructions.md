@@ -147,12 +147,12 @@ JobTrigger uses **RevenueCat** for in-app mobile subscriptions and **Paddle** fo
 4. Configure Products:
    * **App Store Connect**:
      * Subscriptions → Subscription Group `JobTrigger Pro`.
-     * Product 1: `jobtrigger_pro_monthly` ($2.99/mo).
+     * Product 1: `jobtrigger_pro_monthly` ($9.99/mo).
      * Product 2: `jobtrigger_pro_yearly` ($29.99/yr, 7-day free trial).
    * **Google Play Console**:
      * Monetize → Subscriptions.
      * Product: `jobtrigger-pro`.
-     * Base plan 1: Monthly ($2.99).
+     * Base plan 1: Monthly ($9.99).
      * Base plan 2: Yearly ($29.99 with 7-day trial).
 5. Link Products to Entitlement in RevenueCat under **Default Offering**:
    * `$rc_monthly` → `jobtrigger_pro_monthly` / `jobtrigger-pro:monthly`

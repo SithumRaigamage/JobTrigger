@@ -17,7 +17,7 @@ describe("pricing content", () => {
 
   it("states the agreed prices and trial", () => {
     const pro = plans[1];
-    expect(pro.price).toBe("$3.99 / month");
+    expect(pro.price).toBe("$9.99 / month");
     expect(pro.priceNote).toContain("$29.99 / year");
     expect(pro.priceNote).toContain("7-day free trial");
     expect(plans[0].price).toBe("$0");
