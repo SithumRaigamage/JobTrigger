@@ -46,7 +46,10 @@ Dio buildSonarQubeDio({
       InterceptorsWrapper(
         onRequest: (options, handler) {
           if (_refAwarePaths.any(options.path.startsWith)) {
-            final ref = refFor(_projectKeyOf(options.queryParameters));
+            final ref = _refForComponent(
+              _componentOf(options.queryParameters),
+              refFor,
+            );
             final queryKey = ref.queryKey;
             if (queryKey != null) options.queryParameters[queryKey] = ref.name;
           }
@@ -107,16 +110,33 @@ Dio sonarQubeClient(Ref ref) {
   );
 }
 
-/// The project a request is about, taken from whichever parameter it uses:
-/// a component key is `project:path`, so its project is the first two parts.
-String _projectKeyOf(Map<String, dynamic> query) {
+/// The component a request is about, from whichever parameter it uses.
+String _componentOf(Map<String, dynamic> query) {
   for (final name in ['project', 'projectKey', 'component', 'componentKeys']) {
     final value = query[name];
-    if (value is! String || value.isEmpty) continue;
-    final parts = value.split(':');
-    return parts.length > 2 ? '${parts[0]}:${parts[1]}' : value;
+    if (value is String && value.isNotEmpty) return value;
   }
   return '';
+}
+
+/// The ref chosen for the project [component] belongs to. A file's key is
+/// `<project key>:<path>`, and a project key may itself contain `:` (Maven's
+/// `group:artifact`), so the split point is unknown: try the whole key, then
+/// every shorter prefix ending before a `:`, and use the first that has a
+/// branch or pull request chosen. `web:src/app.ts` resolves to `web`, and
+/// `acme:api:src/x.ts` to `acme:api`.
+SonarQubeBranchRef _refForComponent(
+  String component,
+  SonarQubeBranchRef Function(String projectKey) refFor,
+) {
+  var candidate = component;
+  while (true) {
+    final ref = refFor(candidate);
+    if (!ref.isMain) return ref;
+    final cut = candidate.lastIndexOf(':');
+    if (cut <= 0) return const SonarQubeBranchRef.main();
+    candidate = candidate.substring(0, cut);
+  }
 }
 
 /// The endpoints that take `branch` / `pullRequest` (`US-SQ-QUALITY-10`).

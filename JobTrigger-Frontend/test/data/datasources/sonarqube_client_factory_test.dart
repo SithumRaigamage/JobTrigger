@@ -81,6 +81,50 @@ void _refInterceptor() {
       expect(seen[2].queryParameters.containsKey('branch'), isFalse);
     });
 
+    test('a file key finds its project, with or without : in its key', () async {
+      final seen = <Uri>[];
+      final chosen = {
+        'web': const SonarQubeBranchRef.branch('feature/login'),
+        'acme:api': const SonarQubeBranchRef.pullRequest('42'),
+      };
+      final dio = buildSonarQubeDio(
+        baseUrl: 'https://sonar.test',
+        token: 't',
+        refFor: (key) => chosen[key] ?? const SonarQubeBranchRef.main(),
+      );
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            seen.add(options.uri);
+            handler.reject(
+              DioException(requestOptions: options, error: 'stop'),
+            );
+          },
+        ),
+      );
+
+      for (final file in [
+        'web:src/app.ts',
+        'acme:api:src/x.ts',
+        'other:a.ts',
+      ]) {
+        try {
+          await dio.get<Map<String, dynamic>>(
+            '/api/issues/search',
+            queryParameters: {'componentKeys': file},
+          );
+        } on DioException {
+          // Expected: the spy stops the request before the network.
+        }
+      }
+
+      expect(seen[0].queryParameters['branch'], 'feature/login');
+      expect(seen[1].queryParameters['pullRequest'], '42');
+      expect(seen[1].queryParameters.containsKey('branch'), isFalse);
+      expect(seen[2].queryParameters.containsKey('branch'), isFalse);
+      expect(seen[2].queryParameters.containsKey('pullRequest'), isFalse);
+    });
+
     test('the main branch adds nothing', () async {
       final seen = <Uri>[];
       final dio = buildSonarQubeDio(baseUrl: 'https://sonar.test', token: 't');
