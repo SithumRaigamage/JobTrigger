@@ -30,9 +30,11 @@ Read these before starting any task, in this order:
 - `docs/state-management.md` — provider structure per feature
 - `docs/migration-strategy.md` — phased rollout, parity checklist, QA gates
 - `tasks/README.md` — how tasks are organized, then the relevant `tasks/phase-N-*.md`
+- `Releases/README.md` — release management, GitFlow rules, version checklists, and deployment logs (`Releases/vX.Y.Z/`)
 
 Tasks are the unit of work. Don't start coding a feature without finding (or
-creating) its task entry first, and update the task's status when done.
+creating) its task entry first, and update the task's status when done. When cutting
+or preparing releases, follow `Releases/README.md` and keep `release/tools.json` synced via `node scripts/sync-tools.mjs`.
 
 ## 3. Tech stack (locked decisions — don't substitute without discussion)
 
