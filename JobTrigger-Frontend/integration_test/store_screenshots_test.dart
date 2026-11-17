@@ -16,13 +16,15 @@ void main() {
 
   Future<void> shot(WidgetTester tester, String name) async {
     await tester.pumpAndSettle(const Duration(seconds: 1));
-    await binding.convertFlutterSurfaceToImage();
-    await tester.pumpAndSettle();
     await binding.takeScreenshot(name);
   }
 
   testWidgets('store screenshots', (tester) async {
     await app.main();
+    await tester.pumpAndSettle();
+    // Android needs the surface converted once before any screenshot; on
+    // iOS this is a no-op. Converting per shot asserts on the second call.
+    await binding.convertFlutterSurfaceToImage();
     await tester.pumpAndSettle();
     final demo = find.byKey(const Key('login_demo_button'));
     if (demo.evaluate().isNotEmpty) {

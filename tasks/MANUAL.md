@@ -24,7 +24,7 @@ hostname `Sithums-MacBook-Pro.local` if the IP changes; `IPHONE.md` covers both.
 | [M-02](#m-02--android-on-device-log-jank-test) | Android on-device log jank test | P5-13, P11-03 | **yes — no Android device** |
 | [M-03](#m-03--sonarqube-iphone-auth-isolation-and-real-server-pass) | SonarQube iPhone auth + real-server pass | P10-14, P10-15, P20-07 | no |
 | [M-04](#m-04--sonarcloud-account-and-organization) | SonarCloud account and organization | P10-15 | no |
-| [M-05](#m-05--android-store-screenshots) | Android store screenshots | P6-07 | **yes — needs Android emulator** |
+| M-05 — Android store screenshots | DONE 2026-11-17 (P6-07) | P6-07 | — |
 | [M-06](#m-06--github-fine-grained-token-and-iphone-checks) | GitHub fine-grained token + iPhone checks | P8-26, P8-27, PE-41, PE-42 | no |
 | [M-07](#m-07--crash-reporting-dsns-and-iphone-test-crash) | Crash-reporting DSNs + iPhone test crash | P6-08, PE-19d/e | no |
 | [M-08](#m-08--app-store-connect--testflight) | App Store Connect / TestFlight | P6-11 | no |
@@ -125,22 +125,22 @@ repository.
 
 **Evidence:** note that both flavors were verified.
 
-## M-05 — Android store screenshots
+## M-05 — Android store screenshots (DONE 2026-11-17)
 
-**Source:** P6-07 (`tasks/phase-6-polish-release.md`).
-**Done already:** five iPhone 6.9" screenshots (1320×2868, JPEG, no alpha) in
-`release/store-screenshots/ios-6.9/`, taken from the simulator in demo mode by
-`integration_test/store_screenshots_test.dart`; captions and the retake
-command are in `docs/store-submission.md`.
-**Why only you:** this needs an Android emulator (same broken NDK as M-02),
-and an iPhone 6.9" image is taller than Google Play's 2:1 limit, so the iPhone
-set can't be reused. Only you can produce a valid Play screenshot set.
-
-1. Mac: fix the NDK/emulator, run the Android screenshot capture in demo mode.
-2. Produce phone screenshots within Google Play's aspect limits, no alpha.
-3. Add them and their captions to `docs/store-submission.md`.
-
-**Evidence:** files under `release/store-screenshots/android-*/`.
+**Source:** P6-07 (`tasks/phase-6-polish-release.md`). No longer an owner task:
+captured directly this session; record kept here for the release trail.
+**What was done:** installed the missing Android NDK (r28c, SHA-1 verified),
+booted the `Medium_Phone_API_37.0` emulator at 1080×2160, and captured five
+matching Jenkins shots in demo mode with
+`integration_test/store_screenshots_test.dart`. The capture test was made
+cross-platform (one surface conversion at the start on Android, a no-op on
+iOS). Output is five JPEGs without alpha in
+`release/store-screenshots/android-2by1/`, each exactly 1080×2160 (Google
+Play's 2:1 limit); the taller iPhone 6.9" shots can't be reused. Captions and
+the retake command are in `docs/store-submission.md`.
+**Evidence:**
+`release/store-screenshots/android-2by1/{01-jobs,02-folder,03-job,04-failing-job,05-build-log}.jpg`.
+No owner action remains for this item.
 
 ## M-06 — GitHub fine-grained token and iPhone checks
 

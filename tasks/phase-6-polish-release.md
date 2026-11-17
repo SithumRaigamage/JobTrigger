@@ -129,9 +129,13 @@ steps in `tasks/MANUAL.md`.
       (jobs, folder, job, failing job, build log) in
       `release/store-screenshots/ios-6.9/`, JPEG without alpha, with captions
       and the retake command in `docs/store-submission.md`. **Android
-      screenshots: MANUAL (owner)**, see `tasks/MANUAL.md` (M-05): this Mac's
-      Android NDK install is broken, so no emulator build was possible, and an
-      iPhone image is taller than Google Play allows.
+      screenshots: done 2026-11-17**, five matching shots from the
+      `Medium_Phone_API_37.0` emulator in demo mode, resized to 1080×2160
+      (Google Play's 2:1 limit) and saved as JPEG without alpha in
+      `release/store-screenshots/android-2by1/`; the iPhone image is too tall
+      to reuse. The emulator needed the missing Android NDK (r28c) installed;
+      the screenshot test is now cross-platform (one surface conversion at
+      the start on Android, a no-op on iOS).
 - [x] P6-08 Crash reporting. **Decided and built** (not skipped: the
       2026-11 note that it was moved to the backlog is stale): the app uses
       `sentry_flutter` against a self-hosted GlitchTip, errors only, every event

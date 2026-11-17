@@ -7,6 +7,7 @@ needs the owner's store accounts; those steps are in `tasks/MANUAL.md`.
 |---|---|
 | App icons and launch screen | Done (Phase 16); regenerate with `scripts/export-icons.sh` |
 | Screenshots (iPhone 6.9", 1320×2868, no alpha) | `release/store-screenshots/ios-6.9/` — taken from the iOS simulator in demo mode |
+| Screenshots (Android 2:1, 1080×2160, no alpha) | `release/store-screenshots/android-2by1/` — taken from the `Medium_Phone_API_37.0` emulator in demo mode |
 | Store text, per release | `tasks/release-checklist.md`, "Store listing text" → "Release 1.0" |
 | App Store privacy answers and Play Data safety | `tasks/release-checklist.md`, "App Store privacy answers" |
 | App Review notes (demo walkthrough) | `tasks/release-checklist.md`, "App Review notes" |
@@ -37,9 +38,31 @@ for f in ../release/store-screenshots/ios-6.9/*.png; do
   sips -s format jpeg -s formatOptions 95 "$f" --out "${f%.png}.jpg" && rm "$f"; done
 ```
 
-Android phone screenshots are not in this pack: they need an Android emulator,
-which needs the NDK (`tasks/MANUAL.md`). An iPhone 6.9" image is taller than
-Google Play's 2:1 limit, so it can't be reused there.
+## Screenshot captions (Android, in this order)
+
+Same five screens as iOS, in `release/store-screenshots/android-2by1/` (each
+1080×2160, Google Play's 2:1 limit, JPEG without alpha). The captions in the
+table above apply unchanged. The iPhone 6.9" image is taller than Play's 2:1
+limit, so the two platforms need separate sets. To retake the Android set:
+
+```bash
+# One-time: install Android NDK r28c into $ANDROID_HOME/ndk/28.2.13676358
+# (Flutter/AGP provisions this automatically; r28c is the pinned revision).
+cd JobTrigger-Frontend
+# Emulator must be 1080x2160 (Play's 2:1 limit):
+adb shell wm size 1080x2160
+SCREENSHOT_DIR=../release/store-screenshots/android-2by1 flutter drive \
+  --driver=test_driver/screenshot_driver.dart \
+  --target=integration_test/store_screenshots_test.dart \
+  -d <android device id> --dart-define-from-file=config/dev.json
+# Convert the driver's PNGs to alpha-free JPEGs:
+for f in ../release/store-screenshots/android-2by1/*.png; do
+  sips -s format jpeg -s formatOptions 95 "$f" --out "${f%.png}.jpg" && rm "$f"; done
+```
+
+The capture test converts the Flutter surface to an image once at the start
+(`convertFlutterSurfaceToImage()`), which is a no-op on iOS — so the same test
+produces both platform packs.
 
 ## Pre-flight (all on the Mac, before building)
 

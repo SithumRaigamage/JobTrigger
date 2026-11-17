@@ -13,8 +13,10 @@ upload commands) is `docs/store-submission.md`.
       P11-03). On hold: no Android device. The 50,000-line host test passes.
 - [x] App icons and launch screen (Phase 16) and iPhone store screenshots
       (`release/store-screenshots/ios-6.9/`, P6-07, 2026-11-17).
-- [ ] **MANUAL (owner, M-05):** Android store screenshots (needs an Android
-      emulator, which needs the NDK installed).
+- [x] Android store screenshots (P6-07, 2026-11-17): five 1080×2160 (2:1)
+      JPEGs in `release/store-screenshots/android-2by1/`, from the emulator in
+      demo mode. The missing NDK was installed and the capture test made
+      cross-platform.
 - [ ] **MANUAL (owner, M-12):** before the first App Store Connect upload,
       re-check `ios/Runner/PrivacyInfo.xcprivacy` (AUD-56) against the App
       Privacy answers given in App Store Connect, and against any plugin added
