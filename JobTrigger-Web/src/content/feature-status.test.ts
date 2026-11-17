@@ -15,10 +15,10 @@ describe("feature status list", () => {
       "jenkins-extended": "live",
       "app-stores": "soon",
       "github-accounts": "live",
-      "github-actions": "beta",
-      "github-runs": "soon",
+      "github-actions": "live",
+      "github-runs": "live",
       "sonarqube-save": "live",
-      "sonarqube-insights": "soon",
+      "sonarqube-insights": "live",
       "web-portal": "live",
       "web-test-connection": "soon",
       "password-reset": "soon",
@@ -41,7 +41,7 @@ describe("isActionable", () => {
   it.each<[FeatureId, boolean]>([
     ["jenkins-core", true],
     ["github-actions", true],
-    ["github-runs", false],
+    ["github-runs", true],
     ["web-test-connection", false],
     ["gitlab-ci", false],
   ])("%s → %s", (id, expected) => {

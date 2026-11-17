@@ -66,12 +66,14 @@ describe("FeaturesView and the release manifest", () => {
 
     const section = githubSection();
     expect(within(section).queryByText(/Coming in/)).not.toBeInTheDocument();
-    expect(within(section).getByText("Beta")).toBeVisible();
+    expect(within(section).queryByText("Beta")).not.toBeInTheDocument();
     expect(
-      within(section).getByText(/Add your GitHub accounts and browse repositories/),
+      within(section).getByText(
+        /Add your GitHub accounts and browse repositories and workflows next to your Jenkins servers/,
+      ),
     ).toBeVisible();
-    expect(within(section).getByText("✓ Accounts · repos · workflows")).toBeVisible();
-    expect(screen.getByText(/Everything below is built today/)).toBeVisible();
+    expect(within(section).queryByText(/Runs, logs and history are on the way/)).not.toBeInTheDocument();
+    expect(screen.getByText(/no roadmap promises/)).toBeVisible();
   });
 
   it("with every tool released the page is what it was", () => {
@@ -79,11 +81,13 @@ describe("FeaturesView and the release manifest", () => {
 
     const section = githubSection();
     expect(within(section).queryByText(/Coming in/)).not.toBeInTheDocument();
-    expect(within(section).getByText("Beta")).toBeVisible();
+    expect(within(section).queryByText("Beta")).not.toBeInTheDocument();
     expect(
-      within(section).getByText(/Add your GitHub accounts and browse repositories/),
+      within(section).getByText(
+        /Add your GitHub accounts and browse repositories and workflows next to your Jenkins servers/,
+      ),
     ).toBeVisible();
-    expect(within(section).getByText("✓ Accounts · repos · workflows")).toBeVisible();
-    expect(screen.getByText(/Everything below is built today/)).toBeVisible();
+    expect(within(section).queryByText(/Runs, logs and history are on the way/)).not.toBeInTheDocument();
+    expect(screen.getByText(/no roadmap promises/)).toBeVisible();
   });
 });

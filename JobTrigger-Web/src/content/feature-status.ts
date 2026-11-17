@@ -61,18 +61,19 @@ export const features = {
     source: "P8 GH-CRED + GH-REPO done",
   },
   "github-actions": {
-    // The tool as a whole: what its badges show. Usable today (accounts,
-    // repos, workflows) but not complete, hence beta (P15-08: split out of
-    // github-runs so runs/logs aren't presented as usable).
+    // The tool as a whole: accounts, repositories, workflows, runs, logs
+    // and dispatch all ship in 1.0 (P8, P15-08, P22–P23), so it is live.
     label: "GitHub Actions (the tool)",
-    status: "beta",
-    source: "P8 GH-CRED + GH-REPO done; runs pending",
-    changelog: ["GitHub Actions: accounts, repositories and workflows"],
+    status: "live",
+    source: "Phases 8, 15, 22–23 done; runs, logs and dispatch ship in 1.0",
+    changelog: [
+      "GitHub Actions: accounts, repositories, workflows, runs, logs and dispatch",
+    ],
   },
   "github-runs": {
     label: "GitHub: runs, logs, history",
-    status: "soon",
-    source: "P8 in progress (11 of 28)",
+    status: "live",
+    source: "Phases 22–23 done (runs, logs, history, dispatch)",
     changelog: ["GitHub Actions runs, logs and history"],
   },
   "sonarqube-save": {
@@ -82,8 +83,8 @@ export const features = {
   },
   "sonarqube-insights": {
     label: "SonarQube: projects, quality gates, measures, issues",
-    status: "soon",
-    source: "P10 in progress (6 of 16)",
+    status: "live",
+    source: "Phase 10 done (SQ-01…SQ-16), ships in 1.0",
     changelog: ["SonarQube projects, quality gates, measures and issues"],
   },
   "web-portal": {

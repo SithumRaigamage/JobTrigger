@@ -225,7 +225,10 @@ describe("the site follows the release (1.0, three tools)", () => {
     expect(ships.join(" ")).toMatch(/Jenkins/);
 
     const later = afterLaunch().map((line) => line.text);
-    expect(later).toContain("GitHub Actions: accounts, repositories and workflows (release 1.2)");
+    expect(later).toContain(
+      "GitHub Actions: accounts, repositories, workflows, runs, logs and dispatch (release 1.2)",
+    );
+    expect(later).toContain("GitHub Actions runs, logs and history (release 1.2)");
     expect(later.some((text) => text.includes("(release 1.1)"))).toBe(true);
   });
 
@@ -234,7 +237,7 @@ describe("the site follows the release (1.0, three tools)", () => {
     const ships = upcomingRelease()
       .map((line) => line.text)
       .join(" ");
-    expect(ships).toMatch(/GitHub Actions: accounts, repositories and workflows/);
+    expect(ships).toMatch(/GitHub Actions: accounts, repositories, workflows, runs, logs and dispatch/);
     expect(ships).toMatch(/Jenkins/);
     expect(
       afterLaunch()

@@ -56,11 +56,11 @@ describe("Hero", () => {
 });
 
 describe("ToolStrip", () => {
-  it("badges tools that aren't fully live and lists planned ones", () => {
+  it("lists planned tools without beta or coming-soon badges now that all three ship", () => {
     render(<ToolStrip />);
 
-    expect(screen.getByText("Beta")).toBeInTheDocument();
-    expect(screen.getByText("Coming soon")).toBeInTheDocument();
+    expect(screen.queryByText("Beta")).not.toBeInTheDocument();
+    expect(screen.queryByText("Coming soon")).not.toBeInTheDocument();
     expect(screen.getByText("More planned")).toBeInTheDocument();
   });
 

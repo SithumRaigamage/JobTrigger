@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { afterLaunch, firstReleaseVersion, releases, upcomingRelease } from "./changelog";
 
 describe("upcoming changelog entries", () => {
-  it("ship every live feature, then beta, in list order", () => {
+  it("ships every live feature, in list order", () => {
     expect(upcomingRelease()).toEqual([
       {
         tag: "Ships",
@@ -14,15 +14,18 @@ describe("upcoming changelog entries", () => {
         tag: "Ships",
         text: "Nodes, queue, views and multibranch; Face ID / fingerprint app lock",
       },
+      {
+        tag: "Ships",
+        text: "GitHub Actions: accounts, repositories, workflows, runs, logs and dispatch",
+      },
+      { tag: "Ships", text: "GitHub Actions runs, logs and history" },
+      { tag: "Ships", text: "SonarQube projects, quality gates, measures and issues" },
       { tag: "Ships", text: "Set up servers from your laptop on this website" },
-      { tag: "Beta", text: "GitHub Actions: accounts, repositories and workflows" },
     ]);
   });
 
-  it("list soon features as next, and never planned ones", () => {
+  it("lists the remaining soon features as next, and never planned ones", () => {
     expect(afterLaunch().map((item) => item.text)).toEqual([
-      "GitHub Actions runs, logs and history",
-      "SonarQube projects, quality gates, measures and issues",
       "Test connection from the website",
       "Password reset by email",
     ]);

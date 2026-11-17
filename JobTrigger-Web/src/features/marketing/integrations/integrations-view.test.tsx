@@ -18,8 +18,9 @@ describe("IntegrationsView", () => {
 
     const cards = screen.getAllByRole("article");
     expect(within(cards[0]).getByText("Full support")).toBeInTheDocument();
-    expect(within(cards[1]).getByText("Beta")).toBeInTheDocument();
-    expect(within(cards[2]).getByText("Coming soon")).toBeInTheDocument();
+    expect(within(cards[1]).queryByText("Beta")).not.toBeInTheDocument();
+    expect(within(cards[1]).queryByText("Coming soon")).not.toBeInTheDocument();
+    expect(within(cards[2]).queryByText("Coming soon")).not.toBeInTheDocument();
   });
 
   it("never marks unbuilt GitHub capabilities as usable", () => {
@@ -28,7 +29,7 @@ describe("IntegrationsView", () => {
     const row = screen.getByRole("row", { name: /Live logs/ });
     const cells = within(row).getAllByRole("cell");
     expect(cells[0]).toHaveTextContent("✓ Yes");
-    expect(cells[1]).toHaveTextContent("Soon");
+    expect(cells[1]).toHaveTextContent("✓ Yes");
     expect(cells[2]).toHaveTextContent("— n/a");
   });
 

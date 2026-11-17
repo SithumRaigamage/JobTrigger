@@ -27,21 +27,20 @@ describe("FeaturesView", () => {
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(9);
   });
 
-  it("marks GitHub runs as beta and what's still coming while in beta", () => {
-    render(<FeaturesView />);
-
-    expect(screen.getByText("Beta")).toBeInTheDocument();
-    expect(screen.getByText("Coming soon · runs · logs · history")).toBeInTheDocument();
-    expect(screen.getByText(/Anything still on the way is marked/)).toBeInTheDocument();
-  });
-
-  it("drops the beta marks once GitHub Actions and its runs are live", () => {
-    overrides["github-actions"] = "live";
-    overrides["github-runs"] = "live";
+  it("shows no beta marks now that GitHub Actions and its runs are live", () => {
     render(<FeaturesView />);
 
     expect(screen.queryByText("Beta")).not.toBeInTheDocument();
     expect(screen.queryByText(/on the way/)).not.toBeInTheDocument();
     expect(screen.getByText(/no roadmap promises/)).toBeInTheDocument();
+  });
+
+  it("marks runs as still coming if that feature is not live yet", () => {
+    overrides["github-runs"] = "soon";
+    render(<FeaturesView />);
+
+    expect(screen.queryByText("Beta")).not.toBeInTheDocument();
+    expect(screen.getByText("Coming soon · runs · logs · history")).toBeInTheDocument();
+    expect(screen.getByText(/Anything still on the way is marked/)).toBeInTheDocument();
   });
 });

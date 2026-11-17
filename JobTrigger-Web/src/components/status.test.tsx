@@ -13,8 +13,8 @@ describe("StatusBadge", () => {
   });
 
   it.each([
-    ["github-actions", "Beta", "bg-running-bg"],
     ["web-test-connection", "Coming soon", "bg-neutral-bg"],
+    ["subscriptions", "Coming soon", "bg-neutral-bg"],
     ["gitlab-ci", "Planned", "border-dashed"],
   ] as const)("%s reads %s", (feature, label, tone) => {
     render(<StatusBadge feature={feature} />);
