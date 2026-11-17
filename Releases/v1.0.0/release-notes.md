@@ -53,8 +53,11 @@
   unreachable in 1.0 while billing is off.
 * **Notifications**: build notifications are local to the phone; server
   push (NR-06b) is not enabled yet.
-* **Password reset**: the UI appears only once the backend is deployed with
-  a real mail provider.
+* **Password reset**: built but not switched on in 1.0. The reset pages
+  exist, and the app's *Forgot password* opens the website's page, but the
+  website's sign-in link goes to support until the feature is marked live,
+  and the backend sends no email unless SMTP is configured (it still
+  answers 202 and logs `mail.disabled`).
 * **Website test connection**: coming in a later release (US-WEB-19 needs a
   backend endpoint).
 * **Store availability**: 1.0 is not yet listed on the App Store or Google
