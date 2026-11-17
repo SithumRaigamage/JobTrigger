@@ -28,3 +28,16 @@ time.
       `profile_screen_test.dart` expectation was updated on purpose (it
       asserted the old string); `app_info_screen.dart` keeps its own
       "Version X (Y)" line untouched (flagged as a possible follow-up).
+- [x] P24-04 **Subscription UI invisible without store keys.** The owner
+      wanted to see the plans, the paywall and the Free/Pro status row, but
+      `billingAvailable` correctly hides all of it in a build with no
+      RevenueCat SDK key. A dev-only `BILLING_PREVIEW` dart-define now opts
+      into `PreviewBillingClient`, which serves the website's two plans
+      (Monthly $9.99, Yearly $29.99 with a 7-day trial) so the UI renders.
+      Purchases always fail ("Preview build: no store is connected") and
+      restore finds nothing; no money can move. Release builds can never
+      preview (`AppConfig.billingPreview` is `!isRelease`-guarded), demo mode
+      still wins, and the launchers write the flag only for local runs
+      (`BILLING_PREVIEW=0` opts out). The real store checkout still needs
+      the owner's keys (P20-40..42). Covered by
+      `preview_billing_client_test.dart` and `billing_availability_test.dart`.

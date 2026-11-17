@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../data/billing/revenuecat_billing_client.dart';
 import '../../../data/demo/demo_mode_notifier.dart';
 import 'entitlements_notifier.dart';
@@ -12,9 +13,15 @@ part 'billing_availability.g.dart';
 /// platform **and** the backend has billing switched on **and** the app is
 /// not in demo mode. This is how a default build, with no keys or with
 /// `BILLING_ENABLED` off, behaves exactly as before subscriptions.
+///
+/// P24-04: a dev-only build with `BILLING_PREVIEW` set opts into the
+/// preview client, which serves static offers, so the same UI can be seen
+/// without keys. Demo mode still wins: it is its own universe. Release
+/// builds can never set the flag (`AppConfig.billingPreview`).
 @Riverpod(keepAlive: true)
 bool billingAvailable(Ref ref) {
   if (ref.watch(demoModeNotifierProvider)) return false;
+  if (ref.watch(appConfigProvider).billingPreview) return true;
   if (!ref.watch(billingClientProvider).isConfigured) return false;
   return ref.watch(entitlementsProvider).billingEnabled;
 }

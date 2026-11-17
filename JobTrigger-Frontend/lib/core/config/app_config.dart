@@ -23,6 +23,7 @@ class AppConfig {
     this.crashReportDsn,
     this.revenueCatIosKey,
     this.revenueCatAndroidKey,
+    this.billingPreview = false,
   });
 
   /// AUD-43: a release build without its config used to fall back to the
@@ -39,6 +40,7 @@ class AppConfig {
     const revenueCatAndroidKey = String.fromEnvironment(
       'REVENUECAT_ANDROID_KEY',
     );
+    const billingPreview = String.fromEnvironment('BILLING_PREVIEW');
     if (isRelease) {
       final problem = releaseConfigProblem(
         environmentName: environmentName,
@@ -61,6 +63,9 @@ class AppConfig {
           : crashReportDsn.trim(),
       revenueCatIosKey: _orNull(revenueCatIosKey),
       revenueCatAndroidKey: _orNull(revenueCatAndroidKey),
+      // Dev-only: a release build can never preview billing, even if the
+      // flag leaked into its config.
+      billingPreview: !isRelease && billingPreview.trim() == 'true',
     );
   }
 
@@ -85,6 +90,13 @@ class AppConfig {
   /// `config/README.md`. The secret REST key lives only on the backend.
   final String? revenueCatIosKey;
   final String? revenueCatAndroidKey;
+
+  /// Dev-only preview of the subscription UI with static offers, so a build
+  /// without SDK keys can still show the plans, the paywall and the Profile
+  /// status row. False in every release build, whatever the flag says; the
+  /// offers are placeholders and purchases always fail. Never committed to
+  /// `staging.json`/`prod.json`.
+  final bool billingPreview;
 
   /// The key for the platform the app is running on, or null.
   String? revenueCatKeyFor(TargetPlatform platform) => switch (platform) {

@@ -115,11 +115,16 @@ if [ -n "${SENTRY_DSN_APP:-}" ]; then
   dsn="$(printf '%s' "$SENTRY_DSN_APP" | sed -E 's#^(https?://[^@/]+@)[^:/]+#\1'"$host"'#')"
   sentry_line=$',\n  "SENTRY_DSN": "'"$dsn"'"'
 fi
+# P24-04: dev-only billing preview — static offers, no RevenueCat key needed,
+# so the Subscription screen and paywall render on this dev run. Opt out
+# with BILLING_PREVIEW=0. Never set in staging/prod.
+billing_preview_line=$',\n  "BILLING_PREVIEW": "true"'
+[ "${BILLING_PREVIEW:-1}" = "0" ] && billing_preview_line=""
 cat >"$CONFIG" <<EOF
 {
   "ENVIRONMENT": "dev",
   "BACKEND_BASE_URL": "$backend",
-  "WEBSITE_BASE_URL": "$website"$sentry_line
+  "WEBSITE_BASE_URL": "$website"$sentry_line$billing_preview_line
 }
 EOF
 echo "✓ config/device.json → $backend"

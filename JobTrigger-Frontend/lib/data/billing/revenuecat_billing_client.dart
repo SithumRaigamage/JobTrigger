@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../core/config/app_config.dart';
 import '../../domain/subscription/billing_offer.dart';
 import 'billing_client.dart';
+import 'preview_billing_client.dart';
 
 part 'revenuecat_billing_client.g.dart';
 
@@ -113,12 +114,13 @@ class RevenueCatBillingClient implements BillingClient {
   }
 }
 
-/// The client for this build: RevenueCat when the build has a key for the
-/// running platform, otherwise [NoBillingClient].
+/// The client for this build: the preview client when the dev-only
+/// `BILLING_PREVIEW` flag is set, RevenueCat when the build has a key for
+/// the running platform, otherwise [NoBillingClient].
 @Riverpod(keepAlive: true)
 BillingClient billingClient(Ref ref) {
-  final key = ref
-      .watch(appConfigProvider)
-      .revenueCatKeyFor(defaultTargetPlatform);
+  final config = ref.watch(appConfigProvider);
+  if (config.billingPreview) return const PreviewBillingClient();
+  final key = config.revenueCatKeyFor(defaultTargetPlatform);
   return key == null ? const NoBillingClient() : RevenueCatBillingClient(key);
 }

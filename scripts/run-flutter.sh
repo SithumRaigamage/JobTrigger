@@ -80,11 +80,15 @@ else
     esac
   fi
 
+  # P24-04: dev-only billing preview — static offers, no RevenueCat key
+  # needed. Opt out with BILLING_PREVIEW=0. Never set in staging/prod.
+  billing_preview_line=$',\n  "BILLING_PREVIEW": "true"'
+  [ "${BILLING_PREVIEW:-1}" = "0" ] && billing_preview_line=""
   cat >"$config_file" <<EOF
 {
   "ENVIRONMENT": "dev",
   "BACKEND_BASE_URL": "http://$backend_host:$backend_port",
-  "WEBSITE_BASE_URL": "http://$backend_host:$website_port"
+  "WEBSITE_BASE_URL": "http://$backend_host:$website_port"$billing_preview_line
 }
 EOF
 fi
