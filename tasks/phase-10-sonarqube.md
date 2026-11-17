@@ -285,6 +285,41 @@ would be unrelated scope creep for this phase.
       user token in the lab SonarQube (My Account → Security), then add it in
       the app against `http://<Mac Wi-Fi address>:9000`.
 
+## Audit of the built work (2026-11-17)
+
+Scope: P10-00..13, P10-16..20 and the built part of P10-21, read against
+this file and `docs/user-stories/sonarqube/14-sonarqube.md`. **The code was
+read, not run:** the environment had no Flutter SDK and no network, so
+`flutter analyze`, `flutter test` and the backend's `npm test` (which
+downloads MongoDB) were not run. The full suite has to run before this
+branch is merged (`CLAUDE.md` §11).
+
+Matches its description: the backend routes (now built on the shared
+credential controller factory, with the PE-32 `/:id/secret` route), the
+credential stack and its own `active_sonarqube_credential_id` key, the
+project list (`search_projects` with fallback, `f=analysisDate`, paging),
+gate, measures, issues (10,000-result cap), analysis history, my issues
+(`assignees=__me__`), analysis status, new-code measures, deltas, gate
+watches on their own `quality_gates` channel sharing the plan's
+`backgroundWatch` limit, hotspots, trends, worst files, languages,
+grouping, the branch picker and the server screen. The live repository, the
+demo repository and the interface all declare the same 18 reads.
+
+Fixed:
+- **P10-19**: the background check did not redact gate alerts while the app
+  lock was on, so the project name and failing condition reached the lock
+  screen (AUD-54). Only the in-app timer redacted them. Commit `e9e53bb`.
+- **P10-20**: a file key whose project key has no `:` (`web:src/app.ts`)
+  was not traced back to its project, so a file's issues on a chosen branch
+  or pull request came from the main branch. Commit `0696a55`, with a test.
+- Tracker text: P10-20, the README row, this file's batch heading, the
+  backlog entry and the stories doc's "not started" line.
+
+Left as an observation, not changed: the issue page's code context
+(`api/sources/show`) carries no branch, so on a branch it may show the main
+branch's lines. Whether that endpoint accepts `branch` is not documented
+clearly enough to change it without a server that has branches.
+
 ## Planned batches (documented 2026-11-09; batches 1–3 built 2026-11-17, batch 4 started)
 
 Listed for the owner on 2026-11-08 and written up as user stories on
