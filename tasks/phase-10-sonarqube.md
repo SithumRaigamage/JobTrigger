@@ -352,18 +352,26 @@ the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
       **Not verified:** the story itself says it needs a real device and a
       real analysis — an actual gate failure arriving as a notification, and
       iOS's background scheduling, are the owner's check.
-- [x] P10-20 **Batch 3: deeper project views.** *Started 2026-11-17 with
-      `US-SQ-HOTSPOT-01` (built: hotspots list + inline rule/code detail,
-      `api/hotspots/search` / `hotspots/show`). Still open in this batch:
-      `US-SQ-QUALITY-11` (trends, custom painter, no dependency),
-      `US-SQ-QUALITY-12` (worst files + a file's own issues),
-      `US-SQ-QUALITY-13` (language breakdown), `US-SQ-ISSUES-02`.* `US-SQ-QUALITY-10` (branch
-      and pull request picker; **edition-dependent, hidden when the server
-      lists only the main branch**), `US-SQ-HOTSPOT-01`,
-      `US-SQ-QUALITY-11` (trends; **needs a decision on the chart: custom
-      painter or a flagged dependency**), `US-SQ-QUALITY-12`,
-      `US-SQ-QUALITY-13`, `US-SQ-ISSUES-02`. Read-only; any can be taken
-      alone.
+- [x] P10-20 **Batch 3: deeper project views.** *Built 2026-11-17, all six
+      stories, read-only.*
+      - `US-SQ-HOTSPOT-01`: security hotspots list with inline rule and code
+        (`api/hotspots/search`, `api/hotspots/show`).
+      - `US-SQ-QUALITY-11`: trends over time, drawn with a small custom
+        painter (no chart dependency), from `api/measures/search_history`.
+      - `US-SQ-QUALITY-12`: worst files (`api/measures/component_tree`) and
+        each file's own issues.
+      - `US-SQ-QUALITY-13`: language breakdown under the measures, in its own
+        section on the project page.
+      - `US-SQ-ISSUES-02`: group issues by file, rule or severity.
+      - `US-SQ-QUALITY-10`: branch and pull request picker, hidden when the
+        server lists only the main branch; the choice is remembered per
+        project and carried by an interceptor on the SonarQube client to
+        every project-scoped call. Fixed 2026-11-17 (audit): a file key such
+        as `web:src/app.ts` now resolves to its project, so a file's issues
+        follow the chosen branch.
+      **Not verified:** branches and pull requests need a Developer Edition
+      or SonarCloud; the owner's lab server is a Community Build, which only
+      shows the picker's "hidden" state.
 - [ ] P10-21 **Batch 4: across projects and the server.** *Started
       2026-11-17 with `US-SQ-SERVER-01` (version + status screen, built).
       Still open: `US-SQ-ISSUES-03` (search issues across projects) and
