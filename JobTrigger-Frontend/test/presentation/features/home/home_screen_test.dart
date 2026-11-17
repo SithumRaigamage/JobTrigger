@@ -137,6 +137,9 @@ void main() {
           .navigateInto(folder);
       await tester.pumpAndSettle();
 
+      // PI-05: a live listing names when it was last updated.
+      expect(find.text('Updated just now'), findsOneWidget);
+
       expect(container.read(folderBreadcrumbNotifierProvider), hasLength(1));
 
       final navigatorState = tester.state<NavigatorState>(

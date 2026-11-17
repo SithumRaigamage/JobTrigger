@@ -289,7 +289,7 @@ final class SonarQubeIssuesNotifierProvider
 }
 
 String _$sonarQubeIssuesNotifierHash() =>
-    r'344e62188d5525f3dc5b16b2fb1cb901d31b6530';
+    r'c8124aa6522be01c48bc2bd7948b28e0fca0130e';
 
 /// A project's issues, server-filtered and paged (`US-SQ-QUALITY-03`).
 /// Changing the filter rebuilds from page one.

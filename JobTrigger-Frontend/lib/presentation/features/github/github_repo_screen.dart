@@ -8,6 +8,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../domain/github/github_repo.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/credential_load_gate.dart';
+import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/no_active_github_credential_view.dart';
 import '../../common_widgets/responsive_center.dart';
@@ -97,6 +98,14 @@ class GitHubRepoScreen extends ConsumerWidget {
                     const SizedBox(height: 14),
                     const _SearchField(),
                   ],
+                ),
+              ),
+              // PI-05: when the repo list was last loaded.
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: DataFreshnessBanner(
+                  freshnessKey: gitHubReposFreshnessKey,
+                  showOffline: false,
                 ),
               ),
               Expanded(

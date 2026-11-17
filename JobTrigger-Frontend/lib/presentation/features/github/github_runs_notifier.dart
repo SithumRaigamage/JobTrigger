@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/error/result.dart';
 import '../../../data/repositories/github_repository_impl.dart';
 import '../../../domain/github/github_workflow_run.dart';
+import '../../common_widgets/data_freshness.dart';
 
 part 'github_runs_notifier.g.dart';
 
@@ -20,7 +21,9 @@ class GitHubRunsNotifier extends _$GitHubRunsNotifier {
     final result = await ref
         .watch(gitHubRepositoryProvider)
         .fetchRuns(owner, repo, workflowId);
-    return result.fold((runs) => runs, (failure) => throw failure);
+    final runs = result.fold((runs) => runs, (failure) => throw failure);
+    recordFreshness(ref, gitHubRunsFreshnessKey(owner, repo, workflowId));
+    return runs;
   }
 
   Future<void> refresh() async => ref.invalidateSelf();

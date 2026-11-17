@@ -21,6 +21,7 @@ import '../../../domain/jenkins/relative_time.dart';
 import '../../../domain/jenkins/test_report.dart';
 import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/read_only_notice.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../common_widgets/glass_surface.dart';
@@ -182,6 +183,16 @@ class JobDetailScreen extends ConsumerWidget {
                         ],
                       ),
                   ],
+                ),
+              ),
+            ),
+            // PI-05: when this job's detail was last loaded from the server.
+            ResponsiveCenter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: DataFreshnessBanner(
+                  freshnessKey: jobDetailFreshnessKey(jobUrl),
+                  showOffline: false,
                 ),
               ),
             ),

@@ -337,6 +337,10 @@ class _JobsSection extends StatelessWidget {
                               color: t
                                   .status(toneForRunOutcome(step.outcome))
                                   .dot,
+                              // PI-06: icon and status words alongside the
+                              // segment colour.
+                              tone: toneForRunOutcome(step.outcome),
+                              statusLabel: step.label,
                               emphasis: switch (step.outcome) {
                                 GitHubRunOutcome.running =>
                                   SegmentEmphasis.running,

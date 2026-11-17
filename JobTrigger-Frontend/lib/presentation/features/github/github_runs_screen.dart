@@ -14,6 +14,7 @@ import '../../../domain/github/github_workflow.dart';
 import '../../../domain/github/github_workflow_run.dart';
 import '../../../domain/jenkins/relative_time.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/read_only_notice.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
@@ -148,6 +149,18 @@ class GitHubRunsScreen extends ConsumerWidget {
                       ],
                     ),
                   ],
+                ),
+              ),
+              // PI-05: when these runs were last loaded.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: DataFreshnessBanner(
+                  freshnessKey: gitHubRunsFreshnessKey(
+                    repo.owner,
+                    repo.name,
+                    workflow.id,
+                  ),
+                  showOffline: false,
                 ),
               ),
               Expanded(

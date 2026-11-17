@@ -166,6 +166,8 @@ void main() {
     expect(find.text('Analyzed 3h ago'), findsOneWidget);
     expect(find.text('Web App'), findsOneWidget);
     expect(find.text('Never analyzed'), findsOneWidget);
+    // PI-05: a live load shows when this list was last updated.
+    expect(find.text('Updated just now'), findsOneWidget);
   });
 
   testWidgets('search matches name or key, and says when nothing matches', (

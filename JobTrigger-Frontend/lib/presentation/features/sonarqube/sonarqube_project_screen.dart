@@ -6,6 +6,7 @@ import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
@@ -87,6 +88,15 @@ class SonarQubeProjectScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     const _Controls(),
                   ],
+                ),
+              ),
+              // PI-05: when the project list was last loaded. The cached
+              // "Saved …" copy stays with SonarQubeSavedBanner in the list.
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: DataFreshnessBanner(
+                  freshnessKey: sonarqubeProjectsFreshnessKey,
+                  showOffline: false,
                 ),
               ),
               Expanded(

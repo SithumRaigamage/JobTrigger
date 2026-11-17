@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../domain/jenkins/build_artifact.dart';
@@ -94,6 +95,10 @@ class StageChipRow extends StatelessWidget {
               semanticsLabel:
                   'Stage ${node.stage.name}, ${labelForStageStatus(node.status)}',
               color: colorForStageStatus(context, status),
+              // PI-06: a distinct icon and the status in words, so the
+              // segment no longer means anything by colour alone.
+              tone: AppColors.toneForStageStatus(node.status),
+              statusLabel: labelForStageStatus(node.status),
               emphasis: status == 'NOT_EXECUTED'
                   ? SegmentEmphasis.notRun
                   : status == 'IN_PROGRESS'

@@ -64,7 +64,7 @@ final class JobHistoryPagesNotifierProvider
 }
 
 String _$jobHistoryPagesNotifierHash() =>
-    r'0847457dbc25a72cd6d965af63ef9a180a6c3fc4';
+    r'7359c95417b20577a1d68f3c39cca876dbd1a015';
 
 /// US-JX-06: job history, [historyPageSize] builds at a time, all the way
 /// back. The first page loads with the screen; [loadMore] appends the next.

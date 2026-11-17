@@ -12,6 +12,7 @@ import '../../../data/repositories/sonarqube_repository_impl.dart';
 import '../../../domain/sonarqube/sonarqube_project.dart';
 import 'sonarqube_gate_style.dart';
 import 'sonarqube_summaries_notifier.dart';
+import '../../common_widgets/data_freshness.dart';
 
 part 'sonarqube_projects_notifier.g.dart';
 
@@ -84,6 +85,7 @@ class SonarQubeProjectsNotifier extends _$SonarQubeProjectsNotifier {
                 .catchError((Object _) {}),
           );
         }
+        recordFreshness(ref, sonarqubeProjectsFreshnessKey);
         return SonarQubeProjects(
           projects: page.projects,
           total: page.total,
@@ -98,6 +100,12 @@ class SonarQubeProjectsNotifier extends _$SonarQubeProjectsNotifier {
               .read(credentialId)
               .catchError((Object _) => null);
           if (saved != null) {
+            recordFreshness(
+              ref,
+              sonarqubeProjectsFreshnessKey,
+              savedAt: saved.savedAt,
+              offline: true,
+            );
             return SonarQubeProjects(
               projects: saved.projects,
               total: saved.total,

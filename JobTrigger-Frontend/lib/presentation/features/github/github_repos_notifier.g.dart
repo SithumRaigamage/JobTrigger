@@ -43,7 +43,7 @@ final class GitHubReposNotifierProvider
 }
 
 String _$gitHubReposNotifierHash() =>
-    r'9a95710bef6f72acc9533c6be75820cfa1567684';
+    r'9d4f12482156843c2e2d5ed3c9051047da73d01f';
 
 /// Fetches the active credential's repos (`US-GH-REPO-01`) — the
 /// GitHub-side equivalent of `JobTreeNotifier`. `refresh()` backs

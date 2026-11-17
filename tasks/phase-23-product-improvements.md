@@ -58,7 +58,7 @@ Implemented in five batches, with a full verification and commit after each.
 
 ## Batch 3 — Freshness and status
 
-- [ ] PI-05 / IMP-38 **Last updated and offline banner.** Shared
+- [x] PI-05 / IMP-38 **Last updated and offline banner.** Shared
       `DataFreshnessNotifier` (`DateTime? savedAt`, `bool offline`) and
       `DataFreshnessBanner` in `common_widgets`: "Updated 2m ago" for a live
       load, "Offline — showing data from HH:MM" for a cached fallback. Wire
@@ -66,7 +66,7 @@ Implemented in five batches, with a full verification and commit after each.
       projects/overview/issues. The existing Jenkins and SonarQube banners
       delegate to the shared widget so their current copy and tests stay
       green. Tests: notifier, banner, at least one screen per tool.
-- [ ] PI-06 / IMP-51 **Status by shape and text.** Add a shared `StatusMark`
+- [x] PI-06 / IMP-51 **Status by shape and text.** Add a shared `StatusMark`
       (distinct icon per tone **and** a visible label) and replace the
       remaining colour-only indicators: the Home server reachability chip,
       GitHub run step segments and Jenkins stage-status circles. Leave the

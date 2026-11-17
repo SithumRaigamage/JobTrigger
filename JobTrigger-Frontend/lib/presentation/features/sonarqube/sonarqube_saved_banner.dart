@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_tokens.dart';
-import '../../../domain/jenkins/relative_time.dart';
+import '../../common_widgets/data_freshness.dart';
 
-/// "Saved 2h ago" (`US-SQ-OFFLINE-01`): shown above a list that is the copy
-/// saved on the device because the server could not be reached, so old data is
-/// never mistaken for current data.
+/// "Saved 2h ago · can't reach the server" (`US-SQ-OFFLINE-01`): shown above a
+/// list that is the copy saved on the device because the server could not be
+/// reached, so old data is never mistaken for current data.
+///
+/// PI-05: delegates to [DataFreshnessBanner] so the copy and styling live in
+/// one shared place; the SonarQube style keeps the long-standing wording.
 class SonarQubeSavedBanner extends StatelessWidget {
   const SonarQubeSavedBanner({required this.savedAt, super.key});
 
@@ -13,37 +15,10 @@ class SonarQubeSavedBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = AppTokens.of(context);
-    final text = 'Saved ${relativeTime(savedAt)} · can\'t reach the server';
-    return Semantics(
-      label: text,
-      excludeSemantics: true,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: t.neutral.background,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.cloud_off_rounded,
-              size: 16,
-              color: t.neutral.foreground,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                text,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: t.neutral.foreground),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return DataFreshnessBanner(
+      style: FreshnessStyle.sonarqube,
+      savedAt: savedAt,
+      offline: true,
     );
   }
 }

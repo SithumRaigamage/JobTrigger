@@ -10,6 +10,7 @@ import '../../../domain/sonarqube/sonarqube_issue.dart';
 import '../../../domain/sonarqube/sonarqube_issue_grouping.dart';
 import '../../../domain/sonarqube/sonarqube_project.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/status_pill.dart';
@@ -85,6 +86,14 @@ class SonarQubeIssuesScreen extends ConsumerWidget {
                 grouping: grouping,
                 onSelected: (value) =>
                     ref.read(groupingProvider.notifier).set(value),
+              ),
+              // PI-05: when these issues were last loaded.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: DataFreshnessBanner(
+                  freshnessKey: sonarqubeIssuesFreshnessKey(project.key),
+                  showOffline: false,
+                ),
               ),
               Expanded(
                 child: issuesAsync.when(

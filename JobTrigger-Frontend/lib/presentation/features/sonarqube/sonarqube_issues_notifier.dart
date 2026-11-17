@@ -4,6 +4,7 @@ import '../../../core/error/result.dart';
 import '../../../data/repositories/sonarqube_repository_impl.dart';
 import '../../../domain/sonarqube/sonarqube_issue.dart';
 import '../../../domain/sonarqube/sonarqube_issue_grouping.dart';
+import '../../common_widgets/data_freshness.dart';
 
 part 'sonarqube_issues_notifier.g.dart';
 
@@ -86,6 +87,7 @@ class SonarQubeIssuesNotifier extends _$SonarQubeIssuesNotifier {
         .watch(sonarQubeRepositoryProvider)
         .fetchIssues(projectKey, filter: filter, grouping: grouping);
     final page = result.fold((page) => page, (failure) => throw failure);
+    recordFreshness(ref, sonarqubeIssuesFreshnessKey(projectKey));
     return SonarQubeIssues(
       issues: page.issues,
       total: page.total,

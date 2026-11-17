@@ -9,6 +9,7 @@ import '../../../data/cache/job_tree_cache.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../../data/credentials/active_server_notifier.dart';
+import '../../common_widgets/data_freshness.dart';
 
 part 'folder_contents_notifier.g.dart';
 
@@ -57,6 +58,11 @@ class FolderContentsNotifier extends _$FolderContentsNotifier {
         _lastListing = value;
         _lastLoadedAt = DateTime.now();
         _markOnline();
+        recordFreshness(
+          ref,
+          homeFreshnessKey,
+          savedAt: _lastLoadedAt,
+        );
         // Saved in the background: the listing is already in hand.
         unawaited(_bestEffort(() => cache.write(serverId, folderUrl, value)));
         return value;
@@ -69,6 +75,12 @@ class FolderContentsNotifier extends _$FolderContentsNotifier {
           ref
               .read(offlineSnapshotNotifierProvider.notifier)
               .markOffline(savedAt);
+          recordFreshness(
+            ref,
+            homeFreshnessKey,
+            savedAt: savedAt,
+            offline: true,
+          );
         }
         return jobs;
       case Err(:final error):
@@ -96,6 +108,12 @@ class FolderContentsNotifier extends _$FolderContentsNotifier {
           ref
               .read(offlineSnapshotNotifierProvider.notifier)
               .markOffline(shownSince);
+          recordFreshness(
+            ref,
+            homeFreshnessKey,
+            savedAt: shownSince,
+            offline: true,
+          );
         }
       default:
         break;

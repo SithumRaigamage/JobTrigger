@@ -8,6 +8,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../../domain/sonarqube/sonarqube_overview.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
@@ -90,6 +91,15 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
                       ),
                     ),
                   ],
+                ),
+              ),
+              // PI-05: when these numbers were last loaded. The cached
+              // "Saved …" copy stays with SonarQubeSavedBanner in the body.
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: DataFreshnessBanner(
+                  freshnessKey: sonarqubeProjectsFreshnessKey,
+                  showOffline: false,
                 ),
               ),
               Expanded(
