@@ -24,7 +24,9 @@ import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'sonarqube_insights_notifiers.dart';
 import 'sonarqube_watch_notifier.dart';
+import '../open_link/open_link_location.dart';
 import 'sonarqube_last_analysis.dart';
+import 'sonarqube_tool_links_notifier.dart';
 import 'sonarqube_project_card.dart' show SonarQubePinButton;
 import 'sonarqube_quality_notifiers.dart';
 
@@ -179,6 +181,20 @@ class SonarQubeProjectDetailScreen extends ConsumerWidget {
                       ),
                       const Divider(height: 1),
                       const Divider(height: 1),
+                      // US-SQ-XTOOL-02: for a project linked to a Jenkins job,
+                      // "Scan now" opens that job, where the existing trigger
+                      // and confirmation flow runs; coming back and pulling to
+                      // refresh follows the analysis status above.
+                      for (final jobUrl in ref.watch(
+                        sonarQubeJenkinsJobsForProvider(project.key),
+                      )) ...[
+                        _NavRow(
+                          icon: Icons.play_circle_outline_rounded,
+                          label: 'Scan now with Jenkins',
+                          onTap: () => context.push(openLinkLocation(jobUrl)),
+                        ),
+                        const Divider(height: 1),
+                      ],
                       _NavRow(
                         icon: Icons.dns_outlined,
                         label: 'Server version and status',

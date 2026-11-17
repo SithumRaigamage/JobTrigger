@@ -493,12 +493,36 @@ the whole suite run (`CLAUDE.md` §11) and an iPhone test by the owner.
       this Mac's Android NDK install is broken (empty
       `ndk/28.2.13676358`, no `sdkmanager`) and installing one was not
       permitted in this session.
-- [ ] P10-23 **Batch 6: connecting the tools.** `US-SQ-XTOOL-01..03`
-      (Jenkins build or GitHub run beside the SonarQube gate; scan from
-      Jenkins). **Edits Jenkins and GitHub screens**, so it needs the
-      owner's explicit go-ahead and the diff shown first; Jenkins is frozen
-      except for bug fixes. The link between a job or repo and a project is
-      stored on the device only; credentials are never shared between tools.
+- [x] P10-23 **Batch 6: connecting the tools.** *Built 2026-11-17, all three
+      stories; the owner approved the Jenkins/GitHub edits in the 2026-11-17
+      instruction and asked to see the diff (below).*
+      - `US-SQ-XTOOL-01` (Jenkins build page) and `-03` (GitHub run page): a
+        "SonarQube quality gate" card. Link a job or repo to a project once;
+        the build/run page then shows the gate and taps through to the
+        project; unlink confirms. The link is `sonarqube_links_<SonarQube
+        credential id>` in `shared_preferences`: project key and name against a
+        job URL or `owner/name`. No credential of any tool is stored or shared;
+        the card only ever calls SonarQube with the SonarQube credential.
+      - `US-SQ-XTOOL-02`: on the project page, a linked Jenkins job adds
+        "Scan now with Jenkins", which opens that job through the existing
+        open-link flow, where the **unchanged** Jenkins trigger and
+        confirmation run; the project page's analysis status (CE-01) follows
+        the result on refresh.
+      - **Jenkins/GitHub diff: 14 added lines in two files, nothing removed**
+        (`build_detail_screen.dart`: 2 imports + one widget after the upstream
+        link; `github_run_detail_screen.dart`: 2 imports + one widget before
+        the Jobs list).
+      - **Regression caught and fixed before merge (CLAUDE.md §11):** the
+        first version watched the SonarQube credential provider, which fetches
+        the credential list from the backend, so a GitHub page for someone who
+        never set SonarQube up made a new network call and three GitHub run
+        tests failed on a pending retry timer. The card now first checks a
+        local-only preference (`active_sonarqube_credential_id`); without it
+        nothing SonarQube is read and the page is exactly as before, proved
+        by a test that throws if the provider is touched. No existing test
+        was changed.
+      Tests: 7 card/links. **Not verified:** on a device, and a Jenkins job
+      or GitHub repo linked to a real project end to end.
 - [x] P10-24 **Batch 7: changing data on the server.** *Built 2026-11-17, all
       four stories. The first writes in this epic; the owner approved them in
       the 2026-11-17 instruction.*

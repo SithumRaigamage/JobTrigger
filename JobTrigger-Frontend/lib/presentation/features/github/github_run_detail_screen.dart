@@ -1,3 +1,5 @@
+import '../../../domain/sonarqube/sonarqube_tool_link.dart';
+import '../sonarqube/sonarqube_gate_link_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -135,6 +137,11 @@ class GitHubRunDetailScreen extends ConsumerWidget {
                         child: const Text('Refresh'),
                       ),
                     ],
+                    // US-SQ-XTOOL-03: draws nothing without a SonarQube credential.
+                    SonarQubeGateLinkCard(
+                      tool: SonarQubeLinkedTool.github,
+                      externalId: repo.fullName,
+                    ),
                     const SizedBox(height: 24),
                     const SectionLabel('Jobs'),
                     const SizedBox(height: 8),

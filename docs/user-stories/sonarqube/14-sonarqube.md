@@ -1091,7 +1091,7 @@ Touches the Jenkins and GitHub screens, so it needs the owner's explicit go-ahea
 ### US-SQ-XTOOL-01 — Show a project's SonarQube gate on a Jenkins build
 
 **Batch:** 6 · **Priority:** Could · **Effort:** M–L
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-23)
 **Dependencies:** US-SQ-PROJ-01, a Jenkins build page
 
 As a user
@@ -1115,7 +1115,7 @@ So that I know whether a build also passed its quality gate
 ### US-SQ-XTOOL-02 — Scan from Jenkins
 
 **Batch:** 6 · **Priority:** Could · **Effort:** L
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-23)
 **Dependencies:** US-SQ-XTOOL-01
 
 As a user
@@ -1135,7 +1135,7 @@ So that a re-scan is one flow on my phone
 ### US-SQ-XTOOL-03 — Show the gate beside a GitHub workflow run
 
 **Batch:** 6 · **Priority:** Could · **Effort:** M–L
-**Documented:** 2026-11-09 · **Status:** proposed, not started
+**Documented:** 2026-11-09 · **Status:** built 2026-11-17 (P10-23)
 **Dependencies:** US-SQ-PROJ-01, GitHub run detail
 
 As a user

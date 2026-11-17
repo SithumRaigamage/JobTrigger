@@ -22,6 +22,8 @@ import '../../navigation/app_routes.dart';
 import '../job_detail/build_sections.dart';
 import '../job_detail/pipeline_stages_notifier.dart';
 import '../job_detail/test_report_notifier.dart';
+import '../../../domain/sonarqube/sonarqube_tool_link.dart';
+import '../sonarqube/sonarqube_gate_link_card.dart';
 import 'build_detail_notifier.dart';
 
 /// US-JX-14: any build in full (result, causes, parameters, changes,
@@ -172,6 +174,11 @@ class _BuildBody extends ConsumerWidget {
           const SizedBox(height: 8),
           UpstreamLink(cause: cause),
         ],
+        // US-SQ-XTOOL-01: draws nothing without a SonarQube credential.
+        SonarQubeGateLinkCard(
+          tool: SonarQubeLinkedTool.jenkins,
+          externalId: jenkinsJobUrlFromBuildUrl(build.url),
+        ),
         if (broken) ...[
           const SizedBox(height: 14),
           InlineAlert(

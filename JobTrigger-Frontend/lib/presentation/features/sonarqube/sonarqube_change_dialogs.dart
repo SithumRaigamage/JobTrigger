@@ -73,6 +73,7 @@ Future<T?> pickSonarQubeChoice<T>(
 }) => showModalBottomSheet<T>(
   context: context,
   showDragHandle: true,
+  isScrollControlled: true,
   builder: (context) => SafeArea(
     child: Column(
       mainAxisSize: MainAxisSize.min,
@@ -84,11 +85,19 @@ Future<T?> pickSonarQubeChoice<T>(
             child: Text(title, style: Theme.of(context).textTheme.titleMedium),
           ),
         ),
-        for (final (label, value) in choices)
-          ListTile(
-            title: Text(label),
-            onTap: () => Navigator.of(context).pop(value),
+        // Scrolls: a server can have hundreds of projects to choose from.
+        Flexible(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              for (final (label, value) in choices)
+                ListTile(
+                  title: Text(label),
+                  onTap: () => Navigator.of(context).pop(value),
+                ),
+            ],
           ),
+        ),
       ],
     ),
   ),
