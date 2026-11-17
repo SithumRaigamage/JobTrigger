@@ -23,6 +23,27 @@ You can launch and run the entire stack for **~$10 – $14 / year** initially, s
 
 > **Summary**: Absolute minimum initial setup cost is **$10 – $14/year** (Domain only) + **$25** one-time Google Play fee.
 
+### 1.1 Zero-Dollar Path: GitHub Student Developer Pack
+
+If you have a **GitHub Student Developer Pack**, you can reduce the entire first-year hosting and infrastructure cost to **$0.00**.
+
+| Stack Component | Student Pack Provider | Student Benefit | Setup Note |
+|---|---|---|---|
+| **Free Domain & SSL** | **Namecheap** or **Name.com** | **1 Year Free Domain** (e.g. `.me`, `.tech`, `.live`) + Free SSL & Whois privacy | Claim via [education.github.com/pack](https://education.github.com/pack). *(Note: Custom `.app` domains cost ~$10-14/yr, but `.me` or `.tech` is 100% free).* |
+| **Backend 24/7 Hosting** | **DigitalOcean** | **$200 in platform credits** (valid for 1 year) | Run `JobTrigger-Backend` (Node.js/Docker) on a $4-$6/mo Basic Droplet or App Platform. Runs 24/7 with zero sleeping for over 2.5 years free. |
+| **Cloud Hosting (Alternative)** | **Microsoft Azure** or **Heroku** | **$100 Azure credit** (no CC required) or **$13/mo Heroku credit** for 12 months | Excellent alternative for containerized backend hosting. |
+| **Database** | **MongoDB Atlas** | **$50 Atlas credit** + Free M0 cluster | M0 Shared cluster is free forever; the $50 credit allows upgrading to dedicated M2/M5 tiers. |
+| **Crash Monitoring** | **Sentry.io** | **500,000 free error events/mo** (upgraded from 5k/mo) | 100× capacity boost for `jobtrigger-frontend`, `jobtrigger-backend`, and `jobtrigger-web`. |
+| **Transactional Email** | **SendGrid** or **Mailgun** | **15,000 free emails/mo** (SendGrid) or **20,000 free emails/mo** (Mailgun) | Use `smtp.sendgrid.net` (user `apikey`) in `JobTrigger-Backend/.env` for password resets and student verification. |
+| **Analytics Hosting** | **Self-Hosted Umami** | **$0.00** | Run Umami + Postgres side-by-side with the backend on your free DigitalOcean Droplet via Docker. |
+| **CI/CD Minutes** | **GitHub Pro** | **3,000 Actions minutes/month** + Pro account | Keeps all automated Flutter/Node/Web CI workflows completely free. |
+
+#### How to Activate the Student Pack Benefits:
+1. Visit [GitHub Student Developer Pack](https://education.github.com/pack).
+2. Connect your student GitHub account.
+3. Claim the **DigitalOcean $200 voucher**, **Namecheap free domain**, **SendGrid student tier**, and **Sentry developer pack upgrade**.
+4. Use the DigitalOcean Droplet IP or App Platform domain for `BACKEND_BASE_URL` in `JobTrigger-Frontend/config/prod.json` and `JobTrigger-Web/.env.local`.
+
 ---
 
 ## 2. Analytics Setup (Umami)
