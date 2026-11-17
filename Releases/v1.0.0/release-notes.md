@@ -40,12 +40,17 @@
 
 * **GitLab CI & CircleCI**: Scheduled for Release 1.3.0 (`release/tools.json`). Not included or supported in 1.0.0.
 * **Apple Watch & Localised Languages**: Planned for future milestones.
-* **Billing is switched off in this release**: the app and website show
-  JobTrigger Pro as *coming soon*. The paywall, purchases and plan
-  enforcement stay disabled until the store listings, RevenueCat keys and
-  the backend `BILLING_ENABLED` flag are configured; Free limits are not
-  enforced while billing is off.
-* **Student plan**: built but dark in 1.0 (no student verification flow yet).
+* **Billing is switched off in this release.** The app shows no
+  subscription UI at all — no Profile row, Subscription screen or paywall —
+  and the website's `/pricing` Pro card is a disabled *coming soon* action
+  (the account page hides its plan card). Purchases and the paywall stay
+  disabled until the store listings, RevenueCat keys and the backend
+  `BILLING_ENABLED` flag are configured. While billing is off everyone gets
+  Pro entitlements, so the Free limits (one saved server, one CI tool,
+  three pinned jobs) are not applied; the Pro cap of 25 servers per tool
+  still is.
+* **Student plan**: built and ships dark — the verification flow is
+  unreachable in 1.0 while billing is off.
 * **Notifications**: build notifications are local to the phone; server
   push (NR-06b) is not enabled yet.
 * **Password reset**: the UI appears only once the backend is deployed with

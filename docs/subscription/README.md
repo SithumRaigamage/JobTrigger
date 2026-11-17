@@ -1,9 +1,11 @@
 # Subscriptions
 
 **Date:** 2026-11-12 · **Status:** approved by the owner and built in
-Phase 20 (P20-00 closed). Billing ships switched off: the app and
-website hide the Pro paywall until the store listings, RevenueCat keys and
-the backend `BILLING_ENABLED` flag are configured.
+Phase 20 (P20-00 closed). Billing ships switched off: the app shows no
+subscription UI (the Profile row, Subscription screen and paywall are
+hidden), and the website shows Pro as a disabled *coming soon* action on
+`/pricing`, until the store listings, RevenueCat keys and the backend
+`BILLING_ENABLED` flag are configured.
 
 Read in this order:
 

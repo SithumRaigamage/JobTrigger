@@ -8,7 +8,8 @@
 > **Status: plan, not executed.** The values below are the intended
 > production configuration. Nothing here has been deployed or stored yet;
 > tick each step and replace placeholder secrets during the real
-> deployment.
+> deployment. Checked 2026-11-17: neither `api.jobtrigger.app` nor
+> `jobtrigger.app` resolves, so no production deployment is live.
 
 ---
 
