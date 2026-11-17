@@ -87,8 +87,9 @@ Use this template when starting a new release (e.g., `v1.1.0`, `v1.2.0`). Copy t
 - Status: Deployed
 
 ## Mobile Artifacts
-- Android AAB: `flutter build appbundle --release --dart-define-from-file=config/prod.json`
-- iOS IPA: `flutter build ipa --release --dart-define-from-file=config/prod.json`
+- Android AAB: `scripts/build-release.sh appbundle` (merges the git-ignored
+  `config/sentry.json` and `config/billing.json`)
+- iOS IPA: `scripts/build-release.sh ipa`
 - Play Console Track: Internal Testing / Production
 - App Store Connect Track: TestFlight / App Store
 ```
