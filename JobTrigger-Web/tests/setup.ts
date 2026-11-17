@@ -10,6 +10,7 @@ import { allToolsManifest, useManifest } from "@/content/release";
 afterEach(cleanup);
 
 // Every test runs with every tool released (the shipped manifest is release
-// 1.0, Jenkins only), so tools a release hides stay tested. A test about the
-// release itself calls useManifest(); the next test starts from all tools.
+// 1.0 with Jenkins, GitHub Actions and SonarQube), so tools a release hides stay
+// tested. A test about the release itself calls useManifest(); the next test
+// starts from all tools.
 beforeEach(() => useManifest(allToolsManifest()));

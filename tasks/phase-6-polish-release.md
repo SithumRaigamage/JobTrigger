@@ -125,11 +125,12 @@ steps in `tasks/MANUAL.md`.
       `scripts/export-icons.sh`; the old note that only Flutter's default icon
       existed is stale). **iOS screenshots: done 2026-11-17**, taken from the
       iOS simulator (iPhone 18 Pro Max, 1320×2868) in demo mode by
-      `integration_test/store_screenshots_test.dart`: five Jenkins-only shots
-      (jobs, folder, job, failing job, build log) in
-      `release/store-screenshots/ios-6.9/`, JPEG without alpha, with captions
-      and the retake command in `docs/store-submission.md`. **Android
-      screenshots: done 2026-11-17**, five matching shots from the
+      `integration_test/store_screenshots_test.dart`: seven shots for the
+      three tools in release 1.0 — five Jenkins (jobs, folder, job, failing
+      job, build log) plus GitHub Actions repositories and SonarQube projects
+      — in `release/store-screenshots/ios-6.9/`, JPEG without alpha, with
+      captions and the retake command in `docs/store-submission.md`. **Android
+      screenshots: done 2026-11-17**, seven matching shots from the
       `Medium_Phone_API_37.0` emulator in demo mode, resized to 1080×2160
       (Google Play's 2:1 limit) and saved as JPEG without alpha in
       `release/store-screenshots/android-2by1/`; the iPhone image is too tall

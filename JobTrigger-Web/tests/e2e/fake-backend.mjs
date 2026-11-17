@@ -64,9 +64,8 @@ const tools = {
 
 // Counted per account (the specs run in parallel), keyed by email.
 const secretFetches = new Map();
-// Requests for GitHub or SonarQube credentials: the release-1.0 smoke run
-// checks the site never makes one.
-// Counted per account (the specs run in parallel), keyed by email.
+// Requests for GitHub or SonarQube credentials, counted per account (the
+// specs run in parallel), keyed by email. A spec reads these through /__stats.
 const toolRequests = new Map();
 
 function send(res, status, body, requestId) {

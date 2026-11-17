@@ -16,9 +16,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ToolCatalog shipped() =>
     ToolCatalog.parse(File('config/tools.json').readAsStringSync());
 
-ToolCatalog atRelease(String release) =>
-    ToolCatalog(release: release, versions: shipped().versions);
-
 class _Bundle extends CachingAssetBundle {
   _Bundle(this.text);
   final String text;
@@ -35,33 +32,42 @@ void main() {
 
   group('ToolCatalog', () {
     test(
-      'the shipped manifest is release 1.0: Jenkins only, the rest next',
+      'the shipped manifest is release 1.0: three tools, two next',
       () {
         final catalog = shipped();
         expect(catalog.release, '1.0');
-        expect(catalog.isReleased('jenkins'), isTrue);
-        for (final id in ['sonarqube', 'githubActions', 'gitlab', 'circleci']) {
+        for (final id in ['jenkins', 'sonarqube', 'githubActions']) {
+          expect(catalog.isReleased(id), isTrue, reason: id);
+        }
+        for (final id in ['gitlab', 'circleci']) {
           expect(catalog.isReleased(id), isFalse, reason: id);
         }
-        expect(catalog.comingNext, [
-          'sonarqube',
-          'githubActions',
-          'gitlab',
-          'circleci',
-        ]);
-        expect(catalog.versionOf('sonarqube'), '1.1');
+        expect(catalog.comingNext, ['gitlab', 'circleci']);
+        expect(catalog.versionOf('sonarqube'), '1.0');
         expect(catalog.versionOf('nope'), isNull);
       },
     );
 
     test('later releases release more, soonest first in "coming next"', () {
-      expect(atRelease('1.1').isReleased('sonarqube'), isTrue);
-      expect(atRelease('1.1').comingNext, [
+      // The shipped manifest releases all three at 1.0; a staged fixture
+      // keeps the release-comparison logic across 1.1 and 1.2 covered.
+      ToolCatalog stagedAt(String release) => ToolCatalog(
+        release: release,
+        versions: const {
+          'jenkins': '1.0',
+          'sonarqube': '1.1',
+          'githubActions': '1.2',
+          'gitlab': '1.3',
+          'circleci': '1.3',
+        },
+      );
+      expect(stagedAt('1.1').isReleased('sonarqube'), isTrue);
+      expect(stagedAt('1.1').comingNext, [
         'githubActions',
         'gitlab',
         'circleci',
       ]);
-      expect(atRelease('1.2').comingNext, ['gitlab', 'circleci']);
+      expect(stagedAt('1.2').comingNext, ['gitlab', 'circleci']);
     });
 
     test('versions compare as numbers: 1.10 is after 1.2', () {
@@ -85,7 +91,9 @@ void main() {
         );
         expect(ToolCatalog.current.release, '1.0');
         expect(CiTool.jenkins.isAvailable, isTrue);
-        expect(CiTool.sonarqube.isAvailable, isFalse);
+        expect(CiTool.sonarqube.isAvailable, isTrue);
+        expect(CiTool.githubActions.isAvailable, isTrue);
+        expect(CiTool.gitlab.isAvailable, isFalse);
       },
     );
 
@@ -98,17 +106,18 @@ void main() {
   });
 
   group('CiTool follows the manifest', () {
-    test('release 1.0 offers Jenkins only; "coming next" lists the others', () {
+    test('release 1.0 offers the three built tools; '
+        '"coming next" lists the rest', () {
       ToolCatalog.current = shipped();
-      expect(CiTool.values.where((t) => t.isAvailable), [CiTool.jenkins]);
-      expect(comingNextTools, [
-        CiTool.sonarqube,
+      expect(CiTool.values.where((t) => t.isAvailable), [
+        CiTool.jenkins,
         CiTool.githubActions,
-        CiTool.gitlab,
-        CiTool.circleci,
+        CiTool.sonarqube,
       ]);
-      expect(CiTool.sonarqube.releaseVersion, '1.1');
-      expect(CiTool.githubActions.releaseVersion, '1.2');
+      expect(comingNextTools, [CiTool.gitlab, CiTool.circleci]);
+      expect(CiTool.jenkins.releaseVersion, '1.0');
+      expect(CiTool.sonarqube.releaseVersion, '1.0');
+      expect(CiTool.githubActions.releaseVersion, '1.0');
     });
 
     test('the all-tools test manifest offers every implemented tool', () {
@@ -141,8 +150,10 @@ void main() {
       container.listen(activeToolNotifierProvider, (_, _) {});
       final notifier = container.read(activeToolNotifierProvider.notifier);
 
-      notifier.setActiveTool(CiTool.sonarqube);
+      notifier.setActiveTool(CiTool.gitlab);
       expect(container.read(activeToolNotifierProvider), isNull);
+      notifier.setActiveTool(CiTool.sonarqube);
+      expect(container.read(activeToolNotifierProvider), CiTool.sonarqube);
       notifier.setActiveTool(CiTool.jenkins);
       expect(container.read(activeToolNotifierProvider), CiTool.jenkins);
     });

@@ -16,11 +16,24 @@ import {
 } from "./tool-copy";
 import manifestFile from "./tools.json";
 
-// Marketing copy follows the release manifest. The suite runs with every tool
-// released (tests/setup.ts), which must read exactly as the site always has.
+// Marketing copy follows the release manifest. The shipped 1.0 releases all
+// three built tools, and the suite runs with every tool released
+// (tests/setup.ts); both must read exactly as the site always has. A staged
+// manifest keeps the coming-next wording covered for an earlier release.
 const at = (release: string) => ({ release, tools: manifestFile.tools });
+const staged = {
+  release: "1.0",
+  tools: {
+    jenkins: "1.0",
+    sonarqube: "1.1",
+    githubActions: "1.2",
+    gitlab: "1.3",
+    circleci: "1.3",
+  },
+};
+const stagedAt = (release: string) => ({ ...staged, release });
 
-describe("with every tool released (the wording is what it was)", () => {
+describe("with all built tools released (the shipped 1.0 wording)", () => {
   it("lists the three tools in the usual order and has nothing coming next", () => {
     expect(releasedToolList()).toBe("Jenkins, GitHub Actions and SonarQube");
     expect(releasedToolListShort()).toBe("Jenkins, GitHub and SonarQube");
@@ -29,6 +42,16 @@ describe("with every tool released (the wording is what it was)", () => {
       lead: "Jenkins, GitHub Actions and SonarQube in your pocket.",
       next: null,
     });
+    expect(integrationsDescription()).toBe(
+      "Jenkins, GitHub Actions and SonarQube in JobTrigger: what works today, and what's coming.",
+    );
+  });
+
+  it("the shipped 1.0 manifest reads the same way", () => {
+    useManifest(at("1.0"));
+    expect(releasedToolList()).toBe("Jenkins, GitHub Actions and SonarQube");
+    expect(comingNextLine()).toBeNull();
+    expect(pocketLine().next).toBeNull();
     expect(integrationsDescription()).toBe(
       "Jenkins, GitHub Actions and SonarQube in JobTrigger: what works today, and what's coming.",
     );
@@ -60,9 +83,9 @@ describe("with every tool released (the wording is what it was)", () => {
   });
 });
 
-describe("release 1.0 (Jenkins only)", () => {
-  it("leads with Jenkins and names the rest as coming next, soonest first", () => {
-    useManifest(at("1.0"));
+describe("an earlier release with tools still to come", () => {
+  it("leads with the released tools and names the rest as coming next, soonest first", () => {
+    useManifest(staged);
 
     expect(releasedToolList()).toBe("Jenkins");
     expect(releasedToolListShort()).toBe("Jenkins");
@@ -74,12 +97,12 @@ describe("release 1.0 (Jenkins only)", () => {
   });
 
   it("never names a planned tool with no code", () => {
-    useManifest(at("1.0"));
+    useManifest(staged);
     expect(comingNextLine()).not.toMatch(/GitLab|CircleCI/);
   });
 
-  it("the hero says Jenkins is in your pocket, then what is coming", () => {
-    useManifest(at("1.0"));
+  it("the hero says the released tool is in your pocket, then what is coming", () => {
+    useManifest(staged);
     render(<Hero />);
 
     expect(
@@ -90,8 +113,8 @@ describe("release 1.0 (Jenkins only)", () => {
     expect(screen.queryByText(/Jenkins, GitHub Actions and SonarQube/)).not.toBeInTheDocument();
   });
 
-  it("the tool strip lists Jenkins, then 'Coming next' with versions", () => {
-    useManifest(at("1.0"));
+  it("the tool strip lists the released tool, then 'Coming next' with versions", () => {
+    useManifest(staged);
     render(<ToolStrip />);
 
     const strip = screen.getByLabelText("Supported tools");
@@ -108,7 +131,7 @@ describe("release 1.0 (Jenkins only)", () => {
   });
 
   it("the integrations meta description says what works today, then what is next", async () => {
-    useManifest(at("1.0"));
+    useManifest(staged);
     expect(integrationsDescription()).toBe(
       "Jenkins in JobTrigger: what works today. SonarQube and GitHub Actions coming next.",
     );
@@ -116,9 +139,9 @@ describe("release 1.0 (Jenkins only)", () => {
   });
 });
 
-describe("release 1.1", () => {
+describe("release 1.1 in the staged plan", () => {
   it("leads with Jenkins and SonarQube; GitHub Actions is next", () => {
-    useManifest(at("1.1"));
+    useManifest(stagedAt("1.1"));
     expect(releasedToolList()).toBe("Jenkins and SonarQube");
     expect(pocketLine()).toEqual({
       lead: "Jenkins and SonarQube in your pocket.",

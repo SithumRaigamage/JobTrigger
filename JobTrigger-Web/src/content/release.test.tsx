@@ -25,28 +25,42 @@ import {
 } from "./release";
 import manifestFile from "./tools.json";
 
-// The shipped manifest is release 1.0 (Jenkins only). The suite runs with
-// every tool released (tests/setup.ts); these tests choose their own.
-const at = (release: string) => ({ release, tools: manifestFile.tools });
+// The shipped manifest is release 1.0 with all three built tools. The suite
+// runs with every tool released (tests/setup.ts); a staged manifest keeps the
+// coming-next logic covered for a release that hasn't shipped every tool yet.
+const staged = {
+  release: "1.0",
+  tools: {
+    jenkins: "1.0",
+    sonarqube: "1.1",
+    githubActions: "1.2",
+    gitlab: "1.3",
+    circleci: "1.3",
+  },
+};
+const stagedAt = (release: string) => ({ ...staged, release });
 
 describe("release manifest view", () => {
-  it("the shipped manifest releases Jenkins only, the rest coming next in order", () => {
+  it("the shipped manifest releases all three tools at 1.0; GitLab CI and CircleCI come next", () => {
     resetRelease();
     expect(manifestFile.release).toBe("1.0");
-    expect(releasedTools()).toEqual(["jenkins"]);
+    expect(releasedTools()).toEqual(["jenkins", "sonarqube", "github"]);
     expect(getRelease().comingNext.map((c) => [c.name, c.version])).toEqual([
-      ["SonarQube", "1.1"],
-      ["GitHub Actions", "1.2"],
       ["GitLab CI", "1.3"],
       ["CircleCI", "1.3"],
     ]);
-    expect(toolVersion("github")).toBe("1.2");
+    expect(toolVersion("jenkins")).toBe("1.0");
+    expect(toolVersion("sonarqube")).toBe("1.0");
+    expect(toolVersion("github")).toBe("1.0");
   });
 
   it("later releases release more tools", () => {
-    expect(releaseView(at("1.1")).released).toEqual(["jenkins", "sonarqube"]);
-    expect(releaseView(at("1.2")).released).toEqual(["jenkins", "sonarqube", "github"]);
-    expect(releaseView(at("1.2")).comingNext.map((c) => c.id)).toEqual(["gitlab", "circleci"]);
+    expect(releaseView(stagedAt("1.1")).released).toEqual(["jenkins", "sonarqube"]);
+    expect(releaseView(stagedAt("1.2")).released).toEqual(["jenkins", "sonarqube", "github"]);
+    expect(releaseView(stagedAt("1.2")).comingNext.map((c) => c.id)).toEqual([
+      "gitlab",
+      "circleci",
+    ]);
   });
 
   it("compares versions as numbers: 1.10 is after 1.2", () => {
@@ -93,9 +107,9 @@ describe("manifest ids map to the portal's tools", () => {
   });
 });
 
-describe("the site follows the release (1.0, Jenkins only)", () => {
-  it("feature statuses read as 'Coming in X' for tools not in the release", () => {
-    useManifest(at("1.0"));
+describe("the site follows the release (1.0, three tools)", () => {
+  it("feature statuses read as 'Coming in X' for a tool in a later release", () => {
+    useManifest(staged);
     expect(comingInVersion("github-accounts")).toBe("1.2");
     expect(comingInVersion("sonarqube-save")).toBe("1.1");
     expect(comingInVersion("jenkins-core")).toBeNull();
@@ -107,13 +121,21 @@ describe("the site follows the release (1.0, Jenkins only)", () => {
     expect(screen.getByText("Coming in 1.1")).toBeVisible();
   });
 
+  it("the shipped 1.0 release has no 'Coming in' badges for GitHub or SonarQube", () => {
+    resetRelease();
+    expect(comingInVersion("github-accounts")).toBeNull();
+    expect(comingInVersion("sonarqube-save")).toBeNull();
+    expect(isActionable("github-accounts")).toBe(true);
+    expect(isActionable("sonarqube-save")).toBe(true);
+  });
+
   it("with every tool released nothing changes", () => {
     expect(comingInVersion("github-accounts")).toBeNull();
     expect(isActionable("github-accounts")).toBe(true);
   });
 
-  it("the integrations page labels GitHub Actions and SonarQube with their release", () => {
-    useManifest(at("1.0"));
+  it("the integrations page labels a tool from a later release with its version", () => {
+    useManifest(staged);
     render(<IntegrationsView supportEmail={null} />);
 
     expect(screen.getAllByText("Coming in 1.2").length).toBeGreaterThan(1);
@@ -121,17 +143,28 @@ describe("the site follows the release (1.0, Jenkins only)", () => {
     expect(screen.getByText("Full support")).toBeVisible();
   });
 
-  it("the portal's tool picker offers Jenkins only, with the rest under Coming next", () => {
-    useManifest(at("1.0"));
+  it("the integrations page shows all three tools at 1.0, with no 'Coming in' labels", () => {
+    resetRelease();
+    render(<IntegrationsView supportEmail={null} />);
+
+    expect(screen.queryByText(/Coming in 1\.[12]/)).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "GitHub Actions" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "SonarQube" })).toBeVisible();
+    expect(screen.getByText("Full support")).toBeVisible();
+  });
+
+  it("the portal's tool picker offers all three tools, with only GitLab CI and CircleCI under Coming next", () => {
+    resetRelease();
     render(<AddServerView tool="jenkins" />);
 
     const picker = screen.getByRole("navigation", { name: "Tool" });
-    expect(within(picker).getAllByRole("link")).toHaveLength(1);
-    expect(within(picker).getByRole("link", { name: /Jenkins/ })).toBeVisible();
+    expect(within(picker).getAllByRole("link")).toHaveLength(3);
+    for (const name of ["Jenkins", "GitHub", "SonarQube"]) {
+      expect(within(picker).getByRole("link", { name: new RegExp(name) })).toBeVisible();
+    }
     const next = screen.getByRole("region", { name: "Coming next" });
+    expect(within(next).getAllByRole("listitem")).toHaveLength(2);
     for (const [name, version] of [
-      ["SonarQube", "1.1"],
-      ["GitHub Actions", "1.2"],
       ["GitLab CI", "1.3"],
       ["CircleCI", "1.3"],
     ]) {
@@ -142,18 +175,26 @@ describe("the site follows the release (1.0, Jenkins only)", () => {
     }
   });
 
-  it("with every tool released the picker offers all three and no Coming next", () => {
+  it("an earlier release keeps unshipped tools under Coming next", () => {
+    useManifest(staged);
     render(<AddServerView tool="jenkins" />);
 
     expect(
       within(screen.getByRole("navigation", { name: "Tool" })).getAllByRole("link"),
-    ).toHaveLength(3);
-    // Only GitLab CI and CircleCI are left (no code yet).
-    expect(screen.getByRole("region", { name: "Coming next" })).toBeVisible();
+    ).toHaveLength(1);
+    const next = screen.getByRole("region", { name: "Coming next" });
+    for (const [name, version] of [
+      ["SonarQube", "1.1"],
+      ["GitHub Actions", "1.2"],
+      ["GitLab CI", "1.3"],
+      ["CircleCI", "1.3"],
+    ]) {
+      expect(within(next).getByText(name!).closest("li")).toHaveTextContent(version!);
+    }
   });
 
-  it("the saved-servers counts hide an unreleased tool unless something is saved for it", () => {
-    useManifest(at("1.0"));
+  it("the saved-servers counts hide a tool from a later release unless something is saved for it", () => {
+    useManifest(staged);
     const { rerender } = render(<ServersView servers={[]} failure={null} />);
     expect(isToolReleased("github")).toBe(false);
     expect(screen.queryByText(/GitHub/)).not.toBeInTheDocument();
@@ -177,8 +218,8 @@ describe("the site follows the release (1.0, Jenkins only)", () => {
     expect(screen.getAllByText(/GitHub/).length).toBeGreaterThan(0);
   });
 
-  it("the changelog doesn't say GitHub Actions or SonarQube ship in this release", () => {
-    useManifest(at("1.0"));
+  it("the changelog doesn't say GitHub Actions or SonarQube ship in an earlier release", () => {
+    useManifest(staged);
     const ships = upcomingRelease().map((line) => line.text);
     expect(ships.join(" ")).not.toMatch(/GitHub|SonarQube/);
     expect(ships.join(" ")).toMatch(/Jenkins/);
@@ -186,6 +227,20 @@ describe("the site follows the release (1.0, Jenkins only)", () => {
     const later = afterLaunch().map((line) => line.text);
     expect(later).toContain("GitHub Actions: accounts, repositories and workflows (release 1.2)");
     expect(later.some((text) => text.includes("(release 1.1)"))).toBe(true);
+  });
+
+  it("the shipped 1.0 changelog no longer puts tools in a later release", () => {
+    resetRelease();
+    const ships = upcomingRelease()
+      .map((line) => line.text)
+      .join(" ");
+    expect(ships).toMatch(/GitHub Actions: accounts, repositories and workflows/);
+    expect(ships).toMatch(/Jenkins/);
+    expect(
+      afterLaunch()
+        .map((line) => line.text)
+        .join(" "),
+    ).not.toMatch(/release 1\.[12]/);
   });
 });
 

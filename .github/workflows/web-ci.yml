@@ -3,7 +3,7 @@ name: Website CI
 # The website (JobTrigger-Web): lint, types, formatting, unit tests, then the
 # Playwright run. That run has two parts: the main specs against an all-tools
 # build (so tools a release hides stay tested), and the release-1.0 smoke spec
-# against a second build with the real release/tools.json (Jenkins only).
+# against a second build with the real release/tools.json (all three released tools).
 
 on:
   push:

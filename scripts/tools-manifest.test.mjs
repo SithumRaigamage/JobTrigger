@@ -8,17 +8,27 @@ import { test } from "node:test";
 import { copies, drift, source } from "./sync-tools.mjs";
 import { compareVersions, problems, releasedTools } from "./tools-manifest.mjs";
 
+// A synthetic, staged manifest: still useful below to exercise the
+// version-comparison rules across releases. The committed manifest is different.
 const valid = {
   release: "1.0",
   tools: { jenkins: "1.0", sonarqube: "1.1", githubActions: "1.2", gitlab: "1.3", circleci: "1.3" },
 };
 
-test("the committed manifest is valid and is release 1.0, Jenkins only", () => {
+const committedTools = {
+  jenkins: "1.0",
+  sonarqube: "1.0",
+  githubActions: "1.0",
+  gitlab: "1.3",
+  circleci: "1.3",
+};
+
+test("the committed manifest is valid and releases all three tools at 1.0", () => {
   const manifest = JSON.parse(readFileSync(source, "utf8"));
   assert.deepEqual(problems(manifest), []);
   assert.equal(manifest.release, "1.0");
-  assert.deepEqual(releasedTools(manifest), ["jenkins"]);
-  assert.deepEqual(manifest.tools, valid.tools);
+  assert.deepEqual(releasedTools(manifest), ["jenkins", "sonarqube", "githubActions"]);
+  assert.deepEqual(manifest.tools, committedTools);
 });
 
 test("every copy matches release/tools.json", () => {

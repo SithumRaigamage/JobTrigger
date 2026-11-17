@@ -97,7 +97,7 @@ export function releaseView(manifest: ReleaseManifest): ReleaseView {
   return { release: manifest.release, released, versions, comingNext };
 }
 
-/** Tests: the shipped manifest with every tool that has code released. */
+/** Tests: a manifest with every tool that has code released; planned tools stay future. */
 export function allToolsManifest(): ReleaseManifest {
   return {
     release: "98.0",

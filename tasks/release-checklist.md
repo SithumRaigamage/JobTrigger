@@ -1,9 +1,11 @@
 # Release checklist (dev-complete; the rest is MANUAL (owner))
 
-Everything development can do for release 1.0 is done. Each line is either
-**DONE** (ticked, with its evidence) or **MANUAL (owner)**, with its steps in
-`tasks/MANUAL.md`. The submission pack (screenshots, captions, archive and
-upload commands) is `docs/store-submission.md`.
+Everything development can do for release 1.0 is done. Release 1.0 ships
+Jenkins, SonarQube and GitHub Actions (GitLab CI and CircleCI are planned for
+1.3). Each line is either **DONE** (ticked, with its evidence) or **MANUAL
+(owner)**, with one draft per task in [`manually/`](../manually/README.md).
+The submission pack (screenshots, captions, archive and upload commands) is
+`docs/store-submission.md`.
 
 - [x] Kill-and-relaunch on the iOS simulator (P2-11), 2026-11-17: signed in,
       process ended, relaunched, landed signed in
@@ -12,8 +14,9 @@ upload commands) is `docs/store-submission.md`.
 - [ ] **MANUAL (owner, M-02):** Android on-device build-log jank test (P5-13,
       P11-03). On hold: no Android device. The 50,000-line host test passes.
 - [x] App icons and launch screen (Phase 16) and iPhone store screenshots
-      (`release/store-screenshots/ios-6.9/`, P6-07, 2026-11-17).
-- [x] Android store screenshots (P6-07, 2026-11-17): five 1080×2160 (2:1)
+      (`release/store-screenshots/ios-6.9/`, P6-07): seven shots for the three
+      tools in 1.0 — five Jenkins plus GitHub Actions and SonarQube.
+- [x] Android store screenshots (P6-07): seven matching 1080×2160 (2:1)
       JPEGs in `release/store-screenshots/android-2by1/`, from the emulator in
       demo mode. The missing NDK was installed and the capture test made
       cross-platform.
@@ -86,37 +89,36 @@ release ships, no more. Each release gets its own version below.
       release's tools, from `release/tools.json`, before submitting. Check
       the website's home, integrations and pricing pages say the same.
 
-### Release 1.0 (Jenkins only)
+### Release 1.0 (Jenkins, SonarQube and GitHub Actions)
 
 > **Subtitle / short description (Play, 80 characters):**
-> Trigger and watch your Jenkins builds from your phone.
+> Jenkins, GitHub Actions and SonarQube builds, on your phone.
 >
 > **Full description:**
-> JobTrigger puts your Jenkins in your pocket. Browse jobs and folders,
+> JobTrigger puts your CI in your pocket. Browse Jenkins jobs and folders,
 > trigger a build with any parameter, watch the console stream live, see
 > which stage or test failed, and get a notification when a build finishes.
-> Pin the jobs you watch, put them on your home screen, and lock the app
-> with Face ID or your fingerprint.
+> Watch GitHub Actions runs and jobs, dispatch workflows, and read their
+> logs. Check SonarQube quality gates, measures, issues and trends. Pin the
+> things you watch, put them on your home screen, and lock the app with Face
+> ID or your fingerprint.
 >
 > Set up your servers on your laptop at the JobTrigger website, or in the
-> app: your phone talks to your Jenkins directly, and your tokens are stored
-> encrypted. Free for one server; JobTrigger Pro adds more servers and the
-> extras.
+> app: your phone talks to your CI servers directly, and your tokens are
+> stored encrypted. Free for one server; JobTrigger Pro adds more servers
+> and the extras.
 >
 > Try the in-app demo without an account or a server.
 >
 > JobTrigger is an independent app and is not affiliated with the Jenkins
-> project.
+> project, GitHub, or SonarSource.
 
-Do **not** mention GitHub Actions, SonarQube, GitLab or CircleCI in the 1.0
-listing, screenshots or keywords. They arrive in 1.1 (SonarQube), 1.2 (GitHub
-Actions) and later; each of those releases gets its own text here.
+Do **not** mention GitLab CI or CircleCI in the 1.0 listing, screenshots or
+keywords. They are planned for 1.3; that release gets its own text here.
 
-**App Review notes for 1.0:** use the notes below, but replace the bullet
-"GitHub Actions and SonarQube: choose them under Profile → CI tool" with:
-"This release works with Jenkins only." Nothing else changes: the demo's
-GitHub and SonarQube samples are not reachable in 1.0, because tool selection
-offers only released tools.
+**App Review notes for 1.0:** use the notes below unchanged. All three tools
+(Jenkins, GitHub Actions and SonarQube) are available in 1.0, so their demo
+screens and the "Profile → CI tool" step are part of the walkthrough.
 
 ## App Review notes: how to open the demo (PE-18)
 

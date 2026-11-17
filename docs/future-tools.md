@@ -8,8 +8,9 @@ This document does four things:
 
 1. Lists every tool that already has an epic doc, with its status.
 2. Adds the tools that were **missing** from the backlog list (section 4).
-3. Proposes a release order after SonarQube, following the owner's plan of
-   releasing tools one at a time: Jenkins first, SonarQube next, then more.
+3. Proposes a release order after the first release. Release 1.0 ships all
+   three built tools together (Jenkins, SonarQube and GitHub Actions); from
+   GitLab CI onward the owner's plan is one tool at a time.
 4. Keeps one numbered catalogue of **all 164 tools** — built, specced,
    backlogged or newly added — in section 7 (`T-001`…`T-164`).
 
@@ -21,9 +22,9 @@ needs its own scope approval (`CLAUDE.md` §7), an epic doc in
 
 | Tool | Category | Status | Epic doc |
 |---|---|---|---|
-| Jenkins | CI | **Done and frozen** (`CLAUDE.md` §11) — first release | `user-stories/jenkins/` |
-| SonarQube | Code quality | In progress (Phase 10) — planned second release | `user-stories/sonarqube/14-sonarqube.md` |
-| GitHub Actions | CI | Built; waiting on verification with a real token (P8-26/27, Emergency E5) | `user-stories/github-actions/12-github-actions.md` |
+| Jenkins | CI | **Done and frozen** (`CLAUDE.md` §11) — ships in 1.0 | `user-stories/jenkins/` |
+| SonarQube | Code quality | Development-complete (Phase 10), owner device checks M-03/M-04 — ships in 1.0 | `user-stories/sonarqube/14-sonarqube.md` |
+| GitHub Actions | CI | Development-complete, owner token/device checks M-06 — ships in 1.0 | `user-stories/github-actions/12-github-actions.md` |
 | GitLab CI | CI | Epic doc only | `user-stories/gitlab/13-gitlab-ci.md` |
 | CircleCI | CI | Epic doc only | `user-stories/circleci/15-circleci.md` |
 | Azure DevOps Pipelines | CI/CD | Epic doc only (2026-11-14) | `user-stories/azure-devops/19-azure-devops.md` |

@@ -8,10 +8,10 @@ import { getRelease } from "./release";
  * the release doesn't ship. Tools the release does ship come first; tools
  * with code that a later release ships are named only as "coming next".
  *
- * With every tool released the sentences are exactly the ones the site always
- * had ("Jenkins, GitHub Actions and SonarQube"), so only an incomplete
- * release reads differently. Planned tools with no code (GitLab CI, CircleCI)
- * are never named here: "coming next" is for tools we have built.
+ * Release 1.0 ships all three built tools, so the sentences here are the ones
+ * the site always had ("Jenkins, GitHub Actions and SonarQube"). Planned tools
+ * with no code (GitLab CI, CircleCI) are never named here: their "Coming next"
+ * entry lives in the portal's pickers, straight from the manifest.
  */
 
 /** The order the site has always listed tools in. */
@@ -65,7 +65,7 @@ export function comingNextLine(): string | null {
   return `${joinNames(next.map((n) => n.name))} coming next`;
 }
 
-/** The hero and preview-image sentence: "Jenkins in your pocket." and more. */
+/** The hero and preview-image sentence: the released tools "in your pocket". */
 export function pocketLine(): { lead: string; next: string | null } {
   const next = comingNextLine();
   return {

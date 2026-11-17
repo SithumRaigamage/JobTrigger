@@ -22,6 +22,15 @@ const bodies = {
 
 const atRelease = (release) => ({ release, tools: shipped.tools });
 
+// A staged manifest (the plan before 1.0 shipped all three). Kept so the
+// gate's release-comparison logic and the refusal of unreleased tools stay
+// covered; the shipped manifest now releases all three at 1.0.
+const staged = {
+  release: '1.0',
+  tools: { jenkins: '1.0', sonarqube: '1.1', githubActions: '1.2', gitlab: '1.3', circleci: '1.3' },
+};
+const stagedAt = (release) => ({ ...staged, release });
+
 describe('Release manifest: which tools can get credentials', function() {
   let restore;
   afterEach(function() {
@@ -29,7 +38,7 @@ describe('Release manifest: which tools can get credentials', function() {
     restore = undefined;
   });
 
-  describe('release 1.0 (Jenkins only)', function() {
+  describe('release 1.0 (all three released tools)', function() {
     beforeEach(function() {
       restore = releasedTools.useManifest(atRelease('1.0'));
     });
@@ -39,6 +48,44 @@ describe('Release manifest: which tools can get credentials', function() {
       const [path, body] = bodies.jenkins;
       const res = await authed('post', path, me.token).send(body);
       expect(res.status).to.equal(201);
+    });
+
+    for (const tool of ['github', 'sonarqube']) {
+      it(`now creates a ${tool} credential at 1.0`, async function() {
+        const me = await signup();
+        const [path, body, Model] = bodies[tool];
+        const res = await authed('post', path, me.token).send(body);
+        expect(res.status).to.equal(201);
+        expect(await Model.countDocuments({ userId: me.user._id })).to.equal(1);
+      });
+    }
+
+    it('needs a signed-in user first', async function() {
+      const res = await api().post('/api/github-credentials').send(bodies.github[1]);
+      expect(res.status).to.equal(401);
+    });
+
+    it('leaves what is already saved alone: list, update and delete still work', async function() {
+      const me = await signup();
+      releasedTools.restore(restore);
+      restore = releasedTools.useManifest(releasedTools.allToolsManifest());
+      const created = await authed('post', bodies.github[0], me.token).send(bodies.github[1]);
+      expect(created.status).to.equal(201);
+
+      releasedTools.restore(restore);
+      restore = releasedTools.useManifest(stagedAt('1.0'));
+      const path = `/api/github-credentials/${created.body._id}`;
+      const list = await authed('get', '/api/github-credentials', me.token);
+      expect(list.status).to.equal(200);
+      expect(list.body).to.have.length(1);
+      expect((await authed('put', path, me.token).send({ label: 'renamed' })).status).to.equal(200);
+      expect((await authed('delete', path, me.token)).status).to.equal(200);
+    });
+  });
+
+  describe('a tool not in this release is still refused', function() {
+    beforeEach(function() {
+      restore = releasedTools.useManifest(stagedAt('1.0'));
     });
 
     for (const tool of ['github', 'sonarqube']) {
@@ -60,36 +107,14 @@ describe('Release manifest: which tools can get credentials', function() {
       expect(res.status).to.equal(403);
       expect(res.body.code).to.equal('TOOL_NOT_AVAILABLE');
     });
-
-    it('needs a signed-in user first', async function() {
-      const res = await api().post('/api/github-credentials').send(bodies.github[1]);
-      expect(res.status).to.equal(401);
-    });
-
-    it('leaves what is already saved alone: list, update and delete still work', async function() {
-      const me = await signup();
-      releasedTools.restore(restore);
-      restore = releasedTools.useManifest(releasedTools.allToolsManifest());
-      const created = await authed('post', bodies.github[0], me.token).send(bodies.github[1]);
-      expect(created.status).to.equal(201);
-
-      releasedTools.restore(restore);
-      restore = releasedTools.useManifest(atRelease('1.0'));
-      const path = `/api/github-credentials/${created.body._id}`;
-      const list = await authed('get', '/api/github-credentials', me.token);
-      expect(list.status).to.equal(200);
-      expect(list.body).to.have.length(1);
-      expect((await authed('put', path, me.token).send({ label: 'renamed' })).status).to.equal(200);
-      expect((await authed('delete', path, me.token)).status).to.equal(200);
-    });
   });
 
   it('release 1.1 opens SonarQube but not GitHub; 1.2 opens GitHub', async function() {
     const me = await signup();
-    restore = releasedTools.useManifest(atRelease('1.1'));
+    restore = releasedTools.useManifest(stagedAt('1.1'));
     expect((await authed('post', bodies.sonarqube[0], me.token).send(bodies.sonarqube[1])).status).to.equal(201);
     expect((await authed('post', bodies.github[0], me.token).send(bodies.github[1])).status).to.equal(403);
-    releasedTools.useManifest(atRelease('1.2'));
+    releasedTools.useManifest(stagedAt('1.2'));
     // GitHub is released now, so the gate lets it through. What happens next
     // is the plan's business (a Free user already has one server), so only
     // the gate's own answer is asserted.
@@ -115,8 +140,12 @@ describe('Release manifest ids map to this backend\'s tools', function() {
     expect([...all].sort()).to.deep.equal(['github', 'jenkins', 'sonarqube']);
   });
 
-  it('the shipped manifest releases Jenkins only', function() {
-    expect([...releasedTools.releasedLocalTools(shipped)]).to.deep.equal(['jenkins']);
+  it('the shipped manifest releases all three tools at 1.0', function() {
+    expect([...releasedTools.releasedLocalTools(shipped)].sort()).to.deep.equal([
+      'github',
+      'jenkins',
+      'sonarqube',
+    ]);
   });
 
   it('versions compare as numbers: 1.10 is after 1.2', function() {

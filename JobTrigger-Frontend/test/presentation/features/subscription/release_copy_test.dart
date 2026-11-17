@@ -13,6 +13,20 @@ ToolCatalog release(String version) => ToolCatalog(
   ).versions,
 );
 
+/// The shipped manifest releases all three tools at 1.0. A staged fixture
+/// keeps the single- and two-tool copy paths (and their version comparison)
+/// covered without changing the release schedule in tools.json.
+ToolCatalog staged(String version) => ToolCatalog(
+  release: version,
+  versions: const {
+    'jenkins': '1.0',
+    'sonarqube': '1.1',
+    'githubActions': '1.2',
+    'gitlab': '1.3',
+    'circleci': '1.3',
+  },
+);
+
 const reasons = [
   'maxCredentialsTotal',
   'maxCredentialsPerTool',
@@ -45,9 +59,17 @@ void main() {
     ]);
   });
 
-  test('release 1.0 (Jenkins only) names no other tool and promises none '
-      'together', () {
+  test('release 1.0 names all three tools it ships', () {
     ToolCatalog.current = release('1.0');
+    expect(
+      paywallHeadline('multiTool'),
+      'Use Jenkins, GitHub Actions and SonarQube together',
+    );
+    expect(proBenefits[1], 'Jenkins, GitHub Actions and SonarQube together');
+  });
+
+  test('a one-tool release names no other tool and promises none together', () {
+    ToolCatalog.current = staged('1.0');
     final everything = [
       ...proBenefits,
       for (final reason in reasons) paywallHeadline(reason),
@@ -60,13 +82,13 @@ void main() {
   });
 
   test('release 1.1 names exactly the tools it ships', () {
-    ToolCatalog.current = release('1.1');
+    ToolCatalog.current = staged('1.1');
     expect(paywallHeadline('multiTool'), 'Use Jenkins and SonarQube together');
     expect(proBenefits[1], 'Jenkins and SonarQube together');
   });
 
   test('release 1.2 names all three', () {
-    ToolCatalog.current = release('1.2');
+    ToolCatalog.current = staged('1.2');
     expect(proBenefits[1], 'Jenkins, GitHub Actions and SonarQube together');
   });
 }
