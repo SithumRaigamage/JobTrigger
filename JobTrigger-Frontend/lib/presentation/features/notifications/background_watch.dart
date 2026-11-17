@@ -48,11 +48,16 @@ void buildWatchDispatcher() {
         store: SonarQubeWatchStore(),
         repositoryFor: (credentialId) =>
             _gateRepositoryFor(container, credentialId),
-        notify: (notification) => notifications.showAlert(
-          id: notification.id,
-          title: notification.title,
-          body: notification.body,
-        ),
+        // AUD-54 applies to gate alerts too: no project names while the
+        // app lock is on, the same as the in-app check.
+        notify: (notification) {
+          final shown = hideNames ? notification.redacted() : notification;
+          return notifications.showAlert(
+            id: shown.id,
+            title: shown.title,
+            body: shown.body,
+          );
+        },
       );
     } on Object {
       // Best effort by design: never fail the OS task, retry next period.
