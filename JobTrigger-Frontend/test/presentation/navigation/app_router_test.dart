@@ -312,6 +312,17 @@ void main() {
       // P14-08: a repo card reads "owner/name".
       expect(find.text('octocat/hello-world'), findsOneWidget);
 
+      // PI-08's first-run checklist sits above the repository list, and
+      // `MainScaffold` uses `extendBody: true`, so in this test's 800×600
+      // window the card starts behind the glass nav bar. Scroll it into
+      // view the way a user would before tapping.
+      await tester.scrollUntilVisible(
+        find.text('octocat/hello-world'),
+        120,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pumpAndSettle();
+
       await tester.tap(find.text('octocat/hello-world'));
       await tester.pumpAndSettle();
 
