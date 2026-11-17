@@ -285,7 +285,7 @@ would be unrelated scope creep for this phase.
       user token in the lab SonarQube (My Account → Security), then add it in
       the app against `http://<Mac Wi-Fi address>:9000`.
 
-## Planned batches (documented 2026-11-09; batch 1 built 2026-11-17)
+## Planned batches (documented 2026-11-09; batches 1–3 built 2026-11-17, batch 4 started)
 
 Listed for the owner on 2026-11-08 and written up as user stories on
 2026-11-09 under "Planned work" in

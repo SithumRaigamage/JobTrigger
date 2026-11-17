@@ -34,8 +34,8 @@ Phase 0–6 task without first moving the item here into an actual phase file
     Rundeck, Puppet Enterprise, Chef Automate, Salt.
   - *Containers and orchestration:* Kubernetes, OpenShift, Rancher, Nomad,
     Portainer, AWS ECS.
-  - *Code quality and security:* SonarQube (backend credentials already
-    exist), Snyk, Codecov, Coveralls, Checkmarx, Veracode, GitGuardian,
+  - *Code quality and security:* SonarQube (integrated, see
+    `tasks/phase-10-sonarqube.md`), Snyk, Codecov, Coveralls, Checkmarx, Veracode, GitGuardian,
     Dependabot.
   - *Artifacts and registries:* JFrog Artifactory, Sonatype Nexus, Harbor,
     Docker Hub, GitHub Container Registry.

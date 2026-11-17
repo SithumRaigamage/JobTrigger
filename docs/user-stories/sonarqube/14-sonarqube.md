@@ -538,7 +538,8 @@ So that I can see more than the app shows
 
 ## Planned work — documented 2026-11-09
 
-Everything below is **proposed and not started**. It was listed for the owner
+Each story below carries its own **Status** line (batches 1–3 built and
+batch 4 started 2026-11-17; the rest proposed). It was listed for the owner
 on 2026-11-08, after the first SonarQube build-out (`P10-07`…`P10-17`) was
 tested on the iPhone, and is recorded here on 2026-11-09 so it is not lost. Each
 batch becomes a task in `tasks/phase-10-sonarqube.md` (`P10-18`…`P10-24`).
