@@ -48,9 +48,16 @@ hostname `Sithums-MacBook-Pro.local` if the IP changes; `IPHONE.md` covers both.
 on the signed-in tool-selection screen, never login.
 **Why only you:** the gate is a real iPhone — your device, on your Wi-Fi,
 signed in to your account. The agent's environment only had simulators, and
-CLAUDE.md §10 names you as the iPhone tester.
+CLAUDE.md §10 names you as the iPhone tester. Tried on the connected iPhone
+2026-11-17: a throwaway backend was started and the build installed, but the
+`flutter drive` session could not reach the Dart VM over wireless debugging —
+macOS blocked mDNS on port 5353 with "Flutter could not access the local
+network". Granting that permission is a macOS privacy setting only you can
+approve.
 
-1. Mac: start the backend (`./setup-dev.sh`) and install the app with
+1. Mac: allow the terminal/IDE under **System Settings → Privacy & Security →
+   Local Network** (or connect the iPhone by USB for the drive test), then
+   start the backend (`./setup-dev.sh`) and install the app with
    `scripts/run-on-iphone.sh` (a profile build; `IPHONE.md`).
 2. Phone: sign in with **Remember my email** ticked — that switch is what keeps
    the session (P19-01).
@@ -71,11 +78,17 @@ decodes in under 5 s, keeps under 200 live `RichText` widgets after 20 flings,
 and `jumpToLine` reaches the error marker; the fixture Jenkins `big-log` job is
 ready. That proves the virtualization mechanism, not real device frame times.
 **Why only you:** the task explicitly asks for a mid-range Android device, and
-there is none here — this Mac's Android NDK install is broken, so even an
-emulator profile build can't be produced.
+there is none here. I installed the missing NDK (r28c) and ran the new
+`integration_test/android_log_jank_test.dart` on the `Medium_Phone_API_37.0`
+emulator on 2026-11-17: it passed (virtualization holds, no throw) and
+recorded 1,566 frames at p50 18.4 ms / p95 171.1 ms / worst 1423 ms (software
+GPU) and 1,614 frames at p50 15.2 ms / p95 36.8 ms / worst 985 ms
+(swiftshader). Those emulator numbers are not a clean 60 fps pass and an
+emulator is not a mid-range phone, so this stays open — the real device is the
+measurement the task asks for.
 
-1. Mac: fix the Android NDK / use the prepared `Medium_Phone_API_37.0`
-   emulator and build the profile APK over a fast connection.
+1. Mac: use the prepared `Medium_Phone_API_37.0` emulator (NDK r28c is now
+   installed) or a real device, and build the profile APK.
 2. Mac: start the fixture Jenkins `big-log` job (50,000 lines).
 3. Android device: add the Jenkins server using the Mac's Wi-Fi address, not
    `localhost`; open the failing build's console log and fling-scroll it.
