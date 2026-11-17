@@ -23,6 +23,7 @@
 #   DEVICE="Sithum's iPhone"    the iPhone's name or id (`flutter devices`)
 #   MODE=debug                  debug instead of profile (profile keeps
 #                               working after you unplug the cable)
+#   DEVICE_NETWORK=tailscale    use the Mac's Tailscale IPv4 address
 #   SKIP_BACKEND_CHECK=1        don't check the backend first
 set -euo pipefail
 
@@ -30,15 +31,34 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 APP="$REPO/JobTrigger-Frontend"
 CONFIG="$APP/config/device.json"
 
+shell_environment="${JOBTRIGGER_ENV:-}"
+shell_network="${DEVICE_NETWORK:-}"
+if [ -f "$REPO/environment.conf" ]; then
+  # shellcheck disable=SC1090
+  source "$REPO/environment.conf"
+fi
+environment="${shell_environment:-${JOBTRIGGER_ENV:-dev}}"
+device_network="${shell_network:-${DEVICE_NETWORK:-lan}}"
+
 fail() {
   echo "✗ $1" >&2
   exit 1
 }
 
+[ "$environment" = "dev" ] || fail "run-on-iphone.sh is for development. Use run-flutter.sh for production builds."
+case "$device_network" in
+  lan|tailscale) ;;
+  *) fail "DEVICE_NETWORK must be lan or tailscale." ;;
+esac
+
 # 1. This Mac's address on the network the iPhone uses: the interface that
 # carries the default route (Wi-Fi, hotspot over Wi-Fi, or hotspot over
 # USB, which isn't en0), then the Wi-Fi interfaces as a fallback.
 host="${BACKEND_HOST:-}"
+if [ -z "$host" ] && [ "$device_network" = "tailscale" ]; then
+  host="$(tailscale ip -4 2>/dev/null || true)"
+  [ -n "$host" ] || fail "Tailscale IPv4 was not found. Start Tailscale or set BACKEND_HOST=<Tailscale IPv4>."
+fi
 if [ -z "$host" ]; then
   candidates=""
   default_if="$(route -n get default 2>/dev/null | awk '/interface:/ {print $2}' || true)"
@@ -58,6 +78,7 @@ fi
 # The iPhone's Personal Hotspot always hands out 172.20.10.x.
 case "$host" in
   172.20.10.*) network="iPhone Personal Hotspot"; on_hotspot=1 ;;
+  100.*) network="Tailscale"; on_hotspot=0 ;;
   *) network="Wi-Fi / local network"; on_hotspot=0 ;;
 esac
 echo "✓ Network: $network ($host)"
@@ -68,7 +89,7 @@ echo "✓ Network: $network ($host)"
 # one saved Jenkins server work on both. USE_IP=1 (or BACKEND_HOST) uses the
 # raw address instead.
 by_name=0
-if [ -z "${BACKEND_HOST:-}" ] && [ "${USE_IP:-0}" != "1" ]; then
+if [ "$device_network" = "lan" ] && [ -z "${BACKEND_HOST:-}" ] && [ "${USE_IP:-0}" != "1" ]; then
   local_name="$(scutil --get LocalHostName 2>/dev/null || true)"
   if [ -n "$local_name" ]; then
     host="$local_name.local"

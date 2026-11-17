@@ -83,6 +83,13 @@
 	<!-- US-JX-21: the biometric app lock. -->
 	<key>NSFaceIDUsageDescription</key>
 	<string>Face ID keeps JobTrigger locked so no one else can trigger builds from your phone.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>JobTrigger connects to development services running on your Mac.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<!-- US-JX-10: background build-watch check (workmanager). The id must
 	     match buildWatchTaskName in background_watch.dart. -->
 	<key>BGTaskSchedulerPermittedIdentifiers</key>

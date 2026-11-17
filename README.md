@@ -83,9 +83,9 @@ the app.
 
 ## 🏃 Getting Started
 
-> 📱 **On a real iPhone?** Follow **[IPHONE.md](IPHONE.md)**: one command
-> (`scripts/run-on-iphone.sh`) points the app at this Mac, and it covers
-> reaching a Jenkins running on this Mac from the phone.
+> 📱 **On a real iPhone?** Follow **[IPHONE.md](IPHONE.md)**. The
+> iPhone-specific `scripts/run-on-iphone.sh` supports wireless installs,
+> hotspot detection, Tailscale, and crash-report configuration.
 
 There are two ways to bring up the backend: the one-shot script
 (`setup-dev.sh`), or the manual steps below. Either way, do the [iOS
@@ -115,7 +115,8 @@ npm install
 npm run dev
 ```
 
-The backend listens on `http://127.0.0.1:5001` by default. Confirm it's up:
+The backend listens on port `5001` on all local interfaces. Confirm it is up
+from the Mac:
 
 ```bash
 curl http://localhost:5001/api/appinfo
@@ -156,25 +157,34 @@ flutter devices
 
 ### 3. Start the Flutter App
 
+Use the root launcher so each target receives the correct backend address:
+
 ```bash
-cd JobTrigger-Frontend
-flutter pub get
-dart run build_runner build --delete-conflicting-outputs
-flutter run --dart-define-from-file=config/dev.json -d "iPhone Air"   # or your device's -d id from `flutter devices`
+./scripts/run-flutter.sh --target=ios-simulator
+./scripts/run-flutter.sh --target=android-emulator
+./scripts/run-flutter.sh --target=iphone
+./scripts/run-flutter.sh --target=android-device
 ```
 
-> **Device names with spaces must be quoted** (e.g. `"iPhone Air"`), otherwise
-> the shell splits them into separate arguments and Flutter misreads the
-> extra word as a target file (`Target file "Air" not found.`). Example:
-> ```bash
-> flutter run --dart-define-from-file=config/dev.json -d "iPhone Air"
-> ```
-> Or run `flutter run` with no `-d` flag to pick the booted simulator
-> interactively.
+For a specific device, add `--device=<id>` from `flutter devices`. Physical
+devices default to the Mac LAN/Wi-Fi address. Use Tailscale instead with:
 
-`config/dev.json` points the app at `http://127.0.0.1:5001` — see
-[`JobTrigger-Frontend/config/README.md`](JobTrigger-Frontend/config/README.md) for the
-staging/prod variants. Re-run the `build_runner` command any time you edit a
+```bash
+DEVICE_NETWORK=tailscale ./scripts/run-flutter.sh --target=iphone
+```
+
+The root [`environment.conf`](environment.conf) controls the default
+`JOBTRIGGER_ENV` and `DEVICE_NETWORK`. Production runs require:
+
+```bash
+JOBTRIGGER_ENV=prod ./scripts/run-flutter.sh --target=iphone --mode=release
+```
+
+For iPhone-only workflows, `scripts/run-on-iphone.sh` remains supported:
+it writes `config/device.json`, detects one physical iPhone, supports
+`--config-only`, and accepts `DEVICE_NETWORK=tailscale`.
+
+Re-run the `build_runner` command any time you edit a
 `@freezed`/`@riverpod`/`@JsonSerializable` class.
 
 Useful day-to-day commands (from `JobTrigger-Frontend/`):

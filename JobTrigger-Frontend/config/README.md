@@ -5,10 +5,10 @@ typed config object by `core/config/app_config.dart` (Phase 1).
 
 | File | Environment | Notes |
 |---|---|---|
-| `dev.json` | Local development | `BACKEND_BASE_URL` matches the old SwiftUI app's `Config.plist` (`http://127.0.0.1:5001`) — a locally-run `JobTrigger-Backend`. |
+| `dev.json` | Local development fallback | Used when running Flutter directly; prefer the root `scripts/run-flutter.sh`, which generates a target-specific dev URL. |
 | `staging.json` | Staging | `BACKEND_BASE_URL` is a placeholder (`https://api-staging.jobtrigger.app`) — no staging deployment exists yet. Update when one does. |
 | `prod.json` | Production | `BACKEND_BASE_URL` is a placeholder (`https://api.jobtrigger.app`, matching the example in `docs/api-reference.md`) — update when the backend is actually deployed. |
-| `device.json` | A physical iPhone (machine-local) | **Git-ignored, not committed.** Written by `scripts/run-on-iphone.sh` with this Mac's Wi-Fi IP (`http://<IP>:5001`), since `127.0.0.1` on a phone is the phone. See [`IPHONE.md`](../../IPHONE.md). |
+| `device.json` | Generated local device config | **Git-ignored, not committed.** Written by `scripts/run-flutter.sh` or the iPhone-specific `scripts/run-on-iphone.sh` with a reachable Mac LAN/Tailscale address. |
 
 ## `WEBSITE_BASE_URL`
 
@@ -16,7 +16,7 @@ The JobTrigger website. The login screen's "Forgot password? Reset it on
 the web" opens `<WEBSITE_BASE_URL>/forgot-password` in the browser: a
 password is reset on the website only, never in the app (US-AUTH-08).
 `dev.json` uses `http://localhost:3000` (`npm run dev` in `JobTrigger-Web/`);
-`scripts/run-on-iphone.sh` writes this Mac's Wi-Fi address instead. A
+The launchers write a reachable Mac LAN/Tailscale address instead. A
 non-dev build without it hides the link.
 
 ## `SENTRY_DSN`
@@ -43,7 +43,7 @@ is never in the app.
 ## Usage
 
 ```bash
-flutter run   --dart-define-from-file=config/dev.json
+./scripts/run-flutter.sh --target=ios-simulator
 flutter build --dart-define-from-file=config/staging.json
 flutter build --dart-define-from-file=config/prod.json
 ```

@@ -95,6 +95,26 @@ It:
 A **profile** build keeps working from the home screen after you unplug the
 cable. Want hot reload while plugged in? `MODE=debug scripts/run-on-iphone.sh`.
 
+`scripts/run-on-iphone.sh` is the iPhone-specific launcher. It remains useful
+when you need wireless iPhone selection, `--config-only`, hotspot handling, or
+`SENTRY_DSN_APP`. For the other targets use the shared launcher:
+
+```bash
+./scripts/run-flutter.sh --target=ios-simulator
+./scripts/run-flutter.sh --target=android-emulator
+./scripts/run-flutter.sh --target=android-device
+```
+
+The iPhone script reads the root [`environment.conf`](environment.conf).
+Use the Mac's LAN/Wi-Fi address (default), or select Tailscale explicitly:
+
+```bash
+DEVICE_NETWORK=tailscale scripts/run-on-iphone.sh
+```
+
+`run-on-iphone.sh` is development-only; use `run-flutter.sh` with
+`JOBTRIGGER_ENV=prod` for a production HTTPS build.
+
 **Configure anything the script guesses:**
 
 | Variable | Default | Example |

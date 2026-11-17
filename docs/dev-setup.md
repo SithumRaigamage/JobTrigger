@@ -20,7 +20,7 @@ Set up the dev cluster once with [MongoDB Atlas Setup](./mongodb-cloud-setup.md)
     user, cluster, database or `appName` (AUD-58, P17-04). Seed only your dev
     cluster.
   - `SEED_REMOTE=false ./setup-dev.sh` skips seeding.
-- ✅ Starts the Node.js backend on `http://127.0.0.1:5001` in watch mode
+- ✅ Starts the Node.js backend on port `5001` on all local interfaces in watch mode
   (restarts on file changes); `Ctrl+C` stops it
 
 **Run it:**
@@ -58,15 +58,27 @@ Set up the dev cluster once with [MongoDB Atlas Setup](./mongodb-cloud-setup.md)
 
 ### Terminal 2: Flutter App
 
+The root [`environment.conf`](../environment.conf) selects the default
+environment (`JOBTRIGGER_ENV=dev`) and physical-device network
+(`DEVICE_NETWORK=lan`). Use the shared launcher so the backend address is
+correct for each target:
+
 ```bash
-cd JobTrigger-Frontend
-
-# Run on iOS simulator — quote device names that contain spaces
-flutter run --dart-define-from-file=config/dev.json -d "iPhone Air"
-
-# Or choose interactively
-flutter run
+./scripts/run-flutter.sh --target=ios-simulator
+./scripts/run-flutter.sh --target=android-emulator
+./scripts/run-flutter.sh --target=iphone
+./scripts/run-flutter.sh --target=android-device
 ```
+
+For a physical device over Tailscale, select it without editing the app:
+
+```bash
+DEVICE_NETWORK=tailscale ./scripts/run-flutter.sh --target=iphone
+```
+
+For a specific device, add `--device=<flutter device id>`. For a one-off
+Mac address, use `BACKEND_HOST=<address>`; this can be either the Mac's
+LAN/Wi-Fi address or its Tailscale IPv4 address.
 
 ### Terminal 2b: Website (Optional)
 
@@ -272,9 +284,13 @@ the cloud; there is nothing local to stop. Start again with
 - `NODE_ENV=production` is set in your shell: unset it
 
 **"Flutter app won't connect to backend"**
-- Ensure backend URL in `JobTrigger-Frontend/config/dev.json` is `http://127.0.0.1:5001`
+- Start the backend with `./setup-dev.sh`.
+- Run through `./scripts/run-flutter.sh`, which writes the correct target URL:
+  iOS simulator `127.0.0.1`, Android emulator `10.0.2.2`, or a physical
+  device's Mac LAN/Tailscale address.
 - Backend must be running
-- Check phone/simulator can reach localhost
+- For a physical device, open `http://<Mac address>:5001/healthz` in Safari or
+  the Android browser before launching the app.
 
 ---
 

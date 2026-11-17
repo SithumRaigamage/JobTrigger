@@ -124,8 +124,9 @@ async function startServer() {
     await auditCredentialKeyIds();
     studentJobs.start();
     const PORT = process.env.PORT || 5001;
-    const server = app.listen(PORT, () => {
-      logger.info('server.listening', { port: Number(PORT) });
+    const HOST = process.env.HOST || '0.0.0.0';
+    const server = app.listen(PORT, HOST, () => {
+      logger.info('server.listening', { host: HOST, port: Number(PORT) });
     });
     return server;
   } catch (err) {

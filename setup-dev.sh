@@ -84,7 +84,7 @@ fi
 echo ""
 log_header "✨ Setup Complete!"
 log_success "Development environment ready"
-log_info "Backend will run on: http://127.0.0.1:5001"
+log_info "Backend will run on: http://0.0.0.0:5001 (use this Mac's LAN/Tailscale address from devices)"
 log_info "Database: MongoDB Atlas"
 if [ "$SEEDED" = "false" ]; then
   LOGIN_HINT="an account that already exists in the Atlas database"
