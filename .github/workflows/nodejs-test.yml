@@ -4,9 +4,9 @@ on:
   push:
     # flutter-migration is where the rewrite lands day-to-day (AUD-16);
     # without it here, nothing on that branch was ever analyzed or tested.
-    branches: [ develop, flutter-migration, feature/** ]
+    branches: [ develop, main, release/**, flutter-migration, feature/** ]
   pull_request:
-    branches: [ develop, feature/** ]
+    branches: [ develop, main, feature/** ]
 
 # AUD-59: the token gets read access only; no job here writes to the repo.
 permissions:

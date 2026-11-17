@@ -6,9 +6,9 @@ name: Release manifest
 
 on:
   push:
-    branches: [ develop, flutter-migration, feature/** ]
+    branches: [ develop, main, release/**, flutter-migration, feature/** ]
   pull_request:
-    branches: [ develop, feature/** ]
+    branches: [ develop, main, feature/** ]
 
 permissions:
   contents: read

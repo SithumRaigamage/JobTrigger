@@ -6,9 +6,9 @@ name: Security - Secrets, Dependencies, Image
 # advisories land against code that hasn't changed.
 on:
   push:
-    branches: [ develop, flutter-migration, feature/** ]
+    branches: [ develop, main, release/**, flutter-migration, feature/** ]
   pull_request:
-    branches: [ develop, feature/** ]
+    branches: [ develop, main, feature/** ]
   schedule:
     - cron: '17 4 * * 1'
 
