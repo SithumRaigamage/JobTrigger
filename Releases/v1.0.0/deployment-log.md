@@ -19,27 +19,39 @@
 - **Build Target**: `JobTrigger-Backend/Dockerfile`
 - **Production URL**: `https://api.jobtrigger.app`
 - **Database**: MongoDB Atlas Production Cluster
+- **Verification**: `GET https://api.jobtrigger.app/healthz` returns `200 OK`.
+
+### Mobile app identities (used by stores + RevenueCat)
+
 - **iOS Bundle ID**: `Sraig.Lab-Trigger-frontend` (`PRODUCT_BUNDLE_IDENTIFIER` in `JobTrigger-Frontend/ios/Runner.xcodeproj`)
 - **Android Package Name**: `com.sraig.jobtrigger` (application id in `JobTrigger-Frontend/android/app/build.gradle`)
-- **Environment Verification**:
-  ```bash
-  NODE_ENV=production
-  PORT=5001
-  MONGODB_URI=mongodb+srv://...
-  JWT_SECRET=<strong-random-key>
-  CREDENTIALS_ENCRYPTION_KEY=<32-byte-hex-key>
-  CORS_ORIGINS=https://jobtrigger.app
-  FCM_SERVICE_ACCOUNT={"type":"service_account",...}
-  SMTP_HOST=...
-  SMTP_PORT=587
-  SMTP_USER=...
-  SMTP_PASS=...
-  SENTRY_DSN=https://<key>@<host>/<project-id>
-  BILLING_ENABLED=false
-  REVENUECAT_SECRET_API_KEY=appl_...
-  REVENUECAT_WEBHOOK_AUTH=<matching-secret-token>
-  ```
-- **Verification**: `GET https://api.jobtrigger.app/healthz` returns `200 OK`.
+
+### Backend production secrets
+
+> None of these are committed. The crash-reporting and billing keys are merged
+> at build time by `scripts/build-release.sh` from the git-ignored
+> `JobTrigger-Frontend/config/sentry.json` and `config/billing.json`; the
+> backend-only keys live only in the deployed backend environment.
+
+```bash
+NODE_ENV=production
+PORT=5001
+MONGODB_URI=mongodb+srv://...
+JWT_SECRET=<strong-random-key>
+CREDENTIALS_ENCRYPTION_KEY=<32-byte-hex-key>
+CORS_ORIGINS=https://jobtrigger.app
+FCM_SERVICE_ACCOUNT={"type":"service_account",...}
+SMTP_HOST=...
+SMTP_PORT=587
+SMTP_USER=...
+SMTP_PASS=...
+# Crash reporting (E3): merged at build time from config/sentry.json
+SENTRY_DSN=https://<key>@<host>/<project-id>
+# Billing (Phase 20): off unless BILLING_ENABLED=true
+BILLING_ENABLED=false
+REVENUECAT_SECRET_API_KEY=appl_...
+REVENUECAT_WEBHOOK_AUTH=<matching-secret-token>
+```
 
 ---
 
@@ -56,8 +68,11 @@
   SITE_URL=https://jobtrigger.app
   UMAMI_URL=...
   UMAMI_WEBSITE_ID=...
+  # Web billing (P20-83): Paddle's public client-side token; the backend holds the
+  # secret API key. Unset or mismatched → checkout off.
   PADDLE_CLIENT_TOKEN=live_...
   PADDLE_ENV=production
+  # Crash reporting (E3): the real GlitchTip DSN is set here or in Vercel's dashboard.
   SENTRY_DSN=https://<key>@<host>/<project-id>
   ```
 - **Token guides**: `docs/token-guides.md` — mirrors the in-app token wizards for Jenkins, GitHub and SonarQube.
