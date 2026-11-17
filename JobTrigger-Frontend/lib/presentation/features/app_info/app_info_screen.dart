@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -8,6 +9,7 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/external_link.dart';
 import '../../common_widgets/grouped_card.dart';
 import '../../common_widgets/responsive_center.dart';
+import '../../navigation/app_routes.dart';
 import 'app_info_notifier.dart';
 
 /// Ported from `AppInfoView.swift`, laid out to the P14 design
@@ -69,6 +71,15 @@ class AppInfoScreen extends ConsumerWidget {
                       const SizedBox(height: 28),
                       GroupedCard(
                         children: [
+                          // PI-04: the in-app walkthrough for reaching a
+                          // self-hosted server away from home.
+                          _LinkRow(
+                            title: 'Remote access guide',
+                            subtitle: 'Use Jenkins on mobile data',
+                            icon: Icons.vpn_key_outlined,
+                            onTap: () =>
+                                context.push(AppRoutes.remoteAccessGuide),
+                          ),
                           if (info.privacyPolicyUrl case final url?)
                             _LinkRow(
                               title: 'Privacy policy',

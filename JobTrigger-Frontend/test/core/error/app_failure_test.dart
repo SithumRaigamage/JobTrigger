@@ -76,6 +76,19 @@ void main() {
       expect((failure as ServerFailure).statusCode, 500);
     });
 
+    test('bad certificate maps to BadCertificateFailure (PI-03)', () {
+      final failure = AppFailure.fromDioException(
+        _exception(
+          type: DioExceptionType.badCertificate,
+          message: 'certificate verify failed',
+        ),
+      );
+
+      expect(failure, isA<BadCertificateFailure>());
+      // The raw Dio message is a transport detail, never shown to the user.
+      expect(failure.message, isNot(contains('verify failed')));
+    });
+
     test('unknown type maps to UnknownFailure', () {
       final failure = AppFailure.fromDioException(
         _exception(type: DioExceptionType.unknown, message: 'boom'),
@@ -150,6 +163,14 @@ void main() {
   });
 
   group('AppFailure.message', () {
+    test('a bad certificate explains the fix (PI-03)', () {
+      expect(
+        const BadCertificateFailure().message,
+        'The server’s security certificate isn’t trusted. Check the address '
+        'and your device’s date and time.',
+      );
+    });
+
     test('a backend 429 asks the user to wait (AUD-05)', () {
       expect(
         const ServerFailure(429).message,

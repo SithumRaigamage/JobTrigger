@@ -39,7 +39,7 @@ Implemented in five batches, with a full verification and commit after each.
 
 ## Batch 2 — Connectivity
 
-- [ ] PI-03 / IMP-35 **"Why can't I reach it?" check.** Pure
+- [x] PI-03 / IMP-35 **"Why can't I reach it?" check.** Pure
       `domain/diagnostics/connection_diagnosis.dart` turns a URL + `AppFailure`
       into a structured cause with explanation, fix tips and a guide id,
       telling apart a wrong URL, a private address on mobile data, a VPN that
@@ -50,7 +50,7 @@ Implemented in five batches, with a full verification and commit after each.
       `connectivity_plus`: private-address/VPN guidance is heuristic, based on
       the URL host and the failure, and phrased as advice rather than detected
       fact. Tests: diagnosis cases, screen, error mapping.
-- [ ] PI-04 / IMP-36 **In-app tunnel guides.** `RemoteAccessGuideScreen` with
+- [x] PI-04 / IMP-36 **In-app tunnel guides.** `RemoteAccessGuideScreen` with
       Tailscale, WireGuard and Cloudflare Tunnel cards (steps in-app, plus a
       link to the full doc) linked from the new help screen and App Info.
       Expand `docs/remote-access.md` with the WireGuard section and make the

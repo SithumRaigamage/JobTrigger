@@ -34,8 +34,11 @@ sealed class AppFailure {
           ),
           null => const UnknownFailure(),
         };
-      case DioExceptionType.cancel:
       case DioExceptionType.badCertificate:
+        // PI-03 / IMP-35: a certificate problem is a configuration issue,
+        // not an unknown error — the connection help explains the fix.
+        return const BadCertificateFailure();
+      case DioExceptionType.cancel:
       case DioExceptionType.transformTimeout:
       case DioExceptionType.unknown:
         return UnknownFailure(exception.message);
@@ -88,6 +91,9 @@ sealed class AppFailure {
   String get message => switch (this) {
     NetworkFailure() =>
       "Can't reach the server. Check your connection and try again.",
+    BadCertificateFailure() =>
+      'The server’s security certificate isn’t trusted. Check the address '
+          'and your device’s date and time.',
     AuthFailure() =>
       'Your credentials were rejected. Please check them and try again.',
     PermissionFailure() =>
@@ -137,6 +143,14 @@ sealed class AppFailure {
 
 final class NetworkFailure extends AppFailure {
   const NetworkFailure();
+}
+
+/// PI-03 / IMP-35: the server's TLS certificate could not be verified.
+/// Split out of the generic `DioExceptionType.unknown` bucket so the
+/// connection-help screen can give certificate-specific advice. Expected,
+/// so crash reporting ignores it like the other configuration failures.
+final class BadCertificateFailure extends AppFailure {
+  const BadCertificateFailure();
 }
 
 /// Auth failure from a 401/403. Note: this is failure scoped to whichever

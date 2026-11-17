@@ -60,6 +60,10 @@ abstract class AppRoutes {
   static const profile = '/profile';
   static const appInfo = '/profile/app-info';
 
+  /// PI-03/PI-04: "Why can't I reach it?" and the tunnel walkthroughs.
+  static const connectionHelp = '/connection-help';
+  static const remoteAccessGuide = '/connection-help/remote-access';
+
   /// Phase 20: both reachable only when billing is available
   /// (`billingAvailableProvider`); otherwise they go to Home.
   static const subscription = '/profile/subscription';

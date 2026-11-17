@@ -90,6 +90,7 @@ void main() {
       expect(isUnexpectedFailure(const UnknownFailure()), isTrue);
       for (final expected in <AppFailure>[
         const NetworkFailure(),
+        const BadCertificateFailure(),
         const AuthFailure(),
         const PermissionFailure(),
         const NotFoundFailure(),

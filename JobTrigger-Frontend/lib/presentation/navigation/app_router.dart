@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/auth/auth_state.dart';
+import '../../domain/diagnostics/connection_diagnosis.dart';
 import '../../domain/github/github_job.dart';
 import '../../domain/github/github_repo.dart';
 import '../../domain/github/github_workflow.dart';
@@ -13,6 +14,8 @@ import '../../domain/sonarqube/sonarqube_project.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../features/app_info/app_info_screen.dart';
+import '../features/connectivity/connection_help_screen.dart';
+import '../features/connectivity/remote_access_guide_screen.dart';
 import '../features/auth/auth_notifier.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/signup_screen.dart';
@@ -427,6 +430,20 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.appInfo,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AppInfoScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.connectionHelp,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => ConnectionHelpScreen(
+          diagnosis: state.extra is ConnectionDiagnosis
+              ? state.extra as ConnectionDiagnosis
+              : null,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.remoteAccessGuide,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const RemoteAccessGuideScreen(),
       ),
       GoRoute(
         path: AppRoutes.subscription,
