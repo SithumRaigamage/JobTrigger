@@ -48,7 +48,8 @@ not re-open them.
 
 ### 2026-11-18, release engineering closeout
 
-The user confirmed PR #144 is merged. `origin/develop` is now
+The user confirmed PR #144 is merged. PR #145 is open from this closeout
+branch to `develop`; its required CI checks are running. `origin/develop` is now
 `a95f34031b929291f4fd6a2db973036ed64fab54`. The closeout branch
 `codex/release-1.0-engineering-closeout` starts at that commit and contains
 the reviewable accessibility and website build fixes described below.
@@ -117,7 +118,7 @@ the merged `develop` build.
 |---|---|---|---|---|
 | A1 | PR #144 merged to `develop`; current closeout branch starts at `origin/develop` (`a95f340`) | DEV | agent | YES |
 | A2 | Full Flutter, backend and website checks rerun on the closeout branch; all passed, see current verification above | DEV | agent | YES |
-| A3 | Push this closeout branch and open its PR into `develop`; GitHub CLI authentication is available | DEV | agent | YES |
+| A3 | PR #145 is open from `codex/release-1.0-engineering-closeout` into `develop`; required checks are running | DEV | agent | YES |
 | A4 | Cut `release/v1.0.0` from `develop`; feature freeze (bug fixes only, cherry-picked) | OPS | owner | YES |
 | A5 | Bump `pubspec.yaml` to `1.0.0+N` (the store build number, not the P24 footer) | DEV | agent | YES |
 | A6 | Fill `JobTrigger-Frontend/config/prod.json`: production `https://` backend URL plus the **public** Sentry/RevenueCat keys (never committed) | OPS | owner | YES |
@@ -132,7 +133,7 @@ the merged `develop` build.
 | B1 | Add `JobTrigger-Web/package-lock.json` to the OSV scan; current status: complete | DEV | agent | YES |
 | B2 | Add an npm audit runtime gate to website CI; current status: complete | DEV | agent | YES |
 | B3 | Document expiring, reasoned exceptions for the reviewed build/test-tool findings; current status: complete in `osv-scanner.toml` (revisit before 2027-01-31) | DEV | agent | YES |
-| B4 | Turn on branch protection for `develop` and `main` with every required check (`analyze-and-test`, `build-android`, `build-ios`, `test`, `secrets`, `dependencies`, web `check`) | OPS | owner | SOFT |
+| B4 | Branch protection enabled on `develop` and `main`: strict required CI checks, enforced for admins, no force-push/deletion, conversations resolved | OPS | agent | SOFT |
 | B5 | Staged release diff scanned with gitleaks: no findings; the whole repository has 21 existing matches outside this diff | DEV | agent | YES |
 | B6 | 50,000-line log host test and all 42 fixture-tagged tests passed against Jenkins 2.568.3 | DEV | agent | YES |
 | B7 | Reconcile `flutter pub outdated`: 40 packages locked older, 11 constrained older. Schedule the refresh **after** 1.0 (a lockfile churn during freeze is risk without release value) | DEV | agent | NO |
