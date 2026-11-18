@@ -49,7 +49,9 @@ not re-open them.
 ### 2026-11-18, release engineering closeout
 
 The user confirmed PR #144 is merged. PR #145 is open from this closeout
-branch to `develop`; its required CI checks are running. `origin/develop` is now
+branch to `develop`; all required checks passed at code revision `41dffb8`.
+The iOS CI job is skipped on pull requests by workflow policy, and the local
+unsigned iOS build passed. `origin/develop` is now
 `a95f34031b929291f4fd6a2db973036ed64fab54`. The closeout branch
 `codex/release-1.0-engineering-closeout` starts at that commit and contains
 the reviewable accessibility and website build fixes described below.
@@ -81,7 +83,7 @@ the merged `develop` build.
 | ID | Item | Evidence |
 |---|---|---|
 | A1 | PR #144 was merged to `develop`; the current closeout branch is based on `origin/develop` at `a95f340` | user confirmation and local Git refs |
-| A2 | Full re-run: Dart formatting clean; Flutter analyze clean; Flutter tests 1,718 passing / 29 skipped; Android APK build passes; backend 403 passing and runtime audit 0; web check 467 tests + production build green; Playwright e2e 202 passing; Jenkins fixture 42 passing | current verification above |
+| A2 | Full re-run: Dart formatting clean; Flutter analyze clean; Flutter tests 1,718 passing / 29 skipped; Android APK and unsigned iOS builds pass; backend 403 passing and runtime audit 0; web check 467 tests + production build green; Playwright e2e 202 passing; Jenkins fixture 42 passing; all required PR checks passed | current verification above |
 | B1 | `JobTrigger-Web/package-lock.json` added to the OSV scan | `.github/workflows/security.yml` |
 | B2 | Website CI now audits runtime dependencies (`--audit-level=critical`) and prints the rest | `.github/workflows/web-ci.yml` |
 | B3 | The `picomatch`/`minimatch`/`glob` advisories are reviewed and suppressed **with reasons and an expiry** in `osv-scanner.toml`; the scan fails again on 2027-01-31 | `osv-scanner.toml`, `docs/deployment.md` |
@@ -118,7 +120,7 @@ the merged `develop` build.
 |---|---|---|---|---|
 | A1 | PR #144 merged to `develop`; current closeout branch starts at `origin/develop` (`a95f340`) | DEV | agent | YES |
 | A2 | Full Flutter, backend and website checks rerun on the closeout branch; all passed, see current verification above | DEV | agent | YES |
-| A3 | PR #145 is open from `codex/release-1.0-engineering-closeout` into `develop`; required checks are running | DEV | agent | YES |
+| A3 | PR #145 is open from `codex/release-1.0-engineering-closeout` into `develop`; required checks pass; merge awaits owner approval | DEV | agent | YES |
 | A4 | Cut `release/v1.0.0` from `develop`; feature freeze (bug fixes only, cherry-picked) | OPS | owner | YES |
 | A5 | Bump `pubspec.yaml` to `1.0.0+N` (the store build number, not the P24 footer) | DEV | agent | YES |
 | A6 | Fill `JobTrigger-Frontend/config/prod.json`: production `https://` backend URL plus the **public** Sentry/RevenueCat keys (never committed) | OPS | owner | YES |
