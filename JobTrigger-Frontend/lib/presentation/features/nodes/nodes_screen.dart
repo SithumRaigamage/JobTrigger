@@ -13,7 +13,9 @@ import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/inline_alert.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 import '../../common_widgets/responsive_center.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../navigation/app_routes.dart';
 import '../subscription/plan_gate.dart';
 import '../subscription/pro_teaser.dart';
@@ -37,12 +39,20 @@ class NodesScreen extends ConsumerWidget {
       );
     }
     final nodes = ref.watch(nodesNotifierProvider);
+    final server = ref.watch(activeServerNotifierProvider);
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
+            if (server != null)
+              JenkinsServerHeader(
+                server: server,
+                onSwitch: (chosen) => ref
+                    .read(activeServerNotifierProvider.notifier)
+                    .setActiveServer(chosen),
+              ),
             ResponsiveCenter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),

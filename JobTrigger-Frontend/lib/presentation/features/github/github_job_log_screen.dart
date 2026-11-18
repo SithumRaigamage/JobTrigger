@@ -7,8 +7,10 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../domain/github/github_job.dart';
+import '../../../data/credentials/active_github_credential_notifier.dart';
 import '../../../domain/github/github_repo.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../build_log/console_log_viewer.dart';
 import '../build_log/console_notifiers.dart';
@@ -40,6 +42,7 @@ class GitHubJobLogScreen extends ConsumerWidget {
       gitHubJobsNotifierProvider(repo.owner, repo.name, runId),
     );
     final current = jobs.value?.where((j) => j.id == job.id).firstOrNull ?? job;
+    final credential = ref.watch(activeGitHubCredentialNotifierProvider);
 
     final t = AppTokens.of(context);
     final textTheme = Theme.of(context).textTheme;
@@ -53,6 +56,13 @@ class GitHubJobLogScreen extends ConsumerWidget {
         child: ResponsiveCenter(
           child: Column(
             children: [
+              if (credential != null)
+                GitHubCredentialHeader(
+                  credential: credential,
+                  onSwitch: (chosen) => ref
+                      .read(activeGitHubCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 4, 4, 8),
                 child: Row(

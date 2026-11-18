@@ -7,6 +7,8 @@ import '../../../core/theme/app_tokens.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/main_scaffold.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import 'sonarqube_insights_notifiers.dart';
 import 'sonarqube_issue_widgets.dart';
 
@@ -18,6 +20,7 @@ class SonarQubeMyIssuesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final credential = ref.watch(activeSonarQubeCredentialNotifierProvider);
     final issuesAsync = ref.watch(sonarQubeMyIssuesNotifierProvider);
     final notifier = ref.read(sonarQubeMyIssuesNotifierProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
@@ -30,6 +33,13 @@ class SonarQubeMyIssuesScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (credential != null)
+                SonarQubeCredentialHeader(
+                  credential: credential,
+                  onSwitch: (chosen) => ref
+                      .read(activeSonarQubeCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 20, 8),
                 child: Row(

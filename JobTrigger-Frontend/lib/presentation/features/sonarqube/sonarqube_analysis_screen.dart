@@ -12,6 +12,8 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/main_scaffold.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import 'sonarqube_analysis_notifier.dart';
 
 /// When a project was analysed (`US-SQ-QUALITY-04`): a timestamped list, so
@@ -24,6 +26,7 @@ class SonarQubeAnalysisScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final credential = ref.watch(activeSonarQubeCredentialNotifierProvider);
     final provider = sonarQubeAnalysisNotifierProvider(project.key);
     final analysesAsync = ref.watch(provider);
     final textTheme = Theme.of(context).textTheme;
@@ -36,6 +39,13 @@ class SonarQubeAnalysisScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (credential != null)
+                SonarQubeCredentialHeader(
+                  credential: credential,
+                  onSwitch: (chosen) => ref
+                      .read(activeSonarQubeCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
                 child: Align(

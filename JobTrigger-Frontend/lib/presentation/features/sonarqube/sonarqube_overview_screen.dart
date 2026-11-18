@@ -6,14 +6,13 @@ import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
-import '../../../data/credentials/sonarqube_credentials_notifier.dart';
-import '../../../domain/credential/sonarqube_credential.dart';
 import '../../../domain/sonarqube/sonarqube_overview.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import 'sonarqube_credential_gate.dart';
@@ -52,19 +51,11 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: _CredentialSelector(
-                    credential: credential,
-                    onSwitch: (chosen) => ref
-                        .read(
-                          activeSonarQubeCredentialNotifierProvider.notifier,
-                        )
-                        .setActiveCredential(chosen),
-                  ),
-                ),
+              SonarQubeCredentialHeader(
+                credential: credential,
+                onSwitch: (chosen) => ref
+                    .read(activeSonarQubeCredentialNotifierProvider.notifier)
+                    .setActiveCredential(chosen),
               ),
               const SizedBox(height: 8),
               Semantics(
@@ -80,8 +71,7 @@ class SonarQubeOverviewScreen extends ConsumerWidget {
                       child: _ActionTile(
                         icon: Icons.assignment_ind_outlined,
                         label: 'My issues',
-                        onTap: () =>
-                            context.push(AppRoutes.sonarqubeMyIssues),
+                        onTap: () => context.push(AppRoutes.sonarqubeMyIssues),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -359,154 +349,6 @@ class _Counts extends StatelessWidget {
           Expanded(child: tile),
         ],
       ],
-    );
-  }
-}
-
-/// The active SonarQube credential, tappable to drop down the saved ones and
-/// switch in place — the same pattern as Jenkins Home's server chip (`P19-07`).
-/// Switching only changes the SonarQube credential, never another tool's.
-class _CredentialSelector extends ConsumerWidget {
-  const _CredentialSelector({
-    required this.credential,
-    required this.onSwitch,
-  });
-
-  final SonarQubeCredential credential;
-  final ValueChanged<SonarQubeCredential> onSwitch;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppTokens.of(context);
-    final saved = ref.watch(sonarQubeCredentialsNotifierProvider).value;
-    final credentials = saved == null || !saved.any((c) => c.id == credential.id)
-        ? [credential, ...?saved]
-        : saved;
-    return Semantics(
-      button: true,
-      label: 'SonarQube ${credential.label}. Switch credential',
-      excludeSemantics: true,
-      child: Material(
-        color: t.card,
-        shape: StadiumBorder(side: BorderSide(color: t.cardBorder)),
-        child: PopupMenuButton<String>(
-          position: PopupMenuPosition.under,
-          borderRadius: BorderRadius.circular(22),
-          onSelected: (id) {
-            if (id == _manageCredentialsAction) {
-              context.go(AppRoutes.settings);
-              return;
-            }
-            final chosen = credentials.firstWhere((c) => c.id == id);
-            if (chosen.id == credential.id) return;
-            onSwitch(chosen);
-          },
-          itemBuilder: (context) => [
-            for (final option in credentials)
-              PopupMenuItem<String>(
-                value: option.id,
-                child: _CredentialOption(
-                  credential: option,
-                  isActive: option.id == credential.id,
-                ),
-              ),
-            const PopupMenuDivider(),
-            const PopupMenuItem<String>(
-              value: _manageCredentialsAction,
-              child: ListTile(
-                leading: Icon(Icons.settings_outlined),
-                title: Text('Manage credentials…'),
-              ),
-            ),
-          ],
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 10, 0),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.cloud_outlined,
-                    size: 16,
-                    color: t.textSecondary,
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      credential.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    size: 18,
-                    color: t.textSecondary,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Sentinel returned by "Manage credentials…" — opens Settings instead of
-/// switching.
-const _manageCredentialsAction = '__manage_credentials__';
-
-/// One saved credential in the dropdown, with a check on the active one and
-/// its URL underneath.
-class _CredentialOption extends StatelessWidget {
-  const _CredentialOption({
-    required this.credential,
-    required this.isActive,
-  });
-
-  final SonarQubeCredential credential;
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppTokens.of(context);
-    final textTheme = Theme.of(context).textTheme;
-    return Semantics(
-      selected: isActive,
-      child: Row(
-        children: [
-          SizedBox(
-            width: 28,
-            child: isActive
-                ? Icon(Icons.check_rounded, size: 20, color: t.success.dot)
-                : null,
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  credential.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  credential.baseUrl,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.bodySmall?.copyWith(color: t.textMuted),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

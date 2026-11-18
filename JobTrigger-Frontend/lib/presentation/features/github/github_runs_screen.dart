@@ -20,6 +20,7 @@ import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_pill.dart';
 import '../../common_widgets/status_tile.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../navigation/main_scaffold.dart';
 import 'github_runs_notifier.dart';
 import 'github_trigger_sheet.dart';
@@ -41,6 +42,7 @@ class GitHubRunsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final credential = ref.watch(activeGitHubCredentialNotifierProvider);
     final provider = gitHubRunsNotifierProvider(
       repo.owner,
       repo.name,
@@ -52,10 +54,13 @@ class GitHubRunsScreen extends ConsumerWidget {
     final workflowKey = '${repo.fullName}/${workflow.id}';
     final safety = ref.watch(serverSafetyNotifierProvider);
     final activeCredential = ref.watch(activeGitHubCredentialNotifierProvider);
-    final readOnly = activeCredential != null &&
+    final readOnly =
+        activeCredential != null &&
         safety.isReadOnly(SafetyTool.githubActions, activeCredential.id);
-    final protectedWorkflow =
-        safety.isProtected(SafetyTool.githubActions, workflowKey);
+    final protectedWorkflow = safety.isProtected(
+      SafetyTool.githubActions,
+      workflowKey,
+    );
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
 
@@ -66,6 +71,13 @@ class GitHubRunsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (credential != null)
+                GitHubCredentialHeader(
+                  credential: credential,
+                  onSwitch: (chosen) => ref
+                      .read(activeGitHubCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
                 child: Row(
@@ -128,13 +140,13 @@ class GitHubRunsScreen extends ConsumerWidget {
                           onPressed: readOnly
                               ? null
                               : () => showGitHubTriggerSheet(
-                                context,
-                                repo: repo,
-                                workflow: workflow,
-                                requiredPhrase: protectedWorkflow
-                                    ? workflow.name
-                                    : null,
-                              ),
+                                  context,
+                                  repo: repo,
+                                  workflow: workflow,
+                                  requiredPhrase: protectedWorkflow
+                                      ? workflow.name
+                                      : null,
+                                ),
                           icon: const Icon(Icons.play_arrow_rounded),
                           label: Text(readOnly ? 'Read-only' : 'Run workflow'),
                         ),

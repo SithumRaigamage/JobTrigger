@@ -10,6 +10,8 @@ import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
 import '../../navigation/main_scaffold.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import 'sonarqube_quality_notifiers.dart';
 
 /// `US-SQ-SERVER-01`: the server's version and status, so a problem can be
@@ -19,6 +21,7 @@ class SonarQubeServerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final credential = ref.watch(activeSonarQubeCredentialNotifierProvider);
     final info = ref.watch(sonarQubeServerInfoProvider);
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
@@ -30,6 +33,13 @@ class SonarQubeServerScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (credential != null)
+                SonarQubeCredentialHeader(
+                  credential: credential,
+                  onSwitch: (chosen) => ref
+                      .read(activeSonarQubeCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 20, 8),
                 child: Row(

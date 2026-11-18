@@ -16,6 +16,8 @@ import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/status_pill.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import 'sonarqube_issues_notifier.dart';
 
 /// A project's open issues (`US-SQ-QUALITY-03`): filter chips for type and
@@ -28,6 +30,7 @@ class SonarQubeIssuesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final credential = ref.watch(activeSonarQubeCredentialNotifierProvider);
     final issuesProvider = sonarQubeIssuesNotifierProvider(project.key);
     final filterProvider = sonarQubeIssueFilterNotifierProvider(project.key);
     final groupingProvider = sonarQubeIssueGroupingNotifierProvider(
@@ -46,6 +49,13 @@ class SonarQubeIssuesScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (credential != null)
+                SonarQubeCredentialHeader(
+                  credential: credential,
+                  onSwitch: (chosen) => ref
+                      .read(activeSonarQubeCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
                 child: Align(

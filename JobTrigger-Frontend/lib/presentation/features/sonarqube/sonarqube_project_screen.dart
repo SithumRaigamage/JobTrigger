@@ -8,6 +8,7 @@ import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/responsive_center.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../first_run/first_run_checklist_card.dart';
@@ -33,7 +34,6 @@ class SonarQubeProjectScreen extends ConsumerWidget {
     ref.watch(sonarQubeSummariesSyncProvider);
     final projectsAsync = ref.watch(sonarQubeProjectsNotifierProvider);
     final textTheme = Theme.of(context).textTheme;
-    final t = AppTokens.of(context);
 
     return Scaffold(
       body: SafeArea(
@@ -42,15 +42,17 @@ class SonarQubeProjectScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              SonarQubeCredentialHeader(
+                credential: credential,
+                onSwitch: (chosen) => ref
+                    .read(activeSonarQubeCredentialNotifierProvider.notifier)
+                    .setActiveCredential(chosen),
+              ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      credential.label,
-                      style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
-                    ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -80,6 +82,7 @@ class SonarQubeProjectScreen extends ConsumerWidget {
                           prefixIcon: Icon(Icons.search_rounded, size: 20),
                           isDense: true,
                           contentPadding: EdgeInsets.symmetric(vertical: 12),
+                          border: InputBorder.none,
                         ),
                         onChanged: (query) => ref
                             .read(sonarQubeProjectSearchProvider.notifier)
@@ -128,7 +131,7 @@ class SonarQubeProjectScreen extends ConsumerWidget {
   }
 }
 
-/// "Failing only" and the sort order.
+/// "Failingd the sort order.
 class _Controls extends ConsumerWidget {
   const _Controls();
 
@@ -197,7 +200,7 @@ class _ProjectList extends ConsumerWidget {
       final moreToSearch = query.isNotEmpty && (loaded?.hasMore ?? false);
       final message = failingOnly && query.isEmpty
           ? (summaries.isLoading
-                ? 'Checking quality gates…'
+                ? 'Checking quality gates\u2026'
                 : 'No projects are failing their quality gate')
           : (query.isEmpty ? 'No projects found' : 'No results for "$query"');
       return Center(

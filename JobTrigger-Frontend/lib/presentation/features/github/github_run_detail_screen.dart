@@ -21,6 +21,7 @@ import '../../common_widgets/status_pill.dart';
 import '../../common_widgets/segment_row.dart';
 import '../../navigation/app_routes.dart';
 import '../../common_widgets/section_label.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../../domain/github/github_job.dart';
 import 'github_cancel_notifier.dart';
 import 'github_jobs_notifier.dart';
@@ -62,13 +63,14 @@ class GitHubRunDetailScreen extends ConsumerWidget {
     // protected workflow requires the typed name.
     final safety = ref.watch(serverSafetyNotifierProvider);
     final activeCredential = ref.watch(activeGitHubCredentialNotifierProvider);
-    final readOnly = activeCredential != null &&
+    final readOnly =
+        activeCredential != null &&
         safety.isReadOnly(SafetyTool.githubActions, activeCredential.id);
     final workflowKey = '${repo.fullName}/${workflow.id}';
     final requiredPhrase =
         safety.isProtected(SafetyTool.githubActions, workflowKey)
-            ? workflow.name
-            : null;
+        ? workflow.name
+        : null;
 
     final t = AppTokens.of(context);
     final textTheme = Theme.of(context).textTheme;
@@ -80,6 +82,13 @@ class GitHubRunDetailScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(8, 4, 8, 24),
             children: [
+              if (activeCredential != null)
+                GitHubCredentialHeader(
+                  credential: activeCredential,
+                  onSwitch: (chosen) => ref
+                      .read(activeGitHubCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
+                ),
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
@@ -187,11 +196,11 @@ class GitHubRunDetailScreen extends ConsumerWidget {
                         onPressed: cancelling || readOnly
                             ? null
                             : () => _confirmCancel(
-                              context,
-                              ref,
-                              current,
-                              requiredPhrase,
-                            ),
+                                context,
+                                ref,
+                                current,
+                                requiredPhrase,
+                              ),
                         child: Text(
                           readOnly
                               ? 'Read-only'

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/error/error_message.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 import '../../../domain/jenkins/console_decoder.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../common_widgets/connection_error_view.dart';
@@ -11,6 +12,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../common_widgets/responsive_center.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import 'build_log_notifier.dart';
 import 'console_log_viewer.dart';
 import 'console_notifiers.dart';
@@ -51,6 +53,7 @@ class _BuildLogScreenState extends ConsumerState<BuildLogScreen> {
         : ConsoleTimestamps.none;
     final exporting = ref.watch(fullLogExportNotifierProvider(_url)).isLoading;
     final log = logAsync.value;
+    final server = ref.watch(activeServerNotifierProvider);
 
     // Follow the current search match as it changes.
     ref.listen(
@@ -71,6 +74,13 @@ class _BuildLogScreenState extends ConsumerState<BuildLogScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            if (server != null)
+              JenkinsServerHeader(
+                server: server,
+                onSwitch: (chosen) => ref
+                    .read(activeServerNotifierProvider.notifier)
+                    .setActiveServer(chosen),
+              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 4, 4, 8),
               child: Row(

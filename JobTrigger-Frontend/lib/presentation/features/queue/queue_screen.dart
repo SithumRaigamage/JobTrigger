@@ -16,6 +16,7 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/read_only_notice.dart';
 import '../../common_widgets/responsive_center.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../navigation/app_routes.dart';
 import '../subscription/plan_gate.dart';
 import '../subscription/pro_teaser.dart';
@@ -42,7 +43,8 @@ class QueueScreen extends ConsumerWidget {
     // PI-01/IMP-25: a read-only server cannot have its queue cancelled.
     final safety = ref.watch(serverSafetyNotifierProvider);
     final activeServer = ref.watch(activeServerNotifierProvider);
-    final readOnly = activeServer != null &&
+    final readOnly =
+        activeServer != null &&
         safety.isReadOnly(SafetyTool.jenkins, activeServer.id);
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
@@ -51,6 +53,13 @@ class QueueScreen extends ConsumerWidget {
         bottom: false,
         child: Column(
           children: [
+            if (activeServer != null)
+              JenkinsServerHeader(
+                server: activeServer,
+                onSwitch: (chosen) => ref
+                    .read(activeServerNotifierProvider.notifier)
+                    .setActiveServer(chosen),
+              ),
             ResponsiveCenter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),

@@ -36,6 +36,7 @@ class SonarQubeOpenLinkScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final credential = ref.watch(activeSonarQubeCredentialNotifierProvider);
+
     final t = AppTokens.of(context);
     final textTheme = Theme.of(context).textTheme;
 

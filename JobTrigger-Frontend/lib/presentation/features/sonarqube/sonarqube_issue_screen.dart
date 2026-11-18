@@ -20,6 +20,7 @@ import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_pill.dart';
 import '../../navigation/main_scaffold.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import 'sonarqube_issue_actions.dart';
 import 'sonarqube_issue_context.dart';
 
@@ -68,6 +69,13 @@ class SonarQubeIssueScreen extends ConsumerWidget {
               16 + glassNavBarClearance(context),
             ),
             children: [
+              if (credential != null)
+                SonarQubeCredentialHeader(
+                  credential: credential,
+                  onSwitch: (chosen) => ref
+                      .read(activeSonarQubeCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
+                ),
               Row(
                 children: [
                   IconButton(

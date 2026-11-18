@@ -8,6 +8,8 @@ import '../../../domain/sonarqube/sonarqube_issue.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/main_scaffold.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import 'sonarqube_issue_search_notifier.dart';
 import 'sonarqube_issue_widgets.dart';
 
@@ -40,6 +42,7 @@ class _SonarQubeIssueSearchScreenState
 
   @override
   Widget build(BuildContext context) {
+    final credential = ref.watch(activeSonarQubeCredentialNotifierProvider);
     final searchAsync = ref.watch(sonarQubeIssueSearchNotifierProvider);
     final notifier = ref.read(sonarQubeIssueSearchNotifierProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
@@ -52,6 +55,13 @@ class _SonarQubeIssueSearchScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (credential != null)
+                SonarQubeCredentialHeader(
+                  credential: credential,
+                  onSwitch: (chosen) => ref
+                      .read(activeSonarQubeCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 20, 8),
                 child: Row(

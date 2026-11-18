@@ -8,6 +8,8 @@ import '../../../domain/github/github_workflow.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
+import '../../../data/credentials/active_github_credential_notifier.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../navigation/main_scaffold.dart';
 import 'github_global_history_notifier.dart';
 import 'github_run_history_screen.dart' show GitHubRunHistoryTile;
@@ -25,6 +27,7 @@ class GitHubGlobalHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final credential = ref.watch(activeGitHubCredentialNotifierProvider);
     final feedAsync = ref.watch(gitHubGlobalHistoryNotifierProvider);
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
@@ -47,6 +50,13 @@ class GitHubGlobalHistoryScreen extends ConsumerWidget {
                       onPressed: () => context.pop(),
                     ),
                   ),
+                ),
+              if (credential != null)
+                GitHubCredentialHeader(
+                  credential: credential,
+                  onSwitch: (chosen) => ref
+                      .read(activeGitHubCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
                 ),
               Padding(
                 padding: EdgeInsets.fromLTRB(20, isTab ? 16 : 4, 20, 8),

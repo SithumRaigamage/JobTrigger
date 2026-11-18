@@ -17,6 +17,7 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/main_scaffold.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import 'sonarqube_change_dialogs.dart';
 import 'sonarqube_hotspots_notifier.dart';
 
@@ -39,6 +40,7 @@ class _SonarQubeHotspotsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final credential = ref.watch(activeSonarQubeCredentialNotifierProvider);
     final provider = sonarQubeHotspotsNotifierProvider(widget.project.key);
     final hotspotsAsync = ref.watch(provider);
     final notifier = ref.read(provider.notifier);
@@ -52,6 +54,13 @@ class _SonarQubeHotspotsScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (credential != null)
+                SonarQubeCredentialHeader(
+                  credential: credential,
+                  onSwitch: (chosen) => ref
+                      .read(activeSonarQubeCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 20, 8),
                 child: Row(
@@ -194,8 +203,7 @@ class _HotspotRow extends ConsumerWidget {
   bool _readOnly(WidgetRef ref) {
     final safety = ref.read(serverSafetyNotifierProvider);
     final active = ref.read(activeSonarQubeCredentialNotifierProvider);
-    return active != null &&
-        safety.isReadOnly(SafetyTool.sonarqube, active.id);
+    return active != null && safety.isReadOnly(SafetyTool.sonarqube, active.id);
   }
 
   Future<void> _review(BuildContext context, WidgetRef ref) async {
@@ -251,7 +259,8 @@ class _HotspotRow extends ConsumerWidget {
     final activeCredential = ref.watch(
       activeSonarQubeCredentialNotifierProvider,
     );
-    final readOnly = activeCredential != null &&
+    final readOnly =
+        activeCredential != null &&
         safety.isReadOnly(SafetyTool.sonarqube, activeCredential.id);
     final where = [
       if (hotspot.securityCategory != null) hotspot.securityCategory,

@@ -6,11 +6,13 @@ import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../data/credentials/active_server_notifier.dart';
 import '../../../domain/jenkins/history_filter.dart';
 import '../../common_widgets/grouped_card.dart';
 import '../../common_widgets/inline_alert.dart';
 import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_pill.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../../domain/jenkins/html_text.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/relative_time.dart';
@@ -41,11 +43,19 @@ class BuildDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final url = jenkinsBuild.url;
     final detail = ref.watch(buildDetailNotifierProvider(url));
+    final server = ref.watch(activeServerNotifierProvider);
     return Scaffold(
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
+            if (server != null)
+              JenkinsServerHeader(
+                server: server,
+                onSwitch: (chosen) => ref
+                    .read(activeServerNotifierProvider.notifier)
+                    .setActiveServer(chosen),
+              ),
             ResponsiveCenter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
