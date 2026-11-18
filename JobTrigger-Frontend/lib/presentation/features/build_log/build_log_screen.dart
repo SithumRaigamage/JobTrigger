@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/error/error_message.dart';
@@ -13,6 +14,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/tool_server_credential_header.dart';
+import '../../navigation/app_routes.dart';
 import 'build_log_notifier.dart';
 import 'console_log_viewer.dart';
 import 'console_notifiers.dart';
@@ -77,9 +79,15 @@ class _BuildLogScreenState extends ConsumerState<BuildLogScreen> {
             if (server != null)
               JenkinsServerHeader(
                 server: server,
-                onSwitch: (chosen) => ref
-                    .read(activeServerNotifierProvider.notifier)
-                    .setActiveServer(chosen),
+                onSwitch: (chosen) {
+                  ref
+                      .read(activeServerNotifierProvider.notifier)
+                      .setActiveServer(chosen);
+                  // This screen is keyed by the old server's build URL, so
+                  // a refetch would trip host pinning (AUD-45). Land on the
+                  // new server's Home instead.
+                  context.go(AppRoutes.home);
+                },
               ),
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 4, 4, 8),

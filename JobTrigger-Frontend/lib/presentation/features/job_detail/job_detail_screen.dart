@@ -107,9 +107,15 @@ class JobDetailScreen extends ConsumerWidget {
             if (activeServer != null)
               JenkinsServerHeader(
                 server: activeServer,
-                onSwitch: (chosen) => ref
-                    .read(activeServerNotifierProvider.notifier)
-                    .setActiveServer(chosen),
+                onSwitch: (chosen) {
+                  ref
+                      .read(activeServerNotifierProvider.notifier)
+                      .setActiveServer(chosen);
+                  // This screen is keyed by the old server's job URL; a
+                  // refetch would trip host pinning (AUD-45). Return to the
+                  // new server's Home.
+                  context.go(AppRoutes.home);
+                },
               ),
             ResponsiveCenter(
               child: Padding(

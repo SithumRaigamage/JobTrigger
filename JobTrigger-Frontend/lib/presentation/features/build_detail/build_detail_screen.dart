@@ -52,9 +52,15 @@ class BuildDetailScreen extends ConsumerWidget {
             if (server != null)
               JenkinsServerHeader(
                 server: server,
-                onSwitch: (chosen) => ref
-                    .read(activeServerNotifierProvider.notifier)
-                    .setActiveServer(chosen),
+                onSwitch: (chosen) {
+                  ref
+                      .read(activeServerNotifierProvider.notifier)
+                      .setActiveServer(chosen);
+                  // This screen is keyed by the old server's build URL.
+                  // Refetching it against the new server would trip host
+                  // pinning (AUD-45), so return to the new server's Home.
+                  context.go(AppRoutes.home);
+                },
               ),
             ResponsiveCenter(
               child: Padding(

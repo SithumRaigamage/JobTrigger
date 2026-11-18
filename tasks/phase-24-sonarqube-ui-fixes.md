@@ -59,6 +59,9 @@ time.
       the chip its natural width (an early `Flexible` + `Spacer` split that
       truncated long names is gone), and `tool_server_credential_header_test.dart`
       covers switching, the active entry, Manage → Settings, the trailing
-      actions, ellipsis at 320pt and all three tools. `flutter analyze` is
-      clean and the whole `flutter test` suite passes (1712 tests). Visual
+      actions, ellipsis at 320pt and all three tools. On the four Jenkins
+      screens keyed by an absolute URL (job detail, job history, build detail,
+      build log) switching also returns to Home: reusing the old URL against
+      the new server would be refused by AUD-45 host pinning. `flutter analyze`
+      is clean and the whole `flutter test` suite passes (1712 tests). Visual
       check on the iPhone was not run from here.
