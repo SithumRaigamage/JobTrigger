@@ -49,9 +49,10 @@ not re-open them.
 ### 2026-11-18, current verification
 
 `future-updates` contains `origin/develop` (merge commit `795258b`) and is 9
-commits ahead of it. A1 and A2 are complete; `git push` confirms the remote
-branch is already up to date, but A3's PR has not been opened. The configured
-GitHub CLI credential is invalid, so PR creation is currently blocked.
+commits ahead of it. A1 and A2 are complete. The follow-up commit
+`4712eee` is pushed to `origin/future-updates`; A3's PR is still not open
+because the configured GitHub CLI credential is invalid and no authenticated
+browser session is available.
 Flutter analysis is clean; `flutter test` passes (1,713 passed, 29 skipped),
 including the 50,000-line log case. Backend tests pass (403); the runtime audit
 is clean, with four moderate development-tool findings in `osv-scanner.toml`.
@@ -101,7 +102,7 @@ emits a non-blocking package-version import warning in
 |---|---|---|---|---|
 | A1 | Merge `origin/develop` into `future-updates`; current status: complete (9 commits ahead, 0 behind; merge commit `795258b`) | DEV | agent | YES |
 | A2 | Re-run **everything** on the merged result: `flutter analyze`, full `flutter test`, backend `npm test`, web `npm run check` + `vitest`; current status: complete, see current verification above | DEV | agent | YES |
-| A3 | Push `future-updates` (remote already up to date) and open the PR into `develop`; PR creation awaits GitHub authentication | DEV | owner approves | YES |
+| A3 | Follow-up commit `4712eee` is pushed; open the PR into `develop` when GitHub authentication is restored | DEV | owner approves | YES |
 | A4 | Cut `release/v1.0.0` from `develop`; feature freeze (bug fixes only, cherry-picked) | OPS | owner | YES |
 | A5 | Bump `pubspec.yaml` to `1.0.0+N` (the store build number, not the P24 footer) | DEV | agent | YES |
 | A6 | Fill `JobTrigger-Frontend/config/prod.json`: production `https://` backend URL plus the **public** Sentry/RevenueCat keys (never committed) | OPS | owner | YES |
