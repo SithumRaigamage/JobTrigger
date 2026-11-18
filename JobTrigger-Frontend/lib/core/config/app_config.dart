@@ -98,6 +98,11 @@ class AppConfig {
   /// `staging.json`/`prod.json`.
   final bool billingPreview;
 
+  // Pricing in cents (USD).
+  static const int monthlyPriceCents = 1999; // $19.99
+  static const int yearlyPriceCents = 23900; // $239.00
+  static const int yearlyTrialDays = 7;
+
   /// The key for the platform the app is running on, or null.
   String? revenueCatKeyFor(TargetPlatform platform) => switch (platform) {
     TargetPlatform.iOS => revenueCatIosKey,

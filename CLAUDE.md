@@ -29,6 +29,7 @@ Read these before starting any task, in this order:
 - `docs/api-reference.md` — every endpoint this app calls, backend + Jenkins
 - `docs/state-management.md` — provider structure per feature
 - `docs/migration-strategy.md` — phased rollout, parity checklist, QA gates
+- `docs/subscription/ — subscription and billing model` (pricing, entitlements, tasks, API refs)
 - `tasks/README.md` — how tasks are organized, then the relevant `tasks/phase-N-*.md`
 - `Releases/README.md` — release management, GitFlow rules, version checklists, and deployment logs (`Releases/vX.Y.Z/`)
 
