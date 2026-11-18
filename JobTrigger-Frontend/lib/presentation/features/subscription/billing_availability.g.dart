@@ -14,6 +14,11 @@ part of 'billing_availability.dart';
 /// platform **and** the backend has billing switched on **and** the app is
 /// not in demo mode. This is how a default build, with no keys or with
 /// `BILLING_ENABLED` off, behaves exactly as before subscriptions.
+///
+/// P24-04: a dev-only build with `BILLING_PREVIEW` set opts into the
+/// preview client, which serves static offers, so the same UI can be seen
+/// without keys. Demo mode still wins: it is its own universe. Release
+/// builds can never set the flag (`AppConfig.billingPreview`).
 
 @ProviderFor(billingAvailable)
 final billingAvailableProvider = BillingAvailableProvider._();
@@ -24,6 +29,11 @@ final billingAvailableProvider = BillingAvailableProvider._();
 /// platform **and** the backend has billing switched on **and** the app is
 /// not in demo mode. This is how a default build, with no keys or with
 /// `BILLING_ENABLED` off, behaves exactly as before subscriptions.
+///
+/// P24-04: a dev-only build with `BILLING_PREVIEW` set opts into the
+/// preview client, which serves static offers, so the same UI can be seen
+/// without keys. Demo mode still wins: it is its own universe. Release
+/// builds can never set the flag (`AppConfig.billingPreview`).
 
 final class BillingAvailableProvider
     extends $FunctionalProvider<bool, bool, bool>
@@ -34,6 +44,11 @@ final class BillingAvailableProvider
   /// platform **and** the backend has billing switched on **and** the app is
   /// not in demo mode. This is how a default build, with no keys or with
   /// `BILLING_ENABLED` off, behaves exactly as before subscriptions.
+  ///
+  /// P24-04: a dev-only build with `BILLING_PREVIEW` set opts into the
+  /// preview client, which serves static offers, so the same UI can be seen
+  /// without keys. Demo mode still wins: it is its own universe. Release
+  /// builds can never set the flag (`AppConfig.billingPreview`).
   BillingAvailableProvider._()
     : super(
         from: null,
@@ -67,4 +82,4 @@ final class BillingAvailableProvider
   }
 }
 
-String _$billingAvailableHash() => r'2bcf53fd41134bc4731616cdeccdcd811bac528c';
+String _$billingAvailableHash() => r'a7730f77ab8da44e1c25cfbea4ce6c286295d6fc';

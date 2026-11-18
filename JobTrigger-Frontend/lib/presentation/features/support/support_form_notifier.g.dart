@@ -40,7 +40,7 @@ final class SupportFormNotifierProvider
 }
 
 String _$supportFormNotifierHash() =>
-    r'5869908fe99ca8966fb6e3cc0a8a9530e762e97b';
+    r'66005354d96012678f4cb0b656a1db0954f26370';
 
 /// P25-05: one in-flight submission. `null` means nothing sent yet; a value
 /// is the ticket the backend stored; an error is what to show under the form.
