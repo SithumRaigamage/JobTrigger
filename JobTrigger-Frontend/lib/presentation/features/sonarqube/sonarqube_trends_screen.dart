@@ -13,6 +13,8 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/main_scaffold.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../../core/error/error_message.dart';
 
 part 'sonarqube_trends_screen.g.dart';
@@ -52,6 +54,7 @@ class _SonarQubeTrendsScreenState extends ConsumerState<SonarQubeTrendsScreen> {
     final historyAsync = ref.watch(
       sonarQubeMeasureHistoryProvider(widget.project.key, _metric.metric),
     );
+    final credential = ref.watch(activeSonarQubeCredentialNotifierProvider);
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
 
@@ -62,6 +65,13 @@ class _SonarQubeTrendsScreenState extends ConsumerState<SonarQubeTrendsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (credential != null)
+                SonarQubeCredentialHeader(
+                  credential: credential,
+                  onSwitch: (chosen) => ref
+                      .read(activeSonarQubeCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 20, 8),
                 child: Row(

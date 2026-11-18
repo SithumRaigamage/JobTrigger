@@ -91,8 +91,8 @@ in progress. JobTrigger status follows `tasks/README.md` and the
 | iOS | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
 | Android | ✓ | ✗ | ✓ | ✗ | ✓ | ✗ |
 | Jenkins | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ |
-| GitHub Actions | ◐ (repos, workflows; runs soon) | ✗ | ✗ | ✗ | ✓ | ✓ |
-| SonarQube | ◐ (servers saved; projects soon) | ✗ | ✗ | ✗ | ✗ | ✗ |
+| GitHub Actions | ✓ (repos, workflows, runs, logs, history) | ✗ | ✗ | ✗ | ✓ | ✓ |
+| SonarQube | ✓ (servers, projects, quality gate, measures, issues) | ✗ | ✗ | ✗ | ✗ | ✗ |
 | Several servers | ✓ | ✓ | ✓ | ✓ | n/a | ? |
 | Trigger with parameters (all types, masked secrets) | ✓ | ? | ? | ◐ | ✓ (dispatch) | ? |
 | Live console | ✓ | ✓ | ✓ | ✓ | ◐ (completed steps) | ? |
@@ -102,7 +102,7 @@ in progress. JobTrigger status follows `tasks/README.md` and the
 | Build notifications | ✓ (local) | ? | ✓ | ? | ✓ | ? |
 | Home-screen widget | ✓ | ? | ✓ | ? | ? | ? |
 | Biometric app lock | ✓ | ? | ? | ? | ? | ? |
-| **Set up from a laptop (web)** | ✓ (planned site, US-WEB-10…17) | ✗ | ✗ | ✗ | n/a | ✗ |
+| **Set up from a laptop (web)** | ✓ (built, Phase 15; go-live pending M-13) | ✗ | ✗ | ✗ | n/a | ✗ |
 | **Servers sync across devices** | ✓ | ✗ | ✗ (on device) | ? | n/a (GitHub account) | ? |
 | Credentials | Encrypted on backend + device secure storage | ? | **On device only** | ? | GitHub account | ? |
 | Price | TBD | Free | Free | Free + $1.99 Pro, ads | Free | Free |

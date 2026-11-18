@@ -16,6 +16,8 @@ import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/main_scaffold.dart';
+import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 
 part 'sonarqube_worst_files_screen.g.dart';
 
@@ -54,6 +56,7 @@ class _SonarQubeWorstFilesScreenState
 
   @override
   Widget build(BuildContext context) {
+    final credential = ref.watch(activeSonarQubeCredentialNotifierProvider);
     final filesAsync = ref.watch(
       sonarQubeWorstFilesProvider(widget.project.key, _metric.metric),
     );
@@ -67,6 +70,13 @@ class _SonarQubeWorstFilesScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (credential != null)
+                SonarQubeCredentialHeader(
+                  credential: credential,
+                  onSwitch: (chosen) => ref
+                      .read(activeSonarQubeCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 20, 8),
                 child: Row(

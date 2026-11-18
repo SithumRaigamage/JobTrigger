@@ -240,3 +240,19 @@ backend ever returns a `minSupportedVersion` above the running app version.
 - App (Phase 21): `lib/domain/student/` (`StudentApplication`, document checks), `StudentRepository` (backend calls; a refusal with the backend's own words is a `StudentRequestFailure`, which carries the `code`), `StudentFlowNotifier` (email → code, or document), `StudentStatusNotifier`. `SubscriptionSource.student` shows as "Pro (Student)" with the end date.
 - Daily job (`lib/studentJobs.js`, also `node scripts/run-student-jobs.js`): deletes decided documents after 30 days, emails the account address once in the last 7 days of a year (`reminderSentAt`), and marks ended years `expired` with the plan back to Free. Who has Pro is always decided by the date, so a missed run changes nothing about access. The app's banner reads the end date from the plan it already has (`SubscriptionSnapshot.studentYearEndingSoon`).
 
+## Support ticket (Phase 25, backend)
+
+- `SupportTicket` (`models/SupportTicket.js`) — `userId`, `category` (`bug` |
+  `feature` | `question` | `tool_request`), `subject` (≤120), `message`
+  (≤4000), `replyEmail`, diagnostics (`appVersion`, `buildNumber`, `tool`,
+  `platform`, `serverHost` = scheme+host+port only), `status` (`open` |
+  `triaged` | `closed`) and timestamps. Deleted with the account.
+- Content is scrubbed before it is stored, with the same rules as crash
+  reports (`docs/error-reporting.md`): no token, password, `Basic`/`Bearer`
+  value or MongoDB URI survives, and a URL keeps only its host.
+- App side: `lib/domain/support/` (`SupportTicket`, `SupportCategory`,
+  `SupportDiagnostics`, `hostOnly`), `SupportRepository`,
+  `SupportFormNotifier` (one submission) and `MySupportTicketsNotifier`.
+  `SupportCategory.wire` is the backend enum, so the app and the model never
+  drift.
+

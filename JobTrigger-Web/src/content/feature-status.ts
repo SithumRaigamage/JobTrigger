@@ -66,9 +66,7 @@ export const features = {
     label: "GitHub Actions (the tool)",
     status: "live",
     source: "Phases 8, 15, 22–23 done; runs, logs and dispatch ship in 1.0",
-    changelog: [
-      "GitHub Actions: accounts, repositories, workflows, runs, logs and dispatch",
-    ],
+    changelog: ["GitHub Actions: accounts, repositories, workflows, runs, logs and dispatch"],
   },
   "github-runs": {
     label: "GitHub: runs, logs, history",

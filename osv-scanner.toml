@@ -1,0 +1,43 @@
+# OSV-Scanner suppressions — reviewed, temporary, and always with a reason.
+#
+# Every entry here is a vulnerability the scan would otherwise fail on. An
+# entry needs: the exact advisory id, why it does not affect what we ship,
+# and an expiry date. When it expires the scan fails again, which is the
+# reminder to re-check upstream — do not just bump the date without looking.
+#
+# Rules:
+# - Never suppress a critical, or anything reachable at runtime with user
+#   input. A suppression is for build/test tooling only.
+# - Never suppress a finding in the Flutter app or the backend without the
+#   owner's sign-off; those ship to users.
+# - Remove the entry as soon as a fixed version is installable.
+
+[[IgnoredVulns]]
+id = "GHSA-fc5q-39xc-vjpf"
+ignoreUntil = 2027-01-31
+reason = """
+picomatch ReDoS (single-branch repeated extglobs). Build/test only: reached
+through @sentry/nextjs and vite's glob tooling, never by a request handler.
+4.0.7 is the newest release and the advisory's last_affected is 4.0.7, so no
+fixed version exists yet. Re-check when 4.0.8+ ships.
+"""
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2027-01-31
+reason = """
+minimatch globparts-amplification DoS. Build/test only: eslint and
+typescript-eslint resolve globs on the developer's machine and in CI, not on
+a request path. Installed 10.2.6; fixed in 11.0.1, which the eslint chain does
+not accept yet without a major bump. Track the eslint-config-next upgrade.
+"""
+
+[[IgnoredVulns]]
+id = "GHSA-3g3m-2fjr-6pw4"
+ignoreUntil = 2027-01-31
+reason = """
+glob command-injection/DoS. Backend dev tooling only: c8 -> test-exclude
+pins glob ^13, and the fix is in 14.0.2. Runtime dependencies audit clean
+(`npm audit --omit=dev` = 0); c8 never runs in production. Bump when
+test-exclude accepts glob 14.
+"""

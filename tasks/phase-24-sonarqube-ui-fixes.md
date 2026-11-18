@@ -41,3 +41,27 @@ time.
       (`BILLING_PREVIEW=0` opts out). The real store checkout still needs
       the owner's keys (P20-40..42). Covered by
       `preview_billing_client_test.dart` and `billing_availability_test.dart`.
+- [x] P24-05 **Every tool screen now shows the server/credential selector.**
+      The chip existed only on the SonarQube Overview (P24-01) and Jenkins
+      Home, so drill-down screens gave no way to see or switch the active
+      credential/server. `common_widgets/tool_server_credential_header.dart`
+      is now the single shared row (`SonarQubeCredentialHeader`,
+      `GitHubCredentialHeader`, `JenkinsServerHeader`): one tappable chip, a
+      check on the active entry, "Manage credentials…"/"Manage servers…" →
+      Settings, and optional trailing icons for the screen's own actions. It
+      carries no section title and owns no state — each screen passes the
+      active value and the switch callback, so switching stays per tool.
+      Placed on all 12 SonarQube screens, 7 GitHub screens and 7 Jenkins
+      screens (job detail, build detail, build log, queue, nodes, both
+      histories). Jenkins Home keeps its own `_ServerChip` (`P19-07`) and
+      Dashboard stays cross-tool, so neither is changed. The older one-off
+      chips (`_CredentialSelector`, `_AccountChip`) are deleted. The row gives
+      the chip its natural width (an early `Flexible` + `Spacer` split that
+      truncated long names is gone), and `tool_server_credential_header_test.dart`
+      covers switching, the active entry, Manage → Settings, the trailing
+      actions, ellipsis at 320pt and all three tools. On the four Jenkins
+      screens keyed by an absolute URL (job detail, job history, build detail,
+      build log) switching also returns to Home: reusing the old URL against
+      the new server would be refused by AUD-45 host pinning. `flutter analyze`
+      is clean and the whole `flutter test` suite passes (1712 tests). Visual
+      check on the iPhone was not run from here.

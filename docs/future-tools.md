@@ -361,7 +361,7 @@ gives the order; everything not in a wave is ordered by demand.
 
 | ID | Tool | Source / status |
 |---|---|---|
-| T-072 | SonarQube | in progress (second release) |
+| T-072 | SonarQube | development-complete (Phase 10); ships in 1.0 |
 | T-073 | Snyk | backlog (2026-10-23) |
 | T-074 | Codecov | backlog (2026-10-23) |
 | T-075 | Coveralls | backlog (2026-10-23) |

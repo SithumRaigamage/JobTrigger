@@ -6,6 +6,7 @@ const SonarQubeCredential = require('../models/SonarQubeCredential');
 const PasswordResetToken = require('../models/PasswordResetToken');
 const Subscription = require('../models/Subscription');
 const StudentVerification = require('../models/StudentVerification');
+const SupportTicket = require('../models/SupportTicket');
 const revenueCat = require('../billing/revenuecatClient');
 const paddle = require('../billing/paddleClient');
 const { revenueCatConfig, paddleConfig } = require('../config/env');
@@ -210,6 +211,8 @@ exports.changePassword = async (req, res, next) => {
  * to and delete again, never orphaned secrets. Student applications go too
  * (documents included); only the one-way hashes in StudentClaim stay, so the
  * same university email or document can't claim a second grant (Phase 21).
+ * Support tickets filed by the account go too (Phase 25): a report keeps the
+ * reply address and the user's own words, so it isn't kept after the account.
  */
 exports.deleteAccount = async (req, res, next) => {
   try {
@@ -221,7 +224,7 @@ exports.deleteAccount = async (req, res, next) => {
     const subscription = await Subscription.findOne({ userId: user._id }).lean();
 
     await Promise.all(
-      [JenkinsCredential, GitHubCredential, SonarQubeCredential, PasswordResetToken, Subscription, StudentVerification].map((Model) =>
+      [JenkinsCredential, GitHubCredential, SonarQubeCredential, PasswordResetToken, Subscription, StudentVerification, SupportTicket].map((Model) =>
         Model.deleteMany({ userId: user._id }),
       ),
     );

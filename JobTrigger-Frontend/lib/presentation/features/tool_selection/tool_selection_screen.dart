@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_tokens.dart';
 import '../../../domain/tools/tool_catalog.dart';
+import '../../../domain/support/support_category.dart';
 import '../../common_widgets/pinned_footer_layout.dart';
-import '../../common_widgets/external_link.dart';
 import '../../navigation/app_routes.dart';
 import '../app_info/app_info_notifier.dart';
 import '../subscription/locked_active_guard.dart';
@@ -128,8 +128,12 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
                 Center(
                   child: TextButton(
                     key: const Key('tool_request_link'),
-                    onPressed: () =>
-                        openExternalLink(ref, toolRequestUri(supportEmail)),
+                    // P25-05: recorded as a ticket, so requests can be
+                    // counted and answered instead of living in a mail box.
+                    onPressed: () => context.push(
+                      AppRoutes.support,
+                      extra: SupportCategory.toolRequest,
+                    ),
                     child: const Text('Need another tool? Tell us'),
                   ),
                 ),
@@ -412,12 +416,3 @@ class _ComingNextTile extends StatelessWidget {
     );
   }
 }
-
-/// A pre-addressed email asking for a tool the app doesn't support yet.
-Uri toolRequestUri(String supportEmail) => Uri(
-  scheme: 'mailto',
-  path: supportEmail,
-  query:
-      'subject=${Uri.encodeComponent('JobTrigger tool request')}'
-      '&body=${Uri.encodeComponent('The CI/CD tool I would like to use: ')}',
-);

@@ -12,6 +12,7 @@ import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/no_active_github_credential_view.dart';
 import '../../common_widgets/responsive_center.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
 import '../../../data/credentials/active_github_credential_notifier.dart';
@@ -66,28 +67,30 @@ class GitHubRepoScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              GitHubCredentialHeader(
+                credential: activeCredential,
+                onSwitch: (chosen) => ref
+                    .read(activeGitHubCredentialNotifierProvider.notifier)
+                    .setActiveCredential(chosen),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.dashboard_outlined),
+                    tooltip: 'Dashboard',
+                    onPressed: () => context.push(AppRoutes.dashboard),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.history_rounded),
+                    tooltip: 'Recent activity',
+                    onPressed: () =>
+                        context.push(AppRoutes.githubGlobalHistory),
+                  ),
+                ],
+              ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
-                      children: [
-                        _AccountChip(label: activeCredential.label),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.dashboard_outlined),
-                          tooltip: 'Dashboard',
-                          onPressed: () => context.push(AppRoutes.dashboard),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.history_rounded),
-                          tooltip: 'Recent activity',
-                          onPressed: () =>
-                              context.push(AppRoutes.githubGlobalHistory),
-                        ),
-                      ],
-                    ),
                     const SizedBox(height: 14),
                     Semantics(
                       header: true,
@@ -130,69 +133,6 @@ class GitHubRepoScreen extends ConsumerWidget {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The GitHub credential in use. Credentials are switched in Settings, so
-/// that's where it leads.
-class _AccountChip extends StatelessWidget {
-  const _AccountChip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppTokens.of(context);
-    return Semantics(
-      button: true,
-      label: 'GitHub account $label. Switch account',
-      excludeSemantics: true,
-      child: Material(
-        color: t.card,
-        shape: StadiumBorder(side: BorderSide(color: t.cardBorder)),
-        child: InkWell(
-          customBorder: const StadiumBorder(),
-          onTap: () => context.go(AppRoutes.settings),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(6, 0, 10, 0),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircleAvatar(
-                    radius: 14,
-                    backgroundColor: t.text,
-                    child: Text(
-                      label.isEmpty ? '?' : label[0].toUpperCase(),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: t.background,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    size: 18,
-                    color: t.textSecondary,
-                  ),
-                ],
-              ),
-            ),
           ),
         ),
       ),

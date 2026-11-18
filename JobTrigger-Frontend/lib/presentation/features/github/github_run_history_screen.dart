@@ -14,6 +14,8 @@ import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/status_tile.dart';
 import '../../navigation/app_routes.dart';
+import '../../../data/credentials/active_github_credential_notifier.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../navigation/main_scaffold.dart';
 import 'github_run_history_notifier.dart';
 import 'github_runs_screen.dart' show toneForRunOutcome;
@@ -33,6 +35,7 @@ class GitHubRunHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final credential = ref.watch(activeGitHubCredentialNotifierProvider);
     final provider = gitHubRunHistoryNotifierProvider(
       repo.owner,
       repo.name,
@@ -49,6 +52,13 @@ class GitHubRunHistoryScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (credential != null)
+                GitHubCredentialHeader(
+                  credential: credential,
+                  onSwitch: (chosen) => ref
+                      .read(activeGitHubCredentialNotifierProvider.notifier)
+                      .setActiveCredential(chosen),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
                 child: Align(

@@ -22,6 +22,7 @@ import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import 'sonarqube_insights_notifiers.dart';
 import 'sonarqube_watch_notifier.dart';
 import '../open_link/open_link_location.dart';
@@ -85,6 +86,15 @@ class SonarQubeProjectDetailScreen extends ConsumerWidget {
                 16 + glassNavBarClearance(context),
               ),
               children: [
+                if (credential != null)
+                  SonarQubeCredentialHeader(
+                    credential: credential,
+                    onSwitch: (chosen) => ref
+                        .read(
+                          activeSonarQubeCredentialNotifierProvider.notifier,
+                        )
+                        .setActiveCredential(chosen),
+                  ),
                 Row(
                   children: [
                     IconButton(

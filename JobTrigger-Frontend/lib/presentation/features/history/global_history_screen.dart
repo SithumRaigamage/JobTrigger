@@ -14,6 +14,7 @@ import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/section_label.dart';
 import '../../navigation/app_routes.dart';
 import '../../navigation/main_scaffold.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import 'global_history_notifier.dart';
 import 'history_tile.dart';
 
@@ -52,8 +53,14 @@ class GlobalHistoryScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              JenkinsServerHeader(
+                server: activeServer,
+                onSwitch: (chosen) => ref
+                    .read(activeServerNotifierProvider.notifier)
+                    .setActiveServer(chosen),
+              ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                 child: Semantics(
                   header: true,
                   child: Text('History', style: textTheme.headlineLarge),

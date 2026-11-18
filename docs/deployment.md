@@ -15,8 +15,10 @@ the "how," that one is the "what's left."
 - **Google**: a Play Console account ($25 one-time), and a signing key for
   the app — Play App Signing manages the rest once you upload your first
   upload key.
-- Both stores also expect app icons, screenshots, and a privacy policy URL
-  — see `tasks/release-checklist.md`'s artwork item, still open.
+- Both stores also expect app icons, screenshots, and a privacy policy URL.
+  Icons and launch screen are done (Phase 16) and both screenshot packs were
+  captured and dimension-checked (`release/store-screenshots/`); the privacy
+  policy URL needs the website live (M-13).
 
 ## The mechanical deploy process, Flutter-side
 
@@ -75,13 +77,22 @@ manually-triggered `cd.yml` instead, so PR CI stays fast.
 
 | Control | Where | Blocking |
 |---|---|---|
-| npm advisories (high+) | `nodejs-test.yml` | yes |
-| pub + npm advisories (OSV) | `security.yml` `dependencies` | yes |
+| npm advisories (high+, backend) | `nodejs-test.yml` | yes |
+| npm advisories (runtime, critical, website) | `web-ci.yml` | yes |
+| pub + npm + website advisories (OSV) | `security.yml` `dependencies` | yes |
 | Secrets in git history (gitleaks) | `security.yml` `secrets` | yes; reviewed exceptions in `.gitleaksignore` |
 | Backend image (Trivy, high+, fixable) | `security.yml` `backend-image` | yes |
 | Generated code matches its sources | `flutter-ci.yml` | yes |
 | Android and iOS builds compile | `flutter-ci.yml` | yes |
 | SonarCloud | `nodejs-test.yml` | informational; skipped until `sonar.projectKey`/`sonar.organization` and `SONAR_TOKEN` are set |
+
+`security.yml` scans all three lockfiles (Flutter, backend, website). A
+finding is never silently allowed: `osv-scanner.toml` holds each reviewed
+suppression with its advisory id, why it cannot affect shipped code, and an
+expiry date. When the date passes the scan fails again, which is the prompt
+to re-check upstream. Current entries (2026-11-18) are build/test tooling
+only: `picomatch` (no fixed release exists yet) and `minimatch`/`glob`
+(blocked behind the eslint and c8 → `test-exclude` upgrade chains).
 
 Every workflow runs with `permissions: contents: read`, every action is
 pinned to a commit SHA (Dependabot's `github-actions` entry keeps them

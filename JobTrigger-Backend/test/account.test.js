@@ -3,6 +3,7 @@ const { expect } = require('chai');
 const JenkinsCredential = require('../models/JenkinsCredential');
 const GitHubCredential = require('../models/GitHubCredential');
 const SonarQubeCredential = require('../models/SonarQubeCredential');
+const SupportTicket = require('../models/SupportTicket');
 const User = require('../models/User');
 
 let counter = 0;
@@ -21,6 +22,12 @@ async function addCredentials(token) {
   });
   await authed('post', '/api/github-credentials', token).send({ label: 'gh', token: 't' });
   await authed('post', '/api/sonarqube-credentials', token).send({ label: 'sq', token: 't' });
+}
+
+async function addSupportTicket(token, subject) {
+  const res = await authed('post', '/api/support/tickets', token)
+    .send({ category: 'bug', subject, message: 'The build log came up empty.' });
+  expect(res.status).to.equal(201);
 }
 
 describe('Account deletion (AUD-48)', function() {
@@ -53,6 +60,19 @@ describe('Account deletion (AUD-48)', function() {
     }
     expect(await User.exists({ _id: me.user._id })).to.not.equal(null);
     expect(await JenkinsCredential.countDocuments({ userId: me.user._id })).to.equal(1);
+  });
+
+  it('deletes the support tickets the account filed, and only those', async function() {
+    const me = await signup();
+    const other = await signup();
+    await addSupportTicket(me.token, 'mine');
+    await addSupportTicket(other.token, 'theirs');
+
+    const res = await authed('delete', '/api/auth/account', me.token).send({ password: 'password' });
+    expect(res.status).to.equal(200);
+
+    expect(await SupportTicket.countDocuments({ userId: me.user._id })).to.equal(0);
+    expect(await SupportTicket.countDocuments({ userId: other.user._id })).to.equal(1);
   });
 
   it('needs a session', async function() {

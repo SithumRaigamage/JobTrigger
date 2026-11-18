@@ -72,6 +72,9 @@ app.use('/api/subscription', require('./routes/subscriptionRoutes'));
 app.use('/api/billing', require('./routes/billingRoutes'));
 app.use('/api/student', require('./routes/studentRoutes'));
 app.use('/api/admin/students', require('./routes/adminStudentRoutes'));
+// Phase 25: support and issue tickets, and their owner-only triage.
+app.use('/api/support', require('./routes/supportRoutes'));
+app.use('/api/admin/support', require('./routes/adminSupportRoutes'));
 
 app.get('/', (req, res) => {
   res.json({ message: 'JobTrigger Backend API is running' });

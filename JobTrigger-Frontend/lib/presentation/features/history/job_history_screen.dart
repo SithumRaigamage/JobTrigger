@@ -10,6 +10,7 @@ import '../../../domain/jenkins/history_filter.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
 import '../../common_widgets/connection_error_view.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../common_widgets/data_freshness.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
@@ -30,6 +31,7 @@ class JobHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final server = ref.watch(activeServerNotifierProvider);
     final pagesAsync = ref.watch(jobHistoryPagesNotifierProvider(job.url));
 
     return Scaffold(
@@ -37,6 +39,19 @@ class JobHistoryScreen extends ConsumerWidget {
         bottom: false,
         child: Column(
           children: [
+            if (server != null)
+              JenkinsServerHeader(
+                server: server,
+                onSwitch: (chosen) {
+                  ref
+                      .read(activeServerNotifierProvider.notifier)
+                      .setActiveServer(chosen);
+                  // This screen is keyed by the old server's job URL; a
+                  // refetch would trip host pinning (AUD-45). Return to the
+                  // new server's Home.
+                  context.go(AppRoutes.home);
+                },
+              ),
             ResponsiveCenter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),

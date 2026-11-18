@@ -72,7 +72,9 @@ describe("FeaturesView and the release manifest", () => {
         /Add your GitHub accounts and browse repositories and workflows next to your Jenkins servers/,
       ),
     ).toBeVisible();
-    expect(within(section).queryByText(/Runs, logs and history are on the way/)).not.toBeInTheDocument();
+    expect(
+      within(section).queryByText(/Runs, logs and history are on the way/),
+    ).not.toBeInTheDocument();
     expect(screen.getByText(/no roadmap promises/)).toBeVisible();
   });
 
@@ -87,7 +89,9 @@ describe("FeaturesView and the release manifest", () => {
         /Add your GitHub accounts and browse repositories and workflows next to your Jenkins servers/,
       ),
     ).toBeVisible();
-    expect(within(section).queryByText(/Runs, logs and history are on the way/)).not.toBeInTheDocument();
+    expect(
+      within(section).queryByText(/Runs, logs and history are on the way/),
+    ).not.toBeInTheDocument();
     expect(screen.getByText(/no roadmap promises/)).toBeVisible();
   });
 });

@@ -14,6 +14,8 @@ import '../../domain/sonarqube/sonarqube_project.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../features/app_info/app_info_screen.dart';
+import '../../domain/support/support_category.dart';
+import '../features/support/support_screen.dart';
 import '../features/connectivity/connection_help_screen.dart';
 import '../features/connectivity/remote_access_guide_screen.dart';
 import '../features/auth/auth_notifier.dart';
@@ -430,6 +432,16 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.appInfo,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AppInfoScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.support,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => SupportScreen(
+          category: switch (state.extra) {
+            final SupportCategory category => category,
+            _ => null,
+          },
+        ),
       ),
       GoRoute(
         path: AppRoutes.connectionHelp,

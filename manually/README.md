@@ -24,7 +24,6 @@ changes; `IPHONE.md` covers both.
 | [M-02](M-02-android-on-device-jank.md) | Android on-device log jank test | P5-13, P11-03 | **yes — no Android device** |
 | [M-03](M-03-sonarqube-iphone-auth.md) | SonarQube iPhone auth + real-server pass | P10-14, P10-15, P20-07 | no |
 | [M-04](M-04-sonarcloud-account.md) | SonarCloud account and organization | P10-15 | no |
-| [M-05](M-05-android-store-screenshots.md) | Android store screenshots | P6-07 | **DONE 2026-11-17** |
 | [M-06](M-06-github-token-and-iphone.md) | GitHub fine-grained token + iPhone checks | P8-26, P8-27, PE-41, PE-42 | no |
 | [M-07](M-07-crash-reporting-dsn.md) | Crash-reporting DSNs + iPhone test crash | P6-08, PE-19d/e | no |
 | [M-08](M-08-app-store-connect.md) | App Store Connect / TestFlight | P6-11 | no |
@@ -37,8 +36,13 @@ changes; `IPHONE.md` covers both.
 | [M-15](M-15-billing-launch.md) | Billing / subscriptions launch | Phase 20 | no |
 | [M-16](M-16-firebase-push.md) | Firebase server push | NR-06b | approval needed |
 | [M-17](M-17-github-fallback.md) | GitHub fallback decision | PE-43 | only if M-06 finds a blocker |
+| [M-18](M-18-support-tickets-iphone.md) | Support tickets on the iPhone | P25-01..06 | no |
 
 ## Resolved
+
+- [M-05](M-05-android-store-screenshots.md) — Android store screenshots:
+  **DONE 2026-11-17** (7 images, 1080×2160, in
+  `release/store-screenshots/android-2by1/`). Kept for the record only.
 
 - The throwaway `SithumRaigamage/jobtrigger-actions-test` repo used for the
   live GitHub verification (M-06) was deleted by the owner on 2026-11-17.

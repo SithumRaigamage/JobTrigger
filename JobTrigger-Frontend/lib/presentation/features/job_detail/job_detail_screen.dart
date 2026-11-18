@@ -28,6 +28,7 @@ import '../../common_widgets/glass_surface.dart';
 import '../../common_widgets/inline_alert.dart';
 import '../../common_widgets/section_label.dart';
 import '../../common_widgets/status_pill.dart';
+import '../../common_widgets/tool_server_credential_header.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../navigation/app_routes.dart';
 import '../home/pinned_jobs_notifier.dart';
@@ -90,16 +91,32 @@ class JobDetailScreen extends ConsumerWidget {
     // read-only flag. PI-02/IMP-24: a protected job needs the typed name.
     final safety = ref.watch(serverSafetyNotifierProvider);
     final activeServer = ref.watch(activeServerNotifierProvider);
-    final readOnly = activeServer != null &&
+    final readOnly =
+        activeServer != null &&
         safety.isReadOnly(SafetyTool.jenkins, activeServer.id);
     final protectedJob = safety.isProtected(SafetyTool.jenkins, jobUrl);
-    final requiredPhrase = protectedJob ? (loadedJob?.label ?? job.label) : null;
+    final requiredPhrase = protectedJob
+        ? (loadedJob?.label ?? job.label)
+        : null;
 
     return Scaffold(
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
+            if (activeServer != null)
+              JenkinsServerHeader(
+                server: activeServer,
+                onSwitch: (chosen) {
+                  ref
+                      .read(activeServerNotifierProvider.notifier)
+                      .setActiveServer(chosen);
+                  // This screen is keyed by the old server's job URL; a
+                  // refetch would trip host pinning (AUD-45). Return to the
+                  // new server's Home.
+                  context.go(AppRoutes.home);
+                },
+              ),
             ResponsiveCenter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
@@ -235,17 +252,17 @@ class JobDetailScreen extends ConsumerWidget {
                 isTriggering: isTriggering,
                 isCancelling: isCancelling,
                 readOnly: readOnly,
-                onTrigger: () => _confirmAndTrigger(
-                  context,
-                  ref,
-                  loadedJob,
-                  requiredPhrase,
-                ),
+                onTrigger: () =>
+                    _confirmAndTrigger(context, ref, loadedJob, requiredPhrase),
                 onCancel:
                     (loadedJob.lastBuild != null &&
                         loadedJob.lastBuild!.building)
-                    ? () =>
-                        _confirmAndCancel(context, ref, loadedJob, requiredPhrase)
+                    ? () => _confirmAndCancel(
+                        context,
+                        ref,
+                        loadedJob,
+                        requiredPhrase,
+                      )
                     : null,
               ),
           ],
@@ -429,9 +446,7 @@ class _ActionBar extends StatelessWidget {
                           minimumSize: const Size(64, 52),
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                         ),
-                        onPressed: isCancelling || readOnly
-                            ? null
-                            : onCancel,
+                        onPressed: isCancelling || readOnly ? null : onCancel,
                         icon: const Icon(Icons.stop_rounded),
                         label: Text(isCancelling ? 'Stopping…' : 'Stop'),
                       ),
@@ -444,8 +459,8 @@ class _ActionBar extends StatelessWidget {
                         ),
                         onPressed:
                             isTriggering || job.buildable == false || readOnly
-                                ? null
-                                : onTrigger,
+                            ? null
+                            : onTrigger,
                         icon: const Icon(Icons.play_arrow_rounded),
                         label: Text(label),
                       ),
@@ -1011,7 +1026,9 @@ class _WatchMenu extends ConsumerWidget {
         if (buildWatch != null && running != null)
           PopupMenuItem(
             value: () => _editRule(context, ref, buildWatch),
-            child: Text('Rule for #${running.number}: ${buildWatch.rule.label}'),
+            child: Text(
+              'Rule for #${running.number}: ${buildWatch.rule.label}',
+            ),
           ),
       ],
     );

@@ -7,7 +7,7 @@ owner can do it.
 
 The `M-XX` ids are unchanged, so every reference from `tasks/*.md` still
 resolves: [`M-01`](../manually/M-01-physical-iphone-relaunch.md) …
-[`M-17`](../manually/M-17-github-fallback.md), with
+[`M-18`](../manually/M-18-support-tickets-iphone.md), with
 [`M-05`](../manually/M-05-android-store-screenshots.md) already DONE.
 
 When you finish one, tell me which `M-XX` it was and what you saw; I'll tick
