@@ -172,6 +172,16 @@ class ProfileScreen extends ConsumerWidget {
                           whatsNewReleases.last.version,
                     ),
                   ),
+                  // P25-05: a real ticket, not just an email draft.
+                  ListTile(
+                    leading: const Icon(Icons.support_agent_rounded),
+                    title: const Text('Support'),
+                    subtitle: const Text(
+                      'Report a problem or request a feature',
+                    ),
+                    trailing: const _Chevron(),
+                    onTap: () => context.push(AppRoutes.support),
+                  ),
                   ListTile(
                     leading: const Icon(Icons.info_outline_rounded),
                     title: const Text('About JobTrigger'),
@@ -213,8 +223,7 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Text(
                 packageInfoAsync.when(
-                  data: (info) =>
-                      'Version ${info.version}',
+                  data: (info) => 'Version ${info.version}',
                   loading: () => '',
                   error: (error, stackTrace) => '',
                 ),

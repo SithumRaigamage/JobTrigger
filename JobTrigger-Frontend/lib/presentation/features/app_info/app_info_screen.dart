@@ -100,12 +100,14 @@ class AppInfoScreen extends ConsumerWidget {
                               icon: Icons.open_in_new_rounded,
                               onTap: () => _open(ref, url),
                             ),
-                          if (info.supportEmail case final email?)
+                          if (info.supportEmail != null)
                             _LinkRow(
                               title: 'Contact support',
-                              subtitle: email,
+                              subtitle: info.supportEmail,
                               icon: Icons.mail_outline_rounded,
-                              onTap: () => _open(ref, 'mailto:$email'),
+                              // P25-05: a ticket we can track, with the
+                              // address still offered on that screen.
+                              onTap: () => context.push(AppRoutes.support),
                             ),
                         ],
                       ),

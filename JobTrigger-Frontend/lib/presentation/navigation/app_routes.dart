@@ -60,6 +60,9 @@ abstract class AppRoutes {
   static const profile = '/profile';
   static const appInfo = '/profile/app-info';
 
+  /// P25-05: report a bug, ask a question or request a feature/tool.
+  static const support = '/profile/support';
+
   /// PI-03/PI-04: "Why can't I reach it?" and the tunnel walkthroughs.
   static const connectionHelp = '/connection-help';
   static const remoteAccessGuide = '/connection-help/remote-access';

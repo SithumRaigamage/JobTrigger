@@ -44,6 +44,10 @@ Future<void> _pump(WidgetTester tester) async {
         path: AppRoutes.toolSelection,
         builder: (_, _) => const Scaffold(body: Text('tool selection')),
       ),
+      GoRoute(
+        path: AppRoutes.support,
+        builder: (_, _) => const Scaffold(body: Text('support screen')),
+      ),
     ],
   );
   await tester.pumpWidget(
@@ -89,6 +93,19 @@ void main() {
     await _pump(tester);
 
     expect(find.text('App lock'), findsOneWidget);
+  });
+
+  testWidgets('the account section opens Support', (tester) async {
+    await _pump(tester);
+
+    await tester.scrollUntilVisible(find.text('Support'), 200);
+    final tile = find.widgetWithText(ListTile, 'Support');
+    await tester.ensureVisible(tile);
+    await tester.pumpAndSettle();
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+
+    expect(find.text('support screen'), findsOneWidget);
   });
 
   testWidgets("the account section opens What's new", (tester) async {

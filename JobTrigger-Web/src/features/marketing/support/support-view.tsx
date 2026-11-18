@@ -144,8 +144,9 @@ export function SupportView({ supportEmail }: { supportEmail: string | null }) {
                 Still stuck?
               </h2>
               <p className="text-[0.9375rem] leading-relaxed">
-                Tell us your app version and what you tried. Never send us a token — we will never
-                ask for one.
+                Report a problem or request a feature from the app: Profile → Support. The report
+                is kept as a ticket, and we reply to the email on your account. Tell us what you
+                tried. Never send us a token — we will never ask for one.
               </p>
             </div>
             {supportEmail ? (

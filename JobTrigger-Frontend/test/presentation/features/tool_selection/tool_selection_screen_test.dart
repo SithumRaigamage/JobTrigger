@@ -52,6 +52,10 @@ void main() {
           path: AppRoutes.home,
           builder: (_, _) => const Scaffold(body: Text('home')),
         ),
+        GoRoute(
+          path: AppRoutes.support,
+          builder: (_, _) => const Scaffold(body: Text('support screen')),
+        ),
       ],
     );
     await tester.pumpWidget(
@@ -118,11 +122,18 @@ void main() {
     expect(find.byKey(const Key('tool_request_link')), findsNothing);
   });
 
-  test('the request is a pre-addressed email', () {
-    final uri = toolRequestUri('support@jobtrigger.app');
+  // P25-05 changed this on purpose: the request used to be a pre-addressed
+  // email drafted on the phone, and is now a ticket the owner can read and
+  // count. The link still only exists when support has an address.
+  testWidgets('the tool request opens Support as a tool request', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    await tester.pumpAndSettle();
 
-    expect(uri.scheme, 'mailto');
-    expect(uri.path, 'support@jobtrigger.app');
-    expect(uri.queryParameters['subject'], 'JobTrigger tool request');
+    await tester.tap(find.byKey(const Key('tool_request_link')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('support screen'), findsOneWidget);
   });
 }

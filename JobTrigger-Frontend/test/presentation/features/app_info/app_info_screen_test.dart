@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
@@ -8,6 +9,7 @@ import 'package:job_trigger/data/repositories/app_info_repository_impl.dart';
 import 'package:job_trigger/domain/app_info/app_info.dart';
 import 'package:job_trigger/domain/app_info/app_info_repository.dart';
 import 'package:job_trigger/presentation/features/app_info/app_info_screen.dart';
+import 'package:job_trigger/presentation/navigation/app_routes.dart';
 
 /// P14-21: app info as redesigned (`UI-UX/screens/20-app-info`).
 class _Repo implements AppInfoRepository {
@@ -58,5 +60,45 @@ void main() {
 
     expect(find.text('Privacy policy'), findsNothing);
     expect(find.text('Contact support'), findsNothing);
+  });
+
+  // P25-05: the row used to open a mail draft; it now opens the in-app
+  // Support screen, where the address is still offered as a fallback.
+  testWidgets('Contact support opens the Support screen', (tester) async {
+    final router = GoRouter(
+      initialLocation: AppRoutes.appInfo,
+      routes: [
+        GoRoute(
+          path: AppRoutes.appInfo,
+          builder: (_, _) => const AppInfoScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.support,
+          builder: (_, _) => const Scaffold(body: Text('support screen')),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appInfoRepositoryProvider.overrideWithValue(
+            _Repo(
+              const AppInfo(
+                appVersion: '1.0.0',
+                buildNumber: '7',
+                supportEmail: 'support@jobtrigger.app',
+              ),
+            ),
+          ),
+        ],
+        child: MaterialApp.router(theme: AppTheme.dark(), routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Contact support'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('support screen'), findsOneWidget);
   });
 }

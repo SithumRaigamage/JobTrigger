@@ -110,6 +110,26 @@ never does:
 `updatedAt` differs; logout clears the store. No log line from any
 credential route carries a secret (`test/credential_secret.test.js`).
 
+### Support tickets (Phase 25)
+
+Reports filed from the app's Support screen (Profile → Support, App Info →
+Contact support, and the tool-selection "Need another tool?" link).
+
+| Path | Method | Auth | Body | Response | Notes |
+|---|---|---|---|---|---|
+| `/api/support/tickets` | POST | `x-auth-token` | `{ category, subject, message, replyEmail?, appVersion?, buildNumber?, tool?, platform?, serverHost? }` | 201 `{ ticket }` | `category`: `bug` \| `feature` \| `question` \| `tool_request`. Subject ≤120, message ≤4000; empty or over-long is **400**. A missing `replyEmail` falls back to the account's address. 5 per **user** per hour (`SUPPORT_TICKET_RATE_LIMIT`), then **429** |
+| `/api/support/tickets` | GET | `x-auth-token` | — | `{ tickets: [...] }` | Only the caller's own, newest first, at most 20. Each: `{ id, category, subject, message, status, createdAt, updatedAt }` |
+| `/api/admin/support/tickets` | GET | `x-auth-token` + `superAdmin` | — | `{ tickets: [...] }` | Every ticket, newest first (100). Adds `replyEmail`, `userEmail`, diagnostics. Optional `?status=open\|triaged\|closed`. A normal account gets **404**, like a route that doesn't exist |
+| `/api/admin/support/tickets/:id` | PATCH | `x-auth-token` + `superAdmin` | `{ status }` | `{ ticket }` | `open` \| `triaged` \| `closed`; anything else **400**; unknown id **404** |
+
+**No credential is ever stored in a ticket.** `subject` and `message` pass the
+crash-reporting scrubber (`lib/errorReporting/scrub.js`), so a pasted Jenkins
+token, `password=…` pair, `Basic`/`Bearer` value or a MongoDB URI is stored as
+`[redacted]`; control characters are stripped. `serverHost` is rebuilt from
+the URL and keeps **scheme + host + port only** — no path, query, fragment or
+`user:pass@`. The owner is emailed through nodemailer (best effort: a mail
+failure is logged and the ticket is still created).
+
 ## 2. Jenkins API (direct, per-server Basic Auth)
 
 Base URL = active `Credential.jenkinsURL`. A new `Dio` instance (via

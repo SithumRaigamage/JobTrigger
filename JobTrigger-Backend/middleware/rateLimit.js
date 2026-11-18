@@ -151,6 +151,17 @@ const adminLimiter = authLimiter({
   keyGenerator: perUser,
 });
 
+/**
+ * Phase 25 (P25-02): filing a ticket is something a person does a handful of
+ * times, so a few per hour per account, never per IP (an office behind one
+ * NAT address shares an IP).
+ */
+const supportTicketLimiter = authLimiter({
+  windowMs: 60 * MINUTE,
+  limit: fromEnv('SUPPORT_TICKET_RATE_LIMIT', 5),
+  keyGenerator: perUser,
+});
+
 module.exports = {
   adminLimiter,
   studentDocumentLimiter,
@@ -169,4 +180,5 @@ module.exports = {
   refreshKey,
   refreshLimiter,
   signupLimiter,
+  supportTicketLimiter,
 };
