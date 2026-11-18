@@ -14,10 +14,10 @@ class ReadOnlyNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => InlineAlert(
-        tone: StatusTone.paused,
-        icon: Icons.lock_outline_rounded,
-        message:
-            'This $toolLabel is read-only on this device. Turn that off in '
-            'Settings to make changes.',
-      );
+    tone: StatusTone.paused,
+    icon: Icons.lock_outline_rounded,
+    message:
+        'This $toolLabel is read-only on this device. Turn that off in '
+        'Settings to make changes.',
+  );
 }

@@ -16,6 +16,7 @@ import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/tool_server_credential_header.dart';
 import '../../navigation/app_routes.dart';
 import 'build_log_notifier.dart';
+import 'build_log_toolbar.dart';
 import 'console_log_viewer.dart';
 import 'console_notifiers.dart';
 
@@ -67,7 +68,6 @@ class _BuildLogScreenState extends ConsumerState<BuildLogScreen> {
     );
 
     final t = AppTokens.of(context);
-    final textTheme = Theme.of(context).textTheme;
     final lineCount = log == null
         ? null
         : log.droppedLines + log.visibleLines.length;
@@ -89,60 +89,35 @@ class _BuildLogScreenState extends ConsumerState<BuildLogScreen> {
                   context.go(AppRoutes.home);
                 },
               ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 4, 4, 8),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left_rounded, size: 28),
-                    tooltip: 'Back',
-                    onPressed: () => Navigator.of(context).maybePop(),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Semantics(
-                          header: true,
-                          child: Text('Console', style: textTheme.titleMedium),
-                        ),
-                        Text(
-                          [
-                            _title,
-                            if (lineCount != null)
-                              '${_thousands(lineCount)} lines',
-                          ].join(' · '),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.mono(
-                            textTheme.bodySmall,
-                          ).copyWith(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.copy_rounded, size: 20),
-                    tooltip: 'Copy log',
-                    onPressed: log == null
-                        ? null
-                        : () => _onMenu(_MenuAction.copy, prefs, log),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.ios_share_rounded, size: 20),
-                    tooltip: 'Share log',
-                    onPressed: log == null
-                        ? null
-                        : () => _onMenu(_MenuAction.share, prefs, log),
-                  ),
-                  _MenuButton(
-                    prefs: prefs,
-                    enabled: log != null,
-                    exporting: exporting,
-                    onSelected: (action) => _onMenu(action, prefs, log),
-                  ),
-                ],
-              ),
+            BuildLogToolbar(
+              title: 'Console',
+              subtitle: [
+                _title,
+                if (lineCount != null) '${_thousands(lineCount)} lines',
+              ].join(' · '),
+              onBack: () => Navigator.of(context).maybePop(),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.copy_rounded, size: 20),
+                  tooltip: 'Copy log',
+                  onPressed: log == null
+                      ? null
+                      : () => _onMenu(_MenuAction.copy, prefs, log),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.ios_share_rounded, size: 20),
+                  tooltip: 'Share log',
+                  onPressed: log == null
+                      ? null
+                      : () => _onMenu(_MenuAction.share, prefs, log),
+                ),
+                _MenuButton(
+                  prefs: prefs,
+                  enabled: log != null,
+                  exporting: exporting,
+                  onSelected: (action) => _onMenu(action, prefs, log),
+                ),
+              ],
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),

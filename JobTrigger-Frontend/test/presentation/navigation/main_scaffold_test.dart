@@ -106,6 +106,21 @@ Widget _wrap(GoRouter router) =>
     ProviderScope(child: MaterialApp.router(routerConfig: router));
 
 void main() {
+  testWidgets('all four tabs have labels in visual/focus order', (
+    tester,
+  ) async {
+    final router = _buildTestRouter();
+    addTearDown(router.dispose);
+    await tester.pumpWidget(_wrap(router));
+    await tester.pumpAndSettle();
+
+    final destinations = tester
+        .widgetList<NavigationDestination>(find.byType(NavigationDestination))
+        .map((destination) => destination.label)
+        .toList();
+    expect(destinations, ['Home', 'History', 'Settings', 'Profile']);
+  });
+
   testWidgets('tapping a destination switches to that branch', (tester) async {
     final router = _buildTestRouter();
     addTearDown(router.dispose);

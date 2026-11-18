@@ -213,7 +213,9 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('PI-01: a read-only credential disables Cancel run', (tester) async {
+  testWidgets('PI-01: a read-only credential disables Cancel run', (
+    tester,
+  ) async {
     final fake = FakeGitHubRepository()
       ..runResult = Ok(testRun(7, status: 'in_progress', conclusion: null));
     await tester.pumpWidget(
@@ -254,5 +256,6 @@ void main() {
 
 class _ActiveGitHub extends ActiveGitHubCredentialNotifier {
   @override
-  GitHubCredential? build() => const GitHubCredential(id: 'g1', label: 'L', secret: 't');
+  GitHubCredential? build() =>
+      const GitHubCredential(id: 'g1', label: 'L', secret: 't');
 }

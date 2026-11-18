@@ -33,6 +33,7 @@ void main() {
     List<GitHubCredential> github = const [],
     List<SonarQubeCredential> sonarqube = const [],
     GoRouter? router,
+    double textScale = 1,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -43,6 +44,12 @@ void main() {
         ),
         child: router == null
             ? MaterialApp(
+                builder: (context, child) => MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(textScaler: TextScaler.linear(textScale)),
+                  child: child!,
+                ),
                 home: Scaffold(body: Center(child: header)),
               )
             : MaterialApp.router(routerConfig: router),
@@ -88,6 +95,30 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(chosen, prod);
+  });
+
+  testWidgets('long credential fits a 320pt layout at 200% text', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final long = sonarQubeCredentialNamed(
+      'Production SonarQube server for the payments team',
+    );
+
+    await pumpHeader(
+      tester,
+      sonarHeader(credential: long),
+      sonarqube: [long],
+      textScale: 2,
+    );
+
+    expect(
+      find.bySemanticsLabel(RegExp('Production SonarQube')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('tapping the active entry does not call onSwitch', (

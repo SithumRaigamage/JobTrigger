@@ -58,11 +58,7 @@ class FolderContentsNotifier extends _$FolderContentsNotifier {
         _lastListing = value;
         _lastLoadedAt = DateTime.now();
         _markOnline();
-        recordFreshness(
-          ref,
-          homeFreshnessKey,
-          savedAt: _lastLoadedAt,
-        );
+        recordFreshness(ref, homeFreshnessKey, savedAt: _lastLoadedAt);
         // Saved in the background: the listing is already in hand.
         unawaited(_bestEffort(() => cache.write(serverId, folderUrl, value)));
         return value;

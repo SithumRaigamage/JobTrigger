@@ -43,9 +43,9 @@ class StatusMark extends StatelessWidget {
     final colors = AppTokens.of(context).status(tone);
     final style =
         labelStyle ??
-        Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: colors.foreground,
-        );
+        Theme.of(
+          context,
+        ).textTheme.labelSmall?.copyWith(color: colors.foreground);
     // A single rich-text run (rather than a Row) ellipsizes correctly in a
     // fixed-width segment and needs no bounded flex constraints.
     return Semantics(

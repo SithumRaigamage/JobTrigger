@@ -12,7 +12,7 @@
   - `release/tools.json` verified (`release: "1.0"`, Jenkins 1.0, SonarQube 1.0, GitHub Actions 1.0).
   - Run check: `node scripts/sync-tools.mjs --check` passes cleanly across Frontend, Web, and Backend.
 - [x] **Frontend Unit & Widget Tests**:
-  - All 1,713 Flutter tests passing, 29 skipped (`JobTrigger-Frontend/test/`,
+  - All 1,718 Flutter tests passing, 29 skipped (`JobTrigger-Frontend/test/`,
     re-run 2026-11-18; P24-05 added the shared-header widget tests and the
     support pull-to-refresh added one more).
 - [x] **Backend Tests**:

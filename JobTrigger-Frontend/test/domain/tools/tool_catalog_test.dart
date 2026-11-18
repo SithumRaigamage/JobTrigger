@@ -31,22 +31,19 @@ void main() {
   tearDown(() => ToolCatalog.current = ToolCatalog.allTools);
 
   group('ToolCatalog', () {
-    test(
-      'the shipped manifest is release 1.0: three tools, two next',
-      () {
-        final catalog = shipped();
-        expect(catalog.release, '1.0');
-        for (final id in ['jenkins', 'sonarqube', 'githubActions']) {
-          expect(catalog.isReleased(id), isTrue, reason: id);
-        }
-        for (final id in ['gitlab', 'circleci']) {
-          expect(catalog.isReleased(id), isFalse, reason: id);
-        }
-        expect(catalog.comingNext, ['gitlab', 'circleci']);
-        expect(catalog.versionOf('sonarqube'), '1.0');
-        expect(catalog.versionOf('nope'), isNull);
-      },
-    );
+    test('the shipped manifest is release 1.0: three tools, two next', () {
+      final catalog = shipped();
+      expect(catalog.release, '1.0');
+      for (final id in ['jenkins', 'sonarqube', 'githubActions']) {
+        expect(catalog.isReleased(id), isTrue, reason: id);
+      }
+      for (final id in ['gitlab', 'circleci']) {
+        expect(catalog.isReleased(id), isFalse, reason: id);
+      }
+      expect(catalog.comingNext, ['gitlab', 'circleci']);
+      expect(catalog.versionOf('sonarqube'), '1.0');
+      expect(catalog.versionOf('nope'), isNull);
+    });
 
     test('later releases release more, soonest first in "coming next"', () {
       // The shipped manifest releases all three at 1.0; a staged fixture

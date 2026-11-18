@@ -19,11 +19,11 @@ const _lineCount = 50000;
 const _errorLine = 30000;
 
 String _log() => [
-      for (var i = 1; i <= _lineCount; i++)
-        i == _errorLine
-            ? '\x1B[1;31mERROR\x1B[0m: fixture failure marker at line $i\n'
-            : '\x1B[32mINFO\x1B[0m  line $i \x1B[2m(dim)\x1B[0m\n',
-    ].join();
+  for (var i = 1; i <= _lineCount; i++)
+    i == _errorLine
+        ? '\x1B[1;31mERROR\x1B[0m: fixture failure marker at line $i\n'
+        : '\x1B[32mINFO\x1B[0m  line $i \x1B[2m(dim)\x1B[0m\n',
+].join();
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -61,23 +61,32 @@ void main() {
     // Nothing throws and virtualization holds after the flings.
     expect(tester.widgetList(find.byType(RichText)).length, lessThan(200));
 
-    final frames = timings
-        .map((t) => t.buildDuration.inMicroseconds + t.rasterDuration.inMicroseconds)
-        .where((us) => us > 0)
-        .toList()
-      ..sort();
+    final frames =
+        timings
+            .map(
+              (t) =>
+                  t.buildDuration.inMicroseconds +
+                  t.rasterDuration.inMicroseconds,
+            )
+            .where((us) => us > 0)
+            .toList()
+          ..sort();
     if (frames.isEmpty) {
       // ignore: avoid_print
       print('P5-13 FRAME DATA: no timings captured');
       return;
     }
     final p50 = frames[frames.length ~/ 2] / 1000;
-    final p95 = frames[(frames.length * 0.95).floor().clamp(0, frames.length - 1)] / 1000;
+    final p95 =
+        frames[(frames.length * 0.95).floor().clamp(0, frames.length - 1)] /
+        1000;
     final worst = frames.last / 1000;
     // ignore: avoid_print
-    print('P5-13 FRAME DATA: ${frames.length} frames, '
-        'p50=${p50.toStringAsFixed(1)}ms p95=${p95.toStringAsFixed(1)}ms '
-        'worst=${worst.toStringAsFixed(1)}ms (16.7ms = 60fps)');
+    print(
+      'P5-13 FRAME DATA: ${frames.length} frames, '
+      'p50=${p50.toStringAsFixed(1)}ms p95=${p95.toStringAsFixed(1)}ms '
+      'worst=${worst.toStringAsFixed(1)}ms (16.7ms = 60fps)',
+    );
     expect(tester.widgetList(find.byType(RichText)).length, lessThan(200));
   });
 }

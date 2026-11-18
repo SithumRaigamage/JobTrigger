@@ -485,5 +485,7 @@ class _NoSonarQubeCredentials extends SonarQubeCredentialsNotifier {
 final _noCredentialsOverrides = [
   credentialsNotifierProvider.overrideWith(_NoCredentials.new),
   gitHubCredentialsNotifierProvider.overrideWith(_NoGitHubCredentials.new),
-  sonarQubeCredentialsNotifierProvider.overrideWith(_NoSonarQubeCredentials.new),
+  sonarQubeCredentialsNotifierProvider.overrideWith(
+    _NoSonarQubeCredentials.new,
+  ),
 ];

@@ -29,7 +29,11 @@ void main() {
 
     test('protected-job keys ignore surrounding whitespace and slashes', () {
       const safety = ServerSafety();
-      final marked = safety.withProtected(SafetyTool.jenkins, '  job/api/ ', true);
+      final marked = safety.withProtected(
+        SafetyTool.jenkins,
+        '  job/api/ ',
+        true,
+      );
 
       expect(
         marked.isProtected(SafetyTool.jenkins, 'job/api'),

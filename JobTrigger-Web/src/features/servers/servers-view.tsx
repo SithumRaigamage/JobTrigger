@@ -71,11 +71,16 @@ function Counts({ servers, preview }: { servers: Credential[]; preview: boolean 
 
 function ServerTable({ servers, preview }: { servers: Credential[]; preview: boolean }) {
   return (
-    <Card radius="lg" className="overflow-hidden">
+    <Card radius="lg" className="w-full max-w-full min-w-0 overflow-hidden">
       {/* Scrolls on its own on narrow screens; focusable for keyboard users. */}
       {/* `relative`: the sr-only labels inside are position:absolute and
           would otherwise escape the scroll box and widen the page. */}
-      <div role="region" aria-label="Servers" tabIndex={0} className="relative overflow-x-auto">
+      <div
+        role="region"
+        aria-label="Servers"
+        tabIndex={0}
+        className="relative w-full min-w-0 overflow-x-auto"
+      >
         <table className="w-full min-w-190 border-collapse text-sm">
           <thead>
             <tr className="border-b border-line bg-page text-left">

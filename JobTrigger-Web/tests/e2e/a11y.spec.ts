@@ -12,7 +12,13 @@ async function audit(page: Page) {
   const problems = await page.evaluate(() => {
     const out: string[] = [];
     if (!document.documentElement.lang) out.push("<html> has no lang");
-    if (document.documentElement.scrollWidth > innerWidth) out.push("page scrolls sideways");
+    if (document.documentElement.scrollWidth > innerWidth) {
+      const offenders = [...document.querySelectorAll("body *")]
+        .filter((el) => el.getBoundingClientRect().right > innerWidth + 1)
+        .slice(0, 5)
+        .map((el) => `${el.tagName.toLowerCase()}.${String(el.className).slice(0, 80)}`);
+      out.push(`page scrolls sideways: ${offenders.join(", ")}`);
+    }
     if (document.querySelectorAll("h1").length !== 1)
       out.push(`${document.querySelectorAll("h1").length} h1s`);
     if (document.querySelectorAll("main").length !== 1) out.push("not exactly one <main>");

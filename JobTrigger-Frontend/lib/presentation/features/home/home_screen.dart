@@ -1085,12 +1085,12 @@ class _ScanActions extends ConsumerWidget {
     // server. PI-02/IMP-24: a protected project asks for the typed name.
     final safety = ref.watch(serverSafetyNotifierProvider);
     final activeServer = ref.watch(activeServerNotifierProvider);
-    final readOnly = activeServer != null &&
+    final readOnly =
+        activeServer != null &&
         safety.isReadOnly(SafetyTool.jenkins, activeServer.id);
-    final requiredPhrase =
-        safety.isProtected(SafetyTool.jenkins, project.url)
-            ? project.label
-            : null;
+    final requiredPhrase = safety.isProtected(SafetyTool.jenkins, project.url)
+        ? project.label
+        : null;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

@@ -261,11 +261,15 @@ void main() {
     expect(find.textContaining('read-only on this device'), findsOneWidget);
     // Both write affordances are disabled; not even the dialogs open.
     expect(
-      tester.widget<TextButton>(find.widgetWithText(TextButton, 'Change')).onPressed,
+      tester
+          .widget<TextButton>(find.widgetWithText(TextButton, 'Change'))
+          .onPressed,
       isNull,
     );
     expect(
-      tester.widget<TextButton>(find.widgetWithText(TextButton, 'Assign')).onPressed,
+      tester
+          .widget<TextButton>(find.widgetWithText(TextButton, 'Assign'))
+          .onPressed,
       isNull,
     );
     final comment = tester.widget<FilledButton>(

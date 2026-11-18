@@ -1,6 +1,6 @@
 # JobTrigger 1.0.0 — release workplan
 
-**Created:** 2026-11-18 · **Branch audited:** `future-updates` · **Target:**
+**Created:** 2026-11-18 · **Branch audited:** `codex/release-1.0-engineering-closeout` · **Target:**
 `main`, tag `v1.0.0`.
 
 This is the single ordered plan for everything still standing between the
@@ -46,33 +46,48 @@ Everything below is outstanding unless it appears under **Already done**.
 These were completed in this workspace and are recorded here so the plan does
 not re-open them.
 
-### 2026-11-18, current verification
+### 2026-11-18, release engineering closeout
 
-`future-updates` contains `origin/develop` (merge commit `795258b`) and is 9
-commits ahead of it. A1 and A2 are complete. The follow-up commit
-`4712eee` is pushed to `origin/future-updates`; A3's PR is still not open
-because the configured GitHub CLI credential is invalid and no authenticated
-browser session is available.
-Flutter analysis is clean; `flutter test` passes (1,713 passed, 29 skipped),
-including the 50,000-line log case. Backend tests pass (403); the runtime audit
-is clean, with four moderate development-tool findings in `osv-scanner.toml`.
-Website `npm run check` passes (467 unit tests and production build); Playwright
-e2e passes (202 tests). The default Turbopack build failed to bind a helper
-process, so the package build script now selects webpack explicitly. Webpack
-emits a non-blocking package-version import warning in
-`src/error-reporting/config.ts`.
+The user confirmed PR #144 is merged. `origin/develop` is now
+`a95f34031b929291f4fd6a2db973036ed64fab54`. The closeout branch
+`codex/release-1.0-engineering-closeout` starts at that commit and contains
+the reviewable accessibility and website build fixes described below.
+
+Fresh verification on this branch: `flutter analyze` clean; `flutter test`
+passes (1,718 passed, 29 skipped), including the 50,000-line log case;
+backend `npm test` passes (403) and `npm audit --omit=dev` reports zero
+vulnerabilities. Website `npm run check` passes (467 tests and production
+build); `npm run e2e` passes all 202 desktop, mobile and release-manifest tests.
+The e2e checks caught a production issue: the Webpack build had not run
+Tailwind's PostCSS plugin, so utility CSS was absent. Added the plugin and
+verified the emitted CSS and browser suite. Website `npm audit --omit=dev`
+still reports the seven documented high `picomatch` advisories, with no safe
+in-range fix; the CI gate is configured to fail on critical advisories and the
+OSV exceptions expire on 2027-01-31. The full-tree gitleaks scan finds 21
+existing matches; the staged release diff is checked separately before push.
+Fixture-Jenkins verification passed: all 42 fixture-tagged Flutter scenarios
+passed against the scripted Jenkins 2.568.3 server; the disposable container,
+volume and generated credentials were removed afterward. The staged release
+diff passed gitleaks with no findings. A whole-repository scan still reports
+21 existing matches outside this closeout diff.
+The CI formatter now passes across all 910 Dart files. The Android debug APK
+build passes after upgrading Android Gradle Plugin to 9.1.1 and the wrapper to
+Gradle 9.3.1, resolving the `androidx.core:core:1.19.0` metadata failure on
+the merged `develop` build.
 
 ### 2026-11-18, second pass
 
 | ID | Item | Evidence |
 |---|---|---|
-| A1 | `origin/develop` merged into `future-updates` (12 commits: go_router 18.1.4, flutter_local_notifications 23.0.2, dotenv, c8 12, action bumps); no conflicts | merge commit on `future-updates` |
-| A2 | Full re-run on the merged result: Flutter analyze clean; Flutter tests 1,713 passing / 29 skipped; backend 403 passing; web check 467 tests + production build green; Playwright e2e 202 passing | current verification above |
+| A1 | PR #144 was merged to `develop`; the current closeout branch is based on `origin/develop` at `a95f340` | user confirmation and local Git refs |
+| A2 | Full re-run: Dart formatting clean; Flutter analyze clean; Flutter tests 1,718 passing / 29 skipped; Android APK build passes; backend 403 passing and runtime audit 0; web check 467 tests + production build green; Playwright e2e 202 passing; Jenkins fixture 42 passing | current verification above |
 | B1 | `JobTrigger-Web/package-lock.json` added to the OSV scan | `.github/workflows/security.yml` |
 | B2 | Website CI now audits runtime dependencies (`--audit-level=critical`) and prints the rest | `.github/workflows/web-ci.yml` |
 | B3 | The `picomatch`/`minimatch`/`glob` advisories are reviewed and suppressed **with reasons and an expiry** in `osv-scanner.toml`; the scan fails again on 2027-01-31 | `osv-scanner.toml`, `docs/deployment.md` |
 | B11 | Backend runtime audit is 0 (`npm audit --omit=dev`); the four remaining moderates are c8 test tooling only | `npm audit` |
 | C3 | Support → "Your reports" now has pull-to-refresh, with a widget test that proves the status change arrives | `support_screen.dart`, `support_screen_test.dart` |
+| C5–C8 | Accessibility/tab-order, 320 pt/200% text layout coverage, contrast checks, and the safe failure-state review completed; focused tests pass | frontend widget tests and `app_colors_test.dart` |
+| F5–F7 | Website production check and all 202 browser tests pass; billing CSP scope and 1.0 coming-soon copy are covered by e2e | `JobTrigger-Web` check and e2e suite |
 | I1 | Duplicate M-11 split: the Phase 25 iPhone pass is now `M-18`, indexed in `manually/README.md` | `manually/M-18-support-tickets-iphone.md` |
 | I2 | M-05 removed from the active manual table and recorded under "Resolved" | `manually/README.md` |
 | — | New finding fixed: `JobTrigger-Web` was red on `develop` at `prettier --check` for 5 files | `JobTrigger-Web` formatting commit |
@@ -100,9 +115,9 @@ emits a non-blocking package-version import warning in
 
 | ID | Item | Type | Owner | Blocks |
 |---|---|---|---|---|
-| A1 | Merge `origin/develop` into `future-updates`; current status: complete (9 commits ahead, 0 behind; merge commit `795258b`) | DEV | agent | YES |
-| A2 | Re-run **everything** on the merged result: `flutter analyze`, full `flutter test`, backend `npm test`, web `npm run check` + `vitest`; current status: complete, see current verification above | DEV | agent | YES |
-| A3 | Follow-up commit `4712eee` is pushed; open the PR into `develop` when GitHub authentication is restored | DEV | owner approves | YES |
+| A1 | PR #144 merged to `develop`; current closeout branch starts at `origin/develop` (`a95f340`) | DEV | agent | YES |
+| A2 | Full Flutter, backend and website checks rerun on the closeout branch; all passed, see current verification above | DEV | agent | YES |
+| A3 | Push this closeout branch and open its PR into `develop`; GitHub CLI authentication is available | DEV | agent | YES |
 | A4 | Cut `release/v1.0.0` from `develop`; feature freeze (bug fixes only, cherry-picked) | OPS | owner | YES |
 | A5 | Bump `pubspec.yaml` to `1.0.0+N` (the store build number, not the P24 footer) | DEV | agent | YES |
 | A6 | Fill `JobTrigger-Frontend/config/prod.json`: production `https://` backend URL plus the **public** Sentry/RevenueCat keys (never committed) | OPS | owner | YES |
@@ -118,8 +133,8 @@ emits a non-blocking package-version import warning in
 | B2 | Add an npm audit runtime gate to website CI; current status: complete | DEV | agent | YES |
 | B3 | Document expiring, reasoned exceptions for the reviewed build/test-tool findings; current status: complete in `osv-scanner.toml` (revisit before 2027-01-31) | DEV | agent | YES |
 | B4 | Turn on branch protection for `develop` and `main` with every required check (`analyze-and-test`, `build-android`, `build-ios`, `test`, `secrets`, `dependencies`, web `check`) | OPS | owner | SOFT |
-| B5 | Release-diff gitleaks scan: no findings after documenting the existing synthetic test-token fingerprint in `.gitleaksignore`; rerun on the final release branch before tagging | DEV | agent | YES |
-| B6 | Confirm the 50,000-line log host test (passed in A2) and the fixture-Jenkins e2e still pass on the release branch | DEV | agent | YES |
+| B5 | Staged release diff scanned with gitleaks: no findings; the whole repository has 21 existing matches outside this diff | DEV | agent | YES |
+| B6 | 50,000-line log host test and all 42 fixture-tagged tests passed against Jenkins 2.568.3 | DEV | agent | YES |
 | B7 | Reconcile `flutter pub outdated`: 40 packages locked older, 11 constrained older. Schedule the refresh **after** 1.0 (a lockfile churn during freeze is risk without release value) | DEV | agent | NO |
 | B8 | Wire the e2e fixture suite into CI (`docs/integration-testing.md` says "not run in CI … future work") — post-1.0, needs Docker on the runner | DEV | agent | NO |
 | B9 | Revisit native crash handling (`enableNativeCrashHandling: false`) once a native scrubber exists — deliberately off for 1.0 | DEV | agent | NO |
@@ -137,13 +152,13 @@ emits a non-blocking package-version import warning in
 | C2 | Use the documented Profile decision (`Version 1.0.0`, without build number) consistently; App Info now matches | DESIGN | agent | YES |
 | C3 | Add pull-to-refresh to Support → "Your reports"; current status: complete with widget test | DEV | agent | SOFT |
 | C4 | Added a one-line explanation of when to use Jenkins, GitHub Actions, or SonarQube on tool selection | DESIGN | agent | SOFT |
-| C5 | Accessibility pass NFR-A11Y-01/02/03: semantic labels on icon-only actions, 200% text scale, focus order on the four tab roots | DEV | agent | YES |
-| C6 | Re-check contrast in both themes after the P24 work (text ≥4.5:1, non-text ≥3:1) — P6-05 was a visual review, never a tool-assisted audit | DEV | agent | YES |
-| C7 | Audit loading/empty/error states on every 1.0 screen for the three tools; the rule is UI maps `AppFailure` to copy, never a raw status code | DEV | agent | YES |
-| C8 | Layout check at 320pt width and large text on the new credential chip, subscription cards and build-log toolbar | DEV | agent | YES |
+| C5 | Accessibility checks pass: labelled/tap-target guidelines on entry screens; four tab labels/order; tool selection at 320pt and 200% text | DEV | agent | YES |
+| C6 | Both-theme contrast audit passes via `app_colors_test.dart` (text ≥4.5:1, non-text ≥3:1) | DEV | agent | YES |
+| C7 | Screen-state review complete: presentation has no HTTP-status inspection; failures flow through `AppFailure` copy and loading/empty/error states | DEV | agent | YES |
+| C8 | 320pt/200% text layout tests pass for credential chip, subscription card and extracted build-log toolbar | DEV | agent | YES |
 | C9 | Keyboard/safe-area check on server form, token wizard, and support composer (iPhone) | OWNER | owner | YES |
 | C10 | Updated in-app 1.0 "What's new" with read-only mode, QR pairing, support reporting and server switching | DESIGN | agent | SOFT |
-| C11 | Decide whether 1.0 asks for notification permission at all — push ships dark (NR-06b), so a prompt now would be a dead end | DESIGN | owner | SOFT |
+| C11 | No first-run notification prompt. Ask only after the user explicitly chooses Watch; that opt-in is already the permission-request point | DESIGN | agent | SOFT |
 
 ---
 
@@ -268,7 +283,7 @@ Recorded so scope creep is visible, not to plan it.
 
 ## Suggested order
 
-1. **Unblock the branch:** A1 → A2 → A3 (merge, full re-run, PR).
+1. **Review the closeout:** A1 → A2 are complete; A3 is the PR carrying this verified work into `develop`.
 2. **Cheap gaps while CI runs:** B1, B2, B11, I1, I2, C3.
 3. **Decisions the owner must make before design freezes:** C1, C2, C4, G1, D8.
 4. **Code freeze:** A4 → A5 → A6, then B5/B6/F5/F6/F7 as the last green gates.

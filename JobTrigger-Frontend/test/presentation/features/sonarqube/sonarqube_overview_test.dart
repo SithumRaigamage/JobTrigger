@@ -249,8 +249,7 @@ void main() {
           ),
           GoRoute(
             path: AppRoutes.sonarqubeIssueSearch,
-            builder: (_, _) =>
-                const Scaffold(body: Text('issue search page')),
+            builder: (_, _) => const Scaffold(body: Text('issue search page')),
           ),
         ],
       );

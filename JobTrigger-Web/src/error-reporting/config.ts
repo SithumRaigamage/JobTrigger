@@ -8,7 +8,7 @@
  * needs these values, so they are read here, and are not secrets.
  */
 
-import { version } from "../../package.json";
+import packageJson from "../../package.json";
 
 export type ReportingConfig = {
   dsn: string;
@@ -30,7 +30,7 @@ export function reportingConfig(env: Env): ReportingConfig | null {
       : "development"
     : env.NEXT_PUBLIC_SENTRY_ENVIRONMENT!.trim();
   const release = blank(env.NEXT_PUBLIC_SENTRY_RELEASE)
-    ? version
+    ? packageJson.version
     : env.NEXT_PUBLIC_SENTRY_RELEASE!.trim();
   return { dsn: dsn!.trim(), environment, release };
 }

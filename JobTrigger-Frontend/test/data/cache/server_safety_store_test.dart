@@ -25,7 +25,9 @@ void main() {
   });
 
   test('corrupt JSON loads as empty instead of throwing', () async {
-    SharedPreferences.setMockInitialValues({ServerSafetyStore.key: '{not json'});
+    SharedPreferences.setMockInitialValues({
+      ServerSafetyStore.key: '{not json',
+    });
     expect(await ServerSafetyStore().load(), const ServerSafety());
   });
 }

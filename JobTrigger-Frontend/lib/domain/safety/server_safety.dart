@@ -12,9 +12,9 @@ class ServerSafety {
   });
 
   factory ServerSafety.fromJson(Map<String, dynamic> json) => ServerSafety(
-        readOnly: _stringSet(json['readOnly']),
-        protectedJobs: _stringSet(json['protectedJobs']),
-      );
+    readOnly: _stringSet(json['readOnly']),
+    protectedJobs: _stringSet(json['protectedJobs']),
+  );
 
   /// Credential keys in the form `<tool.key>:<credentialId>`.
   final Set<String> readOnly;
@@ -23,9 +23,9 @@ class ServerSafety {
   final Set<String> protectedJobs;
 
   Map<String, dynamic> toJson() => {
-        'readOnly': readOnly.toList()..sort(),
-        'protectedJobs': protectedJobs.toList()..sort(),
-      };
+    'readOnly': readOnly.toList()..sort(),
+    'protectedJobs': protectedJobs.toList()..sort(),
+  };
 
   bool isReadOnly(SafetyTool tool, String credentialId) =>
       readOnly.contains('${tool.key}:$credentialId');
@@ -66,9 +66,8 @@ class ServerSafety {
     return value;
   }
 
-  static Set<String> _stringSet(Object? raw) => raw is List
-      ? raw.whereType<String>().toSet()
-      : const <String>{};
+  static Set<String> _stringSet(Object? raw) =>
+      raw is List ? raw.whereType<String>().toSet() : const <String>{};
 
   @override
   bool operator ==(Object other) =>
@@ -78,9 +77,9 @@ class ServerSafety {
 
   @override
   int get hashCode => Object.hash(
-        Object.hashAllUnordered(readOnly),
-        Object.hashAllUnordered(protectedJobs),
-      );
+    Object.hashAllUnordered(readOnly),
+    Object.hashAllUnordered(protectedJobs),
+  );
 
   static bool _sameSet(Set<String> a, Set<String> b) =>
       a.length == b.length && a.containsAll(b);
