@@ -8,7 +8,20 @@
 |-----------|-------|---------|-----------|
 | `users` | `User.js` | User accounts | Email, hashed password |
 | `jenkinscredentials` | `JenkinsCredential.js` | Jenkins server credentials | Per-user Jenkins server auth |
+| `githubcredentials` | `GitHubCredential.js` | GitHub Actions connections | Per-user repositories and encrypted token |
+| `sonarqubecredentials` | `SonarQubeCredential.js` | SonarQube connections | Per-user server and encrypted token |
 | `appinfos` | `AppInfo.js` | App metadata | Version, URLs, build number |
+| `subscriptions` | `Subscription.js` | Billing entitlement state | Per-user subscription status |
+| `billingevents` | `BillingEvent.js` | Billing webhook idempotency | Provider event ids with TTL |
+| `supporttickets` | `SupportTicket.js` | User support requests | Redacted report and triage state |
+| `devicetokens` | `DeviceToken.js` | Push registration | Per-user platform and token |
+| `studentclaims` | `StudentClaim.js` | Student-plan claims | Per-user verification claim |
+| `studentverifications` | `StudentVerification.js` | Student verification | Verification status and expiry |
+| `passwordresettokens` | `PasswordResetToken.js` | Password reset | Hashed, single-use reset tokens |
+
+Mongoose derives collection names from model names (lowercase plural) unless a
+schema explicitly overrides them. `credentialTargets.js` is a schema helper,
+not a persisted model/collection.
 
 ### Indexes & Constraints
 
@@ -25,6 +38,21 @@ jenkinscredentials:
 appinfos:
   - _id (primary)
   - timestamps (auto-added)
+
+subscriptions:
+  - userId (unique)
+
+billingevents:
+  - eventId (unique)
+  - expiresAt (TTL)
+
+passwordresettokens:
+  - tokenHash (unique)
+  - expiresAt (TTL)
+
+devicetokens:
+  - token (unique)
+  - userId + platform
 ```
 
 ---
@@ -74,24 +102,11 @@ node scripts/seedAppInfo.js
 
 ---
 
-## 🧹 Handling the "test" Table
+## 🧹 Test data
 
-The "test" collection appears to be created by:
-1. **Signup endpoint** creating a test account (`test@jobtrigger.dev`)
-2. **In-memory MongoDB** used by test suite
-
-### Clean Up "test" Collection
-
-```bash
-# Option 1: Drop from MongoDB Cloud console
-# Go to Atlas > Collections > Select "test" > Drop
-
-# Option 2: Drop via MongoDB CLI
-mongo --eval "db.tests.drop()"
-
-# Option 3: Drop all test data
-mongo --eval "db.dropDatabase()"
-```
+The automated backend suite uses an isolated in-memory MongoDB. It does not
+create collections in Atlas. For development data, use the dev-only seed and
+reset procedures below; never run a broad database drop against production.
 
 ---
 
@@ -104,35 +119,22 @@ mongo --eval "db.dropDatabase()"
 - `JenkinsCredential.js` — Jenkins credentials
 - `AppInfo.js` — app metadata
 
-### Step 2: Run Migrations in Order
+### Step 2: Start and seed the development database
 
 ```bash
-# 1. Start backend (creates indexes)
-npm run dev
-
-# 2. In new terminal: seed app info
-node scripts/seedAppInfo.js
-
-# 3. Migrate old data (if migrating from Lab-Trigger-frontend) — see archive
-#    script docs/archive/migrate.js for reconstruction steps; not runnable
-#    today.
-
-# 4. Verify
-curl http://localhost:5001/api/appinfo
-curl http://localhost:5001/api/auth/login -X POST \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@jobtrigger.dev","password":"password123"}'
+./setup-dev.sh
 ```
 
-### Step 3: Clean Up Old Test Data
+The script uses the Atlas dev cluster, creates indexes through the models,
+and safely seeds AppInfo, a development account, and sample Jenkins
+credentials. See [Development Setup](./dev-setup.md) and
+[MongoDB Atlas Setup](./mongodb-cloud-setup.md). Legacy SwiftUI imports are
+archived and are not part of this workflow.
 
-```bash
-# Delete "test" collection
-db.tests.deleteMany({})
+### Step 3: Reset development data
 
-# Or drop entire database (for fresh start)
-docker compose down -v
-```
+Use the Atlas dev-cluster reset steps in [Full Data Reset](#-full-data-reset-development-only).
+There is no local MongoDB container or `docker compose down -v` reset.
 
 ---
 

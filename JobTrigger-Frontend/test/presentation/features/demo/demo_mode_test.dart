@@ -297,6 +297,13 @@ void main() {
       expect(find.byKey(const Key('demo_banner')), findsOneWidget);
       expect(find.text('Exit demo'), findsOneWidget);
       expect(find.byKey(const Key('tool_continue_button')), findsOneWidget);
+      expect(
+        find.text(
+          'Jenkins for builds · GitHub Actions for workflows · '
+          'SonarQube for code quality.',
+        ),
+        findsOneWidget,
+      );
       await finish(tester, c);
     });
 

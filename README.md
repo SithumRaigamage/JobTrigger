@@ -32,6 +32,9 @@ JobTrigger enables developers and DevOps engineers to securely trigger, monitor,
 - 🕒 **History** — Global cross-job history and per-job build history
 - 🌙 **Theme** — System / light / dark, switchable in Settings
 - 🌐 **Offline Resilience** — Clear connection-error states with retry, on both the backend and Jenkins requests
+- 🔗 **Multi-Tool Support** — Jenkins, GitHub Actions and SonarQube connections with an account/server switcher on tool screens
+- 🛡️ **Safer Operations** — Read-only connections, protected-action confirmation, and secure credential storage
+- 📨 **Support** — Send a redacted in-app report and follow its status
 
 ## 🏗️ Architecture
 
@@ -221,19 +224,10 @@ this script seeds.
 
 ## 🚦 Project Status
 
-Tracked per-phase in [`tasks/README.md`](tasks/README.md). Summary:
-
-| Phase | Status |
-|-------|--------|
-| 0 — Setup | 🟢 Done |
-| 1 — Core infrastructure | 🟢 Done |
-| 2 — Auth + tool selection | 🟡 Dev complete — physical-iPhone relaunch check pending (M-01) |
-| 3 — Credentials management | 🟢 Done |
-| 4 — Jenkins job tree | 🟢 Done |
-| 5 — Build execution, logs, history | 🟢 Done |
-| 6 — Polish + release | 🟡 Dev complete — store submission, device and billing checks pending (M-08…M-12) |
-
-Not yet released to the App Store / Play Store.
+The 1.0 feature set is implemented for Jenkins, GitHub Actions and SonarQube.
+The release is in preparation; store publishing and production rollout have
+not happened yet. Track engineering phases in [`tasks/README.md`](tasks/README.md)
+and the ordered ship checklist in [`Releases/v1.0.0/workplan.md`](Releases/v1.0.0/workplan.md).
 
 ## 👥 Target Users
 

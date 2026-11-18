@@ -95,7 +95,8 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
                           ? 'JobTrigger ${ToolCatalog.current.release} works '
                                 'with ${available.first.displayName}. More '
                                 'tools arrive in the next releases.'
-                          : 'You can switch any time from your profile.',
+                          : 'Jenkins for builds · GitHub Actions for '
+                                'workflows · SonarQube for code quality.',
                       style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
                     ),
                   ],

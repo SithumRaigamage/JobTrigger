@@ -47,7 +47,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Version 1.0.0 (7)'), findsOneWidget);
+    expect(find.text('Version 1.0.0'), findsOneWidget);
     expect(find.text('Privacy policy'), findsOneWidget);
     expect(find.text('Terms of service'), findsOneWidget);
     expect(find.text('Open-source licenses'), findsOneWidget);

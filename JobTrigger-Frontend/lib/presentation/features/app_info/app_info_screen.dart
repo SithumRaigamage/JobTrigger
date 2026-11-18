@@ -62,7 +62,7 @@ class AppInfoScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Version ${info.appVersion} (${info.buildNumber})',
+                        'Version ${info.appVersion}',
                         textAlign: TextAlign.center,
                         style: AppTypography.mono(
                           textTheme.bodyMedium?.copyWith(color: t.textMuted),

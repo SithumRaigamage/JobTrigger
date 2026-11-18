@@ -1,5 +1,9 @@
 # Phase 20 — Subscriptions (epic SUB)
 
+Checklist recount (2026-11-18): **42 of 57** P20 checkbox items are complete;
+15 remain open. The release workplan tracks whether billing is enabled for
+1.0 and the store, sandbox, and production setup still required.
+
 **Status:** in-progress — P20-00 approved by the owner 2026-11-12. Backend,
 app and website tracks are built and merged to `develop`, all switched off
 (`BILLING_ENABLED` unset, no purchase keys, Paddle not configured). What is

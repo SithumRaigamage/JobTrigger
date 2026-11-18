@@ -20,8 +20,9 @@ Set up the dev cluster once with [MongoDB Atlas Setup](./mongodb-cloud-setup.md)
     user, cluster, database or `appName` (AUD-58, P17-04). Seed only your dev
     cluster.
   - `SEED_REMOTE=false ./setup-dev.sh` skips seeding.
-- ✅ Starts the Node.js backend on port `5001` on all local interfaces in watch mode
-  (restarts on file changes); `Ctrl+C` stops it
+- ✅ Starts the Node.js backend on port `5001`, bound to `0.0.0.0` so a
+  physical device on the same LAN can reach it. Use `127.0.0.1` from this
+  Mac; use this Mac's LAN/Tailscale address from a phone. `Ctrl+C` stops it.
 
 **Run it:**
 ```bash
@@ -53,7 +54,7 @@ Set up the dev cluster once with [MongoDB Atlas Setup](./mongodb-cloud-setup.md)
 ./setup-dev.sh
 
 # Keep this running
-# Backend listens on http://127.0.0.1:5001
+# Backend binds to 0.0.0.0:5001; use localhost on this Mac or its LAN address on a device.
 ```
 
 ### Terminal 2: Flutter App

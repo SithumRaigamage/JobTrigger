@@ -1,7 +1,7 @@
 # JobTrigger 1.0.0 — release workplan
 
-**Created:** 2026-11-18 · **Branch audited:** `future-updates` (4 commits ahead
-of `origin/develop` at the time of writing) · **Target:** `main`, tag `v1.0.0`.
+**Created:** 2026-11-18 · **Branch audited:** `future-updates` · **Target:**
+`main`, tag `v1.0.0`.
 
 This is the single ordered plan for everything still standing between the
 current branch and a public 1.0.0. It was built by reading `docs/`,
@@ -46,12 +46,28 @@ Everything below is outstanding unless it appears under **Already done**.
 These were completed in this workspace and are recorded here so the plan does
 not re-open them.
 
+### 2026-11-18, current verification
+
+`future-updates` contains `origin/develop` (merge commit `795258b`) and is 9
+commits ahead of it. A1 and A2 are complete. The follow-up commit
+`4712eee` is pushed to `origin/future-updates`; A3's PR is still not open
+because the configured GitHub CLI credential is invalid and no authenticated
+browser session is available.
+Flutter analysis is clean; `flutter test` passes (1,713 passed, 29 skipped),
+including the 50,000-line log case. Backend tests pass (403); the runtime audit
+is clean, with four moderate development-tool findings in `osv-scanner.toml`.
+Website `npm run check` passes (467 unit tests and production build); Playwright
+e2e passes (202 tests). The default Turbopack build failed to bind a helper
+process, so the package build script now selects webpack explicitly. Webpack
+emits a non-blocking package-version import warning in
+`src/error-reporting/config.ts`.
+
 ### 2026-11-18, second pass
 
 | ID | Item | Evidence |
 |---|---|---|
 | A1 | `origin/develop` merged into `future-updates` (12 commits: go_router 18.1.4, flutter_local_notifications 23.0.2, dotenv, c8 12, action bumps); no conflicts | merge commit on `future-updates` |
-| A2 | Full re-run on the merged result: `flutter analyze` clean, `flutter test` 1,713 passing / 29 skipped, backend `npm test` 403 passing, web `npm run check` green (after the format fix below) | this branch |
+| A2 | Full re-run on the merged result: Flutter analyze clean; Flutter tests 1,713 passing / 29 skipped; backend 403 passing; web check 467 tests + production build green; Playwright e2e 202 passing | current verification above |
 | B1 | `JobTrigger-Web/package-lock.json` added to the OSV scan | `.github/workflows/security.yml` |
 | B2 | Website CI now audits runtime dependencies (`--audit-level=critical`) and prints the rest | `.github/workflows/web-ci.yml` |
 | B3 | The `picomatch`/`minimatch`/`glob` advisories are reviewed and suppressed **with reasons and an expiry** in `osv-scanner.toml`; the scan fails again on 2027-01-31 | `osv-scanner.toml`, `docs/deployment.md` |
@@ -84,9 +100,9 @@ not re-open them.
 
 | ID | Item | Type | Owner | Blocks |
 |---|---|---|---|---|
-| A1 | Merge `origin/develop` into `future-updates` (currently 12 behind) and resolve conflicts by hand | DEV | agent | YES |
-| A2 | Re-run **everything** on the merged result: `flutter analyze`, full `flutter test`, backend `npm test`, web `npm run check` + `vitest` (CLAUDE.md §11 — two green branches can fail together) | DEV | agent | YES |
-| A3 | Push `future-updates` and open the PR into `develop` with the P24-05/P25/backend-test commits summarised | DEV | owner approves | YES |
+| A1 | Merge `origin/develop` into `future-updates`; current status: complete (9 commits ahead, 0 behind; merge commit `795258b`) | DEV | agent | YES |
+| A2 | Re-run **everything** on the merged result: `flutter analyze`, full `flutter test`, backend `npm test`, web `npm run check` + `vitest`; current status: complete, see current verification above | DEV | agent | YES |
+| A3 | Follow-up commit `4712eee` is pushed; open the PR into `develop` when GitHub authentication is restored | DEV | owner approves | YES |
 | A4 | Cut `release/v1.0.0` from `develop`; feature freeze (bug fixes only, cherry-picked) | OPS | owner | YES |
 | A5 | Bump `pubspec.yaml` to `1.0.0+N` (the store build number, not the P24 footer) | DEV | agent | YES |
 | A6 | Fill `JobTrigger-Frontend/config/prod.json`: production `https://` backend URL plus the **public** Sentry/RevenueCat keys (never committed) | OPS | owner | YES |
@@ -98,17 +114,17 @@ not re-open them.
 
 | ID | Item | Type | Owner | Blocks |
 |---|---|---|---|---|
-| B1 | Add `JobTrigger-Web/package-lock.json` to the OSV scan in `.github/workflows/security.yml` (today only Frontend + Backend lockfiles are scanned) | DEV | agent | YES |
-| B2 | Add an `npm audit --omit=dev` (runtime) gate to `.github/workflows/web-ci.yml`, matching what the backend CI already does | DEV | agent | YES |
-| B3 | Write the documented exception for the 7 high `picomatch` advisories (build-time only, via `@sentry/nextjs`/`vite`; installed 4.0.7 is newest and npm proposes no in-range fix) and revisit upstream | DECISION | owner | YES |
+| B1 | Add `JobTrigger-Web/package-lock.json` to the OSV scan; current status: complete | DEV | agent | YES |
+| B2 | Add an npm audit runtime gate to website CI; current status: complete | DEV | agent | YES |
+| B3 | Document expiring, reasoned exceptions for the reviewed build/test-tool findings; current status: complete in `osv-scanner.toml` (revisit before 2027-01-31) | DEV | agent | YES |
 | B4 | Turn on branch protection for `develop` and `main` with every required check (`analyze-and-test`, `build-android`, `build-ios`, `test`, `secrets`, `dependencies`, web `check`) | OPS | owner | SOFT |
-| B5 | Run `gitleaks` + the full secret scan against the release branch before tagging; confirm no `.env`, `key.properties`, DSN or store key is in the diff | DEV | agent | YES |
-| B6 | Confirm the 50,000-line log host test and the 2.5× fixture-Jenkins e2e still pass on the release branch | DEV | agent | YES |
+| B5 | Release-diff gitleaks scan: no findings after documenting the existing synthetic test-token fingerprint in `.gitleaksignore`; rerun on the final release branch before tagging | DEV | agent | YES |
+| B6 | Confirm the 50,000-line log host test (passed in A2) and the fixture-Jenkins e2e still pass on the release branch | DEV | agent | YES |
 | B7 | Reconcile `flutter pub outdated`: 40 packages locked older, 11 constrained older. Schedule the refresh **after** 1.0 (a lockfile churn during freeze is risk without release value) | DEV | agent | NO |
 | B8 | Wire the e2e fixture suite into CI (`docs/integration-testing.md` says "not run in CI … future work") — post-1.0, needs Docker on the runner | DEV | agent | NO |
 | B9 | Revisit native crash handling (`enableNativeCrashHandling: false`) once a native scrubber exists — deliberately off for 1.0 | DEV | agent | NO |
 | B10 | Re-check `workmanager`'s temp `wm_execute_task_marker` file on its next upgrade (open audit note) | DEV | agent | NO |
-| B11 | Confirm backend `npm audit` is still 0 and review any new Dependabot PRs before the freeze | DEV | agent | YES |
+| B11 | Confirm backend runtime `npm audit --omit=dev` is still 0; full audit reports four moderate development-tool findings documented in `osv-scanner.toml` | DEV | agent | YES |
 | B12 | De-flake `JobTrigger-Web/src/features/servers/reveal-token.test.tsx`: it failed once on a cold full-suite run, then passed alone and on a warm re-run | DEV | agent | NO |
 
 ---
@@ -117,16 +133,16 @@ not re-open them.
 
 | ID | Item | Type | Owner | Blocks |
 |---|---|---|---|---|
-| C1 | **Decide the drill-down header placement.** The P24-05 chip sits *above* the back button while its doc says "under the back button". Pick one and make all four URL-keyed screens match | DESIGN | owner | YES |
-| C2 | **Decide the version string.** Profile shows `Version 1.0.0`, App Info shows `Version 1.0.0 (1)`. Keeping the build number is defensible for support; pin the decision in P24-03 and make both screens agree | DESIGN | owner | YES |
-| C3 | Add pull-to-refresh to Support → "Your reports" (it has retry-on-error but no gesture) | DEV | agent | SOFT |
-| C4 | **New-user journey gap:** after tool selection nothing explains Jenkins vs GitHub Actions vs SonarQube beyond the cards, and the first-run checklist only counts "Connect tool". Decide whether to add a one-line "which tool do I have?" hint | DESIGN | owner | SOFT |
+| C1 | Decision: keep the credential context strip above the back row; shared component documentation now describes that placement | DESIGN | agent | YES |
+| C2 | Use the documented Profile decision (`Version 1.0.0`, without build number) consistently; App Info now matches | DESIGN | agent | YES |
+| C3 | Add pull-to-refresh to Support → "Your reports"; current status: complete with widget test | DEV | agent | SOFT |
+| C4 | Added a one-line explanation of when to use Jenkins, GitHub Actions, or SonarQube on tool selection | DESIGN | agent | SOFT |
 | C5 | Accessibility pass NFR-A11Y-01/02/03: semantic labels on icon-only actions, 200% text scale, focus order on the four tab roots | DEV | agent | YES |
 | C6 | Re-check contrast in both themes after the P24 work (text ≥4.5:1, non-text ≥3:1) — P6-05 was a visual review, never a tool-assisted audit | DEV | agent | YES |
 | C7 | Audit loading/empty/error states on every 1.0 screen for the three tools; the rule is UI maps `AppFailure` to copy, never a raw status code | DEV | agent | YES |
 | C8 | Layout check at 320pt width and large text on the new credential chip, subscription cards and build-log toolbar | DEV | agent | YES |
 | C9 | Keyboard/safe-area check on server form, token wizard, and support composer (iPhone) | OWNER | owner | YES |
-| C10 | Write the in-app "What's new" content for 1.0 (dashboard, log folding, QR pairing, support, read-only mode) | DESIGN | agent | SOFT |
+| C10 | Updated in-app 1.0 "What's new" with read-only mode, QR pairing, support reporting and server switching | DESIGN | agent | SOFT |
 | C11 | Decide whether 1.0 asks for notification permission at all — push ships dark (NR-06b), so a prompt now would be a dead end | DESIGN | owner | SOFT |
 
 ---
@@ -142,7 +158,7 @@ not re-open them.
 | D5 | Set `CREDENTIALS_ENCRYPTION_KEY` in the host's secret manager, take a backup, then run `npm run encrypt-credentials -- --dry-run` followed by the real run (PE-30/PE-31) | OPS | owner | YES |
 | D6 | Seed AppInfo with the real `SITE_URL` so privacy/terms links resolve for store review (PE-01) — a review-blocking blank page otherwise | OPS | owner | YES |
 | D7 | Backups + a **restore drill** actually performed and timed, not just configured | OPS | owner | YES |
-| D8 | Decide the crash-reporting host: GlitchTip on Render, a hosted Sentry-compatible service, or ship with no DSN | DECISION | owner | SOFT |
+| D8 | Crash-reporting host decision is already GlitchTip (Sentry-compatible); the existing deployment docs specify the production endpoint still needs configuration | DECISION | agent | SOFT |
 | D9 | Put the three DSNs in each `.env` and confirm a scrubbed test crash arrives from the physical iPhone over Wi-Fi (PE-19d/PE-19e, M-07) | OWNER | owner | SOFT |
 | D10 | Configure production alerts (`/metrics`, error rate, disk, DB connections) and re-check the rate limits under the proxy (`TRUST_PROXY`) | OPS | owner | SOFT |
 
@@ -183,7 +199,7 @@ not re-open them.
 
 | ID | Item | Type | Owner | Blocks |
 |---|---|---|---|---|
-| G1 | Decide: does 1.0.0 ship with billing **on** or **off**? Off is a supported state (everyone is effectively Pro, `BILLING_ENABLED=false`) but the listing and release notes must not sell Pro | DECISION | owner | YES |
+| G1 | Decision: billing ships off in 1.0; matches the existing release notes and dark launch configuration | DECISION | agent | YES |
 | G2 | P20-40 App Store Connect: Paid Apps agreement, tax, banking, two subscription products with the 7-day trial, Small Business Program enrolment | OPS | owner | SOFT |
 | G3 | P20-41 Play Console payments profile, base plans, trial | OPS | owner | SOFT |
 | G4 | P20-42 RevenueCat: project, both apps, entitlement, offering, webhook secret, sandbox testers | OPS | owner | SOFT |
@@ -222,14 +238,14 @@ the phone is only set up once.
 
 | ID | Item | Type | Owner | Blocks |
 |---|---|---|---|---|
-| I1 | Resolve the duplicate **M-11**: `manually/M-11-public-release.md` and `manually/M-11-support-tickets-iphone.md` share an id, and `manually/README.md` only lists the first. Renumber the Phase 25 draft (M-18) and add it to the index | DOCS | agent | YES |
-| I2 | Remove M-05 (Android screenshots, DONE 2026-11-17) from the *active* table in `manually/README.md` so the open count is honest | DOCS | agent | YES |
-| I3 | `docs/database-migrations.md`: the collection table lists only `users`, `jenkinscredentials`, `appinfos` — missing GitHub, SonarQube, billing, tickets, student. Also still shows local `mongo --eval` / `docker compose down -v` although there is no local MongoDB | DOCS | agent | SOFT |
-| I4 | `docs/dev-setup.md` contradicts itself on the bind address ("all local interfaces" vs `127.0.0.1`) | DOCS | agent | SOFT |
-| I5 | `tasks/phase-20-subscriptions.md` says "41 of 57 tasks done"; re-count against the file before quoting it in release notes | DOCS | agent | SOFT |
-| I6 | Root `README.md` project table is stale (flagged in `docs/audit/2026-09-29-workspace-audit.md` §6); refresh before the repo goes public | DOCS | agent | SOFT |
-| I7 | Backend package name/description still `lab-trigger-backend` — rename only if it appears in anything user-visible; otherwise document why it stays | DOCS | owner | NO |
-| I8 | After the merge, re-read `Releases/v1.0.0/release-notes.md` against the merged code (P25 support, P24 headers, NR-01/02, PI-01/02) and add anything missing | DOCS | agent | YES |
+| I1 | Resolve the duplicate M-11 by renumbering the Phase 25 draft (M-18) and indexing it; current status: complete | DOCS | agent | YES |
+| I2 | Remove completed M-05 from the active table; current status: complete, retained under Resolved | DOCS | agent | YES |
+| I3 | Refresh the collection inventory and remove obsolete local MongoDB drop instructions; complete | DOCS | agent | SOFT |
+| I4 | Clarify the backend bind address (`0.0.0.0`) and loopback/LAN access; complete | DOCS | agent | SOFT |
+| I5 | Recount Phase 20; 42/57 checkboxes complete, 15 open; recorded in the phase file | DOCS | agent | SOFT |
+| I6 | Refresh the root README feature and release status summary; complete | DOCS | agent | SOFT |
+| I7 | Renamed the internal backend package to `jobtrigger-backend` and added a descriptive package summary | DOCS | agent | NO |
+| I8 | Re-read release notes against merged code; added Support and account/server context highlights | DOCS | agent | YES |
 
 ---
 

@@ -3,6 +3,10 @@
 # only with a reason, and only for something that isn't a live secret or has
 # been revoked; never to make a real leak pass.
 
+# Synthetic 32-character hex value assembled from short pieces at runtime to
+# exercise support-ticket credential scrubbing. It cannot authenticate.
+1015bf7932ac8ff532ad788cb1269ecc1a83be18:JobTrigger-Backend/test/support_tickets.test.js:generic-api-key:77
+
 # A made-up Jenkins API token: the fixture for "a real API token shows no
 # advisory" (US-JX-22). Not a credential.
 1936746eef726e720705ed88b09c04382612d12d:JobTrigger-Frontend/test/presentation/features/settings/server_token_advisory_test.dart:generic-api-key:41

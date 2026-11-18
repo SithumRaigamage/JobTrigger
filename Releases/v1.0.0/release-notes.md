@@ -34,6 +34,12 @@
 * **Token Wizards**: In-app "How do I get a token?" guides with pre-filled scopes (`repo`, `workflow` for GitHub, `/me/configure` for Jenkins, `/account/security` for SonarQube).
 * **In-App "What's New" Sheet**: Automatic release notes popup on first launch following an update.
 
+### 7. Support & Account Safety
+* **Support requests**: Send a redacted diagnostic report from the app and
+  follow its status under Support → Your reports.
+* **Credential context**: Each tool screen shows its active server/account
+  and lets you switch without losing your place.
+
 ---
 
 ## Known Limitations & Exclusions
