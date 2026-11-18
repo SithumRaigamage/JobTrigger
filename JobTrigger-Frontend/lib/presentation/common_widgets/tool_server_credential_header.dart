@@ -25,8 +25,9 @@ import '../navigation/app_routes.dart';
 /// item that opens Settings. It does NOT own the active state — the caller
 /// passes the current value and the switch callback. It carries no section
 /// title (each screen keeps its own heading) and accepts optional [actions]
-/// for the icons that belong on the same line, so it drops into the top of a
-/// root screen or under the back button of a drill-down.
+/// for the icons that belong on the same line. On drill-downs it stays above
+/// the back row as a context strip, keeping the active server visible while
+/// the user decides whether to go back.
 class _SelectorChip<T> extends StatelessWidget {
   const _SelectorChip({
     required this.label,

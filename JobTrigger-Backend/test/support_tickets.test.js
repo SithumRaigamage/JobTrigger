@@ -76,7 +76,9 @@ describe('Support tickets (Phase 25)', function () {
     const me = await signup();
     // Assembled at runtime like the guard's own fixtures: a token-shaped
     // literal would fail test/secret_material.test.js (AUD-66).
-    const token = ['0123456789abcdef', '0123456789abcdef'].join('');
+    const token = [
+      '01234567', '89abcdef', '01234567', '89abcdef',
+    ].join('');
     const created = await authed('post', '/api/support/tickets', me.token).send({
       ...valid,
       message: `It fails with password=hunter2 and token ${token}.`,

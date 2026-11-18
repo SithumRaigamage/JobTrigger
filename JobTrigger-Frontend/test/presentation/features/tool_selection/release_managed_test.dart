@@ -102,7 +102,10 @@ void main() {
 
       expect(find.text('What do you build with?'), findsOneWidget);
       expect(
-        find.text('You can switch any time from your profile.'),
+        find.text(
+          'Jenkins for builds · GitHub Actions for workflows · '
+          'SonarQube for code quality.',
+        ),
         findsOneWidget,
       );
       for (final tool in ['jenkins', 'githubActions', 'sonarqube']) {

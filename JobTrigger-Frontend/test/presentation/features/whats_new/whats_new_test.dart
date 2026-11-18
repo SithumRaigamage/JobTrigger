@@ -53,6 +53,7 @@ void main() {
     await _pumpGate(tester, '1.0.0');
 
     expect(find.text("What's new"), findsOneWidget);
+    await tester.ensureVisible(find.text('Got it'));
     await tester.tap(find.text('Got it'));
     await tester.pumpAndSettle();
     expect(find.text("What's new"), findsNothing);

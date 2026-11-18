@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev:portal": "node scripts/dev-portal.mjs",
     "licenses": "node scripts/collect-licenses.mjs",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",

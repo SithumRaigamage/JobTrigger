@@ -20,7 +20,11 @@ const whatsNewReleases = [
       'Notifications with rules — failures only, or back to green.',
       'Pinned jobs, saved views, the build queue and nodes.',
       'Offline-aware screens that say how old their data is.',
-      'App lock, and server setup from the JobTrigger website.',
+      'Read-only server mode and a confirmation step for protected actions.',
+      'Pair a server from the JobTrigger website with a QR code.',
+      'Send a redacted support report and track its status in the app.',
+      'Switch servers from any tool screen without losing your place.',
+      'App lock and local build alerts; push notifications are not included.',
     ],
   ),
 ];
