@@ -63,14 +63,14 @@ and any new pipeline-mutating call such as `wfapi/inputSubmit`) fetches and
 attaches a CSRF crumb (`GET {baseURL}/crumbIssuer/api/json` →
 `Jenkins-Crumb` header, or the header/field name the response specifies) on
 instances that have CSRF protection enabled. This is a correctness fix, not
-a new feature: today's `build`/`buildWithParameters`/`stop` calls omit the
-crumb entirely and will silently 403 against any Jenkins with CSRF
-protection on — the default on modern Jenkins installs. A missing/expired
-crumb on a POST surfaces as an `AuthFailure` today (403), which is
-misleading (it isn't a credentials problem); handle it as one retry with a
-freshly-fetched crumb before falling back to a real failure. Instances
-without a crumb issuer endpoint (older/CSRF-disabled Jenkins) continue to
-POST without a crumb, unchanged from today.
+a new feature. A missing/expired crumb on a POST retries once with a
+freshly-fetched crumb before falling back to a real failure — a bare 403
+would otherwise surface as a misleading `AuthFailure`. Instances without a
+crumb issuer endpoint (older/CSRF-disabled Jenkins) continue to POST without
+a crumb.
+**Status:** implemented (`lib/data/datasources/jenkins_client_factory.dart`,
+which also pins the `JSESSIONID` the crumb is issued against; covered by the
+Phase 11 tests).
 **Applies to:** US-JOB-02, US-JOB-03, US-JOB-05, US-PIPE-05, US-PIPE-08.
 
 ### NFR-SEC-07 — Session continuity

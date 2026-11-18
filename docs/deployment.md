@@ -15,8 +15,10 @@ the "how," that one is the "what's left."
 - **Google**: a Play Console account ($25 one-time), and a signing key for
   the app — Play App Signing manages the rest once you upload your first
   upload key.
-- Both stores also expect app icons, screenshots, and a privacy policy URL
-  — see `tasks/release-checklist.md`'s artwork item, still open.
+- Both stores also expect app icons, screenshots, and a privacy policy URL.
+  Icons and launch screen are done (Phase 16) and both screenshot packs were
+  captured and dimension-checked (`release/store-screenshots/`); the privacy
+  policy URL needs the website live (M-13).
 
 ## The mechanical deploy process, Flutter-side
 

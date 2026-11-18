@@ -102,7 +102,7 @@ nothing the user already saved is ever deleted by a downgrade.
 |---|---|---|---|---|
 | iOS in-app | 20 (launch) | App Store, via RevenueCat | 15% with the Small Business Program (enrol!) | Apple requires in-app purchase for digital features unlocked in the app. |
 | Android in-app | 20 (launch) | Google Play, via RevenueCat | 15% on auto-renewing subscriptions | Same rule on Play. |
-| Website checkout | 21 (later) | A merchant of record (Polar, Paddle or Lemon Squeezy) | ~5% + fees, varies | Laptop-first users; no store cut. |
+| Website checkout | built in Phase 20 (P20-83), dark until billing launches | Paddle (merchant of record) | ~5% + fees, varies | Laptop-first users; no store cut. |
 
 **Sri Lanka note.** As far as I could find, Stripe doesn't let a business
 based in Sri Lanka open its own account, which rules out plain Stripe

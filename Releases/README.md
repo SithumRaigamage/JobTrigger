@@ -8,7 +8,7 @@ This directory is the single source of truth for release lifecycle management, G
 
 | Version | Release Date | Target Branch | Status | Shipped Tools | Reference |
 |---|---|---|---|---|---|
-| **v1.0.0** | 2026-11-17 (target) | `main` (not cut) | **Development-complete — deployment and store steps pending** | Jenkins, SonarQube, GitHub Actions | [`v1.0.0/`](./v1.0.0/release-notes.md) |
+| **v1.0.0** | 2026-11-17 (target) | `main` (not cut) | **Development-complete — deployment and store steps pending** | Jenkins, SonarQube, GitHub Actions | [`v1.0.0/workplan.md`](./v1.0.0/workplan.md) · [`release-notes`](./v1.0.0/release-notes.md) |
 | *v1.1.0* | Planned | `main` | Draft | Jenkins, SonarQube, GitHub Actions | — |
 | *v1.3.0* | Planned | `main` | Future | + GitLab CI, CircleCI | — |
 

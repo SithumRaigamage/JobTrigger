@@ -1,6 +1,7 @@
 # Email and analytics — integration plan
 
-**Date:** 2026-11-12 · **Status:** plan, waiting for approval (CLAUDE.md §9).
+**Date:** 2026-11-12 · **Status:** approved and built (P20-70..79; the
+decisions here are recorded in `tasks/phase-20-subscriptions.md`).
 Decides P20-01 and P20-02 in
 [`tasks/phase-20-subscriptions.md`](../../tasks/phase-20-subscriptions.md).
 The backend deployment and store release are **on hold** (owner,
