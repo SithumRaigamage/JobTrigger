@@ -24,6 +24,8 @@ class AppTheme {
 
   static ThemeData dark() => _build(Brightness.dark, AppTokens.dark);
 
+  static ScrollBehavior scrollBehavior() => const AppScrollBehavior();
+
   static ThemeData _build(Brightness brightness, AppTokens t) {
     final isDark = brightness == Brightness.dark;
     // Links and text buttons: the accent itself on light (5.2:1 on white),
@@ -287,4 +289,19 @@ class AppTheme {
       ),
     );
   }
+}
+
+class AppScrollBehavior extends MaterialScrollBehavior {
+  const AppScrollBehavior();
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) =>
+      const ClampingScrollPhysics();
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) => child;
 }
