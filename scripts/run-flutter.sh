@@ -84,11 +84,19 @@ else
   # needed. Opt out with BILLING_PREVIEW=0. Never set in staging/prod.
   billing_preview_line=$',\n  "BILLING_PREVIEW": "true"'
   [ "${BILLING_PREVIEW:-1}" = "0" ] && billing_preview_line=""
+  # Development-only sandbox store (no Apple, Google, RevenueCat or
+  # payment). The backend also needs BILLING_ENABLED=true and
+  # SANDBOX_BILLING=true.   SANDBOX_BILLING=1 scripts/run-flutter.sh ...
+  sandbox_line=""
+  if [ "${SANDBOX_BILLING:-0}" = "1" ]; then
+    sandbox_line=$',\n  "SANDBOX_BILLING": "true"'
+    billing_preview_line=""
+  fi
   cat >"$config_file" <<EOF
 {
   "ENVIRONMENT": "dev",
   "BACKEND_BASE_URL": "http://$backend_host:$backend_port",
-  "WEBSITE_BASE_URL": "http://$backend_host:$website_port"$billing_preview_line
+  "WEBSITE_BASE_URL": "http://$backend_host:$website_port"$billing_preview_line$sandbox_line
 }
 EOF
 fi

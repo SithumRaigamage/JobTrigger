@@ -9,6 +9,8 @@ const StudentVerification = require('../models/StudentVerification');
 const SupportTicket = require('../models/SupportTicket');
 const revenueCat = require('../billing/revenuecatClient');
 const paddle = require('../billing/paddleClient');
+const { activePaidSource } = require('../billing/entitlements');
+const { ensureOwnerGrant, isOwnerEmail } = require('../billing/owner');
 const { revenueCatConfig, paddleConfig } = require('../config/env');
 const { logger } = require('../lib/logger');
 const { issueTokens, verifyToken, isCurrent } = require('../security/tokens');
@@ -55,6 +57,20 @@ function newPasswordProblem(password) {
 }
 
 /**
+ * Release 1.0.0 (US-SUB-01): the owner's permanent Pro grant. Best effort:
+ * a grant failure must never stop the owner signing in, and must never
+ * block anyone else (only this one email is affected).
+ */
+async function applyOwnerGrant(user) {
+  if (!isOwnerEmail(user.email)) return;
+  try {
+    await ensureOwnerGrant(user._id);
+  } catch (err) {
+    logger.warn('billing.owner_grant_failed', { error: err.message });
+  }
+}
+
+/**
  * AUD-48: the signed-in user, after re-checking [password] (a stolen
  * access token alone can't delete the account or change its password).
  * Sends the 400/401 and returns null when it doesn't check out. A wrong
@@ -98,6 +114,7 @@ exports.signup = async (req, res, next) => {
 
     user = new User({ email, password });
     await user.save();
+    await applyOwnerGrant(user);
 
     // A 15-minute access token and a refresh token (AUD-26).
     res.status(201).json({ ...issueTokens(user), user: { _id: user._id, email: user.email } });
@@ -126,6 +143,9 @@ exports.login = async (req, res, next) => {
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
+    // Release 1.0.0: an owner account that existed before the grant rule
+    // picks up permanent Pro the next time it signs in.
+    await applyOwnerGrant(user);
 
     // A 15-minute access token and a refresh token (AUD-26).
     res.json({ ...issueTokens(user), user: { _id: user._id, email: user.email } });
@@ -222,6 +242,23 @@ exports.deleteAccount = async (req, res, next) => {
     // deleted account isn't charged again. Store subscriptions can only be
     // cancelled by the user in their store (US-SUB-07).
     const subscription = await Subscription.findOne({ userId: user._id }).lean();
+
+    // changes.md §4: a paid subscription that is still billing blocks
+    // deletion — the user must cancel it in its store (or on the website)
+    // first. Free accounts, expired/cancelled subscriptions, grants and
+    // student years are all deletable. Nothing is removed when we return.
+    const blockingSource = activePaidSource(subscription);
+    if (blockingSource) {
+      const where = blockingSource === 'web'
+        ? 'in your account on the JobTrigger website'
+        : 'in your App Store or Google Play subscription settings';
+      return res.status(403).json({
+        code: 'SUBSCRIPTION_ACTIVE',
+        message:
+          'Cancel your active Pro subscription ' + where +
+          ' before deleting your account, so you are not charged after it is gone.',
+      });
+    }
 
     await Promise.all(
       [JenkinsCredential, GitHubCredential, SonarQubeCredential, PasswordResetToken, Subscription, StudentVerification, SupportTicket].map((Model) =>

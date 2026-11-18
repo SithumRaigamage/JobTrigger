@@ -70,6 +70,27 @@ void main() {
     expect(container.read(paywallNotifierProvider).requireValue.busy, isFalse);
   });
 
+  test('a store success with no active entitlement yet is pending, not a '
+      'purchase', () async {
+    // Google Play's deferred payment: the purchase call returns, but `pro`
+    // is not active until the store confirms it.
+    final (container, repo) = await _setup(load: const Ok(freeSnapshot));
+    repo.refreshResult = const Ok(freeSnapshot);
+    final offer = container
+        .read(paywallNotifierProvider)
+        .requireValue
+        .offers
+        .first;
+
+    final outcome = await container
+        .read(paywallNotifierProvider.notifier)
+        .purchase(offer);
+
+    expect(outcome, isA<PaywallPending>());
+    expect(container.read(entitlementsProvider).isPro, isFalse);
+    expect(container.read(paywallNotifierProvider).requireValue.busy, isFalse);
+  });
+
   test('closing the store sheet is a silent cancel: no failure, nothing '
       'changes, no refresh', () async {
     final (container, repo) = await _setup(load: const Ok(freeSnapshot));

@@ -4,13 +4,22 @@
 
 | Plan | Price (USD) | Billing | Free Trial |
 |---|---|---|---|
-| **Monthly** | $19.99 | Monthly recurring | – |
-| **Yearly** | $239.00 | Yearly recurring (billed once) | 7‑day trial for new yearly subscribers |
+| **Monthly** | $9.99 | Monthly recurring | – |
+| **Yearly** | $29.99 | Yearly recurring (billed once) | 7‑day trial for new yearly subscribers |
 
 ## Owner Account
 
 - `developer@jobtrigger.app` receives **permanent Pro** entitlement **without** any billing.
 - No monthly or yearly charge is applied to this account.
+- The grant is tied to the email, not the `superAdmin` role, and is applied
+  automatically after signup and login.
+
+## Tester Account
+
+- `tester@jobtrigger.app` / `TesterPass123!` starts on **Free** and can
+  upgrade/downgrade with **real sandbox purchases** (App Store / Google Play
+  in the app, Paddle on the website), or with the development-only local
+  sandbox in a dev build.
 
 ## All Other Accounts
 
@@ -22,9 +31,11 @@
 
 ## Price Rationale
 
-- The monthly price was raised from $9.99 to $19.99 to better reflect the value of Pro features (priority support, offline job browsing, advanced analytics, etc.).
-- The yearly price ($239) is effectively $19.99 × 12, with a small discount compared to paying month‑by‑month.
-- A 7‑day free trial on the yearly plan encourages users to experience the full year benefits before committing.
+- $9.99/month keeps Pro within reach of an individual DevOps engineer.
+- $29.99/year is three months' price for twelve, a ~75% saving against
+  paying monthly ($9.99 × 12 = $119.88).
+- A 7‑day free trial on the yearly plan lets people try the full set of Pro
+  features before committing to a year.
 
 ## Currency
 

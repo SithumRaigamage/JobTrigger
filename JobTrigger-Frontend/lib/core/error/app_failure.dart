@@ -135,6 +135,10 @@ sealed class AppFailure {
     DemoUnavailableFailure() => 'Not available in demo.',
     PlanLimitFailure(:final serverMessage) => serverMessage,
     StudentRequestFailure(:final serverMessage) => serverMessage,
+    StoreFailure() =>
+      "The store couldn't complete that request. Check that you're "
+          'signed in to your App Store or Google Play account, then try '
+          'again.',
     // Closing the store sheet is a choice, not an error: no copy.
     PurchaseCancelled() => '',
     UnknownFailure() => 'Something unexpected happened. Please try again.',
@@ -315,6 +319,16 @@ final class PlanLimitFailure extends AppFailure {
 /// shows nothing.
 final class PurchaseCancelled extends AppFailure {
   const PurchaseCancelled();
+}
+
+/// The store or its SDK refused a purchase or restore for a reason that is
+/// not the user closing the sheet: not signed in, no payment method, billing
+/// unavailable on this device. Expected, so crash reporting ignores it;
+/// [debugMessage] is for logs and tests, never shown.
+final class StoreFailure extends AppFailure {
+  const StoreFailure([this.debugMessage]);
+
+  final String? debugMessage;
 }
 
 /// Phase 21: the backend refused a student-plan call and said why in its own

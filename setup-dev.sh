@@ -2,6 +2,11 @@
 
 set -e
 
+# Development always serves on 5001, the port the phone scripts check.
+# Some IDE terminals export PORT=0 to ask for a random port; honouring that
+# put the backend somewhere the iPhone could never reach.
+export PORT="${BACKEND_PORT:-5001}"
+
 # Colors for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'

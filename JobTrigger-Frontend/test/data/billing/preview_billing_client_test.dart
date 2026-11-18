@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:job_trigger/data/billing/billing_client.dart';
 import 'package:job_trigger/data/billing/preview_billing_client.dart';
 import 'package:job_trigger/domain/subscription/billing_offer.dart';
@@ -17,7 +18,7 @@ void main() {
       BillingPeriod.monthly,
       BillingPeriod.yearly,
     ]);
-    expect(offers.map((o) => o.priceText), [r'$19.99', r'$239.00']);
+    expect(offers.map((o) => o.priceText), [r'$9.99', r'$29.99']);
     expect(offers.last.trialDays, 7);
   });
 
@@ -27,7 +28,7 @@ void main() {
         const BillingOffer(
           id: 'preview_monthly',
           period: BillingPeriod.monthly,
-          priceText: r'$19.99',
+          priceText: r'$9.99',
         ),
       ),
       throwsA(

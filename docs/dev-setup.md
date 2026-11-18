@@ -193,6 +193,10 @@ how to reach a Jenkins running on this Mac from the phone.
 
 ## 📋 Environment Variables
 
+The full list — backend, app build config, website, billing modes and
+production values — is in **[configuration.md](./configuration.md)**. The
+short version for local work:
+
 **`JobTrigger-Backend/.env`** controls backend behavior:
 
 ```env

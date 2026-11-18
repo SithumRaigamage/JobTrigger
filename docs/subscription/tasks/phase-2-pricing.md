@@ -3,8 +3,8 @@
 ## Tasks
 
 - [ ] **Add pricing constants** to `core/config/app_config.dart`:
-  - `monthlyPriceCents = 1999` (representing $19.99)
-  - `yearlyPriceCents = 23900` (representing $239.00)
+  - `monthlyPriceCents = 999` (representing $9.99)
+  - `yearlyPriceCents = 2999` (representing $29.99)
   - `yearlyTrialDays = 7`
 - [ ] **Modify `/api/subscription` response handling** in `entitlementsNotifierProvider` to read `plan`, `billingEnabled`, `limits`, `features` from the backend.
 - [ ] **Implement `Entitlements` derived type** that maps backend `plan` to UI strings ("Free", "Monthly Pro", "Yearly Pro") and checks `limits`/`features` to unlock gates.

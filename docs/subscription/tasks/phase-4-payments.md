@@ -2,7 +2,7 @@
 
 ## Tasks
 
-- [ ] **RevenueCat iOS configuration** – add App Store SKUs for Monthly ($19.99) and Yearly ($239.00) plans in the RevenueCat dashboard; enable sandbox testers.
+- [ ] **RevenueCat iOS configuration** – add App Store SKUs for Monthly ($9.99) and Yearly ($29.99) plans in the RevenueCat dashboard; enable sandbox testers.
 - [ ] **RevenueCat Android configuration** – add Google Play SKUs for the same prices; configure the `android.purchaseSubscription` intent filter.
 - [ ] **Add Reve…** (truncated) – actually continue:
 - [ ] **Platform setup**:

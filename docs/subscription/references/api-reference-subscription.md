@@ -9,5 +9,8 @@ Endpoints related to user entitlements and billing.
 | `/api/subscription/primary/:credentialId` | POST | `x-auth-token` | same as GET | P20‑13 (US‑SUB‑05). Which saved server stays usable on Free (any tool). Once per 24 h: **403** `PLAN_LIMIT`, `limit: "primaryCooldown"`. Not the caller’s: 404. |
 | `/api/billing/revenuecat` | POST | `Authorization = REVENUECAT_WEBHOOK_AUTH` | `{ ok }` | P20‑16 (US‑SUB‑09). Wrong secret: 401. Each `event.id` applied once (duplicate: 200 `duplicate: true`). Every account the event names is re‑read from RevenueCat; failure: 500 so RevenueCat retries. Body never logged. |
 | `/api/billing/paddle/checkout` | POST | `x-auth-token` | `{ transactionId, environment }` | Website checkout (Paddle). Creates a Paddle transaction whose `custom_data.userId` is set by the server; the website opens it with Paddle.js. Already Pro from any source: **409** `ALREADY_SUBSCRIBED` (no double payment). Billing off or Paddle not set up: 503. |
+| `/api/admin/subscriptions` | GET | `x-auth-token` + `superAdmin` | `{ items: [{ userId, email, plan, status, source, productId, periodEnd, willRenew, sources, createdAt }] }` | Release 1.0.0. `?plan=all\|pro\|free`, `?q=` email. The owner console; `sources` keeps store, web, grant and student apart. |
+| `/api/admin/subscriptions/:userId/grant` | POST | `x-auth-token` + `superAdmin` | the item | Grants Pro for `{ days }` (1–3650) or with no end when `days` is empty. The grant source only. |
+| `/api/admin/subscriptions/:userId/revoke` | POST | `x-auth-token` + `superAdmin` | the item | Removes the grant source; a paid store or web subscription is untouched. |
 
 *End of subscription API reference.*

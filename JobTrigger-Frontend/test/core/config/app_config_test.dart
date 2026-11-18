@@ -56,6 +56,19 @@ void main() {
     expect(config.backendBaseUrl, 'http://127.0.0.1:5001');
   });
 
+  group('sandbox billing (development only)', () {
+    test('is on only in a development build with the flag', () {
+      expect(billingSandboxEnabled(isRelease: false, flag: 'true'), isTrue);
+      expect(billingSandboxEnabled(isRelease: false, flag: ' true '), isTrue);
+      expect(billingSandboxEnabled(isRelease: false, flag: ''), isFalse);
+      expect(billingSandboxEnabled(isRelease: false, flag: '1'), isFalse);
+    });
+
+    test('can never be on in a release build', () {
+      expect(billingSandboxEnabled(isRelease: true, flag: 'true'), isFalse);
+    });
+  });
+
   group('RevenueCat keys (P20-20)', () {
     test('a build with no keys has no billing on any platform', () {
       const config = AppConfig(

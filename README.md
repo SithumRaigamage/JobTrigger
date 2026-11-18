@@ -206,9 +206,13 @@ flutter test      # run the unit/widget test suite
 **Local dev account** (seeded by `JobTrigger-Backend/scripts/setup-migrations.js`
 — not a real/production credential, just a login for local testing):
 
-| Email | Password |
-|-------|----------|
-| `developer@jobtrigger.app` | `SecurePassword123!` |
+| Email | Password | Notes |
+|-------|----------|-------|
+| `developer@jobtrigger.app` | `SecurePassword123!` | Owner: permanent Pro, never billed |
+| `tester@jobtrigger.app` | `TesterPass123!` | Free tester: buy, cancel and resubscribe |
+
+The tester is created by `node scripts/ensure-test-accounts.js` (or the full
+seed below). It starts on Free and is never granted Pro.
 
 If your local/cloud MongoDB is empty (e.g. fresh clone or a wiped database),
 this account won't exist yet — sign up with any email/password from the

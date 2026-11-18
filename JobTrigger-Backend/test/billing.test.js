@@ -5,10 +5,12 @@ const Subscription = require('../models/Subscription');
 const BillingEvent = require('../models/BillingEvent');
 const { setRevenueCatClientForTests } = require('../billing/revenuecatClient');
 const { fromSubscriber } = require('../billing/syncSubscription');
-const { describe: describePlan, isPro } = require('../billing/entitlements');
+const { describe: describePlan, isPro, activePaidSource } = require('../billing/entitlements');
 const { PRIMARY_COOLDOWN_MS } = require('../controllers/subscriptionController');
 const { accountIds } = require('../controllers/billingWebhookController');
 const { parseArgs } = require('../scripts/grant-plan');
+const User = require('../models/User');
+const { OWNER_EMAIL, OWNER_GRANT, isOwnerEmail } = require('../billing/owner');
 
 const WEBHOOK_AUTH = 'test-webhook-secret';
 const DAY = 24 * 60 * 60 * 1000;
@@ -381,6 +383,100 @@ describe('Account deletion with billing (P20-18)', function() {
     expect(await Subscription.exists({ userId: me.id })).to.equal(null);
     expect(deleted).to.deep.equal([me.id]);
   });
+
+  it('blocks deletion while a paid store or web subscription is renewing', async function() {
+    enableBilling();
+    for (const source of ['store', 'web']) {
+      const me = await signup();
+      await Subscription.create({
+        userId: me.id,
+        plan: 'pro', status: 'active', source: source === 'web' ? 'web' : 'app_store',
+        [source]: { plan: 'pro', status: 'active', willRenew: true, source: source === 'web' ? 'web' : 'app_store' },
+      });
+      const res = await authed('delete', '/api/auth/account', me.token).send({ password: 'password' });
+      expect(res.status).to.equal(403);
+      expect(res.body.code).to.equal('SUBSCRIPTION_ACTIVE');
+      expect(res.body.message).to.match(/cancel/i);
+      // The account still exists: it can still sign in.
+      const stillThere = await api().post('/api/auth/login').send({ email: me.email, password: 'password' });
+      expect(stillThere.status).to.equal(200);
+    }
+  });
+
+  it('lets a cancelled, expired, grant or student subscription be deleted', async function() {
+    enableBilling();
+    const cases = [
+      { store: { plan: 'pro', status: 'cancelled', willRenew: false, source: 'app_store' } },
+      { web: { plan: 'pro', status: 'active', willRenew: true, periodEnd: new Date(Date.now() - DAY), source: 'web' } },
+      { grant: { plan: 'pro', status: 'active', willRenew: false, source: 'admin' } },
+      { student: { plan: 'pro', status: 'active', willRenew: false, source: 'student' } },
+    ];
+    for (const sources of cases) {
+      const me = await signup();
+      await Subscription.create({ userId: me.id, ...sources });
+      const res = await authed('delete', '/api/auth/account', me.token).send({ password: 'password' });
+      expect(res.status, JSON.stringify(sources)).to.equal(200);
+    }
+  });
+
+  it('activePaidSource is pure: only renewing paid store/web block', function() {
+    const pro = (status, willRenew) => ({ plan: 'pro', status, willRenew });
+    expect(activePaidSource({ store: pro('active', true) })).to.equal('store');
+    expect(activePaidSource({ web: pro('trialing', true) })).to.equal('web');
+    expect(activePaidSource({ store: pro('cancelled', false) })).to.equal(null);
+    expect(activePaidSource({ grant: pro('active', false) })).to.equal(null);
+    expect(activePaidSource({ student: pro('active', false) })).to.equal(null);
+    expect(activePaidSource({ store: pro('active', true), web: pro('active', true) })).to.equal('store');
+  });
+});
+
+describe('Owner account (release 1.0.0, US-SUB-01)', function() {
+  afterEach(disableBilling);
+
+  it('grants the owner permanent, never-billed Pro, and only that email', async function() {
+    enableBilling();
+    const owner = await api().post('/api/auth/signup').send({ email: OWNER_EMAIL, password: 'password' });
+    expect(owner.status).to.equal(201);
+
+    const sub = await Subscription.findOne({ userId: owner.body.user._id }).lean();
+    expect(sub.grant).to.deep.include(OWNER_GRANT);
+
+    // Never billed: the grant does not renew and has no end date.
+    expect(sub.grant.willRenew).to.equal(false);
+    expect(sub.grant.periodEnd).to.equal(null);
+
+    const me = await authed('get', '/api/subscription', owner.body.token);
+    expect(me.body).to.include({ plan: 'pro', source: 'admin', willRenew: false, periodEnd: null });
+
+    // Everyone else keeps the Free default.
+    const other = await signup();
+    expect((await authed('get', '/api/subscription', other.token)).body.plan).to.equal('free');
+  });
+
+  it('applies the grant on login for an owner account created earlier', async function() {
+    // The previous test may already have created the owner; start from an
+    // account with no Subscription document at all.
+    const previous = await User.findOne({ email: OWNER_EMAIL }).lean();
+    if (previous) {
+      await Subscription.deleteMany({ userId: previous._id });
+      await User.deleteOne({ _id: previous._id });
+    }
+    const user = new User({ email: OWNER_EMAIL, password: 'password' });
+    await user.save();
+    expect(await Subscription.exists({ userId: user._id })).to.equal(null);
+
+    const login = await api().post('/api/auth/login').send({ email: OWNER_EMAIL, password: 'password' });
+    expect(login.status).to.equal(200);
+    const sub = await Subscription.findOne({ userId: user._id }).lean();
+    expect(sub.grant).to.deep.include(OWNER_GRANT);
+  });
+
+  it('matches the owner email case-insensitively and nothing else', function() {
+    expect(isOwnerEmail('Developer@JobTrigger.app')).to.equal(true);
+    expect(isOwnerEmail('developer+1@jobtrigger.app')).to.equal(false);
+    expect(isOwnerEmail('someone@example.com')).to.equal(false);
+    expect(isOwnerEmail(undefined)).to.equal(false);
+  });
 });
 
 describe('Billing configuration (P20-17) and grant script (P20-19)', function() {
@@ -392,6 +488,8 @@ describe('Billing configuration (P20-17) and grant script (P20-19)', function() 
     expect(invalidConfig({
       BILLING_ENABLED: 'true', REVENUECAT_SECRET_API_KEY: 'sk', REVENUECAT_WEBHOOK_AUTH: 'w',
     })).to.equal(null);
+    // The development sandbox is a valid source on its own.
+    expect(invalidConfig({ BILLING_ENABLED: 'true', SANDBOX_BILLING: 'true' })).to.equal(null);
   });
 
   it('reads the grant script arguments', function() {

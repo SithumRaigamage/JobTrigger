@@ -48,6 +48,7 @@ describe("PricingView", () => {
   });
 
   it("while billing is off: Pro shows Coming soon and there is no buy button or checkout link", () => {
+    overrides.subscriptions = "soon";
     render(<PricingView />);
 
     const action = screen.getByRole("button", { name: /Get Pro in the app/ });
@@ -79,6 +80,7 @@ describe("PricingView", () => {
 
 describe("PricingView student offer (Phase 21)", () => {
   it("is not shown while billing is off", () => {
+    overrides.subscriptions = "soon";
     render(<PricingView />);
     expect(screen.queryByTestId("student-offer")).not.toBeInTheDocument();
     expect(screen.queryByText(/Students get Pro free/)).not.toBeInTheDocument();

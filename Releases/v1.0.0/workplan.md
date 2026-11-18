@@ -217,7 +217,7 @@ the merged `develop` build.
 
 | ID | Item | Type | Owner | Blocks |
 |---|---|---|---|---|
-| G1 | Decision: billing ships off in 1.0; matches the existing release notes and dark launch configuration | DECISION | agent | YES |
+| G1 | Decision: billing ships **enabled** in 1.0 (owner-approved 2026-11-18); release notes and website status updated accordingly | DECISION | agent | DONE |
 | G2 | P20-40 App Store Connect: Paid Apps agreement, tax, banking, two subscription products with the 7-day trial, Small Business Program enrolment | OPS | owner | SOFT |
 | G3 | P20-41 Play Console payments profile, base plans, trial | OPS | owner | SOFT |
 | G4 | P20-42 RevenueCat: project, both apps, entitlement, offering, webhook secret, sandbox testers | OPS | owner | SOFT |

@@ -114,8 +114,8 @@ void main() {
     },
   );
 
-  test('a cancelled store sheet is PurchaseCancelled; other errors are '
-      'UnknownFailure', () async {
+  test('a cancelled store sheet is PurchaseCancelled; other store errors are '
+      'StoreFailure', () async {
     final billing = FakeBillingClient();
     final repo = _repo(_Adapter(200, _proBody), billing);
     const offer = BillingOffer(
@@ -131,7 +131,12 @@ void main() {
     );
 
     billing.purchaseError = const BillingException('boom');
-    expect(((await repo.restore()) as Err).error, isA<UnknownFailure>());
+    expect(((await repo.restore()) as Err).error, isA<StoreFailure>());
+
+    // Play's deferred payment is not a failure: the paywall checks the plan
+    // and reports it as pending instead of claiming Pro.
+    billing.purchaseError = const BillingPending();
+    expect(await repo.purchase(offer), isA<Ok<void, AppFailure>>());
 
     billing.purchaseError = null;
     expect(await repo.purchase(offer), isA<Ok<void, AppFailure>>());

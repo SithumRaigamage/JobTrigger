@@ -250,7 +250,7 @@ describe('Paddle checkout and portal', function() {
     expect(res.body.url).to.match(/^https:\/\/customer-portal\.paddle\.com\//);
   });
 
-  it('cancels a renewing web subscription when the account is deleted', async function() {
+  it('blocks deleting an account while a web subscription is renewing (changes.md §4)', async function() {
     const cancelled = [];
     setPaddleClientForTests({
       createTransaction: async () => ({}), createPortalSession: async () => ({}),
@@ -258,7 +258,27 @@ describe('Paddle checkout and portal', function() {
     });
     const me = await signup();
     await Subscription.create({ userId: me.id, web: { plan: 'pro', status: 'active', source: 'web', willRenew: true, paddleSubscriptionId: 'sub_del', paddleCustomerId: 'ctm_d' } });
+    const res = await authed('delete', '/api/auth/account', me.token).send({ password: 'password' });
+    expect(res.status).to.equal(403);
+    expect(res.body.code).to.equal('SUBSCRIPTION_ACTIVE');
+    expect(res.body.message).to.match(/website/i);
+    expect(cancelled).to.deep.equal([]);
+    // After cancelling in the website portal, deletion is allowed.
+    await Subscription.updateOne({ userId: me.id }, { $set: { 'web.willRenew': false } });
     expect((await authed('delete', '/api/auth/account', me.token).send({ password: 'password' })).status).to.equal(200);
-    expect(cancelled).to.deep.equal(['sub_del']);
+  });
+
+  it('still cancels a renewing web subscription at deletion when it is past its period (P20-18 safety net)', async function() {
+    const cancelled = [];
+    setPaddleClientForTests({
+      createTransaction: async () => ({}), createPortalSession: async () => ({}),
+      cancelSubscription: async ({ subscriptionId }) => { cancelled.push(subscriptionId); },
+    });
+    const me = await signup();
+    // 'expired' is not a Pro-granting status, so it does not block deletion,
+    // but willRenew is still true — the safety net cancels it.
+    await Subscription.create({ userId: me.id, web: { plan: 'pro', status: 'expired', source: 'web', willRenew: true, paddleSubscriptionId: 'sub_exp', paddleCustomerId: 'ctm_e' } });
+    expect((await authed('delete', '/api/auth/account', me.token).send({ password: 'password' })).status).to.equal(200);
+    expect(cancelled).to.deep.equal(['sub_exp']);
   });
 });

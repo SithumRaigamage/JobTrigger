@@ -8,6 +8,8 @@ const { connectDatabase, connectionHint } = require('../lib/database');
 const User = require('../models/User');
 const JenkinsCredential = require('../models/JenkinsCredential');
 const AppInfo = require('../models/AppInfo');
+const Subscription = require('../models/Subscription');
+const { ensureOwnerGrant } = require('../billing/owner');
 
 // Colors
 const colors = {
@@ -84,6 +86,29 @@ async function runMigrations() {
     // Step 4: Create development user
     log.step('Creating development user account');
 
+    // Release 1.0.0: the owner replaced the temporary journey1 account with
+    // this one. Remove the old account (and its plan) if it is still here.
+    const oldTester = await User.findOne({ email: 'journey1@example.com' });
+    if (oldTester) {
+      await Subscription.deleteMany({ userId: oldTester._id });
+      await User.deleteOne({ _id: oldTester._id });
+      log.success('Removed the old tester account: journey1@example.com');
+    }
+
+    // The shared free tester account. It is never granted Pro: buying,
+    // cancelling and resubscribing are what the tester is for (P20-88).
+    let testerUser = await User.findOne({ email: 'tester@jobtrigger.app' });
+    if (!testerUser) {
+      testerUser = new User({ email: 'tester@jobtrigger.app', password: 'TesterPass123!' });
+      await testerUser.save();
+      log.success('Tester user created: tester@jobtrigger.app');
+    } else {
+      // Keep the documented credentials working on every seed run.
+      testerUser.password = 'TesterPass123!';
+      await testerUser.save();
+      log.info('Tester user already exists, password reset to the documented one');
+    }
+
     let devUser = await User.findOne({ email: 'developer@jobtrigger.app' });
     if (devUser) {
       log.info('Development user already exists, skipping');
@@ -95,6 +120,21 @@ async function runMigrations() {
       await devUser.save();
       log.success('Development user created: developer@jobtrigger.app');
     }
+    // The owner's account is also the super admin, so the website's admin
+    // pages (student review, subscription console) work in development. The
+    // Pro grant below is separate and depends on the email, not this role.
+    if (devUser.role !== 'superAdmin') {
+      devUser.role = 'superAdmin';
+      await devUser.save();
+      log.success('Owner role set: superAdmin');
+    }
+
+    // Release 1.0.0 (US-SUB-01): the owner has a permanent, never-billed Pro
+    // grant tied to this email, independent of the superAdmin role. The same
+    // rule is applied after signup and login, so this line only makes a
+    // fresh seed correct; it is idempotent.
+    await ensureOwnerGrant(devUser._id);
+    log.success('Owner Pro grant applied: developer@jobtrigger.app');
 
     // Step 5: Create production Jenkins credentials
     log.step('Creating Jenkins server credentials');
@@ -188,8 +228,8 @@ async function runMigrations() {
     console.log(`  ${colors.green}✓${colors.reset} Credentials created (${credCount})`);
 
     console.log(`\n${colors.cyan}🔑 Login Credentials:${colors.reset}`);
-    console.log(`  Email: developer@jobtrigger.app`);
-    console.log(`  Password: SecurePassword123!`);
+    console.log(`  Owner:  developer@jobtrigger.app / SecurePassword123!`);
+    console.log(`  Tester: tester@jobtrigger.app / TesterPass123! (Free)`);
 
     console.log(`\n${colors.cyan}📱 Next Steps:${colors.reset}`);
     console.log(`  1. Start backend: ${colors.yellow}npm run dev${colors.reset}`);

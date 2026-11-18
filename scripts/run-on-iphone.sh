@@ -115,22 +115,51 @@ if [ -n "${SENTRY_DSN_APP:-}" ]; then
   dsn="$(printf '%s' "$SENTRY_DSN_APP" | sed -E 's#^(https?://[^@/]+@)[^:/]+#\1'"$host"'#')"
   sentry_line=$',\n  "SENTRY_DSN": "'"$dsn"'"'
 fi
+# P20-20: real sandbox purchases. Supply the RevenueCat *public* iOS SDK key
+# to use the real App Store sandbox instead of the static preview:
+#   REVENUECAT_IOS_KEY=app_... scripts/run-on-iphone.sh
+# A key turns preview mode off automatically (preview offers cannot be
+# bought). Without a key the dev run shows the static preview UI.
+revenuecat_ios_key="${REVENUECAT_IOS_KEY:-}"
+revenuecat_line=""
+if [ -n "$revenuecat_ios_key" ]; then
+  revenuecat_line=$',\n  "REVENUECAT_IOS_KEY": "'"$revenuecat_ios_key"'"'
+fi
 # P24-04: dev-only billing preview — static offers, no RevenueCat key needed,
 # so the Subscription screen and paywall render on this dev run. Opt out
-# with BILLING_PREVIEW=0. Never set in staging/prod.
+# with BILLING_PREVIEW=0. A real key also opts out (see above). Never set in
+# staging/prod.
 billing_preview_line=$',\n  "BILLING_PREVIEW": "true"'
 [ "${BILLING_PREVIEW:-1}" = "0" ] && billing_preview_line=""
+[ -n "$revenuecat_ios_key" ] && billing_preview_line=""
+# Development-only sandbox store: buy, cancel and resubscribe against the
+# local backend without Apple, Google, RevenueCat or any payment. The
+# backend also needs SANDBOX_BILLING=true and BILLING_ENABLED=true.
+#   SANDBOX_BILLING=1 scripts/run-on-iphone.sh
+sandbox_line=""
+if [ "${SANDBOX_BILLING:-0}" = "1" ]; then
+  sandbox_line=$',\n  "SANDBOX_BILLING": "true"'
+  billing_preview_line=""
+fi
 cat >"$CONFIG" <<EOF
 {
   "ENVIRONMENT": "dev",
   "BACKEND_BASE_URL": "$backend",
-  "WEBSITE_BASE_URL": "$website"$sentry_line$billing_preview_line
+  "WEBSITE_BASE_URL": "$website"$sentry_line$billing_preview_line$revenuecat_line$sandbox_line
 }
 EOF
 echo "✓ config/device.json → $backend"
 echo "✓ website (password reset) → $website"
 echo "  In the app, a Jenkins server on this Mac is http://$host:<its port>, never localhost."
 [ -n "$sentry_line" ] && echo "✓ crash reports → GlitchTip at $host:3005"
+if [ -n "$sandbox_line" ]; then
+  echo "✓ billing → local sandbox store (no payment, no RevenueCat)"
+  echo "  the backend must run with BILLING_ENABLED=true SANDBOX_BILLING=true"
+elif [ -n "$revenuecat_ios_key" ]; then
+  echo "✓ billing → real App Store sandbox via RevenueCat (preview off)"
+else
+  echo "  billing → static preview (no purchases). For sandbox: REVENUECAT_IOS_KEY=<public key> scripts/run-on-iphone.sh"
+fi
 if [ "$by_name" = "0" ] && [ "$on_hotspot" = "1" ]; then
   echo "  Using a raw address: on the hotspot, switch the app to your \"(hotspot)\" Jenkins server (IPHONE.md, section 6.1)."
 fi

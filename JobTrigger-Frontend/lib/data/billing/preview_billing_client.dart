@@ -20,12 +20,12 @@ class PreviewBillingClient implements BillingClient {
   static const _monthly = BillingOffer(
     id: 'preview_monthly',
     period: BillingPeriod.monthly,
-    priceText: '\$19.99',
+    priceText: '\$9.99',
   );
   static const _yearly = BillingOffer(
     id: 'preview_yearly',
     period: BillingPeriod.yearly,
-    priceText: '\$239.00',
+    priceText: '\$29.99',
     trialDays: 7,
   );
 

@@ -56,6 +56,38 @@ scripts/run-on-iphone.sh`. `AppConfig` ignores the flag in release builds,
 so store submissions can never preview billing, and `staging.json`/
 `prod.json` never set it.
 
+## `SANDBOX_BILLING`
+
+Development only: a local store simulator, so the paywall and Subscription
+screen can buy, cancel, expire and resubscribe with **no payment** and no
+Apple, Google or RevenueCat account. The launchers write it when you pass
+`SANDBOX_BILLING=1`:
+
+```bash
+SANDBOX_BILLING=1 scripts/run-flutter.sh --target=android-device
+```
+
+The backend must also run with `BILLING_ENABLED=true SANDBOX_BILLING=true`.
+`AppConfig` ignores the flag in release builds, and the backend answers 404
+for the sandbox routes in production, so it can never ship.
+
+## Testing real sandbox purchases (Apple / Google)
+
+Preview mode cannot buy anything. To actually subscribe, cancel and
+resubscribe in the Apple/Google **sandbox**, you must supply the RevenueCat
+**public** SDK key — see `docs/subscription/sandbox-testing.md` for the full
+external setup (App Store Connect, Google Play Console, RevenueCat, sandbox
+testers). On the iPhone:
+
+```bash
+REVENUECAT_IOS_KEY=app_... scripts/run-on-iphone.sh
+```
+
+Passing the key automatically turns preview mode off, so the paywall calls
+the real store. The backend also needs `BILLING_ENABLED=true` plus the real
+RevenueCat **secret** key/webhook auth in its `.env` for entitlements to
+sync.
+
 ## Usage
 
 ```bash

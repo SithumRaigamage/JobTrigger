@@ -7,7 +7,10 @@ import '../../../domain/subscription/subscription_status.dart';
 Uri manageSubscriptionUri(TargetPlatform platform) =>
     platform == TargetPlatform.iOS
     ? Uri.parse('https://apps.apple.com/account/subscriptions')
-    : Uri.parse('https://play.google.com/store/account/subscriptions');
+    : Uri.parse(
+        'https://play.google.com/store/account/subscriptions'
+        '?package=com.sraig.jobtrigger',
+      );
 
 /// "App Store" or "Google Play", for copy about the user's store.
 String storeNameFor(TargetPlatform platform) =>

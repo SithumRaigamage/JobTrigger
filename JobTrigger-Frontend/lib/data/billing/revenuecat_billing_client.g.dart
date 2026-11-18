@@ -58,4 +58,4 @@ final class BillingClientProvider
   }
 }
 
-String _$billingClientHash() => r'056f3f77ffb8ae53445973db8b941a0c9d9d19c8';
+String _$billingClientHash() => r'b27b142344078d6a4a746b719e91cc9fa8fc3fc5';

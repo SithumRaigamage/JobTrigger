@@ -82,4 +82,54 @@ final class BillingAvailableProvider
   }
 }
 
-String _$billingAvailableHash() => r'a7730f77ab8da44e1c25cfbea4ce6c286295d6fc';
+String _$billingAvailableHash() => r'ae7fa2f6424546a1f4d85ceb8a1dd6883d58fe26';
+
+/// The development-only store controls, or null when this build has no
+/// sandbox (every release build, and any dev build without the flag).
+
+@ProviderFor(sandboxBilling)
+final sandboxBillingProvider = SandboxBillingProvider._();
+
+/// The development-only store controls, or null when this build has no
+/// sandbox (every release build, and any dev build without the flag).
+
+final class SandboxBillingProvider
+    extends
+        $FunctionalProvider<SandboxBilling?, SandboxBilling?, SandboxBilling?>
+    with $Provider<SandboxBilling?> {
+  /// The development-only store controls, or null when this build has no
+  /// sandbox (every release build, and any dev build without the flag).
+  SandboxBillingProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'sandboxBillingProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$sandboxBillingHash();
+
+  @$internal
+  @override
+  $ProviderElement<SandboxBilling?> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  SandboxBilling? create(Ref ref) {
+    return sandboxBilling(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SandboxBilling? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SandboxBilling?>(value),
+    );
+  }
+}
+
+String _$sandboxBillingHash() => r'ecbae2d20c04d4e4ceb5395c37354ffcb4fdb688';

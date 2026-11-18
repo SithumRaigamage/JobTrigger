@@ -280,14 +280,15 @@ Used for password reset, student verification codes, and renewal notices.
 - [ ] 4. Test sign-in, changelog display, and pricing tables.
 
 ### Phase 4: Android Deployment (Google Play Console)
-- [ ] 1. Generate release keystore:
-  ```bash
-  keytool -genkey -v -keystore ~/jobtrigger-upload-keystore.jks \
-    -keyalg RSA -keysize 2048 -validity 10000 -alias upload
-  ```
-- [ ] 2. Configure `JobTrigger-Frontend/android/key.properties`.
+> See the focused **[Play Store 1.0.0 runbook](./play-store-release.md)** for
+> the complete first-release sequence.
+- [x] 1. Release keystore generated at
+  `JobTrigger-Frontend/android/app/upload-keystore.jks` (alias `upload`).
+  **Back it up — it cannot be recovered.**
+- [x] 2. `JobTrigger-Frontend/android/key.properties` configured (git-ignored).
 - [ ] 3. Build production Android App Bundle:
   ```bash
+  scripts/build-release.sh --check appbundle
   scripts/build-release.sh appbundle
   ```
 - [ ] 4. Create app listing in Google Play Console.

@@ -7,6 +7,7 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 ## 🚀 Getting Started
 
 - **[Dev Setup Guide](./dev-setup.md)** — Start the backend against Atlas with `setup-dev.sh`
+- **[Configuration](./configuration.md)** — Every backend, app, website and billing environment variable, with development and production values
 - **[MongoDB Atlas Setup](./mongodb-cloud-setup.md)** — Create the dev cluster (the only database; no local MongoDB)
 - **[API Reference](./api-reference.md)** — All backend + Jenkins endpoints this app calls
 
@@ -78,6 +79,7 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 | Need | Read |
 |------|------|
 | How to start development | [Dev Setup](./dev-setup.md) |
+| Environment variables and billing config | [Configuration](./configuration.md) |
 | Backend endpoints | [API Reference](./api-reference.md) |
 | App architecture | [Architecture](./architecture.md) |
 | Riverpod setup | [State Management](./state-management.md) |

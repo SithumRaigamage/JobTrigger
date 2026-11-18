@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- AUD-64/NEW-03: app data must never be backed up to (or restored from) Google
-     Drive. `allowBackup="false"` covers backup; these rules additionally block
-     the "unencrypted file copied to new device" extraction path. Both
-     SharedPreferences (cached email, watch list, pinned job URLs) and the
-     flutter_secure_storage blobs live here — secure-storage blobs restored to a
-     new device without the key store chain must never land as readable data.
-     The widget's shared prefs live in a separate process, so no widget-specific
-     exemption is needed. -->
+     Drive or copied to a new device. `allowBackup="false"` in the manifest
+     already disables both paths; these rules state the same intent in the
+     valid Android 12+ <data-extraction-rules> schema so lint (and a Play
+     release build) accepts the file. Both SharedPreferences (cached email,
+     watch list, pinned job URLs) and the flutter_secure_storage blobs live
+     here, and must never land as readable data on another device. -->
 <data-extraction-rules>
-    <device-config>
-        <files>
-            <!-- App-internal files are fine to restore (they're app-encrypted
-                 container content). Exclude only the user-data locations we
-                 treat as sensitive. -->
-            <exclude folder="shared_prefs" />
-            <exclude folder="flutter_secure_storage" />
-        </files>
-    </device-config>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="sharedpref" />
+        <exclude domain="database" />
+        <exclude domain="file" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="sharedpref" />
+        <exclude domain="database" />
+        <exclude domain="file" />
+        <exclude domain="external" />
+    </device-transfer>
 </data-extraction-rules>

@@ -69,9 +69,14 @@ app.use('/api/appinfo', require('./routes/appInfoRoutes'));
 // NR-06 (BACKLOG-02): push-token registration. Off until FCM is configured.
 app.use('/api/devices', require('./routes/deviceRoutes'));
 app.use('/api/subscription', require('./routes/subscriptionRoutes'));
+// Development-only sandbox store (404 everywhere else). Mounted before the
+// real billing routes so it owns its own prefix.
+app.use('/api/billing/sandbox', require('./routes/sandboxBillingRoutes'));
 app.use('/api/billing', require('./routes/billingRoutes'));
 app.use('/api/student', require('./routes/studentRoutes'));
 app.use('/api/admin/students', require('./routes/adminStudentRoutes'));
+// Release 1.0.0: the owner's subscription console (grant/revoke test Pro).
+app.use('/api/admin/subscriptions', require('./routes/adminSubscriptionRoutes'));
 // Phase 25: support and issue tickets, and their owner-only triage.
 app.use('/api/support', require('./routes/supportRoutes'));
 app.use('/api/admin/support', require('./routes/adminSupportRoutes'));

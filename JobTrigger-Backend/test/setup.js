@@ -40,6 +40,8 @@ for (const name of [
   'SENTRY_DSN', 'SENTRY_ENVIRONMENT', 'SENTRY_RELEASE',
   // P20-17: billing is off in the suites unless a test turns it on.
   'BILLING_ENABLED', 'REVENUECAT_SECRET_API_KEY', 'REVENUECAT_WEBHOOK_AUTH',
+  // Development-only sandbox store; the suites turn it on explicitly.
+  'SANDBOX_BILLING',
   // Phase 21: no owner address or renewal unless a test sets them.
   'STUDENT_ADMIN_EMAIL', 'STUDENT_RENEWAL_ENABLED',
   'PADDLE_API_KEY', 'PADDLE_WEBHOOK_SECRET', 'PADDLE_PRICE_MONTHLY', 'PADDLE_PRICE_YEARLY', 'PADDLE_ENV',

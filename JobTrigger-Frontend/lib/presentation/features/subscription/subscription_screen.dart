@@ -11,6 +11,7 @@ import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
 import '../student/student_expiry_notice.dart';
+import 'billing_availability.dart';
 import 'entitlements_notifier.dart';
 import 'paywall_notifier.dart';
 import 'store_links.dart';
@@ -27,6 +28,7 @@ class SubscriptionScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final snapshot = ref.watch(entitlementsNotifierProvider).value;
+    final sandbox = ref.watch(sandboxBillingProvider);
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
 
@@ -90,6 +92,70 @@ class SubscriptionScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 16),
                           ..._actions(context, ref, snapshot),
+                          // Development only: a release build has no sandbox
+                          // client, so this card never renders.
+                          if (sandbox != null) ...[
+                            const SizedBox(height: 16),
+                            GroupedCard(
+                              children: [
+                                const ListTile(
+                                  leading: Icon(Icons.science_outlined),
+                                  title: Text('Sandbox billing'),
+                                  subtitle: Text(
+                                    'No payment is taken. These controls '
+                                    'exist only on a development build.',
+                                  ),
+                                ),
+                                if (snapshot.entitlements.isPro &&
+                                    snapshot.status.willRenew)
+                                  ListTile(
+                                    key: const Key('sandbox_cancel'),
+                                    leading: const Icon(
+                                      Icons.cancel_outlined,
+                                    ),
+                                    title: const Text('Cancel subscription'),
+                                    subtitle: const Text(
+                                      'Pro stays until the period ends.',
+                                    ),
+                                    onTap: () => _sandboxAction(
+                                      ref,
+                                      sandbox.cancelSubscription,
+                                      'Subscription cancelled',
+                                    ),
+                                  ),
+                                if (snapshot.entitlements.isPro &&
+                                    !snapshot.status.willRenew)
+                                  ListTile(
+                                    key: const Key('sandbox_resubscribe'),
+                                    leading: const Icon(
+                                      Icons.autorenew_rounded,
+                                    ),
+                                    title: const Text('Resubscribe'),
+                                    onTap: () => _sandboxAction(
+                                      ref,
+                                      sandbox.resubscribe,
+                                      'Subscription resumed',
+                                    ),
+                                  ),
+                                if (snapshot.entitlements.isPro)
+                                  ListTile(
+                                    key: const Key('sandbox_expire'),
+                                    leading: const Icon(
+                                      Icons.hourglass_bottom_rounded,
+                                    ),
+                                    title: const Text('Simulate expiry'),
+                                    subtitle: const Text(
+                                      "End the period now to see Free's limits.",
+                                    ),
+                                    onTap: () => _sandboxAction(
+                                      ref,
+                                      sandbox.expireNow,
+                                      'Subscription expired',
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
                           // Phase 21: the free student year. Free users can
                           // start it; a student sees where it stands.
                           if (!snapshot.entitlements.isPro ||
@@ -131,11 +197,16 @@ class SubscriptionScreen extends ConsumerWidget {
     );
   }
 
-  /// "Renews on" / "Ends on" with the date, or null when there is none.
+  /// "Renews on" / "Ends on" / "Trial ends" with the date, or null.
   (String, String)? _dateRow(SubscriptionSnapshot snapshot) {
     final end = snapshot.status.periodEnd;
     if (end == null || !snapshot.entitlements.isPro) return null;
-    final label = snapshot.status.willRenew ? 'Renews on' : 'Ends on';
+    final label = switch (snapshot.status.state) {
+      SubscriptionState.trialing => 'Trial ends',
+      // The end date is what the user cares about once a charge failed.
+      SubscriptionState.billingIssue || SubscriptionState.grace => 'Pro until',
+      _ => snapshot.status.willRenew ? 'Renews on' : 'Ends on',
+    };
     return (label, _formatDate(end.toLocal()));
   }
 
@@ -149,9 +220,18 @@ class SubscriptionScreen extends ConsumerWidget {
 
   /// Where it was bought, and where it is managed.
   String? _sourceNote(SubscriptionSnapshot snapshot) {
-    if (!snapshot.entitlements.isPro) return null;
     final status = snapshot.status;
+    if (!snapshot.entitlements.isPro) {
+      return status.state == SubscriptionState.expired
+          ? 'Your Pro plan has ended. Nothing you saved was deleted.'
+          : null;
+    }
     if (status.isStore) {
+      if (status.state == SubscriptionState.billingIssue ||
+          status.state == SubscriptionState.grace) {
+        return 'The last payment didn\'t go through. Update your payment '
+            'method in the ${storeNameOf(status.source)} before Pro ends.';
+      }
       return 'Bought in the ${storeNameOf(status.source)}. Manage or cancel '
           'it there.';
     }
@@ -203,10 +283,47 @@ class SubscriptionScreen extends ConsumerWidget {
           ),
           child: Text('Manage in the ${storeNameOf(status.source)}'),
         ),
+        // A cancelled subscription keeps Pro until the period ends; the
+        // store allows buying again before then, so offer it here.
+        if (status.state == SubscriptionState.cancelled) ...[
+          const SizedBox(height: 8),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+            ),
+            onPressed: () => context.push(AppRoutes.paywall),
+            child: const Text('Resubscribe'),
+          ),
+        ],
       ];
     }
     // Web, promo and admin Pro: nothing to buy and nothing to link to.
     return const [];
+  }
+
+  /// Runs one sandbox store action, then re-reads the plan from the
+  /// backend. No money moves and nothing is shown as a real purchase.
+  Future<void> _sandboxAction(
+    WidgetRef ref,
+    Future<void> Function() action,
+    String title,
+  ) async {
+    final toast = ref.read(toastControllerProvider);
+    try {
+      await action();
+      await ref.read(entitlementsNotifierProvider.notifier).refresh();
+      toast.show(
+        type: ToastType.success,
+        title: title,
+        message: 'Sandbox only: no payment was taken.',
+      );
+    } on Object {
+      toast.show(
+        type: ToastType.error,
+        title: "That didn't work",
+        message: 'The sandbox request failed. Check the backend is running.',
+      );
+    }
   }
 
   Future<void> _restore(BuildContext context, WidgetRef ref) async {
@@ -225,7 +342,7 @@ class SubscriptionScreen extends ConsumerWidget {
           title: 'Nothing to restore',
           message: 'This store account has no active JobTrigger Pro.',
         );
-      case PaywallCancelled() || PaywallPurchased():
+      case PaywallCancelled() || PaywallPurchased() || PaywallPending():
         break;
       case PaywallFailed(:final failure):
         toast.show(

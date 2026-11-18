@@ -12,6 +12,7 @@ import 'package:job_trigger/data/repositories/subscription_repository_impl.dart'
 import 'package:job_trigger/domain/app_info/app_info.dart';
 import 'package:job_trigger/domain/auth/auth_state.dart';
 import 'package:job_trigger/domain/auth/user.dart';
+import 'package:job_trigger/domain/subscription/subscription_status.dart';
 import 'package:job_trigger/presentation/common_widgets/inline_alert.dart';
 import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
 import 'package:job_trigger/presentation/features/app_info/app_info_notifier.dart';
@@ -182,6 +183,23 @@ void main() {
     expect(find.text('home'), findsNothing);
   });
 
+  testWidgets('a pending store purchase says so and keeps the paywall open', (
+    tester,
+  ) async {
+    final repo = FakeSubscriptionRepository(loadResult: const Ok(freeSnapshot))
+      ..refreshResult = const Ok(freeSnapshot);
+    final container = await pumpPaywall(tester, repo);
+
+    await tester.tap(find.text('Start 7-day free trial'));
+    await tester.pumpAndSettle();
+
+    final toast = container.read(currentToastProvider);
+    expect(toast?.type, ToastType.info);
+    expect(toast?.title, 'Purchase pending');
+    expect(find.text('home'), findsNothing);
+    expect(find.text('Start 7-day free trial'), findsOneWidget);
+  });
+
   testWidgets('a failed purchase says so', (tester) async {
     final repo = FakeSubscriptionRepository(loadResult: const Ok(freeSnapshot))
       ..purchaseResult = const Err(UnknownFailure('declined'));
@@ -274,6 +292,26 @@ void main() {
     expect(find.text('Restore purchases'), findsNothing);
     // Only the legal links remain; none points at web checkout.
     expect(opened, isEmpty);
+  });
+
+  testWidgets('a cancelled store subscription can subscribe again before '
+      'it ends', (tester) async {
+    final cancelled = SubscriptionSnapshot(
+      entitlements: proSnapshot.entitlements,
+      status: SubscriptionStatus(
+        state: SubscriptionState.cancelled,
+        source: SubscriptionSource.playStore,
+        periodEnd: DateTime.utc(2027, 3, 2, 12),
+        willRenew: false,
+      ),
+    );
+    final repo = FakeSubscriptionRepository(loadResult: Ok(cancelled));
+    await pumpPaywall(tester, repo);
+
+    expect(find.textContaining('Your Pro stays until the end date'), findsOneWidget);
+    expect(find.text('Monthly'), findsOneWidget);
+    expect(find.text('Start 7-day free trial'), findsOneWidget);
+    expect(find.text('You already have Pro.'), findsNothing);
   });
 
   testWidgets('offers that fail to load can be retried', (tester) async {

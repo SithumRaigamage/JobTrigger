@@ -17,7 +17,7 @@
 - [ ] **Run `flutter analyze`** and `flutter test` – ensure clean.
 
 ### Acceptance Criteria
-- The paywall screen displays the correct pricing ($19.99 monthly, $239 yearly) and features.
+- The paywall screen displays the correct pricing ($9.99 monthly, $239 yearly) and features.
 - Tapping "Subscribe" opens the RevenueCat purchase sheet; after purchase, the entitlement updates and the UI reflects Pro features.
 - The "Restore purchases" button works.
 - The billing support screen shows the user's plan and renewal info.
