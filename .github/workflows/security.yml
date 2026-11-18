@@ -53,13 +53,18 @@ jobs:
           curl -sSfL "$base/osv-scanner_SHA256SUMS" | grep " osv-scanner_linux_amd64\$" | sha256sum -c -
           chmod +x osv-scanner_linux_amd64
 
-      # npm audit already gates the backend (nodejs-test.yml); this is the
-      # only check on the Flutter app's pub packages.
+      # npm audit gates the backend (nodejs-test.yml) and the website's
+      # criticals (web-ci.yml); this covers the Flutter app's pub packages,
+      # the backend and the website lockfile from one advisory database.
+      # osv-scanner.toml holds the reviewed, expiring suppressions (build/test
+      # tooling only) so this stays a failing gate, not a permanent pass.
       - name: Scan lockfiles for known vulnerabilities
         run: |
           ./osv-scanner_linux_amd64 scan source \
+            --config osv-scanner.toml \
             -L JobTrigger-Frontend/pubspec.lock \
-            -L JobTrigger-Backend/package-lock.json
+            -L JobTrigger-Backend/package-lock.json \
+            -L JobTrigger-Web/package-lock.json
 
   backend-image:
     runs-on: ubuntu-latest

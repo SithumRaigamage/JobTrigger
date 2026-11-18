@@ -237,7 +237,9 @@ describe("the site follows the release (1.0, three tools)", () => {
     const ships = upcomingRelease()
       .map((line) => line.text)
       .join(" ");
-    expect(ships).toMatch(/GitHub Actions: accounts, repositories, workflows, runs, logs and dispatch/);
+    expect(ships).toMatch(
+      /GitHub Actions: accounts, repositories, workflows, runs, logs and dispatch/,
+    );
     expect(ships).toMatch(/Jenkins/);
     expect(
       afterLaunch()

@@ -104,156 +104,171 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                 ),
               ),
               Expanded(
-                child: ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    20,
-                    4,
-                    20,
-                    16 + glassNavBarClearance(context),
+                child: RefreshIndicator(
+                  // P24-05 follow-up: "Your reports" had retry-on-error but
+                  // no gesture, so a status that changed on the server (open →
+                  // triaged) needed a screen re-entry to show.
+                  onRefresh: () async {
+                    await ref
+                        .read(mySupportTicketsNotifierProvider.notifier)
+                        .refresh();
+                    await ref.read(mySupportTicketsNotifierProvider.future);
+                  },
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      4,
+                      20,
+                      16 + glassNavBarClearance(context),
+                    ),
+                    children: [
+                      Semantics(
+                        header: true,
+                        child: Text('Support', style: textTheme.headlineMedium),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Reports go to the JobTrigger team. Tell us what went '
+                        'wrong, or what would make the app better.',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: t.textMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      if (sent != null)
+                        _SentCard(
+                          ticket: sent,
+                          replyEmail: _email.text.trim(),
+                          onAgain: () {
+                            ref
+                                .read(supportFormNotifierProvider.notifier)
+                                .reset();
+                            setState(() => _formError = null);
+                          },
+                        )
+                      else ...[
+                        const SectionLabel('What is it about?'),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final category in SupportCategory.values)
+                              ChoiceChip(
+                                label: Text(category.label),
+                                selected: _category == category,
+                                onSelected: sending
+                                    ? null
+                                    : (_) =>
+                                          setState(() => _category = category),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _subject,
+                          enabled: !sending,
+                          maxLength: 120,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                            labelText: 'Subject',
+                            hintText: 'Build log is blank for long jobs',
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        TextField(
+                          controller: _message,
+                          enabled: !sending,
+                          maxLength: 4000,
+                          maxLines: 8,
+                          minLines: 5,
+                          decoration: const InputDecoration(
+                            labelText: 'Details',
+                            alignLabelWithHint: true,
+                            hintText:
+                                'What happened, what you expected, and what you '
+                                'tried. Do not paste tokens or passwords.',
+                          ),
+                        ),
+                        TextField(
+                          controller: _email,
+                          enabled: !sending,
+                          onChanged: (_) => _emailTouched = true,
+                          keyboardType: TextInputType.emailAddress,
+                          autocorrect: false,
+                          decoration: const InputDecoration(
+                            labelText: 'Reply to',
+                            helperText: 'Where we answer this report',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: _attachDiagnostics,
+                          onChanged: sending
+                              ? null
+                              : (value) =>
+                                    setState(() => _attachDiagnostics = value),
+                          title: const Text('Attach app details'),
+                          subtitle: Text(
+                            'Version, tool and platform — never your tokens.\n'
+                            '${_diagnosticsSummary()}',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: t.textMuted,
+                            ),
+                          ),
+                        ),
+                        if (_formError case final error?)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              error,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                            ),
+                          ),
+                        if (submission.error case final failure?)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              describeError(failure),
+                              style: textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 16),
+                        FilledButton(
+                          onPressed: sending ? null : _submit,
+                          child: Text(sending ? 'Sending…' : 'Send report'),
+                        ),
+                      ],
+                      if (supportEmail != null) ...[
+                        const SizedBox(height: 12),
+                        Center(
+                          child: TextButton.icon(
+                            onPressed: () => openExternalLink(
+                              ref,
+                              Uri.parse('mailto:$supportEmail'),
+                            ),
+                            icon: const Icon(
+                              Icons.mail_outline_rounded,
+                              size: 18,
+                            ),
+                            label: Text('Or email $supportEmail'),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
+                      _RecentReports(
+                        onRetry: () => ref
+                            .read(mySupportTicketsNotifierProvider.notifier)
+                            .refresh(),
+                      ),
+                    ],
                   ),
-                  children: [
-                    Semantics(
-                      header: true,
-                      child: Text('Support', style: textTheme.headlineMedium),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Reports go to the JobTrigger team. Tell us what went '
-                      'wrong, or what would make the app better.',
-                      style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
-                    ),
-                    const SizedBox(height: 20),
-                    if (sent != null)
-                      _SentCard(
-                        ticket: sent,
-                        replyEmail: _email.text.trim(),
-                        onAgain: () {
-                          ref
-                              .read(supportFormNotifierProvider.notifier)
-                              .reset();
-                          setState(() => _formError = null);
-                        },
-                      )
-                    else ...[
-                      const SectionLabel('What is it about?'),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (final category in SupportCategory.values)
-                            ChoiceChip(
-                              label: Text(category.label),
-                              selected: _category == category,
-                              onSelected: sending
-                                  ? null
-                                  : (_) => setState(() => _category = category),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _subject,
-                        enabled: !sending,
-                        maxLength: 120,
-                        textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(
-                          labelText: 'Subject',
-                          hintText: 'Build log is blank for long jobs',
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      TextField(
-                        controller: _message,
-                        enabled: !sending,
-                        maxLength: 4000,
-                        maxLines: 8,
-                        minLines: 5,
-                        decoration: const InputDecoration(
-                          labelText: 'Details',
-                          alignLabelWithHint: true,
-                          hintText:
-                              'What happened, what you expected, and what you '
-                              'tried. Do not paste tokens or passwords.',
-                        ),
-                      ),
-                      TextField(
-                        controller: _email,
-                        enabled: !sending,
-                        onChanged: (_) => _emailTouched = true,
-                        keyboardType: TextInputType.emailAddress,
-                        autocorrect: false,
-                        decoration: const InputDecoration(
-                          labelText: 'Reply to',
-                          helperText: 'Where we answer this report',
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        value: _attachDiagnostics,
-                        onChanged: sending
-                            ? null
-                            : (value) =>
-                                  setState(() => _attachDiagnostics = value),
-                        title: const Text('Attach app details'),
-                        subtitle: Text(
-                          'Version, tool and platform — never your tokens.\n'
-                          '${_diagnosticsSummary()}',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: t.textMuted,
-                          ),
-                        ),
-                      ),
-                      if (_formError case final error?)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            error,
-                            style: textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                        ),
-                      if (submission.error case final failure?)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            describeError(failure),
-                            style: textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                        ),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        onPressed: sending ? null : _submit,
-                        child: Text(sending ? 'Sending…' : 'Send report'),
-                      ),
-                    ],
-                    if (supportEmail != null) ...[
-                      const SizedBox(height: 12),
-                      Center(
-                        child: TextButton.icon(
-                          onPressed: () => openExternalLink(
-                            ref,
-                            Uri.parse('mailto:$supportEmail'),
-                          ),
-                          icon: const Icon(
-                            Icons.mail_outline_rounded,
-                            size: 18,
-                          ),
-                          label: Text('Or email $supportEmail'),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 20),
-                    _RecentReports(
-                      onRetry: () => ref
-                          .read(mySupportTicketsNotifierProvider.notifier)
-                          .refresh(),
-                    ),
-                  ],
                 ),
               ),
             ],

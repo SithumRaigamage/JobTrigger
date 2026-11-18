@@ -46,6 +46,23 @@ Everything below is outstanding unless it appears under **Already done**.
 These were completed in this workspace and are recorded here so the plan does
 not re-open them.
 
+### 2026-11-18, second pass
+
+| ID | Item | Evidence |
+|---|---|---|
+| A1 | `origin/develop` merged into `future-updates` (12 commits: go_router 18.1.4, flutter_local_notifications 23.0.2, dotenv, c8 12, action bumps); no conflicts | merge commit on `future-updates` |
+| A2 | Full re-run on the merged result: `flutter analyze` clean, `flutter test` 1,713 passing / 29 skipped, backend `npm test` 403 passing, web `npm run check` green (after the format fix below) | this branch |
+| B1 | `JobTrigger-Web/package-lock.json` added to the OSV scan | `.github/workflows/security.yml` |
+| B2 | Website CI now audits runtime dependencies (`--audit-level=critical`) and prints the rest | `.github/workflows/web-ci.yml` |
+| B3 | The `picomatch`/`minimatch`/`glob` advisories are reviewed and suppressed **with reasons and an expiry** in `osv-scanner.toml`; the scan fails again on 2027-01-31 | `osv-scanner.toml`, `docs/deployment.md` |
+| B11 | Backend runtime audit is 0 (`npm audit --omit=dev`); the four remaining moderates are c8 test tooling only | `npm audit` |
+| C3 | Support → "Your reports" now has pull-to-refresh, with a widget test that proves the status change arrives | `support_screen.dart`, `support_screen_test.dart` |
+| I1 | Duplicate M-11 split: the Phase 25 iPhone pass is now `M-18`, indexed in `manually/README.md` | `manually/M-18-support-tickets-iphone.md` |
+| I2 | M-05 removed from the active manual table and recorded under "Resolved" | `manually/README.md` |
+| — | New finding fixed: `JobTrigger-Web` was red on `develop` at `prettier --check` for 5 files | `JobTrigger-Web` formatting commit |
+
+### 2026-11-18, first pass
+
 | Item | Evidence |
 |---|---|
 | P24-05 shared server/credential header on 31 tool screens + 8 widget tests | `4a70209` |
@@ -92,6 +109,7 @@ not re-open them.
 | B9 | Revisit native crash handling (`enableNativeCrashHandling: false`) once a native scrubber exists — deliberately off for 1.0 | DEV | agent | NO |
 | B10 | Re-check `workmanager`'s temp `wm_execute_task_marker` file on its next upgrade (open audit note) | DEV | agent | NO |
 | B11 | Confirm backend `npm audit` is still 0 and review any new Dependabot PRs before the freeze | DEV | agent | YES |
+| B12 | De-flake `JobTrigger-Web/src/features/servers/reveal-token.test.tsx`: it failed once on a cold full-suite run, then passed alone and on a warm re-run | DEV | agent | NO |
 
 ---
 

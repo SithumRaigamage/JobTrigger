@@ -1,9 +1,9 @@
 # Deployment Log — v1.0.0
 
 - **Version**: `1.0.0`
-- **Date**: 2026-11-17
-- **Base Commit SHA**: `9b87d10` (develop, 2026-11-17; re-confirm the
-  tag commit when cutting the release)
+- **Date**: 2026-11-18
+- **Base Commit SHA**: `ba8543b` (develop at the 2026-11-18 merge; re-confirm
+  the tag commit when cutting the release)
 
 > **Status: plan, not executed.** The values below are the intended
 > production configuration. Nothing here has been deployed or stored yet;

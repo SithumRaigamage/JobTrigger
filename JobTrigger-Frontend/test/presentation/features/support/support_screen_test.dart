@@ -53,6 +53,8 @@ class _Support implements SupportRepository {
   _Support({this.result});
 
   final Result<SupportTicket, AppFailure>? result;
+  List<SupportTicket> mine = const [];
+  int calls = 0;
   SupportCategory? category;
   String? subject;
   String? message;
@@ -85,8 +87,10 @@ class _Support implements SupportRepository {
   }
 
   @override
-  Future<Result<List<SupportTicket>, AppFailure>> fetchMine() async =>
-      const Ok([]);
+  Future<Result<List<SupportTicket>, AppFailure>> fetchMine() async {
+    calls++;
+    return Ok(mine);
+  }
 }
 
 Future<void> _pump(WidgetTester tester, _Support support) async {
@@ -201,5 +205,50 @@ void main() {
       find.widgetWithText(ChoiceChip, 'Tool request'),
     );
     expect(chip.selected, isTrue);
+  });
+
+  testWidgets('pull-to-refresh reloads earlier reports and their status', (
+    tester,
+  ) async {
+    // A tall surface so the form and the reports section are both on screen;
+    // this test is about the gesture, not about scrolling.
+    tester.view.physicalSize = const Size(1200, 2800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final support = _Support()
+      ..mine = const [
+        SupportTicket(
+          id: 'old1',
+          category: SupportCategory.bug,
+          subject: 'Console stays blank',
+          message: 'Nothing shows.',
+          status: 'open',
+        ),
+      ];
+    await _pump(tester, support);
+
+    expect(find.text('Console stays blank'), findsOneWidget);
+    expect(find.text('Sent'), findsOneWidget);
+
+    // The owner triages it between visits: the screen must pick that up
+    // without being torn down and rebuilt.
+    support.mine = const [
+      SupportTicket(
+        id: 'old1',
+        category: SupportCategory.bug,
+        subject: 'Console stays blank',
+        message: 'Nothing shows.',
+        status: 'triaged',
+      ),
+    ];
+
+    // RefreshIndicator arms only past 25% of the viewport, and the tall
+    // surface used above makes that a long pull.
+    await tester.drag(find.text('Support'), const Offset(0, 1200));
+    await tester.pumpAndSettle();
+
+    expect(find.text('In review'), findsOneWidget);
+    expect(find.text('Sent'), findsNothing);
   });
 }

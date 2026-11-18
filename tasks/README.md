@@ -10,7 +10,7 @@ check "where are we."
 
 **Release 1.0.0:** what is still open between this branch and the tag is
 tracked in [`Releases/v1.0.0/workplan.md`](../Releases/v1.0.0/workplan.md)
-(86 items across freeze/merge, engineering, design, infrastructure, stores,
+(87 items across freeze/merge, engineering, design, infrastructure, stores,
 website, billing, device checks and docs). This table stays the source of
 truth for individual task status.
 
@@ -45,7 +45,7 @@ truth for individual task status.
 | 22 — Next release (improvement plan) | `phase-22-next-release.md` | development-complete 2026-11-16 — NR-01 log folding, NR-02 dashboard, NR-03 QR pairing, NR-04 error copy (verified), NR-05/P20-30 site analytics and NR-06 server-push backend (devices + FCM sender) done. Left: NR-06b (Firebase keys, app SDK + token upload, server-side trigger), Phase 20 store/RevenueCat setup, website go-live | Public release |
 | 23 — Suggested first ten (product improvements) | `phase-23-product-improvements.md` | development-complete 2026-11-17: PI-01/02 safety, PI-03/04 connectivity, PI-05/06 freshness/status, PI-07 notifications, PI-08/09/10 first-run/tokens/what's new. Five batches, verified and committed | Public release |
 | 24 — SonarQube Overview + Profile version fixes (epic FIX-2) | `phase-24-sonarqube-ui-fixes.md` | done 2026-11-18 (P24-01..05): credential selector chip, Overview design alignment, Profile version footer, dev-only billing preview flag, shared server/credential header on all tool screens (committed on `future-updates`) | none — found testing on a real iPhone 2026-11-17; P24-05 visual check is still MANUAL |
-| 25 — Support and issue tickets | `phase-25-support-feedback.md` | development-complete 2026-11-18 (P25-01..06): backend tickets + owner triage, in-app Support screen with diagnostics, website copy, tests and docs. iPhone pass open (`manually/M-11`) | Public release |
+| 25 — Support and issue tickets | `phase-25-support-feedback.md` | development-complete 2026-11-18 (P25-01..06): backend tickets + owner triage, in-app Support screen with diagnostics, website copy, tests and docs. iPhone pass open (`manually/M-18`) | Public release |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." Every

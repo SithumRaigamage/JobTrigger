@@ -33,7 +33,10 @@ backend before PR. Anything only checkable on the owner's phone stays
 - [x] P25-06 **Docs and tests.** API and data-model entries, the user story,
       backend `test/support_tickets.test.js`, and app tests for diagnostics,
       the form (success, validation, failure), the prefilled tool request and
-      all three entry points. iPhone pass: `manually/M-11`.
+      all three entry points. iPhone pass: `manually/M-18`.
+- [x] P25-07 **Pull-to-refresh on "Your reports"** (2026-11-18, workplan C3).
+      A status changed by owner triage (Sent → In review) now appears without
+      leaving the screen; a widget test drives the real gesture.
 
 Not in this phase: a GlitchTip event id on a ticket, an in-app FAQ, a store
 rating prompt, or a reply thread inside the app.

@@ -25,11 +25,10 @@ console.log(
 );
 
 // npm puts node_modules/.bin on PATH, so `next` is this project's own copy.
-const child = spawn(
-  "next",
-  ["dev", "--hostname", "0.0.0.0", ...process.argv.slice(2)],
-  { env, stdio: "inherit" },
-);
+const child = spawn("next", ["dev", "--hostname", "0.0.0.0", ...process.argv.slice(2)], {
+  env,
+  stdio: "inherit",
+});
 
 for (const signal of ["SIGINT", "SIGTERM"]) {
   process.on(signal, () => child.kill(signal));
