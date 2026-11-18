@@ -26,7 +26,7 @@
     "nodemailer": "^10.5.0"
   },
   "devDependencies": {
-    "c8": "^9.1.0",
+    "c8": "^12.0.0",
     "chai": "^6.3.0",
     "mocha": "^12.0.3",
     "mongodb-memory-server": "^11.3.0",
