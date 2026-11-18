@@ -239,7 +239,9 @@ void main() {
     expect(find.text('Read-only'), findsOneWidget);
     // Both action-bar buttons are present but disabled while read-only.
     expect(
-      tester.widget<OutlinedButton>(find.widgetWithText(OutlinedButton, 'Stop')).onPressed,
+      tester
+          .widget<OutlinedButton>(find.widgetWithText(OutlinedButton, 'Stop'))
+          .onPressed,
       isNull,
     );
     final trigger = tester.widget<FilledButton>(

@@ -119,9 +119,7 @@ class _ConfirmationDialogState extends State<_ConfirmationDialog> {
           style: widget.destructive
               ? FilledButton.styleFrom(backgroundColor: colorScheme.error)
               : null,
-          onPressed: _canConfirm
-              ? () => Navigator.of(context).pop(true)
-              : null,
+          onPressed: _canConfirm ? () => Navigator.of(context).pop(true) : null,
           child: Text(widget.confirmLabel),
         ),
       ],

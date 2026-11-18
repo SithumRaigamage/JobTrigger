@@ -8,7 +8,7 @@ test("/demo shows sample servers with masked tokens and inert controls", async (
 
   await expect(page.getByRole("heading", { level: 1, name: "My servers" })).toBeVisible();
   const table = page.getByRole("region", { name: "Servers" });
-  await expect(table.getByRole("rowheader", { name: /^Demo Jenkins Jenkins/ })).toBeVisible();
+  await expect(table.getByRole("rowheader", { name: /^Demo Jenkins/ })).toBeVisible();
   await expect(table.getByRole("rowheader", { name: /^Demo GitHub/ })).toBeVisible();
   await expect(table.getByRole("rowheader", { name: /^Demo SonarQube/ })).toBeVisible();
   await expect(table.getByText("••••0001")).toBeVisible();

@@ -105,19 +105,13 @@ void main() {
 
     test('backToGreenOnly notifies after a failure', () {
       final watch = _job.withRule(WatchRule.backToGreenOnly);
-      final outcome = decideWatch(watch, [
-        _b(9, 'SUCCESS'),
-        _b(8, 'FAILURE'),
-      ]);
+      final outcome = decideWatch(watch, [_b(9, 'SUCCESS'), _b(8, 'FAILURE')]);
       expect(outcome.notify, isNotNull);
     });
 
     test('backToGreenOnly stays quiet after another success', () {
       final watch = _job.withRule(WatchRule.backToGreenOnly);
-      final outcome = decideWatch(watch, [
-        _b(9, 'SUCCESS'),
-        _b(8, 'SUCCESS'),
-      ]);
+      final outcome = decideWatch(watch, [_b(9, 'SUCCESS'), _b(8, 'SUCCESS')]);
       expect(outcome.notify, isNull);
       expect(outcome.keep!.lastNotified, 9);
     });

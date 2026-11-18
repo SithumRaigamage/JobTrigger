@@ -109,7 +109,11 @@ void main() {
         findsOneWidget,
       );
       for (final tool in ['jenkins', 'githubActions', 'sonarqube']) {
-        expect(find.byKey(Key('tool_card_$tool')), findsOneWidget, reason: tool);
+        expect(
+          find.byKey(Key('tool_card_$tool')),
+          findsOneWidget,
+          reason: tool,
+        );
       }
       for (final tool in ['gitlab', 'circleci']) {
         expect(find.byKey(Key('tool_card_$tool')), findsNothing, reason: tool);

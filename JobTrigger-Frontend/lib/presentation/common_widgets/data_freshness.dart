@@ -75,9 +75,9 @@ class DataFreshnessBanner extends ConsumerWidget {
     this.showOffline = true,
     this.padding = const EdgeInsets.only(top: 12),
   }) : assert(
-          freshnessKey != null || (savedAt != null && offline != null),
-          'Pass either freshnessKey or both savedAt and offline',
-        );
+         freshnessKey != null || (savedAt != null && offline != null),
+         'Pass either freshnessKey or both savedAt and offline',
+       );
 
   final String? freshnessKey;
   final DateTime? savedAt;
@@ -97,13 +97,15 @@ class DataFreshnessBanner extends ConsumerWidget {
     if (effectiveOffline && !showOffline) return const SizedBox.shrink();
 
     final text = switch (style) {
-      FreshnessStyle.jenkins => effectiveOffline
-          ? 'Offline — showing data from ${clockTime(effectiveSavedAt.toLocal())}. '
-              "Builds can't be started or changed until you're back online."
-          : 'Updated ${relativeTime(effectiveSavedAt)}',
-      FreshnessStyle.sonarqube => effectiveOffline
-          ? 'Saved ${relativeTime(effectiveSavedAt)} · can\'t reach the server'
-          : 'Updated ${relativeTime(effectiveSavedAt)}',
+      FreshnessStyle.jenkins =>
+        effectiveOffline
+            ? 'Offline — showing data from ${clockTime(effectiveSavedAt.toLocal())}. '
+                  "Builds can't be started or changed until you're back online."
+            : 'Updated ${relativeTime(effectiveSavedAt)}',
+      FreshnessStyle.sonarqube =>
+        effectiveOffline
+            ? 'Saved ${relativeTime(effectiveSavedAt)} · can\'t reach the server'
+            : 'Updated ${relativeTime(effectiveSavedAt)}',
     };
     final icon = effectiveOffline
         ? Icons.cloud_off_rounded
@@ -112,11 +114,7 @@ class DataFreshnessBanner extends ConsumerWidget {
     return switch (style) {
       FreshnessStyle.jenkins => Padding(
         padding: padding,
-        child: InlineAlert(
-          icon: icon,
-          tone: StatusTone.neutral,
-          message: text,
-        ),
+        child: InlineAlert(icon: icon, tone: StatusTone.neutral, message: text),
       ),
       FreshnessStyle.sonarqube => Semantics(
         label: text,

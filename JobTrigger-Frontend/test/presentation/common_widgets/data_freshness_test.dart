@@ -12,8 +12,10 @@ void main() {
     test('starts empty and offline false', () {
       final c = ProviderContainer();
       addTearDown(c.dispose);
-      expect(c.read(dataFreshnessNotifierProvider('a')),
-          (savedAt: null, offline: false));
+      expect(c.read(dataFreshnessNotifierProvider('a')), (
+        savedAt: null,
+        offline: false,
+      ));
     });
 
     test('markLoaded records the time and clears offline', () {
@@ -21,8 +23,10 @@ void main() {
       addTearDown(c.dispose);
       final at = DateTime.now().subtract(const Duration(minutes: 2));
       c.read(dataFreshnessNotifierProvider('a').notifier).markLoaded(at);
-      expect(c.read(dataFreshnessNotifierProvider('a')),
-          (savedAt: at, offline: false));
+      expect(c.read(dataFreshnessNotifierProvider('a')), (
+        savedAt: at,
+        offline: false,
+      ));
     });
 
     test('markOffline records the saved time and sets offline', () {
@@ -30,16 +34,20 @@ void main() {
       addTearDown(c.dispose);
       final at = DateTime(2026, 1, 2, 3, 4);
       c.read(dataFreshnessNotifierProvider('a').notifier).markOffline(at);
-      expect(c.read(dataFreshnessNotifierProvider('a')),
-          (savedAt: at, offline: true));
+      expect(c.read(dataFreshnessNotifierProvider('a')), (
+        savedAt: at,
+        offline: true,
+      ));
     });
 
     test('keys are independent', () {
       final c = ProviderContainer();
       addTearDown(c.dispose);
       c.read(dataFreshnessNotifierProvider('a').notifier).markLoaded();
-      expect(c.read(dataFreshnessNotifierProvider('b')),
-          (savedAt: null, offline: false));
+      expect(c.read(dataFreshnessNotifierProvider('b')), (
+        savedAt: null,
+        offline: false,
+      ));
     });
   });
 
@@ -54,17 +62,17 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: c,
-          child: MaterialApp(theme: AppTheme.dark(), home: Scaffold(body: banner)),
+          child: MaterialApp(
+            theme: AppTheme.dark(),
+            home: Scaffold(body: banner),
+          ),
         ),
       );
       await tester.pumpAndSettle();
     }
 
     testWidgets('renders nothing before any data is recorded', (tester) async {
-      await pumpBanner(
-        tester,
-        const DataFreshnessBanner(freshnessKey: 'home'),
-      );
+      await pumpBanner(tester, const DataFreshnessBanner(freshnessKey: 'home'));
       expect(find.byType(DataFreshnessBanner), findsOneWidget);
       expect(find.textContaining('Updated'), findsNothing);
     });
@@ -81,21 +89,27 @@ void main() {
       expect(find.byIcon(Icons.cloud_off_rounded), findsNothing);
     });
 
-    testWidgets('an offline fallback names the saved time and uses the cloud-off icon', (
+    testWidgets(
+      'an offline fallback names the saved time and uses the cloud-off icon',
+      (tester) async {
+        await pumpBanner(
+          tester,
+          DataFreshnessBanner(
+            savedAt: DateTime(2026, 1, 2, 3, 4),
+            offline: true,
+          ),
+        );
+        expect(
+          find.textContaining('Offline — showing data from 03:04'),
+          findsOneWidget,
+        );
+        expect(find.byIcon(Icons.cloud_off_rounded), findsOneWidget);
+      },
+    );
+
+    testWidgets('the SonarQube style keeps its long-standing copy', (
       tester,
     ) async {
-      await pumpBanner(
-        tester,
-        DataFreshnessBanner(
-          savedAt: DateTime(2026, 1, 2, 3, 4),
-          offline: true,
-        ),
-      );
-      expect(find.textContaining('Offline — showing data from 03:04'), findsOneWidget);
-      expect(find.byIcon(Icons.cloud_off_rounded), findsOneWidget);
-    });
-
-    testWidgets('the SonarQube style keeps its long-standing copy', (tester) async {
       await pumpBanner(
         tester,
         DataFreshnessBanner(
@@ -104,26 +118,23 @@ void main() {
           offline: true,
         ),
       );
-      expect(
-        find.textContaining('can\'t reach the server'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('can\'t reach the server'), findsOneWidget);
       expect(find.textContaining('2h ago'), findsOneWidget);
     });
 
-    testWidgets('showOffline false hides only the offline message', (tester) async {
+    testWidgets('showOffline false hides only the offline message', (
+      tester,
+    ) async {
       final c = ProviderContainer();
       addTearDown(c.dispose);
       await pumpBanner(
         tester,
-        const DataFreshnessBanner(
-          freshnessKey: 'home',
-          showOffline: false,
-        ),
+        const DataFreshnessBanner(freshnessKey: 'home', showOffline: false),
         container: c,
       );
       // An offline state that a more specific banner owns elsewhere.
-      c.read(dataFreshnessNotifierProvider('home').notifier)
+      c
+          .read(dataFreshnessNotifierProvider('home').notifier)
           .markOffline(DateTime.now());
       await tester.pumpAndSettle();
       expect(find.textContaining('Offline'), findsNothing);

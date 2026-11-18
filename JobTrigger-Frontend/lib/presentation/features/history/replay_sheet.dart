@@ -46,12 +46,11 @@ class _ReplaySheetState extends ConsumerState<ReplaySheet> {
   /// PI-02/IMP-24: read at tap time — the protection flag can change while
   /// the sheet is open.
   String? get _requiredPhrase =>
-      ref.read(serverSafetyNotifierProvider).isProtected(
-            SafetyTool.jenkins,
-            widget.job.url,
-          )
-          ? widget.job.label
-          : null;
+      ref
+          .read(serverSafetyNotifierProvider)
+          .isProtected(SafetyTool.jenkins, widget.job.url)
+      ? widget.job.label
+      : null;
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +66,8 @@ class _ReplaySheetState extends ConsumerState<ReplaySheet> {
     // require the typed job name when this job is protected.
     final safety = ref.watch(serverSafetyNotifierProvider);
     final activeServer = ref.watch(activeServerNotifierProvider);
-    final readOnly = activeServer != null &&
+    final readOnly =
+        activeServer != null &&
         safety.isReadOnly(SafetyTool.jenkins, activeServer.id);
 
     return SafeArea(

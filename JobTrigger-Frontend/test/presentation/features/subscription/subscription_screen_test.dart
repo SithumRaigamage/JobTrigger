@@ -26,8 +26,10 @@ Future<void> _pump(
   WidgetTester tester,
   SubscriptionSnapshot snapshot, {
   List<Uri>? opened,
+  Size size = const Size(800, 1600),
+  double textScale = 1,
 }) async {
-  tester.view.physicalSize = const Size(800, 1600);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   final router = GoRouter(
@@ -56,13 +58,32 @@ Future<void> _pump(
           return true;
         }),
       ],
-      child: MaterialApp.router(theme: AppTheme.dark(), routerConfig: router),
+      child: MaterialApp.router(
+        theme: AppTheme.dark(),
+        routerConfig: router,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
+      ),
     ),
   );
   await tester.pumpAndSettle();
 }
 
 void main() {
+  testWidgets('subscription card fits a 320pt layout at 200% text', (
+    tester,
+  ) async {
+    await _pump(tester, freeSnapshot, size: const Size(320, 800), textScale: 2);
+
+    expect(find.text('Subscription'), findsOneWidget);
+    expect(find.text('Free'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Free: names the plan and offers Upgrade and Restore', (
     tester,
   ) async {

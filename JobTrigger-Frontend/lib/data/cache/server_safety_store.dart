@@ -68,11 +68,7 @@ class ServerSafetyNotifier extends _$ServerSafetyNotifier {
     await _persist(next);
   }
 
-  Future<void> setProtected(
-    SafetyTool tool,
-    String jobKey,
-    bool value,
-  ) async {
+  Future<void> setProtected(SafetyTool tool, String jobKey, bool value) async {
     final next = state.withProtected(tool, jobKey, value);
     await _persist(next);
   }

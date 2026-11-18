@@ -68,8 +68,7 @@ class _ManageState extends ConsumerState<SonarQubeIssueManageCard> {
   bool get _readOnly {
     final safety = ref.read(serverSafetyNotifierProvider);
     final active = ref.read(activeSonarQubeCredentialNotifierProvider);
-    return active != null &&
-        safety.isReadOnly(SafetyTool.sonarqube, active.id);
+    return active != null && safety.isReadOnly(SafetyTool.sonarqube, active.id);
   }
 
   /// Runs [change] once the user has confirmed, then refreshes from the
@@ -193,7 +192,8 @@ class _ManageState extends ConsumerState<SonarQubeIssueManageCard> {
     final activeCredential = ref.watch(
       activeSonarQubeCredentialNotifierProvider,
     );
-    final readOnly = activeCredential != null &&
+    final readOnly =
+        activeCredential != null &&
         safety.isReadOnly(SafetyTool.sonarqube, activeCredential.id);
 
     return Column(

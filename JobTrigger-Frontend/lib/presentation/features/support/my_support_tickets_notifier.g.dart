@@ -41,7 +41,7 @@ final class MySupportTicketsNotifierProvider
 }
 
 String _$mySupportTicketsNotifierHash() =>
-    r'3e7116a171b8e8c6312b18c1a735fd7713bef9e4';
+    r'ec26a373a003b8c5ad5e9177d17ba04d9adeb680';
 
 /// P25-05: the caller's own reports (`GET /api/support/tickets`), newest
 /// first, so the Support screen can show whether an earlier report was seen.
