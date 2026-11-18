@@ -65,3 +65,8 @@ time.
       the new server would be refused by AUD-45 host pinning. `flutter analyze`
       is clean and the whole `flutter test` suite passes (1712 tests). Visual
       check on the iPhone was not run from here.
+- [x] P24-06 **All tool screens used iOS elastic overscroll, allowing the
+      screen to move upward or downward and expose unwanted empty space.**
+      `AppScrollBehavior` now applies `ClampingScrollPhysics` and removes the
+      overscroll indicator app-wide, so Jenkins, GitHub Actions, SonarQube,
+      Profile, Settings and drill-down screens stop at their scroll bounds.

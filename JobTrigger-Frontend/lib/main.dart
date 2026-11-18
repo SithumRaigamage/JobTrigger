@@ -98,6 +98,7 @@ class MyApp extends ConsumerWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,
+      scrollBehavior: AppTheme.scrollBehavior(),
       routerConfig: router,
       // US-JX-21: the lock covers everything, toasts included.
       builder: (context, child) => AppLockGate(
