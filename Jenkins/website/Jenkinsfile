@@ -257,10 +257,13 @@ EOF
 // off: it fails under amd64 emulation and a CI build doesn't need it.
 def flutter(String script) {
     inContainer(env.FLUTTER_IMAGE, """
-        mkdir -p "\$HOME/.gradle"
+        # Gradle (Java) takes its home from the passwd entry, not \$HOME: in this
+        # image uid 1000 is `ubuntu`, so without this it reads /home/ubuntu/.gradle.
+        export GRADLE_USER_HOME="\$HOME/.gradle"
+        mkdir -p "\$GRADLE_USER_HOME"
         printf '%s\\n' \\
           'org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError' \\
-          'org.gradle.vfs.watch=false' > "\$HOME/.gradle/gradle.properties"
+          'org.gradle.vfs.watch=false' > "\$GRADLE_USER_HOME/gradle.properties"
         cd JobTrigger-Frontend
         ${script}
     """, '--platform linux/amd64')
