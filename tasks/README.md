@@ -46,6 +46,7 @@ truth for individual task status.
 | 23 — Suggested first ten (product improvements) | `phase-23-product-improvements.md` | development-complete 2026-11-17: PI-01/02 safety, PI-03/04 connectivity, PI-05/06 freshness/status, PI-07 notifications, PI-08/09/10 first-run/tokens/what's new. Five batches, verified and committed | Public release |
 | 24 — SonarQube Overview + Profile version fixes (epic FIX-2) | `phase-24-sonarqube-ui-fixes.md` | done 2026-11-18 (P24-01..06): credential selector chip, Overview design alignment, Profile version footer, dev-only billing preview flag, shared server/credential header on all tool screens, app-wide clamped overscroll | none — P24-05 and P24-06 visual checks are still MANUAL |
 | 25 — Support and issue tickets | `phase-25-support-feedback.md` | development-complete 2026-11-18 (P25-01..06): backend tickets + owner triage, in-app Support screen with diagnostics, website copy, tests and docs. iPhone pass open (`manually/M-18`) | Public release |
+| 26 — Session continuity and pre-trigger polish | `phase-26-polish.md` | planned 2026-11-19, owner-approved: P26-01…04 (IMP-157 last-looked card, IMP-160 duration estimate, IMP-158 deploy-watch mode, IMP-163 runbook link). No backend, no new packages, Jenkins untouched. Sources: `docs/product-improvements.md` §Z | **Release 1.1.0** — starts after the `v1.0.0` tag, not in 1.0.0 |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." Every
