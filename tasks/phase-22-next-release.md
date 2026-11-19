@@ -59,7 +59,7 @@ anything only checkable on a real iPhone marked **UNVERIFIED**.
 - [x] NR-05 **Analytics events** (P20-30, 2026-11-16): the site sends
       `signup`, `server_added`, `pricing_view` and `limit_hit` (with the
       backend's `limit`). The app sends none, by the owner decision in
-      `docs/subscription/04-email-and-analytics.md` §4.2, so its rows in the
+      `docs/configuration.md` §4.2, so its rows in the
       catalogue are unsent on purpose.
 - [x] NR-06 **Server push — backend half** (2026-11-16). `DeviceToken`
       model, `POST /api/devices` and `DELETE /api/devices/:token`

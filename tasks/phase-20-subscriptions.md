@@ -69,7 +69,7 @@ task where a track is large). Commits reference the task id, e.g.
 - [x] P20-01 Analytics tool: **Umami**, self-hosted in the DevOps lab
       (`analytics/`), events sent server-side / over HTTP, no SDK. Crash
       reporting (GlitchTip) stays a separate decision. Decided 2026-11-12;
-      plan in `docs/subscription/04-email-and-analytics.md`.
+      plan in `docs/configuration.md`.
 - [x] P20-02 Email: **Mailpit** for development (lab `mailpit/`),
       `nodemailer` over SMTP (needs approval); production provider chosen
       when the backend deploys. US-AUTH-08 password reset promoted as the
@@ -160,7 +160,7 @@ development-only `SANDBOX_BILLING` (refused in production).
 - [x] P20-30 (2026-11-16) Analytics events wired on the site: `signup`,
       `server_added`, `pricing_view` and `limit_hit` (with the backend's
       `limit`). The app sends none — the owner decision in
-      `docs/subscription/04-email-and-analytics.md` §4.2 — so the app-only
+      `docs/configuration.md` §4.2 — so the app-only
       rows (paywall view, purchase, restore) are unsent by design;
       purchase outcomes still come from the store webhooks.
 - [x] P20-31 (2026-11-16, PR D) `server/subscription-api.ts` + `PlanLimitFailure` copy in
@@ -203,9 +203,9 @@ development-only `SANDBOX_BILLING` (refused in production).
       RevenueCat/Paddle secrets (the website's `subscriptions` status and Pro CTA are already
       live in code), announce in the changelog.
 - [ ] P20-63 **MANUAL (owner, M-15):** After ~200 paywall views: review conversion and price
-      (business model §4, §7).
+      (`docs/subscription/docs/pricing.md`).
 
-## I. Email and analytics (plan: `docs/subscription/04-email-and-analytics.md`)
+## I. Email and analytics (plan: `docs/configuration.md`)
 
 Local development first (backend and stores on hold). Each item still
 needs its plan approved before code (CLAUDE.md §9).

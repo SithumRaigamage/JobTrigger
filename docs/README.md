@@ -45,7 +45,7 @@ Complete reference for the JobTrigger Flutter + Node.js project.
 
 ## 💳 Subscriptions
 
-- **[Subscription plan — 2026-11-12](./subscription/README.md)** — Workspace analysis, Free/Pro business model, technical design (backend plan checks, RevenueCat, app gates, website), stories (epic SUB) and Phase 20 tasks. Approved and built; billing is off until the stores and backend are configured
+- **[Subscription plan — 2026-11-12](./subscription/README.md)** — Free/Pro pricing, billing integration (backend plan checks, RevenueCat, app gates, website/Paddle checkout), sandbox testing, API reference and Phase 20 tasks. Approved and built; billing ships enabled in 1.0.0 once the store products, public RevenueCat keys and backend `BILLING_ENABLED=true` are configured
 - **[Improvement plan — implemented 2026-11-16](./implemented/improvement-plan.md)** — Archived record (checked against the code): what was built, the pre-release emergency fixes (`tasks/phase-emergency.md`), the next-release items now delivered, and the owner actions still open
 
 ## 🧭 Roadmap proposals (not promoted)

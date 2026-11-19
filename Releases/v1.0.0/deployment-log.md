@@ -1,14 +1,14 @@
 # Deployment Log — v1.0.0
 
 - **Version**: `1.0.0`
-- **Date**: 2026-11-18
-- **Base Commit SHA**: `ba8543b` (develop at the 2026-11-18 merge; re-confirm
+- **Date**: 2026-11-19
+- **Base Commit SHA**: `007910f` (develop at the 2026-11-19 audit; re-confirm
   the tag commit when cutting the release)
 
 > **Status: plan, not executed.** The values below are the intended
 > production configuration. Nothing here has been deployed or stored yet;
 > tick each step and replace placeholder secrets during the real
-> deployment. Checked 2026-11-17: neither `api.jobtrigger.app` nor
+> deployment. Checked 2026-11-19: neither `api.jobtrigger.app` nor
 > `jobtrigger.app` resolves, so no production deployment is live.
 
 ---
@@ -72,8 +72,8 @@ REVENUECAT_WEBHOOK_AUTH=<matching-secret-token>
   # secret API key. Unset or mismatched → checkout off.
   PADDLE_CLIENT_TOKEN=live_...
   PADDLE_ENV=production
-  # Crash reporting (E3): the real GlitchTip DSN is set here or in Vercel's dashboard.
-  SENTRY_DSN=https://<key>@<host>/<project-id>
+  # Crash reporting (E3): the website reads this exact name, in Vercel's dashboard.
+  NEXT_PUBLIC_SENTRY_DSN=https://<key>@<host>/<project-id>
   ```
 - **Token guides**: `docs/token-guides.md` — mirrors the in-app token wizards for Jenkins, GitHub and SonarQube.
 - **Post-Deploy Check**: `https://jobtrigger.app/changelog` renders the v1.0 release entry cleanly.

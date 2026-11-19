@@ -108,8 +108,8 @@ the merged `develop` build.
 | `docs/deployment.md` stale "artwork still open" corrected | this branch |
 | `docs/future-tools.md` T-072 "second release" corrected (SonarQube ships in 1.0) | this branch |
 | `docs/user-stories/shared/09-non-functional-security.md` NFR-SEC-06 marked implemented | this branch |
-| `docs/subscription/04-email-and-analytics.md` status corrected (built, not "waiting for approval") | this branch |
-| `docs/subscription/02-business-model.md` website checkout corrected (Paddle, built in Phase 20) | this branch |
+| `docs/configuration.md` status corrected (built, not "waiting for approval") | this branch |
+| `docs/subscription/docs/pricing.md` website checkout corrected (Paddle, built in Phase 20) | this branch |
 | `docs/market/competitive-analysis.md` GH/SQ/web rows refreshed | this branch |
 
 ---
@@ -280,7 +280,7 @@ Recorded so scope creep is visible, not to plan it.
 | Team plan / shared workspaces | `docs/subscription/` §10 | Phase 21+ |
 | Multi-account switching in the app | `tasks/backlog.md` | unscheduled |
 | iPad, Apple Watch, localisation, audit log, AI failure summaries, flaky-test detection | `docs/implemented/improvement-plan.md` "Later" | unscheduled |
-| Production email provider, ops `/metrics` dashboard, integration tests in CI, native crash handling | `docs/subscription/04`, `docs/integration-testing.md`, `docs/error-reporting.md` | post-1.0 |
+| Production email provider, ops `/metrics` dashboard, integration tests in CI, native crash handling | `docs/configuration.md`, `docs/integration-testing.md`, `docs/error-reporting.md` | post-1.0 |
 
 ---
 

@@ -1,7 +1,7 @@
 # Release Notes — v1.0.0
 
 - **Version**: `1.0.0`
-- **Release Date**: 2026-11-17
+- **Release Date**: TBD (store review and production deployment pending)
 - **Target Branch**: `main`
 - **Shipped Tools**: **Jenkins**, **SonarQube**, and **GitHub Actions** (as defined in `release/tools.json`)
 

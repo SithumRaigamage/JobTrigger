@@ -3,7 +3,7 @@
 A fifth real CI tool alongside Jenkins, GitHub Actions, GitLab CI (docs-only)
 and CircleCI (docs-only), proposed 2026-11-14. Azure DevOps is the default
 CI/CD platform in a large share of enterprises and banks, which are the
-buyers `docs/subscription/02-business-model.md` targets for Pro. This is a
+buyers `docs/subscription/docs/pricing.md` targets for Pro. This is a
 **BA deliverable, not an implementation plan** (per `CLAUDE.md` §9 and this
 story set's own README): no code lands against this epic, no new `CiTool`
 value or `isAvailable` flip, until it is separately promoted into an active
