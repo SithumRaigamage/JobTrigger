@@ -46,6 +46,19 @@ Everything below is outstanding unless it appears under **Already done**.
 These were completed in this workspace and are recorded here so the plan does
 not re-open them.
 
+### 2026-11-19, billing closeout audit and gate fixes
+
+An audit of `subscription/billling` found its last three commits unmerged and
+outside CI, plus four red gates. **PR #147** fixes them: `dart format` and
+Prettier over the touched files, the pricing e2e specs updated for the
+billing-enabled decision, the `B12` reveal-token flake, and a reworded Paddle
+placeholder with a reasoned gitleaks fingerprint. Re-verified on the branch:
+`flutter analyze` clean; `flutter test` 1,733 passed / 29 skipped; backend 429
+passing and 0 runtime advisories; website `npm run check` (481 tests and the
+production build); `npm run e2e` 202 passed; `gitleaks` clean on the branch and
+on `develop`; tools manifest synced. The owner steps (keys, deployment,
+stores, device checks) are unchanged.
+
 ### 2026-11-18, release engineering closeout
 
 The user confirmed PR #144 is merged. PR #145 is open from this closeout
