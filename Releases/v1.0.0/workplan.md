@@ -56,8 +56,17 @@ placeholder with a reasoned gitleaks fingerprint. Re-verified on the branch:
 `flutter analyze` clean; `flutter test` 1,733 passed / 29 skipped; backend 429
 passing and 0 runtime advisories; website `npm run check` (481 tests and the
 production build); `npm run e2e` 202 passed; `gitleaks` clean on the branch and
-on `develop`; tools manifest synced. The owner steps (keys, deployment,
-stores, device checks) are unchanged.
+on `develop`; tools manifest synced.
+
+PR #147 also needed a fifth fix: CI's generated-code gate rejected three stale
+`.g.dart` files (the RevenueCat provider's doc comment and two provider
+hashes), so `build_runner` was re-run and committed. All nine required checks
+passed on the PR, and it merged into `develop` as **`1e589cb`**. The merged
+result was re-verified: `flutter analyze` clean, formatting clean,
+`build_runner` wrote 0 outputs, 1,733 Flutter tests passed / 29 skipped, 429
+backend tests with 0 advisories, website `npm run check` plus 202 e2e tests
+passed, and `gitleaks` scanned 508 commits with no leaks. The owner steps
+(keys, deployment, stores, device checks) are unchanged.
 
 ### 2026-11-18, release engineering closeout
 
