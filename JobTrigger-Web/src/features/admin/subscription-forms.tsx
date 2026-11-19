@@ -4,22 +4,12 @@ import { useActionState } from "react";
 
 import { Notice, SubmitButton } from "@/components/form";
 
-import {
-  grantPlanAction,
-  revokePlanAction,
-  type PlanActionState,
-} from "./subscription-actions";
+import { grantPlanAction, revokePlanAction, type PlanActionState } from "./subscription-actions";
 
 /** Grant Pro (bounded or open-ended) and revoke the grant, for one account. */
 export function PlanAdminForms({ userId }: { userId: string }) {
-  const [grantState, grant, granting] = useActionState(
-    grantPlanAction,
-    {} as PlanActionState,
-  );
-  const [revokeState, revoke, revoking] = useActionState(
-    revokePlanAction,
-    {} as PlanActionState,
-  );
+  const [grantState, grant, granting] = useActionState(grantPlanAction, {} as PlanActionState);
+  const [revokeState, revoke, revoking] = useActionState(revokePlanAction, {} as PlanActionState);
   const daysId = `days-${userId}`;
 
   return (

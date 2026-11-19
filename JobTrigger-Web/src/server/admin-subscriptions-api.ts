@@ -48,17 +48,16 @@ const billingSource = z
   })
   .nullable()
   .catch(null)
-  .transform(
-    (value): AdminBillingSource | null =>
-      value === null
-        ? null
-        : {
-            plan: value.plan,
-            state: value.status,
-            source: value.source,
-            periodEnd: value.periodEnd,
-            willRenew: value.willRenew,
-          },
+  .transform((value): AdminBillingSource | null =>
+    value === null
+      ? null
+      : {
+          plan: value.plan,
+          state: value.status,
+          source: value.source,
+          periodEnd: value.periodEnd,
+          willRenew: value.willRenew,
+        },
   );
 
 const item = z
@@ -80,19 +79,17 @@ const item = z
       .catch({ store: null, web: null, grant: null, student: null }),
     createdAt: z.string().nullable().catch(null),
   })
-  .transform(
-    (value): AdminSubscription => ({
-      userId: value.userId,
-      email: value.email,
-      plan: value.plan,
-      state: value.status,
-      source: value.source,
-      periodEnd: value.periodEnd,
-      willRenew: value.willRenew,
-      sources: value.sources,
-      createdAt: value.createdAt,
-    }),
-  );
+  .transform((value): AdminSubscription => ({
+    userId: value.userId,
+    email: value.email,
+    plan: value.plan,
+    state: value.status,
+    source: value.source,
+    periodEnd: value.periodEnd,
+    willRenew: value.willRenew,
+    sources: value.sources,
+    createdAt: value.createdAt,
+  }));
 
 const list = z.object({ items: z.array(item) });
 

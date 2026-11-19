@@ -52,21 +52,21 @@ void main() {
     expect(adapter.requests, isEmpty);
   });
 
-  test('a yearly purchase asks the backend sandbox for a yearly plan', () async {
-    final adapter = _Adapter();
-    final client = _client(adapter);
-    final offers = await client.offerings();
+  test(
+    'a yearly purchase asks the backend sandbox for a yearly plan',
+    () async {
+      final adapter = _Adapter();
+      final client = _client(adapter);
+      final offers = await client.offerings();
 
-    await client.purchase(offers.last);
+      await client.purchase(offers.last);
 
-    final (path, body) = adapter.requests.single;
-    expect(path, '/api/billing/sandbox/purchase');
-    expect(body, containsPair('period', 'yearly'));
-    expect(
-      body,
-      containsPair('platform', anyOf('play_store', 'app_store')),
-    );
-  });
+      final (path, body) = adapter.requests.single;
+      expect(path, '/api/billing/sandbox/purchase');
+      expect(body, containsPair('period', 'yearly'));
+      expect(body, containsPair('platform', anyOf('play_store', 'app_store')));
+    },
+  );
 
   test('cancel, resubscribe and expire each call their own route', () async {
     final adapter = _Adapter();

@@ -308,7 +308,10 @@ void main() {
     final repo = FakeSubscriptionRepository(loadResult: Ok(cancelled));
     await pumpPaywall(tester, repo);
 
-    expect(find.textContaining('Your Pro stays until the end date'), findsOneWidget);
+    expect(
+      find.textContaining('Your Pro stays until the end date'),
+      findsOneWidget,
+    );
     expect(find.text('Monthly'), findsOneWidget);
     expect(find.text('Start 7-day free trial'), findsOneWidget);
     expect(find.text('You already have Pro.'), findsNothing);

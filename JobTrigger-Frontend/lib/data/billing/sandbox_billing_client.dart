@@ -46,15 +46,13 @@ class SandboxBillingClient implements BillingClient, SandboxBilling {
   Future<List<BillingOffer>> offerings() async => const [_monthly, _yearly];
 
   @override
-  Future<void> purchase(BillingOffer offer) => _post(
-    '/api/billing/sandbox/purchase',
-    {
-      'period': offer.period == BillingPeriod.yearly ? 'yearly' : 'monthly',
-      'platform': defaultTargetPlatform == TargetPlatform.iOS
-          ? 'app_store'
-          : 'play_store',
-    },
-  );
+  Future<void> purchase(BillingOffer offer) =>
+      _post('/api/billing/sandbox/purchase', {
+        'period': offer.period == BillingPeriod.yearly ? 'yearly' : 'monthly',
+        'platform': defaultTargetPlatform == TargetPlatform.iOS
+            ? 'app_store'
+            : 'play_store',
+      });
 
   /// Nothing to restore in a sandbox: the backend already has the plan, and
   /// the screen refreshes it.
@@ -66,8 +64,7 @@ class SandboxBillingClient implements BillingClient, SandboxBilling {
       _post('/api/billing/sandbox/cancel', null);
 
   @override
-  Future<void> resubscribe() =>
-      _post('/api/billing/sandbox/resubscribe', null);
+  Future<void> resubscribe() => _post('/api/billing/sandbox/resubscribe', null);
 
   @override
   Future<void> expireNow() => _post('/api/billing/sandbox/expire', null);

@@ -83,7 +83,12 @@ export function SubscriptionsView({
           </Link>
         ))}
       </nav>
-      <form action="/admin/subscriptions" method="get" role="search" className="flex flex-wrap gap-2">
+      <form
+        action="/admin/subscriptions"
+        method="get"
+        role="search"
+        className="flex flex-wrap gap-2"
+      >
         <input type="hidden" name="plan" value={plan} />
         <label htmlFor="subscription-search" className="sr-only">
           Search by account email

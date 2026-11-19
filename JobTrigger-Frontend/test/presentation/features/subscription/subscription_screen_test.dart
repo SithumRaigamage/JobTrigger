@@ -68,8 +68,7 @@ Future<void> _pump(
           FakeSubscriptionRepository(loadResult: Ok(snapshot)),
         ),
         billingClientProvider.overrideWithValue(FakeBillingClient()),
-        if (sandbox != null)
-          sandboxBillingProvider.overrideWithValue(sandbox),
+        if (sandbox != null) sandboxBillingProvider.overrideWithValue(sandbox),
         authNotifierProvider.overrideWith(_Auth.new),
         linkLauncherProvider.overrideWithValue((uri) async {
           opened?.add(uri);
@@ -188,7 +187,10 @@ void main() {
     );
 
     expect(find.text('Pro until'), findsOneWidget);
-    expect(find.textContaining("last payment didn't go through"), findsOneWidget);
+    expect(
+      find.textContaining("last payment didn't go through"),
+      findsOneWidget,
+    );
     expect(find.textContaining('Google Play'), findsWidgets);
     expect(find.text('Manage in the Google Play'), findsOneWidget);
   });
@@ -199,10 +201,7 @@ void main() {
     await _pump(tester, storeProSnapshot(), sandbox: sandbox);
 
     expect(find.text('Sandbox billing'), findsOneWidget);
-    expect(
-      find.textContaining('No payment is taken'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('No payment is taken'), findsOneWidget);
 
     await tester.tap(find.text('Cancel subscription'));
     await tester.pumpAndSettle();

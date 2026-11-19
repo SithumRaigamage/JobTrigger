@@ -111,7 +111,8 @@ export const features = {
     // Release 1.0.0 ships with billing enabled: the paywall and the website
     // Pro checkout are on sale once the store products and RevenueCat/Paddle
     // keys are configured. The Pro CTA is actionable in this release.
-    source: "Phase 20 built; billing enabled in 1.0.0 with the store listings and backend deployment",
+    source:
+      "Phase 20 built; billing enabled in 1.0.0 with the store listings and backend deployment",
   },
   "gitlab-ci": {
     label: "GitLab CI",

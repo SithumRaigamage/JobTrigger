@@ -110,9 +110,7 @@ class SubscriptionScreen extends ConsumerWidget {
                                     snapshot.status.willRenew)
                                   ListTile(
                                     key: const Key('sandbox_cancel'),
-                                    leading: const Icon(
-                                      Icons.cancel_outlined,
-                                    ),
+                                    leading: const Icon(Icons.cancel_outlined),
                                     title: const Text('Cancel subscription'),
                                     subtitle: const Text(
                                       'Pro stays until the period ends.',
