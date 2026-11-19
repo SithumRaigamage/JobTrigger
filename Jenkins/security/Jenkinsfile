@@ -117,8 +117,10 @@ pipeline {
                 script {
                     // Mark UNSTABLE on findings/tool issues, but keep build moving
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                        dockerTool('returntocorp/semgrep:1.89.0',
-                            "semgrep scan --config=auto --sarif --output ${SEMGREP_REPORT_NAME}")
+                        // --sarif --output exits 2 with no message on this repo
+                        // (semgrep's SARIF formatter); --sarif-output works.
+                        dockerTool('semgrep/semgrep:1.185.0',
+                            "semgrep scan --config=auto --sarif-output=${SEMGREP_REPORT_NAME}")
                     }
                 }
             }

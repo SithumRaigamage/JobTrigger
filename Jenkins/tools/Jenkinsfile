@@ -71,16 +71,17 @@ pipeline {
             }
         }
 
+        // Node 22 as in GitHub CI. The full (non-slim) image, because
+        // scripts/build-release.test.mjs runs build-release.sh, which needs python3.
         stage('Run manifest rules and copies') {
-            tools {
-                nodejs 'NODEJS'
-            }
             steps {
-                sh '''
-                    node --version && npm --version
-                    node --test scripts/*.test.mjs
-                    node scripts/sync-tools.mjs --check
-                '''
+                script {
+                    inContainer('node:22-bookworm', '''
+                        node --version && npm --version && python3 --version
+                        node --test scripts/*.test.mjs
+                        node scripts/sync-tools.mjs --check
+                    ''')
+                }
             }
         }
     }
