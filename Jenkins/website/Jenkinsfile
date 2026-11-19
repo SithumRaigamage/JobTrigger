@@ -1,0 +1,54 @@
+// Jenkins mirror of .github/workflows/website-ci.yml. Phase 27. The GitHub
+// workflow is the live CI; this Declarative pipeline is the Jenkins-side
+// mirror.
+
+pipeline {
+  agent any
+
+  options { timestamps() }
+
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Install dependencies') {
+      agent { docker { image = 'node:22-alpine' } }
+      steps { sh 'cd JobTrigger-Web && npm ci' }
+    }
+
+    stage('Audit runtime dependencies') {
+      agent { docker { image = 'node:22-alpine' } }
+      steps {
+        sh 'cd JobTrigger-Web && npm audit --omit=dev --audit-level=critical'
+      }
+    }
+
+    stage('Lint, types and formatting') {
+      agent { docker { image = 'node:22-alpine' } }
+      steps {
+        sh '''
+          cd JobTrigger-Web
+          npm run lint
+          npm run typecheck
+          npm run format:check
+        '''
+      }
+    }
+
+    stage('Unit tests') {
+      agent { docker { image = 'node:22-alpine' } }
+      steps { sh 'cd JobTrigger-Web && npm test' }
+    }
+
+    stage('Install the browser') {
+      agent { docker { image = 'node:22-alpine' } }
+      steps { sh 'cd JobTrigger-Web && npx playwright install --with-deps chromium' }
+    }
+
+    stage('End-to-end (all-tools build and release 1.0 smoke)') {
+      agent { docker { image = 'node:22-alpine' } }
+      steps { sh 'cd JobTrigger-Web && npm run e2e' }
+    }
+  }
+}

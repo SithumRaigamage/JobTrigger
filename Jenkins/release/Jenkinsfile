@@ -1,0 +1,26 @@
+// Jenkins mirror of .github/workflows/cd.yml (CD - Build Verification).
+// Phase 27. The GitHub workflow is the live CI; this Declarative pipeline is
+// the Jenkins-side mirror.
+
+pipeline {
+  agent any
+
+  options { timestamps() }
+
+  stages {
+    stage('Build Android APK (release, debug-signed)') {
+      agent { docker { image = 'ghcr.io/flutter/flutter:stable' } }
+      steps { sh './scripts/build-release.sh --allow-missing apk' }
+    }
+
+    stage('Build iOS (release, unsigned)') {
+      agent { label 'macos' }
+      steps { sh './scripts/build-release.sh --allow-missing --no-codesign ipa' }
+    }
+
+    stage('Build backend Docker image (no push)') {
+      agent { docker { image = 'docker:27' } }
+      steps { sh 'cd JobTrigger-Backend && docker build -t jobtrigger-backend:ci .' }
+    }
+  }
+}

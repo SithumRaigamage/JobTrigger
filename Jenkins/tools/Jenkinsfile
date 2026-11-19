@@ -1,0 +1,30 @@
+// Jenkins mirror of .github/workflows/tools-manifest.yml. Phase 27. The GitHub
+// workflow is the live CI; this Declarative pipeline is the Jenkins-side
+// mirror.
+
+pipeline {
+  agent any
+
+  options { timestamps() }
+
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Use Node.js 22') {
+      agent { docker { image = 'node:22-alpine' } }
+      steps { sh 'node --version && npm --version' }
+    }
+
+    stage('Run manifest rules and copies') {
+      agent { docker { image = 'node:22-alpine' } }
+      steps {
+        sh '''
+          node --test scripts/*.test.mjs
+          node scripts/sync-tools.mjs --check
+        '''
+      }
+    }
+  }
+}

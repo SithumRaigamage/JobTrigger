@@ -1,0 +1,68 @@
+// Jenkins mirror of .github/workflows/flutter-ci.yml and the flutter job of
+// .github/workflows/cd.yml. Phase 27. The GitHub workflow is the live CI; this
+// Declarative pipeline is the Jenkins-side mirror.
+
+pipeline {
+  agent any
+
+  options { timestamps() }
+
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Verify release manifest declares INTERNET') {
+      steps {
+        sh 'grep -q "android.permission.INTERNET" JobTrigger-Frontend/android/app/src/main/AndroidManifest.xml'
+      }
+    }
+
+    stage('Verify release builds pass a config') {
+      steps {
+        sh '! grep -E "flutter build (apk|appbundle|ipa) --release" .github/workflows/cd.yml | grep -v -- "--dart-define-from-file="'
+      }
+    }
+
+    stage('Verify formatting') {
+      agent { docker { image = 'ghcr.io/flutter/flutter:stable' } }
+      steps { sh 'cd JobTrigger-Frontend && dart format --output=none --set-exit-if-changed .' }
+    }
+
+    stage('Analyze') {
+      agent { docker { image = 'ghcr.io/flutter/flutter:stable' } }
+      steps { sh 'cd JobTrigger-Frontend && flutter analyze' }
+    }
+
+    stage('Verify generated code is up to date') {
+      agent { docker { image = 'ghcr.io/flutter/flutter:stable' } }
+      steps {
+        sh '''
+          cd JobTrigger-Frontend
+          dart run build_runner build --delete-conflicting-outputs
+          if [ -n "$(git status --porcelain -- lib test)" ]; then
+            git status --porcelain -- lib test
+            echo "::error::Generated code is stale: run build_runner and commit the result."
+            exit 1
+          fi
+        '''
+      }
+    }
+
+    stage('Run tests') {
+      agent { docker { image = 'ghcr.io/flutter/flutter:stable' } }
+      steps { sh 'cd JobTrigger-Frontend && flutter test --coverage' }
+    }
+
+    stage('Build debug APK') {
+      agent { docker { image = 'ghcr.io/flutter/flutter:stable' } }
+      steps { sh 'cd JobTrigger-Frontend && flutter build apk --debug' }
+    }
+
+    stage('Build iOS (debug, unsigned)') {
+      agent { label 'macos' }
+      when { branch 'develop' }
+      steps { sh 'cd JobTrigger-Frontend && flutter build ios --debug --no-codesign' }
+    }
+  }
+}

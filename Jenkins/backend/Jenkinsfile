@@ -1,0 +1,53 @@
+// Jenkins mirror of .github/workflows/nodejs-test.yml and the backend job of
+// .github/workflows/cd.yml (build backend image). Phase 27. The GitHub workflow
+// is the live CI; this Declarative pipeline is the Jenkins-side mirror.
+
+pipeline {
+  agent any
+
+  options { timestamps() }
+
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Install dependencies') {
+      agent { docker { image = 'node:22-alpine' } }
+      steps { sh 'cd JobTrigger-Backend && npm ci' }
+    }
+
+    stage('Audit dependencies') {
+      agent { docker { image = 'node:22-alpine' } }
+      steps { sh 'cd JobTrigger-Backend && npm audit --audit-level=high' }
+    }
+
+    stage('Run tests with coverage') {
+      agent { docker { image = 'node:22-alpine' } }
+      steps { sh 'cd JobTrigger-Backend && npm run test:coverage' }
+    }
+
+    stage('Upload coverage to Codecov') {
+      agent { docker { image = 'node:22-alpine' } }
+      steps {
+        withCredentials([string(credentialsId: 'codecov-token', variable: 'CODECOV_TOKEN')]) {
+          sh 'cd JobTrigger-Backend && npx --yes codecov --token "$CODECOV_TOKEN" --flags backend --file coverage/lcov.info'
+        }
+      }
+    }
+
+    stage('SonarCloud scan') {
+      agent { docker { image = 'sonar/sonar-scanner-cli:latest' } }
+      steps {
+        withSonarQubeEnv('sonar') {
+          sh 'sonar-scanner'
+        }
+      }
+    }
+
+    stage('Build backend Docker image') {
+      agent { docker { image = 'docker:27' } }
+      steps { sh 'cd JobTrigger-Backend && docker build -t jobtrigger-backend:ci .' }
+    }
+  }
+}
