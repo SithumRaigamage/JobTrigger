@@ -7,6 +7,14 @@ set -e
 # put the backend somewhere the iPhone could never reach.
 export PORT="${BACKEND_PORT:-5001}"
 
+# Local billing defaults: turn plans on and use the development sandbox
+# store, so subscribe → cancel → resubscribe can be tested without Apple,
+# Google, RevenueCat or a payment. Exported here (not written to .env), so
+# a one-off `BILLING_ENABLED=false ./setup-dev.sh` still works. The backend
+# refuses the sandbox when NODE_ENV=production.
+export BILLING_ENABLED="${BILLING_ENABLED:-true}"
+export SANDBOX_BILLING="${SANDBOX_BILLING:-true}"
+
 # Colors for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'

@@ -63,11 +63,14 @@ Restart the backend. `GET /api/subscription` should now show
 
 ## Part B — Run the app with real sandbox purchases
 
-### iPhone (profile build)
+### iPhone
 ```bash
-REVENUECAT_IOS_KEY=app_<your public iOS key> scripts/run-on-iphone.sh
+MODE=profile REVENUECAT_IOS_KEY=app_<your public iOS key> \
+  scripts/run-on-iphone.sh
 ```
-Passing the key turns preview mode off automatically. Then:
+Passing the key turns preview mode **and the local sandbox store** off
+automatically, because `environment.conf` enables `SANDBOX_BILLING=1` for
+ordinary development runs. Then:
 1. Sign out of any real Apple ID on the phone; sign in with the **Sandbox Tester**
    from step 5 when the purchase sheet asks (App Store sign-in prompt).
 2. Log in as `tester@jobtrigger.app` / `TesterPass123!` (Free).
@@ -100,7 +103,13 @@ can exercise the whole billing flow against a local sandbox store. Nothing
 is charged, no provider is contacted, and the backend writes the same
 `store` source a real purchase would.
 
-1. Backend (`JobTrigger-Backend`), then restart it:
+1. Backend (`JobTrigger-Backend`), from the repository root:
+
+   ```bash
+   ./setup-dev.sh   # exports PORT=5001 BILLING_ENABLED=true SANDBOX_BILLING=true
+   ```
+
+   Or run it directly with the same flags:
 
    ```bash
    PORT=5001 BILLING_ENABLED=true SANDBOX_BILLING=true npm run dev
@@ -109,13 +118,17 @@ is charged, no provider is contacted, and the backend writes the same
    `SANDBOX_BILLING` is refused in production, and the routes answer 404
    unless it is on.
 
-2. App, pointing at the backend:
+2. App, pointing at the backend. The committed `environment.conf` already
+   sets `SANDBOX_BILLING=1`, so the plain launcher is enough:
 
    ```bash
-   SANDBOX_BILLING=1 scripts/run-flutter.sh --target=android-device
-   # or, on the iPhone:
-   SANDBOX_BILLING=1 scripts/run-on-iphone.sh
+   scripts/run-on-iphone.sh
+   # or another target:
+   scripts/run-flutter.sh --target=android-device
    ```
+
+   Pass the flag explicitly to override a shell value:
+   `SANDBOX_BILLING=1 scripts/run-flutter.sh --target=android-device`.
 
 3. Sign in as `tester@jobtrigger.app` / `TesterPass123!`. Profile →
    Subscription: the paywall says **Sandbox mode**, both plans offer the

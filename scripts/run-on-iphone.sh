@@ -23,6 +23,9 @@
 #   DEVICE="Sithum's iPhone"    the iPhone's name or id (`flutter devices`)
 #   MODE=debug                  debug instead of profile (profile keeps
 #                               working after you unplug the cable)
+#   MODE=install                build profile, install and launch without
+#                               attaching Flutter tooling (most reliable;
+#                               no "Lost connection to device")
 #   DEVICE_NETWORK=tailscale    use the Mac's Tailscale IPv4 address
 #   SKIP_BACKEND_CHECK=1        don't check the backend first
 set -euo pipefail
@@ -141,6 +144,11 @@ if [ "${SANDBOX_BILLING:-0}" = "1" ]; then
   sandbox_line=$',\n  "SANDBOX_BILLING": "true"'
   billing_preview_line=""
 fi
+# A real store key means real App Store sandbox purchases. The local
+# simulator would bypass RevenueCat, so the key wins over SANDBOX_BILLING.
+if [ -n "$revenuecat_ios_key" ]; then
+  sandbox_line=""
+fi
 cat >"$CONFIG" <<EOF
 {
   "ENVIRONMENT": "dev",
@@ -204,11 +212,98 @@ for d in devices:
   fi
 fi
 
+# iOS kills an app launch (SIGKILL) while the phone is locked. The build and
+# wireless install take long enough to auto-lock, which then looks like a
+# failure. Wait for the owner to unlock rather than failing the run.
+wait_for_unlock() {
+  command -v xcrun >/dev/null 2>&1 || return 0
+  phone_locked() {
+    xcrun devicectl device info lockState --device "$device" 2>/dev/null |
+      grep -q 'passcodeRequired: true'
+  }
+  phone_locked || return 0
+  echo "⏳ The iPhone is locked. Unlock it now and keep it awake"
+  echo "   (Settings → Display & Brightness → Auto-Lock → Never)."
+  echo "   Waiting up to 2 minutes for the unlock…"
+  waited=0
+  while phone_locked && [ "$waited" -lt 120 ]; do
+    sleep 2
+    waited=$((waited + 2))
+  done
+  if phone_locked; then
+    fail "The iPhone is still locked. Unlock it, set Auto-Lock to Never, then run again. A locked phone makes iOS kill the launch."
+  fi
+  echo "✓ iPhone unlocked"
+}
+
+wait_for_unlock
+
+# A second build sharing Xcode's build database is the usual cause of
+# "accessing build database … disk I/O error".
+if pgrep -f 'flutter_tools.snapshot run' >/dev/null 2>&1; then
+  fail "Another 'flutter run' is still active. Press q there, then run again — two builds share Xcode's build.db."
+fi
+
+# SQLite's build database occasionally gets left in a state Xcode reports as
+# a disk I/O error. Only its own cache is removed; a source error is left alone.
+clear_xcode_build_db() {
+  local dir db
+  for dir in "$HOME"/Library/Developer/Xcode/DerivedData/Runner-*; do
+    [ -d "$dir" ] || continue
+    db="$dir/Build/Intermediates.noindex/XCBuildData/build.db"
+    if [ -f "$db" ]; then rm -f "$db" "$db-wal" "$db-shm"; fi
+  done
+}
+
+if command -v sqlite3 >/dev/null 2>&1; then
+  for dir in "$HOME"/Library/Developer/Xcode/DerivedData/Runner-*; do
+    [ -d "$dir" ] || continue
+    db="$dir/Build/Intermediates.noindex/XCBuildData/build.db"
+    [ -f "$db" ] || continue
+    if ! sqlite3 "$db" 'PRAGMA quick_check;' 2>/dev/null | grep -qx 'ok'; then
+      echo "✓ Repairing a corrupt Xcode build database"
+      rm -f "$db" "$db-wal" "$db-shm"
+    fi
+  done
+fi
+
 mode="${MODE:-profile}"
 case "$mode" in
-  debug | profile) ;;
-  *) fail "MODE must be debug or profile (release refuses an http backend, AUD-43)." ;;
+  debug | profile | install) ;;
+  *) fail "MODE must be debug, profile or install (release refuses an http backend, AUD-43)." ;;
 esac
+
+if [ "$mode" = "install" ]; then
+  echo "▶ Building profile and installing on the iPhone (no debugger attached)"
+  cd "$APP"
+  build_log="$(mktemp)"
+  if ! flutter build ios --profile \
+      --dart-define-from-file=config/device.json 2>&1 | tee "$build_log"; then
+    if grep -q 'accessing build database' "$build_log"; then
+      echo "✓ Clearing Xcode's build database and retrying once"
+      clear_xcode_build_db
+      flutter build ios --profile \
+        --dart-define-from-file=config/device.json ||
+        fail "The profile build failed twice. See the output above."
+    else
+      rm -f "$build_log"
+      fail "The profile build failed. See the output above."
+    fi
+  fi
+  rm -f "$build_log"
+  app_path="$APP/build/ios/iphoneos/Runner.app"
+  [ -d "$app_path" ] || fail "The build produced no Runner.app at $app_path."
+  wait_for_unlock   # The 1–2 minute build can let the phone auto-lock.
+  xcrun devicectl device install app --device "$device" "$app_path" ||
+    fail "Installing on the iPhone failed. Unlock it and try again."
+  xcrun devicectl device process launch \
+    --device "$device" Sraig.Lab-Trigger-frontend ||
+    fail "The app installed but could not be launched. Unlock the iPhone and try again."
+  echo "✓ JobTrigger launched. It keeps running without Flutter tooling."
+  exit 0
+fi
+
+wait_for_unlock
 
 echo "▶ flutter run --$mode on the iPhone"
 cd "$APP"

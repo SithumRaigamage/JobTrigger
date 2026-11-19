@@ -67,7 +67,10 @@ Apple, Google or RevenueCat account. The launchers write it when you pass
 SANDBOX_BILLING=1 scripts/run-flutter.sh --target=android-device
 ```
 
-The backend must also run with `BILLING_ENABLED=true SANDBOX_BILLING=true`.
+The committed root `environment.conf` sets `SANDBOX_BILLING=1`, so local
+launchers enable this by default; override with `SANDBOX_BILLING=0`. The
+backend must also run with `BILLING_ENABLED=true SANDBOX_BILLING=true`
+(`setup-dev.sh` exports both).
 `AppConfig` ignores the flag in release builds, and the backend answers 404
 for the sandbox routes in production, so it can never ship.
 

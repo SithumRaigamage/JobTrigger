@@ -109,13 +109,21 @@ This blocks the terminal running the backend in watch mode — leave it
 running and use a new terminal tab for the steps that follow. Stop it later
 with `Ctrl+C`.
 
+`setup-dev.sh` binds the backend to **5001** and starts it with
+`BILLING_ENABLED=true SANDBOX_BILLING=true`, so local subscribe/cancel tests
+need no store account or payment. The iPhone launcher's defaults
+(`MODE=profile`, `USE_IP=1`, `SANDBOX_BILLING=1`) live in
+[`environment.conf`](environment.conf) and can be overridden per run. Use
+`MODE=install` for a build that opens from the home screen; debug builds can
+only be launched while Flutter is attached.
+
 **Option B — manual steps:**
 
 ```bash
 # MONGODB_URI in JobTrigger-Backend/.env points at Atlas
 cd JobTrigger-Backend
 npm install
-npm run dev
+PORT=5001 BILLING_ENABLED=true SANDBOX_BILLING=true npm run dev
 ```
 
 The backend listens on port `5001` on all local interfaces. Confirm it is up
@@ -212,7 +220,10 @@ flutter test      # run the unit/widget test suite
 | `tester@jobtrigger.app` | `TesterPass123!` | Free tester: buy, cancel and resubscribe |
 
 The tester is created by `node scripts/ensure-test-accounts.js` (or the full
-seed below). It starts on Free and is never granted Pro.
+seed below). It starts on Free and is never granted Pro. The seeded sample
+Jenkins, GitHub and SonarQube servers belong to **`developer@jobtrigger.app`**;
+the tester starts with **no servers** (it exists for Free-plan purchase tests).
+Sign in as the developer account to see the seeded data.
 
 If your local/cloud MongoDB is empty (e.g. fresh clone or a wiped database),
 this account won't exist yet — sign up with any email/password from the

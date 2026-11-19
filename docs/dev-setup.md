@@ -107,6 +107,8 @@ npm run dev:portal
 
 Open <http://localhost:3000/sign-in> and sign in with the seeded dev
 account (`developer@jobtrigger.app` / `SecurePassword123!`) or your own.
+The seeded sample Jenkins, GitHub and SonarQube servers are owned by the
+developer account; the Free tester account starts with none.
 Anything you add appears in the app too: both read the same Atlas data.
 
 `dev:portal` fills the two portal settings unless your shell already sets
@@ -195,7 +197,11 @@ how to reach a Jenkins running on this Mac from the phone.
 
 The full list — backend, app build config, website, billing modes and
 production values — is in **[configuration.md](./configuration.md)**. The
-short version for local work:
+short version for local work. The device launchers also read the committed
+[`environment.conf`](../environment.conf): `MODE=profile`, `USE_IP=1` and
+`SANDBOX_BILLING=1` by default, each overridable per run. Use `MODE=install`
+for a build that opens from the home screen (debug builds need Flutter
+attached).
 
 **`JobTrigger-Backend/.env`** controls backend behavior:
 
@@ -203,8 +209,12 @@ short version for local work:
 # MongoDB Atlas dev cluster (docs/mongodb-cloud-setup.md)
 MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.<id>.mongodb.net/jobtrigger
 
-# Server port
+# Server port (setup-dev.sh exports this)
 PORT=5001
+
+# Local sandbox billing (setup-dev.sh exports these defaults)
+BILLING_ENABLED=true
+SANDBOX_BILLING=true
 
 # JWT secret for auth tokens
 JWT_SECRET=supersecretjwtkey_123456

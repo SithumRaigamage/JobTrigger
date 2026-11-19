@@ -14,6 +14,7 @@ for the full scenario list see [`subscription/coverage.md`](subscription/coverag
 | `JobTrigger-Frontend/config/device.json` | **No** | App on a physical device | No |
 | `JobTrigger-Frontend/config/billing.json` | **No** | Release build (RevenueCat public keys) | No |
 | `JobTrigger-Frontend/config/sentry.json` | **No** | Release build (app DSN) | No (write-only key) |
+| `environment.conf` | Yes | Local launchers (`run-on-iphone.sh`, `run-flutter.sh`) | No |
 | Hosting environment variables | No | Backend (Render), website (Vercel) | **Yes** |
 
 Rules:
@@ -174,13 +175,26 @@ PADDLE_PRICE_YEARLY=pri_...
 PADDLE_ENV=production
 ```
 
-For the **local sandbox** you do not edit `.env` at all; start the backend
-with the flags for that run:
+For the **local sandbox** you do not edit `.env` at all. `setup-dev.sh`
+exports these values by default:
+
+```bash
+PORT=5001 BILLING_ENABLED=true SANDBOX_BILLING=true
+```
+
+Start it with `./setup-dev.sh`, or run the backend directly with the same
+flags:
 
 ```bash
 cd JobTrigger-Backend
 PORT=5001 BILLING_ENABLED=true SANDBOX_BILLING=true npm run dev
 ```
+
+The device launchers read the committed `environment.conf`, whose local
+defaults are `MODE=profile`, `USE_IP=1` and `SANDBOX_BILLING=1` (the app's
+sandbox flag). Override any of them for one run, e.g.
+`MODE=debug scripts/run-on-iphone.sh` for hot reload. Debug builds cannot be
+opened from the iPhone home screen; use `MODE=install` for a standalone app.
 
 ## App build configuration (`JobTrigger-Frontend/config/`)
 
@@ -196,7 +210,7 @@ Passed with `--dart-define-from-file` and read only by
 | `REVENUECAT_IOS_KEY` | `billing.json` (git-ignored) | `REVENUECAT_IOS_KEY=appl_…` | Public iOS SDK key |
 | `REVENUECAT_ANDROID_KEY` | `billing.json` | `REVENUECAT_ANDROID_KEY=goog_…` | Public Android SDK key |
 | `BILLING_PREVIEW` | dev only | launcher adds it | Static offers; purchases intentionally fail |
-| `SANDBOX_BILLING` | dev only | `SANDBOX_BILLING=1` | Local sandbox store; impossible in release |
+| `SANDBOX_BILLING` | dev only, `1` via `environment.conf` | `SANDBOX_BILLING=1` | Local sandbox store; impossible in release |
 
 `AppConfig` ignores `BILLING_PREVIEW` and `SANDBOX_BILLING` in release
 builds, and `build-release.sh` refuses a release without the key for the
