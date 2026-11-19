@@ -371,8 +371,20 @@ EOF
 }
 
 // Run a script in JobTrigger-Frontend with the pinned Flutter image.
+// The app's android/gradle.properties lets Gradle take 8 GB heap + 4 GB
+// metaspace, more than a shared CI Docker host has: the daemon was killed
+// mid-build. ~/.gradle/gradle.properties wins over the project's file, so the
+// CI home caps it here without touching the app's config. The file watcher is
+// off: it fails under amd64 emulation and a CI build doesn't need it.
 def flutter(String script) {
-    inContainer(env.FLUTTER_IMAGE, "cd JobTrigger-Frontend\n${script}", '--platform linux/amd64')
+    inContainer(env.FLUTTER_IMAGE, """
+        mkdir -p "\$HOME/.gradle"
+        printf '%s\\n' \\
+          'org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError' \\
+          'org.gradle.vfs.watch=false' > "\$HOME/.gradle/gradle.properties"
+        cd JobTrigger-Frontend
+        ${script}
+    """, '--platform linux/amd64')
 }
 
 // Upload an lcov file to Codecov. Only runs when UPLOAD_CODECOV is ticked,
