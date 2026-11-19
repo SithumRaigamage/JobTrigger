@@ -32,13 +32,14 @@ test("a Pro user sees where it was bought and how to manage it", async ({ page }
   await expect(page.getByText(/does not cancel your App Store subscription/)).toBeVisible();
 });
 
-test("/pricing shows Coming soon, not a buy button, while billing is off", async ({ page }) => {
+test("/pricing offers the Pro app download while billing is on", async ({ page }) => {
   await page.goto("/pricing");
 
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Free to start");
-  await expect(page.getByRole("button", { name: /Get Pro in the app/ })).toHaveAttribute(
-    "aria-disabled",
-    "true",
-  );
+  // Release 1.0.0 enables billing, so `subscriptions` is live and the Pro
+  // action is the real link to the app download, not a disabled control.
+  const pro = page.getByRole("link", { name: "Get Pro in the app" });
+  await expect(pro).toBeVisible();
+  await expect(pro).toHaveAttribute("href", "/#download");
   await expect(page.getByRole("link", { name: "Pricing" }).first()).toBeVisible();
 });

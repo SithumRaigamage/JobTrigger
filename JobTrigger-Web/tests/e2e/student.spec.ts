@@ -165,7 +165,8 @@ test("signed out, the admin document route is a 404 too", async ({ request }) =>
   expect(response.headers()["location"] ?? "").not.toContain("document");
 });
 
-test("/pricing has no student offer while billing is off", async ({ page }) => {
+test("/pricing shows the student offer while billing is on", async ({ page }) => {
   await page.goto("/pricing");
-  await expect(page.getByText(/Students get Pro free/)).toHaveCount(0);
+  // Release 1.0.0 enables billing, so Pro is on sale and the student offer is real.
+  await expect(page.getByText(/Students get Pro free/)).toHaveCount(1);
 });

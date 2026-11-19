@@ -32,7 +32,12 @@ describe("RevealToken", () => {
     expect(action).toHaveBeenCalledWith("pw-1");
     expect(screen.queryByLabelText("Account password")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Hide saved token" }));
+    // The transition that revealed the token can still be pending after the
+    // text appears, and the toggle is disabled while it runs. Wait for it,
+    // otherwise the click is a no-op and this test flakes on a cold suite.
+    const hide = screen.getByRole("button", { name: "Hide saved token" });
+    await waitFor(() => expect(hide).toBeEnabled(), slow);
+    fireEvent.click(hide);
     expect(screen.getByTestId("saved-token")).toHaveTextContent("ghp_••••");
     expect(action).toHaveBeenCalledTimes(1);
   });

@@ -101,12 +101,16 @@ class RevenueCatBillingClient implements BillingClient {
     // Play and the App Store report a subscription period like P1M, P1Y.
     final rawPeriod = package.storeProduct.subscriptionPeriod?.toUpperCase();
     if (rawPeriod != null) {
-      if (rawPeriod == 'P1Y' || rawPeriod == 'P12M') return BillingPeriod.yearly;
+      if (rawPeriod == 'P1Y' || rawPeriod == 'P12M') {
+        return BillingPeriod.yearly;
+      }
       if (rawPeriod == 'P1M') return BillingPeriod.monthly;
     }
 
     final id = package.storeProduct.identifier.toLowerCase();
-    if (id.contains('year') || id.contains('annual')) return BillingPeriod.yearly;
+    if (id.contains('year') || id.contains('annual')) {
+      return BillingPeriod.yearly;
+    }
     if (id.contains('month')) return BillingPeriod.monthly;
     return null;
   }

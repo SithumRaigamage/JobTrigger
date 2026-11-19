@@ -42,3 +42,7 @@ d4ca0522c6c73a7d4a29bfb88312d3cc35636ad1:JobTrigger-Web/tests/e2e/servers.spec.t
 784a061f6eb8162339d3e168f4af1a3153bd587f:JobTrigger-Web/src/server/credentials-api.test.ts:sonar-api-token:30
 # JobTrigger-Frontend/test/presentation/features/settings/edit_sheet_test.dart: Made-up fixture token in a test ("11aabbcc…a91f", "squ_0123…02cd" and similar); the website/app tests prove the app never holds a real secret.
 8f22dfb4d3e7f89df22c1ae901f9de7b86bd00e8:JobTrigger-Frontend/test/presentation/features/settings/edit_sheet_test.dart:generic-api-key:14
+# docs/configuration.md: The deployment guide's placeholder for Paddle's API key
+# ("<pdl_live_...>") matched the generic-api-key rule before the placeholder was
+# reworded. It never held a value; the line now reads "<paddle api key>".
+401582bd1ff709b3182409a3f9d2f83c5d3be2e9:docs/configuration.md:generic-api-key:171
