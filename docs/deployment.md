@@ -283,6 +283,13 @@ account; nothing here has been deployed.
 | `SITE_URL` | `https://<your domain>` | Canonical URLs, Open Graph, sitemap, robots.txt. Read at request time |
 | `JOBTRIGGER_BACKEND_URL` | `https://<backend host>` | Must be `https://` (`config.ts` refuses http outside loopback). **Unset until the backend is deployed** |
 | `SESSION_SECRET` | 32+ random characters | Encrypts the session cookie. `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`. Rotating it signs everyone out of the website (not the app) |
+| `PADDLE_CLIENT_TOKEN` | `live_…` | Paddle.js checkout token; unset turns web checkout off |
+| `PADDLE_ENV` | `production` | Must match the token; `sandbox` otherwise |
+| `UMAMI_URL`, `UMAMI_WEBSITE_ID` | your Umami URL and site id | Anonymous analytics; off when unset |
+| `NEXT_PUBLIC_SENTRY_DSN` | website GlitchTip DSN | Crash reports; off when unset |
+| `NEXT_PUBLIC_SENTRY_ENVIRONMENT`, `NEXT_PUBLIC_SENTRY_RELEASE` | `production`, `web@<version>` | Labels on events |
+
+Full list and development values: [`configuration.md`](configuration.md).
 
 **Marketing first, portal later.** No backend deployment exists yet
 (`config/prod.json` is a placeholder). With the two portal variables

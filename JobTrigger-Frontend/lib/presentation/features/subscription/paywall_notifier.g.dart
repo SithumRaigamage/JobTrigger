@@ -45,7 +45,7 @@ final class PaywallNotifierProvider
   PaywallNotifier create() => PaywallNotifier();
 }
 
-String _$paywallNotifierHash() => r'6a949c7c9ca690de3729cbd8eabe11fbc73aa296';
+String _$paywallNotifierHash() => r'cc34c0deb073eb903e56f1e5b085f5051a3804ea';
 
 /// P20-23: loads the store's offers and runs a purchase or restore. After
 /// either, asks the backend to re-read the subscription

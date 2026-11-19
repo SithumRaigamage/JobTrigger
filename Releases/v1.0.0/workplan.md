@@ -46,6 +46,19 @@ Everything below is outstanding unless it appears under **Already done**.
 These were completed in this workspace and are recorded here so the plan does
 not re-open them.
 
+### 2026-11-19, billing closeout audit and gate fixes
+
+An audit of `subscription/billling` found its last three commits unmerged and
+outside CI, plus four red gates. **PR #147** fixes them: `dart format` and
+Prettier over the touched files, the pricing e2e specs updated for the
+billing-enabled decision, the `B12` reveal-token flake, and a reworded Paddle
+placeholder with a reasoned gitleaks fingerprint. Re-verified on the branch:
+`flutter analyze` clean; `flutter test` 1,733 passed / 29 skipped; backend 429
+passing and 0 runtime advisories; website `npm run check` (481 tests and the
+production build); `npm run e2e` 202 passed; `gitleaks` clean on the branch and
+on `develop`; tools manifest synced. The owner steps (keys, deployment,
+stores, device checks) are unchanged.
+
 ### 2026-11-18, release engineering closeout
 
 The user confirmed PR #144 is merged. PR #145 is open from this closeout
@@ -108,8 +121,8 @@ the merged `develop` build.
 | `docs/deployment.md` stale "artwork still open" corrected | this branch |
 | `docs/future-tools.md` T-072 "second release" corrected (SonarQube ships in 1.0) | this branch |
 | `docs/user-stories/shared/09-non-functional-security.md` NFR-SEC-06 marked implemented | this branch |
-| `docs/subscription/04-email-and-analytics.md` status corrected (built, not "waiting for approval") | this branch |
-| `docs/subscription/02-business-model.md` website checkout corrected (Paddle, built in Phase 20) | this branch |
+| `docs/configuration.md` status corrected (built, not "waiting for approval") | this branch |
+| `docs/subscription/docs/pricing.md` website checkout corrected (Paddle, built in Phase 20) | this branch |
 | `docs/market/competitive-analysis.md` GH/SQ/web rows refreshed | this branch |
 
 ---
@@ -217,7 +230,7 @@ the merged `develop` build.
 
 | ID | Item | Type | Owner | Blocks |
 |---|---|---|---|---|
-| G1 | Decision: billing ships off in 1.0; matches the existing release notes and dark launch configuration | DECISION | agent | YES |
+| G1 | Decision: billing ships **enabled** in 1.0 (owner-approved 2026-11-18); release notes and website status updated accordingly | DECISION | agent | DONE |
 | G2 | P20-40 App Store Connect: Paid Apps agreement, tax, banking, two subscription products with the 7-day trial, Small Business Program enrolment | OPS | owner | SOFT |
 | G3 | P20-41 Play Console payments profile, base plans, trial | OPS | owner | SOFT |
 | G4 | P20-42 RevenueCat: project, both apps, entitlement, offering, webhook secret, sandbox testers | OPS | owner | SOFT |
@@ -280,7 +293,7 @@ Recorded so scope creep is visible, not to plan it.
 | Team plan / shared workspaces | `docs/subscription/` §10 | Phase 21+ |
 | Multi-account switching in the app | `tasks/backlog.md` | unscheduled |
 | iPad, Apple Watch, localisation, audit log, AI failure summaries, flaky-test detection | `docs/implemented/improvement-plan.md` "Later" | unscheduled |
-| Production email provider, ops `/metrics` dashboard, integration tests in CI, native crash handling | `docs/subscription/04`, `docs/integration-testing.md`, `docs/error-reporting.md` | post-1.0 |
+| Production email provider, ops `/metrics` dashboard, integration tests in CI, native crash handling | `docs/configuration.md`, `docs/integration-testing.md`, `docs/error-reporting.md` | post-1.0 |
 
 ---
 

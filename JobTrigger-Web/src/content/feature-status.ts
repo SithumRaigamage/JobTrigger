@@ -107,11 +107,12 @@ export const features = {
   },
   subscriptions: {
     label: "JobTrigger Pro (subscriptions)",
-    status: "soon",
-    // Built in Phase 20 and switched off (BILLING_ENABLED unset). Flip to
-    // live with the store listings, when the backend is deployed with
-    // billing on.
-    source: "Phase 20 built, billing off; waits for the stores and the backend deployment",
+    status: "live",
+    // Release 1.0.0 ships with billing enabled: the paywall and the website
+    // Pro checkout are on sale once the store products and RevenueCat/Paddle
+    // keys are configured. The Pro CTA is actionable in this release.
+    source:
+      "Phase 20 built; billing enabled in 1.0.0 with the store listings and backend deployment",
   },
   "gitlab-ci": {
     label: "GitLab CI",

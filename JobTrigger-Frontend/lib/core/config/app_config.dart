@@ -24,6 +24,7 @@ class AppConfig {
     this.revenueCatIosKey,
     this.revenueCatAndroidKey,
     this.billingPreview = false,
+    this.billingSandbox = false,
   });
 
   /// AUD-43: a release build without its config used to fall back to the
@@ -41,6 +42,7 @@ class AppConfig {
       'REVENUECAT_ANDROID_KEY',
     );
     const billingPreview = String.fromEnvironment('BILLING_PREVIEW');
+    const billingSandbox = String.fromEnvironment('SANDBOX_BILLING');
     if (isRelease) {
       final problem = releaseConfigProblem(
         environmentName: environmentName,
@@ -66,6 +68,12 @@ class AppConfig {
       // Dev-only: a release build can never preview billing, even if the
       // flag leaked into its config.
       billingPreview: !isRelease && billingPreview.trim() == 'true',
+      // Development only: a local store simulator that charges nothing.
+      // Release builds can never enable it, whatever the flag says.
+      billingSandbox: billingSandboxEnabled(
+        isRelease: isRelease,
+        flag: billingSandbox,
+      ),
     );
   }
 
@@ -98,6 +106,18 @@ class AppConfig {
   /// `staging.json`/`prod.json`.
   final bool billingPreview;
 
+  /// Dev-only sandbox store (`SANDBOX_BILLING`): buys, cancels and
+  /// resubscribes against the local backend without Apple, Google,
+  /// RevenueCat or any payment. False in every release build. The backend
+  /// also refuses the endpoints in production and unless SANDBOX_BILLING is
+  /// set there.
+  final bool billingSandbox;
+
+  // Pricing in cents (USD).
+  static const int monthlyPriceCents = 999; // $9.99
+  static const int yearlyPriceCents = 2999; // $29.99
+  static const int yearlyTrialDays = 7;
+
   /// The key for the platform the app is running on, or null.
   String? revenueCatKeyFor(TargetPlatform platform) => switch (platform) {
     TargetPlatform.iOS => revenueCatIosKey,
@@ -127,6 +147,12 @@ String? websiteBaseUrlFor(AppEnvironment environment, String configured) {
   if (trimmed.isNotEmpty) return trimmed;
   return environment == AppEnvironment.dev ? _devWebsiteBaseUrl : null;
 }
+
+/// Development-only sandbox billing: never on in a release build, whatever
+/// the flag says. Extracted so the guard itself is tested.
+@visibleForTesting
+bool billingSandboxEnabled({required bool isRelease, required String flag}) =>
+    !isRelease && flag.trim() == 'true';
 
 /// Why a release build's config is unusable, or null (AUD-43): it must name
 /// a non-dev environment and an `https://` backend, since the backend

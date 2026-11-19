@@ -23,6 +23,9 @@
 #   DEVICE="Sithum's iPhone"    the iPhone's name or id (`flutter devices`)
 #   MODE=debug                  debug instead of profile (profile keeps
 #                               working after you unplug the cable)
+#   MODE=install                build profile, install and launch without
+#                               attaching Flutter tooling (most reliable;
+#                               no "Lost connection to device")
 #   DEVICE_NETWORK=tailscale    use the Mac's Tailscale IPv4 address
 #   SKIP_BACKEND_CHECK=1        don't check the backend first
 set -euo pipefail
@@ -115,22 +118,56 @@ if [ -n "${SENTRY_DSN_APP:-}" ]; then
   dsn="$(printf '%s' "$SENTRY_DSN_APP" | sed -E 's#^(https?://[^@/]+@)[^:/]+#\1'"$host"'#')"
   sentry_line=$',\n  "SENTRY_DSN": "'"$dsn"'"'
 fi
+# P20-20: real sandbox purchases. Supply the RevenueCat *public* iOS SDK key
+# to use the real App Store sandbox instead of the static preview:
+#   REVENUECAT_IOS_KEY=app_... scripts/run-on-iphone.sh
+# A key turns preview mode off automatically (preview offers cannot be
+# bought). Without a key the dev run shows the static preview UI.
+revenuecat_ios_key="${REVENUECAT_IOS_KEY:-}"
+revenuecat_line=""
+if [ -n "$revenuecat_ios_key" ]; then
+  revenuecat_line=$',\n  "REVENUECAT_IOS_KEY": "'"$revenuecat_ios_key"'"'
+fi
 # P24-04: dev-only billing preview — static offers, no RevenueCat key needed,
 # so the Subscription screen and paywall render on this dev run. Opt out
-# with BILLING_PREVIEW=0. Never set in staging/prod.
+# with BILLING_PREVIEW=0. A real key also opts out (see above). Never set in
+# staging/prod.
 billing_preview_line=$',\n  "BILLING_PREVIEW": "true"'
 [ "${BILLING_PREVIEW:-1}" = "0" ] && billing_preview_line=""
+[ -n "$revenuecat_ios_key" ] && billing_preview_line=""
+# Development-only sandbox store: buy, cancel and resubscribe against the
+# local backend without Apple, Google, RevenueCat or any payment. The
+# backend also needs SANDBOX_BILLING=true and BILLING_ENABLED=true.
+#   SANDBOX_BILLING=1 scripts/run-on-iphone.sh
+sandbox_line=""
+if [ "${SANDBOX_BILLING:-0}" = "1" ]; then
+  sandbox_line=$',\n  "SANDBOX_BILLING": "true"'
+  billing_preview_line=""
+fi
+# A real store key means real App Store sandbox purchases. The local
+# simulator would bypass RevenueCat, so the key wins over SANDBOX_BILLING.
+if [ -n "$revenuecat_ios_key" ]; then
+  sandbox_line=""
+fi
 cat >"$CONFIG" <<EOF
 {
   "ENVIRONMENT": "dev",
   "BACKEND_BASE_URL": "$backend",
-  "WEBSITE_BASE_URL": "$website"$sentry_line$billing_preview_line
+  "WEBSITE_BASE_URL": "$website"$sentry_line$billing_preview_line$revenuecat_line$sandbox_line
 }
 EOF
 echo "✓ config/device.json → $backend"
 echo "✓ website (password reset) → $website"
 echo "  In the app, a Jenkins server on this Mac is http://$host:<its port>, never localhost."
 [ -n "$sentry_line" ] && echo "✓ crash reports → GlitchTip at $host:3005"
+if [ -n "$sandbox_line" ]; then
+  echo "✓ billing → local sandbox store (no payment, no RevenueCat)"
+  echo "  the backend must run with BILLING_ENABLED=true SANDBOX_BILLING=true"
+elif [ -n "$revenuecat_ios_key" ]; then
+  echo "✓ billing → real App Store sandbox via RevenueCat (preview off)"
+else
+  echo "  billing → static preview (no purchases). For sandbox: REVENUECAT_IOS_KEY=<public key> scripts/run-on-iphone.sh"
+fi
 if [ "$by_name" = "0" ] && [ "$on_hotspot" = "1" ]; then
   echo "  Using a raw address: on the hotspot, switch the app to your \"(hotspot)\" Jenkins server (IPHONE.md, section 6.1)."
 fi
@@ -175,11 +212,98 @@ for d in devices:
   fi
 fi
 
+# iOS kills an app launch (SIGKILL) while the phone is locked. The build and
+# wireless install take long enough to auto-lock, which then looks like a
+# failure. Wait for the owner to unlock rather than failing the run.
+wait_for_unlock() {
+  command -v xcrun >/dev/null 2>&1 || return 0
+  phone_locked() {
+    xcrun devicectl device info lockState --device "$device" 2>/dev/null |
+      grep -q 'passcodeRequired: true'
+  }
+  phone_locked || return 0
+  echo "⏳ The iPhone is locked. Unlock it now and keep it awake"
+  echo "   (Settings → Display & Brightness → Auto-Lock → Never)."
+  echo "   Waiting up to 2 minutes for the unlock…"
+  waited=0
+  while phone_locked && [ "$waited" -lt 120 ]; do
+    sleep 2
+    waited=$((waited + 2))
+  done
+  if phone_locked; then
+    fail "The iPhone is still locked. Unlock it, set Auto-Lock to Never, then run again. A locked phone makes iOS kill the launch."
+  fi
+  echo "✓ iPhone unlocked"
+}
+
+wait_for_unlock
+
+# A second build sharing Xcode's build database is the usual cause of
+# "accessing build database … disk I/O error".
+if pgrep -f 'flutter_tools.snapshot run' >/dev/null 2>&1; then
+  fail "Another 'flutter run' is still active. Press q there, then run again — two builds share Xcode's build.db."
+fi
+
+# SQLite's build database occasionally gets left in a state Xcode reports as
+# a disk I/O error. Only its own cache is removed; a source error is left alone.
+clear_xcode_build_db() {
+  local dir db
+  for dir in "$HOME"/Library/Developer/Xcode/DerivedData/Runner-*; do
+    [ -d "$dir" ] || continue
+    db="$dir/Build/Intermediates.noindex/XCBuildData/build.db"
+    if [ -f "$db" ]; then rm -f "$db" "$db-wal" "$db-shm"; fi
+  done
+}
+
+if command -v sqlite3 >/dev/null 2>&1; then
+  for dir in "$HOME"/Library/Developer/Xcode/DerivedData/Runner-*; do
+    [ -d "$dir" ] || continue
+    db="$dir/Build/Intermediates.noindex/XCBuildData/build.db"
+    [ -f "$db" ] || continue
+    if ! sqlite3 "$db" 'PRAGMA quick_check;' 2>/dev/null | grep -qx 'ok'; then
+      echo "✓ Repairing a corrupt Xcode build database"
+      rm -f "$db" "$db-wal" "$db-shm"
+    fi
+  done
+fi
+
 mode="${MODE:-profile}"
 case "$mode" in
-  debug | profile) ;;
-  *) fail "MODE must be debug or profile (release refuses an http backend, AUD-43)." ;;
+  debug | profile | install) ;;
+  *) fail "MODE must be debug, profile or install (release refuses an http backend, AUD-43)." ;;
 esac
+
+if [ "$mode" = "install" ]; then
+  echo "▶ Building profile and installing on the iPhone (no debugger attached)"
+  cd "$APP"
+  build_log="$(mktemp)"
+  if ! flutter build ios --profile \
+      --dart-define-from-file=config/device.json 2>&1 | tee "$build_log"; then
+    if grep -q 'accessing build database' "$build_log"; then
+      echo "✓ Clearing Xcode's build database and retrying once"
+      clear_xcode_build_db
+      flutter build ios --profile \
+        --dart-define-from-file=config/device.json ||
+        fail "The profile build failed twice. See the output above."
+    else
+      rm -f "$build_log"
+      fail "The profile build failed. See the output above."
+    fi
+  fi
+  rm -f "$build_log"
+  app_path="$APP/build/ios/iphoneos/Runner.app"
+  [ -d "$app_path" ] || fail "The build produced no Runner.app at $app_path."
+  wait_for_unlock   # The 1–2 minute build can let the phone auto-lock.
+  xcrun devicectl device install app --device "$device" "$app_path" ||
+    fail "Installing on the iPhone failed. Unlock it and try again."
+  xcrun devicectl device process launch \
+    --device "$device" Sraig.Lab-Trigger-frontend ||
+    fail "The app installed but could not be launched. Unlock the iPhone and try again."
+  echo "✓ JobTrigger launched. It keeps running without Flutter tooling."
+  exit 0
+fi
+
+wait_for_unlock
 
 echo "▶ flutter run --$mode on the iPhone"
 cd "$APP"

@@ -4,9 +4,11 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/network/backend_api_client.dart';
 import '../../domain/subscription/billing_offer.dart';
 import 'billing_client.dart';
 import 'preview_billing_client.dart';
+import 'sandbox_billing_client.dart';
 
 part 'revenuecat_billing_client.g.dart';
 
@@ -52,11 +54,7 @@ class RevenueCatBillingClient implements BillingClient {
     if (current == null) return const <BillingOffer>[];
     final offers = <BillingOffer>[];
     for (final package in current.availablePackages) {
-      final period = switch (package.packageType) {
-        PackageType.monthly => BillingPeriod.monthly,
-        PackageType.annual => BillingPeriod.yearly,
-        _ => null,
-      };
+      final period = _periodOf(package);
       if (period == null) continue;
       _packages[package.identifier] = package;
       offers.add(
@@ -87,6 +85,36 @@ class RevenueCatBillingClient implements BillingClient {
     await Purchases.restorePurchases();
   });
 
+  /// Monthly or yearly for [package]. RevenueCat's package *type* is only
+  /// right when the package uses one of its predefined identifiers; a
+  /// custom package (common on a first Play Console setup) still sells the
+  /// same subscription, so fall back to the product's own period and id.
+  /// Without that fallback the paywall silently showed no offers.
+  static BillingPeriod? _periodOf(Package package) {
+    final byType = switch (package.packageType) {
+      PackageType.monthly => BillingPeriod.monthly,
+      PackageType.annual => BillingPeriod.yearly,
+      _ => null,
+    };
+    if (byType != null) return byType;
+
+    // Play and the App Store report a subscription period like P1M, P1Y.
+    final rawPeriod = package.storeProduct.subscriptionPeriod?.toUpperCase();
+    if (rawPeriod != null) {
+      if (rawPeriod == 'P1Y' || rawPeriod == 'P12M') {
+        return BillingPeriod.yearly;
+      }
+      if (rawPeriod == 'P1M') return BillingPeriod.monthly;
+    }
+
+    final id = package.storeProduct.identifier.toLowerCase();
+    if (id.contains('year') || id.contains('annual')) {
+      return BillingPeriod.yearly;
+    }
+    if (id.contains('month')) return BillingPeriod.monthly;
+    return null;
+  }
+
   /// A free introductory period in days, or null.
   static int? _trialDays(IntroductoryPrice? intro) {
     if (intro == null || intro.price != 0) return null;
@@ -105,21 +133,30 @@ class RevenueCatBillingClient implements BillingClient {
     try {
       return await body();
     } on PlatformException catch (error) {
-      if (PurchasesErrorHelper.getErrorCode(error) ==
-          PurchasesErrorCode.purchaseCancelledError) {
+      final code = PurchasesErrorHelper.getErrorCode(error);
+      if (code == PurchasesErrorCode.purchaseCancelledError) {
         throw const BillingCancelled();
+      }
+      // Play's deferred payment: the SDK can report it either as a result
+      // without `pro` or as this error. Both mean "not confirmed yet".
+      if (code == PurchasesErrorCode.paymentPendingError) {
+        throw const BillingPending();
       }
       throw BillingException('${error.code}: ${error.message}');
     }
   }
 }
 
-/// The client for this build: the preview client when the dev-only
-/// `BILLING_PREVIEW` flag is set, RevenueCat when the build has a key for
-/// the running platform, otherwise [NoBillingClient].
+/// The client for this build: the dev-only sandbox store when
+/// `SANDBOX_BILLING` is set, the preview client when `BILLING_PREVIEW` is
+/// set, RevenueCat when the build has a key for the running platform,
+/// otherwise [NoBillingClient].
 @Riverpod(keepAlive: true)
 BillingClient billingClient(Ref ref) {
   final config = ref.watch(appConfigProvider);
+  if (config.billingSandbox) {
+    return SandboxBillingClient(ref.watch(dioBackendProvider));
+  }
   if (config.billingPreview) return const PreviewBillingClient();
   final key = config.revenueCatKeyFor(defaultTargetPlatform);
   return key == null ? const NoBillingClient() : RevenueCatBillingClient(key);

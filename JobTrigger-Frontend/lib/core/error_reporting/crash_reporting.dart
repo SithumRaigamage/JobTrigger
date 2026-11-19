@@ -104,6 +104,12 @@ class CrashReporting {
       await appRunner();
       return;
     }
+    // A retry after the startup watchdog fired must not initialise the SDK
+    // twice; it only needs to run the app.
+    if (_started) {
+      await appRunner();
+      return;
+    }
     final release = await _release();
     _started = true;
     await SentryFlutter.init(

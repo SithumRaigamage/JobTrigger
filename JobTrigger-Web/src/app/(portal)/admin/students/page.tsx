@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 
+import { AdminTabs } from "@/features/admin/admin-tabs";
 import { StudentsView, STATUS_FILTERS } from "@/features/admin/students-view";
 import { listStudents, type AdminStatusFilter } from "@/server/admin-students-api";
 import { requireSession } from "@/server/guard";
@@ -27,12 +28,15 @@ export default async function AdminStudentsPage({ searchParams }: PageProps<"/ad
     notFound();
   }
   return (
-    <StudentsView
-      items={result.ok ? result.value : []}
-      failure={result.ok ? null : result.failure}
-      status={status}
-      q={q}
-      notice={first(params.notice)}
-    />
+    <>
+      <AdminTabs current="students" />
+      <StudentsView
+        items={result.ok ? result.value : []}
+        failure={result.ok ? null : result.failure}
+        status={status}
+        q={q}
+        notice={first(params.notice)}
+      />
+    </>
   );
 }

@@ -62,7 +62,7 @@ export function manageInstructions(subscription: Subscription): string | null {
     case "playStore":
       return "Manage or cancel it in the Google Play app → Payments & subscriptions → Subscriptions.";
     case "web":
-      return "Manage or cancel it from the JobTrigger app.";
+      return "Manage or cancel it in your account on this website (card details, invoices and cancellation are handled by Paddle).";
     default:
       return null;
   }
@@ -80,7 +80,7 @@ export function deleteNotice(subscription: Subscription): string | null {
     case "playStore":
       return "Deleting your account does not cancel your Google Play subscription. Cancel it in the Google Play app → Subscriptions first, or you will keep being charged.";
     case "web":
-      return "Deleting your account does not cancel your subscription. Cancel it from the JobTrigger app first, or you will keep being charged.";
+      return "Deleting your account does not cancel your subscription. Cancel it in your account on this website first, or you will keep being charged.";
     default:
       return null;
   }

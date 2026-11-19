@@ -52,7 +52,13 @@ Never `0.0.0.0/0` (`deployment.md`, Database, step 6).
 | `SMTP_*`, `MAIL_FROM` | A real mail provider (Mailpit is the lab only) |
 | `CORS_ORIGINS` | Empty: the app sends no `Origin`, and the website calls the backend from its server |
 | `SENTRY_DSN`, `SENTRY_ENVIRONMENT` | The production GlitchTip backend DSN, `production` (see below) |
-| `BILLING_ENABLED` | `false` until Phase 20 launches |
+| `BILLING_ENABLED` | `true` for 1.0.0 (owner decision 2026-11-18); requires the RevenueCat and/or Paddle values below |
+| `REVENUECAT_SECRET_API_KEY` | RevenueCat secret REST key (`sk_…`) |
+| `REVENUECAT_WEBHOOK_AUTH` | Random shared secret; the same value in RevenueCat's webhook `Authorization` |
+| `PADDLE_API_KEY`, `PADDLE_WEBHOOK_SECRET` | Paddle live API key and notification secret |
+| `PADDLE_PRICE_MONTHLY`, `PADDLE_PRICE_YEARLY` | Paddle `pri_…` ids for $9.99/month and $29.99/year |
+| `PADDLE_ENV` | `production` |
+| `SANDBOX_BILLING` | **Do not set.** The server refuses to start with it in production |
 | `PORT` | Leave unset unless Render requires it; the image listens on 5001 **(check that Render detects the port, or set it to 5001)** |
 
 ## Crash reports in production

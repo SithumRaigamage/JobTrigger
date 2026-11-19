@@ -7,6 +7,7 @@ import '../../../core/config/app_config.dart';
 import '../../../core/error/error_message.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../domain/subscription/billing_offer.dart';
+import '../../../domain/subscription/subscription_status.dart';
 import '../../common_widgets/connection_error_view.dart';
 import '../../common_widgets/external_link.dart';
 import '../../common_widgets/grouped_card.dart';
@@ -46,6 +47,14 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
     final store = storeNameFor(defaultTargetPlatform);
+    // A cancelled store subscription still has Pro until the period ends;
+    // the store lets the user subscribe again before then, so the offers
+    // must stay reachable instead of a dead-end "You already have Pro".
+    final canResubscribe =
+        snapshot != null &&
+        snapshot.entitlements.isPro &&
+        snapshot.status.isStore &&
+        snapshot.status.state == SubscriptionState.cancelled;
 
     return Scaffold(
       body: SafeArea(
@@ -77,6 +86,19 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    if (ref.watch(appConfigProvider).billingSandbox) ...[
+                      const InlineAlert(
+                        // Development only: the local sandbox store writes a
+                        // plan and takes no money. A release build never sets
+                        // the flag, and the backend refuses the endpoints.
+                        message:
+                            'Sandbox mode: this build uses a local test '
+                            'store. No payment is taken and no real '
+                            'subscription is created.',
+                        icon: Icons.science_outlined,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     for (final benefit in proBenefits)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
@@ -105,12 +127,21 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                             'JobTrigger website, and is managed there.',
                         icon: Icons.verified_outlined,
                       )
-                    else if (snapshot != null && snapshot.entitlements.isPro)
+                    else if (snapshot != null &&
+                        snapshot.entitlements.isPro &&
+                        !canResubscribe)
                       const InlineAlert(
                         message: 'You already have Pro.',
                         icon: Icons.verified_outlined,
                       )
-                    else
+                    else ...[
+                      if (canResubscribe)
+                        const InlineAlert(
+                          message:
+                              'Your Pro stays until the end date. Subscribe '
+                              'again to keep it after that.',
+                          icon: Icons.autorenew_rounded,
+                        ),
                       ...paywall.when(
                         data: (state) => _offers(context, state, store),
                         loading: () => const [
@@ -129,6 +160,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                           ),
                         ],
                       ),
+                    ],
                     const SizedBox(height: 16),
                     _legalLinks(),
                   ],
@@ -291,6 +323,16 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           type: ToastType.info,
           title: 'Nothing to restore',
           message: 'This store account has no active JobTrigger Pro.',
+        );
+      case PaywallPending():
+        // Google Play's deferred payment (cash, bank transfer): don't claim
+        // Pro is active before the store confirms it.
+        toast.show(
+          type: ToastType.info,
+          title: 'Purchase pending',
+          message:
+              'Your store is still confirming the payment. JobTrigger Pro '
+              'turns on when it is confirmed.',
         );
       case PaywallCancelled():
         // The user closed the store sheet: say nothing.

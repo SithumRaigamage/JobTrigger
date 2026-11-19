@@ -59,7 +59,7 @@ describe("plan text", () => {
   it("says where to manage it, per source, and never links to buy", () => {
     expect(manageInstructions(pro)).toContain("iPhone's Settings");
     expect(manageInstructions({ ...pro, source: "playStore" })).toContain("Google Play");
-    expect(manageInstructions({ ...pro, source: "web" })).toContain("JobTrigger app");
+    expect(manageInstructions({ ...pro, source: "web" })).toContain("this website");
     expect(manageInstructions(free)).toBeNull();
     expect(manageInstructions({ ...pro, source: "promo" })).toBeNull();
   });

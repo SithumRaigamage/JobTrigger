@@ -1,7 +1,7 @@
 # Release Notes — v1.0.0
 
 - **Version**: `1.0.0`
-- **Release Date**: 2026-11-17
+- **Release Date**: TBD (store review and production deployment pending)
 - **Target Branch**: `main`
 - **Shipped Tools**: **Jenkins**, **SonarQube**, and **GitHub Actions** (as defined in `release/tools.json`)
 
@@ -46,17 +46,18 @@
 
 * **GitLab CI & CircleCI**: Scheduled for Release 1.3.0 (`release/tools.json`). Not included or supported in 1.0.0.
 * **Apple Watch & Localised Languages**: Planned for future milestones.
-* **Billing is switched off in this release.** The app shows no
-  subscription UI at all — no Profile row, Subscription screen or paywall —
-  and the website's `/pricing` Pro card is a disabled *coming soon* action
-  (the account page hides its plan card). Purchases and the paywall stay
-  disabled until the store listings, RevenueCat keys and the backend
-  `BILLING_ENABLED` flag are configured. While billing is off everyone gets
-  Pro entitlements, so the Free limits (one saved server, one CI tool,
-  three pinned jobs) are not applied; the Pro cap of 25 servers per tool
-  still is.
-* **Student plan**: built and ships dark — the verification flow is
-  unreachable in 1.0 while billing is off.
+* **Billing is enabled in this release.** Free is the default for every new
+  account; Pro is a paid subscription via the App Store / Google Play
+  (RevenueCat) or the website (Paddle). Prices: **$9.99/month** or
+  **$29.99/year** with a 7-day free trial on the yearly plan. The owner
+  account (`developer@jobtrigger.app`) has a permanent Pro grant and is
+  never billed. Free limits (one saved server, one CI tool, three pinned
+  jobs) apply to unpaid accounts; on cancellation or downgrade Pro stays
+  active until the paid period ends, then locks (never deletes) excess
+  servers. Publishing requires the store products, the public RevenueCat
+  keys and backend `BILLING_ENABLED=true` with the secret key + webhook auth.
+* **Student plan**: built and ships with billing; the verification flow is
+  available to free users.
 * **Notifications**: build notifications are local to the phone; server
   push (NR-06b) is not enabled yet.
 * **Password reset**: built but not switched on in 1.0. The reset pages

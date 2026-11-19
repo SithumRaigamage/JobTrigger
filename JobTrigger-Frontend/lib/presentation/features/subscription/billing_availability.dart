@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/config/app_config.dart';
 import '../../../data/billing/revenuecat_billing_client.dart';
 import '../../../data/demo/demo_mode_notifier.dart';
+import '../../../domain/subscription/sandbox_billing.dart';
 import 'entitlements_notifier.dart';
 
 part 'billing_availability.g.dart';
@@ -21,7 +22,21 @@ part 'billing_availability.g.dart';
 @Riverpod(keepAlive: true)
 bool billingAvailable(Ref ref) {
   if (ref.watch(demoModeNotifierProvider)) return false;
-  if (ref.watch(appConfigProvider).billingPreview) return true;
+  final config = ref.watch(appConfigProvider);
+  // Development sandbox: the backend must still be enforcing plans, so the
+  // purchase/cancel/resubscribe loop is meaningful.
+  if (config.billingSandbox) {
+    return ref.watch(entitlementsProvider).billingEnabled;
+  }
+  if (config.billingPreview) return true;
   if (!ref.watch(billingClientProvider).isConfigured) return false;
   return ref.watch(entitlementsProvider).billingEnabled;
+}
+
+/// The development-only store controls, or null when this build has no
+/// sandbox (every release build, and any dev build without the flag).
+@Riverpod(keepAlive: true)
+SandboxBilling? sandboxBilling(Ref ref) {
+  final client = ref.watch(billingClientProvider);
+  return client is SandboxBilling ? client as SandboxBilling : null;
 }

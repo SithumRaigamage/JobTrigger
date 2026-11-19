@@ -134,7 +134,7 @@ void main() {
 
     expect(find.text('Delete account?'), findsOneWidget);
     expect(
-      find.textContaining('keeps renewing after the account is deleted'),
+      find.textContaining('cannot be deleted while it is renewing'),
       findsOneWidget,
     );
     await tester.tap(find.text('Manage subscription'));

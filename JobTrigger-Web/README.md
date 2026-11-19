@@ -29,15 +29,18 @@ else.
 
 Read and validated only in `src/server/config.ts`, on first use.
 
-| Variable                 | Required       | Example (local)         | Notes                                                                                                                    |
-| ------------------------ | -------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `JOBTRIGGER_BACKEND_URL` | For the portal | `http://127.0.0.1:5001` | `https://` in production, except loopback and container service names (`http://backend:5001`)                            |
-| `SESSION_SECRET`         | For the portal | 32+ random characters   | Encrypts the session cookie. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"` |
-| `SITE_URL`               | No             | `http://localhost:3000` | Canonical URL for link previews and the sitemap                                                                          |
-| `PADDLE_CLIENT_TOKEN`    | No             | —                       | Paddle's client-side token (`test_…`/`live_…`) for web checkout (P20-83); off when unset                                 |
-| `PADDLE_ENV`             | No             | `sandbox`               | `sandbox` or `production`; must match the token                                                                          |
-| `UMAMI_URL`              | No             | —                       | Self-hosted Umami for anonymous events (P20-77), e.g. `http://localhost:3004`; off when unset                            |
-| `UMAMI_WEBSITE_ID`       | No             | —                       | The "JobTrigger web" website id in Umami                                                                                 |
+| Variable                         | Required       | Example (local)         | Notes                                                                                                                    |
+| -------------------------------- | -------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `JOBTRIGGER_BACKEND_URL`         | For the portal | `http://127.0.0.1:5001` | `https://` in production, except loopback and container service names (`http://backend:5001`)                            |
+| `SESSION_SECRET`                 | For the portal | 32+ random characters   | Encrypts the session cookie. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"` |
+| `SITE_URL`                       | No             | `http://localhost:3000` | Canonical URL for link previews and the sitemap                                                                          |
+| `PADDLE_CLIENT_TOKEN`            | No             | —                       | Paddle's client-side token (`test_…`/`live_…`) for web checkout (P20-83); off when unset                                 |
+| `PADDLE_ENV`                     | No             | `sandbox`               | `sandbox` or `production`; must match the token                                                                          |
+| `UMAMI_URL`                      | No             | —                       | Self-hosted Umami for anonymous events (P20-77), e.g. `http://localhost:3004`; off when unset                            |
+| `UMAMI_WEBSITE_ID`               | No             | —                       | The "JobTrigger web" website id in Umami                                                                                 |
+| `NEXT_PUBLIC_SENTRY_DSN`         | No             | —                       | Website GlitchTip DSN for crash reports; off when unset                                                                  |
+| `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | No             | `production`            | Label on crash reports                                                                                                   |
+| `NEXT_PUBLIC_SENTRY_RELEASE`     | No             | `web@1.0.0`             | Release label on crash reports                                                                                           |
 
 Set them in your shell or your hosting provider's settings. Nothing
 secret is ever `NEXT_PUBLIC_*`.

@@ -27,6 +27,13 @@ class BillingCancelled implements Exception {
   const BillingCancelled();
 }
 
+/// The store accepted the purchase but has not confirmed it yet (Google
+/// Play's deferred payment: cash, bank transfer). Not a failure and not Pro
+/// yet; the caller reports it as pending.
+class BillingPending implements Exception {
+  const BillingPending();
+}
+
 /// The store or SDK refused for any other reason. [debugMessage] is for
 /// logs, never shown.
 class BillingException implements Exception {

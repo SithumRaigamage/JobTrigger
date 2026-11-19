@@ -37,6 +37,26 @@ function describe(sub, { enabled, now = new Date() }) {
   };
 }
 
+/**
+ * US-SUB-07 / changes.md §4: a paid subscription that is still billing (a
+ * store or web source that renews and is in a Pro-granting state) blocks
+ * account deletion — otherwise deleting the account leaves the subscriber
+ * paying for an app they can no longer use. Grants and student years are
+ * free, so they never block. Pure, for tests.
+ *
+ * Returns the blocking source key ('store' | 'web') or null.
+ */
+function activePaidSource(sub, now = new Date()) {
+  if (!sub) return null;
+  for (const key of ['store', 'web']) {
+    const s = sub[key];
+    if (!s || s.plan !== 'pro' || !s.willRenew || !PRO_STATUSES.has(s.status)) continue;
+    if (s.periodEnd && new Date(s.periodEnd) <= now) continue;
+    return key;
+  }
+  return null;
+}
+
 /** The entitlements of [userId] now. */
 async function entitlementsFor(userId, { now = new Date() } = {}) {
   const enabled = billingEnabled();
@@ -44,4 +64,4 @@ async function entitlementsFor(userId, { now = new Date() } = {}) {
   return { ...describe(sub, { enabled, now }), subscription: sub };
 }
 
-module.exports = { entitlementsFor, describe, isPro, PRO_STATUSES };
+module.exports = { entitlementsFor, describe, isPro, activePaidSource, PRO_STATUSES };

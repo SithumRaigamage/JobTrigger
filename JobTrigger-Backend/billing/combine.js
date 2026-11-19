@@ -52,4 +52,26 @@ async function writeSource(userId, key, fields, { now = new Date() } = {}) {
   ).lean();
 }
 
-module.exports = { derive, writeSource, NONE };
+/**
+ * Removes one source (the owner console's "revoke test subscription") and
+ * recomputes the plan from the others. A paid store or web source is never
+ * touched: revoking a grant cannot cancel something the user paid for.
+ * Returns the saved document (lean), or null when the user has none.
+ */
+async function clearSource(userId, key, { now = new Date() } = {}) {
+  const current = await Subscription.findOne({ userId }).lean();
+  if (!current) return null;
+  const next = { ...current };
+  delete next[key];
+  // Older grant-plan.js wrote a grant at the top level (`source: admin`),
+  // which derive() still honours as a legacy source. Clearing the grant
+  // must not let that copy resurrect it, so drop the marker with it.
+  if (key === 'grant' && next.source === 'admin') next.source = null;
+  return Subscription.findOneAndUpdate(
+    { userId },
+    { $set: { ...derive(next, now), [key]: null } },
+    { returnDocument: 'after' },
+  ).lean();
+}
+
+module.exports = { derive, writeSource, clearSource, NONE };

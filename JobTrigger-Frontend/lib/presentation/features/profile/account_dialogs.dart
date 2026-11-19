@@ -177,9 +177,9 @@ class _PasswordFormDialogState extends State<_PasswordFormDialog> {
                       InlineAlert(
                         message:
                             'Your JobTrigger Pro subscription is billed by '
-                            'the ${notice.storeName} and keeps renewing '
-                            'after the account is deleted. Cancel it in '
-                            'the ${notice.storeName} first.',
+                            'the ${notice.storeName}. Cancel it in the '
+                            '${notice.storeName} first — your account '
+                            'cannot be deleted while it is renewing.',
                         icon: Icons.warning_amber_rounded,
                         tone: StatusTone.unstable,
                       ),

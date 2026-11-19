@@ -90,10 +90,21 @@ It:
    address belongs to your network);
 3. checks the backend answers at that address (`/healthz`), so you learn
    now, not inside the app;
-4. finds the connected iPhone and runs `flutter run --profile` on it.
+4. finds the connected iPhone and runs `flutter run` in the configured mode.
 
-A **profile** build keeps working from the home screen after you unplug the
-cable. Want hot reload while plugged in? `MODE=debug scripts/run-on-iphone.sh`.
+The root [`environment.conf`](environment.conf) sets the local defaults:
+`MODE=profile`, `USE_IP=1` (raw Wi-Fi address) and `SANDBOX_BILLING=1` (local
+sandbox store). Override any of them for one run:
+
+```bash
+MODE=debug scripts/run-on-iphone.sh       # hot reload, only while Flutter is attached
+MODE=install scripts/run-on-iphone.sh     # build + install + launch, no debugger
+```
+
+A **debug** build cannot be opened from the iPhone's home screen: iOS shows
+a black screen ending in “debug mode Flutter apps can only be launched from
+Flutter tooling”. Install a profile build (`MODE=install`) to use the app
+normally after unplugging the cable.
 
 `scripts/run-on-iphone.sh` is the iPhone-specific launcher. It remains useful
 when you need wireless iPhone selection, `--config-only`, hotspot handling, or
@@ -122,7 +133,9 @@ DEVICE_NETWORK=tailscale scripts/run-on-iphone.sh
 | `BACKEND_HOST` | The Mac's Wi-Fi IP | `BACKEND_HOST=192.168.1.50` |
 | `BACKEND_PORT` | `5001` | `BACKEND_PORT=5002` |
 | `DEVICE` | The one connected iPhone | `DEVICE="Sithum's iPhone"` (see `flutter devices`) |
-| `MODE` | `profile` | `MODE=debug` |
+| `MODE` | `profile` (from `environment.conf`) | `MODE=debug` (only while attached) |
+| `USE_IP` | `1` (raw Wi-Fi IP) | `USE_IP=0` (Bonjour name) |
+| `SANDBOX_BILLING` | `1` (local sandbox store) | `SANDBOX_BILLING=0` |
 | `SKIP_BACKEND_CHECK` | off | `SKIP_BACKEND_CHECK=1` |
 
 `scripts/run-on-iphone.sh --config-only` just writes `device.json`, if you'd
@@ -161,7 +174,9 @@ unlock it and check its Wi-Fi; the cable always works as a fallback.
   app can't reach your Mac. Missed it? **Settings → Privacy & Security →
   Local Network → JobTrigger → On**.
 - Log in with the dev account `developer@jobtrigger.app` /
-  `SecurePassword123!` (seeded by `setup-dev.sh`), or your own.
+  `SecurePassword123!` (seeded by `setup-dev.sh`), or your own. The seeded
+  Jenkins servers and tool credentials belong to **that account**; logging in
+  as `tester@jobtrigger.app` shows an empty server list by design.
 
 ## 5. Jenkins on your Mac, reachable from the phone
 
@@ -288,6 +303,22 @@ at the top.
 | Safari can't open `http://<Mac name>.local:5001/healthz` | The network blocks name lookups | `USE_IP=1` fallback (end of 6.1) |
 | Script: "The backend doesn't answer" | Backend not started, or crashed | `./setup-dev.sh` in another terminal; read its last line |
 | Script: "No iPhone found" | Locked, untrusted, not paired for development, or Developer Mode off | Step 1; then `flutter devices` should list it |
+| Script: "The iPhone is locked" | iOS kills launches while the screen is locked | Unlock the phone; set **Settings → Display & Brightness → Auto-Lock → Never** while testing |
+| `App terminated due to signal 9` / `Error launching application` | The phone locked or the wireless link dropped during the install | Unlock, keep it awake, and use the cable if it repeats |
+| `Lost connection to device` after launch | Flutter's debugger link dropped (wireless or phone locked) | Use `MODE=install` below; no debugger is attached |
+| `accessing build database … disk I/O error` | A corrupt or concurrently used Xcode `build.db` | The script repairs it and retries once; quit any other `flutter run` first |
+
+### Run without Flutter tooling
+
+For stable on-device testing (and the real AOT startup path), build a profile
+app, install it and launch it without attaching a debugger:
+
+```bash
+MODE=install USE_IP=1 SANDBOX_BILLING=1 scripts/run-on-iphone.sh
+```
+
+This is the recommended way to check the app after unplugging the cable. Use
+`MODE=debug` only when you need hot reload.
 | `flutter devices`: "not paired with this Mac for development" (code -29) | "Trust This Computer" was done, but not Xcode's pairing | Step 1.2. Still stuck? On the phone: **Settings → General → Transfer or Reset iPhone → Reset → Reset Location & Privacy** (privacy settings and trusted computers only, not your data), replug, **Trust**, pair again |
 | Wireless iPhone missing from `flutter devices` | Phone locked, on another Wi-Fi, or **Connect via network** off | Unlock it; same Wi-Fi; step 1.4; or use the cable |
 | App won't open after a week | Installed with a free Apple ID (7-day limit) | Reinstall: `scripts/run-on-iphone.sh` (section 7) |

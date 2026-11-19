@@ -9,8 +9,10 @@ import 'package:job_trigger/data/billing/revenuecat_billing_client.dart';
 import 'package:job_trigger/data/repositories/subscription_repository_impl.dart';
 import 'package:job_trigger/domain/auth/auth_state.dart';
 import 'package:job_trigger/domain/auth/user.dart';
+import 'package:job_trigger/domain/subscription/sandbox_billing.dart';
 import 'package:job_trigger/domain/subscription/subscription_status.dart';
 import 'package:job_trigger/presentation/features/auth/auth_notifier.dart';
+import 'package:job_trigger/presentation/features/subscription/billing_availability.dart';
 import 'package:job_trigger/presentation/features/subscription/subscription_screen.dart';
 import 'package:job_trigger/presentation/navigation/app_routes.dart';
 
@@ -22,10 +24,24 @@ class _Auth extends AuthNotifier {
       const Authenticated(User(id: 'u1', email: 'a@b.dev'));
 }
 
+class _FakeSandbox implements SandboxBilling {
+  final calls = <String>[];
+
+  @override
+  Future<void> cancelSubscription() async => calls.add('cancel');
+
+  @override
+  Future<void> resubscribe() async => calls.add('resubscribe');
+
+  @override
+  Future<void> expireNow() async => calls.add('expire');
+}
+
 Future<void> _pump(
   WidgetTester tester,
   SubscriptionSnapshot snapshot, {
   List<Uri>? opened,
+  SandboxBilling? sandbox,
   Size size = const Size(800, 1600),
   double textScale = 1,
 }) async {
@@ -52,6 +68,7 @@ Future<void> _pump(
           FakeSubscriptionRepository(loadResult: Ok(snapshot)),
         ),
         billingClientProvider.overrideWithValue(FakeBillingClient()),
+        if (sandbox != null) sandboxBillingProvider.overrideWithValue(sandbox),
         authNotifierProvider.overrideWith(_Auth.new),
         linkLauncherProvider.overrideWithValue((uri) async {
           opened?.add(uri);
@@ -129,6 +146,70 @@ void main() {
 
     expect(find.text('Ends on'), findsOneWidget);
     expect(find.text('Manage in the Google Play'), findsOneWidget);
+    // A cancelled subscription can be bought again before it ends.
+    expect(find.text('Resubscribe'), findsOneWidget);
+  });
+
+  testWidgets('a trial labels its end as the trial, not a renewal', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      SubscriptionSnapshot(
+        entitlements: proSnapshot.entitlements,
+        status: SubscriptionStatus(
+          state: SubscriptionState.trialing,
+          source: SubscriptionSource.appStore,
+          periodEnd: DateTime.utc(2026, 11, 25, 12),
+          willRenew: true,
+        ),
+      ),
+    );
+
+    expect(find.text('Trial ends'), findsOneWidget);
+    expect(find.text('Renews on'), findsNothing);
+  });
+
+  testWidgets('a failed payment explains what to do and when Pro ends', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      SubscriptionSnapshot(
+        entitlements: proSnapshot.entitlements,
+        status: SubscriptionStatus(
+          state: SubscriptionState.billingIssue,
+          source: SubscriptionSource.playStore,
+          periodEnd: DateTime.utc(2027, 1, 20, 12),
+          willRenew: true,
+        ),
+      ),
+    );
+
+    expect(find.text('Pro until'), findsOneWidget);
+    expect(
+      find.textContaining("last payment didn't go through"),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Google Play'), findsWidgets);
+    expect(find.text('Manage in the Google Play'), findsOneWidget);
+  });
+
+  testWidgets('sandbox: the local controls cancel, expire and resubscribe '
+      'without a store', (tester) async {
+    final sandbox = _FakeSandbox();
+    await _pump(tester, storeProSnapshot(), sandbox: sandbox);
+
+    expect(find.text('Sandbox billing'), findsOneWidget);
+    expect(find.textContaining('No payment is taken'), findsOneWidget);
+
+    await tester.tap(find.text('Cancel subscription'));
+    await tester.pumpAndSettle();
+    expect(sandbox.calls, ['cancel']);
+
+    await tester.tap(find.text('Simulate expiry'));
+    await tester.pumpAndSettle();
+    expect(sandbox.calls, ['cancel', 'expire']);
   });
 
   testWidgets('P20-84: a web subscription shows as Pro, with plain text and '

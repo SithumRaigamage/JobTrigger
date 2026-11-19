@@ -23,7 +23,7 @@ the app. No new backend or website dependency in this epic.
 `POST /api/subscription/primary/:id`, `POST /api/billing/revenuecat`,
 the `Subscription` and `BillingEvent` collections, and the plan check in
 the credential factory. Specified in
-[`03-technical-design.md`](../../subscription/03-technical-design.md) §3.
+[`billing-integration.md`](../../subscription/docs/billing-integration.md) §3.
 
 New failure kind: **`PlanLimitFailure(limit)`**, added as a new case of
 `AppFailure` (CLAUDE.md §11 — existing copy untouched). Copy: "Your plan

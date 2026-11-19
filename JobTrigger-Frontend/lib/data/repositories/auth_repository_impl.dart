@@ -81,7 +81,15 @@ class AuthRepositoryImpl implements AuthRepository {
   ) => guardRequest(request, recover: _rejected);
 
   static Result<T, AppFailure>? _rejected<T>(DioException exception) {
-    if (exception.response?.statusCode != 400) return null;
+    final status = exception.response?.statusCode;
+    // 400s carry the backend's own explanation (AUD-65). A 403 with
+    // SUBSCRIPTION_ACTIVE is the hard delete gate (changes.md §4): the
+    // backend's message tells the user where to cancel first.
+    final isSubscriptionBlock =
+        status == 403 &&
+        exception.response?.data is Map &&
+        (exception.response?.data as Map)['code'] == 'SUBSCRIPTION_ACTIVE';
+    if (status != 400 && !isSubscriptionBlock) return null;
     if (exception.response?.data case {
       'message': final String message,
     } when message.isNotEmpty) {

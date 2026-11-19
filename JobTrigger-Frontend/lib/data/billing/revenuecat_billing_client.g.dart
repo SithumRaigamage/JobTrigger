@@ -8,23 +8,26 @@ part of 'revenuecat_billing_client.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The client for this build: the preview client when the dev-only
-/// `BILLING_PREVIEW` flag is set, RevenueCat when the build has a key for
-/// the running platform, otherwise [NoBillingClient].
+/// The client for this build: the dev-only sandbox store when
+/// `SANDBOX_BILLING` is set, the preview client when `BILLING_PREVIEW` is
+/// set, RevenueCat when the build has a key for the running platform,
+/// otherwise [NoBillingClient].
 
 @ProviderFor(billingClient)
 final billingClientProvider = BillingClientProvider._();
 
-/// The client for this build: the preview client when the dev-only
-/// `BILLING_PREVIEW` flag is set, RevenueCat when the build has a key for
-/// the running platform, otherwise [NoBillingClient].
+/// The client for this build: the dev-only sandbox store when
+/// `SANDBOX_BILLING` is set, the preview client when `BILLING_PREVIEW` is
+/// set, RevenueCat when the build has a key for the running platform,
+/// otherwise [NoBillingClient].
 
 final class BillingClientProvider
     extends $FunctionalProvider<BillingClient, BillingClient, BillingClient>
     with $Provider<BillingClient> {
-  /// The client for this build: the preview client when the dev-only
-  /// `BILLING_PREVIEW` flag is set, RevenueCat when the build has a key for
-  /// the running platform, otherwise [NoBillingClient].
+  /// The client for this build: the dev-only sandbox store when
+  /// `SANDBOX_BILLING` is set, the preview client when `BILLING_PREVIEW` is
+  /// set, RevenueCat when the build has a key for the running platform,
+  /// otherwise [NoBillingClient].
   BillingClientProvider._()
     : super(
         from: null,
@@ -58,4 +61,4 @@ final class BillingClientProvider
   }
 }
 
-String _$billingClientHash() => r'056f3f77ffb8ae53445973db8b941a0c9d9d19c8';
+String _$billingClientHash() => r'b27b142344078d6a4a746b719e91cc9fa8fc3fc5';

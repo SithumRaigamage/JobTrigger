@@ -1,6 +1,16 @@
 # JobTrigger Release 1.0.0 — Complete Production Deployment Guide
 
-This document is the comprehensive, all-in-one deployment guide for **JobTrigger Release 1.0.0**. It covers the lowest-cost hosting breakdown, sequential deployment steps, third-party service setups (Umami, Sentry, Firebase, RevenueCat, Paddle), transactional emails, customer support, and store approvals.
+This document is the comprehensive, all-in-one deployment guide for **JobTrigger Release 1.0.0**. It covers the lowest-cost hosting breakdown, sequential deployment steps, third-party service setups (Umami, GlitchTip, RevenueCat, Paddle), transactional emails, customer support, and store approvals.
+
+> **Read this with the authoritative sources.** The ordered release plan is
+> [`workplan.md`](workplan.md); the checked deployment state is
+> [`deployment-log.md`](deployment-log.md) and [`docs/deployment.md`](../../docs/deployment.md).
+> The cost table below is an options guide, not a status claim: nothing here
+> is deployed yet. Two deliberate differences from older drafts:
+> crash reporting uses **self-hosted GlitchTip** (Sentry-compatible), not
+> sentry.io; production uses a **paid Atlas tier with backups**, not the free
+> M0 cluster. Push notifications (FCM) are **not in 1.0.0** — build alerts
+> are local-only; the FCM steps are the post-1.0 NR-06b plan.
 
 ---
 
@@ -73,8 +83,8 @@ JobTrigger uses **Umami** for cookie-free, privacy-preserving analytics (no cook
 
 The apps include built-in PII and credential scrubbing (`event_scrubber.dart`) to ensure no passwords or CI tokens are sent to error logs.
 
-### Sentry.io Setup (Free Developer Plan)
-1. Sign up at [https://sentry.io](https://sentry.io).
+### GlitchTip Setup (self-hosted, Sentry-compatible)
+1. Open your GlitchTip instance (see `docs/error-reporting.md`); it is not sentry.io.
 2. Create an organization: `jobtrigger`.
 3. Create three distinct projects:
    * **`jobtrigger-frontend`** (Platform: Flutter)
@@ -85,9 +95,9 @@ The apps include built-in PII and credential scrubbing (`event_scrubber.dart`) t
      ```env
      SENTRY_DSN=https://<key>@<host>/<project-id>
      ```
-   * **Web**: In `JobTrigger-Web/.env.local` / Vercel Environment:
+   * **Web**: In the Vercel Environment (the site reads this exact name):
      ```env
-     SENTRY_DSN=https://<key>@<host>/<project-id>
+     NEXT_PUBLIC_SENTRY_DSN=https://<key>@<host>/<project-id>
      ```
    * **Flutter App**: put the DSN in the git-ignored
      `JobTrigger-Frontend/config/sentry.json` — never in `prod.json`:
@@ -101,7 +111,11 @@ The apps include built-in PII and credential scrubbing (`event_scrubber.dart`) t
 
 ---
 
-## 4. Push Notifications Setup (Firebase Cloud Messaging)
+## 4. Push Notifications Setup (Firebase Cloud Messaging) — post-1.0
+
+> **Not part of 1.0.0.** Build alerts in 1.0 are local notifications on the
+> phone. Server push (NR-06b) is tracked for after the release; keep these
+> steps for that work only.
 
 Real-time build alerts use Firebase Cloud Messaging (FCM).
 
@@ -280,14 +294,15 @@ Used for password reset, student verification codes, and renewal notices.
 - [ ] 4. Test sign-in, changelog display, and pricing tables.
 
 ### Phase 4: Android Deployment (Google Play Console)
-- [ ] 1. Generate release keystore:
-  ```bash
-  keytool -genkey -v -keystore ~/jobtrigger-upload-keystore.jks \
-    -keyalg RSA -keysize 2048 -validity 10000 -alias upload
-  ```
-- [ ] 2. Configure `JobTrigger-Frontend/android/key.properties`.
+> See the focused **[Play Store 1.0.0 runbook](./play-store-release.md)** for
+> the complete first-release sequence.
+- [x] 1. Release keystore generated at
+  `JobTrigger-Frontend/android/app/upload-keystore.jks` (alias `upload`).
+  **Back it up — it cannot be recovered.**
+- [x] 2. `JobTrigger-Frontend/android/key.properties` configured (git-ignored).
 - [ ] 3. Build production Android App Bundle:
   ```bash
+  scripts/build-release.sh --check appbundle
   scripts/build-release.sh appbundle
   ```
 - [ ] 4. Create app listing in Google Play Console.

@@ -70,8 +70,19 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       _billingCall(_billing.offerings);
 
   @override
-  Future<Result<void, AppFailure>> purchase(BillingOffer offer) =>
-      _billingCall(() => _billing.purchase(offer));
+  Future<Result<void, AppFailure>> purchase(BillingOffer offer) async {
+    try {
+      await _billing.purchase(offer);
+      return const Ok(null);
+    } on BillingPending {
+      // Not an error: the paywall checks the plan and shows "pending".
+      return const Ok(null);
+    } on BillingCancelled {
+      return const Err(PurchaseCancelled());
+    } on BillingException catch (error) {
+      return Err(StoreFailure(error.debugMessage));
+    }
+  }
 
   @override
   Future<Result<void, AppFailure>> restore() => _billingCall(_billing.restore);
@@ -83,8 +94,14 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       return Ok(await call());
     } on BillingCancelled {
       return const Err(PurchaseCancelled());
+    } on BillingPending {
+      return const Err(
+        StoreFailure('The store is still confirming the purchase.'),
+      );
     } on BillingException catch (error) {
-      return Err(UnknownFailure(error.debugMessage));
+      // The store refused for a reason that isn't a cancel: the user needs
+      // store-specific copy, not "something unexpected happened".
+      return Err(StoreFailure(error.debugMessage));
     }
   }
 }

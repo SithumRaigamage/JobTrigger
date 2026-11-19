@@ -81,6 +81,16 @@ function billingEnabled(env = process.env) {
   return env.BILLING_ENABLED === 'true';
 }
 
+/**
+ * Development-only sandbox store (`/api/billing/sandbox`): it writes plans
+ * without Apple, Google or RevenueCat so the purchase → cancel → expiry →
+ * resubscribe flow can be tested before the stores exist. Never available
+ * in production, whatever the flag says.
+ */
+function sandboxBillingEnabled(env = process.env) {
+  return env.NODE_ENV !== 'production' && env.SANDBOX_BILLING === 'true';
+}
+
 /** P20-15/16: RevenueCat's server key and webhook secret, or null. */
 function revenueCatConfig(env = process.env) {
   if (blank(env.REVENUECAT_SECRET_API_KEY) || blank(env.REVENUECAT_WEBHOOK_AUTH)) return null;
@@ -193,6 +203,12 @@ function invalidConfig(env = process.env) {
   if (!blank(env.BILLING_ENABLED) && !['true', 'false'].includes(env.BILLING_ENABLED)) {
     return 'BILLING_ENABLED must be true or false';
   }
+  if (!blank(env.SANDBOX_BILLING) && !['true', 'false'].includes(env.SANDBOX_BILLING)) {
+    return 'SANDBOX_BILLING must be true or false';
+  }
+  if (env.SANDBOX_BILLING === 'true' && env.NODE_ENV === 'production') {
+    return 'SANDBOX_BILLING must never be enabled in production';
+  }
   if (!blank(env.PADDLE_ENV) && !['sandbox', 'production'].includes(env.PADDLE_ENV)) {
     return 'PADDLE_ENV must be sandbox or production';
   }
@@ -201,10 +217,12 @@ function invalidConfig(env = process.env) {
     return `Paddle needs all of ${PADDLE_VARS.join(', ')}`;
   }
   // P20-17: plans with no way to learn about purchases would lock paying
-  // users out, so refuse to start half-configured.
-  if (billingEnabled(env) && !revenueCatConfig(env) && !paddleConfig(env)) {
+  // users out, so refuse to start half-configured. The development sandbox
+  // is a valid source: it writes purchases itself and charges nothing.
+  if (billingEnabled(env) && !revenueCatConfig(env) && !paddleConfig(env) && !sandboxBillingEnabled(env)) {
     return 'BILLING_ENABLED=true needs RevenueCat (REVENUECAT_SECRET_API_KEY, '
-      + 'REVENUECAT_WEBHOOK_AUTH) or Paddle (PADDLE_API_KEY, PADDLE_WEBHOOK_SECRET, prices)';
+      + 'REVENUECAT_WEBHOOK_AUTH), Paddle (PADDLE_API_KEY, PADDLE_WEBHOOK_SECRET, prices) '
+      + 'or the development sandbox (SANDBOX_BILLING=true)';
   }
   if (!blank(env.STUDENT_RENEWAL_ENABLED) && !['true', 'false'].includes(env.STUDENT_RENEWAL_ENABLED)) {
     return 'STUDENT_RENEWAL_ENABLED must be true or false';
@@ -270,6 +288,7 @@ module.exports = {
   studentAdminEmail,
   studentRenewalEnabled,
   billingEnabled,
+  sandboxBillingEnabled,
   revenueCatConfig,
   paddleConfig,
 };

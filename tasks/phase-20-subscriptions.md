@@ -1,15 +1,49 @@
 # Phase 20 — Subscriptions (epic SUB)
 
-Checklist recount (2026-11-18): **42 of 57** P20 checkbox items are complete;
+Checklist recount (2026-11-18): **52 of 67** P20 checkbox items are complete;
 15 remain open. The release workplan tracks whether billing is enabled for
 1.0 and the store, sandbox, and production setup still required.
 
-**Status:** in-progress — P20-00 approved by the owner 2026-11-12. Backend,
-app and website tracks are built and merged to `develop`, all switched off
-(`BILLING_ENABLED` unset, no purchase keys, Paddle not configured). What is
-left is owner setup (stores, RevenueCat, Paddle sandbox: P20-40..42, P20-85),
-device and sandbox verification (P20-51..53) and launch (P20-60..63).
-Backend deployment and the stores are on hold.
+**Release 1.0.0 owner decisions (2026-11-18, all done in code):**
+
+- [x] P20-86 Prices are **$9.99/month and $29.99/year** (7-day yearly
+      trial) in the app's config/preview and the website's pricing content.
+- [x] P20-87 Owner `developer@jobtrigger.app` gets a permanent, never-billed
+      Pro grant automatically after signup/login (`billing/owner.js`), tied
+      to the email rather than the `superAdmin` role.
+- [x] P20-88 Tester `tester@jobtrigger.app` starts Free and uses real sandbox
+      purchases; new accounts all default to Free with billing on.
+- [x] P20-89 `/admin/subscriptions` console: super admin only, lists every
+      account's derived plan and sources, grants test Pro for N days or with
+      no end, and revokes the grant without touching a paid source.
+- [x] P20-90 Web checkout policy recorded: the site may sell to anyone signed
+      in, including iPhone users, while the iOS app never links to it.
+- [x] P20-91 Docs updated: `docs/subscription/changes.md`, pricing, sandbox
+      testing, API reference and the owner checklist.
+- [x] P20-92 Tester account replaced: `tester@jobtrigger.app` /
+      `TesterPass123!` (Free) via `scripts/ensure-test-accounts.js` and the
+      seed; the old `journey1@example.com` account and plan are removed.
+- [x] P20-93 Development sandbox store: `/api/billing/sandbox`
+      (buy/cancel/resubscribe/expire, 404 in production) plus the app's
+      `SANDBOX_BILLING` client and Subscription-screen controls. It charges
+      nothing and cannot ship in a release build.
+- [x] P20-94 Edge cases from the billing audit: deferred Play purchases are
+      reported as pending (not Pro), store refusals get store-specific copy
+      (`StoreFailure`), failed payments show "Pro until" plus what to fix,
+      trial end dates are labelled, and the sandbox release guard is pinned
+      by a test.
+- [x] P20-95 `docs/subscription/coverage.md`: the full scenario matrix,
+      separating automated coverage, the local sandbox and the real
+      Apple/Google sandbox checks that need store accounts.
+
+**Status:** in-progress — P20-00 approved by the owner 2026-11-12; the owner
+decided 2026-11-18 that billing ships **enabled** in release 1.0.0. Backend,
+app and website tracks are built and merged to `develop`; the code flips,
+prices ($9.99 / $29.99), website `subscriptions` status (`live`), owner
+grant and hard delete gate are done. What is left is owner setup (stores,
+RevenueCat, Paddle sandbox: P20-40..42, P20-85), device and sandbox
+verification (P20-51..53) and the production flip (P20-62). Backend
+deployment and the stores are on hold.
 
 Docs: [`docs/subscription/`](../docs/subscription/README.md) ·
 Stories: [`docs/user-stories/billing/18-subscriptions.md`](../docs/user-stories/billing/18-subscriptions.md).
@@ -35,7 +69,7 @@ task where a track is large). Commits reference the task id, e.g.
 - [x] P20-01 Analytics tool: **Umami**, self-hosted in the DevOps lab
       (`analytics/`), events sent server-side / over HTTP, no SDK. Crash
       reporting (GlitchTip) stays a separate decision. Decided 2026-11-12;
-      plan in `docs/subscription/04-email-and-analytics.md`.
+      plan in `docs/configuration.md`.
 - [x] P20-02 Email: **Mailpit** for development (lab `mailpit/`),
       `nodemailer` over SMTP (needs approval); production provider chosen
       when the backend deploys. US-AUTH-08 password reset promoted as the
@@ -85,7 +119,8 @@ Backend track notes (2026-11-12): tests in `test/billing.test.js`; the
 database-backed ones run on the Mac. New optional variables (add the
 names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
 `REVENUECAT_SECRET_API_KEY`, `REVENUECAT_WEBHOOK_AUTH`,
-`SUBSCRIPTION_REFRESH_RATE_LIMIT`, `BILLING_WEBHOOK_RATE_LIMIT`.
+`SUBSCRIPTION_REFRESH_RATE_LIMIT`, `BILLING_WEBHOOK_RATE_LIMIT`, and the
+development-only `SANDBOX_BILLING` (refused in production).
 
 ## D. Mobile app
 
@@ -125,7 +160,7 @@ names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
 - [x] P20-30 (2026-11-16) Analytics events wired on the site: `signup`,
       `server_added`, `pricing_view` and `limit_hit` (with the backend's
       `limit`). The app sends none — the owner decision in
-      `docs/subscription/04-email-and-analytics.md` §4.2 — so the app-only
+      `docs/configuration.md` §4.2 — so the app-only
       rows (paywall view, purchase, restore) are unsent by design;
       purchase outcomes still come from the store webhooks.
 - [x] P20-31 (2026-11-16, PR D) `server/subscription-api.ts` + `PlanLimitFailure` copy in
@@ -164,12 +199,13 @@ names to `.env.example` by hand, CLAUDE.md §8): `BILLING_ENABLED`,
 - [ ] P20-60 **MANUAL (owner, M-15):** Staging with `BILLING_ENABLED=true`; TestFlight + Play
       internal testers.
 - [ ] P20-61 **MANUAL (owner, M-15):** Grant Pro to owner and early testers (`grant-plan.js`).
-- [ ] P20-62 **MANUAL (owner, M-15):** Production: flip `BILLING_ENABLED=true`, flip the website's
-      pricing status to live, announce in the changelog.
+- [ ] P20-62 **MANUAL (owner, M-15):** Production: flip `BILLING_ENABLED=true` with the real
+      RevenueCat/Paddle secrets (the website's `subscriptions` status and Pro CTA are already
+      live in code), announce in the changelog.
 - [ ] P20-63 **MANUAL (owner, M-15):** After ~200 paywall views: review conversion and price
-      (business model §4, §7).
+      (`docs/subscription/docs/pricing.md`).
 
-## I. Email and analytics (plan: `docs/subscription/04-email-and-analytics.md`)
+## I. Email and analytics (plan: `docs/configuration.md`)
 
 Local development first (backend and stores on hold). Each item still
 needs its plan approved before code (CLAUDE.md §9).

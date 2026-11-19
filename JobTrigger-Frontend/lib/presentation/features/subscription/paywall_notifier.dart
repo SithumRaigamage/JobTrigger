@@ -5,6 +5,7 @@ import '../../../core/error/no_retry.dart';
 import '../../../core/error/result.dart';
 import '../../../data/repositories/subscription_repository_impl.dart';
 import '../../../domain/subscription/billing_offer.dart';
+import '../../../domain/subscription/subscription_status.dart';
 import 'entitlements_notifier.dart';
 
 part 'paywall_notifier.g.dart';
@@ -29,6 +30,13 @@ sealed class PaywallOutcome {
 
 final class PaywallPurchased extends PaywallOutcome {
   const PaywallPurchased();
+}
+
+/// The store accepted the purchase but no Pro entitlement is active yet.
+/// Normal for Google Play's "pending" purchases (cash, bank transfer): the
+/// store confirms later and the webhook/refresh turns Pro on.
+final class PaywallPending extends PaywallOutcome {
+  const PaywallPending();
 }
 
 final class PaywallRestored extends PaywallOutcome {
@@ -78,11 +86,19 @@ class PaywallNotifier extends _$PaywallNotifier {
             ? const PaywallCancelled()
             : PaywallFailed(error);
       }
-      // The store has the money: the purchase succeeded even if the
-      // backend can't be reached to say so right now. The webhook and the
-      // next refresh catch up.
-      await _syncEntitlements();
-      return const PaywallPurchased();
+      // Ask the backend, which re-reads the store, whether Pro is active.
+      final synced = await _syncEntitlements();
+      if (synced == null) {
+        // The store said yes and the backend couldn't be asked. Assume the
+        // purchase; the webhook and the next refresh catch up.
+        return const PaywallPurchased();
+      }
+      // A completed purchase activates `pro` immediately. No entitlement
+      // means the store still has it pending (Play's deferred payment), so
+      // don't claim Pro is active.
+      return synced.entitlements.isPro
+          ? const PaywallPurchased()
+          : const PaywallPending();
     } finally {
       if (ref.mounted) state = AsyncData(current.copyWith(busy: false));
     }
@@ -117,13 +133,16 @@ class PaywallNotifier extends _$PaywallNotifier {
     }
   }
 
-  Future<void> _syncEntitlements() async {
+  /// The plan after a purchase, or null when the backend couldn't be
+  /// reached (the cached/loaded plan is kept in that case).
+  Future<SubscriptionSnapshot?> _syncEntitlements() async {
     final synced = await ref.read(subscriptionRepositoryProvider).refresh();
-    if (!ref.mounted) return;
+    if (!ref.mounted) return null;
     if (synced case Ok(:final value)) {
       ref.read(entitlementsNotifierProvider.notifier).apply(value);
-    } else {
-      await ref.read(entitlementsNotifierProvider.notifier).refresh();
+      return value;
     }
+    await ref.read(entitlementsNotifierProvider.notifier).refresh();
+    return null;
   }
 }
