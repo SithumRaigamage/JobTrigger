@@ -119,8 +119,10 @@ pipeline {
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                         // --sarif --output exits 2 with no message on this repo
                         // (semgrep's SARIF formatter); --sarif-output works.
+                        // The explicit `.` target is required: without one, the
+                        // semgrep image insists on code mounted at /src.
                         dockerTool('semgrep/semgrep:1.185.0',
-                            "semgrep scan --config=auto --sarif-output=${SEMGREP_REPORT_NAME}")
+                            "semgrep scan --config=auto --sarif-output=${SEMGREP_REPORT_NAME} .")
                     }
                 }
             }
