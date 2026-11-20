@@ -56,6 +56,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 | `TRUST_PROXY` | unset | unset | number of proxy hops (Render: `1`, confirm) |
 | `CORS_ORIGINS` | empty (no CORS) | unset | unset for the app; add a browser origin only if one calls the API directly |
 | `SITE_URL` | `http://localhost:3000` | `http://<Mac-Wi-Fi-IP>:3000` for the phone | `https://jobtrigger.app` |
+| `SUPPORT_EMAIL` | `support@jobtrigger.app` | unset | unset (`support@` + the `SITE_URL` domain), or the real support inbox |
 | `RESET_PASSWORD_URL` | `http://localhost:3000/reset-password` | `http://<Mac-Wi-Fi-IP>:3000/reset-password` | `https://jobtrigger.app/reset-password` |
 
 `TRUST_PROXY` accepts only a whole number (1–99). `SITE_URL` is an origin
@@ -270,6 +271,10 @@ page says web checkout is off.
 | `Missing required configuration: …` | Set `MONGODB_URI`, `JWT_SECRET`, `CREDENTIALS_ENCRYPTION_KEY` |
 | `BILLING_ENABLED=true needs RevenueCat …` | Add RevenueCat, all Paddle values, or `SANDBOX_BILLING=true` for development |
 | `SANDBOX_BILLING must never be enabled in production` | Remove it from production |
+| `MAIL_FROM must be set to a real sender … in production when SMTP_HOST is set` | Set `MAIL_FROM`, e.g. `JobTrigger <no-reply@jobtrigger.app>`, on a domain the mail provider has verified |
+| `JWT_SECRET must be at least 32 characters in production` | Generate a new one: `openssl rand -base64 48` |
+| `CORS_ORIGINS must only list https:// public origins in production` | Remove `localhost`, `.local` and LAN origins; leave it unset unless a browser calls the API directly |
+| `SITE_URL` / `SENTRY_DSN` / `UMAMI_URL` `must be an https:// URL on a public host in production` | The value still points at the development lab (localhost, `.local`, a LAN IP or a Docker service name); use the production host |
 | `Paddle needs all of …` | Set the API key, webhook secret and both price ids, or none |
 | `TRUST_PROXY must be the number of proxy hops` | Use `1` behind one proxy, otherwise unset |
 | `SMTP_USER and SMTP_PASS must be set together` | Set both or neither |

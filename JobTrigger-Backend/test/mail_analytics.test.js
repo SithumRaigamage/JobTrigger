@@ -28,7 +28,9 @@ describe('Mail and analytics configuration (P20-72, P20-78)', function() {
   });
 
   it('requires an https reset page in production when mail is on', function() {
-    const prod = { NODE_ENV: 'production', SMTP_HOST: 'smtp.example.com' };
+    // MAIL_FROM is required with mail on in production (pre-release audit
+    // 2026-11-20); it is set here so this test checks only the reset link.
+    const prod = { NODE_ENV: 'production', SMTP_HOST: 'smtp.example.com', MAIL_FROM: 'no-reply@jobtrigger.app' };
     expect(invalidConfig(prod)).to.match(/RESET_PASSWORD_URL is required/);
     expect(invalidConfig({ ...prod, RESET_PASSWORD_URL: 'http://jobtrigger.app/reset-password' }))
       .to.match(/https/);

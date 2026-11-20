@@ -37,6 +37,9 @@ changes; `IPHONE.md` covers both.
 | [M-16](M-16-firebase-push.md) | Firebase server push | NR-06b | approval needed |
 | [M-17](M-17-github-fallback.md) | GitHub fallback decision | PE-43 | only if M-06 finds a blocker |
 | [M-18](M-18-support-tickets-iphone.md) | Support tickets on the iPhone | P25-01..06 | no |
+| [M-19](M-19-production-mail.md) | Production mail: provider, sender, support and student inboxes | US-AUTH-08, Phase 21 | no — Student Plan ships in 1.0 |
+| [M-20](M-20-atlas-network-lockdown.md) | Lock down Atlas network access (remove `0.0.0.0/0`) | deployment.md, RD-04 | no — **do now** |
+| [M-21](M-21-discord-community.md) | Discord community server | audit 2026-11-20 | optional for 1.0 |
 
 ## Resolved
 

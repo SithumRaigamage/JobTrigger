@@ -11,6 +11,15 @@ describe('AppInfo seed (PE-01)', function() {
     expect(seed.openSourceLicensesUrl).to.equal('https://jobtrigger.app/licenses');
   });
 
+  it('sends support mail to the website\'s own domain', function() {
+    expect(appInfoSeed({ SITE_URL: 'https://jobtrigger.app' }).supportEmail).to.equal('support@jobtrigger.app');
+    expect(appInfoSeed({ SITE_URL: 'https://www.jobtrigger.app' }).supportEmail).to.equal('support@jobtrigger.app');
+    expect(appInfoSeed({}).supportEmail).to.equal('support@jobtrigger.app');
+    expect(appInfoSeed({ SITE_URL: 'https://jobtrigger.app', SUPPORT_EMAIL: 'help@example.org' }).supportEmail)
+      .to.equal('help@example.org');
+    expect(invalidConfig({ SUPPORT_EMAIL: 'not-an-email' })).to.match(/SUPPORT_EMAIL/);
+  });
+
   it('never seeds a placeholder link', function() {
     const seed = appInfoSeed({ SITE_URL: 'https://jobtrigger.app' });
     expect(JSON.stringify(seed)).not.to.contain('example.com');

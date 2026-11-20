@@ -6,6 +6,7 @@ import type { FeatureStatus } from "@/content/feature-status";
 import { Download } from "./download";
 
 let appStores: FeatureStatus = "soon";
+let subscriptions: FeatureStatus | null = null;
 const links = vi.hoisted(() => ({
   appStore: null as string | null,
   googlePlay: null as string | null,
@@ -16,7 +17,11 @@ vi.mock("@/content/feature-status", async (importOriginal) => {
   return {
     ...actual,
     statusOf: (id: Parameters<typeof actual.statusOf>[0]) =>
-      id === "app-stores" ? appStores : actual.statusOf(id),
+      id === "app-stores"
+        ? appStores
+        : id === "subscriptions" && subscriptions
+          ? subscriptions
+          : actual.statusOf(id),
   };
 });
 
@@ -27,6 +32,7 @@ vi.mock("../site-links", async (importOriginal) => {
 
 afterEach(() => {
   appStores = "soon";
+  subscriptions = null;
   links.appStore = null;
   links.googlePlay = null;
 });
@@ -83,5 +89,19 @@ describe("Download", () => {
       "aria-disabled",
       "true",
     );
+  });
+
+  it("names the student offer only while Pro is on sale", () => {
+    subscriptions = "live";
+    const { unmount } = render(<Download />);
+    expect(screen.getByTestId("home-student-offer")).toHaveTextContent(
+      "Students get Pro free for one year.",
+    );
+    expect(screen.getByRole("link", { name: "See pricing →" })).toHaveAttribute("href", "/pricing");
+    unmount();
+
+    subscriptions = "soon";
+    render(<Download />);
+    expect(screen.queryByTestId("home-student-offer")).not.toBeInTheDocument();
   });
 });

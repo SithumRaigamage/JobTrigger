@@ -46,6 +46,21 @@ Everything below is outstanding unless it appears under **Already done**.
 These were completed in this workspace and are recorded here so the plan does
 not re-open them.
 
+### 2026-11-20, pre-release audit (branch `chore/release-1.0-audit`)
+
+Full audit of Git/GitHub, trackers, user stories, tests, security and
+release readiness; evidence in [`audit-2026-11-20.md`](audit-2026-11-20.md).
+Scope re-confirmed by the owner: Jenkins, SonarQube and GitHub Actions; Actions
+stays disabled, so gates ran locally: Flutter 1,747 passed / 29 skipped,
+analyze and format clean; backend 436 passing; website 481 unit tests, lint,
+typecheck, build, 202 Playwright; manifest 17 tests. Fixed: widget tests for
+BuildLogScreen, QueueScreen and ReplaySheet; `build-release.sh` refuses
+dev-lab DSNs and LAN/`.local`/http addresses; production startup refuses a
+short JWT secret, dev CORS origins, dev-host SITE_URL/SENTRY_DSN/UMAMI_URL and
+mail without a real MAIL_FROM; support address follows `SITE_URL` (was a
+`jobtrigger.com` address); one end-to-end plan-journey test. New owner tasks:
+M-19 production mail, M-20 Atlas lock-down (**do now**), M-21 Discord.
+
 ### 2026-11-19, billing closeout audit and gate fixes
 
 An audit of `subscription/billling` found its last three commits unmerged and

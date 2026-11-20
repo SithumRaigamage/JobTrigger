@@ -32,6 +32,10 @@ export const releases: Release[] = [
       { tag: "New", text: "Pinned jobs, saved views, the build queue and nodes" },
       { tag: "New", text: "Set up servers from your laptop on this website" },
       {
+        tag: "New",
+        text: "Students get Pro free for one year, verified with a university email or a student ID",
+      },
+      {
         tag: "Improved",
         text: "Last-updated and offline banners, and status shown by shape and words",
       },
