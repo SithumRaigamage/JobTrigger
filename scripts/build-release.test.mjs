@@ -191,3 +191,45 @@ test("--no-codesign reaches the iOS build, for CI verification", (t) => {
   assert.equal(result.status, 0, result.stderr);
   assert.match(readFileSync(fx.log, "utf8"), /build ipa --release --no-codesign/);
 });
+
+test("refuses a development-lab DSN or address, even with --allow-missing", (t) => {
+  // Pre-release audit 2026-11-20: config/sentry.json also holds the lab
+  // GlitchTip DSN for iPhone runs, so a store build must reject it.
+  const devValues = [
+    "http://key@192.168.1.53:8000/1",
+    "https://key@Sithums-MacBook-Pro.local:8000/1",
+    "https://key@localhost/1",
+    "https://key@10.0.2.2/1",
+    "https://key@172.20.0.4/1",
+    "https://key@glitchtip/1",
+  ];
+  for (const dsn of devValues) {
+    const fx = fixture(t);
+    const result = run(fx, ["--allow-missing", "apk"], { SENTRY_DSN: dsn });
+
+    assert.equal(result.status, 1, `accepted ${dsn}`);
+    assert.match(result.stderr, /Not a release address/);
+    assert.match(result.stderr, /SENTRY_DSN/);
+    // The value itself is never printed.
+    assert.equal(result.stderr.includes(dsn), false);
+    assert.equal(existsSync(fx.log), false, `built with ${dsn}`);
+  }
+});
+
+test("refuses an http:// or LAN backend in the base config", (t) => {
+  const fx = fixture(t);
+  writeFileSync(
+    join(fx.config, "prod.json"),
+    JSON.stringify({
+      ENVIRONMENT: "prod",
+      BACKEND_BASE_URL: "http://192.168.1.53:5001",
+      WEBSITE_BASE_URL: "https://example.invalid",
+    }),
+  );
+
+  const result = run(fx, ["--allow-missing", "apk"]);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /BACKEND_BASE_URL/);
+  assert.equal(result.stderr.includes("WEBSITE_BASE_URL"), false);
+});

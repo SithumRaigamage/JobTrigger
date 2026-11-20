@@ -146,12 +146,46 @@ with open(sys.argv[1], encoding="utf-8") as handle:
 known = ("SENTRY_DSN", "REVENUECAT_IOS_KEY", "REVENUECAT_ANDROID_KEY")
 present = [k for k in known if isinstance(merged.get(k), str) and merged[k].strip()]
 missing = [k for k in sys.argv[2:] if k not in present]
+
+# A store build must never point at the development lab: the same
+# git-ignored sentry.json holds the lab GlitchTip DSN for iPhone runs, and a
+# Bonjour (.local) or LAN address only works on the owner network.
+import ipaddress
+from urllib.parse import urlsplit
+
+def dev_host(host):
+    host = (host or "").lower().rstrip(".")
+    if not host or host == "localhost" or host == "host.docker.internal":
+        return True
+    if host.endswith((".local", ".lan", ".home", ".internal", ".localhost")):
+        return True
+    try:
+        ip = ipaddress.ip_address(host.strip("[]"))
+    except ValueError:
+        return "." not in host  # a bare machine name
+    return ip.is_private or ip.is_loopback or ip.is_link_local
+
+unsafe = []
+for name in ("BACKEND_BASE_URL", "WEBSITE_BASE_URL", "SENTRY_DSN"):
+    value = merged.get(name)
+    if not isinstance(value, str) or not value.strip():
+        continue
+    parts = urlsplit(value.strip())
+    if parts.scheme != "https" or dev_host(parts.hostname):
+        unsafe.append(name)
+
 print(" ".join(present) or "-")
 print(" ".join(missing) or "-")
+print(" ".join(unsafe) or "-")
 PY
 )"
-present="${report%%$'\n'*}"
-missing="${report#*$'\n'}"
+present="$(sed -n 1p <<<"$report")"
+missing="$(sed -n 2p <<<"$report")"
+unsafe="$(sed -n 3p <<<"$report")"
+
+if [ "$unsafe" != "-" ]; then
+  fail "Not a release address (must be https:// on a public host, not localhost, .local or a LAN IP): $unsafe. Check config/$env_name.json and config/sentry.json."
+fi
 
 echo "✓ config: $env_name ($(basename "$base"))"
 if [ "$present" = "-" ]; then
