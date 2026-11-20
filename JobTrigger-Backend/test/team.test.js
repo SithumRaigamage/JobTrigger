@@ -193,6 +193,9 @@ describe('Team plan (US-SUB-11)', function() {
       expect(mail).to.have.length(1);
       expect(mail[0].to).to.equal('new@example.com');
       expect(mail[0].subject).to.equal("You're invited to Platform on JobTrigger");
+      // The link opens the website's join page, under /account (sign-in,
+      // no-store, noindex).
+      expect(mail[0].text).to.match(/https?:\/\/[^\s]+\/account\/team\/join\?token=/);
       const token = tokenFromMail();
       expect(token).to.have.length.greaterThan(40);
       const stored = (await Team.findOne({ ownerId: owner.id }).lean()).invites[0];
