@@ -10,6 +10,7 @@ import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
 import '../../domain/jenkins/jenkins_node.dart';
 import '../../domain/jenkins/jenkins_repository.dart';
+import '../../domain/jenkins/replay_script.dart';
 import '../../domain/jenkins/jenkins_view.dart';
 import '../../domain/jenkins/job_property.dart';
 import '../../domain/jenkins/log_chunk.dart';
@@ -904,6 +905,18 @@ class DemoJenkinsRepository implements JenkinsRepository {
     required bool proceed,
     Map<String, String> parameters = const {},
   }) async => _unavailable;
+
+  // US-JX-16: running edited pipeline code is never simulated in the demo.
+  @override
+  Future<Result<ReplayScript, AppFailure>> fetchReplayScript(
+    String jobUrl,
+  ) async => const Err(DemoUnavailableFailure());
+
+  @override
+  Future<Result<void, AppFailure>> replayWithScript(
+    String buildUrl,
+    String script,
+  ) async => _unavailable;
 }
 
 /// One instance per demo session: leaving demo mode disposes it, and with it

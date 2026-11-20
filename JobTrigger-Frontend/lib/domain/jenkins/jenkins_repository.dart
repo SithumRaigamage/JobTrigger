@@ -13,6 +13,7 @@ import 'pipeline_stage.dart';
 import 'queue_entry.dart';
 import 'server_status.dart';
 import 'queue_item.dart';
+import 'replay_script.dart';
 import 'test_report.dart';
 
 abstract class JenkinsRepository {
@@ -262,4 +263,19 @@ abstract class JenkinsRepository {
     required bool proceed,
     Map<String, String> parameters,
   });
+
+  /// US-JX-16: the starting script for "Replay with edits", from
+  /// `GET {job}/config.xml` (inline pipelines only; see [ReplayScript]).
+  /// Needs the user to be allowed to read the job's configuration: a 403 is
+  /// [PermissionFailure].
+  Future<Result<ReplayScript, AppFailure>> fetchReplayScript(String jobUrl);
+
+  /// US-JX-16: `POST {build}replay/run`, form-encoded with `_.mainScript`
+  /// and the Stapler `json` field (contract verified by P11-27 on the
+  /// fixture Jenkins 2.568.3). Jenkins answers 302 to the job, not to the
+  /// new build, so the caller looks for that build by its cause.
+  Future<Result<void, AppFailure>> replayWithScript(
+    String buildUrl,
+    String script,
+  );
 }

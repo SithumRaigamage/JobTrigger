@@ -13,6 +13,7 @@ import '../../domain/sonarqube/sonarqube_issue.dart';
 import '../../domain/sonarqube/sonarqube_project.dart';
 import '../../domain/jenkins/jenkins_build.dart';
 import '../../domain/jenkins/jenkins_job.dart';
+import '../features/replay_edit/replay_edit_screen.dart';
 import '../features/app_info/app_info_screen.dart';
 import '../../domain/support/support_category.dart';
 import '../features/support/support_screen.dart';
@@ -98,6 +99,7 @@ final Map<String, bool Function(Object? extra)> _extraRoutes = {
   AppRoutes.jobHistory: (extra) => extra is JenkinsJob,
   AppRoutes.buildLog: (extra) => extra is JenkinsBuild,
   AppRoutes.buildDetail: (extra) => extra is JenkinsBuild,
+  AppRoutes.replayEdit: (extra) => extra is (JenkinsJob, JenkinsBuild),
   AppRoutes.githubWorkflows: (extra) => extra is GitHubRepo,
   AppRoutes.githubRuns: (extra) => extra is (GitHubRepo, GitHubWorkflow),
   AppRoutes.githubHistory: (extra) => extra is (GitHubRepo, GitHubWorkflow),
@@ -345,6 +347,14 @@ GoRouter appRouter(Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) =>
             BuildLogScreen(jenkinsBuild: state.extra! as JenkinsBuild),
+      ),
+      GoRoute(
+        path: AppRoutes.replayEdit,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final (job, build) = state.extra! as (JenkinsJob, JenkinsBuild);
+          return ReplayEditScreen(job: job, build: build);
+        },
       ),
       GoRoute(
         path: AppRoutes.buildDetail,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../data/cache/server_safety_store.dart';
 import '../../../data/credentials/active_server_notifier.dart';
@@ -11,6 +12,7 @@ import '../../../domain/jenkins/parameter_values.dart';
 import '../../../domain/jenkins/reconcile_replay_parameters.dart';
 import '../../common_widgets/confirmation_dialog.dart';
 import '../../common_widgets/read_only_notice.dart';
+import '../../navigation/app_routes.dart';
 import '../job_detail/parameter_edits_notifier.dart';
 import '../job_detail/parameter_files_notifier.dart';
 import '../job_detail/parameter_form.dart';
@@ -126,6 +128,22 @@ class _ReplaySheetState extends ConsumerState<ReplaySheet> {
                       : 'Replay',
                 ),
               ),
+              // US-JX-16 AC1: pipelines can be replayed with an edited script.
+              if (widget.job.isPipeline) ...[
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: () {
+                    final router = GoRouter.of(context);
+                    Navigator.of(context).pop();
+                    router.push(
+                      AppRoutes.replayEdit,
+                      extra: (widget.job, widget.build),
+                    );
+                  },
+                  icon: const Icon(Icons.edit_note_rounded),
+                  label: const Text('Replay with edits…'),
+                ),
+              ],
             ],
           ),
         ),

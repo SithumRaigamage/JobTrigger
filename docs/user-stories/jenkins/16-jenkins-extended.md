@@ -681,56 +681,95 @@ So that I can spot a degrading pipeline
 
 ### US-JX-16 — Replay with an edited pipeline script
 
-> **Status: won't-do (closed by its verification gate, P11-27,
-> 2026-09-30).** Verified on the fixture Jenkins (2.568.3): submitting is
-> scriptable (`POST {build}replay/run` with `_.mainScript` and the Stapler
-> `json` body returns 302 and the run logs "Replayed #N"). But the build's
-> original script, which the "Load script" scenario needs, is only
-> available as the `_.mainScript` `<textarea>` in the `replay/` HTML page:
-> `replay/api/json`, `api/xml`, and the build's `actions` expose nothing.
-> The app would have to scrape HTML, which breaks across Jenkins versions
-> and themes, so the gate's won't-do branch applies. A secondary problem:
-> the 302 points at the job, not the new build, so "taken to the new build"
-> could only guess at `lastBuild`. Replay with the *same* parameters
-> (US-PIPE-08) is unaffected. Revisit if Jenkins adds a JSON endpoint for
-> the replay script.
+> **Status: built 2026-11-20 (P11-29), inline-script pipelines only;** all nine criteria ticked against code and tests (`test/data/repositories/replay_script_test.dart`, `test/presentation/features/replay_edit/replay_edit_screen_test.dart`). Live pass on the owner's Jenkins: M-22.
+> The 2026-09-30 gate (P11-27) closed it because the *build's* original
+> script is only in the `replay/` HTML page. The owner chose the documented
+> source instead: the job's `config.xml`, which holds the script of an
+> inline ("Pipeline script") job. No HTML is scraped. Jobs whose
+> Jenkinsfile comes from SCM are told replay with edits isn't available.
+> The Jenkins freeze (CLAUDE.md §11) is lifted for this story only.
 
 **Priority:** Could
-**Source:** new — report item D#19
-**Dependencies:** US-PIPE-08, US-JX-14
+**Source:** report item D#19; owner decision 2026-11-20
+**Dependencies:** US-PIPE-08 (Replay sheet), US-JX-14, PI-01/PI-02 (read-only, protected jobs)
 
 As a pipeline author
 I want to replay a build with a small script edit
 So that I can test a fix without committing
 
 **Acceptance Criteria**
-- Scenario: Load script
-  When I choose "Replay with edits" on a pipeline build
-  Then the original main script is loaded from the build's replay action and
-  shown in a monospaced editor
-- Scenario: Run
-  When I edit and confirm (a second, explicit confirmation stating "This
-  runs arbitrary pipeline code on <server>")
-  Then the replay is submitted (`POST {build}replay/run` with `mainScript`
-  and the Stapler `json` body) and I'm taken to the new build
-- Scenario: Not available
-  Given the build isn't replayable or the user lacks `Run/Replay` (403 or
-  404)
-  Then the action is hidden or a permission message is shown
-- Scenario: Verification gate
-  The exact form contract must be verified against the fixture Jenkins
-  (NFR-TEST-02) before this ships. If it can't be driven reliably without
-  scraping HTML, the story is closed as won't-do and documented
+- [x] AC1 Entry. The Replay sheet shows "Replay with edits…" only for a
+      pipeline job (`org.jenkinsci.plugins.workflow.job.WorkflowJob`); it
+      opens a full-screen editor for that build.
+- [x] AC2 Load. The editor loads the job's inline script from
+      `GET {job}/config.xml` (`CpsFlowDefinition` → `<script>`, XML entities
+      decoded) into a monospaced, always-dark editor, and keeps the
+      definition's `sandbox` value for display.
+- [x] AC3 SCM pipelines. For a `CpsScmFlowDefinition` (Jenkinsfile from a
+      repository) the screen says "Replay with edits works for jobs whose
+      script is in Jenkins. This job's Jenkinsfile comes from a repository."
+      and offers no editor.
+- [x] AC4 Replayed builds. When the build's causes include "Replayed #",
+      a banner warns that the loaded script is the job's current script and
+      may differ from what this build ran.
+- [x] AC5 Permissions. A 403 on `config.xml` says the user needs permission
+      to read the job's configuration; a 403/404 on submit says the build
+      can't be replayed by this user. Nothing else is shown as a crash.
+- [x] AC6 Two confirmations. Replay asks twice: "Replay #N with edits?",
+      then a second dialog stating "This runs arbitrary pipeline code on
+      <server>." that requires typing the job name. The app lock re-prompt
+      (US-JX-21) applies when it is on.
+- [x] AC7 Submit. `POST {build}replay/run`, form-encoded, with
+      `_.mainScript` and the Stapler `json` field `{"mainScript": …}`; the
+      CSRF crumb goes through the existing interceptor (NFR-SEC-06); the 302
+      is success.
+- [x] AC8 New build. After submitting, the app looks for the new build
+      (newer than #N, cause "Replayed #N") for up to 10 seconds and opens it;
+      if it isn't found yet it opens the job's history with "Replay started".
+- [x] AC9 Safety. On a read-only server (PI-01) the Replay button is off
+      and reads "Read-only"; in demo mode the screen says the action isn't
+      available in the demo.
+
+**Layer impact (CLAUDE.md development rules)**
+- **App:** yes — repository methods, notifier, editor screen, route, Replay
+  sheet entry, demo repository, What's new line.
+- **Website:** yes, copy only — changelog line for 1.0. No portal change: the
+  portal stores credentials and never talks to Jenkins.
+- **Backend:** none — the app calls Jenkins directly with the user's own
+  credentials (CLAUDE.md §1); nothing is stored.
+
+**Tests needed**
+- Repository: inline script parsed and entities decoded; SCM definition
+  recognised; 403 → `PermissionFailure`; submit sends `_.mainScript` and
+  `json` form-encoded to `replay/run` and accepts the 302.
+- Notifier: finds the new build by its "Replayed #N" cause; gives up after
+  the time limit.
+- Widget: entry only for pipelines; editor shows the script; SCM message;
+  replayed-build banner; both confirmations, and cancelling either sends
+  nothing; submit then opens the new build; read-only blocks; demo message.
+
+**Design note**
+- Screen `ReplayEditScreen` (route `/home/job/build/replay-edit`, extra
+  `(JenkinsJob, JenkinsBuild)`): header with server, title "Replay #N with
+  edits", `sandbox` chip, the editor (`TextField`, monospaced, console
+  colours, no autocorrect), and a bottom "Replay" button.
+- `ReplayScriptNotifier(jobUrl)` loads the script (`AsyncNotifier`);
+  `ReplayEditNotifier` submits and finds the new build. The decision logic
+  (confirmations, read-only, finding the build) lives in notifiers, not in
+  `build()` (CLAUDE.md §5).
+- The 302 after `replay/run` points at the job, not the new build, so AC8
+  matches on the cause text Jenkins writes ("Replayed #N").
 
 **Security & Privacy Notes**
-- This executes arbitrary code on the CI server, so it gets two
-  confirmations and clearly shows the target server.
-
-**UI / Design Notes**
-- Full-screen editor with the always-dark console styling.
+- This executes arbitrary code on the CI server: two confirmations, the
+  second naming the server and requiring the job name.
+- The script is held in memory only; never cached, logged or sent to the
+  backend or to crash reports.
 
 **Non-Functional Notes**
-- NFR-SEC-06, NFR-TEST-02
+- NFR-SEC-06, NFR-TEST-02. Verified against the HTTP contract recorded by
+  P11-27 on the fixture Jenkins 2.568.3; a live run on the owner's Jenkins
+  is a manual check (M-22).
 
 ---
 
