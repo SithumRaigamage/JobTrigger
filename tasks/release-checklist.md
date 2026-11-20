@@ -109,6 +109,9 @@ release ships, no more. Each release gets its own version below.
 > stored encrypted. Free for one server; JobTrigger Pro adds more servers
 > and the extras.
 >
+> Students get JobTrigger Pro free for one year: verify with a university
+> email or a student ID, in the app or on the website.
+>
 > Try the in-app demo without an account or a server.
 >
 > JobTrigger is an independent app and is not affiliated with the Jenkins
@@ -118,7 +121,8 @@ Do **not** mention GitLab CI or CircleCI in the 1.0 listing, screenshots or
 keywords. They are planned for 1.3; that release gets its own text here.
 
 If billing is still off when the listing goes live, omit the
-"JobTrigger Pro adds more servers and the extras" sentence (the app shows
+"JobTrigger Pro adds more servers and the extras" sentence and the student
+sentence (the student offer only exists while Pro is on sale) (the app shows
 no subscription UI and the website's pricing page shows Pro as coming
 soon) or replace it with a one-line "JobTrigger Pro is coming soon" note. Use the Pro sentence only once the
 store products and RevenueCat keys are configured.

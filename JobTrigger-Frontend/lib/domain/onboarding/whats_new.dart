@@ -19,6 +19,7 @@ const whatsNewReleases = [
       'Live logs, stages, tests and history for every run.',
       'Notifications with rules — failures only, or back to green.',
       'Pinned jobs, saved views, the build queue and nodes.',
+      'Students get JobTrigger Pro free for one year: verify with a university email or a student ID.',
       'Offline-aware screens that say how old their data is.',
       'Read-only server mode and a confirmation step for protected actions.',
       'Pair a server from the JobTrigger website with a QR code.',

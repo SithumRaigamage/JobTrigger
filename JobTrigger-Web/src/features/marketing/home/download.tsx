@@ -143,6 +143,16 @@ export function Download() {
             />
           </div>
 
+          {/* Phase 21: the student offer exists only while Pro is on sale. */}
+          {statusOf("subscriptions") === "live" && (
+            <p data-testid="home-student-offer" className="text-[0.9375rem] text-fg-secondary">
+              Students get Pro free for one year.{" "}
+              <Link href={routes.pricing} className="font-semibold">
+                See pricing →
+              </Link>
+            </p>
+          )}
+
           {appLive && (
             <Link href={routes.demo} className="self-start text-[0.9375rem] font-semibold">
               See the demo — no account needed →
