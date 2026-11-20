@@ -55,4 +55,12 @@ describe('production configuration guard', function() {
       }
     }
   });
+
+  it('needs a real sender when production sends mail', function() {
+    const mail = { ...prod, SMTP_HOST: 'smtp.example.com', RESET_PASSWORD_URL: 'https://jobtrigger.app/reset-password' };
+    expect(invalidConfig(mail)).to.match(/MAIL_FROM/);
+    expect(invalidConfig({ ...mail, MAIL_FROM: 'JobTrigger <no-reply@jobtrigger.local>' })).to.match(/MAIL_FROM/);
+    expect(invalidConfig({ ...mail, MAIL_FROM: 'JobTrigger <no-reply@jobtrigger.app>' })).to.equal(null);
+    expect(invalidConfig({ ...mail, MAIL_FROM: 'no-reply@jobtrigger.app' })).to.equal(null);
+  });
 });

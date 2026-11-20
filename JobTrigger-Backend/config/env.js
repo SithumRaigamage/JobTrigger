@@ -231,6 +231,14 @@ function productionProblem(env) {
   if (devOrigin !== undefined) {
     return 'CORS_ORIGINS must only list https:// public origins in production (no localhost or LAN)';
   }
+  // Mail from a .local sender is rejected or filed as spam by real inboxes.
+  if (!blank(env.SMTP_HOST)) {
+    const from = String(env.MAIL_FROM ?? '');
+    const domain = (/@([^\s>]+)>?\s*$/.exec(from) || [])[1] || '';
+    if (blank(env.MAIL_FROM) || isDevHost(domain)) {
+      return 'MAIL_FROM must be set to a real sender (e.g. JobTrigger <no-reply@jobtrigger.app>) in production when SMTP_HOST is set';
+    }
+  }
   for (const name of ['SITE_URL', 'SENTRY_DSN', 'UMAMI_URL']) {
     if (!blank(env[name]) && !isPublicHttps(env[name])) {
       return `${name} must be an https:// URL on a public host in production`;
