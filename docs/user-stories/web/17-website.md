@@ -768,16 +768,22 @@ So that I don't discover a typo later on my phone
 > (option (b)) is reconsidered in 1.1 only if support tickets show the need.
 > Design note: [`docs/design/US-WEB-19-test-connection.md`](../../design/US-WEB-19-test-connection.md).
 
-- [ ] Scenario: The phone tests the connection (1.0)
+- [x] Scenario: The phone tests the connection (1.0)
   Given I am adding a Jenkins server, GitHub account or SonarQube server
   Then next to "Save server" I see "Your phone tests the connection. After
   saving, open JobTrigger on the same network as this server, tap the
   server in Settings and tap Test connection." — no disabled button, no
   "Coming soon" badge, and saving works as before
-- [ ] Scenario: Nothing promises a website test
+  Evidence: `JobTrigger-Web/src/features/servers/add-server-view.tsx`;
+  e2e `tests/e2e/add-server.spec.ts` "the website says the phone tests the
+  connection (US-WEB-19)"; saving: `add-server.spec.ts` save tests.
+- [x] Scenario: Nothing promises a website test
   Given the `web-test-connection` feature in US-WEB-22
   Then it is `planned` (not `soon`), so no page lists "Test connection from
   the website" as coming next
+  Evidence: `src/content/feature-status.ts` (`planned`), pinned in
+  `feature-status.test.ts`; `changelog.test.ts` "lists the remaining soon
+  features as next".
 - [ ] Scenario: Success, failure, private network (website test) — **won't
   do in 1.0** (option (b), reconsidered in 1.1). Kept for the record:
   "Connected as <username>"; the app's copy for `AuthFailure`,
