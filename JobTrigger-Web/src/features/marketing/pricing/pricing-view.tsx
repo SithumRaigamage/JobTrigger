@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { pricingFor, type Cell } from "@/content/pricing";
 import { statusOf } from "@/content/feature-status";
 import { getRelease } from "@/content/release";
+import { TEAM_PRICES, usd } from "@/domain/team";
 
 import { routes } from "../site-links";
 
@@ -26,6 +27,7 @@ export function PricingView() {
   const { plans, comparison, promises: pricingPromises } = pricingFor(getRelease());
   // Phase 21: the student offer is only real while Pro is on sale, i.e. billing is on.
   const studentOffer = statusOf("subscriptions") === "live";
+  const teamPlan = statusOf("team-plan") === "live";
   return (
     <main id="content" tabIndex={-1} className="flex-1">
       <Section className="py-16">
@@ -83,6 +85,36 @@ export function PricingView() {
                 </Card>
               </li>
             ))}
+            {/* US-SUB-11 AC15: only once the team plan ships (release 1.1). */}
+            {teamPlan && (
+              <li data-testid="team-plan-card">
+                <Card className="flex h-full flex-col gap-4 p-7">
+                  <h2 className="text-2xl font-extrabold">Team</h2>
+                  <p className="text-fg-secondary">Pro for everyone, servers shared once.</p>
+                  <p className="text-[1.75rem] font-extrabold">
+                    {usd(TEAM_PRICES.monthly)}{" "}
+                    <span className="text-base font-semibold">/ seat / month</span>
+                  </p>
+                  <p className="text-sm text-muted">
+                    From {TEAM_PRICES.minSeats} seats, or {usd(TEAM_PRICES.yearly)} per seat per
+                    year. Bought on this website.
+                  </p>
+                  <ul className="flex list-disc flex-col gap-2 pl-5.5 text-[0.9375rem]">
+                    <li>JobTrigger Pro for every member</li>
+                    <li>Share your Jenkins servers without sharing tokens</li>
+                    <li>Invite and remove people any time</li>
+                  </ul>
+                  <div className="mt-auto pt-2">
+                    <Link
+                      href="/account/team"
+                      className="inline-flex h-13 items-center rounded-full border border-line px-5 font-bold text-fg no-underline hover:bg-sunken"
+                    >
+                      Set up a team
+                    </Link>
+                  </div>
+                </Card>
+              </li>
+            )}
           </ul>
 
           <section aria-labelledby="compare-heading" className="flex flex-col gap-4">

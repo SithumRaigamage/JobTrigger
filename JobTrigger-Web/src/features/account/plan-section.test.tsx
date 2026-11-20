@@ -100,3 +100,20 @@ describe("AccountView plan section", () => {
     expect(screen.queryByText(/does not cancel/)).not.toBeInTheDocument();
   });
 });
+
+describe("AccountView team card (US-SUB-11)", () => {
+  it("is hidden while teams are off, offers setup, or links to the team", () => {
+    const { rerender } = render(<AccountView email="sam@acme.dev" />);
+    expect(screen.queryByTestId("team-card")).not.toBeInTheDocument();
+
+    rerender(<AccountView email="sam@acme.dev" teamName={null} />);
+    expect(screen.getByRole("link", { name: "Set up a team →" })).toHaveAttribute(
+      "href",
+      "/account/team",
+    );
+
+    rerender(<AccountView email="sam@acme.dev" teamName="Platform" />);
+    expect(screen.getByTestId("team-card")).toHaveTextContent("You're in Platform.");
+    expect(screen.getByRole("link", { name: "Open the team →" })).toBeVisible();
+  });
+});

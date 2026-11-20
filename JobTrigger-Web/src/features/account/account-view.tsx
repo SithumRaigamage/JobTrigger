@@ -1,3 +1,6 @@
+import Link from "next/link";
+
+import { Card } from "@/components/layout";
 import type { StudentApplication } from "@/domain/student";
 import type { Subscription } from "@/domain/subscription";
 import { StudentCard } from "@/features/student/student-card";
@@ -11,6 +14,7 @@ export function AccountView({
   subscription = null,
   student = null,
   billingHref = null,
+  teamName,
 }: {
   email: string;
   /** Null: billing is off or the plan couldn't be read, so no plan card. */
@@ -19,6 +23,11 @@ export function AccountView({
   student?: StudentApplication | null;
   /** Set when web checkout is set up (P20-83). */
   billingHref?: string | null;
+  /**
+   * US-SUB-11: undefined hides the team card (teams off); null offers to
+   * create one; a name links to it.
+   */
+  teamName?: string | null;
 }) {
   return (
     <>
@@ -45,6 +54,19 @@ export function AccountView({
         <ChangePassword />
         {subscription && <PlanSection subscription={subscription} billingHref={billingHref} />}
         {subscription && student && <StudentCard application={student} />}
+        {teamName !== undefined && (
+          <Card data-testid="team-card" className="flex flex-[1_1_320px] flex-col gap-3 p-6">
+            <h2 className="text-lg font-bold">Team</h2>
+            <p className="text-fg-secondary">
+              {teamName === null
+                ? "Buy Pro for your team and share your Jenkins servers once."
+                : `You're in ${teamName}.`}
+            </p>
+            <Link href="/account/team" className="self-start font-semibold">
+              {teamName === null ? "Set up a team →" : "Open the team →"}
+            </Link>
+          </Card>
+        )}
         <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-5">
           <SignOutEverywhere />
           <DeleteAccount

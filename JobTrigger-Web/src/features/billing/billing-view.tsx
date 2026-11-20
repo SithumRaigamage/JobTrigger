@@ -3,12 +3,13 @@ import Link from "next/link";
 import type { PaddleConfig } from "@/billing/paddle-config";
 import { Card } from "@/components/layout";
 import type { Subscription } from "@/domain/subscription";
+import type { Team } from "@/domain/team";
 import { manageInstructions, planSummary } from "@/features/account/plan-section";
 
 import { routes } from "../marketing/site-links";
 
 import { billingMode } from "./billing-mode";
-import { ManageButton, UpgradeButtons } from "./billing-actions";
+import { ManageButton, TeamCheckout, UpgradeButtons } from "./billing-actions";
 
 /**
  * Billing (P20-83): upgrade with Paddle, or manage a web subscription in
@@ -18,9 +19,12 @@ import { ManageButton, UpgradeButtons } from "./billing-actions";
 export function BillingView({
   subscription,
   paddle,
+  team = null,
 }: {
   subscription: Subscription | null;
   paddle: PaddleConfig | null;
+  /** US-SUB-11: the owner's team, when the team plan is on. */
+  team?: Team | null;
 }) {
   const mode = billingMode(subscription, paddle);
 
@@ -83,6 +87,44 @@ export function BillingView({
 
         {mode === "other" && <p className="text-fg-secondary">There is nothing to manage here.</p>}
       </Card>
+      {team && team.role === "owner" && <TeamBilling team={team} paddle={paddle} />}
     </>
+  );
+}
+
+/** US-SUB-11 AC13: the team's seats, bought or changed here. */
+function TeamBilling({ team, paddle }: { team: Team; paddle: PaddleConfig | null }) {
+  const subscribed = team.active && team.billing.willRenew;
+  return (
+    <Card
+      role="region"
+      aria-labelledby="team-billing-title"
+      className="flex max-w-2xl flex-col gap-4 p-6"
+    >
+      <h2 id="team-billing-title" className="text-xl font-extrabold">
+        Team: {team.name}
+      </h2>
+      {subscribed ? (
+        <p className="text-fg-secondary" data-testid="team-billing-subscribed">
+          Your team has {team.seats} seats. Change them on the{" "}
+          <Link href="/account/team">team page</Link>; Paddle adjusts the next invoice.
+        </p>
+      ) : paddle ? (
+        <>
+          <p className="text-fg-secondary">
+            Everyone in the team gets Pro. {team.seatsUsed} of your seats are in use, so you need at
+            least {Math.max(team.prices.minSeats, team.seatsUsed)}.
+          </p>
+          <TeamCheckout
+            clientToken={paddle.clientToken}
+            environment={paddle.environment}
+            prices={team.prices}
+            minSeats={team.seatsUsed}
+          />
+        </>
+      ) : (
+        <p>Buying for a team on the website isn&apos;t available right now.</p>
+      )}
+    </Card>
   );
 }
