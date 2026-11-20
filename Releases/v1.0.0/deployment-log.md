@@ -2,7 +2,8 @@
 
 - **Version**: `1.0.0`
 - **Date**: 2026-11-19
-- **Base Commit SHA**: `007910f` (develop at the 2026-11-19 audit; re-confirm
+- **Base Commit SHA**: `1e589cb` (develop after PR #147 merged the billing
+  closeout on 2026-11-19; re-confirm
   the tag commit when cutting the release)
 
 > **Status: plan, not executed.** The values below are the intended
