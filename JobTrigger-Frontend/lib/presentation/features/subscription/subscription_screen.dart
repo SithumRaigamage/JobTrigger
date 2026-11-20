@@ -239,6 +239,14 @@ class SubscriptionScreen extends ConsumerWidget {
     if (status.isStudent) {
       return 'Free for one year as a verified student.';
     }
+    // US-SUB-11 AC16: no purchase, and no link to the website checkout.
+    if (status.isTeam) {
+      final name = status.team?.name ?? 'your team';
+      return status.team?.isOwner ?? false
+          ? 'Pro through $name. You manage the team on the JobTrigger '
+                'website.'
+          : "Pro through $name. Your team's owner manages this plan.";
+    }
     if (status.source != null) return 'Included with your account.';
     return null;
   }

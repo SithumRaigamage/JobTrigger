@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,7 +8,9 @@ import '../../core/error/result.dart';
 import '../cache/job_tree_cache.dart';
 import '../repositories/credentials_repository_impl.dart';
 import '../../domain/credential/jenkins_server.dart';
+import '../../domain/team/team_server.dart';
 import 'credentials_notifier.dart';
+import 'team_servers_notifier.dart';
 
 part 'active_server_notifier.g.dart';
 
@@ -41,7 +45,69 @@ class ActiveServerNotifier extends _$ActiveServerNotifier {
       final match = _findById(fresh, current.id);
       if (match != null && match != current) state = match;
     }, weak: true);
+    // US-SUB-11 AC17: a team server that stops being shared (unshared,
+    // removed from the team, the team lapsed) stops being the active one.
+    ref.listen(teamServersNotifierProvider, (_, next) {
+      final current = state;
+      final shared = next.value;
+      if (current == null || shared == null) return;
+      if (!TeamServer.isTeamId(current.id)) return;
+      final match = _findTeamServer(shared, current.id);
+      if (match == null) {
+        _fallBackToOwn();
+      } else if (match != current) {
+        state = match;
+      }
+    }, weak: true);
     return null;
+  }
+
+  /// Only when the saved id is a team server's, and only into an empty slot:
+  /// anything chosen meanwhile (a server just added) wins.
+  Future<void> _restoreTeamServer() async {
+    final String? persistedId;
+    try {
+      persistedId = (await SharedPreferences.getInstance()).getString(
+        _activeServerIdKey,
+      );
+    } catch (_) {
+      return;
+    }
+    if (!TeamServer.isTeamId(persistedId)) return;
+    final shared = _findTeamServer(await _teamServers(), persistedId);
+    if (shared != null && ref.mounted && state == null) state = shared;
+  }
+
+  Future<List<TeamServer>> _teamServers() async {
+    try {
+      return await ref.read(teamServersNotifierProvider.future);
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  static JenkinsServer? _findTeamServer(List<TeamServer> shared, String? id) {
+    for (final team in shared) {
+      if (team.server.id == id) return team.server;
+    }
+    return null;
+  }
+
+  Future<void> _fallBackToOwn() async {
+    // Awaited, not the cached value: off the Settings screen nothing keeps
+    // the list alive, and an empty cache would clear the active server.
+    final List<JenkinsServer> own;
+    try {
+      own = await ref.read(credentialsNotifierProvider.future);
+    } catch (_) {
+      return;
+    }
+    if (!ref.mounted) return;
+    if (own.isEmpty) {
+      await clear();
+    } else {
+      await setActiveServer(_findDefault(own) ?? own.first);
+    }
   }
 
   Future<void> _rehydrate() async {
@@ -56,11 +122,23 @@ class ActiveServerNotifier extends _$ActiveServerNotifier {
     }
     if (servers.isEmpty) {
       state = null;
+      // US-SUB-11 AC17: someone with only team servers gets theirs back.
+      unawaited(_restoreTeamServer());
       return;
     }
 
     final prefs = await SharedPreferences.getInstance();
     final persistedId = prefs.getString(_activeServerIdKey);
+
+    // US-SUB-11 AC17: an active team server comes back from the team's list
+    // while it is still shared; otherwise the user's own server is used.
+    if (TeamServer.isTeamId(persistedId)) {
+      final shared = _findTeamServer(await _teamServers(), persistedId);
+      if (shared != null) {
+        state = shared;
+        return;
+      }
+    }
 
     final resolved =
         _findById(servers, persistedId) ??
