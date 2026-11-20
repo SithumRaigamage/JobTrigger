@@ -542,6 +542,12 @@ their approvals don't block the rest.
       evidence are recorded in the story and in `api-reference.md`. No code
       shipped.
 
+- [ ] P11-29 **US-JX-16 reopened (owner, 2026-11-20): replay with edits,
+      inline-script pipelines only.** Script from `{job}/config.xml`
+      (no HTML scraping), submit to `{build}replay/run`, two confirmations,
+      new build found by its "Replayed #N" cause. App + website changelog;
+      no backend. Acceptance criteria AC1–AC9 in the story.
+
 ## Close-out
 
 - [x] P11-28 Final documentation sync: `architecture.md` (lazy tree,
