@@ -194,6 +194,51 @@ function resetPasswordUrl(env = process.env) {
  * the encryption keys (AUD-03), `TRUST_PROXY` (AUD-44), SMTP (P20-72),
  * or the reset link base (P20-73).
  */
+/** A host that only exists on a development machine or private network. */
+function isDevHost(hostname) {
+  const host = String(hostname || '').toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '');
+  if (!host || host === 'localhost' || host === 'host.docker.internal') return true;
+  if (/\.(local|lan|home|internal|localhost)$/.test(host)) return true;
+  if (/^(127\.|10\.|192\.168\.|169\.254\.|0\.)/.test(host)) return true;
+  if (/^172\.(1[6-9]|2\d|3[01])\./.test(host)) return true;
+  if (host === '::1' || /^f[cd][0-9a-f]{2}:/.test(host) || /^fe80:/.test(host)) return true;
+  return !host.includes('.') && !host.includes(':'); // a bare machine or Docker service name
+}
+
+/** True when `value` is an https:// URL on a public host. */
+function isPublicHttps(value) {
+  try {
+    const url = new URL(String(value).trim());
+    return url.protocol === 'https:' && !isDevHost(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Pre-release audit 2026-11-20: production must not inherit development
+ * values. The development lab sets CORS_ORIGINS to the local website, a
+ * GlitchTip DSN on the Mac, and short throwaway secrets; each starts fine in
+ * production and fails silently later (a browser blocked, crash reports
+ * lost, a guessable JWT key). Names only in the message, never a value.
+ */
+function productionProblem(env) {
+  if (env.NODE_ENV !== 'production') return null;
+  if (!blank(env.JWT_SECRET) && env.JWT_SECRET.trim().length < 32) {
+    return 'JWT_SECRET must be at least 32 characters in production';
+  }
+  const devOrigin = corsOrigins(env).find((origin) => !isPublicHttps(origin));
+  if (devOrigin !== undefined) {
+    return 'CORS_ORIGINS must only list https:// public origins in production (no localhost or LAN)';
+  }
+  for (const name of ['SITE_URL', 'SENTRY_DSN', 'UMAMI_URL']) {
+    if (!blank(env[name]) && !isPublicHttps(env[name])) {
+      return `${name} must be an https:// URL on a public host in production`;
+    }
+  }
+  return null;
+}
+
 function invalidConfig(env = process.env) {
   if (trustProxyHops(env) === undefined) {
     return 'TRUST_PROXY must be the number of proxy hops in front of the server (e.g. 1)';
@@ -248,6 +293,8 @@ function invalidConfig(env = process.env) {
   if (!blank(env.UMAMI_URL) && !/^https?:\/\/\S+$/.test(env.UMAMI_URL.trim())) {
     return 'UMAMI_URL must be an http(s) URL';
   }
+  const production = productionProblem(env);
+  if (production) return production;
   if (!env.CREDENTIALS_ENCRYPTION_KEY) return null; // Reported as missing.
   try {
     loadKeys(env);
