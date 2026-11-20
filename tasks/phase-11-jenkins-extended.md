@@ -542,11 +542,15 @@ their approvals don't block the rest.
       evidence are recorded in the story and in `api-reference.md`. No code
       shipped.
 
-- [ ] P11-29 **US-JX-16 reopened (owner, 2026-11-20): replay with edits,
+- [x] P11-29 **US-JX-16 reopened (owner, 2026-11-20): replay with edits,
       inline-script pipelines only.** Script from `{job}/config.xml`
       (no HTML scraping), submit to `{build}replay/run`, two confirmations,
       new build found by its "Replayed #N" cause. App + website changelog;
       no backend. Acceptance criteria AC1–AC9 in the story.
+      *Built 2026-11-20:* `replay_script_parser.dart`, `fetchReplayScript` /
+      `replayWithScript`, `ReplayEditNotifier`, `ReplayEditScreen`, route
+      `/home/job/build/replay-edit`, Replay-sheet entry, demo refusal; 23
+      tests (9 data, 14 widget). Live check on the owner's Jenkins: M-22.
 
 ## Close-out
 

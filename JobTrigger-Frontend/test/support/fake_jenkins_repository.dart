@@ -13,6 +13,7 @@ import 'package:job_trigger/domain/jenkins/pending_input.dart';
 import 'package:job_trigger/domain/jenkins/pipeline_stage.dart';
 import 'package:job_trigger/domain/jenkins/queue_entry.dart';
 import 'package:job_trigger/domain/jenkins/queue_item.dart';
+import 'package:job_trigger/domain/jenkins/replay_script.dart';
 import 'package:job_trigger/domain/jenkins/server_status.dart';
 import 'package:job_trigger/domain/jenkins/test_report.dart';
 
@@ -186,4 +187,14 @@ class FakeJenkinsRepository implements JenkinsRepository {
     required bool proceed,
     Map<String, String> parameters = const {},
   }) => throw UnimplementedError('submitInput');
+
+  @override
+  Future<Result<ReplayScript, AppFailure>> fetchReplayScript(String jobUrl) =>
+      throw UnimplementedError('fetchReplayScript');
+
+  @override
+  Future<Result<void, AppFailure>> replayWithScript(
+    String buildUrl,
+    String script,
+  ) => throw UnimplementedError('replayWithScript');
 }

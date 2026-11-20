@@ -22,6 +22,7 @@ const whatsNewReleases = [
       'Students get JobTrigger Pro free for one year: verify with a university email or a student ID.',
       'Offline-aware screens that say how old their data is.',
       'Read-only server mode and a confirmation step for protected actions.',
+      'Replay a pipeline build with an edited script (inline pipeline jobs).',
       'Pair a server from the JobTrigger website with a QR code.',
       'Send a redacted support report and track its status in the app.',
       'Switch servers from any tool screen without losing your place.',

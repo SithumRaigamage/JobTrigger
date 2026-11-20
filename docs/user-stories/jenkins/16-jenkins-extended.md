@@ -681,7 +681,7 @@ So that I can spot a degrading pipeline
 
 ### US-JX-16 — Replay with an edited pipeline script
 
-> **Status: reopened 2026-11-20 by the owner, inline-script pipelines only.**
+> **Status: built 2026-11-20 (P11-29), inline-script pipelines only;** all nine criteria ticked against code and tests (`test/data/repositories/replay_script_test.dart`, `test/presentation/features/replay_edit/replay_edit_screen_test.dart`). Live pass on the owner's Jenkins: M-22.
 > The 2026-09-30 gate (P11-27) closed it because the *build's* original
 > script is only in the `replay/` HTML page. The owner chose the documented
 > source instead: the job's `config.xml`, which holds the script of an
@@ -698,35 +698,35 @@ I want to replay a build with a small script edit
 So that I can test a fix without committing
 
 **Acceptance Criteria**
-- [ ] AC1 Entry. The Replay sheet shows "Replay with edits…" only for a
+- [x] AC1 Entry. The Replay sheet shows "Replay with edits…" only for a
       pipeline job (`org.jenkinsci.plugins.workflow.job.WorkflowJob`); it
       opens a full-screen editor for that build.
-- [ ] AC2 Load. The editor loads the job's inline script from
+- [x] AC2 Load. The editor loads the job's inline script from
       `GET {job}/config.xml` (`CpsFlowDefinition` → `<script>`, XML entities
       decoded) into a monospaced, always-dark editor, and keeps the
       definition's `sandbox` value for display.
-- [ ] AC3 SCM pipelines. For a `CpsScmFlowDefinition` (Jenkinsfile from a
+- [x] AC3 SCM pipelines. For a `CpsScmFlowDefinition` (Jenkinsfile from a
       repository) the screen says "Replay with edits works for jobs whose
       script is in Jenkins. This job's Jenkinsfile comes from a repository."
       and offers no editor.
-- [ ] AC4 Replayed builds. When the build's causes include "Replayed #",
+- [x] AC4 Replayed builds. When the build's causes include "Replayed #",
       a banner warns that the loaded script is the job's current script and
       may differ from what this build ran.
-- [ ] AC5 Permissions. A 403 on `config.xml` says the user needs permission
+- [x] AC5 Permissions. A 403 on `config.xml` says the user needs permission
       to read the job's configuration; a 403/404 on submit says the build
       can't be replayed by this user. Nothing else is shown as a crash.
-- [ ] AC6 Two confirmations. Replay asks twice: "Replay #N with edits?",
+- [x] AC6 Two confirmations. Replay asks twice: "Replay #N with edits?",
       then a second dialog stating "This runs arbitrary pipeline code on
       <server>." that requires typing the job name. The app lock re-prompt
       (US-JX-21) applies when it is on.
-- [ ] AC7 Submit. `POST {build}replay/run`, form-encoded, with
+- [x] AC7 Submit. `POST {build}replay/run`, form-encoded, with
       `_.mainScript` and the Stapler `json` field `{"mainScript": …}`; the
       CSRF crumb goes through the existing interceptor (NFR-SEC-06); the 302
       is success.
-- [ ] AC8 New build. After submitting, the app looks for the new build
+- [x] AC8 New build. After submitting, the app looks for the new build
       (newer than #N, cause "Replayed #N") for up to 10 seconds and opens it;
       if it isn't found yet it opens the job's history with "Replay started".
-- [ ] AC9 Safety. On a read-only server (PI-01) the Replay button is off
+- [x] AC9 Safety. On a read-only server (PI-01) the Replay button is off
       and reads "Read-only"; in demo mode the screen says the action isn't
       available in the demo.
 

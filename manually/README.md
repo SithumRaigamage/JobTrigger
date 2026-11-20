@@ -40,6 +40,7 @@ changes; `IPHONE.md` covers both.
 | [M-19](M-19-production-mail.md) | Production mail: provider, sender, support and student inboxes | US-AUTH-08, Phase 21 | no — Student Plan ships in 1.0 |
 | [M-20](M-20-atlas-network-lockdown.md) | Lock down Atlas network access (remove `0.0.0.0/0`) | deployment.md, RD-04 | no — **do now** |
 | [M-21](M-21-discord-community.md) | Discord community server | audit 2026-11-20 | optional for 1.0 |
+| [M-22](M-22-replay-with-edits-live.md) | Replay with edits on your real Jenkins | P11-29, US-JX-16 | no |
 
 ## Resolved
 
