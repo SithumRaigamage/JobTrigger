@@ -17,11 +17,12 @@ const mongoose = require('mongoose');
 const BillingEvent = require('../models/BillingEvent');
 const Subscription = require('../models/Subscription');
 const User = require('../models/User');
+const Team = require('../models/Team');
 const paddle = require('../billing/paddleClient');
 const { verifySignature, fromPaddleSubscription } = require('../billing/paddle');
 const { writeSource } = require('../billing/combine');
 const { entitlementsFor } = require('../billing/entitlements');
-const { billingEnabled, paddleConfig } = require('../config/env');
+const { billingEnabled, paddleConfig, paddleTeamPrices } = require('../config/env');
 const { track } = require('../lib/analytics');
 const { logger } = require('../lib/logger');
 
@@ -75,6 +76,46 @@ exports.portal = async (req, res, next) => {
   }
 };
 
+/**
+ * US-SUB-11 AC4: the team a Paddle subscription belongs to, or null. Team
+ * checkouts carry `custom_data.teamId`; later events are matched by the
+ * subscription id the first one recorded.
+ */
+async function teamOf(data) {
+  const fromCheckout = data?.custom_data?.teamId;
+  if (typeof fromCheckout === 'string' && mongoose.Types.ObjectId.isValid(fromCheckout)) {
+    const team = await Team.findById(fromCheckout);
+    if (team) return team;
+  }
+  if (typeof data?.id !== 'string') return null;
+  return Team.findOne({ 'billing.paddleSubscriptionId': data.id });
+}
+
+/** AC4: applies a subscription event to [team]; never a personal source. */
+async function applyToTeam(team, data, eventAt) {
+  if (team.billing?.eventAt && new Date(team.billing.eventAt) > eventAt
+      && team.billing.paddleSubscriptionId === data?.id) {
+    return 'stale';
+  }
+  const mapped = fromPaddleSubscription(data);
+  const prices = paddleTeamPrices();
+  const priceId = data?.items?.[0]?.price?.id;
+  const quantity = Number(data?.items?.[0]?.quantity);
+  team.billing = {
+    plan: mapped.plan,
+    status: mapped.status,
+    period: prices && priceId === prices.yearly ? 'yearly' : prices && priceId === prices.monthly ? 'monthly' : team.billing?.period ?? null,
+    periodEnd: mapped.periodEnd,
+    willRenew: mapped.willRenew,
+    paddleSubscriptionId: mapped.paddleSubscriptionId,
+    paddleCustomerId: mapped.paddleCustomerId,
+    eventAt,
+  };
+  if (Number.isInteger(quantity) && quantity >= 2 && quantity <= 100) team.seats = quantity;
+  await team.save();
+  return 'applied';
+}
+
 /** The user a Paddle subscription belongs to, or null. */
 async function ownerOf(data) {
   const fromCheckout = data?.custom_data?.userId;
@@ -118,6 +159,13 @@ exports.webhook = async (req, res) => {
   }
 
   try {
+    const eventAtForTeam = occurredAt ? new Date(occurredAt) : new Date();
+    const team = await teamOf(data);
+    if (team) {
+      const outcome = await applyToTeam(team, data, eventAtForTeam);
+      log.info(`billing.paddle_team_${outcome}`, { eventId, type });
+      return res.json({ ok: true, team: true, ...(outcome === 'stale' ? { stale: true } : {}) });
+    }
     const userId = await ownerOf(data);
     if (!userId) {
       log.warn('billing.paddle_no_owner', { eventId, type });

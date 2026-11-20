@@ -69,6 +69,7 @@ app.use('/api/appinfo', require('./routes/appInfoRoutes'));
 // NR-06 (BACKLOG-02): push-token registration. Off until FCM is configured.
 app.use('/api/devices', require('./routes/deviceRoutes'));
 app.use('/api/subscription', require('./routes/subscriptionRoutes'));
+app.use('/api/team', require('./routes/teamRoutes'));
 // Development-only sandbox store (404 everywhere else). Mounted before the
 // real billing routes so it owns its own prefix.
 app.use('/api/billing/sandbox', require('./routes/sandboxBillingRoutes'));
