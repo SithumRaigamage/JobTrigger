@@ -43,7 +43,7 @@ only, $6.99 per seat per month ($69.90 per seat per year), 2–100 seats.
   from the credentials list), delete. Member: team, owner, leave.
 - `/account/billing`: Team section — seats stepper, monthly/yearly, total
   price, "Buy for the team" (Paddle.js, same CSP-scoped page), "Change seats".
-- `/team/join`: reads `token`, requires sign-in (redirect back after), posts
+- `/account/team/join`: reads `token`, requires sign-in (redirect back after), posts
   `POST /api/team/join`, shows each refusal.
 - Pricing: Team card when `statusOf("team-plan") === "live"` (feature status
   `soon` until 1.1 ships).

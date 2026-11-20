@@ -227,7 +227,7 @@ Paddle on `/account/billing` only); go-live is the owner's Paddle setup
 
 ### US-SUB-11 — Team plan
 
-> **Status: in development for release 1.1** (owner decision 2026-11-20:
+> **Status: built 2026-11-20 for release 1.1, all 17 criteria ticked against code and tests** (owner decision 2026-11-20:
 > build now on its own branch, ship after the `v1.0.0` tag; billed per seat on
 > the website through Paddle only; **$6.99 per seat per month**). Off unless
 > `TEAM_PLAN_ENABLED=true`. Design note: [`docs/design/US-SUB-11-team-plan.md`](../../design/US-SUB-11-team-plan.md).
@@ -241,70 +241,70 @@ So that everyone gets Pro and the same servers without passing tokens around
 **Acceptance Criteria**
 
 *Backend (`JobTrigger-Backend`)*
-- [ ] AC1 Off by default. Without `TEAM_PLAN_ENABLED=true` every
+- [x] AC1 Off by default. Without `TEAM_PLAN_ENABLED=true` every
       `/api/team` route answers 404 and nothing about teams appears in any
       other response.
-- [ ] AC2 Create. A signed-in user who is in no team creates one (name 1–60
+- [x] AC2 Create. A signed-in user who is in no team creates one (name 1–60
       characters) and becomes its owner. A user is in at most one team.
-- [ ] AC3 Price and seats. $6.99 per seat per month or $69.90 per seat per
+- [x] AC3 Price and seats. $6.99 per seat per month or $69.90 per seat per
       year (two months free), 2 to 100 seats. Checkout is a Paddle
       transaction created by the backend with `quantity = seats` and
       `custom_data = { teamId }`; only the owner can buy, on the website.
-- [ ] AC4 Billing events. Paddle subscription events carrying a `teamId`
+- [x] AC4 Billing events. Paddle subscription events carrying a `teamId`
       update the team's status, period end and seats (from the item
       quantity), once per event, never with an older event, and never touch
       anyone's personal `web` subscription.
-- [ ] AC5 Invite. The owner invites by email while members + pending invites
+- [x] AC5 Invite. The owner invites by email while members + pending invites
       < seats. The invite expires in 7 days, its token is stored only as a
-      hash, and the email links to `/team/join?token=…`. Inviting the same
+      hash, and the email links to `/account/team/join?token=…`. Inviting the same
       address again replaces the old invite.
-- [ ] AC6 Accept. A signed-in user whose account email matches the invite
+- [x] AC6 Accept. A signed-in user whose account email matches the invite
       (case-insensitive) joins with the token. Refused, with a reason, when
       the token is unknown or expired, the email doesn't match, the user is
       already in a team, or the seats are full.
-- [ ] AC7 Pro for members. While the team's subscription is in a Pro state
+- [x] AC7 Pro for members. While the team's subscription is in a Pro state
       and inside its period, the owner and every member have Pro with
       source `team`; a member's own Pro (store, web, grant, student) still
       shows as their source when they have one.
-- [ ] AC8 Leave and remove. The owner removes a member or cancels an invite;
+- [x] AC8 Leave and remove. The owner removes a member or cancels an invite;
       a member leaves. The owner can't leave (they delete the team). Someone
       who loses the team falls back to their own plan, with the
       locked-server guard and nothing deleted.
-- [ ] AC9 Change seats. The owner sets 2–100 seats, never below members +
+- [x] AC9 Change seats. The owner sets 2–100 seats, never below members +
       pending invites; the backend updates the Paddle subscription's
       quantity (prorated) and the webhook confirms it.
-- [ ] AC10 Shared Jenkins servers. The owner shares their own Jenkins
+- [x] AC10 Shared Jenkins servers. The owner shares their own Jenkins
       servers with the team. Members of an active team list them masked and
       read a secret only through `GET /api/team/servers/jenkins/:id/secret`
       (rate-limited, `no-store`). Unsharing, removal, or the team lapsing
       revokes access at once. GitHub and SonarQube tokens are personal and
       are not shareable.
-- [ ] AC11 Delete. The owner deletes the team only when its subscription no
+- [x] AC11 Delete. The owner deletes the team only when its subscription no
       longer renews; members then fall back to their own plan. Deleting the
       owner's account is blocked while they own a team; a member's account
       deletion removes the membership.
 
 *Website (`JobTrigger-Web`)*
-- [ ] AC12 Team page. `/account/team` lets the owner create the team, see
+- [x] AC12 Team page. `/account/team` lets the owner create the team, see
       seats used and total, members and pending invites, invite, remove,
       cancel an invite, and share or unshare their Jenkins servers; a member
       sees the team and can leave. Shows "not available" when the backend
       has teams off.
-- [ ] AC13 Team billing. `/account/billing` (the only page with Paddle's
+- [x] AC13 Team billing. `/account/billing` (the only page with Paddle's
       CSP exception) has a Team section: seats and monthly/yearly with the
       price worked out, checkout through Paddle, and changing seats.
-- [ ] AC14 Join. `/team/join?token=…` accepts an invite after sign-in and
+- [x] AC14 Join. `/account/team/join?token=…` accepts an invite after sign-in and
       shows each refusal from AC6 in plain words.
-- [ ] AC15 Pricing. The pricing page shows a Team card ($6.99 per seat per
+- [x] AC15 Pricing. The pricing page shows a Team card ($6.99 per seat per
       month, from 2 seats, bought on the website) only when the `team-plan`
       feature is live.
 
 *App (`JobTrigger-Frontend`)*
-- [ ] AC16 Plan screen. When Pro comes from a team, the subscription screen
+- [x] AC16 Plan screen. When Pro comes from a team, the subscription screen
       says "Pro through <team name>" and "Your team's owner manages this
       plan." No in-app purchase is offered and nothing links to the website
       checkout (store rules).
-- [ ] AC17 Team servers. Settings lists the team's shared Jenkins servers
+- [x] AC17 Team servers. Settings lists the team's shared Jenkins servers
       (name, URL, shared by) under "Team servers". "Use" makes one the
       active server (its secret is fetched through the team endpoint and
       kept in secure storage like the user's own). Team servers can't be
