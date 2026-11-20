@@ -218,11 +218,12 @@ So that nobody keeps Pro unpaid or loses Pro they paid for
 
 ---
 
-### US-SUB-10 — Web checkout (deferred to Phase 21)
+### US-SUB-10 — Web checkout
 
 **Priority:** Could · Buy Pro on the website through a merchant of
-record with Sri Lanka payouts. Out of this epic; listed so the set is
-complete by exclusion.
+record with Sri Lanka payouts. **Status:** built in Phase 20 (P20-83,
+Paddle on `/account/billing` only); go-live is the owner's Paddle setup
+(P20-85, M-15). Earlier versions of this file listed it as deferred.
 
 ### US-SUB-11 — Team plan (deferred)
 
