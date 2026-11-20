@@ -275,6 +275,9 @@ function invalidConfig(env = process.env) {
   if (!blank(env.STUDENT_ADMIN_EMAIL) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.STUDENT_ADMIN_EMAIL.trim())) {
     return 'STUDENT_ADMIN_EMAIL must be an email address';
   }
+  if (!blank(env.SUPPORT_EMAIL) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.SUPPORT_EMAIL.trim())) {
+    return 'SUPPORT_EMAIL must be an email address';
+  }
   if (!blank(env.RESET_PASSWORD_URL) && !/^https?:\/\/[^\s?#]+$/.test(env.RESET_PASSWORD_URL.trim())) {
     return 'RESET_PASSWORD_URL must be an http(s) URL without a query string';
   }

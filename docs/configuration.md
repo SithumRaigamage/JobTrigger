@@ -56,6 +56,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 | `TRUST_PROXY` | unset | unset | number of proxy hops (Render: `1`, confirm) |
 | `CORS_ORIGINS` | empty (no CORS) | unset | unset for the app; add a browser origin only if one calls the API directly |
 | `SITE_URL` | `http://localhost:3000` | `http://<Mac-Wi-Fi-IP>:3000` for the phone | `https://jobtrigger.app` |
+| `SUPPORT_EMAIL` | `support@jobtrigger.app` | unset | unset (`support@` + the `SITE_URL` domain), or the real support inbox |
 | `RESET_PASSWORD_URL` | `http://localhost:3000/reset-password` | `http://<Mac-Wi-Fi-IP>:3000/reset-password` | `https://jobtrigger.app/reset-password` |
 
 `TRUST_PROXY` accepts only a whole number (1–99). `SITE_URL` is an origin

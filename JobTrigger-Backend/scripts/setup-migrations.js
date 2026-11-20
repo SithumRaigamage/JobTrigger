@@ -10,6 +10,7 @@ const JenkinsCredential = require('../models/JenkinsCredential');
 const AppInfo = require('../models/AppInfo');
 const Subscription = require('../models/Subscription');
 const { ensureOwnerGrant } = require('../billing/owner');
+const { appInfoSeed } = require('./seedAppInfo');
 
 // Colors
 const colors = {
@@ -72,14 +73,9 @@ async function runMigrations() {
       await AppInfo.deleteMany({});
     }
 
-    const appInfo = new AppInfo({
-      appVersion: '1.0.0',
-      buildNumber: '1',
-      privacyPolicyUrl: 'https://example.com/privacy',
-      termsOfServiceUrl: 'https://example.com/terms',
-      supportEmail: 'support@jobtrigger.dev',
-      openSourceLicensesUrl: 'https://example.com/licenses'
-    });
+    // The same record seedAppInfo.js writes: real website links and the
+    // support address, never example.com placeholders (PE-01).
+    const appInfo = new AppInfo(appInfoSeed());
     await appInfo.save();
     log.success('AppInfo seeded successfully');
 

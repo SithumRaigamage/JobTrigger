@@ -9,6 +9,18 @@ const { siteUrl } = require('../config/env');
  * Links point at the real website pages (SITE_URL), never a placeholder:
  * /privacy, /terms and /licenses (PE-03).
  */
+/**
+ * Where "Contact support" goes: SUPPORT_EMAIL, else support@ the website's
+ * own domain, so it always matches SITE_URL (pre-release audit 2026-11-20:
+ * it was hard-coded to a jobtrigger.com address while every other config
+ * uses jobtrigger.app). The local website falls back to the 1.0 domain.
+ */
+function supportEmail(env, site) {
+  if (env.SUPPORT_EMAIL?.trim()) return env.SUPPORT_EMAIL.trim();
+  const host = new URL(site).hostname.replace(/^www\./, '');
+  return host === 'localhost' || !host.includes('.') ? 'support@jobtrigger.app' : `support@${host}`;
+}
+
 function appInfoSeed(env = process.env) {
   if (env.NODE_ENV === 'production' && !env.SITE_URL?.trim()) {
     throw new Error('SITE_URL is required to seed AppInfo in production');
@@ -19,7 +31,7 @@ function appInfoSeed(env = process.env) {
     buildNumber: '1',
     privacyPolicyUrl: `${site}/privacy`,
     termsOfServiceUrl: `${site}/terms`,
-    supportEmail: 'support@jobtrigger.com',
+    supportEmail: supportEmail(env, site),
     openSourceLicensesUrl: `${site}/licenses`,
   };
 }
