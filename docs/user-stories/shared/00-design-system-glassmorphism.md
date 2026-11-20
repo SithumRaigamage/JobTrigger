@@ -44,19 +44,19 @@ So that the app feels like a single coherent product, not a set of
 independently styled screens
 
 **Acceptance Criteria**
-- Scenario: Reusable surfaces exist
+- [ ] Scenario: Reusable surfaces exist
   Given the design system is implemented
   When any screen renders a card, grouped list, sheet, or the bottom tab bar
   Then it uses the shared primitives: `GlassSurface.card` (opaque card, 1px
   border), `GroupedCard`/`GroupHeader` (rows separated by hairlines),
   `GlassSurface.chrome` (the frosted nav bar), the theme's bottom-sheet and
   dialog shapes, rather than a one-off implementation per screen
-- Scenario: Blur only where something scrolls beneath
+- [ ] Scenario: Blur only where something scrolls beneath
   Given a frosted surface is rendered
   When content can scroll under it (the bottom nav bar)
   Then the blur has real content behind it; surfaces with nothing beneath
   them are opaque instead of blurring a flat colour
-- Scenario: Nested blur avoided
+- [ ] Scenario: Nested blur avoided
   Given a card or row is rendered
   When content is added inside it
   Then it adds no blur of its own — at most one blur layer per visual
@@ -82,18 +82,18 @@ I want text and icons to stay clearly legible in both light and dark mode
 So that the look never costs me the ability to actually read the app
 
 **Acceptance Criteria**
-- Scenario: Light mode contrast floor
+- [ ] Scenario: Light mode contrast floor
   Given the app is in light mode
   When body text, muted text, or status text is rendered on a card or the
   background
   Then the text/background contrast meets WCAG AA (≥4.5:1 for normal
   text, ≥3:1 for large text/icons)
-- Scenario: Dark mode contrast floor
+- [ ] Scenario: Dark mode contrast floor
   Given the app is in dark mode
   When the same text is rendered
   Then the same AA floor holds, with dark tokens tuned separately rather
   than reusing light values
-- Scenario: The accent is readable
+- [ ] Scenario: The accent is readable
   Given the single accent `#2563EB`
   When it fills a button or marks a selected state
   Then its label colour on it, and it on the background, are checked
@@ -122,16 +122,16 @@ So that the blur doesn't make anything harder to read, and the app remains
 usable regardless of my OS accessibility settings
 
 **Acceptance Criteria**
-- Scenario: OS reduce-transparency is on at launch
+- [ ] Scenario: OS reduce-transparency is on at launch
   Given the device has "Reduce Transparency" (or equivalent) enabled
   When the app starts
   Then `GlassSurface.chrome` renders opaque, in the same layout, with no
   blur
-- Scenario: Setting changes while app is running
+- [ ] Scenario: Setting changes while app is running
   Given the app is open
   When the user toggles the OS setting and returns to the app
   Then the nav bar switches to/from the opaque fallback without a restart
-- Scenario: Fallback preserves hierarchy
+- [ ] Scenario: Fallback preserves hierarchy
   Given the opaque fallback is active
   When comparing it to the frosted variant
   Then the nav bar's boundary and selected state remain distinguishable
@@ -158,18 +158,18 @@ So that the redesign doesn't make the app feel slower or janky, especially
 on mid-range Android devices
 
 **Acceptance Criteria**
-- Scenario: Blur cost doesn't scale with list length
+- [ ] Scenario: Blur cost doesn't scale with list length
   Given a screen renders a long scrollable list (job tree, history, queue)
   When the list is scrolled
   Then list rows are opaque and built lazily (`DecoratedSliver` groups,
   `ListView.builder`); the only `BackdropFilter` is the nav bar
-- Scenario: Android mid-range device check
+- [ ] Scenario: Android mid-range device check
   Given the app runs on a mid-range Android device (the same class of
   device flagged as untested in Phase 5's P5-13 log-performance task)
   When scrolling the job tree or a multi-thousand-line log
   Then frame rendering stays within acceptable jank thresholds, measured
   manually — this reuses and extends the still-open P5-13 check
-- Scenario: Console is flat
+- [ ] Scenario: Console is flat
   Given the build log screen renders its virtualized console
   When log text streams and auto-scrolls
   Then the console is a flat, fixed-colour surface (`console` token) with
@@ -196,18 +196,18 @@ So that I can triage build health at a glance, which is the core reason I
 opened the app
 
 **Acceptance Criteria**
-- Scenario: Each status has its own tone
+- [ ] Scenario: Each status has its own tone
   Given the status mapping in `app_colors.dart` (`toneForBuildResult`,
   `toneForJobColor`, `toneForStageStatus`)
   When statuses are shown side by side
   Then each `StatusTone` is distinct from the others and from its
   surface, in both light and dark mode
-- Scenario: Running stays visible
+- [ ] Scenario: Running stays visible
   Given a job is building
   When its status is shown
   Then it uses the running tone with the pulsing indicator on its own
   tinted backing, and reads "Running" in words
-- Scenario: Colour is never the only signal
+- [ ] Scenario: Colour is never the only signal
   Given a user may have a colour-vision deficiency
   When any build status is shown
   Then it is paired with a distinct icon shape (`StatusTile`) and/or a

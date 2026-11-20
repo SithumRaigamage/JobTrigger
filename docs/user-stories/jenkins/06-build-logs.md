@@ -20,25 +20,25 @@ So that I can watch progress and diagnose issues in real time, the same as
 tailing Jenkins' console output on a laptop
 
 **Acceptance Criteria**
-- Scenario: Log streams while build is running
+- [ ] Scenario: Log streams while build is running
   Given I open the log screen for a currently-building build
   Then the log accumulates via progressive fetches roughly every second,
   appending new text as `X-Text-Size` advances, until `X-More-Data`
   indicates the stream is complete
-- Scenario: Viewing a finished build's log
+- [ ] Scenario: Viewing a finished build's log
   Given the build has already completed
   Then the full existing log loads once (no ongoing polling needed once
   `X-More-Data` is false from the first response)
-- Scenario: Leaving the screen stops polling
+- [ ] Scenario: Leaving the screen stops polling
   Given I navigate away while a log is still streaming
   Then the polling timer is cancelled by the owning notifier's disposal —
   it does not keep fetching in the background
-- Scenario: Log fetch failure mid-stream
+- [ ] Scenario: Log fetch failure mid-stream
   Given a progressive fetch fails partway through
   Then previously accumulated log text remains visible (not cleared), with
   a non-blocking `AppFailure`-mapped indicator and automatic retry on the
   next interval
-- Scenario: Very large log
+- [ ] Scenario: Very large log
   Given the log is many thousands of lines long
   Then the console view remains scrollable and responsive (virtualized
   rendering — only visible lines are laid out), per the still-open Android
@@ -75,19 +75,19 @@ So that I can review earlier output without the view constantly yanking
 back to the bottom
 
 **Acceptance Criteria**
-- Scenario: Default auto-scroll
+- [ ] Scenario: Default auto-scroll
   Given a log is streaming and I haven't manually scrolled
   Then the view auto-scrolls to keep the latest line visible as new text
   arrives
-- Scenario: Manual scroll disables auto-scroll
+- [ ] Scenario: Manual scroll disables auto-scroll
   Given I scroll up while streaming
   Then auto-scroll stops immediately — new incoming text no longer yanks my
   view back down
-- Scenario: Resuming auto-scroll
+- [ ] Scenario: Resuming auto-scroll
   Given auto-scroll is currently disabled
   When I tap a visible "scroll to bottom" affordance
   Then the view jumps to the latest line and auto-scroll resumes
-- Scenario: Reaching the bottom naturally
+- [ ] Scenario: Reaching the bottom naturally
   Given I manually scroll back down to the very bottom myself
   Then auto-scroll resumes automatically, without requiring the explicit
   button tap
@@ -117,21 +117,21 @@ So that I can send it to a teammate or paste it into a ticket/chat when
 diagnosing a failure
 
 **Acceptance Criteria**
-- Scenario: Copy to clipboard
+- [ ] Scenario: Copy to clipboard
   Given I'm viewing a log
   When I choose "Copy log"
   Then the currently loaded log text is copied to the system clipboard,
   with confirmation feedback
-- Scenario: Share via system share sheet
+- [ ] Scenario: Share via system share sheet
   Given I choose "Share log"
   Then the OS share sheet opens (via `share_plus`, per `CLAUDE.md`'s locked
   stack) with the log text, letting me pick a destination app
-- Scenario: Sharing a still-streaming log
+- [ ] Scenario: Sharing a still-streaming log
   Given the build hasn't finished yet
   When I share
   Then it shares the log content accumulated so far, clearly (not silently)
   — the action doesn't imply it will include content that arrives later
-- Scenario: Secret-exposure warning
+- [ ] Scenario: Secret-exposure warning
   Given this is the first time I share/copy a log in a session (or the
   first time ever, whichever is simpler to implement well)
   Then a brief, dismissible notice reminds me that Jenkins console output

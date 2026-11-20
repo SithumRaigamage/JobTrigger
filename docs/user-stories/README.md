@@ -90,13 +90,13 @@ I want <capability>
 So that <benefit>
 
 **Acceptance Criteria**
-- Scenario: <happy path>
+- [ ] Scenario: <happy path>
   Given <context> When <action> Then <outcome>
-- Scenario: <validation/edge case>
+- [ ] Scenario: <validation/edge case>
   ...
-- Scenario: <failure/error state — named against the real AppFailure type>
+- [ ] Scenario: <failure/error state — named against the real AppFailure type>
   ...
-- Scenario: <security-relevant case, where applicable>
+- [ ] Scenario: <security-relevant case, where applicable>
   ...
 
 **Security & Privacy Notes**

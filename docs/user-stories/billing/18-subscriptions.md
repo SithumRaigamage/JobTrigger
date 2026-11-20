@@ -41,13 +41,13 @@ I want to see which plan I'm on and when it renews or ends
 So that I know what I'm paying for
 
 **Acceptance Criteria**
-- Scenario: Pro, renewing — Given an active yearly plan, When I open
+- [ ] Scenario: Pro, renewing — Given an active yearly plan, When I open
   Profile → Subscription, Then I see "Pro · Yearly", "Renews on <date>",
   and where it was bought (App Store / Google Play / website).
-- Scenario: cancelled but paid up — Then I see "Pro until <date>" and no
+- [ ] Scenario: cancelled but paid up — Then I see "Pro until <date>" and no
   renewal date.
-- Scenario: Free — Then I see "Free" and an "Upgrade to Pro" action.
-- Scenario: offline — Given no connection, Then the last known plan is
+- [ ] Scenario: Free — Then I see "Free" and an "Upgrade to Pro" action.
+- [ ] Scenario: offline — Given no connection, Then the last known plan is
   shown with "Last checked <time>", not an error page (`NetworkFailure`
   only as an inline note).
 
@@ -65,19 +65,19 @@ I want to buy Pro monthly or yearly from the app
 So that I can unlock every tool and unlimited servers
 
 **Acceptance Criteria**
-- Scenario: paywall content — the paywall shows both plans with the
+- [ ] Scenario: paywall content — the paywall shows both plans with the
   store's localised price and period, the yearly trial ("7 days free,
   then <price>/year"), auto-renew wording, Terms and Privacy links, and
   "Restore purchases".
-- Scenario: purchase — When I buy, Then the store sheet appears; after
+- [ ] Scenario: purchase — When I buy, Then the store sheet appears; after
   it succeeds, Pro features unlock within a few seconds without
   restarting the app.
-- Scenario: cancelled sheet — When I close the store sheet, Then nothing
+- [ ] Scenario: cancelled sheet — When I close the store sheet, Then nothing
   changes and no error is shown.
-- Scenario: purchase failed — Then I see the store's reason and can try
+- [ ] Scenario: purchase failed — Then I see the store's reason and can try
   again; I'm never charged without Pro being granted (the backend
   re-reads RevenueCat on `POST /refresh`).
-- Scenario: context — When the paywall opens because I hit a limit, Then
+- [ ] Scenario: context — When the paywall opens because I hit a limit, Then
   its headline names that limit (e.g. "Add more servers with Pro").
 
 **UI / Design Notes** — Phase 14 design system; yearly pre-selected;
@@ -95,11 +95,11 @@ I want to restore my purchase
 So that I get Pro back without paying twice
 
 **Acceptance Criteria**
-- Scenario: restored — When I tap Restore, Then my active purchase is
+- [ ] Scenario: restored — When I tap Restore, Then my active purchase is
   linked to my signed-in account and Pro unlocks.
-- Scenario: nothing to restore — Then I see "No active subscription
+- [ ] Scenario: nothing to restore — Then I see "No active subscription
   found for this store account."
-- Scenario: purchase belongs to another JobTrigger account — Then the
+- [ ] Scenario: purchase belongs to another JobTrigger account — Then the
   purchase follows the RevenueCat transfer rule chosen at P20-00, and the
   message says which account now has Pro.
 
@@ -114,15 +114,15 @@ I want clear limits when adding servers
 So that I understand why I can't add another and what to do
 
 **Acceptance Criteria**
-- Scenario: first server — Given no saved servers, When I add one of any
+- [ ] Scenario: first server — Given no saved servers, When I add one of any
   tool, Then it saves as today.
-- Scenario: second server — Given one saved server, When I try to add
+- [ ] Scenario: second server — Given one saved server, When I try to add
   another (app or website), Then the backend returns `403 PLAN_LIMIT`,
   shown as `PlanLimitFailure` with an "Upgrade" action (app) or "Upgrade
   in the JobTrigger app" (website).
-- Scenario: edit and delete — Then editing or deleting my server always
+- [ ] Scenario: edit and delete — Then editing or deleting my server always
   works, whatever my plan.
-- Scenario: bypass attempt — When a client calls the create endpoint
+- [ ] Scenario: bypass attempt — When a client calls the create endpoint
   directly past the limit, Then the backend still refuses.
 
 ---
@@ -136,13 +136,13 @@ I want my servers kept, not deleted
 So that upgrading again puts everything back
 
 **Acceptance Criteria**
-- Scenario: locked, not deleted — Given 4 saved servers and Pro ended,
+- [ ] Scenario: locked, not deleted — Given 4 saved servers and Pro ended,
   Then all 4 are listed, 1 usable and 3 shown as locked with a Pro badge.
-- Scenario: choose which stays — When I pick a different server to keep
+- [ ] Scenario: choose which stays — When I pick a different server to keep
   unlocked, Then it switches, at most once per 24 hours.
-- Scenario: re-upgrade — When I buy Pro again, Then all servers unlock at
+- [ ] Scenario: re-upgrade — When I buy Pro again, Then all servers unlock at
   once.
-- Scenario: Pro-only features — background watches stop being scheduled,
+- [ ] Scenario: Pro-only features — background watches stop being scheduled,
   the widget shows an upgrade message, pins beyond 3 become read-only.
 
 ---
@@ -156,9 +156,9 @@ I want to see Pro features marked, not hidden
 So that I know what Pro adds
 
 **Acceptance Criteria**
-- Scenario: each gate in technical design §4.3 shows a "Pro" badge and
+- [ ] Scenario: each gate in technical design §4.3 shows a "Pro" badge and
   opens the paywall with the matching reason.
-- Scenario: never gated — app lock, sign out everywhere, change password,
+- [ ] Scenario: never gated — app lock, sign out everywhere, change password,
   delete account, and core trigger/logs/history work on Free.
 
 ---
@@ -172,10 +172,10 @@ I want to be told that deletion doesn't cancel billing
 So that I'm not charged after leaving
 
 **Acceptance Criteria**
-- Scenario: active subscription — Before confirming deletion, Then I see
+- [ ] Scenario: active subscription — Before confirming deletion, Then I see
   "Deleting your account doesn't cancel your subscription. Cancel it in
   <store> first." with a "Manage subscription" link.
-- Scenario: deleted — Then the backend deletes my subscription record and
+- [ ] Scenario: deleted — Then the backend deletes my subscription record and
   asks RevenueCat to delete my customer record.
 
 ---
@@ -189,10 +189,10 @@ I want to see my plan and limits
 So that laptop setup matches what my phone allows
 
 **Acceptance Criteria**
-- Scenario: account page shows plan, renewal/end date and "manage in
+- [ ] Scenario: account page shows plan, renewal/end date and "manage in
   App Store / Google Play" instructions.
-- Scenario: `/pricing` lists Free vs Pro from one content file, tested.
-- Scenario: Terms and Privacy cover auto-renewal, store refunds and
+- [ ] Scenario: `/pricing` lists Free vs Pro from one content file, tested.
+- [ ] Scenario: Terms and Privacy cover auto-renewal, store refunds and
   RevenueCat as a processor.
 
 ---
@@ -207,14 +207,14 @@ automatically
 So that nobody keeps Pro unpaid or loses Pro they paid for
 
 **Acceptance Criteria**
-- Scenario: renewal / cancellation / expiry / refund / billing issue —
+- [ ] Scenario: renewal / cancellation / expiry / refund / billing issue —
   Then `GET /api/subscription` reflects it within a minute of
   RevenueCat's webhook.
-- Scenario: duplicate or out-of-order webhook — Then the stored state
+- [ ] Scenario: duplicate or out-of-order webhook — Then the stored state
   matches RevenueCat's current subscriber record.
-- Scenario: wrong webhook secret — `401`, nothing stored, logged without
+- [ ] Scenario: wrong webhook secret — `401`, nothing stored, logged without
   the body.
-- Scenario: `BILLING_ENABLED=false` — everyone gets Pro entitlements.
+- [ ] Scenario: `BILLING_ENABLED=false` — everyone gets Pro entitlements.
 
 ---
 

@@ -124,15 +124,15 @@ I want to understand what it does within a few seconds
 So that I can decide whether to install it
 
 **Acceptance Criteria**
-- Scenario: First visit
+- [ ] Scenario: First visit
   Given I open the site's root URL
   Then I see a one-sentence value statement (trigger and watch CI builds
   from your phone), real app screenshots, the supported tool logos, and a
   primary "Get the app" call to action above the fold
-- Scenario: Honest claims
+- [ ] Scenario: Honest claims
   Then every feature or tool named on the page exists in the current
   released app. Planned tools are labelled "Planned" (see US-WEB-04)
-- Scenario: Signed-in shortcut
+- [ ] Scenario: Signed-in shortcut
   Given I am signed in to the portal
   Then the header shows "My servers" instead of "Sign in"
 
@@ -160,25 +160,25 @@ I want to get the app onto my phone easily
 So that I can start using it
 
 **Acceptance Criteria**
-- Scenario: On a phone
+- [ ] Scenario: On a phone
   Given I visit on iOS or Android
   Then I see the matching store badge first, linking to the App Store or
   Google Play listing
-- Scenario: On a laptop
+- [ ] Scenario: On a laptop
   Given I visit on a desktop browser
   Then both badges show, plus a QR code that opens the store listing when
   scanned with a phone camera
-- Scenario: Not yet published (the state at launch)
+- [ ] Scenario: Not yet published (the state at launch)
   Given the `app-store` feature in US-WEB-22 is `soon`
   Then the section reads "Coming soon to iPhone and Android", the store
   badges render as disabled (not links, `aria-disabled="true"`), the QR
   code is not shown, and every "Get the app" button elsewhere on the site
   reads "Coming soon" and points to `/changelog` instead of a store
-- Scenario: One store ships first
+- [ ] Scenario: One store ships first
   Given only one store listing is live
   Then that badge is a real link and the other stays disabled with
   "Coming soon"; the QR code appears only when at least one listing is live
-- Scenario: No dead links
+- [ ] Scenario: No dead links
   Then no store badge or QR code ever points at a listing that doesn't
   exist
 
@@ -205,15 +205,15 @@ I want to see what JobTrigger can do
 So that I know whether it covers my workflow
 
 **Acceptance Criteria**
-- Scenario: Feature list
+- [ ] Scenario: Feature list
   Then the page covers triggering builds (including parameters), live
   console logs, build history, build notifications, pinned jobs and the
   home-screen widget, multiple servers, and the biometric app lock, each
   with a short description and screenshot
-- Scenario: Accuracy
+- [ ] Scenario: Accuracy
   Then each listed feature maps to a shipped story (`tasks/README.md`
   status "done"). Unshipped work isn't listed as available
-- Scenario: Partly shipped tools
+- [ ] Scenario: Partly shipped tools
   Given a tool is only partly built (GitHub Actions today: runs, logs and
   history are `soon`)
   Then its section carries a **Beta** badge and names what is coming,
@@ -241,22 +241,22 @@ I want to know if it is supported
 So that I don't install an app that can't help me
 
 **Acceptance Criteria**
-- Scenario: Supported tools
+- [ ] Scenario: Supported tools
   Then Jenkins, GitHub Actions, and SonarQube are listed with what each one
   supports today, each with a status badge from US-WEB-22: Jenkins
   "Full support", GitHub Actions "Beta", SonarQube "Coming soon"
-- Scenario: SonarQube before its screens ship
+- [ ] Scenario: SonarQube before its screens ship
   Given SonarQube projects and quality gates are `soon`
   Then the card says "Save your server now — projects and quality gates
   coming soon", and the comparison table shows "Soon" for those rows,
   never "Yes"
-- Scenario: Comparison table
+- [ ] Scenario: Comparison table
   Then each capability cell is one of "Yes", "Beta", "Soon", or "n/a",
   driven by US-WEB-22, with the word always present (never colour or an
   icon alone)
-- Scenario: Planned tools
+- [ ] Scenario: Planned tools
   Then GitLab CI and CircleCI are listed as "Planned", with no promised date
-- Scenario: Request a tool
+- [ ] Scenario: Request a tool
   Then a "Request a tool" link goes to the same destination as the app's
   tool-selection "request a tool" link, so requests land in one place
 
@@ -282,15 +282,15 @@ I want to know where my tokens go and how they are protected
 So that I can decide whether I'm allowed to use the app
 
 **Acceptance Criteria**
-- Scenario: Plain explanation
+- [ ] Scenario: Plain explanation
   Then the page explains, in plain words: tokens are encrypted at rest on
   the JobTrigger backend (AUD-03) and kept in the phone's secure storage;
   the app talks to Jenkins, GitHub, and SonarQube directly, not through a
   JobTrigger proxy; the website never shows a saved token in full
-- Scenario: Least privilege advice
+- [ ] Scenario: Least privilege advice
   Then it recommends a dedicated API token with the smallest scopes needed,
   and links to US-WEB-16's how-to steps
-- Scenario: Accuracy
+- [ ] Scenario: Accuracy
   Then every statement is checked against the code before publishing and
   re-checked when the security design changes
 
@@ -318,14 +318,14 @@ I want a privacy policy, terms, and a way to get support
 So that I know my rights and the app can be published
 
 **Acceptance Criteria**
-- Scenario: Pages exist
+- [ ] Scenario: Pages exist
   Then `/privacy`, `/terms`, and `/support` exist at stable URLs
-- Scenario: App links resolve
+- [ ] Scenario: App links resolve
   Given the app info screen opens the privacy, terms, and support links
   served by `GET /api/appinfo`
   Then those values are updated to point at these pages, and each link
   opens the right page
-- Scenario: Support contact
+- [ ] Scenario: Support contact
   Then `/support` shows the support email (the same `mailto:` the app uses)
   and short answers to common setup problems
 
@@ -353,14 +353,14 @@ I want the link to show a proper preview
 So that people know what it is before clicking
 
 **Acceptance Criteria**
-- Scenario: Shared link
+- [ ] Scenario: Shared link
   Given a public page URL is pasted into Slack, Teams, or X
   Then a title, description, and preview image appear (Open Graph and
   Twitter card tags)
-- Scenario: Search
+- [ ] Scenario: Search
   Then public pages have unique titles and descriptions, a sitemap, and a
   `robots.txt`
-- Scenario: Portal is hidden
+- [ ] Scenario: Portal is hidden
   Then every portal page (US-WEB-10 onward) is `noindex` and excluded from
   the sitemap
 
@@ -387,16 +387,16 @@ I want to see what changed in each release
 So that I notice new features
 
 **Acceptance Criteria**
-- Scenario: Before the first release (the state at launch)
+- [ ] Scenario: Before the first release (the state at launch)
   Given no public release exists yet
   Then the page shows one entry, "First public release — coming soon",
   listing what the first release will include (the `live` features in
   US-WEB-22) and what follows it (the `soon` ones), with no invented
   version numbers or dates
-- Scenario: Release list
+- [ ] Scenario: Release list
   Then each app release has an entry with version, date, and plain-language
   highlights, newest first
-- Scenario: Source
+- [ ] Scenario: Source
   Then entries are authored as files in the website repo (no CMS), so a
   release adds its notes in the same pull request
 
@@ -424,24 +424,24 @@ I want to sign in with the same account I use in the app
 So that servers I add here appear in the app
 
 **Acceptance Criteria**
-- Scenario: Sign in
+- [ ] Scenario: Sign in
   Given I enter my email and password on `/sign-in`
   When the Next.js server calls `POST /api/auth/login` and it succeeds
   Then the server stores the access and refresh tokens in an `HttpOnly`
   cookie and sends me to "My servers" (US-WEB-11)
-- Scenario: Sign up
+- [ ] Scenario: Sign up
   Given I have no account
   Then `/sign-up` creates one via `POST /api/auth/signup`, with the same
   validation rules as the app (US-AUTH-01)
-- Scenario: Wrong credentials
+- [ ] Scenario: Wrong credentials
   Given the backend answers `400 { message: "Invalid credentials" }`
   Then I see "Invalid credentials" (`RejectedRequestFailure` copy, the
   backend's user-facing message, as in the app), never a status code
-- Scenario: Too many attempts
+- [ ] Scenario: Too many attempts
   Given the backend's login rate limiter rejects the request (429)
   Then I see "Too many attempts. Please wait a few minutes and try again."
   (`ServerFailure(429)` copy, as in the app)
-- Scenario: Token refresh
+- [ ] Scenario: Token refresh
   Given my 15-minute access token expires while I'm using the portal
   Then the Next.js server refreshes it via `POST /api/auth/refresh` without
   interrupting me. If the refresh fails, I'm sent to `/sign-in` with my
@@ -474,18 +474,18 @@ I want to see every server and account I've set up
 So that I know what's already configured
 
 **Acceptance Criteria**
-- Scenario: List
+- [ ] Scenario: List
   Then "My servers" shows three groups (Jenkins, GitHub, SonarQube) from
   the three backend list endpoints, each item showing its name, URL (or
   GitHub username), and which one is active
-- Scenario: Masked secrets
+- [ ] Scenario: Masked secrets
   Then every token or password is shown as `••••` plus its last 4
   characters. The full value never appears in the HTML, the page data, or
   the network responses sent to the browser
-- Scenario: Empty
+- [ ] Scenario: Empty
   Given I have nothing set up
   Then each group shows an "Add" call to action
-- Scenario: Backend unavailable
+- [ ] Scenario: Backend unavailable
   Then I see the app's `NetworkFailure` copy ("Can't reach the server.
   Check your connection and try again.") or `ServerFailure` copy (with
   its request reference) and a retry button
@@ -515,20 +515,20 @@ I want to paste my Jenkins details into a form
 So that I don't have to transfer the token to my phone
 
 **Acceptance Criteria**
-- Scenario: Save
+- [ ] Scenario: Save
   Given I enter a name, Jenkins URL, username, and API token
   When I press Save
   Then the Next.js server calls `POST /api/credentials` with the same
   fields the app sends, and I go to the "Now open the app" screen
   (US-WEB-17)
-- Scenario: Validation
+- [ ] Scenario: Validation
   Then the URL must be `https://` (or `http://` with a visible warning, the
   same rule as the app), and the fields are trimmed and validated with the
   app's rules before any network call (NFR-SEC-02)
-- Scenario: Duplicate
+- [ ] Scenario: Duplicate
   Given the backend rejects a duplicate
   Then I see the same copy the app shows for that case
-- Scenario: Token field
+- [ ] Scenario: Token field
   Then the token field is masked with a show/hide toggle, `autocomplete`
   set to `off`, and spellcheck off
 
@@ -556,13 +556,13 @@ I want to paste a GitHub token into a form
 So that GitHub Actions works in the app without retyping it
 
 **Acceptance Criteria**
-- Scenario: Save
+- [ ] Scenario: Save
   Given I enter a name and a personal access token
   Then the Next.js server calls `POST /api/github-credentials` with the
   fields the app sends, and I go to US-WEB-17
-- Scenario: Validation
+- [ ] Scenario: Validation
   Then the token format is checked with the app's rules before submitting
-- Scenario: Token field
+- [ ] Scenario: Token field
   Then it is masked, the same as US-WEB-12
 
 **Security & Privacy Notes**
@@ -588,11 +588,11 @@ I want to paste my SonarQube URL and token into a form
 So that code-quality checks work in the app without retyping them
 
 **Acceptance Criteria**
-- Scenario: Save
+- [ ] Scenario: Save
   Given I enter a name, server URL, and token
   Then the Next.js server calls `POST /api/sonarqube-credentials` with the
   fields the app sends, and I go to US-WEB-17
-- Scenario: Validation and token field
+- [ ] Scenario: Validation and token field
   Then the same rules as US-WEB-12 apply
 
 **Security & Privacy Notes**
@@ -617,20 +617,20 @@ I want to change or remove a saved server
 So that I can rotate tokens and clean up old servers from my laptop
 
 **Acceptance Criteria**
-- Scenario: Edit without re-entering the token
+- [ ] Scenario: Edit without re-entering the token
   Given I open a server's edit form
   Then the token field is empty with "Leave blank to keep the saved
   token". If I leave it blank, the Next.js server leaves the token out of
   the update, so the backend keeps the saved one; the website never reads
   it (owner decision 2026-10-26, P15-18)
-- Scenario: Rotate a token
+- [ ] Scenario: Rotate a token
   Given I paste a new token
   Then `PUT /api/<type>/:id` saves it
-- Scenario: Delete
+- [ ] Scenario: Delete
   Given I press Delete
   Then a confirmation names the server. On confirm, `DELETE /api/<type>/:id`
   runs and the list updates
-- Scenario: Not found
+- [ ] Scenario: Not found
   Given the server was deleted elsewhere (for example in the app)
   Then I see "That couldn't be found — it may have been removed."
   (`NotFoundFailure` copy) and return to the list
@@ -657,17 +657,17 @@ I want step-by-step instructions next to the field
 So that I can finish setup without searching the web
 
 **Acceptance Criteria**
-- Scenario: Jenkins
+- [ ] Scenario: Jenkins
   Then the help shows the click path (your name → Security → API Token →
   Add new token), explains it differs from the account password, and links
   to the server's own token page when the URL is already entered
   (`<url>/me/security`, Jenkins 2.x)
-- Scenario: GitHub
+- [ ] Scenario: GitHub
   Then the help links to GitHub's token settings and lists exactly which
   permissions the app needs to read workflows and trigger runs
-- Scenario: SonarQube
+- [ ] Scenario: SonarQube
   Then the help shows where to create a user token
-- Scenario: Opens alongside the form
+- [ ] Scenario: Opens alongside the form
   Then help opens in a panel or new tab without losing what I've typed
 
 **Security & Privacy Notes**
@@ -692,17 +692,17 @@ I want clear next steps, and the app to show the server immediately
 So that I can start using it without restarting the app
 
 **Acceptance Criteria**
-- Scenario: Confirmation
+- [ ] Scenario: Confirmation
   Then I see "Saved. Open JobTrigger on your phone, your server is ready",
   with "Add another" and "Back to my servers" actions
-- Scenario: App picks it up on return (app change)
+- [ ] Scenario: App picks it up on return (app change)
   Given the app is open in the background, signed in to the same account
   When I switch back to it
   Then it reloads the credential lists for every tool on resume, and the
   new server appears without a restart or pull-to-refresh
-- Scenario: App not installed
+- [ ] Scenario: App not installed
   Then the confirmation also shows the store links / QR from US-WEB-02
-- Scenario: App not yet released (the state at launch)
+- [ ] Scenario: App not yet released (the state at launch)
   Given the `app-store` feature in US-WEB-22 is `soon`
   Then instead of store links the confirmation says "The JobTrigger app is
   coming soon. Your server is saved and will be waiting when you install
@@ -732,11 +732,11 @@ I want to choose which one the app uses
 So that the app opens on the right one
 
 **Acceptance Criteria**
-- Scenario: Set active
+- [ ] Scenario: Set active
   Given I press "Make active" on a server
   Then the Next.js server calls `POST /api/<type>/switch/:id`, and the list
   shows the new active server
-- Scenario: App follows
+- [ ] Scenario: App follows
   Then the app uses the new active server after its next reload
   (US-WEB-17)
 
@@ -762,19 +762,19 @@ I want to check that the details work before saving
 So that I don't discover a typo later on my phone
 
 **Acceptance Criteria**
-- Scenario: Before the backend endpoint exists (the state at launch)
+- [ ] Scenario: Before the backend endpoint exists (the state at launch)
   Given the `test-connection` feature in US-WEB-22 is `soon`
   Then the "Test connection" button is shown disabled with a "Coming soon"
   badge and the helper text "You can test from the app after saving", and
   saving works without it
-- Scenario: Success
+- [ ] Scenario: Success
   Given I press "Test connection"
   Then I see "Connected as <username>" from the tool
-- Scenario: Failure
+- [ ] Scenario: Failure
   Then I see the same copy the app's test connection uses for
   `AuthFailure`, `NetworkFailure`, `NotFoundFailure`, and
   `ServerFailure(statusCode)`
-- Scenario: Private network
+- [ ] Scenario: Private network
   Given the server is only reachable from my office network or VPN
   Then I see "We can't reach this server from the internet. Save it anyway
   and test from the app on your network", and Save stays available
@@ -806,14 +806,14 @@ I want to sign out, and be signed out when I walk away
 So that nobody else can see or change my servers
 
 **Acceptance Criteria**
-- Scenario: Sign out
+- [ ] Scenario: Sign out
   Given I press "Sign out"
   Then the session cookie is cleared and I return to the home page
-- Scenario: Idle timeout
+- [ ] Scenario: Idle timeout
   Given there's no activity for 30 minutes
   Then the next action sends me to `/sign-in`. A form I was typing in is
   kept in memory for that tab only, without the token field
-- Scenario: Sign out everywhere
+- [ ] Scenario: Sign out everywhere
   Then a "Sign out of all devices" action calls `POST /api/auth/logout-all`
   after a confirmation that warns it also signs out the phone app
 
@@ -841,14 +841,14 @@ I want to manage my account from the website
 So that I can do it from a laptop as well as the app
 
 **Acceptance Criteria**
-- Scenario: Change password
+- [ ] Scenario: Change password
   Then `POST /api/auth/password` is called with my current and new
   password, using the same rules and copy as the app's account dialog
-- Scenario: Delete account
+- [ ] Scenario: Delete account
   Given I confirm by typing my email and entering my password
   Then `DELETE /api/auth/account` runs, I'm signed out, and I see a
   confirmation that all my saved servers were removed
-- Scenario: Rate limited
+- [ ] Scenario: Rate limited
   Then the backend's limiter (429) on both endpoints maps to
   `ServerFailure(429)` copy, as in the app
 
@@ -877,30 +877,30 @@ I want the site to be honest about what works today and what is coming
 So that I don't sign up for something the app can't do yet
 
 **Acceptance Criteria**
-- Scenario: One feature-status list
+- [ ] Scenario: One feature-status list
   Then the site has a single, version-controlled list of features, each
   with a status of `live`, `beta`, `soon`, or `planned`, seeded from the
   epic's "Feature availability" table. No page hard-codes "coming soon"
   copy; it reads the status
-- Scenario: Flipping a status
+- [ ] Scenario: Flipping a status
   Given a feature moves from `soon` to `live` (for example the app reaches
   the stores)
   When the list is changed and the site is redeployed
   Then every badge, button, comparison cell, and "coming soon" sentence for
   that feature updates, with no page edits
-- Scenario: Status badges
+- [ ] Scenario: Status badges
   Then `beta` shows a blue "Beta" pill, `soon` a grey "Coming soon" pill,
   and `planned` a dashed "Planned" pill, each with its text label (status
   is never shown by colour alone)
-- Scenario: Disabled actions
+- [ ] Scenario: Disabled actions
   Given an action belongs to a `soon` or `planned` feature
   Then its button or link renders disabled (`aria-disabled="true"`, not
   focusable as a link, not a dead URL) and says why ("Coming soon")
-- Scenario: Where "coming soon" points
+- [ ] Scenario: Where "coming soon" points
   Then any "coming soon" message that offers a next step links to the
   changelog (US-WEB-08). There is no email signup until the backend-track
   item "Launch notify-me signup" in `tasks/backlog.md` is approved
-- Scenario: Keeping it true
+- [ ] Scenario: Keeping it true
   Then a feature is only set to `live` when its stories are "done" in
   `tasks/README.md`, and the PR that ships a feature in the app (or the
   release that puts it in the stores) updates the list in the same change

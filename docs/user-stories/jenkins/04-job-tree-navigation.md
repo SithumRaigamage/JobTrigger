@@ -19,22 +19,22 @@ soon as I open the app
 So that I can quickly find the job I care about
 
 **Acceptance Criteria**
-- Scenario: Tree loads successfully
+- [ ] Scenario: Tree loads successfully
   Given an active server with jobs exists
   When I open the home screen
   Then the recursive tree fetch runs (depth-limited to 6 levels), each job
   shows its name and a status indicator derived from Jenkins' `color` field
   (success/failure/unstable/building/disabled/no-builds-yet), and folders
   are visually distinguished from leaf jobs
-- Scenario: Deeply nested folder truncation
+- [ ] Scenario: Deeply nested folder truncation
   Given a folder structure exceeds the 6-level recursion depth
   Then deeper levels are not fetched, and the deepest visible folder
   indicates there's more nesting (e.g. an affordance to drill further
   rather than silently truncating with no signal)
-- Scenario: Empty server
+- [ ] Scenario: Empty server
   Given the active server has no jobs at all
   Then an empty state explains this clearly, distinct from an error state
-- Scenario: Load failure
+- [ ] Scenario: Load failure
   Given the request fails
   Then the failure maps to the correct `AppFailure` (per-server
   `AuthFailure` for 401/403, `NetworkFailure` for unreachable,
@@ -68,21 +68,21 @@ I want to drill into a folder and see where I am, with an easy way back
 So that I can navigate a nested job structure without getting lost
 
 **Acceptance Criteria**
-- Scenario: Drill into a folder
+- [ ] Scenario: Drill into a folder
   Given I tap a folder row
   When the folder opens
   Then I see only that folder's direct children, and a breadcrumb trail
   shows the path from the root down to the current folder
-- Scenario: Breadcrumb jump
+- [ ] Scenario: Breadcrumb jump
   Given I am several folders deep
   When I tap an earlier breadcrumb segment
   Then I jump directly to that level, not just one level back
-- Scenario: Android system back gesture
+- [ ] Scenario: Android system back gesture
   Given I am inside a folder on Android
   When I use the system back gesture
   Then it navigates up one folder level (consistent with the breadcrumb),
   not out of the app entirely, until I'm back at the root
-- Scenario: Folder becomes empty/removed mid-browse
+- [ ] Scenario: Folder becomes empty/removed mid-browse
   Given a folder I'm viewing had its jobs removed or renamed on the Jenkins
   server since I opened it
   When I pull to refresh at that level
@@ -113,20 +113,20 @@ just the current folder
 So that I can jump straight to a job without manually navigating folders
 
 **Acceptance Criteria**
-- Scenario: Live search
+- [ ] Scenario: Live search
   Given the full tree has already been fetched
   When I type into the search field
   Then results filter live (client-side, over the already-flattened tree —
   no new network call per keystroke) across all folders, each result
   showing its folder path for context
-- Scenario: No matches
+- [ ] Scenario: No matches
   Given my search term matches nothing
   Then an explicit "no jobs match" state is shown, not an empty list
   indistinguishable from a loading state
-- Scenario: Clearing search
+- [ ] Scenario: Clearing search
   Given I clear the search field
   Then I return to my previous folder view (not forced back to root)
-- Scenario: Selecting a search result
+- [ ] Scenario: Selecting a search result
   Given I tap a result from a different folder than the one I'm in
   Then I navigate to that job's detail directly, and the breadcrumb updates
   to reflect the result's actual folder path
@@ -155,16 +155,16 @@ So that I can see up-to-date status without waiting for or relying on
 automatic polling on this screen
 
 **Acceptance Criteria**
-- Scenario: Successful refresh
+- [ ] Scenario: Successful refresh
   Given I pull down on the job list
   Then a refresh indicator shows, the tree is refetched from the current
   folder level, and statuses update once the response returns
-- Scenario: Refresh failure
+- [ ] Scenario: Refresh failure
   Given the refresh request fails
   Then the previously loaded list remains visible (not cleared) with a
   non-blocking `AppFailure`-mapped error indication, so a transient failure
   doesn't wipe out data I could already see
-- Scenario: Refresh while offline
+- [ ] Scenario: Refresh while offline
   Given there is no network connectivity
   Then the refresh clearly indicates a connectivity failure rather than
   spinning indefinitely
@@ -192,15 +192,15 @@ I want a clear explanation of what went wrong and what I can do about it
 So that I'm not left staring at a blank or broken-looking screen
 
 **Acceptance Criteria**
-- Scenario: Connection lost mid-browse
+- [ ] Scenario: Connection lost mid-browse
   Given I lose connectivity while drilling through folders
   Then the current screen shows a clear inline connectivity error with a
   retry action, without discarding my current folder position
-- Scenario: Distinguishing "no jobs" from "error"
+- [ ] Scenario: Distinguishing "no jobs" from "error"
   Given a folder genuinely has zero jobs vs. a folder whose fetch failed
   Then these two states use visibly different copy/iconography — never the
   same generic "nothing here" treatment
-- Scenario: Retry preserves context
+- [ ] Scenario: Retry preserves context
   Given I tap retry from an error state
   Then it re-fetches the same folder I was viewing, not the root
 

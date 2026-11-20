@@ -84,24 +84,24 @@ organization key
 So that the app can show me my projects' quality status
 
 **Acceptance Criteria**
-- Scenario: Successful add against SonarCloud
+- [ ] Scenario: Successful add against SonarCloud
   Given I leave the instance URL at its `https://sonarcloud.io` default,
   enter a label, the token, and an organization key, and tap Save
   Then the credential is created via the new backend endpoint and appears
   in the SonarQube server list
-- Scenario: Successful add against a self-hosted SonarQube Server
+- [ ] Scenario: Successful add against a self-hosted SonarQube Server
   Given I change the instance URL to `https://sonar.example.com` and leave
   the organization field empty
   Then the credential saves without requiring an organization — self-hosted
   Server has no such concept
-- Scenario: Token validation
+- [ ] Scenario: Token validation
   Given the token field is empty
   Then client-side validation blocks submission with an inline message,
   before any network call (`NFR-SEC-02`)
-- Scenario: Instance URL validation
+- [ ] Scenario: Instance URL validation
   Given the instance URL field is empty or not a well-formed URL
   Then client-side validation blocks submission with an inline message
-- Scenario: Save fails
+- [ ] Scenario: Save fails
   Given the backend request fails
   Then an `AppFailure`-mapped message is shown and the form retains
   entered values
@@ -131,14 +131,14 @@ I want to edit or remove a saved SonarQube credential
 So that I can rotate a token or drop a server I no longer monitor
 
 **Acceptance Criteria**
-- Scenario: Edit updates label/URL/token/organization
+- [ ] Scenario: Edit updates label/URL/token/organization
   Given I open an existing credential's edit sheet
   Then the token field is never pre-filled (`NFR-SEC-01`'s redaction
   mechanism), with "leave blank to keep the current token" copy
-- Scenario: Delete with confirmation
+- [ ] Scenario: Delete with confirmation
   Given I swipe-delete a credential
   Then a confirmation dialog appears before the backend delete call fires
-- Scenario: Deleting the active credential falls back
+- [ ] Scenario: Deleting the active credential falls back
   Given the deleted credential was the active one
   Then another `isDefault`/first-remaining credential becomes active, or
   the active-credential state clears if none remain, mirroring
@@ -165,12 +165,12 @@ I want to switch which saved SonarQube credential is active
 So that I can check a different server or organization
 
 **Acceptance Criteria**
-- Scenario: Switching updates the active credential immediately
+- [ ] Scenario: Switching updates the active credential immediately
   Given I tap a non-active credential's radio indicator in the SonarQube
   section of Settings
   Then it becomes active and the project list (`US-SQ-PROJ-01`) refetches
   against it
-- Scenario: Independent from every other tool's active state
+- [ ] Scenario: Independent from every other tool's active state
   Given Jenkins/GitHub/GitLab credentials are also configured
   Then switching the active SonarQube credential does not touch any of
   their active-selection state (`NFR-SEC-03`, now covering four
@@ -197,7 +197,7 @@ I want to verify a SonarQube credential actually works before relying on it
 So that I catch a bad token or wrong instance URL early
 
 **Acceptance Criteria**
-- Scenario: Successful test
+- [ ] Scenario: Successful test
   Given a valid instance URL and token
   When I tap "Test Connection"
   Then `GET {baseUrl}/api/authentication/validate` is called (SonarQube's
@@ -205,7 +205,7 @@ So that I catch a bad token or wrong instance URL early
   a genuinely different shape from Jenkins/GitHub/GitLab's "fetch my user"
   pattern, since this endpoint exists specifically for this purpose) and a
   success state is shown when `valid: true`
-- Scenario: Failed test
+- [ ] Scenario: Failed test
   Given `valid: false`, an invalid token, or an unreachable instance URL
   Then a clear `AppFailure`-mapped message is shown, and save remains
   allowed regardless (this is a nudge, not a gate)
@@ -234,30 +234,30 @@ I want to see a flat, searchable list of my SonarQube projects
 So that I can find the one I want to check the quality status of
 
 **Acceptance Criteria**
-- Scenario: Successful load against SonarCloud
+- [ ] Scenario: Successful load against SonarCloud
   Given an active SonarCloud credential with an organization set
   Then `GET api/components/search_projects?organization=...` is called (any
   user with Browse access may; `api/projects/search` is administrator-only and
   is used only as a fallback for a server that lacks it) and the
   project list renders — `key`, `name`, `lastAnalysisDate`
-- Scenario: Successful load against self-hosted Server
+- [ ] Scenario: Successful load against self-hosted Server
   Given an active self-hosted credential with no organization set
   Then `GET api/components/search_projects` is called without the `organization`
   param
-- Scenario: No active credential
+- [ ] Scenario: No active credential
   Given no SonarQube credential is active
   Then a `NoActiveSonarQubeCredentialView` gates the screen, mirroring
   `NoActiveGitHubCredentialView`/`NoActiveServerView`
-- Scenario: A project with no analysis yet
+- [ ] Scenario: A project with no analysis yet
   Given a project whose `lastAnalysisDate` is absent (created but never
   scanned)
   Then it's shown with an explicit "Not analyzed yet" state rather than a
   blank or misleading quality indicator
-- Scenario: Client-side search
+- [ ] Scenario: Client-side search
   Given I type into the search field
   Then the list filters by `name`, case-insensitive, client-side, no
   per-keystroke network call (`NFR-PERF-02`)
-- Scenario: Load fails
+- [ ] Scenario: Load fails
   Given the request fails (including a missing/wrong organization key for
   SonarCloud, which 404s rather than returning an empty list)
   Then an `AppFailure`-mapped error view with retry is shown, with the
@@ -287,21 +287,21 @@ numbers, and to sort and filter the list by them
 So that I can find what needs attention without opening every project
 
 **Acceptance Criteria**
-- Scenario: Card numbers
+- [ ] Scenario: Card numbers
   Given the project list has loaded
   Then each card shows its gate verdict (Passed / Failed / Warning / Not
   analyzed) and its bugs, vulnerabilities, code smells and coverage, loaded
   with one `GET api/measures/search` request per 100 projects, never one per
   project. A figure the server did not compute is "—", not 0
-- Scenario: Sort and filter
+- [ ] Scenario: Sort and filter
   Given the list is shown
   Then it can be sorted by name, last analysed or quality gate (failing
   first), and narrowed to projects whose gate failed or warns
-- Scenario: The numbers cannot be loaded
+- [ ] Scenario: The numbers cannot be loaded
   Given that request fails
   Then the list still works, without the badges, and nothing is called
   passing
-- Scenario: Last analysed
+- [ ] Scenario: Last analysed
   Given `api/components/search_projects` leaves the date out unless asked
   Then the list asks for `f=analysisDate`, and a project still without a date
   looks up its newest analysis before being called "Never analyzed"
@@ -322,20 +322,20 @@ I want to see whether a project is passing or failing its quality gate
 So that I know at a glance if it's in a healthy state
 
 **Acceptance Criteria**
-- Scenario: Passing gate
+- [ ] Scenario: Passing gate
   Given I open a project
   Then `GET api/qualitygates/project_status?projectKey=...` is called and
   a clear "Passed" state renders when `projectStatus.status == "OK"`
-- Scenario: Failing gate, with the specific reasons
+- [ ] Scenario: Failing gate, with the specific reasons
   Given `projectStatus.status == "ERROR"`
   Then each failing condition in `projectStatus.conditions[]` is listed
   with its metric, comparator, threshold, and actual value — not just a
   generic "failed" badge
-- Scenario: No quality gate result yet
+- [ ] Scenario: No quality gate result yet
   Given `projectStatus.status == "NONE"` (no analysis yet)
   Then an explicit "not yet analyzed" state is shown, consistent with
   `US-SQ-PROJ-01`'s list-level version of the same state
-- Scenario: Load fails
+- [ ] Scenario: Load fails
   Given the request fails
   Then an `AppFailure`-mapped error view with retry is shown
 
@@ -359,19 +359,19 @@ duplication metrics
 So that I understand its quality beyond a single pass/fail signal
 
 **Acceptance Criteria**
-- Scenario: Successful load
+- [ ] Scenario: Successful load
   Given I view a project's quality tab
   Then `GET api/measures/component?component=...&metricKeys=coverage,
   bugs,vulnerabilities,code_smells,duplicated_lines_density,ncloc` is
   called and each requested metric renders with its value and a
   human-readable label/unit (percentage for coverage/duplication, raw
   count for bugs/vulnerabilities/code smells, lines of code for `ncloc`)
-- Scenario: A metric with no computed value
+- [ ] Scenario: A metric with no computed value
   Given a metric absent from the response (e.g. a language-specific metric
   that doesn't apply to this project)
   Then that metric's tile shows "—" rather than a zero, which would
   misleadingly imply a fully-verified perfect score
-- Scenario: Load fails
+- [ ] Scenario: Load fails
   Given the request fails
   Then an `AppFailure`-mapped error view with retry is shown
 
@@ -394,26 +394,26 @@ against a project
 So that I know specifically what needs fixing, not just an aggregate count
 
 **Acceptance Criteria**
-- Scenario: Successful load
+- [ ] Scenario: Successful load
   Given I open a project's issues list
   Then `GET api/issues/search?componentKeys=...` is called and each
   issue's `type` (`BUG`/`VULNERABILITY`/`CODE_SMELL`), `severity`,
   `message`, and file/line location render
-- Scenario: Filter by type/severity
+- [ ] Scenario: Filter by type/severity
   Given I select a type or severity filter
   Then the request is re-issued with `types`/`severities` query params
   (server-side filtering, not client-side — this list can be large enough
   that client-side filtering over an unbounded fetch isn't appropriate,
   unlike the project-list search in `US-SQ-PROJ-01`)
-- Scenario: Pagination
+- [ ] Scenario: Pagination
   Given more issues exist than one page (`api/issues/search`'s default
   page size)
   Then a "load more" affordance fetches subsequent pages via `p`/`ps`
   params, same pagination pattern as `US-GL-PROJ-01`
-- Scenario: No issues
+- [ ] Scenario: No issues
   Given a clean project
   Then an explicit "No issues found" empty state is shown
-- Scenario: Load fails
+- [ ] Scenario: Load fails
   Given the request fails
   Then an `AppFailure`-mapped error view with retry is shown
 
@@ -439,14 +439,14 @@ history
 So that I can tell whether the quality data I'm looking at is current
 
 **Acceptance Criteria**
-- Scenario: Successful load
+- [ ] Scenario: Successful load
   Given I view a project's analysis history
   Then `GET api/project_analyses/search?project=...` is called and a
   simple timestamped list of past analyses renders (this is analysis
   history, not build history — there is no per-analysis drill-down the
   way a Jenkins build or GitLab pipeline has, since an analysis is a data
   snapshot, not a job run)
-- Scenario: No analysis history
+- [ ] Scenario: No analysis history
   Given a project with only one or zero analyses
   Then an explicit "not enough history yet" state is shown rather than an
   empty list with no explanation
@@ -468,11 +468,11 @@ technical debt
 So that I can judge a project beyond its raw counts
 
 **Acceptance Criteria**
-- Scenario: Computed
+- [ ] Scenario: Computed
   Then the project page shows each rating as A–E and the debt as SonarQube
   writes it (an 8-hour day: `2d 3h`), and marks any measure the quality gate
   failed on
-- Scenario: Not computed
+- [ ] Scenario: Not computed
   Then no empty tile is drawn for it
 
 ### US-SQ-QUALITY-06 — Issue detail
@@ -486,12 +486,12 @@ I want to open an issue and see why it was raised and where
 So that I can act on it from my phone
 
 **Acceptance Criteria**
-- Scenario: Detail
+- [ ] Scenario: Detail
   Then the page shows type, severity, message, rule key and name
   (`api/rules/show`), file and line, effort to fix, status, author, when it
   was raised and tags, and the code around the issue
   (`api/sources/show`, markup removed) with the issue's line marked
-- Scenario: Part of it fails
+- [ ] Scenario: Part of it fails
   Then what loaded is shown; if both the rule and the code fail, the reason
   and a retry
 
@@ -506,15 +506,15 @@ I want one screen showing how all my projects are doing
 So that SonarQube's second tab is useful, since it has no run history
 
 **Acceptance Criteria**
-- Scenario: The tab
+- [ ] Scenario: The tab
   Given SonarQube is the active tool
   Then the second tab is "Overview", and Jenkins and GitHub Actions keep
   "History"
-- Scenario: Content
+- [ ] Scenario: Content
   Then it shows counts of failing, warning, passing and not-analyzed
   projects, the totals of bugs, vulnerabilities and code smells, and the
   projects that need attention (failed before warning, worst first)
-- Scenario: Honesty
+- [ ] Scenario: Honesty
   Then it never says all is well while verdicts are loading or failed to
   load, and says when it is based on only part of the project list
 
@@ -529,7 +529,7 @@ I want to open a project or an issue in SonarQube's own web UI
 So that I can see more than the app shows
 
 **Acceptance Criteria**
-- Scenario: Link
+- [ ] Scenario: Link
   Then a project opens `{base}/dashboard?id=KEY` and an issue opens
   `{base}/project/issues?id=KEY&issues=ISSUE&open=ISSUE`, in the browser,
   with a server path (`/sonar`) kept and keys encoded
@@ -580,13 +580,13 @@ I want to see the open issues assigned to me, across all projects
 So that I know what is mine to fix without opening each project
 
 **Acceptance Criteria**
-- Scenario: Assigned to me
+- [ ] Scenario: Assigned to me
   Given I am signed in with a user token
   Then `GET api/issues/search?assignees=__me__&resolved=false` is called with no `componentKeys`, and the issues render in the same rows as the project issues list, each with its project name
-- Scenario: Filter and page
+- [ ] Scenario: Filter and page
   Given the list is large
   Then the type and severity filters re-query the server and "Load more" pages it, as in `US-SQ-QUALITY-03`
-- Scenario: Nothing assigned
+- [ ] Scenario: Nothing assigned
   Then "Nothing is assigned to you" is shown, not an empty list
 
 **Notes**
@@ -605,13 +605,13 @@ I want to see when a project is being analysed, is waiting, or its last analysis
 So that I don't mistake a stale result for a current one
 
 **Acceptance Criteria**
-- Scenario: In progress
+- [ ] Scenario: In progress
   Given a scan is running or queued
   Then `GET api/ce/component?component=KEY` shows it, and the project page and its card say "Analysing…" or "Queued"
-- Scenario: Last analysis failed
+- [ ] Scenario: Last analysis failed
   Given the newest background task failed
   Then the page says so, with the time, so the gate shown is understood to be from an older analysis
-- Scenario: Quiet
+- [ ] Scenario: Quiet
   Given nothing is pending and the last task succeeded
   Then nothing extra is drawn
 
@@ -630,10 +630,10 @@ I want to see every condition of the quality gate with its threshold and my valu
 So that I know how close a passing project is to failing
 
 **Acceptance Criteria**
-- Scenario: List
+- [ ] Scenario: List
   Given the gate result has conditions
   Then each is listed with its metric, threshold, actual value and an OK or failed mark, failed ones first
-- Scenario: No conditions
+- [ ] Scenario: No conditions
   Then "This gate has no conditions" is shown
 
 **Notes**
@@ -651,10 +651,10 @@ I want to switch the measures between new code and overall code
 So that I see the numbers the quality gate is actually judged on
 
 **Acceptance Criteria**
-- Scenario: Switch
+- [ ] Scenario: Switch
   Given a project page
   Then a switch shows Overall (today's view) or New code (`new_bugs`, `new_vulnerabilities`, `new_code_smells`, `new_coverage`, `new_duplicated_lines_density`, `new_lines`)
-- Scenario: No new-code period
+- [ ] Scenario: No new-code period
   Given the project has no new-code period or no new code
   Then the switch says so instead of showing zeros
 
@@ -673,10 +673,10 @@ I want to see what changed since the previous analysis
 So that I notice a regression right away
 
 **Acceptance Criteria**
-- Scenario: Delta
+- [ ] Scenario: Delta
   Given at least two analyses
   Then each headline measure shows its change since the previous one (for example "+2 bugs", "coverage −1%"), worse in the failure colour
-- Scenario: One analysis
+- [ ] Scenario: One analysis
   Then no change is shown, and "Not enough history yet" applies
 
 **Notes**
@@ -698,16 +698,16 @@ I want to be told when a project I watch fails its quality gate
 So that I hear about a regression without opening the app
 
 **Acceptance Criteria**
-- Scenario: Watch a project
+- [ ] Scenario: Watch a project
   Given I open a project
   Then I can turn on "Notify me when the gate fails"; it is stored on the device
-- Scenario: Notified
+- [ ] Scenario: Notified
   Given a watched project's newest analysis fails its gate
   Then one local notification names the project and what failed, once per analysis
-- Scenario: Honest limits
+- [ ] Scenario: Honest limits
   Given iOS decides when background work runs
   Then the screen says checks are best-effort and also run when the app is opened
-- Scenario: Off
+- [ ] Scenario: Off
   Given I turn the last watch off
   Then the background check is unregistered
 
@@ -731,10 +731,10 @@ I want to see the gate and measures for a branch or pull request
 So that I can check a change before it merges
 
 **Acceptance Criteria**
-- Scenario: Choose
+- [ ] Scenario: Choose
   Given the server lists more than the main branch (`GET api/project_branches/list`, `api/project_pull_requests/list`)
   Then a picker switches the page to that branch or pull request
-- Scenario: Main only
+- [ ] Scenario: Main only
   Given the server lists only the main branch
   Then no picker is shown
 
@@ -770,10 +770,10 @@ I want to see a project's security hotspots and their review status
 So that I know which security-sensitive code still needs a review
 
 **Acceptance Criteria**
-- Scenario: List
+- [ ] Scenario: List
   Given a project
   Then `GET api/hotspots/search?project=KEY` lists hotspots, filterable by status (to review, reviewed), with file and line
-- Scenario: Detail
+- [ ] Scenario: Detail
   Given I open one
   Then its rule, vulnerability probability and the code around it are shown, as for an issue
 
@@ -798,10 +798,10 @@ I want to see how coverage, bugs and debt moved over time
 So that I can tell whether the project is getting better
 
 **Acceptance Criteria**
-- Scenario: Chart
+- [ ] Scenario: Chart
   Given a project with several analyses
   Then a simple line chart of a chosen measure is drawn from `api/measures/search_history`, with the value of the touched point readable
-- Scenario: Too little data
+- [ ] Scenario: Too little data
   Then "Not enough history yet" is shown
 
 **Notes**
@@ -829,10 +829,10 @@ I want to see the files with the most issues, the least coverage or the most dup
 So that I know where to start
 
 **Acceptance Criteria**
-- Scenario: Ranking
+- [ ] Scenario: Ranking
   Given a project and a chosen measure
   Then `GET api/measures/component_tree` (file level, sorted by that measure) lists the ten worst files with their values
-- Scenario: Open a file
+- [ ] Scenario: Open a file
   Then a tap shows that file's issues
 
 **Notes**
@@ -857,10 +857,10 @@ I want to see how the lines of code split by language
 So that I understand what the project is made of
 
 **Acceptance Criteria**
-- Scenario: Breakdown
+- [ ] Scenario: Breakdown
   Given the metric `ncloc_language_distribution` (for example `java=1200;js=340`)
   Then a list or bar shows each language with its lines and share
-- Scenario: Missing
+- [ ] Scenario: Missing
   Then the section is left out
 
 **Notes**
@@ -886,10 +886,10 @@ I want to group a project's issues
 So that a long list becomes something I can scan
 
 **Acceptance Criteria**
-- Scenario: Group
+- [ ] Scenario: Group
   Given the issues list
   Then a control groups it by file, rule or severity, each group showing its count
-- Scenario: Server side
+- [ ] Scenario: Server side
   Then grouping uses the server's facets (`facets=files,rules,severities`) so counts are right beyond the first page
 
 **Notes**
@@ -918,10 +918,10 @@ I want to search issues by text or rule across every project
 So that I can find a known problem wherever it is
 
 **Acceptance Criteria**
-- Scenario: Search
+- [ ] Scenario: Search
   Given a search term or rule
   Then `GET api/issues/search` with the matching parameters lists results across projects, server-filtered and paged
-- Scenario: None
+- [ ] Scenario: None
   Then "No issues match" is shown
 
 **Notes**
@@ -939,10 +939,10 @@ I want to see my SonarQube server's version and status
 So that I can tell a server problem from an app problem
 
 **Acceptance Criteria**
-- Scenario: Info
+- [ ] Scenario: Info
   Given an active credential
   Then the version (`api/server/version`) and status (`api/system/status`, for example UP or STARTING) are shown, with an edition hint where the server reports one
-- Scenario: Unreachable
+- [ ] Scenario: Unreachable
   Then the same error view as elsewhere, with a retry
 
 **Notes**
@@ -967,10 +967,10 @@ I want to see whether the number of failing projects is going up or down
 So that I see the direction, not only today's count
 
 **Acceptance Criteria**
-- Scenario: Trend
+- [ ] Scenario: Trend
   Given the Overview has been opened on different days
   Then it shows the change in failing projects since the last snapshot
-- Scenario: First time
+- [ ] Scenario: First time
   Then no trend is shown, with a note that it starts now
 
 **Notes**
@@ -993,10 +993,10 @@ I want to pin the projects I care about
 So that they sit at the top of the list and the Overview
 
 **Acceptance Criteria**
-- Scenario: Pin
+- [ ] Scenario: Pin
   Given a project card or page
   Then I can pin or unpin it; pinned projects sort first
-- Scenario: Kept
+- [ ] Scenario: Kept
   Then pins are remembered on the device per credential
 
 **Notes**
@@ -1014,10 +1014,10 @@ I want to see my pinned projects' gate status on my home screen
 So that I check them without opening the app
 
 **Acceptance Criteria**
-- Scenario: Widget
+- [ ] Scenario: Widget
   Given pinned projects
   Then the widget lists each with its gate verdict and the time it was last updated
-- Scenario: No credentials
+- [ ] Scenario: No credentials
   Then the widget holds no credential and never calls SonarQube itself; it shows a snapshot the app wrote
 
 **Notes**
@@ -1035,10 +1035,10 @@ I want to see the last data I loaded when I have no connection
 So that I can still check a project on the train
 
 **Acceptance Criteria**
-- Scenario: Cached
+- [ ] Scenario: Cached
   Given I have loaded the project list and a project
   Then with no connection they show the saved copy, marked "Saved 2h ago"
-- Scenario: Never secrets
+- [ ] Scenario: Never secrets
   Then only non-secret project data is cached, in the same place and the same way as the Jenkins tree cache (`US-JX-20`), and is cleared on sign-out
 
 **Notes**
@@ -1055,10 +1055,10 @@ I want to open a project in the app from a link
 So that a teammate's message can take me straight to it
 
 **Acceptance Criteria**
-- Scenario: Open
+- [ ] Scenario: Open
   Given `jobtrigger://app/sonarqube/project?key=KEY`
   Then the app opens that project when SonarQube credentials exist, else explains what is missing
-- Scenario: Guarded
+- [ ] Scenario: Guarded
   Then a link without a valid key lands on Home, like the other extra-only routes (AUD-51)
 
 **Notes**
@@ -1075,10 +1075,10 @@ I want to copy or share an issue's details
 So that I can send it to a teammate
 
 **Acceptance Criteria**
-- Scenario: Share
+- [ ] Scenario: Share
   Given an issue page
   Then Copy and Share send the message, rule, location and the link from `US-SQ-LINK-01`
-- Scenario: No secrets
+- [ ] Scenario: No secrets
   Then the text never contains a token
 
 **Notes**
@@ -1099,13 +1099,13 @@ I want to see the quality gate for the SonarQube project linked to a Jenkins job
 So that I know whether a build also passed its quality gate
 
 **Acceptance Criteria**
-- Scenario: Link
+- [ ] Scenario: Link
   Given a Jenkins job
   Then I can link it to a SonarQube project once, on the device
-- Scenario: Show
+- [ ] Scenario: Show
   Given a linked job
   Then its build page shows the gate verdict using the SonarQube credential, with a tap through to the project
-- Scenario: Separate
+- [ ] Scenario: Separate
   Given no SonarQube credential
   Then nothing is shown and Jenkins behaves exactly as before
 
@@ -1123,10 +1123,10 @@ I want to run the Jenkins job that scans a project, then watch the SonarQube res
 So that a re-scan is one flow on my phone
 
 **Acceptance Criteria**
-- Scenario: Run
+- [ ] Scenario: Run
   Given a linked job
   Then "Scan now" uses the existing Jenkins trigger and confirmation flow
-- Scenario: Follow
+- [ ] Scenario: Follow
   Then the project page shows `US-SQ-CE-01`'s analysis status until the new result arrives
 
 **Notes**
@@ -1143,7 +1143,7 @@ I want to see the SonarQube gate for the repository's linked project on a workfl
 So that I see build and quality together
 
 **Acceptance Criteria**
-- Scenario: Link and show
+- [ ] Scenario: Link and show
   Given a GitHub repo linked to a SonarQube project on the device
   Then a run's page shows the gate verdict, and nothing changes for an unlinked repo
 
@@ -1165,10 +1165,10 @@ I want to assign an issue to someone, or to myself
 So that it has an owner
 
 **Acceptance Criteria**
-- Scenario: Assign
+- [ ] Scenario: Assign
   Given an issue page
   Then I can choose an assignee (`POST api/issues/assign`), confirm, and see it applied only after the server accepts it
-- Scenario: Refused
+- [ ] Scenario: Refused
   Given the token cannot modify issues
   Then the reason is shown and nothing changes
 
@@ -1187,7 +1187,7 @@ I want to confirm an issue, mark it a false positive, accept it or reopen it
 So that the list reflects my decision
 
 **Acceptance Criteria**
-- Scenario: Transition
+- [ ] Scenario: Transition
   Given an issue
   Then only the transitions the server offers (`POST api/issues/do_transition`: confirm, unconfirm, reopen, resolve, falsepositive, wontfix/accept) are shown, each with a confirmation
 
@@ -1205,7 +1205,7 @@ I want to add a comment to an issue
 So that I can leave context for the team
 
 **Acceptance Criteria**
-- Scenario: Comment
+- [ ] Scenario: Comment
   Given an issue page
   Then I can write a comment (`POST api/issues/add_comment`); it is sent as a form value, never built into a URL by hand, and shown once saved
 
@@ -1223,7 +1223,7 @@ I want to mark a hotspot safe, or fixed
 So that the review queue shrinks
 
 **Acceptance Criteria**
-- Scenario: Review
+- [ ] Scenario: Review
   Given a hotspot
   Then I can set its status and resolution (`POST api/hotspots/change_status`) after a confirmation, with an optional comment
 

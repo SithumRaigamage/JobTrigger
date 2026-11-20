@@ -68,24 +68,24 @@ I want to add a GitHub Personal Access Token, scoped to an account/org
 So that the app can list and act on my repositories' workflows
 
 **Acceptance Criteria**
-- Scenario: Successful add
+- [ ] Scenario: Successful add
   Given I enter a label, the PAT, and (optionally) a default org/owner
   filter, and tap Save
   Then the credential is created via the new backend endpoint and appears
   in the GitHub server list
-- Scenario: PAT format validation
+- [ ] Scenario: PAT format validation
   Given the token field is empty or obviously malformed (GitHub PATs are
   prefixed `ghp_`/`github_pat_` for classic/fine-grained tokens)
   Then client-side validation blocks submission with an inline message,
   before any network call (`NFR-SEC-02`)
-- Scenario: Token lacks required scope
+- [ ] Scenario: Token lacks required scope
   Given the PAT is well-formed but the test-connection check (`US-GH-CRED-04`)
   reveals it lacks `repo`/`workflow` scope (classic) or Actions
   read/write permission (fine-grained)
   Then save is still allowed (matching `US-CRED-02`'s "test is a nudge, not
   a gate" precedent) but a warning is shown so the user isn't surprised
   later when triggering fails
-- Scenario: Save fails
+- [ ] Scenario: Save fails
   Given the backend request fails
   Then an `AppFailure`-mapped message is shown and the form retains
   entered values
@@ -119,18 +119,18 @@ I want to edit a saved GitHub credential's label/org filter or delete it
 So that I can keep my saved accounts current
 
 **Acceptance Criteria**
-- Scenario: Edit label/org filter
+- [ ] Scenario: Edit label/org filter
   Given I open an existing credential and change its label or default org
   Then the update is saved via the backend, PAT field never pre-filled
   with the real secret (matches `US-CRED-03`)
-- Scenario: Replace the PAT
+- [ ] Scenario: Replace the PAT
   Given I paste a new token into the PAT field while editing
   Then the new token replaces the stored one on save
-- Scenario: Delete requires confirmation
+- [ ] Scenario: Delete requires confirmation
   Given I swipe-delete or tap delete on a credential
   Then a confirmation dialog is required (matches `US-CRED-04`) before the
   backend delete call fires
-- Scenario: Deleting the active GitHub credential
+- [ ] Scenario: Deleting the active GitHub credential
   Given the credential being deleted is the currently active one
   Then the same fallback logic as `US-CRED-04`/`ActiveServerNotifier`
   applies, scoped to GitHub credentials only — falling back to another
@@ -162,13 +162,13 @@ I want to switch which one is active
 So that repo/workflow browsing reflects the account I'm currently working as
 
 **Acceptance Criteria**
-- Scenario: Switch succeeds
+- [ ] Scenario: Switch succeeds
   Given I tap a non-active credential in the list
   Then it becomes active immediately (client-side, matching
   `ActiveServerNotifier`'s existing pattern — no backend "switch" call
   needed, same as Jenkins' `SettingsScreen._setActiveServer`), and a
   confirmation toast shows
-- Scenario: Active GitHub credential is independent of active Jenkins server
+- [ ] Scenario: Active GitHub credential is independent of active Jenkins server
   Given both an active Jenkins server and an active GitHub credential exist
   Then switching one never affects the other — they're two independent
   "active" concepts, not a single "active CI tool" selector
@@ -196,16 +196,16 @@ I want to verify the token actually works before saving
 So that I don't save a broken credential and discover it later
 
 **Acceptance Criteria**
-- Scenario: Valid token
+- [ ] Scenario: Valid token
   Given I tap "Test connection" with a PAT entered
   Then `GET https://api.github.com/user` is called with
   `Authorization: Bearer <PAT>`; success shows the authenticated
   username, confirming the token is live
-- Scenario: Invalid/expired token
+- [ ] Scenario: Invalid/expired token
   Given the token is rejected (401)
   Then a clear `AuthFailure`-mapped message is shown, distinct from a
   network failure
-- Scenario: Rate-limited
+- [ ] Scenario: Rate-limited
   Given the response is a 403 with `X-RateLimit-Remaining: 0`
   Then a specific "rate limited, try again later" message is shown rather
   than a generic server error — GitHub's rate-limit shape is distinct
@@ -239,18 +239,18 @@ I want to see the repositories that credential can access
 So that I can pick one to browse its workflows
 
 **Acceptance Criteria**
-- Scenario: List loads
+- [ ] Scenario: List loads
   Given an active GitHub credential
   Then `GET /user/repos?per_page=100&sort=updated` is called (paginated —
   GitHub returns `Link` headers for further pages; load more on scroll,
   not all pages upfront) and repos render name + owner + private/public
   indicator
-- Scenario: Default org filter applied
+- [ ] Scenario: Default org filter applied
   Given the credential has a default org/owner filter set
   (`US-GH-CRED-01`)
   Then the list is pre-filtered to that owner, with a visible way to clear
   the filter and see everything the token can reach
-- Scenario: Empty / load failure
+- [ ] Scenario: Empty / load failure
   Given the token has access to no repos, or the fetch fails
   Then the same empty-state / `AppFailure`+retry pattern as `US-TREE-01`
   applies
@@ -279,16 +279,16 @@ I want to see its workflows
 So that I can pick one to view runs or trigger
 
 **Acceptance Criteria**
-- Scenario: List loads
+- [ ] Scenario: List loads
   Given I tap a repo
   Then `GET /repos/{owner}/{repo}/actions/workflows` is called, rendering
   each workflow's `name` and `state` (`active`/`disabled_manually`/etc.)
-- Scenario: Disabled workflow
+- [ ] Scenario: Disabled workflow
   Given a workflow's `state` isn't `active`
   Then it's shown visually de-emphasized with a "disabled" label, and
   triggering it (`US-GH-RUN-02`) is blocked with an explanatory message
   rather than sent to fail server-side
-- Scenario: No workflows / load failure
+- [ ] Scenario: No workflows / load failure
   Given the repo has no workflow files, or the fetch fails
   Then the same empty-state / `AppFailure`+retry pattern applies
 
@@ -321,7 +321,7 @@ I want to see its recent runs and each one's outcome
 So that I have context before deciding whether/how to trigger it again
 
 **Acceptance Criteria**
-- Scenario: Runs load
+- [ ] Scenario: Runs load
   Given I open a workflow
   Then `GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`
   is called, rendering each run's `status` (`queued`/`in_progress`/
@@ -330,7 +330,7 @@ So that I have context before deciding whether/how to trigger it again
   `action_required`/`neutral`/`stale`) — **two separate fields**, not one,
   matching GitHub's actual API shape (distinct from Jenkins' single
   `result` string)
-- Scenario: No runs yet / load failure
+- [ ] Scenario: No runs yet / load failure
   Given the workflow has never run, or the fetch fails
   Then the same "no builds yet" / `AppFailure`+retry pattern as
   `US-JOB-01` applies
@@ -359,7 +359,7 @@ I want to trigger a workflow, with inputs if it declares any
 So that I can kick off a run from my phone
 
 **Acceptance Criteria**
-- Scenario: Workflow requires `workflow_dispatch` to be triggerable at all
+- [ ] Scenario: Workflow requires `workflow_dispatch` to be triggerable at all
   Given a workflow's YAML has no `on: workflow_dispatch:` trigger
   Then the app cannot detect this ahead of time from the REST API alone
   (GitHub doesn't expose parsed trigger config) — the Trigger action is
@@ -368,11 +368,11 @@ So that I can kick off a run from my phone
   generic error, **flagged as a real UX gap versus Jenkins** (where
   `isParameterized`/parameterless triggerability is known upfront from
   `property[parameterDefinitions]`) rather than silently worked around
-- Scenario: Branch/ref selection
+- [ ] Scenario: Branch/ref selection
   Given `workflow_dispatch` requires a target `ref` (branch/tag)
   Then the trigger form includes a ref field, defaulting to the repo's
   default branch (`GET /repos/{owner}/{repo}` → `default_branch`)
-- Scenario: Trigger with inputs
+- [ ] Scenario: Trigger with inputs
   Given the workflow declares `workflow_dispatch.inputs` in its YAML
   (not discoverable via REST — **input names/types must be entered
   manually by the user**, since GitHub's API doesn't expose a workflow's
@@ -382,7 +382,7 @@ So that I can kick off a run from my phone
   `US-JOB-03`'s typed parameter form (dropdown/switch/text per declared
   type), GitHub triggering here is untyped free-text key/value pairs,
   because the API genuinely doesn't expose more
-- Scenario: Successful trigger
+- [ ] Scenario: Successful trigger
   Given I confirm
   Then `POST .../dispatches` is called; a 204 response means *accepted*,
   not *started* — GitHub's dispatch response carries no run ID, so the
@@ -391,7 +391,7 @@ So that I can kick off a run from my phone
   identity immediately (a real difference from Jenkins' `Location`-header
   queue-item tracking, `US-PIPE-01` — GitHub's dispatch endpoint gives
   nothing to track by)
-- Scenario: Confirmation before triggering
+- [ ] Scenario: Confirmation before triggering
   Given the real side effects of triggering a live workflow
   Then a confirmation step is required, same rationale as `US-JOB-02`
 
@@ -420,16 +420,16 @@ I want its status to update automatically
 So that I don't have to manually refresh to know when it finishes
 
 **Acceptance Criteria**
-- Scenario: Polling while not completed
+- [ ] Scenario: Polling while not completed
   Given a run's `status` isn't `completed`
   Then the app polls `GET .../runs/{run_id}` every 5s (same cadence as
   `US-JOB-04`, no documented reason GitHub needs a different interval)
   until `status` becomes `completed`
-- Scenario: Polling stops on completion or screen exit
+- [ ] Scenario: Polling stops on completion or screen exit
   Given the run completes, or the user navigates away
   Then polling stops — same notifier-owned-timer/`ref.onDispose` discipline
   as `BuildStatusPollingNotifier`
-- Scenario: Rate-limit awareness
+- [ ] Scenario: Rate-limit awareness
   Given GitHub's REST API has a real hourly rate limit (5,000 req/hr for
   an authenticated PAT) that Jenkins (self-hosted, no such limit) doesn't
   have
@@ -460,7 +460,7 @@ I want to cancel it
 So that I don't have to wait for it to finish or find a laptop
 
 **Acceptance Criteria**
-- Scenario: Successful cancel
+- [ ] Scenario: Successful cancel
   Given a run is in progress
   When I tap Cancel and confirm
   Then `POST .../runs/{run_id}/cancel` is called (202 Accepted — GitHub's
@@ -469,10 +469,10 @@ So that I don't have to wait for it to finish or find a laptop
   `cancelled` flip like Jenkins' `US-JOB-05`, since GitHub's cancel is
   genuinely slower/eventual) until the next poll confirms the real
   `conclusion`
-- Scenario: Confirmation required
+- [ ] Scenario: Confirmation required
   Given the same real-side-effect rationale as `US-JOB-05`
   Then a confirmation step is required
-- Scenario: Cancel request fails
+- [ ] Scenario: Cancel request fails
   Given the cancel call itself fails (network/auth)
   Then an `AppFailure`-mapped message is shown; no state is optimistically
   changed since GitHub's own response doesn't warrant it here
@@ -500,7 +500,7 @@ I want to see each job's steps and their outcome
 So that I can tell what failed without downloading the full log
 
 **Acceptance Criteria**
-- Scenario: Steps load
+- [ ] Scenario: Steps load
   Given a run has one or more jobs
   Then `GET .../runs/{run_id}/jobs` is called, and each job's `steps[]`
   (each with its own `status`/`conclusion`/`name`) renders as a chip row —
@@ -508,7 +508,7 @@ So that I can tell what failed without downloading the full log
   pipelines** (`US-PIPE-04`'s `_StageChipRow`), since the data shape
   (ordered list, each with status+conclusion+name) is structurally the
   same
-- Scenario: Multiple jobs in one run
+- [ ] Scenario: Multiple jobs in one run
   Given a run has more than one job (a build matrix, or parallel jobs)
   Then each job's step list is shown as its own group, labeled with the
   job's `name`
@@ -539,13 +539,13 @@ I want to read its log
 So that I can see what happened without a laptop
 
 **Acceptance Criteria**
-- Scenario: Completed job
+- [ ] Scenario: Completed job
   Given a job has `status: completed`
   Then `GET .../jobs/{job_id}/logs` is called, following the 302 redirect
   to fetch the plain-text log body, rendered in the same virtualized
   `ListView.builder` console viewer as `US-LOG-01` (reused as-is — the
   *rendering* is identical, only the *fetch mechanism* differs)
-- Scenario: Job still in progress — no live tail
+- [ ] Scenario: Job still in progress — no live tail
   Given a job's `status` isn't `completed`
   Then the screen shows an explicit "log available once this job
   finishes" state rather than attempting to poll a partial log — GitHub's
@@ -554,13 +554,13 @@ So that I can see what happened without a laptop
   "check now" refresh action is offered instead of automatic polling, so
   the user isn't left with silently-stale expectations
   set by `US-LOG-01`'s live-while-building behavior
-- Scenario: Redirect link expiry
+- [ ] Scenario: Redirect link expiry
   Given the redirect URL is time-limited (expires ~1 minute per GitHub's
   docs)
   Then the fetch-and-follow happens as one atomic repository-layer
   operation, never surfacing the intermediate redirect URL to the UI or
   caching it for later reuse
-- Scenario: Load failure
+- [ ] Scenario: Load failure
   Given the log fetch fails
   Then the same `AppFailure`+retry pattern as `US-LOG-01` applies
 
@@ -591,7 +591,7 @@ I want to copy or share a job's log text
 So that I can send it to a teammate or paste it elsewhere
 
 **Acceptance Criteria**
-- Scenario: Copy / Share
+- [ ] Scenario: Copy / Share
   Given a log has loaded
   Then the same Copy-to-clipboard and Share-via-`share_plus` actions as
   `US-LOG-03` are available, operating on the full downloaded log text
@@ -622,7 +622,7 @@ I want a dedicated history view of a workflow's past runs
 So that I can review trends without re-opening the workflow detail screen
 
 **Acceptance Criteria**
-- Scenario: History loads
+- [ ] Scenario: History loads
   Given I open a workflow's history
   Then the same `GET .../workflows/{workflow_id}/runs` call as
   `US-GH-RUN-01` (paginated, most-recent-first — this *is* effectively
@@ -652,7 +652,7 @@ I want a single global feed of recent runs across all of them
 So that I don't have to check each repo individually
 
 **Acceptance Criteria**
-- Scenario: Feasibility gap, flagged rather than silently built differently
+- [ ] Scenario: Feasibility gap, flagged rather than silently built differently
   Given GitHub's REST API has **no single endpoint** for "recent runs
   across every repo a token can access" (unlike Jenkins' `US-HIST-01`,
   which derives this for free from the already-fetched job tree)
@@ -661,7 +661,7 @@ So that I don't have to check each repo individually
   **explicitly scoped as `Could`, not `Must`**, because on an account
   with many repos this is O(n) requests against GitHub's 5,000/hr rate
   limit for one screen, a real cost Jenkins' equivalent doesn't have
-  - Scenario: Rate-limit-aware fallback
+  - [ ] Scenario: Rate-limit-aware fallback
     Given the repo count is large enough that fanning out risks the rate
     limit
     Then the feed caps how many repos it fans out to (e.g. the N most

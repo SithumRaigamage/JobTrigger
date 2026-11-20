@@ -38,26 +38,26 @@ So that I don't think my tap didn't work when Jenkins simply hasn't started
 the build yet
 
 **Acceptance Criteria**
-- Scenario: Build enters the queue
+- [ ] Scenario: Build enters the queue
   Given I trigger a build and Jenkins accepts it but no executor is free yet
   Then the job detail screen shows a "queued" state (fetched from
   `GET {jobURL}/queue/api/json` — or the job-level queue item Jenkins
   returns right after a trigger) distinct from both "not building" and
   "building"
-- Scenario: Queued build starts
+- [ ] Scenario: Queued build starts
   Given a queued item becomes a running build
   Then the screen transitions from "queued" to the existing "building" state
   (US-JOB-04) automatically, without a manual refresh
-- Scenario: Queue reason is shown when available
+- [ ] Scenario: Queue reason is shown when available
   Given Jenkins reports why a build is blocked/waiting (e.g. quiet period,
   resource lock, another build of the same job already running)
   Then that reason text is shown alongside the "queued" state when present
-- Scenario: Queue fetch fails
+- [ ] Scenario: Queue fetch fails
   Given the queue-status fetch fails
   Then the screen falls back to the existing last-known state (last build /
   no build) rather than showing a hard error — queue visibility is
   additive, its failure must not block the rest of the job detail screen
-- Scenario: Build never queues (executor immediately available)
+- [ ] Scenario: Build never queues (executor immediately available)
   Given an executor is free at trigger time
   Then the "queued" state is skipped entirely and the screen goes straight
   to "building" (US-JOB-04) — no artificial queued flash
@@ -89,20 +89,20 @@ So that I can understand why a build ran without needing a laptop to check
 Jenkins' own UI
 
 **Acceptance Criteria**
-- Scenario: Manually triggered build
+- [ ] Scenario: Manually triggered build
   Given a build was started by a named Jenkins user
   Then the job detail / build history entry shows that user's display name
   as the cause
-- Scenario: Upstream-triggered build
+- [ ] Scenario: Upstream-triggered build
   Given a build was started by another job (an upstream pipeline)
   Then the cause shows the upstream job's name and build number, and is
   tappable through to US-PIPE-09 (upstream/downstream navigation) if that
   story is also implemented
-- Scenario: SCM- or timer-triggered build
+- [ ] Scenario: SCM- or timer-triggered build
   Given a build was started by an SCM webhook/poll or a scheduled timer
   Then the cause is labeled accordingly (e.g. "Started by SCM change" /
   "Started by timer"), not left blank or shown as "unknown"
-- Scenario: Cause data unavailable
+- [ ] Scenario: Cause data unavailable
   Given the build's `actions[causes[...]]` data is empty or the server
   doesn't report it
   Then no cause section is shown at all, rather than an empty/awkward
@@ -136,20 +136,20 @@ So that I can connect a build's outcome to what code actually changed,
 without opening a laptop to check the SCM history
 
 **Acceptance Criteria**
-- Scenario: Build has SCM changes
+- [ ] Scenario: Build has SCM changes
   Given the build's `changeSet` is non-empty
   Then each change's author and commit message (first line, truncated if
   long) is listed, most-recent-first
-- Scenario: Build has no SCM changes
+- [ ] Scenario: Build has no SCM changes
   Given `changeSet` is empty (e.g. a manually-triggered rebuild with no new
   commits)
   Then no changelog section is shown, rather than an empty list
-- Scenario: Non-Git SCM or unsupported changelog shape
+- [ ] Scenario: Non-Git SCM or unsupported changelog shape
   Given the job uses an SCM type whose changelog entries don't match the
   expected shape
   Then the section is simply omitted rather than crashing or rendering
   malformed text
-- Scenario: Fetch/parse failure
+- [ ] Scenario: Fetch/parse failure
   Given the changelog portion of the build data fails to parse
   Then the rest of the job detail screen still renders normally — this is
   additive, non-critical information
@@ -182,24 +182,24 @@ So that I can tell what broke without scrolling a multi-thousand-line raw
 console log looking for it
 
 **Acceptance Criteria**
-- Scenario: Pipeline build with stages
+- [ ] Scenario: Pipeline build with stages
   Given the build is a pipeline job (has a `wfapi` stage graph available)
   Then a stage list renders with each stage's name, status (success/
   failed/running/not-yet-run), and duration
-- Scenario: Non-pipeline (freestyle) job
+- [ ] Scenario: Non-pipeline (freestyle) job
   Given the job is a classic freestyle job with no stage data
   Then no stage view is shown and the screen behaves exactly as it does
   today (console log only, US-LOG-01) — this story doesn't change anything
   for non-pipeline jobs
-- Scenario: Tap a stage to jump to its log
+- [ ] Scenario: Tap a stage to jump to its log
   Given I tap a stage in the list
   Then the console log view (US-LOG-01) opens scrolled to that stage's
   first log line, where Jenkins' stage log-range data makes this possible
-- Scenario: Live-updating during a running build
+- [ ] Scenario: Live-updating during a running build
   Given the pipeline is still executing
   Then the stage list updates on the same polling cadence as US-JOB-04
   (every 5s) to reflect stages completing/starting
-- Scenario: Stage data fetch fails
+- [ ] Scenario: Stage data fetch fails
   Given the `wfapi` stage fetch fails or 404s (older Jenkins without the
   Pipeline plugin's REST API, or a job type that doesn't support it)
   Then the screen falls back to the existing console-log-only view with no
@@ -233,31 +233,31 @@ on my sign-off — this is one of the strongest reasons to check Jenkins from
 a phone at all
 
 **Acceptance Criteria**
-- Scenario: Pending input step detected
+- [ ] Scenario: Pending input step detected
   Given a running pipeline build has a pending `input` step
   (`wfapi/pendingInputActions` non-empty)
   Then the job detail screen shows the input step's message/prompt and any
   parameters it requests, with Approve/Abort actions
-- Scenario: Approve
+- [ ] Scenario: Approve
   Given I tap Approve and confirm
   Then `POST .../wfapi/inputSubmit` is called (with the CSRF crumb per
   `NFR-SEC-06`) with `proceed`, the pipeline resumes, and the screen
   reflects the resumed running state on the next poll
-- Scenario: Abort
+- [ ] Scenario: Abort
   Given I tap Abort/Reject and confirm
   Then the equivalent reject submission is made, and the build's final
   result reflects the abort — same no-false-success guarantee as US-JOB-05
-- Scenario: Confirmation required for both actions
+- [ ] Scenario: Confirmation required for both actions
   Given approving or aborting a production-facing pipeline is exactly the
   kind of high-stakes action this story exists for
   Then both Approve and Abort require an explicit confirmation step before
   the request is sent, same rationale as US-JOB-02/05
-- Scenario: Input step requests parameters
+- [ ] Scenario: Input step requests parameters
   Given the paused step also asks for parameter values (not just proceed/
   abort)
   Then a form matching US-JOB-03's parameter-type rendering is shown before
   the Approve action is enabled
-- Scenario: Stale crumb / submission fails
+- [ ] Scenario: Stale crumb / submission fails
   Given the input-submit request fails (expired crumb, network error, or
   the input was already resolved by someone else via the Jenkins web UI)
   Then an `AppFailure`-mapped message is shown and the screen re-fetches the
@@ -296,20 +296,20 @@ So that I can tell "build broke" from "tests broke" without opening the
 full console log
 
 **Acceptance Criteria**
-- Scenario: Build has test results
+- [ ] Scenario: Build has test results
   Given `{buildURL}/testReport/api/json` returns data
   Then pass/fail/skip counts render on the job detail card, with the
   failed count visually emphasized when non-zero
-- Scenario: Build has no test report
+- [ ] Scenario: Build has no test report
   Given the job doesn't publish test results (or none exist for this build)
   Then no test-summary section is shown, rather than a "0/0/0" or error
   state
-- Scenario: Tap through to failing test names
+- [ ] Scenario: Tap through to failing test names
   Given there are failing tests
   Then tapping the summary shows the list of failing test names/class names
   (still a summary — not full stack traces/output, which stays in the
   console log per US-LOG-01)
-- Scenario: Test report fetch fails
+- [ ] Scenario: Test report fetch fails
   Given the test-report fetch fails or 404s
   Then the rest of the job detail screen renders normally — additive, non-
   blocking, same pattern as US-PIPE-01/03/04
@@ -341,21 +341,21 @@ I want to see what artifacts a build produced and open one
 So that I can grab a build's output from my phone without a laptop
 
 **Acceptance Criteria**
-- Scenario: Build has artifacts
+- [ ] Scenario: Build has artifacts
   Given the build's `api/json` response includes a non-empty `artifacts[]`
   Then each artifact's file name and relative path is listed on the job
   detail card
-- Scenario: Open an artifact
+- [ ] Scenario: Open an artifact
   Given I tap an artifact
   Then the app opens `{buildURL}/artifact/{relativePath}` via the system's
   own handling (browser/share sheet), consistent with `url_launcher`'s
   existing use in `US-PROF-03`-style external links — this story is scoped
   to list-and-open, not an in-app file manager or on-device download/
   storage flow, which doesn't fit a mobile "companion app" role
-- Scenario: Build has no artifacts
+- [ ] Scenario: Build has no artifacts
   Given `artifacts[]` is empty
   Then no artifacts section is shown
-- Scenario: Artifact list fetch fails
+- [ ] Scenario: Artifact list fetch fails
   Given the artifact data fails to load
   Then the rest of the job detail screen renders normally — additive, non-
   blocking, same pattern as the other PIPE stories
@@ -388,28 +388,28 @@ I want to replay it with the exact same parameter values it ran with
 So that I don't have to remember and retype what I ran last time
 
 **Acceptance Criteria**
-- Scenario: Replay from history
+- [ ] Scenario: Replay from history
   Given I open a previous build from per-job history (US-HIST-02)
   Then a "Replay with same parameters" action is available, pre-filling
   US-JOB-03's parameter form with that build's actual recorded parameter
   values (not the job's current declared defaults)
-- Scenario: Confirm and adjust before replaying
+- [ ] Scenario: Confirm and adjust before replaying
   Given the pre-filled form is shown
   Then I can still edit any value before confirming — this is a
   convenience pre-fill, not a blind one-tap re-run, consistent with
   US-JOB-03's existing confirm-before-trigger flow
-- Scenario: Successful replay
+- [ ] Scenario: Successful replay
   Given I confirm
   Then the same `POST {jobURL}buildWithParameters` path from US-JOB-03 is
   used (including `NFR-SEC-06`'s crumb handling) — replay is not a
   separate Jenkins endpoint, just a pre-filled trigger
-- Scenario: Job's parameters changed since that build ran
+- [ ] Scenario: Job's parameters changed since that build ran
   Given the job's parameter definitions have changed since the build being
   replayed (a parameter was added, removed, or renamed)
   Then the form reconciles as best it can — known parameter names are
   pre-filled, new parameters fall back to their current declared defaults,
   removed parameters are simply dropped — rather than failing outright
-- Scenario: Original build has no recorded parameters
+- [ ] Scenario: Original build has no recorded parameters
   Given the build being replayed wasn't parameterized
   Then "Replay" behaves identically to US-JOB-02 (plain trigger)
 
@@ -440,18 +440,18 @@ So that I can follow a failure's root cause or its blast radius without
 manually searching the job tree
 
 **Acceptance Criteria**
-- Scenario: Upstream link
+- [ ] Scenario: Upstream link
   Given a build's cause (US-PIPE-02) identifies an upstream job/build
   Then tapping it navigates directly to that upstream job's detail screen
   (reusing US-JOB-01), not a search or tree drill-down
-- Scenario: Downstream links
+- [ ] Scenario: Downstream links
   Given the job configuration reports downstream jobs it triggers
   Then they're listed (name only, tappable) on the job detail card,
   navigating to each job's detail screen the same way
-- Scenario: No upstream/downstream relationships
+- [ ] Scenario: No upstream/downstream relationships
   Given a job has no configured upstream/downstream relationships
   Then no such section is shown
-- Scenario: Linked job no longer exists or moved
+- [ ] Scenario: Linked job no longer exists or moved
   Given an upstream/downstream job referenced was since deleted or renamed
   Then tapping it surfaces the same `NotFoundFailure` handling as US-JOB-01's
   "job deleted since I navigated here" scenario, not a crash

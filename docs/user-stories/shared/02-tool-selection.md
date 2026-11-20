@@ -18,7 +18,7 @@ I want to choose Jenkins from a grid of CI tool options
 So that the app knows which integration to use for the rest of my session
 
 **Acceptance Criteria**
-- Scenario: Selecting Jenkins
+- [ ] Scenario: Selecting Jenkins
   Given I am on the tool selection screen after login
   When I tap the Jenkins card
   Then `ActiveToolNotifier` records Jenkins as active, the app's accent
@@ -26,13 +26,13 @@ So that the app knows which integration to use for the rest of my session
   `accentColor` mechanism), and I am taken into the Jenkins flow (either
   credential setup if no server is saved yet, or straight to the job tree
   if one exists)
-- Scenario: Returning user skips re-selection
+- [ ] Scenario: Returning user skips re-selection
   Given I previously selected Jenkins and have at least one saved server
   When I log in again
   Then I am not forced back through tool selection — it is shown only when
   no tool/server context exists yet, or when explicitly reached via
   settings/switch-tool navigation
-- Scenario: No saved servers yet
+- [ ] Scenario: No saved servers yet
   Given I select Jenkins for the first time
   When there is no saved Jenkins server
   Then I am routed into the add-server flow (US-CRED-02) rather than to an
@@ -66,17 +66,17 @@ So that I understand the app's current scope and am not confused by a
 non-responsive tap
 
 **Acceptance Criteria**
-- Scenario: Disabled card is visually distinct
+- [ ] Scenario: Disabled card is visually distinct
   Given a non-Jenkins tool card is rendered
   Then it uses a reduced-opacity glass treatment, a muted (not brand-colored)
   icon, and a "coming soon" label — distinct enough from the enabled Jenkins
   card that the difference doesn't rely on subtle contrast alone
-- Scenario: Tapping a disabled card
+- [ ] Scenario: Tapping a disabled card
   Given I tap a disabled tool card
   Then nothing navigates, and a brief, non-blocking message confirms it's
   not yet available (rather than the tap silently doing nothing, which
   reads as broken)
-- Scenario: Screen-reader announcement
+- [ ] Scenario: Screen-reader announcement
   Given a screen reader is active
   When focus moves to a disabled tool card
   Then it is announced as disabled/unavailable, not read identically to the

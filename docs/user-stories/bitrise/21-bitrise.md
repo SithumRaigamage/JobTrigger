@@ -68,12 +68,12 @@ I want to add a Bitrise personal access token
 So that the app can list my apps and builds
 
 **Acceptance Criteria**
-- Scenario: Successful add → credential created, shown in Settings
-- Scenario: Validation before any network call (`NFR-SEC-02`) — non-empty
-- Scenario: Help text
+- [ ] Scenario: Successful add → credential created, shown in Settings
+- [ ] Scenario: Validation before any network call (`NFR-SEC-02`) — non-empty
+- [ ] Scenario: Help text
   Then the sheet says where to create a token in Bitrise and recommends
   an expiry
-- Scenario: Save fails → `AppFailure` message, values kept
+- [ ] Scenario: Save fails → `AppFailure` message, values kept
 
 **Security & Privacy Notes**
 - Token never logged; redacted `toString()`.
@@ -87,9 +87,9 @@ So that the app can list my apps and builds
 **Dependencies:** US-BR-CRED-01
 
 **Acceptance Criteria**
-- Scenario: Successful test
+- [ ] Scenario: Successful test
   Then `GET /me` *(verify)* is called and the username is shown
-- Scenario: Failed test does not block save
+- [ ] Scenario: Failed test does not block save
 
 ---
 
@@ -101,14 +101,14 @@ So that the app can list my apps and builds
 **Dependencies:** US-BR-CRED-03
 
 **Acceptance Criteria**
-- Scenario: Successful load
+- [ ] Scenario: Successful load
   Then `GET /apps` is called and each app shows its title, repo owner and
   project type (iOS, Android, Flutter, React Native…)
-- Scenario: Paging
+- [ ] Scenario: Paging
   Given more apps than one page
   Then the app follows the response's paging cursor *(verify field name)*
-- Scenario: Client-side search (`NFR-PERF-02`)
-- Scenario: No active credential → `NoActiveBitriseCredentialView`
+- [ ] Scenario: Client-side search (`NFR-PERF-02`)
+- [ ] Scenario: No active credential → `NoActiveBitriseCredentialView`
 
 ### US-BR-APP-02 — An app's recent builds
 
@@ -116,17 +116,17 @@ So that the app can list my apps and builds
 **Dependencies:** US-BR-APP-01
 
 **Acceptance Criteria**
-- Scenario: Successful load
+- [ ] Scenario: Successful load
   Then `GET /apps/{app-slug}/builds` is called; each build shows build
   number, workflow, branch, triggered-at and status
-- Scenario: Status mapping
+- [ ] Scenario: Status mapping
   Then status integers map to the shared `StatusIndicator`: 0 running,
   1 success, 2 failed, 3 aborted, 4 aborted (shown as success with an
   "aborted" note)
-- Scenario: Filters
+- [ ] Scenario: Filters
   Then branch and workflow filters use the API's `branch` and `workflow`
   query parameters
-- Scenario: Older builds
+- [ ] Scenario: Older builds
   Given I scroll past 200 days
   Then the list explains older builds are archived and offers to load them
   from `archived-builds`, rather than looking empty
@@ -141,19 +141,19 @@ So that the app can list my apps and builds
 **Dependencies:** US-BR-APP-02
 
 **Acceptance Criteria**
-- Scenario: Trigger
+- [ ] Scenario: Trigger
   Given I pick a workflow and branch and confirm
   Then `POST /apps/{app-slug}/builds` is sent with
   `hook_info: { type: "bitrise" }` and `build_params: { branch,
   workflow_id }`, and the returned build slug opens the build detail
-- Scenario: Workflow choices
+- [ ] Scenario: Workflow choices
   Then the workflow picker is filled from the workflows seen in recent
   builds, with free text allowed — the app does not parse `bitrise.yml`
-- Scenario: Environment variables
+- [ ] Scenario: Environment variables
   Then optional key/value pairs are sent as `build_params.environments`
   *(verify exact shape)*
-- Scenario: Confirm before trigger
-- Scenario: Trigger fails → specific `AppFailure` message
+- [ ] Scenario: Confirm before trigger
+- [ ] Scenario: Trigger fails → specific `AppFailure` message
 
 ### US-BR-RUN-02 — Live build status
 
@@ -161,9 +161,9 @@ So that the app can list my apps and builds
 **Dependencies:** US-BR-RUN-01
 
 **Acceptance Criteria**
-- Scenario: Polls every 5s while `status` is 0, stops on any other value
-- Scenario: `429` stops polling with a message
-- Scenario: Timer cleanup on dispose
+- [ ] Scenario: Polls every 5s while `status` is 0, stops on any other value
+- [ ] Scenario: `429` stops polling with a message
+- [ ] Scenario: Timer cleanup on dispose
 
 ### US-BR-RUN-03 — Abort a build
 
@@ -171,13 +171,13 @@ So that the app can list my apps and builds
 **Dependencies:** US-BR-RUN-02
 
 **Acceptance Criteria**
-- Scenario: Abort
+- [ ] Scenario: Abort
   Given a running build
   When I confirm Abort with an optional reason
   Then `POST /apps/{app-slug}/builds/{build-slug}/abort` is sent with
   `abort_reason` (default "Aborted from JobTrigger") and
   `abort_with_success: false`
-- Scenario: Pipeline builds
+- [ ] Scenario: Pipeline builds
   Given the build is part of a Bitrise pipeline
   Then the sheet also offers "Abort whole pipeline", which calls the
   pipeline abort endpoint
@@ -188,7 +188,7 @@ So that the app can list my apps and builds
 **Dependencies:** US-BR-RUN-01
 
 **Acceptance Criteria**
-- Scenario: Rebuild with the same parameters
+- [ ] Scenario: Rebuild with the same parameters
   Given a finished build
   When I tap Rebuild and confirm
   Then a new trigger is sent using the build's `original_build_params`
@@ -203,16 +203,16 @@ So that the app can list my apps and builds
 **Dependencies:** US-BR-RUN-01
 
 **Acceptance Criteria**
-- Scenario: Running build
+- [ ] Scenario: Running build
   Given status 0
   Then `GET /apps/{app-slug}/builds/{build-slug}/log` is polled and new
   log content appended *(verify: whether running builds return chunks
   with a timestamp to continue from)*
-- Scenario: Finished build
+- [ ] Scenario: Finished build
   Then the full log is fetched once — if the API returns a short-lived
   raw-log download URL *(verify)*, the app downloads it straight away and
   never stores the URL
-- Scenario: Rendered in `ConsoleLogViewer` (`NFR-PERF-03`)
+- [ ] Scenario: Rendered in `ConsoleLogViewer` (`NFR-PERF-03`)
 
 ### US-BR-LOG-02 — Copy / share — same as `US-LOG-03`
 
@@ -226,7 +226,7 @@ So that the app can list my apps and builds
 **Dependencies:** US-BR-APP-02
 
 **Acceptance Criteria**
-- Scenario: List
+- [ ] Scenario: List
   Then the build's artifacts load with title, type (`ios-ipa`,
   `android-apk`, …) and size
 
@@ -240,16 +240,16 @@ I want to install the build I just made on my phone
 So that I can test it right away
 
 **Acceptance Criteria**
-- Scenario: Install page exists
+- [ ] Scenario: Install page exists
   Given an installable artifact whose public install page is enabled
   Then "Install on this device" opens that page in the browser
   (`url_launcher`) *(verify field name)*
-- Scenario: Install page disabled
+- [ ] Scenario: Install page disabled
   Given the page is not enabled
   Then the app offers to enable it, with a confirmation explaining that
   anyone with the link can download the build until it is turned off; on
   confirm it sends `PATCH` with `is_public_page_enabled: true`
-- Scenario: Wrong platform
+- [ ] Scenario: Wrong platform
   Given an `.ipa` on Android or an `.apk` on iOS
   Then the action is hidden
 

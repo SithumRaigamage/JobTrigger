@@ -20,16 +20,16 @@ I want to see a list of all Jenkins servers I've saved
 So that I can review, manage, and pick between them
 
 **Acceptance Criteria**
-- Scenario: List loads successfully
+- [ ] Scenario: List loads successfully
   Given I have one or more saved servers
   When I open the Settings/servers screen
   Then `GET /api/credentials` populates the list, with the active server
   visually marked, and passwords are never rendered in the list (masked or
   omitted entirely — display name/URL/username only)
-- Scenario: No servers saved yet
+- [ ] Scenario: No servers saved yet
   Given I have no saved servers
   Then I see an empty state prompting me to add one, not a blank screen
-- Scenario: Load failure
+- [ ] Scenario: Load failure
   Given the backend call fails
   Then the failure is shown via the `AppFailure` mapping (`NetworkFailure`
   → "can't reach server" with retry; backend `ServerFailure`/`UnknownFailure`
@@ -60,22 +60,22 @@ I want to add a Jenkins server by entering its URL and my credentials
 So that the app can connect to it on my behalf
 
 **Acceptance Criteria**
-- Scenario: Successful add
+- [ ] Scenario: Successful add
   Given I open the add-server form and enter a name, a valid Jenkins base
   URL, username, and password (param token optional)
   When I save
   Then `POST /api/credentials` is called, the new server appears in the
   list, and if it's my first server it becomes active automatically
-- Scenario: Client-side validation
+- [ ] Scenario: Client-side validation
   Given required fields are empty or the URL is not well-formed
   (missing scheme, invalid host)
   When I attempt to save
   Then inline validation blocks submission before any network call
-- Scenario: Save failure
+- [ ] Scenario: Save failure
   Given the backend rejects or fails the save
   Then an `AppFailure`-mapped message is shown and the form retains my
   entered values so I don't have to retype the URL/username
-- Scenario: Recommended — test before save
+- [ ] Scenario: Recommended — test before save
   Given I haven't yet run "test connection" (US-CRED-06)
   When I try to save
   Then the app allows saving anyway (Jenkins may be temporarily unreachable
@@ -117,22 +117,22 @@ So that I can keep my saved credentials accurate without deleting and
 re-adding the server
 
 **Acceptance Criteria**
-- Scenario: Successful edit
+- [ ] Scenario: Successful edit
   Given I open an existing server for editing and change one or more fields
   When I save
   Then `PUT /api/credentials/:id` sends a partial update, the list reflects
   the change, and if I edited the active server, the Jenkins Dio client for
   that server is rebuilt with the new credentials immediately
-- Scenario: Editing the active server applies at once (AUD-46)
+- [ ] Scenario: Editing the active server applies at once (AUD-46)
   Given the server I edit is the active one
   When I save a new secret or URL (with or without "Set as default")
   Then the very next Jenkins request uses the new values, without a restart
-- Scenario: Password field starts empty, not pre-filled
+- [ ] Scenario: Password field starts empty, not pre-filled
   Given I open the edit form
   Then the password field is blank (never pre-populated with the existing
   secret, even masked) — leaving it blank on save means "keep existing
   password unchanged," entering a new value means "replace it"
-- Scenario: Edit failure
+- [ ] Scenario: Edit failure
   Given the update request fails
   Then an `AppFailure`-mapped message is shown and no partial/inconsistent
   local state is applied — the list still reflects the last known-good
@@ -162,23 +162,23 @@ I want to remove a saved Jenkins server I no longer use
 So that my server list and my stored credentials stay current
 
 **Acceptance Criteria**
-- Scenario: Delete a non-active server
+- [ ] Scenario: Delete a non-active server
   Given I delete a server that is not the active one
   When I confirm
   Then `DELETE /api/credentials/:id` is called and it's removed from the
   list with no other side effects
-- Scenario: Delete the active server
+- [ ] Scenario: Delete the active server
   Given I delete the server currently marked active
   When the deletion succeeds
   Then the app automatically falls back to another `isDefault`/first
   remaining server as active (rebuilding the Jenkins Dio client
   accordingly); if no servers remain, I am routed into the add-server flow,
   not left pointing at a server that no longer exists
-- Scenario: Confirmation required
+- [ ] Scenario: Confirmation required
   Given I tap delete on any server
   Then a confirmation step is required before the request is sent —
   deletion is destructive and irreversible from the app's perspective
-- Scenario: Delete failure
+- [ ] Scenario: Delete failure
   Given the delete request fails
   Then the server remains in the list with an `AppFailure`-mapped error
   shown, and no local optimistic removal is left in an inconsistent state
@@ -209,7 +209,7 @@ So that the job tree, build actions, and logs I see are scoped to the
 server I actually mean to use right now
 
 **Acceptance Criteria**
-- Scenario: Switch succeeds
+- [ ] Scenario: Switch succeeds
   Given I select a different saved server as active
   When the switch completes
   Then `POST /api/credentials/switch/:id` flips the backend's `isDefault`
@@ -217,16 +217,16 @@ server I actually mean to use right now
   (not waiting on a refetch), and the Jenkins Dio client is rebuilt with
   the new server's Basic Auth credentials before any subsequent Jenkins
   call is made
-- Scenario: Job tree reflects the new server
+- [ ] Scenario: Job tree reflects the new server
   Given I switch servers while viewing the job tree
   Then the job list refreshes against the newly active server rather than
   showing stale data from the previous one
-- Scenario: Switch request fails
+- [ ] Scenario: Switch request fails
   Given the backend switch call fails
   Then the previously active server remains active (no client-side
   optimistic flip that later has to be silently reverted) and an
   `AppFailure`-mapped error is shown
-- Scenario: Active server's Jenkins auth is invalid
+- [ ] Scenario: Active server's Jenkins auth is invalid
   Given the active server's saved credentials are rejected by Jenkins
   (401/403)
   Then this is surfaced as a per-server `AuthFailure` scoped to that
@@ -261,22 +261,22 @@ So that I don't save a broken configuration and only discover it later when
 trying to trigger a real build
 
 **Acceptance Criteria**
-- Scenario: Test succeeds
+- [ ] Scenario: Test succeeds
   Given I fill in URL/username/password in the add/edit form and tap
   "Test connection"
   When a `GET {baseURL}/api/json` call succeeds using a throwaway (non-active)
   Dio instance built from the in-progress form values
   Then I see a success indicator with the detected job count, and this does
   **not** disturb the currently active server's session/client
-- Scenario: Test fails — bad credentials
+- [ ] Scenario: Test fails — bad credentials
   Given Jenkins returns 401/403 for the test call
   Then I see a specific "authentication failed" message distinct from a
   general connectivity failure
-- Scenario: Test fails — unreachable host
+- [ ] Scenario: Test fails — unreachable host
   Given the URL is unreachable/times out
   Then I see a `NetworkFailure`-mapped "can't reach this server" message
   distinct from the auth-failure case above, so I know which field to fix
-- Scenario: Test is optional, not gating
+- [ ] Scenario: Test is optional, not gating
   Given a test has failed or hasn't been run
   Then I am still allowed to save (per US-CRED-02's rationale — a
   temporarily-down Jenkins shouldn't block saving otherwise-correct

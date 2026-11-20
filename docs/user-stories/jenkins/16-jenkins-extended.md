@@ -46,21 +46,21 @@ I want the value masked and not pre-filled from Jenkins' default
 So that secrets aren't shown on my screen or captured in screenshots
 
 **Acceptance Criteria**
-- Scenario: Masked entry
+- [ ] Scenario: Masked entry
   Given a job defines a `PasswordParameterDefinition`
   Then its field renders with obscured text, a show/hide toggle, and
   autocorrect, suggestions, and autofill disabled
-- Scenario: Default not pre-filled
+- [ ] Scenario: Default not pre-filled
   Given Jenkins reports a default value for that parameter
   Then the field starts empty with the helper text "Leave blank to use the
   server default". If left blank, the parameter is **omitted** from the
   `buildWithParameters` body so Jenkins applies its own default
-- Scenario: Never persisted or echoed
+- [ ] Scenario: Never persisted or echoed
   Then the value is never written to storage, never logged, never shown in
   the trigger confirmation summary (it appears as `••••`), and is excluded
   from "replay with same parameters" (US-PIPE-08). Jenkins itself returns
   password parameters masked
-- Scenario: Input steps
+- [ ] Scenario: Input steps
   Given a paused input step (US-PIPE-05) asks for a password parameter
   Then the same masking rules apply
 
@@ -87,32 +87,32 @@ I want each parameter to use an input suited to its type
 So that I can't send invalid values or a silently wrong build
 
 **Acceptance Criteria**
-- Scenario: Multi-line text
+- [ ] Scenario: Multi-line text
   Given a `TextParameterDefinition`
   Then a multi-line field (3–8 visible lines) is used and newlines are
   preserved in the form-encoded body
-- Scenario: Run parameter
+- [ ] Scenario: Run parameter
   Given a `RunParameterDefinition` (`projectName`)
   Then a picker lists that project's recent builds (reusing per-job history)
   and submits `<job>#<number>`
-- Scenario: Credentials parameter
+- [ ] Scenario: Credentials parameter
   Given a `CredentialsParameterDefinition`
   Then the field is a free-text credentials-id input pre-filled with the
   default id, with helper text explaining it is an id, not a secret. The app
   never lists or reads Jenkins' credential store
-- Scenario: File parameter
+- [ ] Scenario: File parameter
   Given a `FileParameterDefinition` (or `StashedFileParameterDefinition`)
   Then I can pick a file from the device, and the trigger is sent as
   `multipart/form-data` to `buildWithParameters`, with the file under the
   parameter's name and other parameters as text parts. A file over 50 MB is
   refused with a clear message before upload
-- Scenario: Unknown plugin types
+- [ ] Scenario: Unknown plugin types
   Given a parameter type the app doesn't recognise (Active Choices, Extended
   Choice, Git Parameter, …)
   Then it renders as a text field labelled "Unsupported type (<type>) —
   value sent as text". If that type declares `choices`, a dropdown is used
   instead
-- Scenario: Validation
+- [ ] Scenario: Validation
   Given an empty required-looking value (a choice with no selection, or an
   unpicked run)
   Then Trigger is disabled with an inline reason, never a failed request
@@ -142,29 +142,29 @@ names
 So that I can find the build for my branch without decoding URLs
 
 **Acceptance Criteria**
-- Scenario: Type detection
+- [ ] Scenario: Type detection
   Given the tree query requests `_class` and `displayName`
   Then `…WorkflowMultiBranchProject` and `jenkins.branch.OrganizationFolder`
   render with distinct icons, and folders are detected by class as well as
   by the presence of `jobs`
-- Scenario: Readable branch names
+- [ ] Scenario: Readable branch names
   Given a branch job named `feature%2Flogin`
   Then the tile, app bar, breadcrumb, and history show `displayName`
   (`feature/login`), falling back to a URL-decoded `name`
-- Scenario: Grouping
+- [ ] Scenario: Grouping
   Given I open a multibranch project
   Then its jobs are grouped into "Branches", "Pull Requests", and "Tags"
   sections using the project's `views[name,jobs[url]]` (branch-api views
   `default`, `change-requests`, `tags`). If views are unavailable, one flat
   list is shown
-- Scenario: Scan repository now
+- [ ] Scenario: Scan repository now
   Given I tap "Scan now" on a multibranch project or organization folder
   and confirm
   Then `POST {projectUrl}build?delay=0` is sent (CSRF crumb attached), a
   toast confirms it, and the project refreshes when the scan finishes
   (polling `{projectUrl}indexing/api/json` while it runs). I can open the
   scan log at `{projectUrl}indexing/consoleText` in the console viewer
-- Scenario: Permission denied
+- [ ] Scenario: Permission denied
   Given the scan request returns 403
   Then an `AuthFailure` message about permission is shown
 
@@ -193,7 +193,7 @@ I want to tap a stage and see only that stage's log
 So that I don't scroll thousands of lines to find the failing step
 
 **Acceptance Criteria**
-- Scenario: Open stage log
+- [ ] Scenario: Open stage log
   Given a pipeline build with stages
   When I tap a stage chip
   Then a stage detail sheet lists its steps
@@ -201,16 +201,16 @@ So that I don't scroll thousands of lines to find the failing step
   `stageFlowNodes[name,status,durationMillis,parameterDescription]`), and
   tapping a step shows its log (`…/execution/node/{nodeId}/wfapi/log` →
   `text`, `hasMore`), live-updating while it runs
-- Scenario: Failed step highlighted
+- [ ] Scenario: Failed step highlighted
   Then the first `FAILED` step is expanded and scrolled into view
   automatically
-- Scenario: Parallel branches
+- [ ] Scenario: Parallel branches
   Given a stage runs parallel branches
   Then each branch appears as a sub-row with its own status and log
-- Scenario: Truncated step log
+- [ ] Scenario: Truncated step log
   Given `hasMore` is true for a finished step
   Then a "View full log" action opens the full console (US-LOG-01) instead
-- Scenario: Endpoint unavailable
+- [ ] Scenario: Endpoint unavailable
   Given a `wfapi` endpoint returns 404
   Then the chip falls back to opening the full console, as today
 
@@ -237,16 +237,16 @@ I want one-tap access to the last good build and the last failure
 So that I can compare "what broke" without scrolling history
 
 **Acceptance Criteria**
-- Scenario: Links shown
+- [ ] Scenario: Links shown
   Given the detail tree includes `lastSuccessfulBuild`, `lastFailedBuild`,
   `lastStableBuild`, and `lastUnsuccessfulBuild` (`[number,url,timestamp]`)
   Then the job detail shows compact chips "Last success #N · 2h ago" and
   "Last failure #M" for whichever exist
-- Scenario: Open
+- [ ] Scenario: Open
   When I tap a chip
   Then that build's detail (US-JX-14's build detail screen, or the log if
   that screen isn't built yet) opens
-- Scenario: None exist
+- [ ] Scenario: None exist
   Then the chips are omitted, never shown empty
 
 **Security & Privacy Notes**
@@ -272,20 +272,20 @@ I want to scroll back beyond 20 builds and filter them
 So that I can find last week's failed release build
 
 **Acceptance Criteria**
-- Scenario: Paging
+- [ ] Scenario: Paging
   Given per-job history shows 20 builds
   When I scroll near the end
   Then the next page loads via `allBuilds[…]{20,40}` (then `{40,60}`, …),
   stopping when a page comes back short
-- Scenario: Filters
+- [ ] Scenario: Filters
   Then I can filter by result (All / Failed / Unstable / Success / Aborted /
   Running) and by "started by me" (cause `userId` equals the server
   username). Filters apply to loaded pages, and "load more" continues until
   a page contains matches or history ends
-- Scenario: Job search shows the folder path
+- [ ] Scenario: Job search shows the folder path
   Given a job search result
   Then the tile shows its folder path (`team / service`) under the name
-- Scenario: Empty state is refreshable
+- [ ] Scenario: Empty state is refreshable
   Given no jobs or no results
   Then pull-to-refresh still works
 
@@ -312,35 +312,35 @@ I want to search it, jump to errors, and see it the way Jenkins shows it
 So that diagnosing a failure takes seconds, not minutes
 
 **Acceptance Criteria**
-- Scenario: Smooth at scale (performance fix)
+- [ ] Scenario: Smooth at scale (performance fix)
   Given a 50,000-line log streaming live
   Then only new chunks are sanitized and split (incrementally), scrolling
   stays smooth, and memory is capped (the last 20,000 lines are kept, with
   "Load earlier lines" fetching earlier content via `consoleText` on demand)
-- Scenario: Transient error keeps the log
+- [ ] Scenario: Transient error keeps the log
   Given a poll fails mid-stream
   Then the log stays visible with an inline "Reconnecting…" banner, and
   polling resumes from the last offset with backoff (1s, 2s, 4s, max 15s)
-- Scenario: Search
+- [ ] Scenario: Search
   When I search
   Then matches are highlighted with a "3 / 17" counter and next/previous
   buttons; search is case-insensitive
-- Scenario: Jump to first error
+- [ ] Scenario: Jump to first error
   Then an action jumps to the first line matching `ERROR`, `FAILURE`,
   `Exception`, or `BUILD FAILED`
-- Scenario: ANSI colors
+- [ ] Scenario: ANSI colors
   Given the log contains ANSI SGR color codes (AnsiColor plugin)
   Then foreground and background colors and bold are rendered, not stripped.
   Jenkins console-note payloads are still removed
-- Scenario: Timestamps
+- [ ] Scenario: Timestamps
   Given the Timestamper plugin is installed
   Then a toggle shows per-line timestamps from
   `{build}timestamps/?time=HH:mm:ss&appendLog`. If that returns 404, the
   toggle is hidden
-- Scenario: Wrap and font size
+- [ ] Scenario: Wrap and font size
   Then I can toggle line wrap (off means horizontal scroll) and pick a font
   size (3 steps); both preferences persist in `shared_preferences`
-- Scenario: Full log download
+- [ ] Scenario: Full log download
   Then "Save full log" downloads `{build}consoleText` to a temp file and
   shares it as a `.log` file (not as a giant text payload)
 
@@ -369,15 +369,15 @@ I want the error message and stack trace of each failing test
 So that I know why a test failed without opening the full log
 
 **Acceptance Criteria**
-- Scenario: Details
+- [ ] Scenario: Details
   Given the test-report tree adds `errorDetails,errorStackTrace,duration,age`
   on failing cases
   Then the failing-tests sheet lists each case, expandable to show the error
   message and a monospaced, copyable stack trace
-- Scenario: Regressions highlighted
+- [ ] Scenario: Regressions highlighted
   Then cases with `status == REGRESSION` or `age == 1` are marked "New
   failure"
-- Scenario: Very large reports
+- [ ] Scenario: Very large reports
   Given more than 200 failing cases
   Then the first 200 are shown with a count of the rest (bounded payload:
   the tree request uses `{0,200}` on cases)
@@ -404,19 +404,19 @@ I want to see everything waiting in the Jenkins queue and why
 So that I can tell a stuck executor from a long queue
 
 **Acceptance Criteria**
-- Scenario: Queue list
+- [ ] Scenario: Queue list
   When I open "Queue" (reachable from Home's overflow menu)
   Then `GET /queue/api/json?tree=items[id,why,inQueueSince,stuck,blocked,buildable,task[name,url,color]]`
   lists items with job name, time waiting, and reason, refreshing every 5s
   while visible
-- Scenario: Cancel a queued item
+- [ ] Scenario: Cancel a queued item
   When I cancel an item and confirm
   Then `POST /queue/cancelItem?id={id}` is sent (crumb attached), and the
   item disappears on the next refresh
-- Scenario: Stuck items
+- [ ] Scenario: Stuck items
   Given `stuck == true`
   Then the item is flagged "Stuck" in warning style (text plus icon)
-- Scenario: Empty queue
+- [ ] Scenario: Empty queue
   Then "Nothing is waiting" is shown
 
 **Security & Privacy Notes**
@@ -446,34 +446,34 @@ I want a notification when it finishes
 So that I don't have to keep the app open
 
 **Acceptance Criteria**
-- Scenario: Opt in
+- [ ] Scenario: Opt in
   Given I trigger a build (or tap "Notify me" on a running one)
   Then that build is added to a watch list, and on first use the app
   requests notification permission (Android 13+ `POST_NOTIFICATIONS`, iOS
   alert authorization) with a rationale screen first
-- Scenario: Foreground and recently backgrounded
+- [ ] Scenario: Foreground and recently backgrounded
   While the app process is alive, watched builds are polled (reusing the 5s
   cadence while visible, 30s when backgrounded), and on completion a local
   notification shows "✅ api-service #142 succeeded (4m 12s)" or
   "❌ … failed"
-- Scenario: Background best-effort
+- [ ] Scenario: Background best-effort
   Given the app is suspended
   Then a periodic background task (≥15 min, OS-scheduled) checks watched
   builds. The UI states clearly that background checks are best-effort and
   may be delayed by the OS
-- Scenario: Tap opens the build
+- [ ] Scenario: Tap opens the build
   When I tap the notification
   Then the app opens that job's detail screen
-- Scenario: Tap for a build on a server that isn't active (AUD-45)
+- [ ] Scenario: Tap for a build on a server that isn't active (AUD-45)
   Given the notification is for a build on server B while server A is active
   When I tap it
   Then the app asks to switch to B first (as for any Jenkins link,
   US-JX-19), and no request carrying A's credentials is ever sent to B's
   host
-- Scenario: Watched jobs
+- [ ] Scenario: Watched jobs
   Given I mark a job as "Watch"
   Then every new build of it notifies on completion until I unwatch it
-- Scenario: Credentials unavailable in background
+- [ ] Scenario: Credentials unavailable in background
   Given the background task can't obtain the Jenkins credential (logged out,
   or server deleted)
   Then the watch entry is dropped silently. No notification ever includes
@@ -508,16 +508,16 @@ I want to pin the few I use daily
 So that they're one tap away from Home
 
 **Acceptance Criteria**
-- Scenario: Pin and unpin
+- [ ] Scenario: Pin and unpin
   When I long-press a job tile or tap the pin icon on job detail
   Then it's added to or removed from "Pinned" for the active server
-- Scenario: Pinned section
+- [ ] Scenario: Pinned section
   Then Home shows a "Pinned" section above the tree at root level, with live
   status colors from the fetched tree or the job's own lightweight fetch
-- Scenario: Per server, persisted
+- [ ] Scenario: Per server, persisted
   Then pins are stored per server id in `shared_preferences` (job URLs only,
   no secrets) and survive restarts
-- Scenario: Stale pin
+- [ ] Scenario: Stale pin
   Given a pinned job returns 404
   Then it shows as "Not found" with a remove action
 
@@ -543,20 +543,20 @@ I want to see which agents are online and busy
 So that I can tell why builds aren't starting
 
 **Acceptance Criteria**
-- Scenario: Node list
+- [ ] Scenario: Node list
   When I open "Nodes"
   Then `GET /computer/api/json?tree=computer[displayName,offline,temporarilyOffline,offlineCauseReason,idle,numExecutors,executors[idle,progress,currentExecutable[url,fullDisplayName]],monitorData[*]]`
   lists nodes with online/offline state, busy/total executors, and
   disk-space or response-time warnings from `monitorData` when present
-- Scenario: Executor drill-down
+- [ ] Scenario: Executor drill-down
   When I open a node
   Then each busy executor shows its running build with progress, tappable to
   that build
-- Scenario: Mark temporarily offline or online
+- [ ] Scenario: Mark temporarily offline or online
   When I toggle a node and confirm (with an optional reason)
   Then `POST /computer/{encodedName}/toggleOffline?offlineMessage=…` is sent.
   The built-in node's path segment is `(built-in)`
-- Scenario: No permission
+- [ ] Scenario: No permission
   Given `Computer/Disconnect` is denied (403)
   Then the permission `AuthFailure` copy is shown and the toggle is hidden
   from then on for this session
@@ -584,15 +584,15 @@ I want to disable a misbehaving job, or re-enable it, from my phone
 So that I can stop a runaway trigger during an incident
 
 **Acceptance Criteria**
-- Scenario: State shown
+- [ ] Scenario: State shown
   Given the tree and detail queries include `buildable` (and `color ==
   disabled`)
   Then disabled jobs show a "Disabled" badge, and Trigger is disabled with
   the reason shown
-- Scenario: Toggle
+- [ ] Scenario: Toggle
   When I choose Disable (or Enable) from the job's overflow menu and confirm
   Then `POST {job}disable` (or `enable`) is sent and the detail refreshes
-- Scenario: Not supported
+- [ ] Scenario: Not supported
   Given the job type doesn't support it (404 or 405)
   Then "This job type can't be disabled" is shown
 
@@ -618,16 +618,16 @@ I want to mark a build "keep forever" and annotate it
 So that release builds aren't rotated away and are easy to find
 
 **Acceptance Criteria**
-- Scenario: Build detail screen
+- [ ] Scenario: Build detail screen
   When I open any build from history or links
   Then a build detail screen shows result, duration, causes, changes,
   artifacts, tests, stages, and log link (reusing the job-detail cards,
   scoped to that build), plus `description` and `keepLog`
-- Scenario: Keep forever
+- [ ] Scenario: Keep forever
   When I toggle "Keep forever" and confirm
   Then `POST {build}toggleLogKeep` is sent, and the state is re-fetched
   rather than assumed
-- Scenario: Description
+- [ ] Scenario: Description
   When I edit the description and save
   Then `POST {build}submitDescription` with form field `description` is
   sent. The description is rendered as **plain text** (Jenkins descriptions
@@ -656,15 +656,15 @@ I want success rate and duration trends for a job
 So that I can spot a degrading pipeline
 
 **Acceptance Criteria**
-- Scenario: Trend card
+- [ ] Scenario: Trend card
   Given at least 5 finished builds are loaded
   Then job history shows a success rate over the last N (20 or 50,
   selectable), average and p90 duration, and a duration sparkline with
   failed builds marked
-- Scenario: Computed locally
+- [ ] Scenario: Computed locally
   Then all stats are computed by a pure domain function from already-fetched
   history. No new endpoint
-- Scenario: Too few builds
+- [ ] Scenario: Too few builds
   Then "Not enough builds for trends" is shown
 
 **Security & Privacy Notes**
@@ -784,15 +784,15 @@ I want to switch Home to a view
 So that I see my team's jobs, not the whole server
 
 **Acceptance Criteria**
-- Scenario: View picker
+- [ ] Scenario: View picker
   Given `GET /api/json?tree=views[name,url],primaryView[name]`
   Then Home's title becomes a picker listing views, defaulting to the
   primary view ("All")
-- Scenario: View contents
+- [ ] Scenario: View contents
   When I pick a view
   Then `GET {viewUrl}api/json?tree=jobs[…]` supplies Home's root list;
   folder navigation and search work within it
-- Scenario: Remembered
+- [ ] Scenario: Remembered
   Then the selected view is persisted per server (`shared_preferences`)
 
 **Security & Privacy Notes**
@@ -817,14 +817,14 @@ I want to see the Jenkins version and whether it's shutting down
 So that I understand why triggers are refused
 
 **Acceptance Criteria**
-- Scenario: Info
+- [ ] Scenario: Info
   Then Settings, under the active server, shows the Jenkins version (the
   `X-Jenkins` response header) and the node mode
-- Scenario: Quiet down
+- [ ] Scenario: Quiet down
   Given `/api/json?tree=quietingDown` is true
   Then Home shows a persistent banner "Jenkins is preparing for shutdown —
   new builds won't start"
-- Scenario: Outdated version
+- [ ] Scenario: Outdated version
   Given the version is below the current LTS baseline configured in
   `core/config`
   Then an informational note is shown (not blocking)
@@ -851,27 +851,27 @@ I want to open them in JobTrigger
 So that I land on the job or build screen directly
 
 **Acceptance Criteria**
-- Scenario: Custom scheme
+- [ ] Scenario: Custom scheme
   Given a link `jobtrigger://open?url=<encoded Jenkins URL>`
   Then the app opens the matching job or build screen
-- Scenario: Share into app
+- [ ] Scenario: Share into app
   Given I share a Jenkins URL to JobTrigger (Android share intent; the
   in-app paste action was removed in P19-06, and Home's "Open Jenkins link"
   now opens the active server in the browser)
   Then the URL is matched against configured servers by host and path
   prefix, the matching server is activated after confirmation if it isn't
   active, and the job or build opens
-- Scenario: Any other in-app path from outside (AUD-51)
+- [ ] Scenario: Any other in-app path from outside (AUD-51)
   Given a link opens `jobtrigger://app/<anything but /open>`
   Then a screen that needs in-app context (job, build, log, history,
   workflows) opens Home instead, and an unknown path shows "This link
   doesn't lead anywhere in JobTrigger" with a way back; the app never
   shows an error screen
-- Scenario: Unknown server
+- [ ] Scenario: Unknown server
   Given no configured server matches
   Then "No saved server matches this link" is shown, with "Add server"
   prefilled with the origin
-- Scenario: Parsing
+- [ ] Scenario: Parsing
   Then `/job/a/job/b/123/console` style paths resolve to job `a/b`, build
   123, and screen log, by a pure, unit-tested parser
 
@@ -902,16 +902,16 @@ I want to browse the last-known job list
 So that the app isn't blank when the network drops
 
 **Acceptance Criteria**
-- Scenario: Cache on success
+- [ ] Scenario: Cache on success
   Given a successful job-tree or folder fetch
   Then the result (names, URLs, colors, last-build numbers; no secrets) is
   written per server id to the app's documents directory
-- Scenario: Offline fallback
+- [ ] Scenario: Offline fallback
   Given a later fetch fails with `NetworkFailure`
   Then the cached tree is shown with a banner "Offline — showing data from
   14:32", and trigger, cancel, and other POST actions are disabled with the
   reason
-- Scenario: Cache hygiene
+- [ ] Scenario: Cache hygiene
   Then the cache for a server is deleted when that server is deleted or the
   user logs out
 
@@ -941,29 +941,29 @@ I want the app to require Face ID or fingerprint
 So that someone holding my unlocked phone can't trigger deploys
 
 **Acceptance Criteria**
-- Scenario: Enable
+- [ ] Scenario: Enable
   When I enable "Require biometrics" in Settings
   Then the app authenticates once to confirm, then requires it on cold start
   and on resume after more than 5 minutes in the background (the timeout
   is selectable: immediately, 1, 5, or 15 minutes)
-- Scenario: Fallback
+- [ ] Scenario: Fallback
   Given biometrics fail or are unavailable
   Then device passcode fallback is allowed. If no device security is set,
   the setting can't be enabled and the reason is explained
-- Scenario: Privacy screen
+- [ ] Scenario: Privacy screen
   Then while locked, and in the app switcher snapshot, content is obscured
-- Scenario: Sensitive actions (optional)
+- [ ] Scenario: Sensitive actions (optional)
   Given "Require for trigger/approve" is on
   Then trigger, cancel, input approval, replay, node toggle, and job disable
   each re-prompt
 
-- Scenario: Weakening the lock (AUD-53)
+- [ ] Scenario: Weakening the lock (AUD-53)
   When I turn the lock off, turn "Require for actions" off, or choose a
   longer lock timeout
   Then I authenticate first, and a cancelled or failed prompt leaves the
   setting as it was; making the lock stricter needs no prompt
 
-- Scenario: Outside the app while locked (AUD-54, default decided
+- [ ] Scenario: Outside the app while locked (AUD-54, default decided
   2026-10-20; revisit if users want names back)
   Given the app lock is on
   Then the home-screen widget shows "Pinned job 1", "Pinned job 2", … with
@@ -997,16 +997,16 @@ I want to be warned when I save a real password instead of an API token
 So that I use revocable, scoped credentials on my phone
 
 **Acceptance Criteria**
-- Scenario: Detect likely password
+- [ ] Scenario: Detect likely password
   Given the secret doesn't look like a Jenkins API token (legacy 32 hex
   characters, or current `11` plus 32 hex characters)
   Then the server form shows a non-blocking warning: "This looks like a
   password. Jenkins API tokens are safer — they can be revoked without
   changing your password"
-- Scenario: Help link
+- [ ] Scenario: Help link
   Then a "Create a token" link opens `{jenkinsURL}/me/configure` in the
   browser
-- Scenario: Existing servers
+- [ ] Scenario: Existing servers
   Given a saved server matches the password heuristic
   Then its row in Settings shows a small "Uses password" advisory
 
@@ -1033,17 +1033,17 @@ I want my pinned jobs' status on my home screen
 So that I can see a red build without opening the app
 
 **Acceptance Criteria**
-- Scenario: Widget data
+- [ ] Scenario: Widget data
   Given pinned jobs exist
   Then whenever the app refreshes their status (foreground or background
   task, US-JX-10), it writes a small snapshot (name, color, last build
   number and time; **no credentials**) to the shared widget store and
   requests a widget reload
-- Scenario: Widget
+- [ ] Scenario: Widget
   Then small and medium widgets (iOS WidgetKit, Android AppWidget) show up
   to 2 or 4 pinned jobs with status (icon plus text) and "updated 5m ago".
   Tapping a job deep-links (US-JX-19) into it
-- Scenario: No data
+- [ ] Scenario: No data
   Then the widget shows "Pin jobs in JobTrigger"
 
 **Security & Privacy Notes**
