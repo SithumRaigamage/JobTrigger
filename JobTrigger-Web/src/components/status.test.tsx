@@ -13,7 +13,8 @@ describe("StatusBadge", () => {
   });
 
   it.each([
-    ["web-test-connection", "Coming soon", "bg-neutral-bg"],
+    // Any `soon` feature reads "Coming soon" (US-WEB-19 moved to planned).
+    ["password-reset", "Coming soon", "bg-neutral-bg"],
     ["gitlab-ci", "Planned", "border-dashed"],
   ] as const)("%s reads %s", (feature, label, tone) => {
     render(<StatusBadge feature={feature} />);
@@ -36,7 +37,7 @@ describe("FeatureAction", () => {
   it("renders a badged, explained, inert control for an unavailable feature", () => {
     render(
       <FeatureAction
-        feature="web-test-connection"
+        feature="password-reset"
         label="Test connection"
         reason="You can test the connection from the app after saving."
       >

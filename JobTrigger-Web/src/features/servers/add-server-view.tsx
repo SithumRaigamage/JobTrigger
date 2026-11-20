@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { cn } from "@/components/cn";
-import { FeatureAction } from "@/components/feature-action";
 import { ToolTile } from "@/components/tool-tile";
 import { statusOf } from "@/content/feature-status";
 import type { Tool } from "@/domain/credentials";
@@ -127,14 +126,12 @@ export function AddServerView({ tool }: { tool: Tool }) {
           action={addServerAction}
           submitLabel="Save server"
           secondary={
-            <FeatureAction
-              feature="web-test-connection"
-              label="Test connection"
-              reason="You can test the connection from the app after saving."
-            >
-              {/* US-WEB-19 ships with its backend endpoint. */}
-              <span />
-            </FeatureAction>
+            // US-WEB-19, option (c): the phone tests the connection, on the
+            // network the server is on (docs/design/US-WEB-19-test-connection.md).
+            <p data-testid="test-in-app" className="max-w-xs text-sm text-fg-secondary">
+              Your phone tests the connection. After saving, open JobTrigger on the same network as
+              this server, tap the server in Settings and tap Test connection.
+            </p>
           }
         />
         <TokenHelp tool={tool} />
