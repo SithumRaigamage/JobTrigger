@@ -4,6 +4,31 @@ This file orients Claude (or any AI coding agent) working in this repository.
 Read this before touching code. It defines what the project is, how it's
 structured, and the rules for making changes.
 
+## Development rules (strict — owner, 2026-11-20)
+
+These apply to every change, before the numbered sections below.
+
+1. **Full-stack thinking.** For every change, decide and state whether it
+   needs work in the Flutter app (`JobTrigger-Frontend`), the website
+   (`JobTrigger-Web`) and the backend (`JobTrigger-Backend`), and do all
+   three where needed. Never ship one side only. "Not needed" is a valid
+   answer for a layer, but it is written down with the reason.
+2. **Document first.** Before any development, write or update the
+   requirement doc. A short brief from the owner is expanded into a full user
+   story in `docs/user-stories/` — the story, acceptance criteria as
+   checkboxes (`- [ ]`), app/web/backend impact, and the tests needed — plus a
+   design note (in the story, or `docs/design/<story-id>.md` when it is
+   longer than a screen).
+3. **Build to the doc.** Implement against the acceptance criteria, with
+   tests for each criterion.
+4. **Verify and tick.** After development, re-read the doc and check each
+   acceptance criterion against the real code and passing tests. Tick `[x]`
+   only what is truly done; untick anything that is not. Keep the trackers in
+   `tasks/` in sync the same way.
+5. **Status from ticks.** When the owner asks "what's the update" or "user
+   story status", report only the unticked items as remaining work, each with
+   a plain-words explanation of what is missing and why.
+
 ## 1. What this project is
 
 JobTrigger is a mobile app for DevOps engineers to trigger, monitor, and
@@ -178,7 +203,8 @@ run, test or verify something, write the steps for the iPhone:
 
 Work that is already built and verified must not stop working when you add
 or change something. Jenkins is complete: treat it as frozen, and change it
-only to fix a reported bug.
+only to fix a reported bug. One owner-approved exception (2026-11-20):
+US-JX-16, replay with an edited script, for inline-script pipeline jobs only.
 
 - **Run the whole suite before every PR**, not only the tests for what you
   touched: `flutter analyze` and `flutter test` in `JobTrigger-Frontend/`,
