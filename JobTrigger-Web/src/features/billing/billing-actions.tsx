@@ -6,6 +6,9 @@ import { useState, useTransition } from "react";
 import { Notice } from "@/components/form";
 import { PADDLE_SCRIPT_URL, type PaddleEnvironment } from "@/billing/paddle-config";
 
+import { teamTotal, usd, type TeamPeriod, type TeamPrices } from "@/domain/team";
+import { startTeamCheckoutAction } from "@/features/team/actions";
+
 import { openPortalAction, startCheckoutAction } from "./actions";
 
 /*
@@ -120,6 +123,107 @@ export function ManageButton() {
         }
       >
         Manage subscription
+      </button>
+    </div>
+  );
+}
+
+/**
+ * US-SUB-11 AC13: seats and period, the total worked out, then Paddle's
+ * checkout for the team. Rendered only on this page (the CSP exception).
+ */
+export function TeamCheckout({
+  clientToken,
+  environment,
+  prices,
+  minSeats,
+}: {
+  clientToken: string;
+  environment: PaddleEnvironment;
+  prices: TeamPrices;
+  minSeats: number;
+}) {
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [seats, setSeats] = useState(Math.max(prices.minSeats, minSeats));
+  const [period, setPeriod] = useState<TeamPeriod>("yearly");
+  const [pending, startTransition] = useTransition();
+  const valid =
+    Number.isInteger(seats) &&
+    seats >= Math.max(prices.minSeats, minSeats) &&
+    seats <= prices.maxSeats;
+
+  const start = () =>
+    startTransition(async () => {
+      setError(null);
+      const paddle = window.Paddle;
+      if (!paddle) {
+        setError(loadError);
+        return;
+      }
+      const result = await startTeamCheckoutAction(period, seats);
+      if ("error" in result) {
+        setError(result.error);
+        return;
+      }
+      paddle.Checkout.open({ transactionId: result.transactionId });
+    });
+
+  return (
+    <div className="flex flex-col gap-3" data-testid="team-checkout">
+      <Script
+        src={PADDLE_SCRIPT_URL}
+        strategy="afterInteractive"
+        onReady={() => {
+          const paddle = window.Paddle;
+          if (!paddle) return;
+          paddle.Environment.set(environment);
+          paddle.Initialize({ token: clientToken });
+          setReady(true);
+        }}
+        onError={() => setError(loadError)}
+      />
+      <div className="flex flex-wrap items-end gap-4">
+        <label className="flex flex-col gap-2 text-[0.8125rem] font-semibold text-fg-secondary">
+          Seats
+          <input
+            type="number"
+            min={Math.max(prices.minSeats, minSeats)}
+            max={prices.maxSeats}
+            value={Number.isNaN(seats) ? "" : seats}
+            onChange={(event) => setSeats(Number.parseInt(event.target.value, 10))}
+            className="h-11 w-28 rounded-[12px] border border-line-strong bg-card px-3 text-base text-fg"
+          />
+        </label>
+        <fieldset className="flex gap-4">
+          <legend className="sr-only">Billing period</legend>
+          {(["yearly", "monthly"] as const).map((value) => (
+            <label key={value} className="flex items-center gap-2 text-[0.9375rem]">
+              <input
+                type="radio"
+                name="team-period"
+                value={value}
+                checked={period === value}
+                onChange={() => setPeriod(value)}
+              />
+              {value === "yearly" ? "Yearly" : "Monthly"}
+            </label>
+          ))}
+        </fieldset>
+      </div>
+      <p data-testid="team-total" className="text-fg-secondary">
+        {valid
+          ? `${seats} seats × ${usd(prices[period])} = ${usd(teamTotal(prices, seats, period))} per ${period === "yearly" ? "year" : "month"}`
+          : `Choose ${Math.max(prices.minSeats, minSeats)} to ${prices.maxSeats} seats.`}
+      </p>
+      {error && <Notice tone="error">{error}</Notice>}
+      <button
+        type="button"
+        className={`${primary} self-start`}
+        disabled={!ready || pending || !valid}
+        onClick={start}
+      >
+        Buy Pro for the team
       </button>
     </div>
   );

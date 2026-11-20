@@ -46,6 +46,7 @@ truth for individual task status.
 | 23 — Suggested first ten (product improvements) | `phase-23-product-improvements.md` | development-complete 2026-11-17: PI-01/02 safety, PI-03/04 connectivity, PI-05/06 freshness/status, PI-07 notifications, PI-08/09/10 first-run/tokens/what's new. Five batches, verified and committed | Public release |
 | 24 — SonarQube Overview + Profile version fixes (epic FIX-2) | `phase-24-sonarqube-ui-fixes.md` | done 2026-11-18 (P24-01..06): credential selector chip, Overview design alignment, Profile version footer, dev-only billing preview flag, shared server/credential header on all tool screens, app-wide clamped overscroll | none — P24-05 and P24-06 visual checks are still MANUAL |
 | 25 — Support and issue tickets | `phase-25-support-feedback.md` | development-complete 2026-11-18 (P25-01..06): backend tickets + owner triage, in-app Support screen with diagnostics, website copy, tests and docs. iPhone pass open (`manually/M-18`) | Public release |
+| 28 — Team plan (epic SUB, US-SUB-11) | `phase-28-team-plan.md` | development-complete 2026-11-20 on branch `feat/us-sub-11-team-plan` (P28-01 backend, P28-02 website, P28-03 app; all 17 criteria ticked). Off unless `TEAM_PLAN_ENABLED=true`. P28-04 is MANUAL (owner, M-23): Paddle per-seat prices and a sandbox purchase | **Release 1.1.0** — owner decision 2026-11-20; merges after the `v1.0.0` tag |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." Every

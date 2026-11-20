@@ -4,6 +4,7 @@ const JenkinsCredential = require('../models/JenkinsCredential');
 const GitHubCredential = require('../models/GitHubCredential');
 const SonarQubeCredential = require('../models/SonarQubeCredential');
 const PasswordResetToken = require('../models/PasswordResetToken');
+const { onAccountDeletion, TeamError } = require('../lib/team');
 const Subscription = require('../models/Subscription');
 const StudentVerification = require('../models/StudentVerification');
 const SupportTicket = require('../models/SupportTicket');
@@ -258,6 +259,16 @@ exports.deleteAccount = async (req, res, next) => {
           'Cancel your active Pro subscription ' + where +
           ' before deleting your account, so you are not charged after it is gone.',
       });
+    }
+
+    // US-SUB-11 AC11: an owner deletes the team first; a member's
+    // membership goes with the account. Checked whether or not the team plan
+    // is on now, since team data may exist from when it was.
+    try {
+      await onAccountDeletion(user._id);
+    } catch (err) {
+      if (err instanceof TeamError) return res.status(err.status).json({ code: err.code, message: err.message });
+      throw err;
     }
 
     await Promise.all(

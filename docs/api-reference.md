@@ -227,3 +227,29 @@ rewrite in the repository layer, once, not ad hoc at each call site.
   server", with a retry action.
 - Any other non-2xx → `ServerFailure(statusCode)` → generic message with
   the status code visible for debugging.
+
+## Team plan — `/api/team` (US-SUB-11, release 1.1)
+
+All routes need `x-auth-token` and answer **404** unless `TEAM_PLAN_ENABLED=true`.
+Errors are `{ code, message }`. Design: `docs/design/US-SUB-11-team-plan.md`.
+
+| Route | Method | Who | Body | Response / notes |
+|---|---|---|---|---|
+| `/api/team` | GET | any | — | My team (`id, name, role, seats, seatsUsed, active, billing, members[], invites[]` (owner only), `sharedServerIds[], prices`) or `null` |
+| `/api/team` | POST | not in a team | `{ name }` (1–60) | **201** team · 409 `ALREADY_IN_TEAM` |
+| `/api/team` | DELETE | owner | — | 409 `TEAM_SUBSCRIPTION_ACTIVE` while it renews |
+| `/api/team/invites` | POST | owner | `{ email }` | **201**; emails `/account/team/join?token=…` (7 days; token stored hashed) · 403 `SEATS_FULL` |
+| `/api/team/invites/:inviteId` | DELETE | owner | — | 404 `NO_INVITE` |
+| `/api/team/join` | POST | invitee | `{ token }` | 404 `INVITE_UNKNOWN`, 410 `INVITE_EXPIRED`, 403 `INVITE_OTHER_EMAIL` / `SEATS_FULL`, 409 `ALREADY_IN_TEAM` |
+| `/api/team/members/:userId` | DELETE | owner | — | 400 `OWNER_STAYS` |
+| `/api/team/leave` | POST | member | — | 400 `OWNER_STAYS` for the owner |
+| `/api/team/seats` | PUT | owner | `{ seats }` (2–100) | Updates the Paddle quantity when subscribed · 409 `SEATS_IN_USE` |
+| `/api/team/checkout` | POST | owner | `{ period: monthly\|yearly, seats }` | `{ transactionId, environment }` for Paddle.js · 503 when Paddle/prices are unset |
+| `/api/team/servers` | GET | member of an active team | — | Shared Jenkins servers, masked, with `sharedBy` |
+| `/api/team/servers` | POST | owner | `{ credentialId }` | Shares one of the owner's Jenkins servers |
+| `/api/team/servers/:id` | DELETE | owner | — | Unshares; access ends at once |
+| `/api/team/servers/jenkins/:id/secret` | GET | member of an active team | — | `{ password, paramToken, needsReentry, version }`, `no-store`, rate-limited like `/:id/secret` |
+
+`GET /api/subscription` gains `team: { id, name, role, active }` for members;
+`source` is `team` when the team is what makes the user Pro. Paddle webhooks
+with `custom_data.teamId` (or a known team subscription id) update the team.

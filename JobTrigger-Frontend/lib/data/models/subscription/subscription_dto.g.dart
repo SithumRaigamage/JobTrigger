@@ -21,6 +21,9 @@ _SubscriptionDto _$SubscriptionDtoFromJson(Map<String, dynamic> json) =>
       willRenew: json['willRenew'] as bool? ?? false,
       manageOnWeb: json['manageOnWeb'] as bool? ?? false,
       primaryCredentialId: json['primaryCredentialId'] as String?,
+      team: json['team'] == null
+          ? null
+          : TeamMembershipDto.fromJson(json['team'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$SubscriptionDtoToJson(_SubscriptionDto instance) =>
@@ -36,6 +39,23 @@ Map<String, dynamic> _$SubscriptionDtoToJson(_SubscriptionDto instance) =>
       'willRenew': instance.willRenew,
       'manageOnWeb': instance.manageOnWeb,
       'primaryCredentialId': instance.primaryCredentialId,
+      'team': instance.team,
+    };
+
+_TeamMembershipDto _$TeamMembershipDtoFromJson(Map<String, dynamic> json) =>
+    _TeamMembershipDto(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      role: json['role'] as String,
+      active: json['active'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$TeamMembershipDtoToJson(_TeamMembershipDto instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'role': instance.role,
+      'active': instance.active,
     };
 
 _PlanLimitsDto _$PlanLimitsDtoFromJson(Map<String, dynamic> json) =>

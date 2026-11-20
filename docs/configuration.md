@@ -56,6 +56,8 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 | `TRUST_PROXY` | unset | unset | number of proxy hops (Render: `1`, confirm) |
 | `CORS_ORIGINS` | empty (no CORS) | unset | unset for the app; add a browser origin only if one calls the API directly |
 | `SITE_URL` | `http://localhost:3000` | `http://<Mac-Wi-Fi-IP>:3000` for the phone | `https://jobtrigger.app` |
+| `TEAM_PLAN_ENABLED` | `false` | `false` | `false` until release 1.1 (US-SUB-11); every `/api/team` route is a 404 while off |
+| `PADDLE_PRICE_TEAM_MONTHLY`, `PADDLE_PRICE_TEAM_YEARLY` | unset | unset | Paddle per-seat prices for the team plan ($6.99/seat/month, $69.90/seat/year) |
 | `SUPPORT_EMAIL` | `support@jobtrigger.app` | unset | unset (`support@` + the `SITE_URL` domain), or the real support inbox |
 | `RESET_PASSWORD_URL` | `http://localhost:3000/reset-password` | `http://<Mac-Wi-Fi-IP>:3000/reset-password` | `https://jobtrigger.app/reset-password` |
 

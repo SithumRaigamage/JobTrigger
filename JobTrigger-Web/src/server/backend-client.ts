@@ -72,8 +72,12 @@ const explainedBody = z.object({ message: z.string().min(1), code: z.string().op
  * own sentence and code for the statuses above, else null (fall back to
  * [failureFor]). The messages are written for users (AUD-06).
  */
-export function explainedFailureFor(status: number, body: unknown): AppFailure | null {
-  if (!EXPLAINED_STATUSES.has(status)) return null;
+export function explainedFailureFor(
+  status: number,
+  body: unknown,
+  extraStatuses: readonly number[] = [],
+): AppFailure | null {
+  if (!EXPLAINED_STATUSES.has(status) && !extraStatuses.includes(status)) return null;
   const parsed = explainedBody.safeParse(body);
   if (!parsed.success) return null;
   return {
@@ -92,6 +96,11 @@ export type BackendCall = {
   accessToken?: string;
   /** Phase 21: show the backend's own sentence for 400/409/413/415/429/503. */
   explain?: boolean;
+  /**
+   * US-SUB-11: further statuses (with `explain`) whose sentence is shown,
+   * e.g. the team plan's 403/404/410. Opt-in: no other call changes.
+   */
+  explainStatuses?: readonly number[];
 };
 
 /**
@@ -134,7 +143,9 @@ export async function callBackend<S extends z.ZodType>(
   }
 
   if (!response.ok) {
-    const explained = call.explain ? explainedFailureFor(response.status, body) : null;
+    const explained = call.explain
+      ? explainedFailureFor(response.status, body, call.explainStatuses)
+      : null;
     if (explained) return fail(explained);
     const failure = failureFor(response.status, body, response.headers.get("x-request-id"));
     if (failure.kind === "server") {

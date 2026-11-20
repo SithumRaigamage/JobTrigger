@@ -87,6 +87,20 @@ function billingEnabled(env = process.env) {
  * resubscribe flow can be tested before the stores exist. Never available
  * in production, whatever the flag says.
  */
+/**
+ * US-SUB-11 (release 1.1): the team plan. Off unless TEAM_PLAN_ENABLED=true;
+ * every /api/team route is then a plain 404.
+ */
+function teamPlanEnabled(env = process.env) {
+  return env.TEAM_PLAN_ENABLED === 'true';
+}
+
+/** US-SUB-11: Paddle per-seat prices, or null when either is unset. */
+function paddleTeamPrices(env = process.env) {
+  if (blank(env.PADDLE_PRICE_TEAM_MONTHLY) || blank(env.PADDLE_PRICE_TEAM_YEARLY)) return null;
+  return { monthly: env.PADDLE_PRICE_TEAM_MONTHLY.trim(), yearly: env.PADDLE_PRICE_TEAM_YEARLY.trim() };
+}
+
 function sandboxBillingEnabled(env = process.env) {
   return env.NODE_ENV !== 'production' && env.SANDBOX_BILLING === 'true';
 }
@@ -277,6 +291,9 @@ function invalidConfig(env = process.env) {
       + 'REVENUECAT_WEBHOOK_AUTH), Paddle (PADDLE_API_KEY, PADDLE_WEBHOOK_SECRET, prices) '
       + 'or the development sandbox (SANDBOX_BILLING=true)';
   }
+  if (!blank(env.TEAM_PLAN_ENABLED) && !['true', 'false'].includes(env.TEAM_PLAN_ENABLED)) {
+    return 'TEAM_PLAN_ENABLED must be true or false';
+  }
   if (!blank(env.STUDENT_RENEWAL_ENABLED) && !['true', 'false'].includes(env.STUDENT_RENEWAL_ENABLED)) {
     return 'STUDENT_RENEWAL_ENABLED must be true or false';
   }
@@ -347,6 +364,8 @@ module.exports = {
   studentRenewalEnabled,
   billingEnabled,
   sandboxBillingEnabled,
+  teamPlanEnabled,
+  paddleTeamPrices,
   revenueCatConfig,
   paddleConfig,
 };

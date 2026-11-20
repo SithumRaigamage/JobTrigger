@@ -30,12 +30,20 @@ const realClient = {
    * here, on the server, so a browser can't attach a purchase to another
    * account; Paddle copies it to the subscription the checkout creates.
    */
-  async createTransaction({ priceId, userId }) {
+  async createTransaction({ priceId, userId, quantity = 1, customData }) {
     const { data } = await call('POST', '/transactions', {
-      items: [{ price_id: priceId, quantity: 1 }],
-      custom_data: { userId: String(userId) },
+      items: [{ price_id: priceId, quantity }],
+      custom_data: customData ?? { userId: String(userId) },
     });
     return { transactionId: data.id };
+  },
+
+  /** US-SUB-11 AC9: a team's seat count, prorated on the next invoice. */
+  async updateSubscriptionQuantity({ subscriptionId, priceId, quantity }) {
+    await call('PATCH', `/subscriptions/${encodeURIComponent(subscriptionId)}`, {
+      items: [{ price_id: priceId, quantity }],
+      proration_billing_mode: 'prorated_next_billing_period',
+    });
   },
 
   /** A one-time link to Paddle's customer portal (card, invoices, cancel). */
@@ -65,5 +73,6 @@ module.exports = {
   createTransaction: (args) => client.createTransaction(args),
   createPortalSession: (args) => client.createPortalSession(args),
   cancelSubscription: (args) => client.cancelSubscription(args),
+  updateSubscriptionQuantity: (args) => client.updateSubscriptionQuantity(args),
   setPaddleClientForTests,
 };

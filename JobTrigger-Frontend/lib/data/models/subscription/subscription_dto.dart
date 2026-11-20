@@ -21,10 +21,25 @@ abstract class SubscriptionDto with _$SubscriptionDto {
     @Default(false) bool willRenew,
     @Default(false) bool manageOnWeb,
     String? primaryCredentialId,
+    TeamMembershipDto? team,
   }) = _SubscriptionDto;
 
   factory SubscriptionDto.fromJson(Map<String, dynamic> json) =>
       _$SubscriptionDtoFromJson(json);
+}
+
+/// US-SUB-11: `team` in `GET /api/subscription`.
+@freezed
+abstract class TeamMembershipDto with _$TeamMembershipDto {
+  const factory TeamMembershipDto({
+    required String id,
+    required String name,
+    required String role,
+    @Default(false) bool active,
+  }) = _TeamMembershipDto;
+
+  factory TeamMembershipDto.fromJson(Map<String, dynamic> json) =>
+      _$TeamMembershipDtoFromJson(json);
 }
 
 @freezed
@@ -77,6 +92,15 @@ extension SubscriptionDtoX on SubscriptionDto {
       willRenew: willRenew,
       manageOnWeb: manageOnWeb,
       primaryCredentialId: primaryCredentialId,
+      team: switch (team) {
+        final team? => TeamMembership(
+          id: team.id,
+          name: team.name,
+          isOwner: team.role == 'owner',
+          active: team.active,
+        ),
+        null => null,
+      },
     ),
   );
 }
@@ -98,5 +122,6 @@ SubscriptionSource? _sourceOf(String? value) => switch (value) {
   'promo' => SubscriptionSource.promo,
   'admin' => SubscriptionSource.admin,
   'student' => SubscriptionSource.student,
+  'team' => SubscriptionSource.team,
   _ => null,
 };
