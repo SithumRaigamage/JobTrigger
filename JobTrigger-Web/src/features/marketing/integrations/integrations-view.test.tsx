@@ -43,6 +43,16 @@ describe("IntegrationsView", () => {
     );
   });
 
+  // US-WEB-04 (owner decision 2026-11-21).
+  it("signed in, the request opens the Support ticket form instead", () => {
+    render(<IntegrationsView supportEmail="help@jobtrigger.app" signedIn />);
+
+    expect(screen.getByRole("link", { name: "Request a tool →" })).toHaveAttribute(
+      "href",
+      "/account/request-tool",
+    );
+  });
+
   it("falls back to the support page without a support address", () => {
     render(<IntegrationsView supportEmail={null} />);
 

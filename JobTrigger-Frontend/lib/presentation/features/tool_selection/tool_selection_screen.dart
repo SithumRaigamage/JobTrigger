@@ -15,6 +15,7 @@ import '../subscription/locked_active_guard.dart';
 import '../subscription/plan_gate.dart';
 import 'active_tool_notifier.dart';
 import 'ci_tool.dart';
+import 'returning_tool_provider.dart';
 
 /// Ported from `Tools/ToolSelection/ToolSelectionView.swift`, laid out to
 /// the P14 design (`UI-UX/screens/03-tool-selection`): the available tools
@@ -26,7 +27,11 @@ import 'ci_tool.dart';
 /// support, so requests decide what's built next. Shown after login, and again
 /// when switching tool from the profile.
 class ToolSelectionScreen extends ConsumerStatefulWidget {
-  const ToolSelectionScreen({super.key});
+  const ToolSelectionScreen({super.key, this.choosing = false});
+
+  /// Opened to choose (Profile → CI tool, `/tools?choose=1`): always shows
+  /// the picker. Otherwise a returning user goes straight Home (US-TOOL-01).
+  final bool choosing;
 
   @override
   ConsumerState<ToolSelectionScreen> createState() =>
@@ -38,6 +43,27 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
   /// switching, Jenkins on first run.
   late CiTool _selected =
       ref.read(activeToolNotifierProvider) ?? CiTool.jenkins;
+
+  /// US-TOOL-01: deciding whether this is a returning user.
+  late bool _deciding = !widget.choosing;
+
+  /// Set once the returning-user answer has been acted on.
+  bool _decided = false;
+
+  void _onReturning(AsyncValue<CiTool?> returning) {
+    if (_decided || returning.isLoading) return;
+    _decided = true;
+    final tool = returning.value;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (tool == null) {
+        setState(() => _deciding = false);
+      } else {
+        _selected = tool;
+        unawaited(_continue());
+      }
+    });
+  }
 
   Future<void> _continue() async {
     final notifier = ref.read(activeToolNotifierProvider.notifier);
@@ -61,6 +87,14 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_deciding) {
+      // Watched, not read once: keeps the auto-disposed answer alive.
+      _onReturning(ref.watch(returningToolProvider));
+      return const Scaffold(
+        key: Key('tool_selection_deciding'),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
     final available = CiTool.values.where((tool) => tool.isAvailable).toList();

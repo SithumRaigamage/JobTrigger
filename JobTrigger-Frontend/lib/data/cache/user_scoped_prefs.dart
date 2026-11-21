@@ -11,6 +11,11 @@ const userScopedPrefKeys = {
   'active_server_id', // ActiveServerNotifier
   'active_github_credential_id', // ActiveGitHubCredentialNotifier
   'active_sonarqube_credential_id', // ActiveSonarQubeCredentialNotifier
+  // Owner decision 2026-11-21: a choice the backend hasn't taken yet.
+  'active_server_pending_default', // ActiveServerNotifier
+  'active_github_pending_default', // ActiveGitHubCredentialNotifier
+  'active_sonarqube_pending_default', // ActiveSonarQubeCredentialNotifier
+  'active_tool', // ActiveToolNotifier (US-TOOL-01)
   'first_run_triggered', // FirstRunNotifier (PI-08)
   'first_run_dismissed', // FirstRunNotifier (PI-08)
   'build_watches', // BuildWatchStore (US-JX-10)
