@@ -235,8 +235,7 @@ pipeline {
             steps {
                 sh """
                     set -e
-                    command -v docker >/dev/null
-                    docker run --rm -i hadolint/hadolint:v2.12.0 < JobTrigger-Backend/Dockerfile | tee \"${HADOLINT_REPORT_NAME}\"
+                    hadolint - < JobTrigger-Backend/Dockerfile | tee \"${HADOLINT_REPORT_NAME}\"
                 """
             }
         }

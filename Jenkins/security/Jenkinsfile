@@ -4,8 +4,8 @@
 // custom-devops-stack template (jenkins/CI.JenkinsFile).
 //
 // Scanner versions match the workflow's (gitleaks 8.30.1, osv-scanner 2.7.0).
-// They run from their official multi-arch images instead of the workflow's
-// x86-only release binaries, so they also work on an arm64 Docker host.
+// They run from the Jenkins agent's pinned binaries (jenkins/Dockerfile), which
+// are checksum-verified for arm64 and amd64.
 pipeline {
     agent any
 
@@ -91,8 +91,7 @@ pipeline {
             steps {
                 script {
                     // Every commit, not just the tip (checkout is a full clone)
-                    dockerTool('zricethezav/gitleaks:v8.30.1',
-                        "git --redact --no-banner --exit-code 1 --report-format sarif --report-path ${GITLEAKS_REPORT_NAME} .")
+                    sh "gitleaks git --redact --no-banner --exit-code 1 --report-format sarif --report-path ${GITLEAKS_REPORT_NAME} ."
                 }
             }
         }
@@ -103,8 +102,7 @@ pipeline {
             }
             steps {
                 script {
-                    dockerTool('ghcr.io/google/osv-scanner:v2.7.0',
-                        'scan source --config osv-scanner.toml -L JobTrigger-Frontend/pubspec.lock -L JobTrigger-Backend/package-lock.json -L JobTrigger-Web/package-lock.json')
+                    sh 'osv-scanner scan source --config osv-scanner.toml -L JobTrigger-Frontend/pubspec.lock -L JobTrigger-Backend/package-lock.json -L JobTrigger-Web/package-lock.json'
                 }
             }
         }
@@ -119,10 +117,7 @@ pipeline {
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                         // --sarif --output exits 2 with no message on this repo
                         // (semgrep's SARIF formatter); --sarif-output works.
-                        // The explicit `.` target is required: without one, the
-                        // semgrep image insists on code mounted at /src.
-                        dockerTool('semgrep/semgrep:1.185.0',
-                            "semgrep scan --config=auto --sarif-output=${SEMGREP_REPORT_NAME} .")
+                        sh "semgrep scan --config=auto --sarif-output=${SEMGREP_REPORT_NAME} ."
                     }
                 }
             }
@@ -155,7 +150,7 @@ pipeline {
             }
             steps {
                 script {
-                    dockerTool('anchore/syft:v1.4.1', "dir:. -o cyclonedx-json=${SBOM_REPORT_NAME}")
+                    sh "syft dir:. -o cyclonedx-json=${SBOM_REPORT_NAME}"
                 }
             }
         }
