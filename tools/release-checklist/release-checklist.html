@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Release checklist</title>
+<!--
+  Reusable release checklist. This file is the same for every project.
+  The tasks live in checklist-data.js next to it (see README.md).
+  No build step, no network: it works when double-clicked (file://) and when hosted.
+-->
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --surface-2: #f0f2f5;
+    --text: #15181d;
+    --muted: #5b6472;
+    --border: #dde1e7;
+    --accent: #2457c5;
+    --accent-soft: #e4ecfb;
+    --done: #1f7a4d;
+    --done-soft: #e2f3ea;
+    --warn: #8a5a00;
+    --warn-soft: #fbf0d9;
+    --must: #a3261b;
+    --must-soft: #fbe6e3;
+    --focus: #2457c5;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111418;
+      --surface: #191d23;
+      --surface-2: #21262e;
+      --text: #e8ebef;
+      --muted: #a2abb8;
+      --border: #2e353f;
+      --accent: #7ea6ff;
+      --accent-soft: #1e2a44;
+      --done: #5fd39a;
+      --done-soft: #16301f;
+      --warn: #f0c36a;
+      --warn-soft: #33290f;
+      --must: #ff9d93;
+      --must-soft: #3a1d1a;
+      --focus: #7ea6ff;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111418;
+    --surface: #191d23;
+    --surface-2: #21262e;
+    --text: #e8ebef;
+    --muted: #a2abb8;
+    --border: #2e353f;
+    --accent: #7ea6ff;
+    --accent-soft: #1e2a44;
+    --done: #5fd39a;
+    --done-soft: #16301f;
+    --warn: #f0c36a;
+    --warn-soft: #33290f;
+    --must: #ff9d93;
+    --must-soft: #3a1d1a;
+    --focus: #7ea6ff;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  a { color: var(--accent); text-underline-offset: 2px; overflow-wrap: anywhere; }
+  code {
+    font: 0.88em/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0 4px;
+    overflow-wrap: anywhere;
+  }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+
+  header.top { margin-bottom: 20px; }
+  .eyebrow { color: var(--muted); font-size: 0.85rem; letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 4px; }
+  h1 { font-size: 1.75rem; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .meta { color: var(--muted); margin: 0 0 14px; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .intro { margin: 0 0 16px; }
+
+  .progress { margin: 0 0 6px; display: flex; justify-content: space-between; gap: 12px; font-weight: 600; }
+  .progress small { font-weight: 400; color: var(--muted); }
+  .bar { height: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+  .bar > span { display: block; height: 100%; width: 0; background: var(--done); border-radius: 999px; transition: width 0.25s ease; }
+  .bar.small { height: 6px; }
+
+  .toolbar {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--bg);
+    padding: 10px 0;
+    margin: 16px 0 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 999px;
+    padding: 6px 12px;
+    min-height: 36px;
+    font: inherit; font-size: 0.92rem;
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+  }
+  .chip input { margin: 0; accent-color: var(--accent); }
+  .chip:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); }
+  .spacer { flex: 1 1 auto; }
+  button.btn {
+    font: inherit; font-size: 0.92rem;
+    min-height: 36px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+  button.btn:hover { border-color: var(--accent); }
+  button.btn.danger { color: var(--must); }
+  button.btn.danger.solid { background: var(--must); border-color: var(--must); color: #fff; }
+
+  .notice {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin: 8px 0;
+  }
+  .notice.warn { background: var(--warn-soft); border-color: var(--warn); }
+  .notice p { margin: 0 0 8px; }
+  .notice p:last-child { margin-bottom: 0; }
+  .notice .row { display: flex; flex-wrap: wrap; gap: 8px; }
+  textarea.export {
+    width: 100%; min-height: 140px; margin: 8px 0;
+    font: 0.85rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--surface-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px;
+  }
+
+  section.group { margin-top: 28px; }
+  .group-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .group-head h2 { font-size: 1.2rem; margin: 0; }
+  .group-head .count { color: var(--muted); font-size: 0.9rem; white-space: nowrap; }
+  .group-intro { color: var(--muted); margin: 6px 0 0; }
+  .group .bar { margin-bottom: 10px; }
+
+  ol.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  li.task {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 14px 12px;
+  }
+  li.task.is-done { background: var(--done-soft); border-color: color-mix(in srgb, var(--done) 35%, var(--border)); }
+  .task-head { display: flex; gap: 12px; align-items: flex-start; }
+  .task-head input[type="checkbox"] {
+    width: 22px; height: 22px; margin: 2px 0 0; flex: 0 0 auto;
+    accent-color: var(--done); cursor: pointer;
+  }
+  .task-head input[disabled] { cursor: default; }
+  .task-title { font-weight: 650; font-size: 1.02rem; line-height: 1.35; margin: 0; cursor: pointer; }
+  li.task.is-done .task-title { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--done) 60%, transparent); }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0 34px; }
+  .tag {
+    font-size: 0.78rem; line-height: 1.2;
+    padding: 3px 8px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--surface-2); color: var(--muted);
+  }
+  .tag.must { color: var(--must); background: var(--must-soft); border-color: transparent; font-weight: 600; }
+  .tag.who-me { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+  .tag.cost { color: var(--text); }
+  .tag.blocked { color: var(--warn); background: var(--warn-soft); border-color: transparent; font-weight: 600; }
+  .tag.recorded { color: var(--done); background: transparent; border-color: var(--done); }
+  .waits { margin: 8px 0 0 34px; font-size: 0.92rem; color: var(--warn); }
+  .waits.clear { color: var(--muted); }
+  ol.steps { margin: 10px 0 0 34px; padding-left: 1.3em; }
+  ol.steps li { margin: 3px 0; }
+  .note { margin: 8px 0 0 34px; color: var(--muted); font-size: 0.92rem; }
+  .empty { color: var(--muted); text-align: center; padding: 32px 0; }
+  footer.foot { margin-top: 40px; color: var(--muted); font-size: 0.85rem; }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 1.45rem; }
+    .tags, .waits, .note, ol.steps { margin-left: 0; }
+    ol.steps { padding-left: 1.2em; }
+    .toolbar { gap: 6px; position: static; }
+    .chip { padding: 6px 10px; }
+  }
+
+  @media print {
+    :root, :root[data-theme="dark"] {
+      --bg: #fff; --surface: #fff; --surface-2: #f3f3f3; --text: #000; --muted: #444;
+      --border: #bbb; --accent: #000; --done: #000; --done-soft: #fff; --warn: #000;
+      --warn-soft: #fff; --must: #000; --must-soft: #fff; --accent-soft: #fff; --shadow: none;
+    }
+    body { font-size: 11pt; }
+    .toolbar, .notice, .no-print { display: none !important; }
+    .wrap { max-width: none; padding: 0; }
+    li.task { break-inside: avoid; page-break-inside: avoid; }
+    section.group { break-before: auto; }
+    .group-head { break-after: avoid; }
+    a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.85em; color: #444; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Release checklist</p>
+    <h1 id="title">Loading…</h1>
+    <p class="meta" id="meta"></p>
+    <p class="intro" id="intro" hidden></p>
+    <div class="progress" aria-live="polite"><span id="overall-text"></span><small id="overall-left"></small></div>
+    <div class="bar" role="progressbar" aria-labelledby="overall-text" id="overall-bar" aria-valuemin="0"><span></span></div>
+  </header>
+
+  <div id="problems"></div>
+
+  <div class="toolbar" role="toolbar" aria-label="Filters and actions">
+    <label class="chip"><input type="checkbox" id="f-left"> Only what's left</label>
+    <label class="chip"><input type="checkbox" id="f-mine"> Only my tasks</label>
+    <label class="chip"><input type="checkbox" id="f-must"> Only must-haves</label>
+    <span class="spacer"></span>
+    <button class="btn" type="button" id="export-btn">Export ticks</button>
+    <button class="btn danger" type="button" id="reset-btn">Reset ticks</button>
+  </div>
+
+  <div id="panel" aria-live="polite"></div>
+  <main id="sections"></main>
+  <p class="empty" id="empty" hidden>Nothing matches these filters.</p>
+
+  <footer class="foot" id="foot"></footer>
+</div>
+
+<script src="checklist-data.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var data = window.CHECKLIST;
+  var $ = function (id) { return document.getElementById(id); };
+
+  if (!data || !Array.isArray(data.sections)) {
+    $("title").textContent = "No checklist data found";
+    $("problems").appendChild(notice("warn", [
+      "This page reads its tasks from checklist-data.js in the same folder, and that file is missing or has an error.",
+      "Put a checklist-data.js next to this page that sets window.CHECKLIST (see README.md)."
+    ]));
+    document.querySelector(".toolbar").hidden = true;
+    return;
+  }
+
+  // ---------- data ----------
+  var people = Object.assign({ me: "Me", claude: "Claude", both: "Me + Claude" }, data.people || {});
+  var tasks = [];
+  var byId = {};
+  var problems = [];
+  data.sections.forEach(function (section, si) {
+    (section.tasks || []).forEach(function (task) {
+      if (!task.id) { problems.push("A task in \"" + (section.title || "section " + (si + 1)) + "\" has no id."); return; }
+      if (byId[task.id]) { problems.push("Two tasks use the id \"" + task.id + "\"."); }
+      task._section = section;
+      tasks.push(task);
+      byId[task.id] = task;
+    });
+  });
+  tasks.forEach(function (task) {
+    (task.waitsFor || []).forEach(function (dep) {
+      if (!byId[dep]) problems.push("\"" + task.title + "\" waits for \"" + dep + "\", which is not a task id.");
+    });
+  });
+
+  // ---------- storage (ticks per project + version) ----------
+  var storeKey = "release-checklist:" + (data.project || "project") + ":" + (data.version || "version");
+  var prefsKey = "release-checklist-filters";
+  var storageOk = true;
+  function readJSON(key, fallback) {
+    try {
+      var raw = window.localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) { storageOk = false; return fallback; }
+  }
+  function writeJSON(key, value) {
+    try { window.localStorage.setItem(key, JSON.stringify(value)); return true; }
+    catch (e) { storageOk = false; return false; }
+  }
+  var ticks = readJSON(storeKey, {});
+  if (!ticks || typeof ticks !== "object") ticks = {};
+  var filters = Object.assign({ left: false, mine: false, must: false }, readJSON(prefsKey, {}));
+
+  function inData(task) { return task.done === true; }
+  function isDone(task) { return inData(task) || ticks[task.id] === true; }
+  function openDeps(task) {
+    return (task.waitsFor || []).map(function (id) { return byId[id]; })
+      .filter(function (dep) { return dep && !isDone(dep); });
+  }
+
+  // ---------- small DOM helpers ----------
+  function el(tag, attrs, children) {
+    var node = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (k === "class") node.className = attrs[k];
+      else if (k === "text") node.textContent = attrs[k];
+      else if (k === "hidden") node.hidden = !!attrs[k];
+      else node.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function (child) {
+      if (child == null) return;
+      node.appendChild(typeof child === "string" ? document.createTextNode(child) : child);
+    });
+    return node;
+  }
+  function notice(kind, lines, actions) {
+    var box = el("div", { class: "notice" + (kind ? " " + kind : "") });
+    lines.forEach(function (line) { box.appendChild(typeof line === "string" ? el("p", { text: line }) : line); });
+    if (actions) box.appendChild(el("div", { class: "row" }, actions));
+    return box;
+  }
+
+  // Inline text: [label](https://…), `code`, **bold**; everything else is plain text (never HTML).
+  function inline(text) {
+    var frag = document.createDocumentFragment();
+    var re = /\[([^\]]+)\]\(((?:https?:|mailto:)[^)\s]+)\)|`([^`]+)`|\*\*([^*]+)\*\*/g;
+    var last = 0, m;
+    text = String(text == null ? "" : text);
+    while ((m = re.exec(text))) {
+      if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      if (m[1]) {
+        var a = el("a", { href: m[2], text: m[1] });
+        if (/^https?:/.test(m[2])) { a.target = "_blank"; a.rel = "noopener noreferrer"; }
+        frag.appendChild(a);
+      } else if (m[3]) {
+        frag.appendChild(el("code", { text: m[3] }));
+      } else {
+        frag.appendChild(el("strong", { text: m[4] }));
+      }
+      last = re.lastIndex;
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    return frag;
+  }
+  function withInline(tag, attrs, text) { var n = el(tag, attrs); n.appendChild(inline(text)); return n; }
+
+  // ---------- header ----------
+  document.title = (data.project ? data.project + " " : "") + (data.version || "") + " — release checklist";
+  $("title").textContent = [data.project, data.version].filter(Boolean).join(" ");
+  var meta = $("meta");
+  meta.appendChild(el("span", { text: "Target date: " + (data.targetDate || "not set") }));
+  if (data.updated) meta.appendChild(el("span", { text: "List updated: " + data.updated }));
+  if (data.intro) { $("intro").hidden = false; $("intro").appendChild(inline(data.intro)); }
+  if (problems.length) {
+    $("problems").appendChild(notice("warn", ["The data file has problems:"].concat(problems.map(function (p) { return "• " + p; }))));
+  }
+
+  // ---------- filters ----------
+  [["f-left", "left"], ["f-mine", "mine"], ["f-must", "must"]].forEach(function (pair) {
+    var box = $(pair[0]);
+    box.checked = !!filters[pair[1]];
+    box.addEventListener("change", function () {
+      filters[pair[1]] = box.checked;
+      writeJSON(prefsKey, filters);
+      render();
+    });
+  });
+  function visible(task) {
+    if (filters.left && isDone(task)) return false;
+    if (filters.mine && !(task.who === "me" || task.who === "both")) return false;
+    if (filters.must && !task.must) return false;
+    return true;
+  }
+
+  // ---------- render ----------
+  function setBar(bar, done, total) {
+    var pct = total ? Math.round((done / total) * 100) : 0;
+    bar.firstChild.style.width = pct + "%";
+    bar.setAttribute("aria-valuemax", String(total));
+    bar.setAttribute("aria-valuenow", String(done));
+  }
+
+  function renderTask(task) {
+    var done = isDone(task);
+    var recorded = inData(task);
+    var deps = openDeps(task);
+    var li = el("li", { class: "task" + (done ? " is-done" : ""), id: "task-" + task.id });
+
+    var box = el("input", { type: "checkbox", id: "cb-" + task.id });
+    box.checked = done;
+    if (recorded) { box.disabled = true; box.title = "Recorded as done in checklist-data.js"; }
+    box.addEventListener("change", function () {
+      if (box.checked) ticks[task.id] = true; else delete ticks[task.id];
+      if (!writeJSON(storeKey, ticks)) showStorageWarning();
+      render();
+      var again = document.getElementById("cb-" + task.id);
+      if (again) again.focus();
+    });
+    var title = withInline("label", { class: "task-title", for: "cb-" + task.id }, task.title || task.id);
+    li.appendChild(el("div", { class: "task-head" }, [box, title]));
+
+    var tags = el("div", { class: "tags" });
+    if (task.must) tags.appendChild(el("span", { class: "tag must", text: "Must have before release" }));
+    else tags.appendChild(el("span", { class: "tag", text: "Nice to have" }));
+    if (task.who) tags.appendChild(el("span", { class: "tag" + (task.who === "me" || task.who === "both" ? " who-me" : ""), text: "Who: " + (people[task.who] || task.who) }));
+    if (task.cost) tags.appendChild(el("span", { class: "tag cost", text: "Cost: " + task.cost }));
+    if (!done && deps.length) tags.appendChild(el("span", { class: "tag blocked", text: "Blocked" }));
+    if (recorded) tags.appendChild(el("span", { class: "tag recorded", text: "Done (recorded)" }));
+    li.appendChild(tags);
+
+    if (task.waitsFor && task.waitsFor.length && !done) {
+      var names = task.waitsFor.map(function (id) { return byId[id] ? byId[id].title : id; });
+      li.appendChild(el("p", {
+        class: "waits" + (deps.length ? "" : " clear"),
+        text: (deps.length ? "Waits for: " : "Was waiting for (now done): ") +
+          (deps.length ? deps.map(function (d) { return d.title; }) : names).join("; ")
+      }));
+    }
+
+    if (task.steps && task.steps.length) {
+      var ol = el("ol", { class: "steps", "aria-label": "How to do it" });
+      task.steps.forEach(function (step) { ol.appendChild(withInline("li", null, step)); });
+      li.appendChild(ol);
+    }
+    if (task.note) li.appendChild(withInline("p", { class: "note" }, task.note));
+    return li;
+  }
+
+  function render() {
+    var total = tasks.length;
+    var doneCount = tasks.filter(isDone).length;
+    $("overall-text").textContent = doneCount + " of " + total + " done";
+    var mustLeft = tasks.filter(function (t) { return t.must && !isDone(t); }).length;
+    $("overall-left").textContent = mustLeft ? mustLeft + " must-have" + (mustLeft === 1 ? "" : "s") + " left" : "All must-haves done";
+    setBar($("overall-bar"), doneCount, total);
+
+    var host = $("sections");
+    host.textContent = "";
+    var shown = 0;
+    data.sections.forEach(function (section, si) {
+      var list = (section.tasks || []).filter(function (t) { return byId[t.id] === t; });
+      if (!list.length) return;
+      var sDone = list.filter(isDone).length;
+      var showing = list.filter(visible);
+      shown += showing.length;
+      if (!showing.length) return;
+      var headId = "sec-" + (section.id || si);
+      var bar = el("div", { class: "bar small", role: "progressbar", "aria-labelledby": headId, "aria-valuemin": "0" }, [el("span")]);
+      setBar(bar, sDone, list.length);
+      var ol = el("ol", { class: "tasks" });
+      showing.forEach(function (t) { ol.appendChild(renderTask(t)); });
+      host.appendChild(el("section", { class: "group", "aria-labelledby": headId }, [
+        el("div", { class: "group-head" }, [
+          el("h2", { id: headId, text: section.title || "Section " + (si + 1) }),
+          el("span", { class: "count", text: sDone + " of " + list.length + " done" })
+        ]),
+        section.intro ? withInline("p", { class: "group-intro" }, section.intro) : null,
+        bar,
+        ol
+      ]));
+    });
+    $("empty").hidden = shown > 0;
+  }
+
+  // ---------- export ----------
+  function exportPayload() {
+    var ticked = tasks.filter(function (t) { return ticks[t.id] === true && !inData(t); })
+      .map(function (t) { return { id: t.id, title: t.title }; });
+    return {
+      project: data.project || null,
+      version: data.version || null,
+      exportedAt: new Date().toISOString(),
+      tickedInBrowser: ticked,
+      alreadyDoneInData: tasks.filter(inData).map(function (t) { return t.id; }),
+      totals: { done: tasks.filter(isDone).length, total: tasks.length }
+    };
+  }
+  $("export-btn").addEventListener("click", function () {
+    var json = JSON.stringify(exportPayload(), null, 2);
+    var panel = $("panel");
+    panel.textContent = "";
+    var area = el("textarea", { class: "export", readonly: "readonly", "aria-label": "Exported ticks as JSON" });
+    area.value = json;
+    var status = el("p", { text: "Your ticks as JSON. Paste this to Claude to record them in checklist-data.js." });
+    var copyBtn = el("button", { class: "btn", type: "button", text: "Copy" });
+    copyBtn.addEventListener("click", function () {
+      var ok = false;
+      area.focus(); area.select();
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(json).then(function () { status.textContent = "Copied."; }, function () {
+          status.textContent = ok ? "Copied." : "Select the text and copy it yourself.";
+        });
+      } else {
+        status.textContent = ok ? "Copied." : "Select the text and copy it yourself.";
+      }
+    });
+    var dlBtn = el("button", { class: "btn", type: "button", text: "Download .json" });
+    dlBtn.addEventListener("click", function () {
+      var name = ((data.project || "project") + "-" + (data.version || "version") + "-ticks.json").replace(/[^\w.-]+/g, "-");
+      var url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+      var a = el("a", { href: url, download: name });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    });
+    var closeBtn = el("button", { class: "btn", type: "button", text: "Close" });
+    closeBtn.addEventListener("click", function () { panel.textContent = ""; $("export-btn").focus(); });
+    panel.appendChild(notice("", [status, area], [copyBtn, dlBtn, closeBtn]));
+    area.focus(); area.select();
+  });
+
+  // ---------- reset (on-page confirm, no browser dialog) ----------
+  $("reset-btn").addEventListener("click", function () {
+    var panel = $("panel");
+    panel.textContent = "";
+    var count = Object.keys(ticks).length;
+    var yes = el("button", { class: "btn danger solid", type: "button", text: "Yes, clear my ticks" });
+    var no = el("button", { class: "btn", type: "button", text: "Cancel" });
+    yes.addEventListener("click", function () {
+      ticks = {};
+      try { window.localStorage.removeItem(storeKey); } catch (e) { storageOk = false; }
+      panel.textContent = "";
+      panel.appendChild(notice("", ["Ticks cleared. Tasks recorded as done in checklist-data.js stay done."]));
+      render();
+      $("reset-btn").focus();
+    });
+    no.addEventListener("click", function () { panel.textContent = ""; $("reset-btn").focus(); });
+    panel.appendChild(notice("warn", [
+      "Clear the " + count + " tick" + (count === 1 ? "" : "s") + " saved in this browser for " + $("title").textContent + "?",
+      "Tasks recorded as done in checklist-data.js are not affected. Export first if you want to keep them."
+    ], [yes, no]));
+    no.focus();
+  });
+
+  function showStorageWarning() {
+    if (document.getElementById("storage-warning")) return;
+    var n = notice("warn", ["This browser is not saving ticks (private window or blocked storage). They will be lost on refresh — use Export ticks to keep them."]);
+    n.id = "storage-warning";
+    $("problems").appendChild(n);
+  }
+
+  readJSON(storeKey, null);
+  if (!storageOk) showStorageWarning();
+  $("foot").textContent = "Ticks are saved in this browser only. Task text comes from checklist-data.js; ask Claude to update it when a task moves.";
+  render();
+})();
+</script>
+</body>
+</html>
