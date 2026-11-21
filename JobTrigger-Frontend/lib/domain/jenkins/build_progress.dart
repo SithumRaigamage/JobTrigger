@@ -17,4 +17,13 @@ class BuildProgress {
     final ratio = (currentMillis - build.timestamp) / estimated;
     return ratio.clamp(0.0, 1.0);
   }
+
+  /// [ratioFor], or null when Jenkins gives no estimate (a first build, or
+  /// a job whose history was cleared), so the bar can show "unknown"
+  /// instead of a misleading 0% (US-JOB-04).
+  static double? ratioOrUnknown(JenkinsBuild build, {DateTime? now}) {
+    final estimated = build.estimatedDuration;
+    if (estimated == null || estimated <= 0) return null;
+    return ratioFor(build, now: now);
+  }
 }
