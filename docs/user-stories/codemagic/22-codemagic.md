@@ -67,12 +67,12 @@ New `CodemagicCredential` backend model (`label`, `token`, `isDefault`),
 **Dependencies:** none
 
 **Acceptance Criteria**
-- Scenario: Successful add → created and shown in Settings
-- Scenario: Validation before any network call (`NFR-SEC-02`)
-- Scenario: Help text
+- [ ] Scenario: Successful add → created and shown in Settings
+- [ ] Scenario: Validation before any network call (`NFR-SEC-02`)
+- [ ] Scenario: Help text
   Then the sheet says the token is under Account settings → API token in
   Codemagic, and that it carries the user's full team role
-- Scenario: Save fails → `AppFailure` message, values kept
+- [ ] Scenario: Save fails → `AppFailure` message, values kept
 
 **Security & Privacy Notes**
 - Token never logged; redacted `toString()`.
@@ -87,10 +87,10 @@ New `CodemagicCredential` backend model (`label`, `token`, `isDefault`),
 **Dependencies:** US-CM-CRED-01
 
 **Acceptance Criteria**
-- Scenario: Successful test
+- [ ] Scenario: Successful test
   Then `GET /apps` is called and the number of apps is shown (no user
   endpoint is relied on until verified)
-- Scenario: Failed test does not block save
+- [ ] Scenario: Failed test does not block save
 
 ---
 
@@ -102,10 +102,10 @@ New `CodemagicCredential` backend model (`label`, `token`, `isDefault`),
 **Dependencies:** US-CM-CRED-03
 
 **Acceptance Criteria**
-- Scenario: Successful load
+- [ ] Scenario: Successful load
   Then `GET /apps` is called and each app shows its name and repository
-- Scenario: Client-side search (`NFR-PERF-02`)
-- Scenario: No active credential → `NoActiveCodemagicCredentialView`
+- [ ] Scenario: Client-side search (`NFR-PERF-02`)
+- [ ] Scenario: No active credential → `NoActiveCodemagicCredentialView`
 
 ### US-CM-APP-02 — An app's recent builds
 
@@ -113,11 +113,11 @@ New `CodemagicCredential` backend model (`label`, `token`, `isDefault`),
 **Dependencies:** US-CM-APP-01
 
 **Acceptance Criteria**
-- Scenario: Successful load
+- [ ] Scenario: Successful load
   Then the builds list endpoint, filtered to this app *(verify:
   `GET /builds?appId=…`)*, loads; each build shows workflow, branch,
   started-at and status
-- Scenario: Status mapping
+- [ ] Scenario: Status mapping
   Then Codemagic's status values *(verify the full set, e.g. queued,
   preparing, building, finishing, finished, failed, canceled, timeout)*
   map to the shared `StatusIndicator`
@@ -132,18 +132,18 @@ New `CodemagicCredential` backend model (`label`, `token`, `isDefault`),
 **Dependencies:** US-CM-APP-02
 
 **Acceptance Criteria**
-- Scenario: Start
+- [ ] Scenario: Start
   Given I pick a workflow and branch and confirm
   Then `POST /builds` is sent with `appId`, `workflowId`, `branch`, and
   the returned `buildId` opens the build detail
-- Scenario: Workflow picker
+- [ ] Scenario: Workflow picker
   Then choices come from workflows seen in recent builds, plus free text,
   with a note that Codemagic doesn't list `codemagic.yaml` workflows
-- Scenario: Environment variables
+- [ ] Scenario: Environment variables
   Then optional key/value pairs go in `environment` *(verify nesting —
   `environment.variables`)*
-- Scenario: Confirm before start
-- Scenario: Start fails → specific `AppFailure` message
+- [ ] Scenario: Confirm before start
+- [ ] Scenario: Start fails → specific `AppFailure` message
 
 ### US-CM-RUN-02 — Live build status
 
@@ -151,8 +151,8 @@ New `CodemagicCredential` backend model (`label`, `token`, `isDefault`),
 **Dependencies:** US-CM-RUN-01
 
 **Acceptance Criteria**
-- Scenario: Polls `GET /builds/:id` every 5s until a terminal status
-- Scenario: Timer cleanup on dispose
+- [ ] Scenario: Polls `GET /builds/:id` every 5s until a terminal status
+- [ ] Scenario: Timer cleanup on dispose
 
 ### US-CM-RUN-03 — Cancel a build
 
@@ -160,10 +160,10 @@ New `CodemagicCredential` backend model (`label`, `token`, `isDefault`),
 **Dependencies:** US-CM-RUN-02
 
 **Acceptance Criteria**
-- Scenario: Cancel
+- [ ] Scenario: Cancel
   When I confirm Cancel
   Then `POST /builds/:id/cancel` is called
-- Scenario: Already finished
+- [ ] Scenario: Already finished
   Given the response is `208`
   Then the app says the build had already finished and refreshes, rather
   than showing an error
@@ -174,7 +174,7 @@ New `CodemagicCredential` backend model (`label`, `token`, `isDefault`),
 **Dependencies:** US-CM-RUN-01
 
 **Acceptance Criteria**
-- Scenario: Same app, workflow and branch are re-sent to `POST /builds`
+- [ ] Scenario: Same app, workflow and branch are re-sent to `POST /builds`
 
 ---
 
@@ -186,7 +186,7 @@ New `CodemagicCredential` backend model (`label`, `token`, `isDefault`),
 **Dependencies:** US-CM-RUN-01
 
 **Acceptance Criteria**
-- Scenario: Steps
+- [ ] Scenario: Steps
   Then the build's actions (steps) load — from the build response's
   actions list, or `GET /api/v3/builds/{buildId}/actions` if only the new
   API has them *(verify)* — and render with the shared stage-chip row
@@ -197,11 +197,11 @@ New `CodemagicCredential` backend model (`label`, `token`, `isDefault`),
 **Dependencies:** US-CM-LOG-01
 
 **Acceptance Criteria**
-- Scenario: Step log
+- [ ] Scenario: Step log
   Given I tap a step
   Then its log is fetched *(verify the endpoint — may be a per-action log
   URL)* and rendered in `ConsoleLogViewer`
-- Scenario: Running step
+- [ ] Scenario: Running step
   Then the log refreshes while the step runs, if the API supports partial
   logs; if it does not, the screen says "log available when this step
   finishes" instead of pretending to stream
@@ -218,10 +218,10 @@ New `CodemagicCredential` backend model (`label`, `token`, `isDefault`),
 **Dependencies:** US-CM-APP-02
 
 **Acceptance Criteria**
-- Scenario: List
+- [ ] Scenario: List
   Then the build's artifacts (from the build response) show name, type
   and size
-- Scenario: Install on this device
+- [ ] Scenario: Install on this device
   Given an `.ipa`/`.apk` matching the phone's platform
   When I tap "Install on this device"
   Then the app creates a short-lived public link *(verify endpoint, e.g.

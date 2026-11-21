@@ -153,6 +153,51 @@ void main() {
 
     expect(find.text('Report sent'), findsOneWidget);
     expect(find.text('We reply to sam@acme.dev.'), findsOneWidget);
+    expect(find.text('Ticket t1'), findsOneWidget);
+  });
+
+  // US-SUP-01: the four kinds, the token warning, and app details on by
+  // default with exactly what they attach.
+  testWidgets('the form offers four kinds and warns about tokens', (
+    tester,
+  ) async {
+    await _pump(tester, _Support());
+
+    for (final kind in ['Bug', 'Feature idea', 'Question', 'Tool request']) {
+      expect(find.widgetWithText(ChoiceChip, kind), findsOneWidget);
+    }
+    expect(
+      find.textContaining('Do not paste tokens or passwords.'),
+      findsOneWidget,
+    );
+    final attach = find.widgetWithText(SwitchListTile, 'Attach app details');
+    await tester.scrollUntilVisible(
+      attach,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(tester.widget<SwitchListTile>(attach).value, isTrue);
+    final summary = tester
+        .widgetList<Text>(
+          find.descendant(of: attach, matching: find.byType(Text)),
+        )
+        .map((t) => t.data ?? '')
+        .join('\n');
+    expect(summary, contains('1.0.0'));
+    expect(summary, contains('ci.example.com:8443'));
+    expect(summary, isNot(contains('/job/api')));
+    expect(summary, isNot(contains('Acme production')));
+  });
+
+  testWidgets('details are required too', (tester) async {
+    final support = _Support();
+    await _pump(tester, support);
+
+    await tester.enterText(find.byType(TextField).at(0), 'Build log blank');
+    await _send(tester);
+
+    expect(find.text('Describe the issue or request.'), findsOneWidget);
+    expect(support.subject, isNull);
   });
 
   testWidgets('an empty form names the missing field and sends nothing', (
@@ -180,6 +225,14 @@ void main() {
     expect(find.textContaining("Can't reach the server"), findsOneWidget);
     expect(find.text('Send report'), findsOneWidget);
     expect(find.text('Report sent'), findsNothing);
+    // US-SUP-01: what was typed is still there to send again.
+    await tester.scrollUntilVisible(
+      find.text('Build log blank'),
+      -300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Build log blank'), findsOneWidget);
+    expect(find.text('Nothing shows.'), findsOneWidget);
   });
 
   testWidgets('a prefilled tool request starts as a tool request', (
@@ -250,5 +303,28 @@ void main() {
 
     expect(find.text('In review'), findsOneWidget);
     expect(find.text('Sent'), findsNothing);
+  });
+
+  // US-SUP-02: each earlier report shows its status and date.
+  testWidgets('earlier reports show status and date', (tester) async {
+    tester.view.physicalSize = const Size(1200, 2800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final created = DateTime(2026, 11, 20, 12);
+    final support = _Support()
+      ..mine = [
+        SupportTicket(
+          id: 'old1',
+          category: SupportCategory.bug,
+          subject: 'Console stays blank',
+          message: 'Nothing shows.',
+          status: 'closed',
+          createdAt: created,
+        ),
+      ];
+    await _pump(tester, support);
+
+    expect(find.text('Console stays blank'), findsOneWidget);
+    expect(find.text('Closed · 2026-11-20'), findsOneWidget);
   });
 }

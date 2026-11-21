@@ -108,6 +108,19 @@ class HomeScreen extends ConsumerWidget {
       }
     });
     final visibleJobs = ref.watch(visibleJobsProvider);
+    // US-TREE-04: a failed refresh keeps the list already on screen (see
+    // `skipError` below) and says why here instead of replacing it.
+    ref.listen(visibleJobsProvider, (previous, next) {
+      if (next.hasError && next.hasValue && !next.isLoading) {
+        ref
+            .read(toastControllerProvider)
+            .show(
+              type: ToastType.error,
+              title: 'Refresh failed',
+              message: describeError(next.error!),
+            );
+      }
+    });
     final breadcrumb = ref.watch(folderBreadcrumbNotifierProvider);
     final query = ref.watch(jobSearchNotifierProvider);
 
@@ -127,6 +140,7 @@ class HomeScreen extends ConsumerWidget {
                 _Header(server: activeServer, breadcrumb: breadcrumb),
                 Expanded(
                   child: visibleJobs.when(
+                    skipError: true,
                     data: (jobs) => _JobList(
                       jobs: jobs,
                       atRoot: breadcrumb.isEmpty,

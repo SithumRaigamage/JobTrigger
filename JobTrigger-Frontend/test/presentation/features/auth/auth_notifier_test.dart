@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,6 +7,15 @@ import 'package:job_trigger/domain/auth/auth_state.dart';
 import 'package:job_trigger/domain/auth/user.dart';
 import 'package:job_trigger/presentation/features/auth/auth_notifier.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+
+/// US-AUTH-03: a keystore that can't be read (a platform error).
+class _BrokenStorage extends SecureStorageService {
+  _BrokenStorage() : super(const FlutterSecureStorage());
+
+  @override
+  Future<String?> readToken() =>
+      Future.error(PlatformException(code: 'BadPadding'));
+}
 
 void main() {
   setUp(() {
@@ -163,4 +173,18 @@ void main() {
       );
     });
   });
+
+  test(
+    'an unreadable keystore is no session, not a crash (US-AUTH-03)',
+    () async {
+      final container = ProviderContainer(
+        overrides: [secureStorageProvider.overrideWithValue(_BrokenStorage())],
+      );
+      addTearDown(container.dispose);
+
+      final state = await container.read(authNotifierProvider.future);
+
+      expect(state, isA<Unauthenticated>());
+    },
+  );
 }

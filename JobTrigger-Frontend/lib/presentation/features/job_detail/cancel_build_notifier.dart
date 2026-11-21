@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../common_widgets/toast_controller.dart';
+import 'build_status_polling_notifier.dart';
 import 'job_detail_notifier.dart';
 import '../app_lock/app_lock_notifier.dart';
 
@@ -42,6 +43,10 @@ class CancelBuildNotifier extends _$CancelBuildNotifier {
         ref
             .read(jobDetailNotifierProvider(jobUrl).notifier)
             .applyOptimisticCancel();
+        // US-JOB-05: the next poll confirms or corrects the guess.
+        ref
+            .read(buildStatusPollingNotifierProvider(jobUrl).notifier)
+            .confirmSoon();
         state = const AsyncData(null);
         unawaited(HapticFeedback.mediumImpact());
         ref

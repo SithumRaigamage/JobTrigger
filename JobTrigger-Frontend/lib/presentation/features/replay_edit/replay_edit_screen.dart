@@ -20,6 +20,7 @@ import '../../common_widgets/read_only_notice.dart';
 import '../../common_widgets/responsive_center.dart';
 import '../../common_widgets/tool_server_credential_header.dart';
 import '../../navigation/app_routes.dart';
+import '../../../domain/jenkins/replay_outcome.dart';
 import 'replay_edit_notifier.dart';
 
 /// US-JX-16: replay a pipeline build with an edited script. The script comes

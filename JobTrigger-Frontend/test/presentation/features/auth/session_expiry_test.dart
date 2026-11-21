@@ -8,6 +8,7 @@ import 'package:job_trigger/core/network/backend_api_client.dart';
 import 'package:job_trigger/core/storage/secure_storage_service.dart';
 import 'package:job_trigger/domain/auth/auth_state.dart';
 import 'package:job_trigger/domain/auth/user.dart';
+import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
 import 'package:job_trigger/presentation/features/auth/auth_notifier.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
@@ -62,6 +63,8 @@ void main() {
       // the same auto-dispose pitfall hit repeatedly in Phase 5's polling
       // notifier tests.
       container.listen(authNotifierProvider, (_, _) {});
+      // Read by the app's toast overlay; auto-disposes without a listener.
+      final toasts = container.listen(currentToastProvider, (_, _) {});
 
       final secureStorage = container.read(secureStorageProvider);
       await secureStorage.saveToken('jwt-abc');
@@ -86,6 +89,11 @@ void main() {
         isA<Unauthenticated>(),
       );
       expect(await secureStorage.readToken(), isNull);
+      // US-AUTH-05: the user is told why.
+      expect(
+        toasts.read()?.message,
+        'Your session has expired. Please log in again.',
+      );
     },
   );
 

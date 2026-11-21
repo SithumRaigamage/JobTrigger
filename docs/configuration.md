@@ -57,6 +57,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 | `CORS_ORIGINS` | empty (no CORS) | unset | unset for the app; add a browser origin only if one calls the API directly |
 | `SITE_URL` | `http://localhost:3000` | `http://<Mac-Wi-Fi-IP>:3000` for the phone | `https://jobtrigger.app` |
 | `SUPPORT_EMAIL` | `support@jobtrigger.app` | unset | unset (`support@` + the `SITE_URL` domain), or the real support inbox |
+| `MIN_SUPPORTED_APP_VERSION` | unset (no app blocked) | unset | unset for 1.0.0; set to e.g. `1.0.1` and re-run `scripts/seedAppInfo.js` to make older apps show "Update required" (US-PROF-03) |
 | `RESET_PASSWORD_URL` | `http://localhost:3000/reset-password` | `http://<Mac-Wi-Fi-IP>:3000/reset-password` | `https://jobtrigger.app/reset-password` |
 
 `TRUST_PROXY` accepts only a whole number (1–99). `SITE_URL` is an origin

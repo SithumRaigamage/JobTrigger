@@ -14,6 +14,8 @@ _AppInfoDto _$AppInfoDtoFromJson(Map<String, dynamic> json) => _AppInfoDto(
   termsOfServiceUrl: json['termsOfServiceUrl'] as String?,
   supportEmail: json['supportEmail'] as String?,
   openSourceLicensesUrl: json['openSourceLicensesUrl'] as String?,
+  releaseNotesUrl: json['releaseNotesUrl'] as String?,
+  minSupportedVersion: json['minSupportedVersion'] as String?,
   createdAt: json['createdAt'] as String?,
   updatedAt: json['updatedAt'] as String?,
 );
@@ -27,6 +29,8 @@ Map<String, dynamic> _$AppInfoDtoToJson(_AppInfoDto instance) =>
       'termsOfServiceUrl': instance.termsOfServiceUrl,
       'supportEmail': instance.supportEmail,
       'openSourceLicensesUrl': instance.openSourceLicensesUrl,
+      'releaseNotesUrl': instance.releaseNotesUrl,
+      'minSupportedVersion': instance.minSupportedVersion,
       'createdAt': instance.createdAt,
       'updatedAt': instance.updatedAt,
     };

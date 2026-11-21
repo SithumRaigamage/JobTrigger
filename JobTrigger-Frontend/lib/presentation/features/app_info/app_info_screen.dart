@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/error/error_message.dart';
+import '../../../core/platform/package_info_provider.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../common_widgets/app_logo.dart';
@@ -17,12 +18,30 @@ import 'app_info_notifier.dart';
 /// `AppInfoNotifier` entry. Links open externally (`openExternalLink`),
 /// matching the old app's `openURL` environment action, plus a toast when
 /// nothing can open them (AUD-22).
-class AppInfoScreen extends ConsumerWidget {
+class AppInfoScreen extends ConsumerStatefulWidget {
   const AppInfoScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppInfoScreen> createState() => _AppInfoScreenState();
+}
+
+class _AppInfoScreenState extends ConsumerState<AppInfoScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // US-PROF-03: opening the screen refreshes app info older than its TTL.
+    // After the first frame: a provider can't change while widgets build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(appInfoNotifierProvider.notifier).refreshIfStale();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final appInfoAsync = ref.watch(appInfoNotifierProvider);
+    final installed = ref.watch(packageInfoProvider).value;
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
 
@@ -46,91 +65,103 @@ class AppInfoScreen extends ConsumerWidget {
             ),
             Expanded(
               child: ResponsiveCenter(
-                child: appInfoAsync.when(
-                  data: (info) => ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-                    children: [
-                      const Center(child: AppLogo(size: 76)),
-                      const SizedBox(height: 16),
-                      Semantics(
-                        header: true,
-                        child: Text(
-                          'JobTrigger',
-                          textAlign: TextAlign.center,
-                          style: textTheme.headlineMedium,
-                        ),
+                // US-PROF-03: the header is local (the installed version
+                // from package_info_plus), so it shows whatever the
+                // backend does; only the backend's links wait or fail.
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                  children: [
+                    const Center(child: AppLogo(size: 76)),
+                    const SizedBox(height: 16),
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        'JobTrigger',
+                        textAlign: TextAlign.center,
+                        style: textTheme.headlineMedium,
                       ),
-                      const SizedBox(height: 4),
+                    ),
+                    const SizedBox(height: 4),
+                    if (installed case final p?)
                       Text(
-                        'Version ${info.appVersion}',
+                        'Version ${p.version}',
+                        key: const Key('app_info_version'),
                         textAlign: TextAlign.center,
                         style: AppTypography.mono(
                           textTheme.bodyMedium?.copyWith(color: t.textMuted),
                         ),
                       ),
-                      const SizedBox(height: 28),
-                      GroupedCard(
-                        children: [
-                          // PI-04: the in-app walkthrough for reaching a
-                          // self-hosted server away from home.
-                          _LinkRow(
-                            title: 'Remote access guide',
-                            subtitle: 'Use Jenkins on mobile data',
-                            icon: Icons.vpn_key_outlined,
-                            onTap: () =>
-                                context.push(AppRoutes.remoteAccessGuide),
-                          ),
-                          if (info.privacyPolicyUrl case final url?)
-                            _LinkRow(
-                              title: 'Privacy policy',
-                              icon: Icons.open_in_new_rounded,
-                              onTap: () => _open(ref, url),
-                            ),
-                          if (info.termsOfServiceUrl case final url?)
-                            _LinkRow(
-                              title: 'Terms of service',
-                              icon: Icons.open_in_new_rounded,
-                              onTap: () => _open(ref, url),
-                            ),
-                          // The backend hands a URL, not an in-app page, so
-                          // this opens out like the two above.
-                          if (info.openSourceLicensesUrl case final url?)
-                            _LinkRow(
-                              title: 'Open-source licenses',
-                              icon: Icons.open_in_new_rounded,
-                              onTap: () => _open(ref, url),
-                            ),
-                          if (info.supportEmail != null)
-                            _LinkRow(
-                              title: 'Contact support',
-                              subtitle: info.supportEmail,
-                              icon: Icons.mail_outline_rounded,
-                              // P25-05: a ticket we can track, with the
-                              // address still offered on that screen.
-                              onTap: () => context.push(AppRoutes.support),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Jenkins and GitHub calls go straight from this '
-                        'device to your servers.',
-                        textAlign: TextAlign.center,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: t.textMuted,
+                    const SizedBox(height: 28),
+                    ...appInfoAsync.when(
+                      data: (info) => [
+                        GroupedCard(
+                          children: [
+                            // PI-04: the in-app walkthrough for reaching a
+                            // self-hosted server away from home.
+                            _remoteAccessRow(context),
+                            // US-PROF-03: the website's changelog.
+                            if (info.releaseNotesUrl case final url?)
+                              _LinkRow(
+                                title: 'Release notes',
+                                icon: Icons.open_in_new_rounded,
+                                onTap: () => _open(ref, url),
+                              ),
+                            if (info.privacyPolicyUrl case final url?)
+                              _LinkRow(
+                                title: 'Privacy policy',
+                                icon: Icons.open_in_new_rounded,
+                                onTap: () => _open(ref, url),
+                              ),
+                            if (info.termsOfServiceUrl case final url?)
+                              _LinkRow(
+                                title: 'Terms of service',
+                                icon: Icons.open_in_new_rounded,
+                                onTap: () => _open(ref, url),
+                              ),
+                            // The backend hands a URL, not an in-app page,
+                            // so this opens out like the two above.
+                            if (info.openSourceLicensesUrl case final url?)
+                              _LinkRow(
+                                title: 'Open-source licenses',
+                                icon: Icons.open_in_new_rounded,
+                                onTap: () => _open(ref, url),
+                              ),
+                            if (info.supportEmail != null)
+                              _LinkRow(
+                                title: 'Contact support',
+                                subtitle: info.supportEmail,
+                                icon: Icons.mail_outline_rounded,
+                                // P25-05: a ticket we can track, with the
+                                // address still offered on that screen.
+                                onTap: () => context.push(AppRoutes.support),
+                              ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stackTrace) => Center(
-                    child: ConnectionErrorView(
-                      message: describeError(error),
-                      onRetry: () =>
-                          ref.read(appInfoNotifierProvider.notifier).refresh(),
+                      ],
+                      loading: () => [
+                        const Center(child: CircularProgressIndicator()),
+                      ],
+                      // Non-blocking: the version above and the local guide
+                      // stay usable; only the backend's links are missing.
+                      error: (error, stackTrace) => [
+                        GroupedCard(children: [_remoteAccessRow(context)]),
+                        const SizedBox(height: 16),
+                        ConnectionErrorView(
+                          message: describeError(error),
+                          onRetry: () => ref
+                              .read(appInfoNotifierProvider.notifier)
+                              .refresh(),
+                        ),
+                      ],
                     ),
-                  ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Jenkins and GitHub calls go straight from this '
+                      'device to your servers.',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyMedium?.copyWith(color: t.textMuted),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -139,6 +170,13 @@ class AppInfoScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Widget _remoteAccessRow(BuildContext context) => _LinkRow(
+    title: 'Remote access guide',
+    subtitle: 'Use Jenkins on mobile data',
+    icon: Icons.vpn_key_outlined,
+    onTap: () => context.push(AppRoutes.remoteAccessGuide),
+  );
 
   Future<void> _open(WidgetRef ref, String urlString) async {
     final uri = Uri.tryParse(urlString);

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/repositories/credentials_repository_impl.dart';
@@ -105,6 +106,36 @@ void main() {
     expect(container.read(serverFormNotifierProvider).hasError, isFalse);
     final servers = await container.read(credentialsNotifierProvider.future);
     expect(servers.map((server) => server.id), ['a']);
+  });
+
+  // US-CRED-02 "if it's my first server it becomes active automatically",
+  // without ticking "Set as default".
+  test('the first server saved becomes the active one', () async {
+    SharedPreferences.setMockInitialValues({});
+    final repo = _FakeCredentialsRepository([])..addResult = Ok(_server('a'));
+    final container = ProviderContainer(
+      overrides: [credentialsRepositoryProvider.overrideWithValue(repo)],
+    );
+    addTearDown(container.dispose);
+    container.listen(serverFormNotifierProvider, (_, _) {});
+    container.listen(credentialsNotifierProvider, (_, _) {});
+    container.listen(activeServerNotifierProvider, (_, _) {});
+    await Future<void>.delayed(Duration.zero);
+    expect(container.read(activeServerNotifierProvider), isNull);
+
+    await container
+        .read(serverFormNotifierProvider.notifier)
+        .save(
+          serverName: 'Server a',
+          jenkinsURL: 'https://a.test',
+          username: 'user',
+          secret: 'pass',
+          isDefault: false,
+        );
+    await container.read(credentialsNotifierProvider.future);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(container.read(activeServerNotifierProvider)?.id, 'a');
   });
 
   test('adding a server with isDefault sets it as the active server', () async {
@@ -229,6 +260,37 @@ void main() {
   );
 
   group('Jenkins URL (AUD-14)', () {
+    // US-CRED-02 "Client-side validation": empty required fields are
+    // refused before any network call.
+    for (final (field, name, user, secret) in [
+      ('name', ' ', 'user', 'pass'),
+      ('username', 'Server a', '', 'pass'),
+      ('secret', 'Server a', 'user', ''),
+    ]) {
+      test('an empty $field never reaches the backend', () async {
+        final repo = _FakeCredentialsRepository([]);
+        final container = ProviderContainer(
+          overrides: [credentialsRepositoryProvider.overrideWithValue(repo)],
+        );
+        addTearDown(container.dispose);
+        container.listen(serverFormNotifierProvider, (_, _) {});
+
+        await container
+            .read(serverFormNotifierProvider.notifier)
+            .save(
+              serverName: name,
+              jenkinsURL: 'https://a.test',
+              username: user,
+              secret: secret,
+              isDefault: false,
+            );
+
+        final state = container.read(serverFormNotifierProvider);
+        expect(state.error, isA<FormValidationError>());
+        expect(repo.lastAddedUrl, isNull);
+      });
+    }
+
     test('an unusable URL never reaches the backend', () async {
       final repo = _FakeCredentialsRepository([]); // addResult unset: throws.
       final container = ProviderContainer(

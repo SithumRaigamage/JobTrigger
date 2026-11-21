@@ -114,6 +114,35 @@ void main() {
       expect(find.text('Log copied to clipboard'), findsOneWidget);
     });
 
+    // US-LOG-03 "Share via system share sheet": share_plus is handed the
+    // loaded log as text.
+    testWidgets('share opens the share sheet with the log text', (
+      tester,
+    ) async {
+      const channel = MethodChannel('dev.fluttercommunity.plus/share');
+      Map<Object?, Object?>? shared;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (
+        call,
+      ) async {
+        if (call.method == 'share') {
+          shared = call.arguments as Map<Object?, Object?>;
+        }
+        return 'dev.fluttercommunity.plus/share/unavailable';
+      });
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          channel,
+          null,
+        ),
+      );
+      await _pump(tester, _complete(_log));
+
+      await tester.tap(find.byTooltip('Share log'));
+      await tester.pump();
+
+      expect(shared?['text'], _log.trimRight());
+    });
+
     testWidgets('search shows the match counter', (tester) async {
       await _pump(tester, _complete(_log));
 

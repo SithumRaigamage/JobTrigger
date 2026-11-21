@@ -74,6 +74,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // US-AUTH-03: on a cold start the stored session is still being read;
+    // the router then moves a signed-in user on. Showing the form meanwhile
+    // flashed it at people who are already signed in.
+    if (!ref.watch(authNotifierProvider).hasValue) {
+      return const Scaffold(
+        key: Key('session_check'),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     final login = ref.watch(loginNotifierProvider);
     final isLoading = login.isLoading;
     final error = switch (login) {

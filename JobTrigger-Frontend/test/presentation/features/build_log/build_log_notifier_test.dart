@@ -103,6 +103,32 @@ void main() {
     expect(state.streaming, isFalse);
   });
 
+  // US-LOG-01 "Leaving the screen stops polling": once nothing watches the
+  // log, its timer is gone and no further chunk is fetched.
+  testWidgets('leaving the log stops its polling', (tester) async {
+    final repository = _ScriptedRepository([
+      _chunk('still going\n', 12, more: true),
+    ]);
+    final container = ProviderContainer(
+      overrides: [jenkinsRepositoryProvider.overrideWithValue(repository)],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(
+      buildLogNotifierProvider(_buildUrl),
+      (_, _) {},
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    final fetched = repository.starts.length;
+    expect(fetched, greaterThanOrEqualTo(2), reason: 'it was streaming');
+
+    sub.close();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 10));
+
+    expect(repository.starts.length, fetched);
+  });
+
   testWidgets('a failed poll keeps the log and retries with backoff (AUD-13)', (
     tester,
   ) async {

@@ -16,6 +16,8 @@ abstract class AppInfoDto with _$AppInfoDto {
     String? termsOfServiceUrl,
     String? supportEmail,
     String? openSourceLicensesUrl,
+    String? releaseNotesUrl,
+    String? minSupportedVersion,
     String? createdAt,
     String? updatedAt,
   }) = _AppInfoDto;
@@ -32,6 +34,8 @@ extension AppInfoDtoX on AppInfoDto {
     termsOfServiceUrl: usableLink(termsOfServiceUrl),
     supportEmail: supportEmail,
     openSourceLicensesUrl: usableLink(openSourceLicensesUrl),
+    releaseNotesUrl: usableLink(releaseNotesUrl),
+    minSupportedVersion: minSupportedVersion,
   );
 }
 
