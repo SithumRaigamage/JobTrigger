@@ -359,8 +359,13 @@ class _ServerTile extends ConsumerWidget {
     return Dismissible(
       key: ValueKey(server.id),
       direction: DismissDirection.endToStart,
-      confirmDismiss: (_) => _confirmDelete(context),
-      onDismissed: (_) => _deleteServer(ref, server),
+      // US-CRED-04: ask, delete, then let the row slide back; the reloaded
+      // list removes it. Dismissing it here left a hidden row behind a
+      // failed delete, and a dismissed row in the tree after a good one.
+      confirmDismiss: (_) async {
+        if (await _confirmDelete(context)) await _deleteServer(ref, server);
+        return false;
+      },
       background: Container(
         color: AppTokens.of(context).failure.background,
         alignment: Alignment.centerRight,
@@ -484,8 +489,14 @@ class _GitHubCredentialTile extends ConsumerWidget {
     return Dismissible(
       key: ValueKey(credential.id),
       direction: DismissDirection.endToStart,
-      confirmDismiss: (_) => _confirmDelete(context),
-      onDismissed: (_) => _deleteCredential(ref, credential),
+      // As for Jenkins servers (US-CRED-04): never hide the row before the
+      // delete is done.
+      confirmDismiss: (_) async {
+        if (await _confirmDelete(context)) {
+          await _deleteCredential(ref, credential);
+        }
+        return false;
+      },
       background: Container(
         color: AppTokens.of(context).failure.background,
         alignment: Alignment.centerRight,
@@ -601,8 +612,14 @@ class _SonarQubeCredentialTile extends ConsumerWidget {
     return Dismissible(
       key: ValueKey(credential.id),
       direction: DismissDirection.endToStart,
-      confirmDismiss: (_) => _confirmDelete(context),
-      onDismissed: (_) => _deleteCredential(ref, credential),
+      // As for Jenkins servers (US-CRED-04): never hide the row before the
+      // delete is done.
+      confirmDismiss: (_) async {
+        if (await _confirmDelete(context)) {
+          await _deleteCredential(ref, credential);
+        }
+        return false;
+      },
       background: Container(
         color: AppTokens.of(context).failure.background,
         alignment: Alignment.centerRight,
