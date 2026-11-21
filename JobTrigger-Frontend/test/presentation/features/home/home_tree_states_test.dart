@@ -9,12 +9,14 @@ import 'package:job_trigger/data/credentials/credentials_notifier.dart';
 import 'package:job_trigger/data/repositories/jenkins_repository_impl.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/jenkins/jenkins_job.dart';
+import 'package:job_trigger/domain/jenkins/server_status.dart';
 import 'package:job_trigger/presentation/common_widgets/status_indicator.dart';
 import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
 import 'package:job_trigger/presentation/features/home/folder_breadcrumb_notifier.dart';
 import 'package:job_trigger/presentation/features/home/home_screen.dart';
 import 'package:job_trigger/presentation/features/home/job_search_notifier.dart';
 import 'package:job_trigger/presentation/features/home/reachability_watcher.dart';
+import 'package:job_trigger/presentation/features/home/server_status_provider.dart';
 import 'package:job_trigger/presentation/navigation/app_routes.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
@@ -79,10 +81,16 @@ class _Repo extends FakeJenkinsRepository {
   ]);
 }
 
-Future<ProviderContainer> _pump(WidgetTester tester, _Repo repo) async {
+Future<ProviderContainer> _pump(
+  WidgetTester tester,
+  _Repo repo, {
+  ServerStatus? status,
+}) async {
   final container = ProviderContainer(
     retry: (_, _) => null,
     overrides: [
+      if (status != null)
+        serverStatusProvider.overrideWith((ref) async => status),
       jenkinsRepositoryProvider.overrideWithValue(repo),
       activeServerNotifierProvider.overrideWith(_Server.new),
       credentialsNotifierProvider.overrideWith(_Saved.new),
@@ -231,5 +239,27 @@ void main() {
     expect(toast?.title, 'Refresh failed');
     expect(toast?.message, const ServerFailure(500).message);
     await tester.pump(const Duration(seconds: 4));
+  });
+
+  // US-JX-18 "Quiet down".
+  testWidgets('a server preparing for shutdown shows a banner on Home', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _Repo(),
+      status: const ServerStatus(version: '2.480', quietingDown: true),
+    );
+
+    expect(
+      find.textContaining('Jenkins is preparing for shutdown'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a running server shows no shutdown banner', (tester) async {
+    await _pump(tester, _Repo(), status: const ServerStatus(version: '2.480'));
+
+    expect(find.textContaining('preparing for shutdown'), findsNothing);
   });
 }

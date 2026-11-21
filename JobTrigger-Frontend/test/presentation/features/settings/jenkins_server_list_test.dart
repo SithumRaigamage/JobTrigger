@@ -13,7 +13,9 @@ import 'package:job_trigger/domain/credential/credentials_repository.dart';
 import 'package:job_trigger/domain/credential/github_credential.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
 import 'package:job_trigger/domain/credential/sonarqube_credential.dart';
+import 'package:job_trigger/domain/jenkins/server_status.dart';
 import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
+import 'package:job_trigger/presentation/features/home/server_status_provider.dart';
 import 'package:job_trigger/presentation/features/settings/settings_screen.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
@@ -67,10 +69,16 @@ class _NoSonar extends SonarQubeCredentialsNotifier {
   Future<List<SonarQubeCredential>> build() async => const [];
 }
 
-Future<ProviderContainer> _pump(WidgetTester tester, _Repo repo) async {
+Future<ProviderContainer> _pump(
+  WidgetTester tester,
+  _Repo repo, {
+  ServerStatus? status,
+}) async {
   final container = ProviderContainer(
     retry: (_, _) => null,
     overrides: [
+      if (status != null)
+        serverStatusProvider.overrideWith((ref) async => status),
       credentialsRepositoryProvider.overrideWithValue(repo),
       gitHubCredentialsNotifierProvider.overrideWith(_NoGitHub.new),
       sonarQubeCredentialsNotifierProvider.overrideWith(_NoSonar.new),
@@ -117,6 +125,23 @@ void main() {
     expect(row('Production').flagsCollection.isSelected, Tristate.isTrue);
     expect(row('Staging').flagsCollection.isSelected, Tristate.isFalse);
     handle.dispose();
+  });
+
+  // US-JX-18 "Info" / "Outdated version" and US-JX-22 "Existing servers".
+  testWidgets('the active server shows its Jenkins version, old ones with a '
+      'hint; a password-looking secret is noted', (tester) async {
+    await _pump(tester, _Repo(), status: const ServerStatus(version: '2.100'));
+
+    expect(find.textContaining('Jenkins 2.100'), findsOneWidget);
+    expect(find.textContaining('consider upgrading'), findsOneWidget);
+    expect(find.text('Uses a password'), findsWidgets);
+  });
+
+  testWidgets('a current Jenkins shows no upgrade hint', (tester) async {
+    await _pump(tester, _Repo(), status: const ServerStatus(version: '2.999'));
+
+    expect(find.textContaining('Jenkins 2.999'), findsOneWidget);
+    expect(find.textContaining('consider upgrading'), findsNothing);
   });
 
   testWidgets('a failed load shows the connection error with Retry', (
