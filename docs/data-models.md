@@ -229,6 +229,15 @@ build, minSupportedVersion, releaseNotesUrl }` — used by
 `presentation/features/app_info` to gate forced-update prompts if the
 backend ever returns a `minSupportedVersion` above the running app version.
 
+Built 2026-11-21 (US-PROF-03): the backend `AppInfo` document has
+`releaseNotesUrl` (seeded as `<SITE_URL>/changelog`) and
+`minSupportedVersion` (seeded from `MIN_SUPPORTED_APP_VERSION`, `null`
+when unset). The app's `AppInfo` carries both; `isUpdateRequired`
+(`domain/app_info/app_info.dart`) compares `x.y.z` versions, and anything
+unparseable blocks nobody. `UpdateRequiredGate` covers the app when the
+installed version is older. An existing production document gets the new
+fields only when `scripts/seedAppInfo.js` is run again.
+
 ## Student plan (Phase 21, backend)
 
 - `Subscription.student` — a fourth Pro source beside `store`, `web` and `grant`: `{ plan: "pro", status: "active", source: "student", startsAt, periodEnd }`. A paid source always wins over it (`billing/combine.js`); when the date passes, `isPro` is false, so expiry is computed on every read and never depends on a job.

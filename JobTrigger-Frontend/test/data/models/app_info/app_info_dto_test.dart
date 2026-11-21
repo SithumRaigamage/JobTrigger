@@ -29,6 +29,20 @@ void main() {
       expect(dto.updatedAt, '2024-01-02T00:00:00.000Z');
     });
 
+    // US-PROF-03: release notes link and the forced-update minimum.
+    test('parses releaseNotesUrl and minSupportedVersion', () {
+      final info = AppInfoDto.fromJson({
+        '_id': 'info-1',
+        'appVersion': '1.0.0',
+        'buildNumber': '7',
+        'releaseNotesUrl': 'https://jobtrigger.app/changelog',
+        'minSupportedVersion': '1.0.1',
+      }).toDomain();
+
+      expect(info.releaseNotesUrl, 'https://jobtrigger.app/changelog');
+      expect(info.minSupportedVersion, '1.0.1');
+    });
+
     test('leaves every optional field null when absent', () {
       final dto = AppInfoDto.fromJson({
         '_id': 'info-1',

@@ -4,7 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:job_trigger/core/platform/package_info_provider.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
+import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/data/credentials/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/credentials_notifier.dart';
 import 'package:job_trigger/domain/auth/auth_state.dart';
 import 'package:job_trigger/domain/auth/user.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
@@ -28,6 +30,12 @@ class _Auth extends AuthNotifier {
 
 _Auth? _lastAuth;
 
+/// US-PROF-01: no connectivity — the backend's server list can't load.
+class _OfflineCredentials extends CredentialsNotifier {
+  @override
+  Future<List<JenkinsServer>> build() async => throw const NetworkFailure();
+}
+
 class _Server extends ActiveServerNotifier {
   @override
   JenkinsServer? build() => const JenkinsServer(
@@ -39,7 +47,7 @@ class _Server extends ActiveServerNotifier {
   );
 }
 
-Future<void> _pump(WidgetTester tester) async {
+Future<void> _pump(WidgetTester tester, {bool offline = false}) async {
   final router = GoRouter(
     initialLocation: AppRoutes.profile,
     routes: [
@@ -62,6 +70,8 @@ Future<void> _pump(WidgetTester tester) async {
       overrides: [
         authNotifierProvider.overrideWith(() => _lastAuth = _Auth()),
         activeServerNotifierProvider.overrideWith(_Server.new),
+        if (offline)
+          credentialsNotifierProvider.overrideWith(_OfflineCredentials.new),
         packageInfoProvider.overrideWith(
           (ref) async => PackageInfo(
             appName: 'JobTrigger',
@@ -71,6 +81,7 @@ Future<void> _pump(WidgetTester tester) async {
           ),
         ),
       ],
+      retry: (_, _) => null,
       child: MaterialApp.router(theme: AppTheme.dark(), routerConfig: router),
     ),
   );
@@ -92,6 +103,17 @@ void main() {
     // deliberately not shown: the owner asked for just "Version 1.0.0".
     await tester.scrollUntilVisible(find.text('Version 1.0.0'), 200);
     expect(find.text('Version 1.0.0'), findsOneWidget);
+  });
+
+  // US-PROF-01 "No network dependency": the email, version and Log out
+  // come from local state, so the screen renders offline.
+  testWidgets('renders offline: email, version and Log out', (tester) async {
+    await _pump(tester, offline: true);
+
+    expect(find.text('sam@acme.dev'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Version 1.0.0'), 200);
+    expect(find.text('Version 1.0.0'), findsOneWidget);
+    expect(find.text('Log out'), findsOneWidget);
   });
 
   testWidgets('holds the app lock settings, moved from Settings', (

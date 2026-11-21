@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
@@ -13,6 +15,11 @@ part 'app_info_notifier.g.dart';
 class AppInfoNotifier extends _$AppInfoNotifier {
   @override
   Future<AppInfo> build() async {
+    // US-PROF-03: kept for ten minutes after the last screen stops using
+    // it, so opening App Info again or the update check needs no request.
+    final link = ref.keepAlive();
+    final timer = Timer(const Duration(minutes: 10), link.close);
+    ref.onDispose(timer.cancel);
     final result = await ref.watch(appInfoRepositoryProvider).fetchAppInfo();
     return result.fold((info) => info, (failure) => throw failure);
   }
