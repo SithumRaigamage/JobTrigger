@@ -45,6 +45,7 @@ test("an empty request says what is missing and sends nothing", async ({ page })
   await page.goto("/account/request-tool");
   await page.getByRole("button", { name: "Send request" }).click();
 
-  await expect(page.getByRole("alert")).toHaveText("Describe the issue or request.");
+  // Next's route announcer is an alert too; match the message itself.
+  await expect(page.getByText("Describe the issue or request.")).toBeVisible();
   expect(await ticketsFor(email)).toEqual([]);
 });

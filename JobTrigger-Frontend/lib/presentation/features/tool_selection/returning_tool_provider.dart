@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/error/result.dart';
+import '../../../data/demo/demo_mode_notifier.dart';
 import '../../../data/repositories/credentials_repository_impl.dart';
 import '../../../data/repositories/github_credentials_repository_impl.dart';
 import '../../../data/repositories/sonarqube_credentials_repository_impl.dart';
@@ -18,6 +19,8 @@ part 'returning_tool_provider.g.dart';
 /// (P20-25) is never picked.
 @riverpod
 Future<CiTool?> returningTool(Ref ref) async {
+  // Demo mode is a tour, not a returning user: it starts at the picker.
+  if (ref.read(demoModeNotifierProvider)) return null;
   final prefs = await SharedPreferences.getInstance();
   final savedName = prefs.getString(activeToolKey);
   final saved = CiTool.values.where((t) => t.name == savedName).firstOrNull;
