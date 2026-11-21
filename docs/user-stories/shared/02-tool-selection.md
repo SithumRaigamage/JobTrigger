@@ -18,7 +18,7 @@ I want to choose Jenkins from a grid of CI tool options
 So that the app knows which integration to use for the rest of my session
 
 **Acceptance Criteria**
-- Scenario: Selecting Jenkins
+- [ ] Scenario: Selecting Jenkins
   Given I am on the tool selection screen after login
   When I tap the Jenkins card
   Then `ActiveToolNotifier` records Jenkins as active, the app's accent
@@ -26,17 +26,21 @@ So that the app knows which integration to use for the rest of my session
   `accentColor` mechanism), and I am taken into the Jenkins flow (either
   credential setup if no server is saved yet, or straight to the job tree
   if one exists)
-- Scenario: Returning user skips re-selection
+  Open: partly superseded: the choice is recorded and Continue goes Home (`test/presentation/features/tool_selection/tool_selection_screen_test.dart` "Jenkins is chosen to start with, and nothing is committed until Continue", "choosing GitHub Actions and continuing commits it and goes home"), but the accent no longer changes per tool (P14 decision 4: one accent, `app_theme.dart`), and with no server Home shows "No Jenkins Server" rather than opening the add-server form (see the third criterion). Needs the owner to reword or approve a change.
+- [x] Scenario: Returning user skips re-selection
   Given I previously selected Jenkins and have at least one saved server
+  (of any tool — owner decision 2026-11-21)
   When I log in again
   Then I am not forced back through tool selection — it is shown only when
   no tool/server context exists yet, or when explicitly reached via
   settings/switch-tool navigation
-- Scenario: No saved servers yet
+  Evidence: built 2026-11-21 (owner decision): `test/presentation/features/tool_selection/returning_tool_test.dart` "a returning user goes straight Home with their tool", "a first-time user sees the picker", "opened from Profile it always shows the picker", and the `returningTool` group (last tool, first tool with a server, none, offline, plan-locked).
+- [ ] Scenario: No saved servers yet
   Given I select Jenkins for the first time
   When there is no saved Jenkins server
   Then I am routed into the add-server flow (US-CRED-02) rather than to an
   empty job tree
+  Open: not as written: with no saved server Home shows "No Jenkins Server" with "Go to Settings" (`test/presentation/features/home/home_screen_test.dart` "shows \"no server\" once the list loads empty"; `no_active_server_view.dart`), never an empty tree, but not the add-server form either. Changing it touches Jenkins Home (frozen, `CLAUDE.md` §11), so it waits for the owner.
 
 **Security & Privacy Notes**
 - None specific — no credentials are collected on this screen.
@@ -66,21 +70,24 @@ So that I understand the app's current scope and am not confused by a
 non-responsive tap
 
 **Acceptance Criteria**
-- Scenario: Disabled card is visually distinct
+- [x] Scenario: Disabled card is visually distinct
   Given a non-Jenkins tool card is rendered
   Then it uses a reduced-opacity glass treatment, a muted (not brand-colored)
   icon, and a "coming soon" label — distinct enough from the enabled Jenkins
   card that the difference doesn't rely on subtle contrast alone
-- Scenario: Tapping a disabled card
+  Evidence: `test/presentation/features/tool_selection/release_managed_test.dart` "release 1.0: three tools to choose, two tiles under \"Coming next\" with their versions"; the tiles (`tool_selection_screen.dart` `_ComingNextTile`) use muted text and icon colours, no brand colour, an outline instead of a card, and the release they arrive in as the "coming" label.
+- [x] Scenario: Tapping a disabled card
   Given I tap a disabled tool card
   Then nothing navigates, and a brief, non-blocking message confirms it's
   not yet available (rather than the tap silently doing nothing, which
   reads as broken)
-- Scenario: Screen-reader announcement
+  Evidence: Fixed 2026-11-21: a tap on a "Coming next" tile did nothing; it now shows a toast "<Tool> is coming / It arrives in <version>" and still selects nothing. Test `release_managed_test.dart` "the tiles are disabled: tapping one selects nothing" (toast asserted).
+- [x] Scenario: Screen-reader announcement
   Given a screen reader is active
   When focus moves to a disabled tool card
   Then it is announced as disabled/unavailable, not read identically to the
   enabled Jenkins card
+  Evidence: Fixed 2026-11-21: test added: `release_managed_test.dart` "a screen reader hears a tile as disabled, coming later" (label "GitLab CI, coming in <version>", enabled state false, no tap action).
 
 **Security & Privacy Notes**
 - None.

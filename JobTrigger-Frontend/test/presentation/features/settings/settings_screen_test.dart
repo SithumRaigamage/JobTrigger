@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:job_trigger/core/theme/theme_notifier.dart';
 import 'package:job_trigger/core/error/app_failure.dart';
 import 'package:job_trigger/core/error/result.dart';
 import 'package:job_trigger/data/cache/server_safety_store.dart';
@@ -438,4 +440,42 @@ void main() {
       );
     },
   );
+
+  // US-PROF-02 "Selecting a mode": the picker changes the theme at once
+  // and saves it in shared_preferences.
+  testWidgets('the Appearance picker applies and saves the mode', (
+    tester,
+  ) async {
+    final container = ProviderContainer(
+      overrides: [
+        credentialsRepositoryProvider.overrideWithValue(
+          _FakeCredentialsRepository(const []),
+        ),
+        gitHubCredentialsRepositoryProvider.overrideWithValue(
+          _FakeGitHubCredentialsRepository(const []),
+        ),
+        sonarQubeCredentialsRepositoryProvider.overrideWithValue(
+          _FakeSonarQubeCredentialsRepository(const []),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: SettingsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final dark = find.text('Dark');
+    await tester.scrollUntilVisible(dark, 200);
+    await tester.tap(dark);
+    await tester.pumpAndSettle();
+
+    expect(container.read(themeNotifierProvider), ThemeMode.dark);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('theme_mode'), 'dark');
+  });
 }

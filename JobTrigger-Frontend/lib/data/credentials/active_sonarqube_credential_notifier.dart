@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../cache/sonarqube_cache.dart';
+import 'default_choice_sync.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/error/app_failure.dart';
@@ -35,12 +38,30 @@ class ActiveSonarQubeCredentialNotifier
     ref.listen(sonarQubeCredentialsNotifierProvider, (_, next) {
       final current = state;
       final fresh = next.value;
-      if (current == null || fresh == null) return;
+      if (fresh == null) return;
+      if (current == null) {
+        // The first credential saved (or the first list after the last one
+        // was deleted) becomes active, by the same rule as a cold start
+        // (as US-CRED-02 for Jenkins). Only real data, after the first
+        // rehydration: an error still carrying an old list must not bring
+        // a credential back.
+        if (_rehydrated && next is AsyncData && fresh.isNotEmpty) {
+          _adopt(fresh);
+        }
+        return;
+      }
       final match = _findById(fresh, current.id);
       if (match != null && match != current) state = match;
+      // Owner decision 2026-11-21: retry a pending default, else follow
+      // the backend's (e.g. one chosen on the website, US-WEB-18).
+      if (_rehydrated && next is AsyncData) unawaited(_reconcile(fresh));
     }, weak: true);
     return null;
   }
+
+  /// Set once the first rehydration has finished (or given up), so the
+  /// listener above never races it for the persisted choice.
+  bool _rehydrated = false;
 
   Future<void> _rehydrate() async {
     final List<SonarQubeCredential> credentials;
@@ -50,8 +71,18 @@ class ActiveSonarQubeCredentialNotifier
       // Credentials failed to load — leave state null; the settings screen
       // surfaces the underlying AppFailure via
       // sonarQubeCredentialsNotifierProvider directly.
+      _rehydrated = true;
       return;
     }
+    try {
+      await _adopt(credentials);
+    } finally {
+      _rehydrated = true;
+    }
+  }
+
+  /// The persisted choice if still saved, else the default, else the first.
+  Future<void> _adopt(List<SonarQubeCredential> credentials) async {
     if (credentials.isEmpty) {
       state = null;
       return;
@@ -60,18 +91,55 @@ class ActiveSonarQubeCredentialNotifier
     final prefs = await SharedPreferences.getInstance();
     final persistedId = prefs.getString(_activeSonarQubeCredentialIdKey);
 
-    final resolved =
-        _findById(credentials, persistedId) ??
-        _findDefault(credentials) ??
-        credentials.first;
+    final resolved = pickActive(
+      credentials,
+      idOf: (item) => item.id,
+      isDefault: (item) => item.isDefault,
+      pendingId: await _sync.pending(),
+      savedId: persistedId,
+    )!;
     state = resolved;
     await prefs.setString(_activeSonarQubeCredentialIdKey, resolved.id);
+    // No default on the backend, or one still waiting: push this one.
+    if (!resolved.isDefault) unawaited(_push(resolved.id));
   }
 
   Future<void> setActiveCredential(SonarQubeCredential credential) async {
     state = credential;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_activeSonarQubeCredentialIdKey, credential.id);
+    // Owner decision 2026-11-21: the backend default follows; if that
+    // fails the choice stays on the phone and is retried.
+    unawaited(_push(credential.id));
+  }
+
+  static const _sync = DefaultChoiceSync('active_sonarqube_pending_default');
+
+  Future<void> _push(String id) async {
+    final ok = await _sync.push(
+      id,
+      ref.read(sonarQubeCredentialsRepositoryProvider).switchActive,
+    );
+    // The list's default flags changed; reload it so every screen agrees.
+    if (ok && ref.mounted) ref.invalidate(sonarQubeCredentialsNotifierProvider);
+  }
+
+  Future<void> _reconcile(List<SonarQubeCredential> fresh) async {
+    final pendingId = await _sync.pending();
+    if (!ref.mounted) return;
+    if (pendingId != null) {
+      if (_findById(fresh, pendingId) == null) {
+        await _sync.drop();
+      } else {
+        await _push(pendingId);
+      }
+      return;
+    }
+    final backendDefault = _findDefault(fresh);
+    if (backendDefault == null || backendDefault.id == state?.id) return;
+    state = backendDefault;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_activeSonarQubeCredentialIdKey, backendDefault.id);
   }
 
   Future<void> clear() async {

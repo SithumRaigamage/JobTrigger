@@ -17,5 +17,11 @@ cluster and the encryption keys are yours; release builds also refuse an
 3. Back up, then run `node scripts/encrypt-credentials.js --dry-run` and then
    without `--dry-run`; confirm the startup audit reports no unreadable key
    ids.
+4. Run `node scripts/seedAppInfo.js` against the production database (added
+   2026-11-21, US-PROF-03). It writes the App Info links, including the new
+   `releaseNotesUrl` (`<SITE_URL>/changelog`). Leave
+   `MIN_SUPPORTED_APP_VERSION` empty for 1.0.0; setting it later and
+   re-seeding makes older apps show "Update required".
 
-**Evidence:** the live `/healthz` over `https://`.
+**Evidence:** the live `/healthz` over `https://`, and `GET /api/appinfo`
+returning `releaseNotesUrl`.

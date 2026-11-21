@@ -1,0 +1,446 @@
+// Jenkins mirror of .github/workflows/cd.yml (CD - Build Verification).
+// Phase 27. The GitHub workflow is the live CI; this pipeline is the
+// Jenkins-side mirror, built on the custom-devops-stack template
+// (jenkins/CI.JenkinsFile). Nothing is pushed or signed.
+pipeline {
+    agent any
+
+    options {
+        skipDefaultCheckout(true)
+        timestamps()
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '30'))
+    }
+
+    environment {
+        // Same Jenkins names and credential IDs as the other Projects/* jobs
+        // (custom-devops-stack/jenkins/CI.JenkinsFile). IDs only, never values.
+        GITHUB_CREDENTIALS = 'github-ssh-key'
+        EMAIL_CREDENTIALS_ID = 'gmail-smtp-creds'
+        CODECOV_TOKEN_ID = 'codecov-token'
+
+        // Report filenames (archived / published if generated)
+        TRIVY_REPORT_NAME = 'trivy-report.html'
+        TRIVY_TEXT_REPORT_NAME = 'trivy-report.txt'
+        TRIVY_TEMPLATE_VERSION = '0.76.2'
+        GITLEAKS_REPORT_NAME = 'gitleaks-report.sarif'
+        HADOLINT_REPORT_NAME = 'hadolint-report.txt'
+        SEMGREP_REPORT_NAME = 'semgrep-report.sarif'
+        TRIVY_FS_REPORT_NAME = 'trivy-fs-report.txt'
+        SBOM_REPORT_NAME = 'sbom.cdx.json'
+        // Same Flutter as GitHub CI (subosito/flutter-action flutter-version)
+        FLUTTER_VERSION = '3.47.8'
+        FLUTTER_IMAGE = 'jobtrigger-flutter:3.47.8'
+        DOCKER_IMAGE_NAME = 'jobtrigger-backend'
+    }
+
+    parameters {
+        string(name: 'RELEASE_VERSION', defaultValue: '', description: 'Release version (SemVer). If empty, a CI pre-release version will be auto-generated.')
+        string(name: 'GIT_REPO_URL', defaultValue: 'git@github.com:SithumRaigamage/JobTrigger.git', description: 'Git Repository URL')
+        string(name: 'BRANCH', defaultValue: 'develop', description: 'Branch to build')
+        choice(name: 'ENVIRONMENT', choices: ['dev', 'qa', 'staging', 'prod'], description: 'Target Environment')
+        booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Send email notifications?')
+        booleanParam(name: 'BUILD_IOS', defaultValue: false, description: 'Build iOS (release, unsigned). Needs an agent labelled macos with Flutter and Xcode')
+        booleanParam(name: 'DOCKER_PIPELINE', defaultValue: true, description: 'Build the backend Docker image (no push)')
+        booleanParam(name: 'REQUIRE_PROD_APPROVAL', defaultValue: true, description: 'Require manual approval when ENVIRONMENT=prod')
+    }
+
+    stages {
+        // Stage to checkout source code from the provided Git repository and branch
+        stage('Checkout') {
+            steps {
+                script {
+                    checkoutRepo()
+                }
+            }
+        }
+
+        // Stage to verify the provided version (if any) and compute the effective version used for tagging
+        stage('Determine Version') {
+            steps {
+                script {
+                    def inputVersion = (params.RELEASE_VERSION ?: '').trim()
+
+                    // SemVer: X.Y.Z with optional pre-release/build metadata
+                    def semverPattern = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/
+
+                    if (inputVersion) {
+                        if (inputVersion ==~ semverPattern) {
+                            echo "Release version ${inputVersion} is valid."
+                            env.EFFECTIVE_VERSION = inputVersion
+                        } else {
+                            error "RELEASE_VERSION '${inputVersion}' is not valid SemVer."
+                        }
+                    } else {
+                        env.EFFECTIVE_VERSION = "0.0.0-${env.BUILD_NUMBER}"
+                        echo "RELEASE_VERSION not provided; using CI version ${env.EFFECTIVE_VERSION}"
+                    }
+                }
+            }
+        }
+
+        stage('Prod Approval') {
+            when {
+                allOf {
+                    expression { params.REQUIRE_PROD_APPROVAL }
+                    expression { params.ENVIRONMENT == 'prod' }
+                }
+            }
+            steps {
+                input message: 'Approve running the release build pipeline for PROD?', ok: 'Proceed'
+            }
+        }
+
+        stage('Prepare Flutter Image') {
+            steps {
+                script {
+                    buildFlutterImage()
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    flutter('flutter pub get')
+                }
+            }
+        }
+
+        stage('Build Android APK (release, debug-signed)') {
+            steps {
+                script {
+                    // Back at the repo root: the script finds JobTrigger-Frontend itself
+                    flutter('''
+                        cd ..
+                        ./scripts/build-release.sh --allow-missing apk
+                    ''')
+                }
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'JobTrigger-Frontend/build/app/outputs/flutter-apk/app-release.apk', allowEmptyArchive: false
+                }
+            }
+        }
+
+        stage('Build iOS (release, unsigned)') {
+            when {
+                beforeAgent true
+                expression { params.BUILD_IOS }
+            }
+            agent { label 'macos' }
+            steps {
+                script {
+                    checkoutRepo()
+                }
+                sh './scripts/build-release.sh --allow-missing --no-codesign ipa'
+            }
+        }
+
+        // Stage to determine the Docker image name based on the target environment
+        stage('Determine Image Name') {
+            when {
+                expression { params.DOCKER_PIPELINE }
+            }
+            steps {
+                script {
+                    def imageName = env.DOCKER_IMAGE_NAME
+                    if (params.ENVIRONMENT != 'prod') {
+                        imageName = "${params.ENVIRONMENT}-${imageName}"
+                    }
+                    env.FINAL_IMAGE_NAME = imageName
+                    env.LOCAL_IMAGE_REF = "${env.FINAL_IMAGE_NAME}:${env.EFFECTIVE_VERSION}"
+                    echo "Local image: ${env.LOCAL_IMAGE_REF}"
+                }
+            }
+        }
+
+        stage('Build Backend Image (no push)') {
+            when {
+                expression { params.DOCKER_PIPELINE }
+            }
+            steps {
+                sh """
+                    set -e
+                    command -v docker >/dev/null
+                    docker build -t \"${env.LOCAL_IMAGE_REF}\" -t jobtrigger-backend:ci JobTrigger-Backend
+                """
+            }
+        }
+    }
+
+    // Post-build conditions to handle reporting, status notifications, and emails
+    post {
+        always {
+            script {
+                publishReports()
+            }
+        }
+        success {
+            script {
+                sendBuildEmail('SUCCESS', '#28a745')
+            }
+        }
+        failure {
+            script {
+                sendBuildEmail('FAILURE', '#dc3545')
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Helpers. Every Jenkinsfile under Jenkins/ carries the same copy of this
+// block (Jenkins loads each file on its own); change all six together.
+// ---------------------------------------------------------------------------
+
+// Explicit checkout of GIT_REPO_URL @ BRANCH, as in the template.
+def checkoutRepo() {
+    def scmVars = checkout([$class: 'GitSCM',
+        branches: [[name: "*/${params.BRANCH}"]],
+        userRemoteConfigs: [[
+            url: "${params.GIT_REPO_URL}",
+            credentialsId: "${env.GITHUB_CREDENTIALS}"
+        ]]
+    ])
+    env.GIT_COMMIT = scmVars.GIT_COMMIT
+}
+
+// Run a shell script in a container that sees this build's workspace.
+// The Jenkins agent is itself a container talking to the host's Docker
+// daemon, so `-v "$WORKSPACE:/repo"` would mount an empty host path.
+// `--volumes-from` shares the agent's real jenkins_home mount instead, and the
+// workspace keeps the same path inside the container. HOME sits next to the
+// workspace (not in the checkout), so npm/pub/Gradle caches survive builds.
+def inContainer(String image, String script, String extraArgs = '') {
+    withEnv(["CI_SCRIPT=${script}"]) {
+        sh """
+            set -e
+            command -v docker >/dev/null
+            mkdir -p "\$WORKSPACE@tmp/ci-home"
+            docker run --rm \\
+              --volumes-from "\$(hostname)" \\
+              -w "\$WORKSPACE" \\
+              -u "\$(id -u):\$(id -g)" \\
+              -e HOME="\$WORKSPACE@tmp/ci-home" \\
+              -e CI=true \\
+              -e CI_SCRIPT \\
+              ${extraArgs} \\
+              --entrypoint /bin/sh \\
+              ${image} -euc 'eval "\$CI_SCRIPT"'
+        """
+    }
+}
+
+// Run a tool image's own entrypoint with `args`, in this build's workspace.
+def dockerTool(String image, String args, String extraArgs = '') {
+    sh """
+        set -e
+        command -v docker >/dev/null
+        docker run --rm \\
+          --volumes-from "\$(hostname)" \\
+          -w "\$WORKSPACE" \\
+          -u "\$(id -u):\$(id -g)" \\
+          -e HOME=/tmp \\
+          ${extraArgs} \\
+          ${image} ${args}
+    """
+}
+
+// Flutter FLUTTER_VERSION (the version GitHub CI pins) for linux/amd64. The
+// newest ready-made image is 3.44.0, so the pinned SDK is checked out on top
+// of it. amd64 because the Android build tools are x86-only on Linux (Docker
+// emulates it on an arm64 host). Docker caches the result after the first run.
+def buildFlutterImage() {
+    sh '''
+        set -e
+        command -v docker >/dev/null
+        docker build --platform linux/amd64 -t "$FLUTTER_IMAGE" - <<EOF
+FROM ghcr.io/cirruslabs/flutter:3.44.0
+RUN apt-get update \\
+ && apt-get install -y --no-install-recommends python3 \\
+ && rm -rf /var/lib/apt/lists/* \\
+ && git config --system --add safe.directory '*' \\
+ && git -C /sdks/flutter fetch --depth 1 origin tag $FLUTTER_VERSION \\
+ && git -C /sdks/flutter checkout -q $FLUTTER_VERSION \\
+ && flutter config --no-analytics \\
+ && flutter --version \\
+ && flutter precache --android \\
+ && sed -n 's/.*val ndkVersion: String = "\\([^"]*\\)".*/ndk;\\1/p' /sdks/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterExtension.kt | head -1 | xargs -r sdkmanager \\
+ && find /opt/android-sdk-linux/ndk -mindepth 1 -maxdepth 1 -type d | grep -q . \\
+ && chmod -R a+rwX /sdks/flutter /opt/android-sdk-linux
+EOF
+    '''
+}
+
+// Run a script in JobTrigger-Frontend with the pinned Flutter image.
+// The app's android/gradle.properties lets Gradle take 8 GB heap + 4 GB
+// metaspace, more than a shared CI Docker host has: the daemon was killed
+// mid-build. ~/.gradle/gradle.properties wins over the project's file, so the
+// CI home caps it here without touching the app's config. The file watcher is
+// off: it fails under amd64 emulation and a CI build doesn't need it.
+def flutter(String script) {
+    inContainer(env.FLUTTER_IMAGE, """
+        # Gradle (Java) takes its home from the passwd entry, not \$HOME: in this
+        # image uid 1000 is `ubuntu`, so without this it reads /home/ubuntu/.gradle.
+        export GRADLE_USER_HOME="\$HOME/.gradle"
+        mkdir -p "\$GRADLE_USER_HOME"
+        printf '%s\\n' \\
+          'org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=768m -XX:+HeapDumpOnOutOfMemoryError' \\
+          'kotlin.daemon.jvmargs=-Xmx1g' \\
+          'org.gradle.vfs.watch=false' > "\$GRADLE_USER_HOME/gradle.properties"
+        cd JobTrigger-Frontend
+        ${script}
+    """, '--platform linux/amd64')
+}
+
+// Upload an lcov file to Codecov. Only runs when UPLOAD_CODECOV is ticked,
+// like GitHub CI only uploads when the CODECOV_TOKEN secret is set.
+def uploadCoverage(String file, String flag) {
+    withCredentials([string(credentialsId: env.CODECOV_TOKEN_ID, variable: 'CODECOV_TOKEN')]) {
+        inContainer('python:3.12-slim', """
+            pip install --quiet --user --disable-pip-version-check codecov-cli
+            "\$HOME/.local/bin/codecovcli" upload-process \\
+              --git-service github --slug SithumRaigamage/JobTrigger \\
+              --commit-sha "\$GIT_COMMIT" --branch "\$BRANCH" \\
+              --file ${file} --flag ${flag} --disable-search
+        """, '-e CODECOV_TOKEN -e GIT_COMMIT -e BRANCH')
+    }
+}
+
+// Template's Trivy HTML report (trivy runs on the agent). UNSTABLE, never
+// FAILURE, on report problems; gating is done separately where CI gates.
+def trivyHtmlReport(String imageRef) {
+    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+        sh """
+            set -e
+            command -v trivy >/dev/null
+
+            if [ ! -f html.tpl ]; then
+                # Pinned to the agent's Trivy version (jenkins/Dockerfile)
+                if ! curl -fsSL https://raw.githubusercontent.com/aquasecurity/trivy/v${env.TRIVY_TEMPLATE_VERSION}/contrib/html.tpl -o html.tpl; then
+                    echo "WARNING: Failed to download Trivy HTML template; falling back to text report"
+                    trivy image --timeout 10m --format table -o \"${env.TRIVY_TEXT_REPORT_NAME}\" \"${imageRef}\"
+                    exit 0
+                fi
+            fi
+
+            trivy image --timeout 10m --format template --template @html.tpl -o \"${env.TRIVY_REPORT_NAME}\" \"${imageRef}\"
+        """
+    }
+}
+
+def archiveReport(String name) {
+    if (name && fileExists(name)) {
+        archiveArtifacts artifacts: name, allowEmptyArchive: true
+    } else {
+        echo "SKIPPING: ${name} not found"
+    }
+}
+
+// Template's post-build report publishing.
+def publishReports() {
+    if (fileExists(env.TRIVY_REPORT_NAME)) {
+        archiveArtifacts artifacts: "${env.TRIVY_REPORT_NAME}", allowEmptyArchive: true
+        publishHTML(target: [
+            allowMissing: false,
+            alwaysLinkToLastBuild: true,
+            keepAll: true,
+            reportDir: '.',
+            reportFiles: "${env.TRIVY_REPORT_NAME}",
+            reportName: 'Trivy Security Report'
+        ])
+    } else if (fileExists(env.TRIVY_TEXT_REPORT_NAME)) {
+        archiveArtifacts artifacts: "${env.TRIVY_TEXT_REPORT_NAME}", allowEmptyArchive: true
+        echo "Published text-only Trivy report: ${env.TRIVY_TEXT_REPORT_NAME}"
+    } else {
+        echo 'SKIPPING: Trivy report not found'
+    }
+    [env.GITLEAKS_REPORT_NAME, env.HADOLINT_REPORT_NAME, env.SEMGREP_REPORT_NAME,
+     env.TRIVY_FS_REPORT_NAME, env.SBOM_REPORT_NAME].each { archiveReport(it) }
+}
+
+// Template's email notification. This repository is public, so no address is
+// written here: the sender is the username of the EMAIL_CREDENTIALS_ID
+// credential, and the receiver is the CI_RECEIVER_EMAIL global property
+// (Manage Jenkins > System > Global properties) or, if unset, the sender.
+def sendBuildEmail(String status, String color) {
+    if (!params.SEND_EMAIL) {
+        return
+    }
+    try {
+        withCredentials([usernamePassword(credentialsId: env.EMAIL_CREDENTIALS_ID,
+                usernameVariable: 'SMTP_USER', passwordVariable: 'SMTP_PASS')]) {
+            def receiver = (env.CI_RECEIVER_EMAIL ?: '').trim() ?: env.SMTP_USER
+            emailext(
+                from: env.SMTP_USER,
+                to: receiver,
+                subject: "BUILD ${status == 'SUCCESS' ? 'SUCCESS' : 'FAILED'}: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                body: generateEmailBody(status, color),
+                mimeType: 'text/html'
+            )
+        }
+        echo "Email notification sent (${status})."
+    } catch (Exception e) {
+        echo "ERROR: Failed to send ${status} email: ${e.message}"
+    }
+}
+
+// Helper function to generate an HTML email body (from the template)
+def generateEmailBody(status, color) {
+    return """
+    <html>
+    <head>
+        <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            .header { background-color: ${color}; color: #ffffff; padding: 20px; text-align: center; }
+            .header h1 { margin: 0; font-size: 24px; }
+            .content { padding: 30px; }
+            .info-item { margin-bottom: 15px; border-bottom: 1px solid #eeeeee; padding-bottom: 10px; }
+            .info-item:last-child { border-bottom: none; }
+            .label { font-weight: bold; color: #555555; display: inline-block; width: 120px; }
+            .value { color: #333333; }
+            .footer { background-color: #eeeeee; padding: 15px; text-align: center; font-size: 12px; color: #777777; }
+            .button { display: inline-block; padding: 10px 20px; background-color: ${color}; color: #ffffff; text-decoration: none; border-radius: 4px; margin-top: 20px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Build ${status}</h1>
+            </div>
+            <div class="content">
+                <div class="info-item">
+                    <span class="label">Project:</span>
+                    <span class="value">${env.JOB_NAME}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Build Number:</span>
+                    <span class="value">#${env.BUILD_NUMBER}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Branch:</span>
+                    <span class="value">${params.BRANCH}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Environment:</span>
+                    <span class="value">${params.ENVIRONMENT}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Version:</span>
+                    <span class="value">${env.EFFECTIVE_VERSION}</span>
+                </div>
+                <div style="text-align: center;">
+                    <a href="${env.BUILD_URL}" class="button">View Build Logs</a>
+                </div>
+            </div>
+            <div class="footer">
+                <p>Generated by Jenkins CI</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+}

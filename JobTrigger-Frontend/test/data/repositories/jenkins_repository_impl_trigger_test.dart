@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -276,4 +277,52 @@ void main() {
       );
     },
   );
+
+  // US-JOB-03 "Parameter values are safely encoded": the bytes on the wire
+  // decode back to exactly what was typed, with no extra fields.
+  test(
+    'a value with &, =, quotes and shell text reaches Jenkins literally',
+    () async {
+      final adapter = _WireAdapter();
+      final dio = Dio(BaseOptions(baseUrl: 'https://jenkins.test'))
+        ..httpClientAdapter = adapter;
+      final repo = JenkinsRepositoryImpl(dio);
+      const hostile = 'a&b=c; rm -rf / "quoted" \'single\' %20 #frag\nnext';
+
+      await repo.triggerBuild(
+        'https://jenkins.test/job/demo',
+        isParameterized: true,
+        parameters: {'MSG': hostile, 'BRANCH': 'main'},
+      );
+
+      final fields = Uri.splitQueryString(adapter.body);
+      expect(fields, {'MSG': hostile, 'BRANCH': 'main'});
+      expect(adapter.path, endsWith('/job/demo/buildWithParameters'));
+    },
+  );
+}
+
+class _WireAdapter implements HttpClientAdapter {
+  String body = '';
+  String path = '';
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    path = options.uri.toString();
+    final bytes = <int>[];
+    if (requestStream != null) {
+      await for (final chunk in requestStream) {
+        bytes.addAll(chunk);
+      }
+    }
+    body = utf8.decode(bytes);
+    return ResponseBody.fromString('', 201);
+  }
+
+  @override
+  void close({bool force = false}) {}
 }

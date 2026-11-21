@@ -18,6 +18,7 @@ import '../../../data/repositories/auth_repository_impl.dart';
 import '../../../domain/auth/auth_state.dart';
 import '../../../domain/auth/auth_validation.dart';
 import '../../../domain/auth/user.dart';
+import '../../common_widgets/toast_controller.dart';
 import '../notifications/build_watch_notifier.dart';
 
 part 'auth_notifier.g.dart';
@@ -49,7 +50,17 @@ class AuthNotifier extends _$AuthNotifier {
     // `previous == null` on the first call is the listener's own
     // registration, not a real signal — skip it.
     ref.listen(sessionSignalProvider, (previous, next) {
-      if (previous != null && next != previous) logout();
+      if (previous != null && next != previous) {
+        // US-AUTH-05: say why the user is back at the login screen.
+        ref
+            .read(toastControllerProvider)
+            .show(
+              type: ToastType.warning,
+              title: 'Session expired',
+              message: 'Your session has expired. Please log in again.',
+            );
+        logout();
+      }
     });
 
     // E2 (PE-14): demo mode is signed in without a session. Nothing is read
@@ -59,7 +70,19 @@ class AuthNotifier extends _$AuthNotifier {
     }
 
     final secureStorage = ref.watch(secureStorageProvider);
-    final token = await secureStorage.readToken();
+    // US-AUTH-03: an unreadable keystore entry (a platform error) means "no
+    // session", never a crash or a redirect loop; what's there is wiped.
+    final String? token;
+    try {
+      token = await secureStorage.readToken();
+    } on Object {
+      try {
+        await _wipeLocalSession();
+      } on Object {
+        // Best effort: the store itself is what failed.
+      }
+      return const Unauthenticated();
+    }
     if (token == null) return const Unauthenticated();
 
     // P19-01: an unticked "Remember me" session ends with the app.

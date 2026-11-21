@@ -296,7 +296,11 @@ class _Footer extends StatelessWidget {
         child: const Text('Load more'),
       );
     } else {
-      content = Text('End of history · $loaded builds', style: style);
+      // US-HIST-02: "1 build", not "1 builds".
+      content = Text(
+        'End of history · $loaded ${loaded == 1 ? 'build' : 'builds'}',
+        style: style,
+      );
     }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),

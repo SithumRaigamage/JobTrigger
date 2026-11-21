@@ -190,3 +190,29 @@ left alone.
   pass on the iPhone (`scripts/run-on-iphone.sh`); Android needs the NDK and
   a device (see above).
 
+
+## Owner to-dos for the 1.0 go-live (added 2026-11-21)
+
+Still open after PRs #154–#157 were merged into `develop` on 2026-11-21. An
+agent can't do any of these: each one needs an owner account, a secret or
+a real value. The steps live in the `manually/` file and the workplan row
+(`Releases/v1.0.0/workplan.md`); tick them there and here together. The
+release branch `release/v1.0.0` is **not** to be re-cut until the owner says
+so (owner, 2026-11-21).
+
+**Website legal details (`JobTrigger-Web/src/content/site-details.ts`, workplan F2, PE-03)**
+The owner's 2026-11-21 message had placeholders, not values. Each field is
+still `null`, and `launch-readiness.test.ts` lists what's missing.
+- [ ] `companyName`
+- [ ] `securityEmail`
+- [ ] `privacyEmail`
+- [ ] `securityReplyDays` (a number of days)
+- [ ] `backupRetention` (e.g. `"30 days"`; must match the production Atlas backup policy, workplan D2)
+- [ ] `legalLastUpdated` (the date the site goes live)
+
+**Manual tasks**
+- [ ] **M-20** Atlas network lock-down (`manually/M-20-atlas-network-lockdown.md`, workplan D2): remove `0.0.0.0/0` from the dev project, add only a temporary Mac IP; production allows only the host's outbound ranges. Needs: the owner's Atlas login.
+- [ ] **M-14** Production backend (`manually/M-14-production-backend.md`, workplan D1–D7): Render service, the `jobtrigger-prod` Atlas cluster, `CREDENTIALS_ENCRYPTION_KEY` in Render's secret manager, the encrypt-credentials run and `seedAppInfo.js`. Needs: Render account (paid plan for a static outbound IP), production Atlas cluster, DNS for the API hostname.
+- [ ] **M-13** Website go-live (`manually/M-13-website-go-live.md`, workplan F1, F3, F4): connect Vercel, set its environment variables, attach the domain; store links after the listings are live. Needs: Vercel account, domain DNS, the `site-details.ts` values above.
+- [ ] **M-19** Production mail (`manually/M-19-production-mail.md`): provider, SPF/DKIM/DMARC on `jobtrigger.app`, the support and student-application inboxes, SMTP secrets on the host; decide whether password reset is live in 1.0. Needs: a mail provider account, DNS access, the inboxes.
+- [ ] **M-07** Crash-reporting DSNs (`manually/M-07-crash-reporting-dsn.md`, workplan D9): the three GlitchTip projects already exist (2026-11-17). Left: copy the DSNs into the three apps' `.env` files (agents may not touch `.env`, CLAUDE.md §8) and send the test crash from the iPhone. Production also needs a hosted GlitchTip and its DSNs (workplan D8).

@@ -25,10 +25,8 @@ describe("upcoming changelog entries", () => {
   });
 
   it("lists the remaining soon features as next, and never planned ones", () => {
-    expect(afterLaunch().map((item) => item.text)).toEqual([
-      "Test connection from the website",
-      "Password reset by email",
-    ]);
+    // US-WEB-19 is `planned` (option c), so it is no longer "next".
+    expect(afterLaunch().map((item) => item.text)).toEqual(["Password reset by email"]);
     expect(afterLaunch().every((item) => item.tag === "Next")).toBe(true);
   });
 

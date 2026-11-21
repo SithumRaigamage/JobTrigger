@@ -8,12 +8,14 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../domain/tools/tool_catalog.dart';
 import '../../../domain/support/support_category.dart';
 import '../../common_widgets/pinned_footer_layout.dart';
+import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
 import '../app_info/app_info_notifier.dart';
 import '../subscription/locked_active_guard.dart';
 import '../subscription/plan_gate.dart';
 import 'active_tool_notifier.dart';
 import 'ci_tool.dart';
+import 'returning_tool_provider.dart';
 
 /// Ported from `Tools/ToolSelection/ToolSelectionView.swift`, laid out to
 /// the P14 design (`UI-UX/screens/03-tool-selection`): the available tools
@@ -25,7 +27,11 @@ import 'ci_tool.dart';
 /// support, so requests decide what's built next. Shown after login, and again
 /// when switching tool from the profile.
 class ToolSelectionScreen extends ConsumerStatefulWidget {
-  const ToolSelectionScreen({super.key});
+  const ToolSelectionScreen({super.key, this.choosing = false});
+
+  /// Opened to choose (Profile → CI tool, `/tools?choose=1`): always shows
+  /// the picker. Otherwise a returning user goes straight Home (US-TOOL-01).
+  final bool choosing;
 
   @override
   ConsumerState<ToolSelectionScreen> createState() =>
@@ -37,6 +43,27 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
   /// switching, Jenkins on first run.
   late CiTool _selected =
       ref.read(activeToolNotifierProvider) ?? CiTool.jenkins;
+
+  /// US-TOOL-01: deciding whether this is a returning user.
+  late bool _deciding = !widget.choosing;
+
+  /// Set once the returning-user answer has been acted on.
+  bool _decided = false;
+
+  void _onReturning(AsyncValue<CiTool?> returning) {
+    if (_decided || returning.isLoading) return;
+    _decided = true;
+    final tool = returning.value;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (tool == null) {
+        setState(() => _deciding = false);
+      } else {
+        _selected = tool;
+        unawaited(_continue());
+      }
+    });
+  }
 
   Future<void> _continue() async {
     final notifier = ref.read(activeToolNotifierProvider.notifier);
@@ -60,6 +87,14 @@ class _ToolSelectionScreenState extends ConsumerState<ToolSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_deciding) {
+      // Watched, not read once: keeps the auto-disposed answer alive.
+      _onReturning(ref.watch(returningToolProvider));
+      return const Scaffold(
+        key: Key('tool_selection_deciding'),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
     final available = CiTool.values.where((tool) => tool.isAvailable).toList();
@@ -357,13 +392,13 @@ class _ComingNext extends StatelessWidget {
   }
 }
 
-class _ComingNextTile extends StatelessWidget {
+class _ComingNextTile extends ConsumerWidget {
   const _ComingNextTile({required this.tool});
 
   final CiTool tool;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
     final version = tool.releaseVersion ?? '';
@@ -372,46 +407,60 @@ class _ComingNextTile extends StatelessWidget {
       enabled: false,
       label: '${tool.displayName}, coming in $version',
       excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: t.cardBorder),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: t.card,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                tool.shortLabel,
-                style: textTheme.labelLarge?.copyWith(
-                  color: t.textMuted,
-                  fontWeight: FontWeight.w700,
+      // US-TOOL-02: a tap selects nothing but says why, so the tile never
+      // reads as broken.
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => ref
+            .read(toastControllerProvider)
+            .show(
+              type: ToastType.info,
+              title: '${tool.displayName} is coming',
+              message: version.isEmpty
+                  ? 'It is not available yet.'
+                  : 'It arrives in $version.',
+            ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: t.cardBorder),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: t.card,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  tool.shortLabel,
+                  style: textTheme.labelLarge?.copyWith(
+                    color: t.textMuted,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              tool.displayName,
-              textAlign: TextAlign.center,
-              style: textTheme.bodySmall?.copyWith(color: t.textSecondary),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              version,
-              style: textTheme.labelSmall?.copyWith(
-                color: t.textMuted,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 6),
+              Text(
+                tool.displayName,
+                textAlign: TextAlign.center,
+                style: textTheme.bodySmall?.copyWith(color: t.textSecondary),
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Text(
+                version,
+                style: textTheme.labelSmall?.copyWith(
+                  color: t.textMuted,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

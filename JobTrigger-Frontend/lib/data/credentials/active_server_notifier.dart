@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/error/app_failure.dart';
+import 'default_choice_sync.dart';
 import '../../core/error/result.dart';
 import '../cache/job_tree_cache.dart';
 import '../repositories/credentials_repository_impl.dart';
@@ -41,9 +42,22 @@ class ActiveServerNotifier extends _$ActiveServerNotifier {
     ref.listen(credentialsNotifierProvider, (_, next) {
       final current = state;
       final fresh = next.value;
-      if (current == null || fresh == null) return;
+      if (fresh == null) return;
+      if (current == null) {
+        // US-CRED-02: the first server saved (or the first list after the
+        // last one was deleted) becomes active, by the same rule as a cold
+        // start. Only real data, after the first rehydration: an error
+        // still carrying an old list must not bring a server back.
+        if (_rehydrated && next is AsyncData && fresh.isNotEmpty) {
+          _adopt(fresh);
+        }
+        return;
+      }
       final match = _findById(fresh, current.id);
       if (match != null && match != current) state = match;
+      // Owner decision 2026-11-21: retry a pending default, else follow
+      // the backend's (e.g. one chosen on the website, US-WEB-18).
+      if (_rehydrated && next is AsyncData) unawaited(_reconcile(fresh));
     }, weak: true);
     // US-SUB-11 AC17: a team server that stops being shared (unshared,
     // removed from the team, the team lapsed) stops being the active one.
@@ -110,6 +124,10 @@ class ActiveServerNotifier extends _$ActiveServerNotifier {
     }
   }
 
+  /// Set once the first rehydration has finished (or given up), so the
+  /// listener above never races it for the persisted choice.
+  bool _rehydrated = false;
+
   Future<void> _rehydrate() async {
     final List<JenkinsServer> servers;
     try {
@@ -118,8 +136,18 @@ class ActiveServerNotifier extends _$ActiveServerNotifier {
       // Credentials failed to load — leave state null; the settings screen
       // surfaces the underlying AppFailure via credentialsNotifierProvider
       // directly.
+      _rehydrated = true;
       return;
     }
+    try {
+      await _adopt(servers);
+    } finally {
+      _rehydrated = true;
+    }
+  }
+
+  /// The persisted choice if still saved, else the default, else the first.
+  Future<void> _adopt(List<JenkinsServer> servers) async {
     if (servers.isEmpty) {
       state = null;
       // US-SUB-11 AC17: someone with only team servers gets theirs back.
@@ -140,18 +168,59 @@ class ActiveServerNotifier extends _$ActiveServerNotifier {
       }
     }
 
-    final resolved =
-        _findById(servers, persistedId) ??
-        _findDefault(servers) ??
-        servers.first;
+    final resolved = pickActive(
+      servers,
+      idOf: (item) => item.id,
+      isDefault: (item) => item.isDefault,
+      pendingId: await _sync.pending(),
+      savedId: persistedId,
+    )!;
     state = resolved;
     await prefs.setString(_activeServerIdKey, resolved.id);
+    // No default on the backend, or one still waiting: push this one.
+    if (!resolved.isDefault) unawaited(_push(resolved.id));
   }
 
   Future<void> setActiveServer(JenkinsServer server) async {
     state = server;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_activeServerIdKey, server.id);
+    // Owner decision 2026-11-21: the backend default follows; if that
+    // fails the choice stays on the phone and is retried. A team server is
+    // not one of the user's own, so the backend has no default to move.
+    if (!TeamServer.isTeamId(server.id)) unawaited(_push(server.id));
+  }
+
+  static const _sync = DefaultChoiceSync('active_server_pending_default');
+
+  Future<void> _push(String id) async {
+    final ok = await _sync.push(
+      id,
+      ref.read(credentialsRepositoryProvider).switchActive,
+    );
+    // The list's default flags changed; reload it so every screen agrees.
+    if (ok && ref.mounted) ref.invalidate(credentialsNotifierProvider);
+  }
+
+  Future<void> _reconcile(List<JenkinsServer> fresh) async {
+    // US-SUB-11 AC17: an active team server stays active while shared; the
+    // own list's default only applies to the user's own servers.
+    if (TeamServer.isTeamId(state?.id)) return;
+    final pendingId = await _sync.pending();
+    if (!ref.mounted) return;
+    if (pendingId != null) {
+      if (_findById(fresh, pendingId) == null) {
+        await _sync.drop();
+      } else {
+        await _push(pendingId);
+      }
+      return;
+    }
+    final backendDefault = _findDefault(fresh);
+    if (backendDefault == null || backendDefault.id == state?.id) return;
+    state = backendDefault;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_activeServerIdKey, backendDefault.id);
   }
 
   Future<void> clear() async {

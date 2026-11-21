@@ -75,24 +75,24 @@ I want to add my Argo CD server URL and an API token
 So that the app can show and act on my Applications
 
 **Acceptance Criteria**
-- Scenario: Successful add
+- [ ] Scenario: Successful add
   Given I enter a label, `https://argocd.example.com` and a token, and tap
   Save
   Then the credential is created and appears in the Argo CD section of
   Settings
-- Scenario: Validation before any network call (`NFR-SEC-02`)
-- Scenario: Help for getting a token
+- [ ] Scenario: Validation before any network call (`NFR-SEC-02`)
+- [ ] Scenario: Help for getting a token
   Given I tap "How do I get a token?"
   Then the sheet explains creating a dedicated local account with the
   `apiKey` capability and generating a token for it
   (`argocd account generate-token --account <name>`), and recommends a
   read-plus-sync role, not admin
-- Scenario: Self-signed certificate
+- [ ] Scenario: Self-signed certificate
   Given the server presents a certificate the phone doesn't trust
   Then the test connection fails with a message that names the cause
   ("the server's certificate isn't trusted") and links to how to install
   the CA on the phone — there is no "ignore certificate errors" toggle
-- Scenario: Server not reachable
+- [ ] Scenario: Server not reachable
   Given the URL doesn't resolve or times out
   Then the message says the phone can't reach the server and links to the
   remote-access guide, rather than a generic network error
@@ -127,13 +127,13 @@ Same as `US-GL-CRED-03`; independent of every other tool's active state
 **Dependencies:** US-ARGO-CRED-01
 
 **Acceptance Criteria**
-- Scenario: Successful test
+- [ ] Scenario: Successful test
   Then `GET {baseUrl}/api/v1/session/userinfo` *(verify)* is called and the
   logged-in account name is shown
-- Scenario: Token lacks permission
+- [ ] Scenario: Token lacks permission
   Given the token can authenticate but cannot list applications
   Then the message names the missing permission (`applications, get`)
-- Scenario: Failed test does not block save
+- [ ] Scenario: Failed test does not block save
 
 ---
 
@@ -150,23 +150,23 @@ I want one list of my Applications showing sync and health
 So that I can see at a glance whether anything in production is broken
 
 **Acceptance Criteria**
-- Scenario: Successful load
+- [ ] Scenario: Successful load
   Given an active credential
   Then `GET {baseUrl}/api/v1/applications` is called and each Application
   shows `metadata.name`, `spec.project`, destination namespace,
   `status.sync.status` and `status.health.status`
-- Scenario: Two status badges, not one
+- [ ] Scenario: Two status badges, not one
   Then sync and health render as two separate chips — an app can be
   `Synced` and `Degraded` at the same time, and merging them into one
   colour would hide that
-- Scenario: Problems first
+- [ ] Scenario: Problems first
   Then the default sort puts `Degraded`, `Missing` and `OutOfSync` apps at
   the top
-- Scenario: Filter
+- [ ] Scenario: Filter
   Given I pick a project or a health status
   Then the list filters client-side (`NFR-PERF-02`)
-- Scenario: No active credential → `NoActiveArgoCdCredentialView`
-- Scenario: Load fails → `AppFailure` error view with retry
+- [ ] Scenario: No active credential → `NoActiveArgoCdCredentialView`
+- [ ] Scenario: Load fails → `AppFailure` error view with retry
 
 **Non-Functional Notes**
 - The list response can be large (it includes full status). If it is too
@@ -183,17 +183,17 @@ I want to see an Application's revision and the resources it manages
 So that I can find which part is unhealthy
 
 **Acceptance Criteria**
-- Scenario: Detail
+- [ ] Scenario: Detail
   Given I tap an Application
   Then `GET {baseUrl}/api/v1/applications/{name}` is called and the screen
   shows the target revision, the synced revision (`status.sync.revision`),
   the repo URL and path, and the last operation's phase and message
-- Scenario: Resources grouped by kind
+- [ ] Scenario: Resources grouped by kind
   Then `GET .../applications/{name}/resource-tree` *(verify)* is called and
   resources render grouped by kind (Deployment, Service, Pod …) with each
   one's own health — a list, not the web UI's graph, which doesn't fit a
   phone screen
-- Scenario: Unhealthy resource first
+- [ ] Scenario: Unhealthy resource first
   Given a resource is `Degraded`
   Then its group is expanded and the resource is highlighted
 
@@ -203,12 +203,12 @@ So that I can find which part is unhealthy
 **Dependencies:** US-ARGO-APP-02
 
 **Acceptance Criteria**
-- Scenario: Polls during an operation
+- [ ] Scenario: Polls during an operation
   Given `status.operationState.phase` is `Running`
   Then the app polls the Application every 5s and stops when the phase is
   `Succeeded`, `Failed`, `Error` or `Terminated`
-- Scenario: Timer cleanup on dispose
-- Scenario (Could): Watch stream
+- [ ] Scenario: Timer cleanup on dispose
+- [ ] Scenario (Could): Watch stream
   Given polling proves too slow or heavy
   Then the server-sent-events stream `/api/v1/stream/applications`
   *(verify)* may replace polling — a separate decision, not default
@@ -228,19 +228,19 @@ I want to sync an OutOfSync Application
 So that the cluster matches Git without opening a laptop
 
 **Acceptance Criteria**
-- Scenario: Sync
+- [ ] Scenario: Sync
   Given I tap Sync and confirm
   Then `POST {baseUrl}/api/v1/applications/{name}/sync` is called and the
   screen switches to live status (`US-ARGO-APP-03`)
-- Scenario: Options
+- [ ] Scenario: Options
   Then the sync sheet offers "Prune" (off by default) and "Dry run";
   enabling Prune shows a warning that resources missing from Git will be
   deleted
-- Scenario: Dry run first (Should)
+- [ ] Scenario: Dry run first (Should)
   Given I tap "Preview" in the sheet
   Then the same call is sent with `dryRun: true` and the result is shown
   without changing the cluster
-- Scenario: Permission denied
+- [ ] Scenario: Permission denied
   Given the token lacks `applications, sync`
   Then the message names that permission
 
@@ -254,7 +254,7 @@ So that the cluster matches Git without opening a laptop
 **Dependencies:** US-ARGO-SYNC-01
 
 **Acceptance Criteria**
-- Scenario: Terminate
+- [ ] Scenario: Terminate
   Given an operation in `Running`
   When I confirm Terminate
   Then `DELETE {baseUrl}/api/v1/applications/{name}/operation` is called
@@ -269,15 +269,15 @@ I want to roll an Application back to a revision that worked
 So that I can recover from a bad deploy fast
 
 **Acceptance Criteria**
-- Scenario: Rollback
+- [ ] Scenario: Rollback
   Given I pick an entry in the deployment history and confirm
   Then `POST {baseUrl}/api/v1/applications/{name}/rollback` is called with
   that entry's `id`
-- Scenario: Auto-sync is on
+- [ ] Scenario: Auto-sync is on
   Given the Application has an automated sync policy
   Then the confirm dialog warns that Argo CD will sync forward again unless
   auto-sync is disabled — a rollback under auto-sync doesn't stick
-- Scenario: Permission denied
+- [ ] Scenario: Permission denied
   Given the token lacks `applications, action/rollback`
   Then the message names that permission
 
@@ -298,12 +298,12 @@ I want to read the logs of a pod in an unhealthy Application
 So that I can see why it is crashing
 
 **Acceptance Criteria**
-- Scenario: Logs for a pod
+- [ ] Scenario: Logs for a pod
   Given I tap a Pod resource and pick a container
   Then the pod-logs endpoint `GET .../applications/{name}/logs`
   *(verify — parameters such as `podName`, `container`, `tailLines`)* is
   called with a tail of the last 500 lines, rendered in `ConsoleLogViewer`
-- Scenario: Follow (Could)
+- [ ] Scenario: Follow (Could)
   Then a "Follow" toggle streams new lines while the screen is open
 
 **Security & Privacy Notes**
@@ -321,9 +321,9 @@ So that I can see why it is crashing
 **Dependencies:** US-ARGO-APP-02
 
 **Acceptance Criteria**
-- Scenario: History list
+- [ ] Scenario: History list
   Then `status.history[]` from the Application response renders newest
   first: revision (short SHA), deployed-at time, and the entry `id` used by
   rollback — no extra request needed
-- Scenario: Current revision marked
+- [ ] Scenario: Current revision marked
   Then the entry matching the synced revision is labelled "Current"

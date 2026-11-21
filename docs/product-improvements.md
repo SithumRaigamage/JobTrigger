@@ -4,7 +4,7 @@ Written 2026-11-16. A **proposal list**, not a plan of record: nothing here
 is promoted. Status of record stays in `tasks/README.md`.
 
 This list covers ways to make JobTrigger better **other than adding more
-CI/CD tools** (those are in `docs/future-tools.md`). It has **156
+CI/CD tools** (those are in `docs/future-tools.md`). It has **168
 improvements** across the app, the website and the backend.
 
 ## Already planned, so not repeated here
@@ -327,3 +327,37 @@ shape, IMP-65 what's new.
 **Promoted 2026-11-17** to `tasks/phase-23-product-improvements.md` as
 PI-01…PI-10 (owner-approved). Their status of record is that phase file and
 `tasks/README.md`; this section is kept as the proposal's rationale.
+
+## Z. Session continuity and release polish (added 2026-11-19)
+
+These twelve came out of the 1.0.0 readiness review, where the release notes
+and the closed feature set were read together with everyday phone use. Four of
+them (IMP-157, IMP-158, IMP-160, IMP-163) need no new package, no backend
+change and no Jenkins change: IMP-158 keeps the screen awake through a small
+platform channel rather than `wakelock_plus`. The owner approved those four on
+2026-11-19 as the first 1.1.0 batch, `tasks/phase-26-polish.md`
+(`P26-01…P26-04`). The other eight stay proposals here.
+
+| ID | Improvement | Why it matters | Size | Flags |
+|---|---|---|---|---|
+| IMP-157 | **"Since you last looked" card**: builds that failed, went green or are waiting for approval since the previous app open | The app should answer "what happened while I was away" in one glance, not by scrolling three feeds | S | — |
+| IMP-158 | **Deploy-watch mode**: keep the screen awake with a compact running-build pill while a release runs, and exit automatically when it finishes | Watching a deploy means the screen sleeps every 30 seconds and you miss the result | S | — |
+| IMP-159 | **Cancel superseded runs**: one action that cancels earlier still-running builds of the same branch or workflow | Morning queues are full of runs nobody wants any more; cancelling them one at a time is the worst kind of phone work | M | — |
+| IMP-160 | **Duration estimate beside Trigger**: "last time this took 12 min", with a warning when the job is running far slower than usual | Stops someone starting a 40-minute job five minutes before they have to leave | S | — |
+| IMP-161 | **Inline artifact preview** for images, PDF, HTML, JSON and text | Artifacts are a download/share action today; a failed visual-diff screenshot should just open | M | — |
+| IMP-162 | **Offline action queue**: a trigger or cancel queued while offline, sent when connectivity returns, stamped with when it was actually sent | Lifts and basements drop the network mid-trigger and the action is simply lost | M | — |
+| IMP-163 | **Runbook link per job**: attach a wiki page or checklist that shows before a protected trigger | Every production deploy has a runbook; it should be one tap from the confirm button | S | — |
+| IMP-164 | **Shareable trigger templates**: a link that opens the parameter form pre-filled ("deploy staging, version 1.4") | Teammates send "run it like this" in chat; pasting five parameters by hand is the friction | M | New scope |
+| IMP-165 | **Job health score**: pass rate, median duration, flake rate and time-to-green as one number per job | A reason to open the app weekly, and a defensible Pro feature | M | — |
+| IMP-166 | **Server health warning**: flag an old Jenkins core or a missing plugin that a screen depends on | Turns a confusing empty screen into "your server needs an update" | S | — |
+| IMP-167 | **Screenshot on a support ticket**, attached to the existing diagnostics report | A screenshot is what people actually send; text diagnostics alone leave support guessing | S | Backend |
+| IMP-168 | **Restart a pipeline from the failed stage**, where the server exposes stage restart | Re-running a 40-minute pipeline to fix its last two minutes is the most common waste in CI | M | Jenkins frozen |
+
+Relationship to earlier items, so nothing is double-counted: IMP-157 differs
+from IMP-15 (a scheduled daily digest) and IMP-55 ("my week") by being a
+per-session delta. IMP-159 is a rule, not a selection, so it does not replace
+IMP-77 (multi-select bulk actions). IMP-160 gives the pre-trigger signal that
+IMP-18 (compare with last green) gives after the build. IMP-163 is distinct
+from IMP-86 (private notes on a build): the runbook belongs to the job and is
+read **before** acting. IMP-168 builds on replay, which already exists.
+

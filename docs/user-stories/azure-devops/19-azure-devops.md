@@ -76,30 +76,30 @@ I want to add my Azure DevOps organization URL and a Personal Access Token
 So that the app can list and run my pipelines
 
 **Acceptance Criteria**
-- Scenario: Successful add against Azure DevOps Services
+- [ ] Scenario: Successful add against Azure DevOps Services
   Given I enter `https://dev.azure.com/contoso`, a label and a PAT, and tap
   Save
   Then the credential is created via the new backend endpoint and appears
   in the Azure DevOps section of Settings
-- Scenario: Organization name only
+- [ ] Scenario: Organization name only
   Given I type just `contoso` in the organization field
   Then the form expands it to `https://dev.azure.com/contoso` before saving
   and shows the expanded URL so I can see what will be called
-- Scenario: Self-hosted Azure DevOps Server
+- [ ] Scenario: Self-hosted Azure DevOps Server
   Given I enter a full collection URL instead
   Then that URL, unchanged, is what every request for this credential
   targets
-- Scenario: Validation before any network call
+- [ ] Scenario: Validation before any network call
   Given the URL or token field is empty or the URL is malformed
   Then client-side validation blocks submission with an inline message
   (`NFR-SEC-02`) — PATs have no fixed prefix, so this is a non-empty check
-- Scenario: Token lacks required scopes
+- [ ] Scenario: Token lacks required scopes
   Given the test connection (`US-AZ-CRED-04`) shows the PAT cannot read
   builds
   Then save is still allowed with a warning naming the scopes needed
   (`Build (Read & execute)` at minimum) — a nudge, not a gate, matching
   `US-CRED-02`/`US-GH-CRED-01`
-- Scenario: Save fails
+- [ ] Scenario: Save fails
   Given the backend request fails
   Then an `AppFailure`-mapped message is shown and the form keeps its
   values
@@ -132,14 +132,14 @@ I want to edit or remove a saved Azure DevOps credential
 So that I can rotate an expiring PAT or drop an organization
 
 **Acceptance Criteria**
-- Scenario: Edit never pre-fills the token
+- [ ] Scenario: Edit never pre-fills the token
   Given I open an existing credential's edit sheet
   Then the PAT field is empty with "leave blank to keep the current token"
   copy, matching `US-CRED-03`
-- Scenario: Delete with confirmation
+- [ ] Scenario: Delete with confirmation
   Given I swipe-delete a credential
   Then a confirmation dialog appears before the backend delete fires
-- Scenario: Deleting the active credential falls back
+- [ ] Scenario: Deleting the active credential falls back
   Given the deleted credential was active
   Then the `isDefault` or first remaining credential becomes active, or the
   active state clears if none remain
@@ -161,10 +161,10 @@ I want to switch between saved Azure DevOps organizations
 So that I can work in a different organization
 
 **Acceptance Criteria**
-- Scenario: Switching refetches projects
+- [ ] Scenario: Switching refetches projects
   Given I select a non-active credential in Settings
   Then it becomes active and the project list (`US-AZ-PROJ-01`) refetches
-- Scenario: Independent of other tools
+- [ ] Scenario: Independent of other tools
   Given Jenkins, GitHub or SonarQube credentials are also active
   Then their active state is untouched (`NFR-SEC-03`)
 
@@ -182,17 +182,17 @@ I want to check a credential works before relying on it
 So that I catch a wrong organization or expired PAT early
 
 **Acceptance Criteria**
-- Scenario: Successful test
+- [ ] Scenario: Successful test
   Given a valid URL and PAT
   When I tap "Test Connection"
   Then `GET {baseUrl}/_apis/connectionData` *(verify)* — or, if that is
   not suitable, `GET {baseUrl}/_apis/projects?api-version=7.1` — is called
   and the authenticated user's display name (or the project count) is shown
-- Scenario: Expired PAT
+- [ ] Scenario: Expired PAT
   Given the PAT has expired
   Then the message says the token expired, not just "unauthorized", so the
   user knows to rotate it
-- Scenario: Failed test does not block save
+- [ ] Scenario: Failed test does not block save
 
 **Non-Functional Notes**
 - None.
@@ -212,23 +212,23 @@ I want a searchable list of the projects in my organization
 So that I can open the one I work in
 
 **Acceptance Criteria**
-- Scenario: Successful load
+- [ ] Scenario: Successful load
   Given an active credential
   Then `GET {baseUrl}/_apis/projects?api-version=7.1` is called and each
   project's `name` and `description` render
-- Scenario: Default project skips the list
+- [ ] Scenario: Default project skips the list
   Given the credential has a `defaultProject`
   Then the app opens straight into that project's pipelines, with a way
   back to the full project list
-- Scenario: No active credential
+- [ ] Scenario: No active credential
   Then a `NoActiveAzureDevOpsCredentialView` gates the screen
-- Scenario: Client-side search (`NFR-PERF-02`)
-- Scenario: Continuation paging
+- [ ] Scenario: Client-side search (`NFR-PERF-02`)
+- [ ] Scenario: Continuation paging
   Given more projects than one response returns
   Then the app follows Azure's continuation token (returned in the
   `x-ms-continuationtoken` response header) *(verify)* to load more, rather
   than truncating
-- Scenario: Load fails → `AppFailure` error view with retry
+- [ ] Scenario: Load fails → `AppFailure` error view with retry
 
 **Non-Functional Notes**
 - `NFR-PERF-02`.
@@ -244,17 +244,17 @@ I want to see a project's pipelines and how each last ran
 So that I can spot a broken one quickly
 
 **Acceptance Criteria**
-- Scenario: Successful load
+- [ ] Scenario: Successful load
   Given I open a project
   Then `GET {baseUrl}/{project}/_apis/pipelines?api-version=7.1` is called
   and each pipeline's `name` and `folder` render, grouped by folder
-- Scenario: Latest run status
+- [ ] Scenario: Latest run status
   Given a pipeline has runs
   Then its row shows the latest run's `state`/`result` using the shared
   `StatusIndicator`, extended for Azure's vocabulary: `state` is
   `inProgress`, `canceling` or `completed`; `result` is `succeeded`,
   `failed`, `canceled` or `unknown`
-- Scenario: Load fails → `AppFailure` error view with retry
+- [ ] Scenario: Load fails → `AppFailure` error view with retry
 
 **UI / Design Notes**
 - Folder grouping reuses the section-header style from the Jenkins tree,
@@ -279,17 +279,17 @@ I want to see a run's stages and jobs with their statuses
 So that I know exactly what is running or what failed
 
 **Acceptance Criteria**
-- Scenario: Successful load
+- [ ] Scenario: Successful load
   Given I tap a run
   Then `GET {baseUrl}/{project}/_apis/build/builds/{runId}/timeline`
   *(verify)* is called; its `records[]` (types `Stage`, `Phase`, `Job`,
   `Task`) are grouped into stage → job → task, and stages render with the
   shared stage-chip row (`stage_chip_row.dart`)
-- Scenario: Failed task is easy to find
+- [ ] Scenario: Failed task is easy to find
   Given a task has `result: failed`
   Then its stage and job are expanded by default and the task is
   highlighted, with a tap-through to its log (`US-AZ-LOG-01`)
-- Scenario: Load fails → `AppFailure` error view with retry
+- [ ] Scenario: Load fails → `AppFailure` error view with retry
 
 **Non-Functional Notes**
 - None beyond standard `AppFailure` mapping.
@@ -305,25 +305,25 @@ I want to start a pipeline run on a chosen branch with optional parameters
 So that I can kick off a build or deploy without a laptop
 
 **Acceptance Criteria**
-- Scenario: Successful run
+- [ ] Scenario: Successful run
   Given I pick a branch (default: the repository's default branch) and
   confirm
   Then `POST {baseUrl}/{project}/_apis/pipelines/{pipelineId}/runs?api-version=7.1`
   is called with `resources.repositories.self.refName =
   "refs/heads/{branch}"`, and the response's run `id` and `state` are used
   to open the run detail directly — no "refresh and hope" step
-- Scenario: Template parameters
+- [ ] Scenario: Template parameters
   Given the pipeline's YAML declares parameters
   Then the app offers key/value inputs sent as `templateParameters`
   — the API does not return a typed parameter schema, so like
   `US-GH-RUN-02` this is an untyped list
-- Scenario: Preview before run (Could)
+- [ ] Scenario: Preview before run (Could)
   Given I tap "Preview"
   Then the same call is sent with `previewRun: true` and the returned final
   YAML is shown read-only, without creating a run
-- Scenario: Confirm before run
+- [ ] Scenario: Confirm before run
   Then a confirmation dialog appears before the request fires
-- Scenario: Run fails
+- [ ] Scenario: Run fails
   Given the branch doesn't exist or the PAT lacks "execute"
   Then a specific `AppFailure` message is shown
 
@@ -341,15 +341,15 @@ I want a running pipeline's status to update on screen
 So that I don't have to refresh manually
 
 **Acceptance Criteria**
-- Scenario: Polls while running
+- [ ] Scenario: Polls while running
   Given `state: inProgress`
   Then the app polls the run and its timeline every 5s, matching
   `BuildStatusPollingNotifier`, and stops when `state` is `completed`
-- Scenario: Throttled response
+- [ ] Scenario: Throttled response
   Given Azure returns `429` or a `Retry-After` header
   Then polling waits the stated time, and stops with a message if
   throttling continues — Azure rate-limits by usage, not a fixed count
-- Scenario: Timer cleanup on dispose (`ref.onDispose`)
+- [ ] Scenario: Timer cleanup on dispose (`ref.onDispose`)
 
 **Non-Functional Notes**
 - None beyond the cadence above.
@@ -365,14 +365,14 @@ I want to cancel a run that is still going
 So that I can stop a build I started by mistake
 
 **Acceptance Criteria**
-- Scenario: Successful cancel
+- [ ] Scenario: Successful cancel
   Given a run with `state: inProgress`
   When I confirm cancel
   Then `PATCH {baseUrl}/{project}/_apis/build/builds/{runId}` *(verify)*
   is sent with `{ "status": "cancelling" }` and the run shows `canceling`
   until polling reports `completed`/`canceled`
-- Scenario: Cancel fails → `AppFailure` message, status left untouched
-- Scenario: Confirm before cancel
+- [ ] Scenario: Cancel fails → `AppFailure` message, status left untouched
+- [ ] Scenario: Confirm before cancel
 
 **Non-Functional Notes**
 - None.
@@ -388,15 +388,15 @@ I want to rerun only the stage that failed
 So that a flaky test doesn't force a full rebuild
 
 **Acceptance Criteria**
-- Scenario: Retry a stage
+- [ ] Scenario: Retry a stage
   Given a completed run with a failed stage
   When I confirm "Retry stage" on it
   Then `PATCH {baseUrl}/{project}/_apis/build/builds/{runId}/stages/{stageRefName}`
   *(verify)* is sent with `{ "state": "retry" }`
-- Scenario: Retry not offered where unsupported
+- [ ] Scenario: Retry not offered where unsupported
   Given a classic (non-YAML) pipeline, where stage retry doesn't apply
   Then the action is hidden, not shown and then failed
-- Scenario: Retry fails → `AppFailure` message
+- [ ] Scenario: Retry fails → `AppFailure` message
 
 **Non-Functional Notes**
 - None.
@@ -416,12 +416,12 @@ I want one list of deployments waiting for my approval
 So that I can unblock a release from my phone
 
 **Acceptance Criteria**
-- Scenario: Pending approvals load
+- [ ] Scenario: Pending approvals load
   Given an active credential and project
   Then `GET {baseUrl}/{project}/_apis/pipelines/approvals?state=pending`
   *(verify)* is called and each approval shows the pipeline, run, stage,
   environment and how long it has waited
-- Scenario: Badge on the run detail
+- [ ] Scenario: Badge on the run detail
   Given a run is waiting on an approval
   Then its stage shows a "Waiting for approval" chip that opens the
   approval
@@ -440,19 +440,19 @@ I want to approve or reject a pending deployment with a comment
 So that releases don't stall while I'm away from my desk
 
 **Acceptance Criteria**
-- Scenario: Approve
+- [ ] Scenario: Approve
   Given a pending approval assigned to me
   When I tap Approve, add an optional comment and confirm
   Then `PATCH {baseUrl}/{project}/_apis/pipelines/approvals` *(verify)* is
   sent with `[{ approvalId, status: "approved", comment }]`
-- Scenario: Reject requires a comment
+- [ ] Scenario: Reject requires a comment
   Given I tap Reject
   Then a comment is required before the confirm button enables
-- Scenario: Biometric gate for production
+- [ ] Scenario: Biometric gate for production
   Given app lock is enabled (`US-JX-21`)
   Then approving asks for Face ID / fingerprint first, every time — an
   approval releases code to production and must not be one stray tap
-- Scenario: Not my approval
+- [ ] Scenario: Not my approval
   Given the approval is assigned to someone else
   Then the buttons are hidden and the assignee is shown
 
@@ -478,17 +478,17 @@ I want to read a task's log, including while it is running
 So that I can follow a build the way I can with Jenkins
 
 **Acceptance Criteria**
-- Scenario: Log for a task
+- [ ] Scenario: Log for a task
   Given a timeline record with a `log.id`
   Then `GET {baseUrl}/{project}/_apis/build/builds/{runId}/logs/{logId}`
   *(verify)* is called and rendered in the shared virtualized
   `ConsoleLogViewer`
-- Scenario: Incremental fetch while running
+- [ ] Scenario: Incremental fetch while running
   Given the task is still running
   Then the app requests only new lines using `startLine` *(verify)* from
   the last line it already has — closer to Jenkins' `progressiveText` than
   GitLab's full-trace-every-time
-- Scenario: Fetch fails without losing rendered lines
+- [ ] Scenario: Fetch fails without losing rendered lines
 
 **Non-Functional Notes**
 - `NFR-PERF-03`.
@@ -500,7 +500,7 @@ So that I can follow a build the way I can with Jenkins
 **Dependencies:** US-AZ-LOG-01
 
 **Acceptance Criteria**
-- Scenario: Same `share_plus` action as `US-LOG-03`, unmodified
+- [ ] Scenario: Same `share_plus` action as `US-LOG-03`, unmodified
 
 ---
 
@@ -513,7 +513,7 @@ So that I can follow a build the way I can with Jenkins
 **Dependencies:** US-AZ-PROJ-02
 
 **Acceptance Criteria**
-- Scenario: History list
+- [ ] Scenario: History list
   Given I open a pipeline's history
   Then `GET {baseUrl}/{project}/_apis/pipelines/{pipelineId}/runs` is
   called and runs render with `HistoryTile`'s pattern (name, result,
@@ -526,7 +526,7 @@ So that I can follow a build the way I can with Jenkins
 **Dependencies:** US-AZ-HIST-01
 
 **Acceptance Criteria**
-- Scenario: One call, not a fan-out
+- [ ] Scenario: One call, not a fan-out
   Given a project
   Then `GET {baseUrl}/{project}/_apis/build/builds?$top=50` *(verify)*
   returns recent runs across all pipelines in one request — unlike

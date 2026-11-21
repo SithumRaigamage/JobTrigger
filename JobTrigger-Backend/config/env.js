@@ -300,6 +300,9 @@ function invalidConfig(env = process.env) {
   if (!blank(env.STUDENT_ADMIN_EMAIL) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.STUDENT_ADMIN_EMAIL.trim())) {
     return 'STUDENT_ADMIN_EMAIL must be an email address';
   }
+  if (!blank(env.MIN_SUPPORTED_APP_VERSION) && !/^\d+\.\d+\.\d+$/.test(env.MIN_SUPPORTED_APP_VERSION.trim())) {
+    return 'MIN_SUPPORTED_APP_VERSION must look like 1.0.1';
+  }
   if (!blank(env.SUPPORT_EMAIL) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.SUPPORT_EMAIL.trim())) {
     return 'SUPPORT_EMAIL must be an email address';
   }

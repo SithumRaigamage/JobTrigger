@@ -10,6 +10,8 @@ import 'core/error/no_retry.dart';
 import 'core/error_reporting/crash_reporting.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_notifier.dart';
+import 'presentation/features/app_info/update_gate.dart';
+import 'presentation/features/auth/credentials_resume_reloader.dart';
 import 'presentation/common_widgets/demo_banner_gate.dart';
 import 'presentation/common_widgets/toast_view.dart';
 import 'data/demo/demo_mode_notifier.dart';
@@ -151,6 +153,8 @@ class MyApp extends ConsumerWidget {
         }
       });
     final themeMode = ref.watch(themeNotifierProvider);
+    // US-WEB-17: reload saved credentials when the app comes back.
+    ref.watch(credentialsResumeReloaderProvider);
 
     return MaterialApp.router(
       title: 'JobTrigger',
@@ -165,7 +169,10 @@ class MyApp extends ConsumerWidget {
       // US-JX-21: the lock covers everything, toasts included.
       builder: (context, child) => AppLockGate(
         child: ToastOverlay(
-          child: DemoBannerGate(child: child ?? const SizedBox.shrink()),
+          // US-PROF-03: an unsupported version can't be used.
+          child: UpdateRequiredGate(
+            child: DemoBannerGate(child: child ?? const SizedBox.shrink()),
+          ),
         ),
       ),
     );

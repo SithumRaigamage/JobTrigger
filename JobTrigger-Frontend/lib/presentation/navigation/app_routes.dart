@@ -12,6 +12,9 @@ abstract class AppRoutes {
   static const jobDetail = '/home/job';
   static const buildLog = '/home/job/build-log';
   static const buildDetail = '/home/job/build';
+
+  /// US-JX-16; extra: `(JenkinsJob, JenkinsBuild)`.
+  static const replayEdit = '/home/job/build/replay-edit';
   static const jobHistory = '/home/job/history';
   static const queue = '/home/queue';
 

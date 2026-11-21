@@ -43,6 +43,18 @@ class BuildStatusPollingNotifier extends _$BuildStatusPollingNotifier {
     }, fireImmediately: true);
   }
 
+  /// US-JOB-05: after an optimistic cancel the build reads as finished, so
+  /// the loop above stops. Poll once more anyway, so Jenkins' real state
+  /// replaces the guess: still running (it resumes polling), or the result
+  /// it really ended with (e.g. it had already finished).
+  void confirmSoon() {
+    _timer?.cancel();
+    _timer = Timer(
+      const Duration(seconds: 5),
+      () => ref.invalidate(jobDetailNotifierProvider(jobUrl)),
+    );
+  }
+
   void _reschedule(
     String jobUrl, {
     String? buildUrl,

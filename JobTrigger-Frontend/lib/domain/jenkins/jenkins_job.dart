@@ -75,6 +75,11 @@ class JenkinsJob {
   /// A multibranch pipeline project (US-JX-03).
   bool get isMultibranch => jobClass == multibranchClass;
 
+  /// A Pipeline job (US-JX-16: only these can be replayed with edits).
+  static const pipelineClass = 'org.jenkinsci.plugins.workflow.job.WorkflowJob';
+
+  bool get isPipeline => jobClass == pipelineClass;
+
   /// A project that can be re-scanned for branches/repositories — a
   /// multibranch project or an organization folder (US-JX-03).
   bool get isScannable =>

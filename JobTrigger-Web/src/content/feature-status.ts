@@ -93,9 +93,11 @@ export const features = {
   },
   "web-test-connection": {
     label: "Website: test connection",
-    status: "soon",
-    source: "US-WEB-19 needs a new backend endpoint (backend track)",
-    changelog: ["Test connection from the website"],
+    // US-WEB-19, owner decision 2026-11-20: option (c) — the phone tests the
+    // connection. A website test (SSRF-guarded endpoint) is reconsidered in
+    // 1.1 only if needed, so nothing promises it as coming next.
+    status: "planned",
+    source: "US-WEB-19 option (c) for 1.0; option (b) reconsidered in 1.1",
   },
   "password-reset": {
     label: "Password reset",

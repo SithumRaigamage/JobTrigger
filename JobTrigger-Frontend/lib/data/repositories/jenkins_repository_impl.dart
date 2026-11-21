@@ -22,6 +22,7 @@ import '../../domain/jenkins/pipeline_stage.dart';
 import '../../domain/jenkins/queue_entry.dart';
 import '../../domain/jenkins/server_status.dart';
 import '../../domain/jenkins/queue_item.dart';
+import '../../domain/jenkins/replay_script.dart';
 import '../../domain/jenkins/test_report.dart';
 import '../models/jenkins/jenkins_build_dto.dart';
 import '../models/jenkins/jenkins_job_dto.dart';
@@ -31,6 +32,7 @@ import '../models/jenkins/pipeline_stage_dto.dart';
 import '../models/jenkins/queue_item_dto.dart';
 import '../models/jenkins/test_report_dto.dart';
 import 'jenkins_url_rewriter.dart';
+import 'replay_script_parser.dart';
 
 import '../demo/demo_jenkins_repository.dart';
 import '../demo/demo_mode_notifier.dart';
@@ -460,6 +462,35 @@ class JenkinsRepositoryImpl implements JenkinsRepository {
     () => _dio.post<void>(
       '${_withSlash(buildUrl)}stop',
       options: Options(
+        followRedirects: false,
+        validateStatus: _acceptRedirects,
+      ),
+    ),
+  );
+
+  @override
+  Future<Result<ReplayScript, AppFailure>> fetchReplayScript(String jobUrl) =>
+      guardRequest(() async {
+        final response = await _dio.get<String>(
+          '${_withSlash(jobUrl)}config.xml',
+          options: Options(responseType: ResponseType.plain),
+        );
+        return parseReplayScript(response.data ?? '');
+      });
+
+  @override
+  Future<Result<void, AppFailure>> replayWithScript(
+    String buildUrl,
+    String script,
+  ) => guardRequest(
+    () => _dio.post<void>(
+      '${_withSlash(buildUrl)}replay/run',
+      data: {
+        '_.mainScript': script,
+        'json': jsonEncode({'mainScript': script}),
+      },
+      options: Options(
+        contentType: Headers.formUrlEncodedContentType,
         followRedirects: false,
         validateStatus: _acceptRedirects,
       ),

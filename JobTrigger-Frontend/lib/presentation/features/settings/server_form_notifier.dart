@@ -65,6 +65,22 @@ class ServerFormNotifier extends _$ServerFormNotifier {
         return;
       }
     }
+    // US-CRED-02: the backend requires these (`JenkinsCredential` schema);
+    // say so here instead of after a round trip. After the plan check, so
+    // a server over the limit still goes straight to the paywall.
+    final missing = serverName.trim().isEmpty
+        ? 'Enter a name for this server.'
+        : username.trim().isEmpty
+        ? 'Enter your Jenkins username.'
+        // An edit keeps its existing rules (AUD-63 above); only a new server
+        // must bring a secret.
+        : id == null && secret.isEmpty
+        ? 'Enter your API token or password.'
+        : null;
+    if (missing != null) {
+      state = AsyncError(FormValidationError(missing), StackTrace.current);
+      return;
+    }
     final repository = ref.read(credentialsRepositoryProvider);
     final result = id == null
         ? await repository.add(

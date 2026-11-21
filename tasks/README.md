@@ -14,6 +14,12 @@ tracked in [`Releases/v1.0.0/workplan.md`](../Releases/v1.0.0/workplan.md)
 website, billing, device checks and docs). This table stays the source of
 truth for individual task status.
 
+**User stories re-ticked 2026-11-21:** 448 of 538 acceptance criteria in the
+built epics are proven by a named test; the other 90 say why not (most are
+owner decisions, criteria replaced on purpose, or device-only checks), and
+13 bugs found on the way were fixed. Per-story table:
+[`Releases/v1.0.0/story-retick-2026-11-21.md`](../Releases/v1.0.0/story-retick-2026-11-21.md).
+
 ## Phase status
 
 | Phase | File | Status | Depends on |
@@ -30,7 +36,7 @@ truth for individual task status.
 | 8 — GitHub Actions integration (epic GH) | `phase-8-github-actions.md` | in-progress (development-complete; P8-00..25 of 28; P8-26/27: live API half done 2026-11-17 against a real repo; the fine-grained-token and iPhone checks are MANUAL (owner, `manually/` M-06)). Ships in release 1.0. | none — second CI tool, promoted from `backlog.md` |
 | 9 — Testing, CI/CD hardening, dev tooling (epic HARDEN) | `phase-9-testing-cicd-hardening.md` | done | none — dev/QA/tooling work, promoted from a direct user request 2026-09-15 |
 | 10 — SonarQube integration (epic SQ) | `phase-10-sonarqube.md` | in-progress (development-complete; P10-00..13, P10-16..24 all done; P10-14/15 are the auth-isolation and real-server checks, MANUAL (owner, `manually/` M-03/M-04). Ships in release 1.0.) | none — third CI tool, promoted from `backlog.md` |
-| 11 — Jenkins extended capabilities (epic JX) | `phase-11-jenkins-extended.md` | done 2026-09-30 (P11-01..28; P11-27 closed as won't-do by its verification gate). Only P11-03 remains: MANUAL (owner), on hold, no Android device (`MANUAL.md` M-02) | P12-04 (shared repository guard); P11-01 fixture Jenkins for verification |
+| 11 — Jenkins extended capabilities (epic JX) | `phase-11-jenkins-extended.md` | done 2026-09-30 (P11-01..28; P11-27 closed as won't-do by its verification gate). **P11-29 (US-JX-16 reopened by the owner 2026-11-20, inline-script pipelines) built and ticked 2026-11-20**; its live pass is MANUAL (owner, M-22). P11-03 remains MANUAL (owner), on hold, no Android device (`MANUAL.md` M-02) | P12-04 (shared repository guard); P11-01 fixture Jenkins for verification |
 | 12 — Audit remediation (epic AUDIT) | `phase-12-audit-remediation.md` | done 2026-10-01 (P12-01..11 frontend, P12-20..27 backend). Audit: 41 findings, all fixed; tracker: `docs/audit/2026-09-29-workspace-audit.md`. The `buildUnstable` contrast follow-up was resolved by the Phase 14 redesign (measured 2026-11-08: text 4.52:1, dot 3.56:1 on light) | none; backend-track items need per-item approval; P12-06 needs a product decision on LAN `http://` |
 | 13 — Second audit remediation (epic AUDIT-2) | `phase-13-audit-2-remediation.md` | done 2026-10-22, closed 2026-10-23 (P13-01..27 fixed; password reset deferred to `backlog.md` as US-AUTH-08). Audit documents deleted; this phase file is the record | none; AUD-66 (leaked Jenkins token) confirmed revoked by the owner 2026-11-08 |
 | 14 — UI redesign (epic UI-2) | `phase-14-ui-redesign.md` | done (P14-01..26). Designs: `UI-UX/` | none — approved by the user 2026-10-23 |
@@ -46,7 +52,9 @@ truth for individual task status.
 | 23 — Suggested first ten (product improvements) | `phase-23-product-improvements.md` | development-complete 2026-11-17: PI-01/02 safety, PI-03/04 connectivity, PI-05/06 freshness/status, PI-07 notifications, PI-08/09/10 first-run/tokens/what's new. Five batches, verified and committed | Public release |
 | 24 — SonarQube Overview + Profile version fixes (epic FIX-2) | `phase-24-sonarqube-ui-fixes.md` | done 2026-11-18 (P24-01..06): credential selector chip, Overview design alignment, Profile version footer, dev-only billing preview flag, shared server/credential header on all tool screens, app-wide clamped overscroll | none — P24-05 and P24-06 visual checks are still MANUAL |
 | 25 — Support and issue tickets | `phase-25-support-feedback.md` | development-complete 2026-11-18 (P25-01..06): backend tickets + owner triage, in-app Support screen with diagnostics, website copy, tests and docs. iPhone pass open (`manually/M-18`) | Public release |
-| 28 — Team plan (epic SUB, US-SUB-11) | `phase-28-team-plan.md` | development-complete 2026-11-20 on branch `feat/us-sub-11-team-plan` (P28-01 backend, P28-02 website, P28-03 app; all 17 criteria ticked). Off unless `TEAM_PLAN_ENABLED=true`. P28-04 is MANUAL (owner, M-23): Paddle per-seat prices and a sandbox purchase | **Release 1.1.0** — owner decision 2026-11-20; merges after the `v1.0.0` tag |
+| 26 — Session continuity and pre-trigger polish | `phase-26-polish.md` | planned 2026-11-19, owner-approved: P26-01…04 (IMP-157 last-looked card, IMP-160 duration estimate, IMP-158 deploy-watch mode, IMP-163 runbook link). No backend, no new packages, Jenkins untouched. Sources: `docs/product-improvements.md` §Z | **Release 1.1.0** — starts after the `v1.0.0` tag, not in 1.0.0 |
+| 27 — Jenkins workflow pipeline mirrors | `phase-27-jenkins-workflow-pipelines.md` | planned 2026-11-19, owner-approved: six Jenkinsfiles under `Jenkins/` mirroring the GitHub workflows one-to-one; `.github/workflows/` unchanged. Sources: owner request 2026-11-19 | **Release 1.1.0** — mirrors only; live CI stays GitHub until the owner moves a pipeline on purpose |
+| 28 — Team plan (epic SUB, US-SUB-11) | `phase-28-team-plan.md` | development-complete 2026-11-20, merged into `develop` 2026-11-21 (P28-01 backend, P28-02 website, P28-03 app; all 17 criteria ticked). Off unless `TEAM_PLAN_ENABLED=true`. P28-04 is MANUAL (owner, M-23): Paddle per-seat prices and a sandbox purchase | **Release 1.1.0** — code merged before the `v1.0.0` tag at the owner's request 2026-11-21; ships switched off in 1.0.0 (`TEAM_PLAN_ENABLED` unset) |
 | Backlog | `backlog.md` | n/a | — |
 
 `done` above means **development-complete**, not "in production." Every

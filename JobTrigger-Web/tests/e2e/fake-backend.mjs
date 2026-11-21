@@ -67,6 +67,9 @@ const secretFetches = new Map();
 // Requests for GitHub or SonarQube credentials, counted per account (the
 // specs run in parallel), keyed by email. A spec reads these through /__stats.
 const toolRequests = new Map();
+// US-WEB-04: Support tickets filed per account (the website's tool request).
+const tickets = new Map();
+let ticketSeq = 0;
 
 function send(res, status, body, requestId) {
   res.writeHead(status, { "content-type": "application/json", "x-request-id": requestId });
@@ -258,6 +261,7 @@ const server = createServer(async (req, res) => {
     return reply(200, {
       secretFetches: secretFetches.get(url.searchParams.get("email") ?? "") ?? 0,
       toolRequests: toolRequests.get(url.searchParams.get("email") ?? "") ?? 0,
+      tickets: tickets.get(url.searchParams.get("email") ?? "") ?? [],
     });
   if (url.pathname === "/api/appinfo")
     return reply(200, { supportEmail: "support@jobtrigger.test", appVersion: "1.0.0" });
@@ -346,6 +350,18 @@ const server = createServer(async (req, res) => {
     if (!["monthly", "yearly"].includes(body.interval))
       return reply(400, { message: "Choose monthly or yearly" });
     return reply(200, { transactionId: "txn_e2e_fake", environment: "sandbox" });
+  }
+  // US-SUP-01 / US-WEB-04, with the backend's own copy.
+  if (url.pathname === "/api/support/tickets" && req.method === "POST") {
+    if (!["bug", "feature", "question", "tool_request"].includes(body.category))
+      return reply(400, { message: "Choose what kind of report this is." });
+    if (!String(body.subject ?? "").trim())
+      return reply(400, { message: "A subject is required." });
+    if (!String(body.message ?? "").trim())
+      return reply(400, { message: "Describe the issue or request." });
+    const ticket = { id: `t${++ticketSeq}`, category: body.category, subject: body.subject };
+    tickets.set(user.email, [...(tickets.get(user.email) ?? []), ticket]);
+    return reply(201, { ticket: { ...ticket, message: body.message, status: "open" } });
   }
   if (url.pathname === "/api/billing/paddle/portal" && req.method === "POST") {
     return reply(404, { message: "No web subscription" });

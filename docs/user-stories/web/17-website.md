@@ -124,17 +124,20 @@ I want to understand what it does within a few seconds
 So that I can decide whether to install it
 
 **Acceptance Criteria**
-- Scenario: First visit
+- [x] Scenario: First visit
   Given I open the site's root URL
   Then I see a one-sentence value statement (trigger and watch CI builds
   from your phone), real app screenshots, the supported tool logos, and a
   primary "Get the app" call to action above the fold
-- Scenario: Honest claims
+  Evidence: `JobTrigger-Web/src/features/marketing/home/home.test.tsx` "leads with web setup and flags the apps as coming soon before launch", "describes the illustration as one image"; `JobTrigger-Web/src/content/tool-copy.test.tsx` "the tool strip lists the three tools and no 'Coming next'".
+- [x] Scenario: Honest claims
   Then every feature or tool named on the page exists in the current
   released app. Planned tools are labelled "Planned" (see US-WEB-04)
-- Scenario: Signed-in shortcut
+  Evidence: `JobTrigger-Web/src/content/feature-status.test.ts` "matches the agreed statuses"; `JobTrigger-Web/src/features/marketing/integrations/integrations-view.test.tsx` "never marks unbuilt GitHub capabilities as usable"; `JobTrigger-Web/src/content/tool-copy.test.tsx` "never names a planned tool with no code".
+- [ ] Scenario: Signed-in shortcut
   Given I am signed in to the portal
   Then the header shows "My servers" instead of "Sign in"
+  Open: not proven: the portal sidebar links "My servers" (`JobTrigger-Web/tests/e2e/portal-shell.spec.ts`), but no test shows the public header swapping "Sign in" for "My servers" when signed in.
 
 **Security & Privacy Notes**
 - Screenshots use demo data only: no real server URLs, job names, or
@@ -160,27 +163,32 @@ I want to get the app onto my phone easily
 So that I can start using it
 
 **Acceptance Criteria**
-- Scenario: On a phone
+- [ ] Scenario: On a phone
   Given I visit on iOS or Android
   Then I see the matching store badge first, linking to the App Store or
   Google Play listing
-- Scenario: On a laptop
+  Open: not proven: no test shows the matching store badge first on a phone (no user-agent ordering is tested).
+- [ ] Scenario: On a laptop
   Given I visit on a desktop browser
   Then both badges show, plus a QR code that opens the store listing when
   scanned with a phone camera
-- Scenario: Not yet published (the state at launch)
+  Open: not proven: no test covers both badges plus a QR code on desktop.
+- [x] Scenario: Not yet published (the state at launch)
   Given the `app-store` feature in US-WEB-22 is `soon`
   Then the section reads "Coming soon to iPhone and Android", the store
   badges render as disabled (not links, `aria-disabled="true"`), the QR
   code is not shown, and every "Get the app" button elsewhere on the site
   reads "Coming soon" and points to `/changelog` instead of a store
-- Scenario: One store ships first
+  Evidence: `JobTrigger-Web/src/features/marketing/home/download.test.tsx` "before launch: coming soon, inert store buttons, web setup and launch updates".
+- [ ] Scenario: One store ships first
   Given only one store listing is live
   Then that badge is a real link and the other stays disabled with
   "Coming soon"; the QR code appears only when at least one listing is live
-- Scenario: No dead links
+  Open: partly: a store button without a URL stays inert (`JobTrigger-Web/src/features/marketing/home/download.test.tsx` "never links a store button that has no URL, even when live"), but the QR-only-when-listed rule has no test.
+- [x] Scenario: No dead links
   Then no store badge or QR code ever points at a listing that doesn't
   exist
+  Evidence: `JobTrigger-Web/src/features/marketing/home/download.test.tsx` "never links a store button that has no URL, even when live", "at launch: real store links"; `JobTrigger-Web/src/features/marketing/store-links.test.ts` "are set whenever the app is marked live".
 
 **Security & Privacy Notes**
 - The QR code contains only a public store URL, never account or server
@@ -205,19 +213,22 @@ I want to see what JobTrigger can do
 So that I know whether it covers my workflow
 
 **Acceptance Criteria**
-- Scenario: Feature list
+- [x] Scenario: Feature list
   Then the page covers triggering builds (including parameters), live
   console logs, build history, build notifications, pinned jobs and the
   home-screen widget, multiple servers, and the biometric app lock, each
   with a short description and screenshot
-- Scenario: Accuracy
+  Evidence: `JobTrigger-Web/src/features/marketing/features/features-view.test.tsx` "lists nine feature cards under one page heading".
+- [x] Scenario: Accuracy
   Then each listed feature maps to a shipped story (`tasks/README.md`
   status "done"). Unshipped work isn't listed as available
-- Scenario: Partly shipped tools
+  Evidence: `JobTrigger-Web/src/content/feature-status.test.ts` "gives every feature a label and its evidence"; `JobTrigger-Web/src/features/marketing/features/features-release.test.tsx` "shipped 1.0: GitHub Actions works today, with no 'Coming in' label".
+- [x] Scenario: Partly shipped tools
   Given a tool is only partly built (GitHub Actions today: runs, logs and
   history are `soon`)
   Then its section carries a **Beta** badge and names what is coming,
   e.g. "Runs and logs coming soon"
+  Evidence: `JobTrigger-Web/src/features/marketing/features/features-view.test.tsx` "marks runs as still coming if that feature is not live yet".
 
 **Security & Privacy Notes**
 - Demo data only in screenshots, as in US-WEB-01.
@@ -241,24 +252,32 @@ I want to know if it is supported
 So that I don't install an app that can't help me
 
 **Acceptance Criteria**
-- Scenario: Supported tools
+- [x] Scenario: Supported tools
   Then Jenkins, GitHub Actions, and SonarQube are listed with what each one
   supports today, each with a status badge from US-WEB-22: Jenkins
   "Full support", GitHub Actions "Beta", SonarQube "Coming soon"
-- Scenario: SonarQube before its screens ship
+  Evidence: `JobTrigger-Web/src/features/marketing/integrations/integrations-view.test.tsx` "badges each tool from the feature list"; `JobTrigger-Web/src/content/release.test.tsx` "the integrations page shows all three tools at 1.0, with no 'Coming in' labels".
+- [x] Scenario: SonarQube before its screens ship
   Given SonarQube projects and quality gates are `soon`
   Then the card says "Save your server now — projects and quality gates
   coming soon", and the comparison table shows "Soon" for those rows,
   never "Yes"
-- Scenario: Comparison table
+  Evidence: `JobTrigger-Web/src/content/release.test.tsx` "feature statuses read as 'Coming in X' for a tool in a later release", "the integrations page labels a tool from a later release with its version"; SonarQube itself ships in 1.0, so today its card has no such label.
+- [x] Scenario: Comparison table
   Then each capability cell is one of "Yes", "Beta", "Soon", or "n/a",
   driven by US-WEB-22, with the word always present (never colour or an
   icon alone)
-- Scenario: Planned tools
+  Evidence: `JobTrigger-Web/src/components/status.test.tsx` "renders a badged, explained, inert control for an unavailable feature"; `JobTrigger-Web/src/features/marketing/integrations/integrations-view.test.tsx` "badges each tool from the feature list".
+- [x] Scenario: Planned tools
   Then GitLab CI and CircleCI are listed as "Planned", with no promised date
-- Scenario: Request a tool
+  Evidence: `JobTrigger-Web/src/features/marketing/integrations/integrations-view.test.tsx` "lists planned tools and links the request to support email".
+- [x] Scenario: Request a tool
   Then a "Request a tool" link goes to the same destination as the app's
-  tool-selection "request a tool" link, so requests land in one place
+  tool-selection "request a tool" link, so requests land in one place:
+  signed in, it opens a Support form that files a "Tool request" ticket
+  (as the app does since P25-05); signed out, it falls back to the support
+  email (owner decision 2026-11-21)
+  Evidence: built 2026-11-21 (owner decision): `JobTrigger-Web/tests/e2e/request-tool.spec.ts` "signed out, Request a tool is the support email", "signed in, Request a tool files a Tool request ticket", "an empty request says what is missing and sends nothing"; `JobTrigger-Web/src/features/support/actions.test.ts`; `JobTrigger-Web/src/features/marketing/integrations/integrations-view.test.tsx` "signed in, the request opens the Support ticket form instead".
 
 **Security & Privacy Notes**
 - None beyond the baselines.
@@ -282,17 +301,20 @@ I want to know where my tokens go and how they are protected
 So that I can decide whether I'm allowed to use the app
 
 **Acceptance Criteria**
-- Scenario: Plain explanation
+- [x] Scenario: Plain explanation
   Then the page explains, in plain words: tokens are encrypted at rest on
   the JobTrigger backend (AUD-03) and kept in the phone's secure storage;
   the app talks to Jenkins, GitHub, and SonarQube directly, not through a
   JobTrigger proxy; the website never shows a saved token in full
-- Scenario: Least privilege advice
+  Evidence: `JobTrigger-Web/src/features/marketing/security/security-view.test.tsx` "describes the token flow diagram and lists six facts".
+- [x] Scenario: Least privilege advice
   Then it recommends a dedicated API token with the smallest scopes needed,
   and links to US-WEB-16's how-to steps
-- Scenario: Accuracy
+  Evidence: `JobTrigger-Web/src/features/marketing/security/security-view.test.tsx` "links to the token guides in the portal".
+- [ ] Scenario: Accuracy
   Then every statement is checked against the code before publishing and
   re-checked when the security design changes
+  Open: a process rule, not a test: every statement on the page must be re-checked against the code when the security design changes (owner review before launch, M-13).
 
 **Security & Privacy Notes**
 - Describes the design. It must not disclose internals that help an
@@ -318,16 +340,19 @@ I want a privacy policy, terms, and a way to get support
 So that I know my rights and the app can be published
 
 **Acceptance Criteria**
-- Scenario: Pages exist
+- [x] Scenario: Pages exist
   Then `/privacy`, `/terms`, and `/support` exist at stable URLs
-- Scenario: App links resolve
+  Evidence: `JobTrigger-Web/src/features/marketing/legal/legal.test.tsx` "marks itself as the current legal page and keeps placeholders as text", "is its own page in the legal nav"; `JobTrigger-Web/src/features/marketing/seo.test.ts` "list every public page and nothing from the portal".
+- [x] Scenario: App links resolve
   Given the app info screen opens the privacy, terms, and support links
   served by `GET /api/appinfo`
   Then those values are updated to point at these pages, and each link
   opens the right page
-- Scenario: Support contact
+  Evidence: backend `JobTrigger-Backend/test/app_info_seed.test.js` (`/privacy`, `/terms`, `/licenses`, `/changelog` on `SITE_URL`, no placeholder links); `JobTrigger-Web/src/server/app-info.test.ts` "returns the support address from the backend".
+- [x] Scenario: Support contact
   Then `/support` shows the support email (the same `mailto:` the app uses)
   and short answers to common setup problems
+  Evidence: `JobTrigger-Web/src/features/marketing/legal/legal.test.tsx` "emails the backend's support address, as the app does", "lists four topics that jump to their answer, the first open", "says when the support address can't be loaded instead of linking nowhere".
 
 **Security & Privacy Notes**
 - The privacy policy accurately lists what the backend stores (account
@@ -353,16 +378,19 @@ I want the link to show a proper preview
 So that people know what it is before clicking
 
 **Acceptance Criteria**
-- Scenario: Shared link
+- [x] Scenario: Shared link
   Given a public page URL is pasted into Slack, Teams, or X
   Then a title, description, and preview image appear (Open Graph and
   Twitter card tags)
-- Scenario: Search
+  Evidence: `JobTrigger-Web/src/features/marketing/seo.test.ts` "gives a page its title, description, canonical and preview tags"; `JobTrigger-Web/tests/e2e/seo.spec.ts` "the preview image is a 1200×630 PNG".
+- [x] Scenario: Search
   Then public pages have unique titles and descriptions, a sitemap, and a
   `robots.txt`
-- Scenario: Portal is hidden
+  Evidence: `JobTrigger-Web/tests/e2e/seo.spec.ts` "descriptions are unique per page", "robots.txt disallows the portal and points to the sitemap", "the sitemap lists public pages only, at the runtime SITE_URL".
+- [x] Scenario: Portal is hidden
   Then every portal page (US-WEB-10 onward) is `noindex` and excluded from
   the sitemap
+  Evidence: `JobTrigger-Web/tests/e2e/seo.spec.ts` "portal paths are marked noindex"; `JobTrigger-Web/src/features/marketing/seo.test.ts` "keep crawlers out of every portal path".
 
 **Security & Privacy Notes**
 - Portal pages are never indexed or cached by search engines.
@@ -387,18 +415,21 @@ I want to see what changed in each release
 So that I notice new features
 
 **Acceptance Criteria**
-- Scenario: Before the first release (the state at launch)
+- [ ] Scenario: Before the first release (the state at launch)
   Given no public release exists yet
   Then the page shows one entry, "First public release — coming soon",
   listing what the first release will include (the `live` features in
   US-WEB-22) and what follows it (the `soon` ones), with no invented
   version numbers or dates
-- Scenario: Release list
+  Open: superseded: the changelog now carries the 1.0 entry with its notes (`JobTrigger-Web/src/content/changelog.test.ts` "has one released v1.0 entry, with real dates"), written for the release, so the pre-release "coming soon" state is gone. The 1.0 date must match the real store release (M-11).
+- [x] Scenario: Release list
   Then each app release has an entry with version, date, and plain-language
   highlights, newest first
-- Scenario: Source
+  Evidence: `JobTrigger-Web/src/features/marketing/changelog/changelog-view.test.tsx` "shows the released v1.0 after what comes next", "reads each item with its tag".
+- [x] Scenario: Source
   Then entries are authored as files in the website repo (no CMS), so a
   release adds its notes in the same pull request
+  Evidence: entries are the version-controlled `JobTrigger-Web/src/content/changelog.ts`; `JobTrigger-Web/src/content/changelog.test.ts` "ships every live feature, in list order".
 
 **Security & Privacy Notes**
 - Release notes never mention unfixed vulnerabilities.
@@ -424,28 +455,33 @@ I want to sign in with the same account I use in the app
 So that servers I add here appear in the app
 
 **Acceptance Criteria**
-- Scenario: Sign in
+- [x] Scenario: Sign in
   Given I enter my email and password on `/sign-in`
   When the Next.js server calls `POST /api/auth/login` and it succeeds
   Then the server stores the access and refresh tokens in an `HttpOnly`
   cookie and sends me to "My servers" (US-WEB-11)
-- Scenario: Sign up
+  Evidence: `JobTrigger-Web/tests/e2e/auth.spec.ts` "signing in sends you to your servers; a signed-in visit to sign-in skips it", "sign up creates the account and an HttpOnly, SameSite=Lax session".
+- [x] Scenario: Sign up
   Given I have no account
   Then `/sign-up` creates one via `POST /api/auth/signup`, with the same
   validation rules as the app (US-AUTH-01)
-- Scenario: Wrong credentials
+  Evidence: `JobTrigger-Web/tests/e2e/auth.spec.ts` "sign up creates the account and an HttpOnly, SameSite=Lax session", "sign up checks the password as the app does"; `JobTrigger-Web/src/features/auth/auth.test.ts` "accepts and rejects emails like AuthValidation.isValidEmail".
+- [x] Scenario: Wrong credentials
   Given the backend answers `400 { message: "Invalid credentials" }`
   Then I see "Invalid credentials" (`RejectedRequestFailure` copy, the
   backend's user-facing message, as in the app), never a status code
-- Scenario: Too many attempts
+  Evidence: `JobTrigger-Web/tests/e2e/auth.spec.ts` "a wrong password shows the backend's message and keeps the email".
+- [x] Scenario: Too many attempts
   Given the backend's login rate limiter rejects the request (429)
   Then I see "Too many attempts. Please wait a few minutes and try again."
   (`ServerFailure(429)` copy, as in the app)
-- Scenario: Token refresh
+  Evidence: `JobTrigger-Web/tests/e2e/auth.spec.ts` "the login limiter reads as the app's rate-limit copy".
+- [x] Scenario: Token refresh
   Given my 15-minute access token expires while I'm using the portal
   Then the Next.js server refreshes it via `POST /api/auth/refresh` without
   interrupting me. If the refresh fails, I'm sent to `/sign-in` with my
   unsaved form kept (US-WEB-20)
+  Evidence: `JobTrigger-Web/src/server/session-flow.test.ts` "refreshes once on a 401, saves the new pair and replays the call", "ends the session when the refresh itself is refused"; `JobTrigger-Web/src/session-upkeep.test.ts` "renews an access token about to expire, visible to this request's render".
 
 **Security & Privacy Notes**
 - Tokens never reach browser JavaScript (see the epic's architecture
@@ -474,21 +510,25 @@ I want to see every server and account I've set up
 So that I know what's already configured
 
 **Acceptance Criteria**
-- Scenario: List
+- [x] Scenario: List
   Then "My servers" shows three groups (Jenkins, GitHub, SonarQube) from
   the three backend list endpoints, each item showing its name, URL (or
   GitHub username), and which one is active
-- Scenario: Masked secrets
+  Evidence: `JobTrigger-Web/tests/e2e/servers.spec.ts` "saved servers are listed with masked tokens only"; `JobTrigger-Web/src/features/servers/servers-view.test.tsx` "links each row to its edit page with an accessible name".
+- [x] Scenario: Masked secrets
   Then every token or password is shown as `••••` plus its last 4
   characters. The full value never appears in the HTML, the page data, or
   the network responses sent to the browser
-- Scenario: Empty
+  Evidence: `JobTrigger-Web/src/server/credentials-api.test.ts` "show the backend's masks and never hold a secret in full"; `JobTrigger-Web/src/features/servers/reveal-token.test.tsx` "shows the mask, asks for the password on tap, reveals, hides again".
+- [x] Scenario: Empty
   Given I have nothing set up
   Then each group shows an "Add" call to action
-- Scenario: Backend unavailable
+  Evidence: `JobTrigger-Web/tests/e2e/servers.spec.ts` "a new account sees the empty state and an Add link per tool".
+- [x] Scenario: Backend unavailable
   Then I see the app's `NetworkFailure` copy ("Can't reach the server.
   Check your connection and try again.") or `ServerFailure` copy (with
   its request reference) and a retry button
+  Evidence: `JobTrigger-Web/src/features/servers/servers-view.test.tsx` "shows the failure with a way to retry instead of the list"; `JobTrigger-Web/src/server/backend-client.test.ts` "is a NetworkFailure when the backend can't be reached".
 
 **Security & Privacy Notes**
 - Masking happens on the Next.js server (see the epic's architecture
@@ -515,22 +555,26 @@ I want to paste my Jenkins details into a form
 So that I don't have to transfer the token to my phone
 
 **Acceptance Criteria**
-- Scenario: Save
+- [x] Scenario: Save
   Given I enter a name, Jenkins URL, username, and API token
   When I press Save
   Then the Next.js server calls `POST /api/credentials` with the same
   fields the app sends, and I go to the "Now open the app" screen
   (US-WEB-17)
-- Scenario: Validation
+  Evidence: `JobTrigger-Web/tests/e2e/add-server.spec.ts` "add a Jenkins server, see it saved, and find it masked in the list"; `JobTrigger-Web/src/server/credentials-api.test.ts` "send the backend's field names when adding a Jenkins server".
+- [x] Scenario: Validation
   Then the URL must be `https://` (or `http://` with a visible warning, the
   same rule as the app), and the fields are trimmed and validated with the
   app's rules before any network call (NFR-SEC-02)
-- Scenario: Duplicate
+  Evidence: `JobTrigger-Web/tests/e2e/add-server.spec.ts` "validation and the http:// warning follow the app's rules"; `JobTrigger-Web/src/features/servers/server-input.test.ts` "trims a Jenkins server into the backend's input", "reports every missing Jenkins field with the app's URL rule".
+- [x] Scenario: Duplicate
   Given the backend rejects a duplicate
   Then I see the same copy the app shows for that case
-- Scenario: Token field
+  Evidence: `JobTrigger-Web/src/server/backend-client.test.ts` "maps statuses like the app does"; a refusal carries the backend's own message, the same copy the app shows (`RejectedRequestFailure`).
+- [ ] Scenario: Token field
   Then the token field is masked with a show/hide toggle, `autocomplete`
   set to `off`, and spellcheck off
+  Open: partly: `autocomplete="off"` is asserted (`JobTrigger-Web/tests/e2e/add-server.spec.ts` "add a Jenkins server…") and the field sets `spellCheck={false}` (`server-form.tsx`), but no test checks the masking or its show/hide toggle.
 
 **Security & Privacy Notes**
 - The token goes browser → Next.js server → backend over HTTPS only, and is
@@ -556,14 +600,17 @@ I want to paste a GitHub token into a form
 So that GitHub Actions works in the app without retyping it
 
 **Acceptance Criteria**
-- Scenario: Save
+- [x] Scenario: Save
   Given I enter a name and a personal access token
   Then the Next.js server calls `POST /api/github-credentials` with the
   fields the app sends, and I go to US-WEB-17
-- Scenario: Validation
+  Evidence: `JobTrigger-Web/src/features/servers/server-input.test.ts` "maps a GitHub account and SonarQube server to their field names"; `JobTrigger-Web/tests/e2e/add-server.spec.ts` "the tool picker switches the form, keeping the app's labels".
+- [ ] Scenario: Validation
   Then the token format is checked with the app's rules before submitting
-- Scenario: Token field
+  Open: follows US-GH-CRED-01: the app has no token-format rule, so there is none to copy here.
+- [ ] Scenario: Token field
   Then it is masked, the same as US-WEB-12
+  Open: same as US-WEB-12 "Token field".
 
 **Security & Privacy Notes**
 - As US-WEB-12. The how-to (US-WEB-16) recommends a fine-grained token
@@ -588,12 +635,14 @@ I want to paste my SonarQube URL and token into a form
 So that code-quality checks work in the app without retyping them
 
 **Acceptance Criteria**
-- Scenario: Save
+- [x] Scenario: Save
   Given I enter a name, server URL, and token
   Then the Next.js server calls `POST /api/sonarqube-credentials` with the
   fields the app sends, and I go to US-WEB-17
-- Scenario: Validation and token field
+  Evidence: `JobTrigger-Web/src/features/servers/server-input.test.ts` "maps a GitHub account and SonarQube server to their field names"; `JobTrigger-Web/tests/e2e/add-server.spec.ts` "the tool picker switches the form, keeping the app's labels".
+- [ ] Scenario: Validation and token field
   Then the same rules as US-WEB-12 apply
+  Open: the URL rule is shared and tested (US-WEB-12), but the token field's masking has no test (US-WEB-12 "Token field").
 
 **Security & Privacy Notes**
 - As US-WEB-12.
@@ -617,23 +666,27 @@ I want to change or remove a saved server
 So that I can rotate tokens and clean up old servers from my laptop
 
 **Acceptance Criteria**
-- Scenario: Edit without re-entering the token
+- [x] Scenario: Edit without re-entering the token
   Given I open a server's edit form
   Then the token field is empty with "Leave blank to keep the saved
   token". If I leave it blank, the Next.js server leaves the token out of
   the update, so the backend keeps the saved one; the website never reads
   it (owner decision 2026-10-26, P15-18)
-- Scenario: Rotate a token
+  Evidence: `JobTrigger-Web/tests/e2e/edit-server.spec.ts` "editing with a blank token keeps the saved one"; `JobTrigger-Web/src/server/credentials-api.test.ts` "leave a blank secret out of an update, so the saved one is kept (US-WEB-15)".
+- [x] Scenario: Rotate a token
   Given I paste a new token
   Then `PUT /api/<type>/:id` saves it
-- Scenario: Delete
+  Evidence: `JobTrigger-Web/tests/e2e/edit-server.spec.ts` "pasting a new token rotates it".
+- [x] Scenario: Delete
   Given I press Delete
   Then a confirmation names the server. On confirm, `DELETE /api/<type>/:id`
   runs and the list updates
-- Scenario: Not found
+  Evidence: `JobTrigger-Web/tests/e2e/edit-server.spec.ts` "delete asks first, naming the server, and Cancel is the default".
+- [x] Scenario: Not found
   Given the server was deleted elsewhere (for example in the app)
   Then I see "That couldn't be found — it may have been removed."
   (`NotFoundFailure` copy) and return to the list
+  Evidence: `JobTrigger-Web/tests/e2e/edit-server.spec.ts` "a server deleted elsewhere reads as not found".
 
 **Security & Privacy Notes**
 - Edit and delete requests are CSRF-protected, as in US-WEB-10.
@@ -657,18 +710,22 @@ I want step-by-step instructions next to the field
 So that I can finish setup without searching the web
 
 **Acceptance Criteria**
-- Scenario: Jenkins
+- [ ] Scenario: Jenkins
   Then the help shows the click path (your name → Security → API Token →
   Add new token), explains it differs from the account password, and links
   to the server's own token page when the URL is already entered
   (`<url>/me/security`, Jenkins 2.x)
-- Scenario: GitHub
+  Open: not proven: the help text lives in `JobTrigger-Web/src/features/servers/tool-help.ts` with no test of its click path or wording.
+- [ ] Scenario: GitHub
   Then the help links to GitHub's token settings and lists exactly which
   permissions the app needs to read workflows and trigger runs
-- Scenario: SonarQube
+  Open: not proven: `tool-help.ts` has no test of the GitHub link or the permissions it lists.
+- [ ] Scenario: SonarQube
   Then the help shows where to create a user token
-- Scenario: Opens alongside the form
+  Open: not proven: `tool-help.ts` has no test of the SonarQube steps (the form's "User token" label is checked in `tests/e2e/add-server.spec.ts`).
+- [ ] Scenario: Opens alongside the form
   Then help opens in a panel or new tab without losing what I've typed
+  Open: not proven: no test opens the help and checks the typed values survive.
 
 **Security & Privacy Notes**
 - Always recommends the least-privilege token and an expiry date.
@@ -692,21 +749,26 @@ I want clear next steps, and the app to show the server immediately
 So that I can start using it without restarting the app
 
 **Acceptance Criteria**
-- Scenario: Confirmation
+- [x] Scenario: Confirmation
   Then I see "Saved. Open JobTrigger on your phone, your server is ready",
   with "Add another" and "Back to my servers" actions
-- Scenario: App picks it up on return (app change)
+  Evidence: `JobTrigger-Web/tests/e2e/add-server.spec.ts` "add a Jenkins server, see it saved, and find it masked in the list"; `JobTrigger-Web/tests/e2e/journey.spec.ts` "home → sign up → add a server → saved → in my servers".
+- [x] Scenario: App picks it up on return (app change)
   Given the app is open in the background, signed in to the same account
   When I switch back to it
-  Then it reloads the credential lists for every tool on resume, and the
-  new server appears without a restart or pull-to-refresh
-- Scenario: App not installed
+  Then it reloads the credential lists for every tool on resume (at most
+  once every 30 seconds — owner decision 2026-11-21), and the new server
+  appears without a restart or pull-to-refresh
+  Evidence: built 2026-11-21 (owner decision): `test/presentation/features/auth/credentials_resume_reloader_test.dart` "resuming reloads Jenkins, GitHub and SonarQube credentials", "a second resume within 30 seconds does nothing; after, it reloads", "signed out, resuming reloads nothing" (app; watched from `main.dart`).
+- [ ] Scenario: App not installed
   Then the confirmation also shows the store links / QR from US-WEB-02
-- Scenario: App not yet released (the state at launch)
+  Open: not proven: no test of store links or a QR on the saved screen.
+- [ ] Scenario: App not yet released (the state at launch)
   Given the `app-store` feature in US-WEB-22 is `soon`
   Then instead of store links the confirmation says "The JobTrigger app is
   coming soon. Your server is saved and will be waiting when you install
   it." with a link to the changelog
+  Open: not proven: no test of the "coming soon, your server is saved" wording on the saved screen.
 
 **Security & Privacy Notes**
 - The confirmation never repeats the token.
@@ -732,13 +794,16 @@ I want to choose which one the app uses
 So that the app opens on the right one
 
 **Acceptance Criteria**
-- Scenario: Set active
+- [x] Scenario: Set active
   Given I press "Make active" on a server
   Then the Next.js server calls `POST /api/<type>/switch/:id`, and the list
   shows the new active server
-- Scenario: App follows
+  Evidence: `JobTrigger-Web/tests/e2e/servers.spec.ts` "Make active moves the tool's default (US-WEB-18)"; `JobTrigger-Web/src/server/credentials-api.test.ts` "switch the default with the tool's switch endpoint".
+- [x] Scenario: App follows
   Then the app uses the new active server after its next reload
-  (US-WEB-17)
+  (US-WEB-17): the backend default wins on a reload unless the phone has a
+  switch of its own still waiting to reach the backend (US-CRED-05)
+  Evidence: built 2026-11-21 (owner decision): `test/data/credentials/default_choice_sync_test.dart` "with nothing pending, a default chosen elsewhere is followed", "a failed switch keeps the choice and is retried on reload" (pending wins); the reload happens on resume (US-WEB-17).
 
 **Security & Privacy Notes**
 - CSRF-protected, as in US-WEB-10.
@@ -762,22 +827,33 @@ I want to check that the details work before saving
 So that I don't discover a typo later on my phone
 
 **Acceptance Criteria**
-- Scenario: Before the backend endpoint exists (the state at launch)
-  Given the `test-connection` feature in US-WEB-22 is `soon`
-  Then the "Test connection" button is shown disabled with a "Coming soon"
-  badge and the helper text "You can test from the app after saving", and
-  saving works without it
-- Scenario: Success
-  Given I press "Test connection"
-  Then I see "Connected as <username>" from the tool
-- Scenario: Failure
-  Then I see the same copy the app's test connection uses for
-  `AuthFailure`, `NetworkFailure`, `NotFoundFailure`, and
-  `ServerFailure(statusCode)`
-- Scenario: Private network
-  Given the server is only reachable from my office network or VPN
-  Then I see "We can't reach this server from the internet. Save it anyway
-  and test from the app on your network", and Save stays available
+
+> **Owner decision 2026-11-20: option (c) for 1.0** — the website explains
+> that the phone tests the connection; the SSRF-guarded backend endpoint
+> (option (b)) is reconsidered in 1.1 only if support tickets show the need.
+> Design note: [`docs/design/US-WEB-19-test-connection.md`](../../design/US-WEB-19-test-connection.md).
+
+- [x] Scenario: The phone tests the connection (1.0)
+  Given I am adding a Jenkins server, GitHub account or SonarQube server
+  Then next to "Save server" I see "Your phone tests the connection. After
+  saving, open JobTrigger on the same network as this server, tap the
+  server in Settings and tap Test connection." — no disabled button, no
+  "Coming soon" badge, and saving works as before
+  Evidence: `JobTrigger-Web/src/features/servers/add-server-view.tsx`;
+  e2e `tests/e2e/add-server.spec.ts` "the website says the phone tests the
+  connection (US-WEB-19)"; saving: `add-server.spec.ts` save tests.
+- [x] Scenario: Nothing promises a website test
+  Given the `web-test-connection` feature in US-WEB-22
+  Then it is `planned` (not `soon`), so no page lists "Test connection from
+  the website" as coming next
+  Evidence: `src/content/feature-status.ts` (`planned`), pinned in
+  `feature-status.test.ts`; `changelog.test.ts` "lists the remaining soon
+  features as next".
+- [ ] Scenario: Success, failure, private network (website test) — **won't
+  do in 1.0** (option (b), reconsidered in 1.1). Kept for the record:
+  "Connected as <username>"; the app's copy for `AuthFailure`,
+  `NetworkFailure`, `NotFoundFailure`, `ServerFailure(statusCode)`; and
+  "We can't reach this server from the internet…" for private networks
 
 **Security & Privacy Notes**
 - **Flagged backend-track risk (NFR-SEC-05).** A browser can't call Jenkins
@@ -806,16 +882,19 @@ I want to sign out, and be signed out when I walk away
 So that nobody else can see or change my servers
 
 **Acceptance Criteria**
-- Scenario: Sign out
+- [x] Scenario: Sign out
   Given I press "Sign out"
   Then the session cookie is cleared and I return to the home page
-- Scenario: Idle timeout
+  Evidence: `JobTrigger-Web/tests/e2e/portal-shell.spec.ts` "sign out clears the session and returns home".
+- [ ] Scenario: Idle timeout
   Given there's no activity for 30 minutes
   Then the next action sends me to `/sign-in`. A form I was typing in is
   kept in memory for that tab only, without the token field
-- Scenario: Sign out everywhere
+  Open: partly: after 30 idle minutes the next visit goes to sign-in (`JobTrigger-Web/tests/e2e/auth.spec.ts` "after 30 idle minutes a portal visit goes to sign-in with a notice"; `src/session-upkeep.test.ts` "signs out after 30 idle minutes"), but a half-typed form is not kept.
+- [x] Scenario: Sign out everywhere
   Then a "Sign out of all devices" action calls `POST /api/auth/logout-all`
   after a confirmation that warns it also signs out the phone app
+  Evidence: `JobTrigger-Web/tests/e2e/account.spec.ts` "sign out everywhere confirms first, then ends this session too".
 
 **Security & Privacy Notes**
 - Clearing the website cookie doesn't revoke the backend refresh token on
@@ -841,16 +920,19 @@ I want to manage my account from the website
 So that I can do it from a laptop as well as the app
 
 **Acceptance Criteria**
-- Scenario: Change password
+- [x] Scenario: Change password
   Then `POST /api/auth/password` is called with my current and new
   password, using the same rules and copy as the app's account dialog
-- Scenario: Delete account
+  Evidence: `JobTrigger-Web/tests/e2e/account.spec.ts` "change password re-checks the current one, then signs other devices out".
+- [x] Scenario: Delete account
   Given I confirm by typing my email and entering my password
   Then `DELETE /api/auth/account` runs, I'm signed out, and I see a
   confirmation that all my saved servers were removed
-- Scenario: Rate limited
+  Evidence: `JobTrigger-Web/tests/e2e/account.spec.ts` "delete account needs the email typed and the password"; `JobTrigger-Web/src/features/account/plan-section.test.tsx` "warns that deleting the account doesn't cancel a paid subscription".
+- [x] Scenario: Rate limited
   Then the backend's limiter (429) on both endpoints maps to
   `ServerFailure(429)` copy, as in the app
+  Evidence: `JobTrigger-Web/src/domain/domain.test.ts` "failureMessage" (429 reads "Too many attempts. Please wait a few minutes and try again.", as in the app); `JobTrigger-Web/src/features/servers/reveal-action.test.ts` "rate limiting on the check is reported and also reveals nothing"; every portal call goes through the same failure mapping (`src/server/backend-client.ts`).
 
 **Security & Privacy Notes**
 - Both actions require the current password even with a valid session.
@@ -877,34 +959,40 @@ I want the site to be honest about what works today and what is coming
 So that I don't sign up for something the app can't do yet
 
 **Acceptance Criteria**
-- Scenario: One feature-status list
+- [x] Scenario: One feature-status list
   Then the site has a single, version-controlled list of features, each
   with a status of `live`, `beta`, `soon`, or `planned`, seeded from the
   epic's "Feature availability" table. No page hard-codes "coming soon"
   copy; it reads the status
-- Scenario: Flipping a status
+  Evidence: `JobTrigger-Web/src/content/feature-status.test.ts` "matches the agreed statuses", "gives every feature a label and its evidence".
+- [x] Scenario: Flipping a status
   Given a feature moves from `soon` to `live` (for example the app reaches
   the stores)
   When the list is changed and the site is redeployed
   Then every badge, button, comparison cell, and "coming soon" sentence for
   that feature updates, with no page edits
-- Scenario: Status badges
+  Evidence: `JobTrigger-Web/src/content/release.test.tsx` "feature statuses read as 'Coming in X' for a tool in a later release"; `JobTrigger-Web/src/features/marketing/features/features-view.test.tsx` "marks runs as still coming if that feature is not live yet".
+- [x] Scenario: Status badges
   Then `beta` shows a blue "Beta" pill, `soon` a grey "Coming soon" pill,
   and `planned` a dashed "Planned" pill, each with its text label (status
   is never shown by colour alone)
-- Scenario: Disabled actions
+  Evidence: `JobTrigger-Web/src/components/status.test.tsx` "shows nothing for a live feature", "renders a badged, explained, inert control for an unavailable feature".
+- [x] Scenario: Disabled actions
   Given an action belongs to a `soon` or `planned` feature
   Then its button or link renders disabled (`aria-disabled="true"`, not
   focusable as a link, not a dead URL) and says why ("Coming soon")
-- Scenario: Where "coming soon" points
+  Evidence: `JobTrigger-Web/src/components/status.test.tsx` "renders a badged, explained, inert control for an unavailable feature".
+- [x] Scenario: Where "coming soon" points
   Then any "coming soon" message that offers a next step links to the
   changelog (US-WEB-08). There is no email signup until the backend-track
   item "Launch notify-me signup" in `tasks/backlog.md` is approved
-- Scenario: Keeping it true
+  Evidence: `JobTrigger-Web/src/features/marketing/home/download.test.tsx` "before launch: coming soon, inert store buttons, web setup and launch updates"; `JobTrigger-Web/src/features/marketing/site-chrome.test.tsx` "invites setup and points to launch updates before launch".
+- [x] Scenario: Keeping it true
   Then a feature is only set to `live` when its stories are "done" in
   `tasks/README.md`, and the PR that ships a feature in the app (or the
   release that puts it in the stores) updates the list in the same change
   or a linked follow-up
+  Evidence: `JobTrigger-Web/src/content/feature-status.test.ts` "gives every feature a label and its evidence"; `JobTrigger-Web/src/content/changelog.test.ts` "ships every live feature, in list order".
 
 **Security & Privacy Notes**
 - None beyond the baselines. The list is static content, not user data.

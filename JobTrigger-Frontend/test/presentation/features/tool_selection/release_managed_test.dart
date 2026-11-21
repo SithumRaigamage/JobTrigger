@@ -1,12 +1,15 @@
 import 'dart:io';
+import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/domain/app_info/app_info.dart';
 import 'package:job_trigger/domain/tools/tool_catalog.dart';
+import 'package:job_trigger/presentation/common_widgets/toast_controller.dart';
 import 'package:job_trigger/presentation/features/app_info/app_info_notifier.dart';
 import 'package:job_trigger/presentation/features/settings/settings_screen.dart';
 import 'package:job_trigger/presentation/features/tool_selection/active_tool_notifier.dart';
@@ -76,7 +79,7 @@ void main() {
       routes: [
         GoRoute(
           path: AppRoutes.toolSelection,
-          builder: (_, _) => const ToolSelectionScreen(),
+          builder: (_, _) => const ToolSelectionScreen(choosing: true),
         ),
         GoRoute(
           path: AppRoutes.home,
@@ -189,15 +192,42 @@ void main() {
     ) async {
       ToolCatalog.current = release('1.0');
       final container = await pumpSelection(tester);
+      container.listen(currentToastProvider, (_, _) {});
 
       await tester.tap(find.byKey(const Key('coming_next_gitlab')));
       await tester.pumpAndSettle();
 
+      // US-TOOL-02: the tap says the tool isn't available yet.
+      final toast = container.read(currentToastProvider);
+      expect(toast?.title, 'GitLab CI is coming');
+      expect(toast?.message, contains(CiTool.gitlab.releaseVersion!));
+      await tester.pump(const Duration(seconds: 4));
       expect(find.text('Continue with Jenkins'), findsOneWidget);
       await tester.tap(find.byKey(const Key('tool_continue_button')));
       await tester.pumpAndSettle();
       expect(container.read(activeToolNotifierProvider), CiTool.jenkins);
       expect(find.text('home'), findsOneWidget);
+    });
+
+    // US-TOOL-02 "Screen-reader announcement": a tile is read as disabled,
+    // with when it arrives, never like a tool you can choose.
+    testWidgets('a screen reader hears a tile as disabled, coming later', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      ToolCatalog.current = release('1.0');
+      await pumpSelection(tester);
+
+      final node = tester.getSemantics(
+        find.byKey(const Key('coming_next_gitlab')),
+      );
+      expect(
+        node.label,
+        'GitLab CI, coming in ${CiTool.gitlab.releaseVersion}',
+      );
+      expect(node.flagsCollection.isEnabled, Tristate.isFalse);
+      expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isFalse);
+      handle.dispose();
     });
 
     testWidgets('the tiles are laid out in three columns', (tester) async {

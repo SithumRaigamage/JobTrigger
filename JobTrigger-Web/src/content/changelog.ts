@@ -30,6 +30,7 @@ export const releases: Release[] = [
       { tag: "New", text: "Live logs, stages, tests and history for every run" },
       { tag: "New", text: "Notifications with per-watch rules — failures only, or back to green" },
       { tag: "New", text: "Pinned jobs, saved views, the build queue and nodes" },
+      { tag: "New", text: "Replay a Jenkins pipeline build with an edited script" },
       { tag: "New", text: "Set up servers from your laptop on this website" },
       {
         tag: "New",

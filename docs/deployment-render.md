@@ -1,10 +1,12 @@
 # Backend on Render — deployment plan
 
-Proposed 2026-11-16 (owner chose Render). **On hold (owner, 2026-11-16):
-deployment waits until all development is done.** Plan only, not approved. It covers the backend (`JobTrigger-Backend`). The website stays
-on Vercel (`deployment.md`, "Vercel (P15-22)"). Deploying the backend unblocks
-the portal going live (P15-22), subscriptions (P20-05) and the production
-database steps (PE-30/31).
+Proposed 2026-11-16 (owner chose Render). **Owner asked for the blueprint on
+2026-11-21; connecting the workspace, creating the services and entering the
+secret values are still owner actions (M-14).** It covers the backend
+(`JobTrigger-Backend`). The website stays on Vercel (`deployment.md`,
+"Vercel (P15-22)", and [`deployment-vercel.md`](deployment-vercel.md)).
+Deploying the backend unblocks the portal going live (P15-22), subscriptions
+(P20-05) and the production database steps (PE-30/31).
 
 Render facts below were checked on 2026-11-16 against Render's docs and pricing
 pages and recent write-ups. Prices change; confirm on render.com/pricing before

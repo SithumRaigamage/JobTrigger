@@ -220,6 +220,10 @@ class JobDetailScreen extends ConsumerWidget {
             Expanded(
               child: ResponsiveCenter(
                 child: jobAsync.when(
+                  // US-JOB-04: a failed poll or refresh keeps the job on
+                  // screen; the next poll tries again. Only a first load
+                  // that fails shows the error.
+                  skipError: true,
                   data: (job) => _JobDetailBody(
                     job: job,
                     formKey: jobUrl,
@@ -873,7 +877,8 @@ class _LastBuildCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(3),
                     child: LinearProgressIndicator(
                       minHeight: 6,
-                      value: BuildProgress.ratioFor(lastBuild),
+                      // US-JOB-04: indeterminate without an estimate.
+                      value: BuildProgress.ratioOrUnknown(lastBuild),
                       semanticsLabel: 'Build progress',
                     ),
                   ),

@@ -8,6 +8,7 @@ import 'package:job_trigger/core/platform/link_launcher.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/data/billing/revenuecat_billing_client.dart';
 import 'package:job_trigger/data/credentials/active_server_notifier.dart';
+import 'package:job_trigger/data/credentials/credentials_notifier.dart';
 import 'package:job_trigger/data/credentials/team_servers_notifier.dart';
 import 'package:job_trigger/data/repositories/credentials_repository_impl.dart';
 import 'package:job_trigger/data/repositories/subscription_repository_impl.dart';
@@ -73,6 +74,13 @@ const _shared = TeamServer(
 class _Own implements CredentialsRepository {
   _Own(this.servers);
   final List<JenkinsServer> servers;
+  final switched = <String>[];
+
+  @override
+  Future<Result<JenkinsServer, AppFailure>> switchActive(String id) async {
+    switched.add(id);
+    return Ok(servers.firstWhere((s) => s.id == id));
+  }
 
   @override
   Future<Result<List<JenkinsServer>, AppFailure>> fetchAll() async =>
@@ -249,10 +257,14 @@ void main() {
   });
 
   group('ActiveServerNotifier with team servers (AC17)', () {
-    ProviderContainer container(_Team team, List<JenkinsServer> own) {
+    ProviderContainer container(
+      _Team team,
+      List<JenkinsServer> own, {
+      _Own? repo,
+    }) {
       final c = ProviderContainer(
         overrides: [
-          credentialsRepositoryProvider.overrideWithValue(_Own(own)),
+          credentialsRepositoryProvider.overrideWithValue(repo ?? _Own(own)),
           teamServersRepositoryProvider.overrideWithValue(team),
         ],
       );
@@ -290,6 +302,33 @@ void main() {
       await c.read(teamServersNotifierProvider.notifier).refresh();
       await settle();
       expect(c.read(activeServerNotifierProvider)?.id, 'own1');
+    });
+
+    test('stays on a team server when the own list reloads', () async {
+      // The own list has a backend default; reloading it must not move the
+      // user off a team server that is still shared.
+      SharedPreferences.setMockInitialValues({'active_server_id': 'team:c1'});
+      final c = container(_Team([_shared]), [_own]);
+      c.listen(credentialsNotifierProvider, (_, _) {});
+      await settle();
+      expect(c.read(activeServerNotifierProvider)?.id, 'team:c1');
+
+      await c.read(credentialsNotifierProvider.notifier).refresh();
+      await settle();
+      expect(c.read(activeServerNotifierProvider)?.id, 'team:c1');
+    });
+
+    test('choosing a team server does not move the backend default', () async {
+      final repo = _Own([_own]);
+      final c = container(_Team([_shared]), [_own], repo: repo);
+      await settle();
+
+      await c
+          .read(activeServerNotifierProvider.notifier)
+          .setActiveServer(_shared.server);
+      await settle();
+      expect(c.read(activeServerNotifierProvider)?.id, 'team:c1');
+      expect(repo.switched, isNot(contains('team:c1')));
     });
 
     test('an unshared team server on restart gives the own default', () async {

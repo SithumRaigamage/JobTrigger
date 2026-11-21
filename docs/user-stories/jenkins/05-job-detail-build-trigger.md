@@ -20,24 +20,28 @@ and recent build history
 So that I have enough context to decide whether/how to trigger it
 
 **Acceptance Criteria**
-- Scenario: Detail loads successfully
+- [ ] Scenario: Detail loads successfully
   Given I tap a job from the tree or search results
   Then its description, health report, last build status, and recent
   builds list render from the job-detail fetch
-- Scenario: Job with no build history
+  Open: partly: description, health report and the last build render (added 2026-11-21, `test/presentation/features/job_detail/job_detail_states_test.dart` "shows the description, health and last build"; `test/presentation/features/job_detail/job_detail_notifier_test.dart` "a successful initial fetch resolves to the fetched job"), but the recent-builds list moved behind the History button in the P14 redesign. Needs rewording.
+- [x] Scenario: Job with no build history
   Given the job has never been built
   Then this is shown explicitly ("no builds yet"), not as an error or a
   confusing empty last-build section
-- Scenario: Load failure
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/job_detail/job_detail_states_test.dart` "a job that never ran says "No builds yet", not an error".
+- [x] Scenario: Load failure
   Given the job-detail fetch fails
   Then it maps to the correct `AppFailure` (per-server `AuthFailure`,
   `NetworkFailure`, `NotFoundFailure` if the job was deleted since I
   navigated here, or `ServerFailure`/`UnknownFailure`) with a retry action
-- Scenario: Job deleted since navigating here
+  Evidence: `test/presentation/features/job_detail/job_detail_notifier_test.dart` "a repository failure maps to AsyncError carrying the AppFailure"; mapping `test/core/error/app_failure_test.dart`; Retry on screen: `test/presentation/features/job_detail/job_detail_states_test.dart` "a deleted job says it may have been removed, with Retry" (2026-11-21).
+- [x] Scenario: Job deleted since navigating here
   Given the job no longer exists on the server (404 from Jenkins)
   Then a clear `NotFoundFailure`-mapped "this job no longer exists" message
   is shown rather than a generic error, and I'm offered a way back to the
   tree
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/job_detail/job_detail_states_test.dart` "a deleted job says it may have been removed, with Retry" (`NotFoundFailure` copy "That couldn't be found — it may have been removed."); the screen's back chevron returns to the tree.
 
 **Security & Privacy Notes**
 - None beyond the existing per-server auth handling.
@@ -62,26 +66,30 @@ I want to trigger a parameterless job with one tap
 So that I can kick off a build quickly from my phone
 
 **Acceptance Criteria**
-- Scenario: Successful trigger
+- [x] Scenario: Successful trigger
   Given the job has no parameter definitions
   When I tap "Trigger build" and confirm
   Then `POST {jobURL}build` is called, a success acknowledgment is shown,
   and the job detail refreshes to reflect the new/queued build
-- Scenario: Confirmation before triggering
+  Evidence: `test/data/repositories/jenkins_repository_impl_trigger_test.dart` "no parameters, non-parameterized job -> POST .../build with no body"; `test/presentation/features/job_detail/trigger_build_notifier_test.dart` "a successful trigger refreshes JobDetailNotifier and shows a success toast".
+- [x] Scenario: Confirmation before triggering
   Given I tap "Trigger build"
   Then a confirmation step is required before the request is sent — this
   action has real side effects on a live system and must not be a single
   accidental tap
-- Scenario: Trigger fails
+  Evidence: `test/presentation/features/job_detail/job_detail_confirmation_test.dart` "dismissing the trigger confirmation never calls Jenkins", "confirming triggers exactly once".
+- [x] Scenario: Trigger fails
   Given the trigger request fails (auth, network, or server error)
   Then an `AppFailure`-mapped message is shown, clearly distinguishing "the
   request failed to send" from "it was sent but Jenkins rejected it," and
   no false "build started" confirmation is ever shown before the request
   actually succeeds
-- Scenario: Double-tap protection
+  Evidence: `test/presentation/features/job_detail/trigger_build_notifier_test.dart` "a repository failure surfaces as AsyncError and shows an error toast, without refreshing job detail" (no success toast); not sent (`NetworkFailure`) and refused (`PermissionFailure`/`ServerFailure`/`JobDisabledFailure`) have their own copy (`test/core/error/app_failure_test.dart`, `test/presentation/features/job_detail/job_enabled_test.dart` "triggering a disabled job (409) is JobDisabledFailure").
+- [x] Scenario: Double-tap protection
   Given I tap "Trigger build" twice in quick succession
   Then only one build is triggered — the action is disabled/debounced while
   the request is in flight
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/job_detail/job_detail_states_test.dart` "Trigger is off while a trigger is in flight" ("Triggering…", a second tap does nothing, one call).
 
 **Security & Privacy Notes**
 - Triggering a build is a state-changing action against a live CI/CD
@@ -112,33 +120,38 @@ So that I can run the job with the specific inputs I need, the same as I
 would from the Jenkins web UI
 
 **Acceptance Criteria**
-- Scenario: Parameter form renders correctly per type
+- [x] Scenario: Parameter form renders correctly per type
   Given the job defines string, choice, and/or boolean parameters
   Then the form renders the correct control per type (text field, dropdown/
   choice selector, toggle), each pre-filled with Jenkins' declared default
   value
-- Scenario: Successful trigger with parameters
+  Evidence: `test/presentation/features/job_detail/parameter_form_test.dart` "shows defaults and records edits by parameter name", "boolean parameters render a switch…", "choice parameters render a dropdown of the declared choices"; `test/presentation/features/job_detail/parameter_form_types_test.dart`.
+- [x] Scenario: Successful trigger with parameters
   Given I fill in (or accept defaults for) all parameters
   When I confirm
   Then all values are serialized to strings (matching Jenkins' expected
   form-encoding regardless of declared type, per `docs/data-models.md`) and
   sent via `POST {jobURL}buildWithParameters`
-- Scenario: Required-looking fields left at default
+  Evidence: `test/data/repositories/jenkins_repository_impl_trigger_test.dart` "with parameters -> POST .../buildWithParameters, form-urlencoded body" (booleans sent as "false").
+- [ ] Scenario: Required-looking fields left at default
   Given a parameter has no explicit default and I leave it blank
   Then the app still allows submission (Jenkins itself decides whether an
   empty value is valid) but the field visually indicates it's currently
   empty, so a blank submission is a deliberate choice, not an oversight
-- Scenario: Parameter values are safely encoded
+  Open: submission is allowed with empty values, but an empty field has no visual "empty" mark (`parameter_form.dart`). Jenkins is frozen: owner decision.
+- [x] Scenario: Parameter values are safely encoded
   Given a parameter value contains special characters (e.g. `&`, `=`,
   quotes, or shell-metacharacter-like text a user might paste)
   Then the value is form-encoded via the standard HTTP client encoding path
   (never string-concatenated into a raw URL/body), so it reaches Jenkins as
   the literal value with no injection into the request structure
-- Scenario: Trigger fails
+  Evidence: Fixed 2026-11-21: test added: `test/data/repositories/jenkins_repository_impl_trigger_test.dart` "a value with &, =, quotes and shell text reaches Jenkins literally" (the bytes on the wire decode back to the typed value, no extra fields).
+- [x] Scenario: Trigger fails
   Given the parameterized trigger request fails
   Then the same `AppFailure` handling and no-false-success guarantee from
   US-JOB-02 applies, and my entered parameter values are preserved so I
   don't have to re-enter them
+  Evidence: `test/presentation/features/job_detail/trigger_build_notifier_test.dart` "a repository failure surfaces as AsyncError and shows an error toast…"; typed values live in `ParameterEditsNotifier`, which a trigger never clears (`test/presentation/features/job_detail/parameter_form_test.dart` "an edit survives the form scrolling off-screen and back (AUD-18)").
 
 **Security & Privacy Notes**
 - Parameter values are user input flowing to an external system (Jenkins);
@@ -168,30 +181,35 @@ I want to see its status update automatically with a progress indicator
 So that I don't have to manually refresh to know when it finishes
 
 **Acceptance Criteria**
-- Scenario: Polling starts while building
+- [x] Scenario: Polling starts while building
   Given the job's `lastBuild.building` is true
   Then the job detail screen polls every 5 seconds and updates status,
   duration, and a progress bar (computed from `timestamp`/
   `estimatedDuration`) without manual refresh
-- Scenario: Polling stops when build finishes
+  Evidence: `test/presentation/features/job_detail/build_status_polling_notifier_test.dart` "polls again after ~5s while the build is still building"; progress from timestamp/estimate: `test/domain/jenkins/build_progress_test.dart`; bar on screen: `test/presentation/features/job_detail/job_detail_states_test.dart` "with an estimate the bar shows the fraction done".
+- [x] Scenario: Polling stops when build finishes
   Given the build completes (result becomes SUCCESS/FAILURE/UNSTABLE/
   ABORTED)
   Then polling stops automatically and the final result/status color is
   shown
-- Scenario: Polling stops on screen exit
+  Evidence: `test/presentation/features/job_detail/build_status_polling_notifier_test.dart` "does not schedule a timer at all once the build has finished".
+- [x] Scenario: Polling stops on screen exit
   Given I navigate away from the job detail screen while a build is still
   running
   Then the polling timer is cancelled (owned and disposed by its notifier,
   not left running in the background against a screen no longer visible)
-- Scenario: Poll request fails transiently
+  Evidence: `test/presentation/features/job_detail/build_status_polling_notifier_test.dart` "cancels its timer on dispose -- no further fetches after the container is gone".
+- [x] Scenario: Poll request fails transiently
   Given a single poll request fails (e.g. brief network blip)
   Then the last known status remains displayed and polling retries on the
   next interval, rather than immediately showing a hard error for one
   missed poll
-- Scenario: Progress bar with no estimated duration
+  Evidence: Fixed 2026-11-21: one failed poll replaced the job with the error screen; `job_detail_screen.dart` now keeps the last loaded job (`skipError`) and the next poll tries again. Test `test/presentation/features/job_detail/job_detail_states_test.dart` "a failed poll keeps the last status and polls again".
+- [x] Scenario: Progress bar with no estimated duration
   Given the job has no prior build history to estimate duration from
   Then the progress indicator shows an indeterminate/unknown-duration state
   rather than a misleading fixed percentage
+  Evidence: Fixed 2026-11-21: the bar sat at 0% with no estimate; it is now indeterminate (`BuildProgress.ratioOrUnknown`). Tests `test/presentation/features/job_detail/job_detail_states_test.dart` "no estimated duration shows an indeterminate bar", `test/domain/jenkins/build_progress_test.dart` "ratioOrUnknown is null without an estimate".
 
 **Security & Privacy Notes**
 - None beyond standard per-server auth handling on each poll request.
@@ -218,26 +236,30 @@ I want to cancel it from my phone
 So that I don't have to wait for it to finish or find a laptop to stop it
 
 **Acceptance Criteria**
-- Scenario: Successful cancel
+- [x] Scenario: Successful cancel
   Given a build is currently running
   When I tap "Cancel build" and confirm
   Then `POST {jobURL}{buildNumber}/stop` is called, the UI optimistically
   flips the local status to ABORTED immediately, and the next poll confirms
   (or corrects, if Jenkins didn't actually stop it) the real state
-- Scenario: Confirmation required
+  Evidence: `jenkins_repository_impl_trigger_test.dart` "cancelBuild POSTs {buildUrl}stop"; `test/presentation/features/job_detail/cancel_build_notifier_test.dart` "a successful cancel optimistically flips the build to ABORTED…"; Fixed 2026-11-21: the flip stopped polling, so nothing ever confirmed it; one more poll now runs (`BuildStatusPollingNotifier.confirmSoon`). Test `test/presentation/features/job_detail/build_status_polling_notifier_test.dart` "after an optimistic cancel, one more poll shows the real state".
+- [x] Scenario: Confirmation required
   Given I tap "Cancel build"
   Then a confirmation step is required — same rationale as triggering: a
   real, disruptive action against a live system
-- Scenario: Cancel request fails
+  Evidence: `test/presentation/features/job_detail/job_detail_confirmation_test.dart` "cancel asks first, and dismissing keeps the build running".
+- [x] Scenario: Cancel request fails
   Given the stop request fails
   Then the optimistic ABORTED flip is reverted back to the actual polled
   state, and an `AppFailure`-mapped error explains the cancel didn't take
   effect — the UI never claims a build stopped when it didn't
-- Scenario: Cancel a build already finished
+  Evidence: `test/presentation/features/job_detail/cancel_build_notifier_test.dart` "a repository failure surfaces as AsyncError and shows an error toast, without touching job detail" (the flip only happens after success, so nothing has to be reverted).
+- [x] Scenario: Cancel a build already finished
   Given the build finishes (naturally) in the moment between me tapping
   cancel and the request completing
   Then the app handles this gracefully (no crash, no misleading "cancelled"
   state) and simply reflects the build's real final result
+  Evidence: Fixed 2026-11-21 with the confirmation poll above: a build that had already finished showed ABORTED until a manual refresh; the next poll now shows its real result (`build_status_polling_notifier_test.dart` "after an optimistic cancel, one more poll shows the real state").
 
 **Security & Privacy Notes**
 - Same destructive-action safeguards as triggering (confirmation,

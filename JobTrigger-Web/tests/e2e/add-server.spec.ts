@@ -61,13 +61,13 @@ test("validation and the http:// warning follow the app's rules", async ({ page 
   await expect(page.getByLabel("Server URL")).toHaveValue("jenkins.lan");
 });
 
-test("Test connection is shown disabled while it's coming soon", async ({ page }) => {
+test("the website says the phone tests the connection (US-WEB-19)", async ({ page }) => {
   await signUp(page);
   await page.goto("/servers/new");
 
-  const test = page.getByRole("button", { name: "Test connection Coming soon" });
-  await expect(test).toHaveAttribute("aria-disabled", "true");
-  await expect(test).toHaveAccessibleDescription(
-    "You can test the connection from the app after saving.",
+  await expect(page.getByTestId("test-in-app")).toHaveText(
+    "Your phone tests the connection. After saving, open JobTrigger on the same network as this server, tap the server in Settings and tap Test connection.",
   );
+  // No disabled "Coming soon" button any more.
+  await expect(page.getByRole("button", { name: /Test connection/ })).toHaveCount(0);
 });
