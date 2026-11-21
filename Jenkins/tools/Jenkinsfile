@@ -183,6 +183,8 @@ RUN apt-get update \\
  && flutter config --no-analytics \\
  && flutter --version \\
  && flutter precache --android \\
+ && sed -n 's/.*val ndkVersion: String = "\\([^"]*\\)".*/ndk;\\1/p' /sdks/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterExtension.kt | head -1 | xargs -r sdkmanager \\
+ && find /opt/android-sdk-linux/ndk -mindepth 1 -maxdepth 1 -type d | grep -q . \\
  && chmod -R a+rwX /sdks/flutter /opt/android-sdk-linux
 EOF
     '''
