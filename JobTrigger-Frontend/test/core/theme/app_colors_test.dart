@@ -64,6 +64,32 @@ void main() {
     );
   });
 
+  // US-DESIGN-02 "The accent is readable": as a selected state or a
+  // filled button it is a UI component, so 3:1 against each background.
+  test('the accent reaches 3:1 on both backgrounds and cards', () {
+    for (final t in const [AppTokens.dark, AppTokens.light]) {
+      for (final ground in [t.background, t.card]) {
+        expect(
+          _contrast(AppColors.accent, ground),
+          greaterThanOrEqualTo(3.0),
+          reason: 'accent on $ground',
+        );
+      }
+    }
+  });
+
+  // US-DESIGN-05 "Each status has its own tone", in both modes.
+  test('every status tone is distinct from the others', () {
+    for (final t in const [AppTokens.dark, AppTokens.light]) {
+      final dots = {for (final tone in StatusTone.values) t.status(tone).dot};
+      final tints = {
+        for (final tone in StatusTone.values) t.status(tone).background,
+      };
+      expect(dots, hasLength(StatusTone.values.length));
+      expect(tints, hasLength(StatusTone.values.length));
+    }
+  });
+
   test('both themes carry their tokens and the one accent', () {
     final light = AppTheme.light(), dark = AppTheme.dark();
     expect(light.extension<AppTokens>(), AppTokens.light);
