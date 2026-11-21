@@ -20,7 +20,7 @@ describe("feature status list", () => {
       "sonarqube-save": "live",
       "sonarqube-insights": "live",
       "web-portal": "live",
-      "web-test-connection": "soon",
+      "web-test-connection": "planned",
       "password-reset": "soon",
       subscriptions: "live",
       "gitlab-ci": "planned",
