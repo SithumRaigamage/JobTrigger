@@ -14,6 +14,12 @@ tracked in [`Releases/v1.0.0/workplan.md`](../Releases/v1.0.0/workplan.md)
 website, billing, device checks and docs). This table stays the source of
 truth for individual task status.
 
+**User stories re-ticked 2026-11-21:** 448 of 538 acceptance criteria in the
+built epics are proven by a named test; the other 90 say why not (most are
+owner decisions, criteria replaced on purpose, or device-only checks), and
+13 bugs found on the way were fixed. Per-story table:
+[`Releases/v1.0.0/story-retick-2026-11-21.md`](../Releases/v1.0.0/story-retick-2026-11-21.md).
+
 ## Phase status
 
 | Phase | File | Status | Depends on |
