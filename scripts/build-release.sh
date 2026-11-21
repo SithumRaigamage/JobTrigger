@@ -174,17 +174,41 @@ for name in ("BACKEND_BASE_URL", "WEBSITE_BASE_URL", "SENTRY_DSN"):
     if parts.scheme != "https" or dev_host(parts.hostname):
         unsafe.append(name)
 
+# The shape of each secret that is present (names only, never values), so a
+# template value or a key for the wrong store fails here, not in review.
+import re
+
+def malformed_value(name, value):
+    if "replace" in value.lower():
+        return True  # still the config/*.example.json placeholder
+    if name == "SENTRY_DSN":
+        parts = urlsplit(value)
+        return not parts.username or not re.fullmatch(r"/\d+", parts.path or "")
+    if name == "REVENUECAT_IOS_KEY":
+        return not re.fullmatch(r"appl_[A-Za-z0-9_]{6,}", value)
+    if name == "REVENUECAT_ANDROID_KEY":
+        return not re.fullmatch(r"goog_[A-Za-z0-9_]{6,}", value)
+    return False
+
+malformed = [k for k in present if malformed_value(k, merged[k].strip())]
+
 print(" ".join(present) or "-")
 print(" ".join(missing) or "-")
 print(" ".join(unsafe) or "-")
+print(" ".join(malformed) or "-")
 PY
 )"
 present="$(sed -n 1p <<<"$report")"
 missing="$(sed -n 2p <<<"$report")"
 unsafe="$(sed -n 3p <<<"$report")"
+malformed="$(sed -n 4p <<<"$report")"
 
 if [ "$unsafe" != "-" ]; then
   fail "Not a release address (must be https:// on a public host, not localhost, .local or a LAN IP): $unsafe. Check config/$env_name.json and config/sentry.json."
+fi
+
+if [ "$malformed" != "-" ]; then
+  fail "Not a usable value: $malformed. SENTRY_DSN is https://<key>@<host>/<project id>; REVENUECAT_IOS_KEY starts appl_, REVENUECAT_ANDROID_KEY goog_; a value still containing REPLACE is the template (config/*.example.json)."
 fi
 
 echo "✓ config: $env_name ($(basename "$base"))"
