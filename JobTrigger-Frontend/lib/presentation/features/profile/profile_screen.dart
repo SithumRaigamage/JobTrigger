@@ -196,8 +196,8 @@ class ProfileScreen extends ConsumerWidget {
                   ListTile(
                     leading: const Icon(Icons.logout_rounded),
                     title: const Text('Log out'),
-                    onTap: () =>
-                        ref.read(authNotifierProvider.notifier).logout(),
+                    // US-AUTH-04: never a single accidental tap.
+                    onTap: () => _logout(context, ref),
                   ),
                   // AUD-26: revoke every session, e.g. after losing a phone.
                   ListTile(
@@ -315,6 +315,17 @@ class ProfileScreen extends ConsumerWidget {
         return problem == null ? null : describeError(problem);
       },
     );
+  }
+
+  Future<void> _logout(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Log out?',
+      message: 'You will need to log in again on this device.',
+      confirmLabel: 'Log out',
+    );
+    if (!confirmed || !context.mounted) return;
+    await ref.read(authNotifierProvider.notifier).logout();
   }
 
   Future<void> _logoutEverywhere(BuildContext context, WidgetRef ref) async {

@@ -16,10 +16,17 @@ import 'package:shared_preferences_platform_interface/shared_preferences_platfor
 
 /// P14-11: the profile as redesigned (`UI-UX/screens/10-profile`).
 class _Auth extends AuthNotifier {
+  int logouts = 0;
+
   @override
   Future<AuthState> build() async =>
       const Authenticated(User(id: 'u', email: 'sam@acme.dev'));
+
+  @override
+  Future<void> logout() async => logouts++;
 }
+
+_Auth? _lastAuth;
 
 class _Server extends ActiveServerNotifier {
   @override
@@ -53,7 +60,7 @@ Future<void> _pump(WidgetTester tester) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        authNotifierProvider.overrideWith(_Auth.new),
+        authNotifierProvider.overrideWith(() => _lastAuth = _Auth()),
         activeServerNotifierProvider.overrideWith(_Server.new),
         packageInfoProvider.overrideWith(
           (ref) async => PackageInfo(
@@ -126,5 +133,25 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('tool selection'), findsOneWidget);
+  });
+
+  testWidgets('Log out asks first; Cancel keeps you signed in (US-AUTH-04)', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await tester.scrollUntilVisible(find.text('Log out'), 200);
+
+    await tester.tap(find.text('Log out'));
+    await tester.pumpAndSettle();
+    expect(find.text('Log out?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(_lastAuth!.logouts, 0);
+
+    await tester.tap(find.text('Log out'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Log out'));
+    await tester.pumpAndSettle();
+    expect(_lastAuth!.logouts, 1);
   });
 }

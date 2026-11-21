@@ -1,13 +1,25 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/presentation/common_widgets/inline_alert.dart';
+import 'package:job_trigger/domain/auth/auth_state.dart';
+import 'package:job_trigger/presentation/features/auth/auth_notifier.dart';
 import 'package:job_trigger/presentation/features/auth/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// P14-03: the login screen as redesigned (`UI-UX/screens/01-login`).
+/// A session read that hasn't finished yet (a cold start).
+class _Rehydrating extends AuthNotifier {
+  final gate = Completer<AuthState>();
+
+  @override
+  Future<AuthState> build() => gate.future;
+}
+
 void main() {
   setUp(() {
     FlutterSecureStorage.setMockInitialValues({});
@@ -20,7 +32,8 @@ void main() {
         child: MaterialApp(theme: AppTheme.dark(), home: const LoginScreen()),
       ),
     );
-    await tester.pump();
+    // US-AUTH-03: the stored session is read first (a spinner), then the form.
+    await tester.pumpAndSettle();
   }
 
   testWidgets('shows the redesigned copy and actions', (tester) async {
@@ -54,5 +67,24 @@ void main() {
     expect(find.bySemanticsLabel(RegExp('^Email')), findsOneWidget);
     expect(find.bySemanticsLabel(RegExp('^Password')), findsOneWidget);
     semantics.dispose();
+  });
+
+  testWidgets('no form flashes while the stored session is read (US-AUTH-03)', (
+    tester,
+  ) async {
+    final auth = _Rehydrating();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [authNotifierProvider.overrideWith(() => auth)],
+        child: MaterialApp(theme: AppTheme.dark(), home: const LoginScreen()),
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key('session_check')), findsOneWidget);
+    expect(find.text('Welcome back'), findsNothing);
+
+    auth.gate.complete(const Unauthenticated());
+    await tester.pumpAndSettle();
+    expect(find.text('Welcome back'), findsOneWidget);
   });
 }
