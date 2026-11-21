@@ -157,3 +157,7 @@ tools/jenkins-fixture/.fixture-credentials.tmp
 
 # E3: unsent crash reports waiting for the reporting host (scrubbed, mode 600)
 crash-outbox/
+
+# Local AI-tool folders (cached attachments, Freebuff project id); never committed
+.cloud-attachments/
+.freebuff/
