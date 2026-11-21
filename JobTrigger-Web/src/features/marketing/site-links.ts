@@ -16,6 +16,8 @@ export const routes = {
   demo: "/demo",
   addServer: "/servers/new",
   account: "/account",
+  /** US-WEB-04: the signed-in tool request form. */
+  requestToolForm: "/account/request-tool",
 } as const;
 
 export const mainNav = [

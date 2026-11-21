@@ -112,7 +112,8 @@ class ProfileScreen extends ConsumerWidget {
                     trailing: _Trailing(
                       activeTool?.displayName ?? CiTool.jenkins.displayName,
                     ),
-                    onTap: () => context.go(AppRoutes.toolSelection),
+                    onTap: () =>
+                        context.go('${AppRoutes.toolSelection}?choose=1'),
                   ),
                   ListTile(
                     leading: Icon(
