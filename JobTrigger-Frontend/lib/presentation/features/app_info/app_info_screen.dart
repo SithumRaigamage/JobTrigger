@@ -18,11 +18,28 @@ import 'app_info_notifier.dart';
 /// `AppInfoNotifier` entry. Links open externally (`openExternalLink`),
 /// matching the old app's `openURL` environment action, plus a toast when
 /// nothing can open them (AUD-22).
-class AppInfoScreen extends ConsumerWidget {
+class AppInfoScreen extends ConsumerStatefulWidget {
   const AppInfoScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppInfoScreen> createState() => _AppInfoScreenState();
+}
+
+class _AppInfoScreenState extends ConsumerState<AppInfoScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // US-PROF-03: opening the screen refreshes app info older than its TTL.
+    // After the first frame: a provider can't change while widgets build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(appInfoNotifierProvider.notifier).refreshIfStale();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final appInfoAsync = ref.watch(appInfoNotifierProvider);
     final installed = ref.watch(packageInfoProvider).value;
     final textTheme = Theme.of(context).textTheme;

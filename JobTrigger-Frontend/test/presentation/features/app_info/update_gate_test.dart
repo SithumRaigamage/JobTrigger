@@ -109,22 +109,60 @@ void main() {
     expect(find.text('Update required'), findsNothing);
   });
 
-  // "cached with a short TTL": App Info and the gate share one fetch,
-  // kept after the last listener goes away.
-  test('app info is fetched once and kept after its screen closes', () async {
-    final repo = _Repo(Ok(_info(null)));
-    final container = ProviderContainer(
-      retry: (_, _) => null,
-      overrides: [appInfoRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
+  // "cached with a short TTL": App Info and the gate share one fetch; it
+  // is fetched again only once older than the TTL.
+  group('app info cache', () {
+    late _Repo repo;
+    late _ClockedNotifier notifier;
+    late ProviderContainer container;
 
-    final sub = container.listen(appInfoNotifierProvider, (_, _) {});
-    await container.read(appInfoNotifierProvider.future);
-    sub.close();
-    await Future<void>.delayed(Duration.zero);
-    await container.read(appInfoNotifierProvider.future);
+    setUp(() {
+      repo = _Repo(Ok(_info(null)));
+      container = ProviderContainer(
+        retry: (_, _) => null,
+        overrides: [
+          appInfoRepositoryProvider.overrideWithValue(repo),
+          appInfoNotifierProvider.overrideWith(
+            () => notifier = _ClockedNotifier(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+    });
 
-    expect(repo.calls, 1);
+    test('is kept after its screen closes', () async {
+      final sub = container.listen(appInfoNotifierProvider, (_, _) {});
+      await container.read(appInfoNotifierProvider.future);
+      sub.close();
+      await Future<void>.delayed(Duration.zero);
+      await container.read(appInfoNotifierProvider.future);
+
+      expect(repo.calls, 1);
+    });
+
+    test('fresh info is not fetched again', () async {
+      await container.read(appInfoNotifierProvider.future);
+      notifier.time = notifier.time.add(const Duration(minutes: 9));
+      notifier.refreshIfStale();
+      await container.read(appInfoNotifierProvider.future);
+
+      expect(repo.calls, 1);
+    });
+
+    test('info older than the TTL is fetched again', () async {
+      await container.read(appInfoNotifierProvider.future);
+      notifier.time = notifier.time.add(const Duration(minutes: 11));
+      notifier.refreshIfStale();
+      await container.read(appInfoNotifierProvider.future);
+
+      expect(repo.calls, 2);
+    });
   });
+}
+
+class _ClockedNotifier extends AppInfoNotifier {
+  DateTime time = DateTime(2026, 11, 21, 9);
+
+  @override
+  DateTime now() => time;
 }
