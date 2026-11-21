@@ -12,7 +12,34 @@ enum SubscriptionState {
 }
 
 /// Where the subscription was bought (`Subscription.source`).
-enum SubscriptionSource { appStore, playStore, web, promo, admin, student }
+enum SubscriptionSource {
+  appStore,
+  playStore,
+  web,
+  promo,
+  admin,
+  student,
+
+  /// US-SUB-11: Pro through a team the user belongs to.
+  team,
+}
+
+/// US-SUB-11: the team the user is in (`GET /api/subscription` `team`).
+class TeamMembership {
+  const TeamMembership({
+    required this.id,
+    required this.name,
+    required this.isOwner,
+    required this.active,
+  });
+
+  final String id;
+  final String name;
+  final bool isOwner;
+
+  /// The team's subscription currently grants Pro.
+  final bool active;
+}
 
 /// P20-21: the details the Subscription screen shows (US-SUB-01).
 class SubscriptionStatus {
@@ -24,6 +51,7 @@ class SubscriptionStatus {
     this.willRenew = false,
     this.manageOnWeb = false,
     this.primaryCredentialId,
+    this.team,
   });
 
   static const none = SubscriptionStatus(state: SubscriptionState.none);
@@ -40,6 +68,12 @@ class SubscriptionStatus {
 
   /// The one server kept usable on Free, if the user chose one.
   final String? primaryCredentialId;
+
+  /// US-SUB-11: the user's team, if they are in one.
+  final TeamMembership? team;
+
+  /// US-SUB-11: Pro comes from the team.
+  bool get isTeam => source == SubscriptionSource.team;
 
   /// Bought on the website rather than in a store (US-SUB web).
   bool get isWeb => source == SubscriptionSource.web;

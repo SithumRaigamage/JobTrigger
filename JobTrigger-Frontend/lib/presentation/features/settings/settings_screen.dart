@@ -38,6 +38,7 @@ import '../subscription/plan_gate.dart';
 import 'server_edit_bottom_sheet.dart';
 import 'sonarqube_credential_edit_bottom_sheet.dart';
 import '../../../data/credentials/sonarqube_credentials_notifier.dart';
+import 'team_servers_section.dart';
 
 /// Ported from `SettingsView.swift`'s server list — see
 /// `docs/state-management.md`'s "Feature: settings / server management".
@@ -129,6 +130,8 @@ class SettingsScreen extends ConsumerWidget {
                     isActive: server.id == activeServer?.id,
                   ),
                 ),
+              // US-SUB-11 AC17: shared by the user's team, read-only.
+              const _Padded(child: TeamServersSection()),
               if (showGitHubSection)
                 ..._section<GitHubCredential>(
                   title: 'GitHub',

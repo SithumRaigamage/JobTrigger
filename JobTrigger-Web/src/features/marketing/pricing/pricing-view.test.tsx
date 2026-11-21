@@ -93,4 +93,22 @@ describe("PricingView student offer (Phase 21)", () => {
     expect(offer).toHaveTextContent("Students get Pro free for one year.");
     expect(offer).toHaveTextContent("one free year per person");
   });
+
+  it("shows the Team card only once the team plan is live (US-SUB-11 AC15)", () => {
+    const { unmount } = render(<PricingView />);
+    expect(screen.queryByTestId("team-plan-card")).not.toBeInTheDocument();
+    unmount();
+
+    overrides["team-plan"] = "live";
+    render(<PricingView />);
+    const card = screen.getByTestId("team-plan-card");
+    expect(card).toHaveTextContent("$6.99 / seat / month");
+    expect(card).toHaveTextContent(
+      "From 2 seats, or $69.90 per seat per year. Bought on this website.",
+    );
+    expect(within(card).getByRole("link", { name: "Set up a team" })).toHaveAttribute(
+      "href",
+      "/account/team",
+    );
+  });
 });

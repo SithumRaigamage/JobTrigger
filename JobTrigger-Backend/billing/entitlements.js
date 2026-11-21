@@ -5,7 +5,7 @@
  */
 const Subscription = require('../models/Subscription');
 const { PLANS } = require('./plans');
-const { billingEnabled } = require('../config/env');
+const { billingEnabled, teamPlanEnabled } = require('../config/env');
 
 /** Statuses that keep Pro until `periodEnd` (or forever when it is null). */
 const PRO_STATUSES = new Set(['trialing', 'active', 'grace', 'billing_issue', 'cancelled']);
@@ -57,11 +57,36 @@ function activePaidSource(sub, now = new Date()) {
   return null;
 }
 
-/** The entitlements of [userId] now. */
+/**
+ * The entitlements of [userId] now. US-SUB-11 AC7: with the team plan on, a
+ * member of an active team is Pro with source `team` unless their own
+ * subscription already makes them Pro (then their own source shows). The
+ * response names the team either way.
+ */
 async function entitlementsFor(userId, { now = new Date() } = {}) {
   const enabled = billingEnabled();
   const sub = await Subscription.findOne({ userId }).lean();
-  return { ...describe(sub, { enabled, now }), subscription: sub };
+  const own = describe(sub, { enabled, now });
+  if (!teamPlanEnabled()) return { ...own, subscription: sub };
+
+  // Required here, not at the top: lib/team.js loads models only.
+  const { teamIsPro } = require('../lib/team');
+  const Team = require('../models/Team');
+  const team = await Team.findOne({ 'members.userId': userId }, { name: 1, ownerId: 1, billing: 1 }).lean();
+  if (!team) return { ...own, subscription: sub };
+  const membership = {
+    id: String(team._id),
+    name: team.name,
+    role: String(team.ownerId) === String(userId) ? 'owner' : 'member',
+    active: teamIsPro(team, now),
+  };
+  if (own.plan === 'pro' && isPro(sub, now)) return { ...own, team: membership, subscription: sub };
+  if (!membership.active) return { ...own, team: membership, subscription: sub };
+  const viaTeam = describe(
+    { plan: 'pro', status: team.billing.status, source: 'team', periodEnd: team.billing.periodEnd, willRenew: team.billing.willRenew },
+    { enabled, now },
+  );
+  return { ...viaTeam, team: membership, subscription: sub };
 }
 
 module.exports = { entitlementsFor, describe, isPro, activePaidSource, PRO_STATUSES };
