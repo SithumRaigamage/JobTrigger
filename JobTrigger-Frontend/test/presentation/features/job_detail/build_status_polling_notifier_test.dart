@@ -171,4 +171,47 @@ void main() {
     expect(repo.fetchJobDetailCallCount, 1);
     container.dispose();
   });
+
+  // US-JOB-05: an optimistic cancel stops the loop (the build reads as
+  // finished), so one more poll must bring Jenkins' real state back.
+  testWidgets(
+    'after an optimistic cancel, one more poll shows the real state',
+    (tester) async {
+      final repo = _CountingRepository()..building = true;
+      final container = ProviderContainer(
+        overrides: [jenkinsRepositoryProvider.overrideWithValue(repo)],
+      );
+      container.listen(jobDetailNotifierProvider(_jobUrl), (_, _) {});
+      await container.read(jobDetailNotifierProvider(_jobUrl).future);
+      container.listen(buildStatusPollingNotifierProvider(_jobUrl), (_, _) {});
+
+      container
+          .read(jobDetailNotifierProvider(_jobUrl).notifier)
+          .applyOptimisticCancel();
+      container
+          .read(buildStatusPollingNotifierProvider(_jobUrl).notifier)
+          .confirmSoon();
+      expect(
+        container
+            .read(jobDetailNotifierProvider(_jobUrl))
+            .value
+            ?.lastBuild
+            ?.result,
+        'ABORTED',
+      );
+
+      // Jenkins had not stopped it yet: the real state comes back.
+      await tester.pump(const Duration(seconds: 6));
+      await container.read(jobDetailNotifierProvider(_jobUrl).future);
+      expect(repo.fetchJobDetailCallCount, 2);
+      final build = container
+          .read(jobDetailNotifierProvider(_jobUrl))
+          .value!
+          .lastBuild!;
+      expect(build.building, isTrue);
+      expect(build.result, isNull);
+
+      container.dispose();
+    },
+  );
 }

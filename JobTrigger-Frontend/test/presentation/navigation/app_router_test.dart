@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -244,6 +246,51 @@ void main() {
       );
     },
   );
+
+  // US-PROF-04 "Tab bar hidden where inappropriate": a pushed detail
+  // screen covers the shell, and Back returns to the same tab.
+  testWidgets('a pushed detail screen hides the tab bar; Back restores it', (
+    tester,
+  ) async {
+    final container = ProviderContainer(
+      overrides: [
+        jenkinsRepositoryProvider.overrideWithValue(
+          _FakeJenkinsRepository(const []),
+        ),
+        ..._noCredentialsOverrides,
+        reachabilityWatcherProvider.overrideWith((ref) {}),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.listen(authNotifierProvider, (_, _) {});
+    await container
+        .read(authNotifierProvider.notifier)
+        .setSession(const User(id: 'u1', email: 'a@b.com'), 'jwt-abc');
+
+    final router = container.read(appRouterProvider);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+    router.go(AppRoutes.home);
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsOneWidget);
+
+    unawaited(router.push(AppRoutes.remoteAccessGuide));
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsNothing);
+
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+      0,
+    );
+  });
 
   testWidgets(
     'the Home tab renders GitHubRepoScreen (not HomeScreen) when GitHub '

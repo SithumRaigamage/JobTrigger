@@ -47,6 +47,26 @@ void main() {
     expect(tester.widgetList(find.byType(RichText)).length, lessThan(200));
   });
 
+  // US-DESIGN-04 "Console is flat": no blur anywhere in it, and every
+  // line carries its number in the gutter.
+  testWidgets('the console is flat and numbers its lines', (tester) async {
+    await _pump(
+      tester,
+      _lines(3),
+      prefs: const ConsolePrefs(foldSections: false),
+    );
+
+    expect(find.byType(BackdropFilter), findsNothing);
+    final text = tester
+        .widgetList<RichText>(find.byType(RichText))
+        .map((r) => r.text.toPlainText())
+        .join('\n');
+    for (var i = 0; i < 3; i++) {
+      expect(text, contains('${i + 1}'));
+      expect(text, contains('line $i'));
+    }
+  });
+
   testWidgets('folds a noisy run into one row and opens it on tap', (
     tester,
   ) async {

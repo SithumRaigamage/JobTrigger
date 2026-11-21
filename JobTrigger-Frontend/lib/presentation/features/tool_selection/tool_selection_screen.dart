@@ -8,6 +8,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../domain/tools/tool_catalog.dart';
 import '../../../domain/support/support_category.dart';
 import '../../common_widgets/pinned_footer_layout.dart';
+import '../../common_widgets/toast_controller.dart';
 import '../../navigation/app_routes.dart';
 import '../app_info/app_info_notifier.dart';
 import '../subscription/locked_active_guard.dart';
@@ -357,13 +358,13 @@ class _ComingNext extends StatelessWidget {
   }
 }
 
-class _ComingNextTile extends StatelessWidget {
+class _ComingNextTile extends ConsumerWidget {
   const _ComingNextTile({required this.tool});
 
   final CiTool tool;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
     final version = tool.releaseVersion ?? '';
@@ -372,46 +373,60 @@ class _ComingNextTile extends StatelessWidget {
       enabled: false,
       label: '${tool.displayName}, coming in $version',
       excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: t.cardBorder),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: t.card,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                tool.shortLabel,
-                style: textTheme.labelLarge?.copyWith(
-                  color: t.textMuted,
-                  fontWeight: FontWeight.w700,
+      // US-TOOL-02: a tap selects nothing but says why, so the tile never
+      // reads as broken.
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => ref
+            .read(toastControllerProvider)
+            .show(
+              type: ToastType.info,
+              title: '${tool.displayName} is coming',
+              message: version.isEmpty
+                  ? 'It is not available yet.'
+                  : 'It arrives in $version.',
+            ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: t.cardBorder),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: t.card,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  tool.shortLabel,
+                  style: textTheme.labelLarge?.copyWith(
+                    color: t.textMuted,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              tool.displayName,
-              textAlign: TextAlign.center,
-              style: textTheme.bodySmall?.copyWith(color: t.textSecondary),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              version,
-              style: textTheme.labelSmall?.copyWith(
-                color: t.textMuted,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 6),
+              Text(
+                tool.displayName,
+                textAlign: TextAlign.center,
+                style: textTheme.bodySmall?.copyWith(color: t.textSecondary),
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Text(
+                version,
+                style: textTheme.labelSmall?.copyWith(
+                  color: t.textMuted,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

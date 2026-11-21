@@ -35,12 +35,27 @@ class ActiveSonarQubeCredentialNotifier
     ref.listen(sonarQubeCredentialsNotifierProvider, (_, next) {
       final current = state;
       final fresh = next.value;
-      if (current == null || fresh == null) return;
+      if (fresh == null) return;
+      if (current == null) {
+        // The first credential saved (or the first list after the last one
+        // was deleted) becomes active, by the same rule as a cold start
+        // (as US-CRED-02 for Jenkins). Only real data, after the first
+        // rehydration: an error still carrying an old list must not bring
+        // a credential back.
+        if (_rehydrated && next is AsyncData && fresh.isNotEmpty) {
+          _adopt(fresh);
+        }
+        return;
+      }
       final match = _findById(fresh, current.id);
       if (match != null && match != current) state = match;
     }, weak: true);
     return null;
   }
+
+  /// Set once the first rehydration has finished (or given up), so the
+  /// listener above never races it for the persisted choice.
+  bool _rehydrated = false;
 
   Future<void> _rehydrate() async {
     final List<SonarQubeCredential> credentials;
@@ -50,8 +65,18 @@ class ActiveSonarQubeCredentialNotifier
       // Credentials failed to load — leave state null; the settings screen
       // surfaces the underlying AppFailure via
       // sonarQubeCredentialsNotifierProvider directly.
+      _rehydrated = true;
       return;
     }
+    try {
+      await _adopt(credentials);
+    } finally {
+      _rehydrated = true;
+    }
+  }
+
+  /// The persisted choice if still saved, else the default, else the first.
+  Future<void> _adopt(List<SonarQubeCredential> credentials) async {
     if (credentials.isEmpty) {
       state = null;
       return;

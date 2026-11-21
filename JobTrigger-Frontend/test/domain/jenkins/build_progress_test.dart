@@ -45,4 +45,22 @@ void main() {
     final build = _build(timestamp: nowMillis - 30000, estimatedDuration: 0);
     expect(BuildProgress.ratioFor(build, now: now), 0.0);
   });
+
+  // US-JOB-04 "Progress bar with no estimated duration".
+  test('ratioOrUnknown is null without an estimate', () {
+    const build = JenkinsBuild(
+      number: 1,
+      url: 'https://j.test/job/a/1/',
+      timestamp: 0,
+      building: true,
+    );
+    expect(BuildProgress.ratioOrUnknown(build), isNull);
+    expect(
+      BuildProgress.ratioOrUnknown(
+        build.copyWith(estimatedDuration: 1000),
+        now: DateTime.fromMillisecondsSinceEpoch(500),
+      ),
+      0.5,
+    );
+  });
 }

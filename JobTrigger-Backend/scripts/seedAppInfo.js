@@ -33,6 +33,10 @@ function appInfoSeed(env = process.env) {
     termsOfServiceUrl: `${site}/terms`,
     supportEmail: supportEmail(env, site),
     openSourceLicensesUrl: `${site}/licenses`,
+    releaseNotesUrl: `${site}/changelog`,
+    // US-PROF-03: set MIN_SUPPORTED_APP_VERSION and re-seed to make every
+    // older app ask for an update; unset blocks nobody.
+    minSupportedVersion: env.MIN_SUPPORTED_APP_VERSION?.trim() || null,
   };
 }
 

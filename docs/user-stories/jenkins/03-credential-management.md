@@ -20,20 +20,23 @@ I want to see a list of all Jenkins servers I've saved
 So that I can review, manage, and pick between them
 
 **Acceptance Criteria**
-- Scenario: List loads successfully
+- [x] Scenario: List loads successfully
   Given I have one or more saved servers
   When I open the Settings/servers screen
   Then `GET /api/credentials` populates the list, with the active server
   visually marked, and passwords are never rendered in the list (masked or
   omitted entirely — display name/URL/username only)
-- Scenario: No servers saved yet
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/settings/jenkins_server_list_test.dart` "lists servers, marks the active one, never shows a secret" (active row is `selected` for screen readers and carries the radio mark; name, URL and notes only); list load: `test/data/credentials/credentials_notifier_test.dart` "fetches and exposes the server list on success".
+- [x] Scenario: No servers saved yet
   Given I have no saved servers
   Then I see an empty state prompting me to add one, not a blank screen
-- Scenario: Load failure
+  Evidence: `test/presentation/features/settings/settings_screen_test.dart` "shows only the Jenkins section (with its empty state)…" ("No servers yet").
+- [x] Scenario: Load failure
   Given the backend call fails
   Then the failure is shown via the `AppFailure` mapping (`NetworkFailure`
   → "can't reach server" with retry; backend `ServerFailure`/`UnknownFailure`
   → generic message) — not a raw error or blank screen
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/settings/jenkins_server_list_test.dart` "a failed load shows the connection error with Retry"; `credentials_notifier_test.dart` "a repository failure surfaces as an AsyncError with the AppFailure".
 
 **Security & Privacy Notes**
 - The list view must never render `password`/`secret` values, even masked
@@ -60,27 +63,31 @@ I want to add a Jenkins server by entering its URL and my credentials
 So that the app can connect to it on my behalf
 
 **Acceptance Criteria**
-- Scenario: Successful add
+- [x] Scenario: Successful add
   Given I open the add-server form and enter a name, a valid Jenkins base
   URL, username, and password (param token optional)
   When I save
   Then `POST /api/credentials` is called, the new server appears in the
   list, and if it's my first server it becomes active automatically
-- Scenario: Client-side validation
+  Evidence: `test/presentation/features/settings/server_form_notifier_test.dart` "adding a server refreshes the credentials list on success", "adding a server with isDefault sets it as the active server"; Fixed 2026-11-21: the first server saved without "Set as default" was never made active (Home then waited on a spinner until a restart); `active_server_notifier.dart` now adopts one when none is active. Test `test/presentation/features/settings/server_form_notifier_test.dart` "the first server saved becomes the active one".
+- [ ] Scenario: Client-side validation
   Given required fields are empty or the URL is not well-formed
   (missing scheme, invalid host)
   When I attempt to save
   Then inline validation blocks submission before any network call
-- Scenario: Save failure
+  Open: partly: an unusable URL is refused inline under the field (`test/presentation/features/settings/server_form_notifier_test.dart` "an unusable URL never reaches the backend"), and since 2026-11-21 an empty name, username or (new server) secret is refused before any request (`test/presentation/features/settings/server_form_notifier_test.dart` "an empty name/username/secret never reaches the backend"), but those three are named in a "Save Failed" toast, not inline under the field. Needs per-field error text in `server_edit_bottom_sheet.dart`.
+- [x] Scenario: Save failure
   Given the backend rejects or fails the save
   Then an `AppFailure`-mapped message is shown and the form retains my
   entered values so I don't have to retype the URL/username
-- Scenario: Recommended — test before save
+  Evidence: `test/presentation/features/settings/server_form_notifier_test.dart` "a repository failure surfaces as ServerFormNotifier state error"; Fixed 2026-11-21: test added: `test/presentation/features/settings/jenkins_server_list_test.dart` "a failed edit keeps the typed values and the saved list" (the sheet stays open with the typed values, "Save Failed" names the reason; add and edit share the sheet).
+- [ ] Scenario: Recommended — test before save
   Given I haven't yet run "test connection" (US-CRED-06)
   When I try to save
   Then the app allows saving anyway (Jenkins may be temporarily unreachable
   but credentials still correct) but visibly nudges me to test first, since
   an unverified server could silently fail later
+  Open: saving without a test is allowed (`test/presentation/features/settings/server_form_notifier_test.dart` "adding a server refreshes…" saves untested), but nothing nudges the user to test first; the sheet only shows a result once a test has run (`edit_sheet.dart` `ConnectionTest`). Jenkins is frozen (`CLAUDE.md` §11): owner decision.
 
 **Security & Privacy Notes**
 - The password field is masked with an explicit reveal toggle, uses a
@@ -117,26 +124,30 @@ So that I can keep my saved credentials accurate without deleting and
 re-adding the server
 
 **Acceptance Criteria**
-- Scenario: Successful edit
+- [x] Scenario: Successful edit
   Given I open an existing server for editing and change one or more fields
   When I save
   Then `PUT /api/credentials/:id` sends a partial update, the list reflects
   the change, and if I edited the active server, the Jenkins Dio client for
   that server is rebuilt with the new credentials immediately
-- Scenario: Editing the active server applies at once (AUD-46)
+  Evidence: `test/presentation/features/settings/server_form_notifier_test.dart` "editing a server calls repository.update with the given id", "editing the active server applies the new secret and URL" (the active entry, and so `jenkinsClientProvider`, take the new values). The app sends every field; the backend `$set`s only the known ones (`credentialControllerFactory.js`).
+- [x] Scenario: Editing the active server applies at once (AUD-46)
   Given the server I edit is the active one
   When I save a new secret or URL (with or without "Set as default")
   Then the very next Jenkins request uses the new values, without a restart
-- Scenario: Password field starts empty, not pre-filled
+  Evidence: `test/presentation/features/settings/server_form_notifier_test.dart` "editing the active server applies the new secret and URL".
+- [ ] Scenario: Password field starts empty, not pre-filled
   Given I open the edit form
   Then the password field is blank (never pre-populated with the existing
   secret, even masked) — leaving it blank on save means "keep existing
   password unchanged," entering a new value means "replace it"
-- Scenario: Edit failure
+  Open: contradicts the current design: the edit sheet fills the API token field with the stored secret, obscured with a show toggle (`server_edit_bottom_sheet.dart`, E4: secrets come from `GET /:id/secret`), and a blank secret on edit is sent as blank (the backend refuses it). Owner decision to retire or rebuild.
+- [x] Scenario: Edit failure
   Given the update request fails
   Then an `AppFailure`-mapped message is shown and no partial/inconsistent
   local state is applied — the list still reflects the last known-good
   server data until a successful response arrives
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/settings/jenkins_server_list_test.dart` "a failed edit keeps the typed values and the saved list" (the list still shows the saved name).
 
 **Security & Privacy Notes**
 - Never pre-filling the password field (above) prevents the previously
@@ -162,26 +173,30 @@ I want to remove a saved Jenkins server I no longer use
 So that my server list and my stored credentials stay current
 
 **Acceptance Criteria**
-- Scenario: Delete a non-active server
+- [x] Scenario: Delete a non-active server
   Given I delete a server that is not the active one
   When I confirm
   Then `DELETE /api/credentials/:id` is called and it's removed from the
   list with no other side effects
-- Scenario: Delete the active server
+  Evidence: `test/data/credentials/active_server_notifier_test.dart` "deleting a non-active server leaves the active server untouched"; Fixed 2026-11-21: test added: `test/presentation/features/settings/jenkins_server_list_test.dart` "confirming deletes the server".
+- [ ] Scenario: Delete the active server
   Given I delete the server currently marked active
   When the deletion succeeds
   Then the app automatically falls back to another `isDefault`/first
   remaining server as active (rebuilding the Jenkins Dio client
   accordingly); if no servers remain, I am routed into the add-server flow,
   not left pointing at a server that no longer exists
-- Scenario: Confirmation required
+  Open: partly: the fallback is proven (`test/data/credentials/active_server_notifier_test.dart` "deleting the active server falls back to the remaining isDefault server", "…to the first remaining server when none is default", "deleting the only server clears the active server"), but with none left Home shows "No Jenkins Server" with "Go to Settings", not the add-server form (same as US-TOOL-01).
+- [x] Scenario: Confirmation required
   Given I tap delete on any server
   Then a confirmation step is required before the request is sent —
   deletion is destructive and irreversible from the app's perspective
-- Scenario: Delete failure
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/settings/jenkins_server_list_test.dart` "deleting asks first; Cancel sends nothing".
+- [x] Scenario: Delete failure
   Given the delete request fails
   Then the server remains in the list with an `AppFailure`-mapped error
   shown, and no local optimistic removal is left in an inconsistent state
+  Evidence: Fixed 2026-11-21: a swipe hid the row before the delete ran, so a failed delete looked like a success (and a good one left a dismissed row in the tree); `settings_screen.dart` now deletes inside `confirmDismiss` and lets the reloaded list remove the row (same for GitHub and SonarQube rows). Test `test/presentation/features/settings/jenkins_server_list_test.dart` "a failed delete keeps the server and says why".
 
 **Security & Privacy Notes**
 - Deleting a server is the user's way of revoking the app's access to it —
@@ -209,7 +224,7 @@ So that the job tree, build actions, and logs I see are scoped to the
 server I actually mean to use right now
 
 **Acceptance Criteria**
-- Scenario: Switch succeeds
+- [ ] Scenario: Switch succeeds
   Given I select a different saved server as active
   When the switch completes
   Then `POST /api/credentials/switch/:id` flips the backend's `isDefault`
@@ -217,21 +232,25 @@ server I actually mean to use right now
   (not waiting on a refetch), and the Jenkins Dio client is rebuilt with
   the new server's Basic Auth credentials before any subsequent Jenkins
   call is made
-- Scenario: Job tree reflects the new server
+  Open: partly: the switch is instant and on this device (`ActiveServerNotifier.setActiveServer`, saved as `active_server_id`; `test/presentation/features/home/server_switcher_test.dart` "choosing a server switches to it without leaving Home"), and `jenkinsClientProvider` rebuilds from it, but `POST /api/credentials/switch/:id` is never called (`switchActive` exists in the repository, unused), so the backend's `isDefault` does not follow. Owner decision.
+- [x] Scenario: Job tree reflects the new server
   Given I switch servers while viewing the job tree
   Then the job list refreshes against the newly active server rather than
   showing stale data from the previous one
-- Scenario: Switch request fails
+  Evidence: `server_switcher_test.dart` "choosing a server switches to it without leaving Home" (the tree shows the new server's jobs, not the old).
+- [ ] Scenario: Switch request fails
   Given the backend switch call fails
   Then the previously active server remains active (no client-side
   optimistic flip that later has to be silently reverted) and an
   `AppFailure`-mapped error is shown
-- Scenario: Active server's Jenkins auth is invalid
+  Open: not applicable as built: no backend call is made on a switch (see above), so there is no failure path to show.
+- [x] Scenario: Active server's Jenkins auth is invalid
   Given the active server's saved credentials are rejected by Jenkins
   (401/403)
   Then this is surfaced as a per-server `AuthFailure` scoped to that
   server — offering to re-check/edit that server's credentials — and does
   **not** log the user out of their backend session (see US-AUTH-05)
+  Evidence: `test/core/network/auth_domain_isolation_test.dart` "a Jenkins 401 is only an AuthFailure: no logout, backend session untouched".
 
 **Security & Privacy Notes**
 - The two Dio clients (`BackendApiClient`, `JenkinsApiClient`) must never
@@ -261,26 +280,30 @@ So that I don't save a broken configuration and only discover it later when
 trying to trigger a real build
 
 **Acceptance Criteria**
-- Scenario: Test succeeds
+- [x] Scenario: Test succeeds
   Given I fill in URL/username/password in the add/edit form and tap
   "Test connection"
   When a `GET {baseURL}/api/json` call succeeds using a throwaway (non-active)
   Dio instance built from the in-progress form values
   Then I see a success indicator with the detected job count, and this does
   **not** disturb the currently active server's session/client
-- Scenario: Test fails — bad credentials
+  Evidence: Fixed 2026-11-21: tests added: `test/data/datasources/test_jenkins_connection_test.dart` "a good login reports the job count" (a real HTTP server on loopback) and "testing a candidate leaves the active server and client alone"; the sheet says "Connected — N jobs found" (`edit_sheet.dart`).
+- [x] Scenario: Test fails — bad credentials
   Given Jenkins returns 401/403 for the test call
   Then I see a specific "authentication failed" message distinct from a
   general connectivity failure
-- Scenario: Test fails — unreachable host
+  Evidence: Fixed 2026-11-21: test added: `test/data/datasources/test_jenkins_connection_test.dart` "rejected credentials are an AuthFailure, not a network one" (401). A 403 maps to `PermissionFailure`, also distinct from connectivity (US-JX-12/13).
+- [x] Scenario: Test fails — unreachable host
   Given the URL is unreachable/times out
   Then I see a `NetworkFailure`-mapped "can't reach this server" message
   distinct from the auth-failure case above, so I know which field to fix
-- Scenario: Test is optional, not gating
+  Evidence: Fixed 2026-11-21: test added: `test/data/datasources/test_jenkins_connection_test.dart` "an unreachable host is a NetworkFailure".
+- [ ] Scenario: Test is optional, not gating
   Given a test has failed or hasn't been run
   Then I am still allowed to save (per US-CRED-02's rationale — a
   temporarily-down Jenkins shouldn't block saving otherwise-correct
   credentials), with the failed/untested state clearly shown, not hidden
+  Open: partly: saving never needs a test (`test/presentation/features/settings/server_form_notifier_test.dart` saves untested) and a failed test shows "Failed: …" (`ConnectionTest`), but an untested server is not marked as untested anywhere (same gap as US-CRED-02's nudge).
 
 **Security & Privacy Notes**
 - The throwaway Dio instance used for testing must be discarded after the

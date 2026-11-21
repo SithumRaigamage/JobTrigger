@@ -34,6 +34,10 @@ const _job = JenkinsJob(
     url: '${_jobUrl}7/',
     timestamp: 0,
     building: true,
+    // With an estimate the progress bar is determinate; without one it is
+    // an endless indeterminate animation (US-JOB-04), which pumpAndSettle
+    // would wait on forever.
+    estimatedDuration: 60000,
   ),
   property: [
     JobProperty(

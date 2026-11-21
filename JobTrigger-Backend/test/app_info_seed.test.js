@@ -20,6 +20,15 @@ describe('AppInfo seed (PE-01)', function() {
     expect(invalidConfig({ SUPPORT_EMAIL: 'not-an-email' })).to.match(/SUPPORT_EMAIL/);
   });
 
+  it('links release notes to the changelog and blocks no app by default (US-PROF-03)', function() {
+    const seed = appInfoSeed({ SITE_URL: 'https://jobtrigger.app' });
+    expect(seed.releaseNotesUrl).to.equal('https://jobtrigger.app/changelog');
+    expect(seed.minSupportedVersion).to.equal(null);
+    expect(appInfoSeed({ SITE_URL: 'https://jobtrigger.app', MIN_SUPPORTED_APP_VERSION: ' 1.0.1 ' }).minSupportedVersion)
+      .to.equal('1.0.1');
+    expect(invalidConfig({ MIN_SUPPORTED_APP_VERSION: 'one' })).to.match(/MIN_SUPPORTED_APP_VERSION/);
+  });
+
   it('never seeds a placeholder link', function() {
     const seed = appInfoSeed({ SITE_URL: 'https://jobtrigger.app' });
     expect(JSON.stringify(seed)).not.to.contain('example.com');

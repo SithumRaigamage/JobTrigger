@@ -8,6 +8,7 @@ import '../../../core/error/result.dart';
 import '../../../data/repositories/jenkins_repository_impl.dart';
 import '../../../domain/jenkins/jenkins_build.dart';
 import '../../../domain/jenkins/jenkins_job.dart';
+import '../../../domain/jenkins/replay_outcome.dart';
 import '../../../domain/jenkins/replay_script.dart';
 import '../../common_widgets/toast_controller.dart';
 import '../app_lock/app_lock_notifier.dart';
@@ -37,28 +38,6 @@ class ReplayPolling {
 
 @riverpod
 ReplayPolling replayPolling(Ref ref) => const ReplayPolling();
-
-/// What a submitted replay led to.
-sealed class ReplayOutcome {
-  const ReplayOutcome();
-}
-
-/// AC8: the new build was found.
-final class ReplayedBuild extends ReplayOutcome {
-  const ReplayedBuild(this.build);
-  final JenkinsBuild build;
-}
-
-/// AC8: Jenkins accepted it, the build isn't listed yet.
-final class ReplayStarted extends ReplayOutcome {
-  const ReplayStarted();
-}
-
-/// AC5: refused; [failure] says why.
-final class ReplayRefused extends ReplayOutcome {
-  const ReplayRefused(this.failure);
-  final AppFailure failure;
-}
 
 /// US-JX-16 AC6–AC8: submits the edited script and finds the new build.
 /// Family-keyed by the replayed build's URL.

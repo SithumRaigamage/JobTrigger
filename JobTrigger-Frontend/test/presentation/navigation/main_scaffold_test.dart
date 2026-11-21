@@ -121,6 +121,26 @@ void main() {
     expect(destinations, ['Home', 'History', 'Settings', 'Profile']);
   });
 
+  // US-DESIGN-01 "Blur only where something scrolls beneath": the tab
+  // content extends under the frosted bar, which is the only blur.
+  testWidgets('content runs under the frosted tab bar, its only blur', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap(_buildTestRouter()));
+    await tester.pumpAndSettle();
+
+    final shell = tester.widget<Scaffold>(
+      find
+          .ancestor(
+            of: find.byType(NavigationBar),
+            matching: find.byType(Scaffold),
+          )
+          .first,
+    );
+    expect(shell.extendBody, isTrue);
+    expect(find.byType(BackdropFilter), findsOneWidget);
+  });
+
   testWidgets('tapping a destination switches to that branch', (tester) async {
     final router = _buildTestRouter();
     addTearDown(router.dispose);

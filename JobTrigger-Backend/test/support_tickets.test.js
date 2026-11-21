@@ -163,6 +163,15 @@ describe('Support tickets (Phase 25)', function () {
     expect(patched.status).to.equal(200);
     expect(patched.body.ticket.status).to.equal('triaged');
 
+    // US-SUP-04: and on to closed.
+    const closed = await authed(
+      'patch',
+      `/api/admin/support/tickets/${created.body.ticket.id}`,
+      admin.token
+    ).send({ status: 'closed' });
+    expect(closed.status).to.equal(200);
+    expect(closed.body.ticket.status).to.equal('closed');
+
     const bad = await authed(
       'patch',
       `/api/admin/support/tickets/${created.body.ticket.id}`,
