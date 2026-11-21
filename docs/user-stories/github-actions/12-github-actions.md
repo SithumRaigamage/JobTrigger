@@ -68,16 +68,18 @@ I want to add a GitHub Personal Access Token, scoped to an account/org
 So that the app can list and act on my repositories' workflows
 
 **Acceptance Criteria**
-- [ ] Scenario: Successful add
+- [x] Scenario: Successful add
   Given I enter a label, the PAT, and (optionally) a default org/owner
   filter, and tap Save
   Then the credential is created via the new backend endpoint and appears
   in the GitHub server list
+  Evidence: `test/presentation/features/settings/github_credential_form_notifier_test.dart` "adding a credential refreshes the credentials list on success"; `test/data/repositories/github_credentials_repository_impl_test.dart` "add posts label/token/defaultOwner/isDefault"; Fixed 2026-11-21: the first credential saved was never made active (the same bug as Jenkins, US-CRED-02); `active_github_credential_notifier.dart` now adopts it. Test `test/data/credentials/first_credential_active_test.dart` "the first GitHub credential saved becomes active".
 - [ ] Scenario: PAT format validation
   Given the token field is empty or obviously malformed (GitHub PATs are
   prefixed `ghp_`/`github_pat_` for classic/fine-grained tokens)
   Then client-side validation blocks submission with an inline message,
   before any network call (`NFR-SEC-02`)
+  Open: not built, and not added on purpose: refusing tokens without a `ghp_`/`github_pat_` prefix would also refuse older 40-character tokens that still work. Owner decision: a non-blocking warning, or reword.
 - [ ] Scenario: Token lacks required scope
   Given the PAT is well-formed but the test-connection check (`US-GH-CRED-04`)
   reveals it lacks `repo`/`workflow` scope (classic) or Actions
@@ -85,10 +87,12 @@ So that the app can list and act on my repositories' workflows
   Then save is still allowed (matching `US-CRED-02`'s "test is a nudge, not
   a gate" precedent) but a warning is shown so the user isn't surprised
   later when triggering fails
-- [ ] Scenario: Save fails
+  Open: not built: nothing reads the token's scopes (`X-OAuth-Scopes`) to warn about missing `repo`/`workflow`. The token wizard does open GitHub's page with those scopes pre-ticked (`test/presentation/features/settings/token_wizard_test.dart` "the GitHub wizard opens the scoped token page").
+- [x] Scenario: Save fails
   Given the backend request fails
   Then an `AppFailure`-mapped message is shown and the form retains
   entered values
+  Evidence: `test/presentation/features/settings/github_credential_form_notifier_test.dart` "a repository failure surfaces as GitHubCredentialFormNotifier state error"; the sheet stays open with what was typed (the shared `EditSheet`, as proven for Jenkins in `test/presentation/features/settings/jenkins_server_list_test.dart` "a failed edit keeps the typed values and the saved list").
 
 **Security & Privacy Notes**
 - The PAT is the credential's `secret` — same handling as a Jenkins
@@ -119,23 +123,27 @@ I want to edit a saved GitHub credential's label/org filter or delete it
 So that I can keep my saved accounts current
 
 **Acceptance Criteria**
-- [ ] Scenario: Edit label/org filter
+- [x] Scenario: Edit label/org filter
   Given I open an existing credential and change its label or default org
   Then the update is saved via the backend, PAT field never pre-filled
   with the real secret (matches `US-CRED-03`)
-- [ ] Scenario: Replace the PAT
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/settings/github_credential_edit_test.dart` "the token field starts empty and blank keeps the stored token"; backend `test/github_credentials.test.js` "keeps the stored token when an edit leaves it out, refuses a blank one".
+- [x] Scenario: Replace the PAT
   Given I paste a new token into the PAT field while editing
   Then the new token replaces the stored one on save
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/settings/github_credential_edit_test.dart` "a new token replaces the stored one"; `test/presentation/features/settings/github_credential_form_notifier_test.dart` "editing a credential calls repository.update with the given id".
 - [ ] Scenario: Delete requires confirmation
   Given I swipe-delete or tap delete on a credential
   Then a confirmation dialog is required (matches `US-CRED-04`) before the
   backend delete call fires
-- [ ] Scenario: Deleting the active GitHub credential
+  Open: not proven for GitHub rows: they use the same `_confirmDelete` and (since 2026-11-21) the same delete-inside-confirm flow as Jenkins rows (`settings_screen.dart`), which is tested only for Jenkins (`test/presentation/features/settings/jenkins_server_list_test.dart`).
+- [x] Scenario: Deleting the active GitHub credential
   Given the credential being deleted is the currently active one
   Then the same fallback logic as `US-CRED-04`/`ActiveServerNotifier`
   applies, scoped to GitHub credentials only — falling back to another
   saved GitHub credential or an empty state, never touching the active
   Jenkins server
+  Evidence: `test/data/credentials/active_github_credential_notifier_test.dart` "deleting the active credential falls back to the remaining isDefault credential", "…first remaining credential when none is default", "deleting the only credential clears the active credential"; Jenkins untouched: `test/data/credentials/active_tools_independent_test.dart` (2026-11-21).
 
 **Security & Privacy Notes**
 - Same as US-GH-CRED-01.
@@ -168,10 +176,12 @@ So that repo/workflow browsing reflects the account I'm currently working as
   `ActiveServerNotifier`'s existing pattern — no backend "switch" call
   needed, same as Jenkins' `SettingsScreen._setActiveServer`), and a
   confirmation toast shows
-- [ ] Scenario: Active GitHub credential is independent of active Jenkins server
+  Open: partly: switching is client-side and immediate (`test/data/credentials/active_tools_independent_test.dart`, 2026-11-21), but no test covers the confirmation toast from Settings.
+- [x] Scenario: Active GitHub credential is independent of active Jenkins server
   Given both an active Jenkins server and an active GitHub credential exist
   Then switching one never affects the other — they're two independent
   "active" concepts, not a single "active CI tool" selector
+  Evidence: Fixed 2026-11-21: test added: `test/data/credentials/active_tools_independent_test.dart` "switching GitHub credentials leaves the Jenkins server alone, and back".
 
 **Security & Privacy Notes**
 - None beyond US-GH-CRED-01.
@@ -196,21 +206,24 @@ I want to verify the token actually works before saving
 So that I don't save a broken credential and discover it later
 
 **Acceptance Criteria**
-- [ ] Scenario: Valid token
+- [x] Scenario: Valid token
   Given I tap "Test connection" with a PAT entered
   Then `GET https://api.github.com/user` is called with
   `Authorization: Bearer <PAT>`; success shows the authenticated
   username, confirming the token is live
-- [ ] Scenario: Invalid/expired token
+  Evidence: Fixed 2026-11-21: test added: `test/data/datasources/test_github_connection_test.dart` "a live token names its user, via GET /user with Bearer auth".
+- [x] Scenario: Invalid/expired token
   Given the token is rejected (401)
   Then a clear `AuthFailure`-mapped message is shown, distinct from a
   network failure
-- [ ] Scenario: Rate-limited
+  Evidence: Fixed 2026-11-21: test added: `test/data/datasources/test_github_connection_test.dart` "a rejected token is an AuthFailure, not a network failure".
+- [x] Scenario: Rate-limited
   Given the response is a 403 with `X-RateLimit-Remaining: 0`
   Then a specific "rate limited, try again later" message is shown rather
   than a generic server error — GitHub's rate-limit shape is distinct
   enough from Jenkins' error surface to warrant its own case in
   `AppFailure` handling for this client
+  Evidence: Fixed 2026-11-21: test added: `test/data/datasources/test_github_connection_test.dart` "a rate limit says so, not a generic server error"; `test/data/repositories/github_repository_impl_failures_test.dart` "403 with the rate limit exhausted is a RateLimitFailure".
 
 **Security & Privacy Notes**
 - Uses a throwaway `Dio` instance, same pattern as
@@ -245,15 +258,18 @@ So that I can pick one to browse its workflows
   GitHub returns `Link` headers for further pages; load more on scroll,
   not all pages upfront) and repos render name + owner + private/public
   indicator
+  Open: partly: `GET /user/repos?per_page=100&sort=updated` with name, owner and visibility (`test/data/repositories/github_repository_impl_test.dart` "GETs /user/repos and parses the array"; `test/presentation/features/github/github_repo_screen_test.dart` "lists each repo with its visibility and default branch"), but only the first 100 repos load; there is no Link-header paging on scroll.
 - [ ] Scenario: Default org filter applied
   Given the credential has a default org/owner filter set
   (`US-GH-CRED-01`)
   Then the list is pre-filtered to that owner, with a visible way to clear
   the filter and see everything the token can reach
+  Open: not built: the credential's `defaultOwner` is stored but the repo list never filters by it; there is a search box instead (`test/presentation/features/github/filtered_github_repos_provider_test.dart`).
 - [ ] Scenario: Empty / load failure
   Given the token has access to no repos, or the fetch fails
   Then the same empty-state / `AppFailure`+retry pattern as `US-TREE-01`
   applies
+  Open: not proven on screen: `test/presentation/features/github/github_repos_notifier_test.dart` covers an empty list and an `AppFailure`, but no widget test shows the empty state or Retry on the repo list.
 
 **Security & Privacy Notes**
 - None beyond existing per-credential Bearer auth handling.
@@ -279,18 +295,21 @@ I want to see its workflows
 So that I can pick one to view runs or trigger
 
 **Acceptance Criteria**
-- [ ] Scenario: List loads
+- [x] Scenario: List loads
   Given I tap a repo
   Then `GET /repos/{owner}/{repo}/actions/workflows` is called, rendering
   each workflow's `name` and `state` (`active`/`disabled_manually`/etc.)
+  Evidence: `test/data/repositories/github_repository_impl_test.dart` "GETs /repos/{owner}/{repo}/actions/workflows and parses workflows[]"; `test/data/models/github/github_workflow_dto_test.dart` "parses id/name/path/state".
 - [ ] Scenario: Disabled workflow
   Given a workflow's `state` isn't `active`
   Then it's shown visually de-emphasized with a "disabled" label, and
   triggering it (`US-GH-RUN-02`) is blocked with an explanatory message
   rather than sent to fail server-side
+  Open: partly: a disabled workflow shows a "Disabled" pill (`github_workflow_list_screen.dart`, untested), but triggering it is not blocked; a dispatch to it fails at GitHub.
 - [ ] Scenario: No workflows / load failure
   Given the repo has no workflow files, or the fetch fails
   Then the same empty-state / `AppFailure`+retry pattern applies
+  Open: not proven on screen: `test/presentation/features/github/github_workflows_notifier_test.dart` covers empty and failure, but there is no workflow-list widget test.
 
 **Security & Privacy Notes**
 - None beyond existing auth handling.
@@ -321,7 +340,7 @@ I want to see its recent runs and each one's outcome
 So that I have context before deciding whether/how to trigger it again
 
 **Acceptance Criteria**
-- [ ] Scenario: Runs load
+- [x] Scenario: Runs load
   Given I open a workflow
   Then `GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`
   is called, rendering each run's `status` (`queued`/`in_progress`/
@@ -330,10 +349,12 @@ So that I have context before deciding whether/how to trigger it again
   `action_required`/`neutral`/`stale`) — **two separate fields**, not one,
   matching GitHub's actual API shape (distinct from Jenkins' single
   `result` string)
-- [ ] Scenario: No runs yet / load failure
+  Evidence: `test/data/repositories/github_repository_impl_test.dart` "GETs the workflow runs and keeps status and conclusion apart"; `test/presentation/features/github/github_runs_screen_test.dart` "shows each run with its status and conclusion as one pill".
+- [x] Scenario: No runs yet / load failure
   Given the workflow has never run, or the fetch fails
   Then the same "no builds yet" / `AppFailure`+retry pattern as
   `US-JOB-01` applies
+  Evidence: `test/presentation/features/github/github_runs_screen_test.dart` "a workflow with no runs says so", "a failure shows the error with a working retry"; `test/data/repositories/github_repository_impl_test.dart` "a workflow that never ran is an empty list, not an error".
 
 **Security & Privacy Notes**
 - None beyond existing auth handling.
@@ -359,7 +380,7 @@ I want to trigger a workflow, with inputs if it declares any
 So that I can kick off a run from my phone
 
 **Acceptance Criteria**
-- [ ] Scenario: Workflow requires `workflow_dispatch` to be triggerable at all
+- [x] Scenario: Workflow requires `workflow_dispatch` to be triggerable at all
   Given a workflow's YAML has no `on: workflow_dispatch:` trigger
   Then the app cannot detect this ahead of time from the REST API alone
   (GitHub doesn't expose parsed trigger config) — the Trigger action is
@@ -368,11 +389,13 @@ So that I can kick off a run from my phone
   generic error, **flagged as a real UX gap versus Jenkins** (where
   `isParameterized`/parameterless triggerability is known upfront from
   `property[parameterDefinitions]`) rather than silently worked around
-- [ ] Scenario: Branch/ref selection
+  Evidence: `test/data/repositories/github_repository_impl_test.dart` "a 422 becomes DispatchRejectedFailure with GitHub detail"; `test/presentation/features/github/github_trigger_sheet_test.dart` "a 422 from GitHub is reported, not swallowed".
+- [x] Scenario: Branch/ref selection
   Given `workflow_dispatch` requires a target `ref` (branch/tag)
   Then the trigger form includes a ref field, defaulting to the repo's
   default branch (`GET /repos/{owner}/{repo}` → `default_branch`)
-- [ ] Scenario: Trigger with inputs
+  Evidence: `test/presentation/features/github/github_trigger_sheet_test.dart` "defaults the branch to the repo default and confirms before triggering".
+- [x] Scenario: Trigger with inputs
   Given the workflow declares `workflow_dispatch.inputs` in its YAML
   (not discoverable via REST — **input names/types must be entered
   manually by the user**, since GitHub's API doesn't expose a workflow's
@@ -382,7 +405,8 @@ So that I can kick off a run from my phone
   `US-JOB-03`'s typed parameter form (dropdown/switch/text per declared
   type), GitHub triggering here is untyped free-text key/value pairs,
   because the API genuinely doesn't expose more
-- [ ] Scenario: Successful trigger
+  Evidence: `test/presentation/features/github/github_trigger_sheet_test.dart` "sends the typed inputs", "a blank branch or a duplicate input name is explained"; `test/data/repositories/github_repository_impl_test.dart` "triggerRun POSTs ref and inputs as a JSON object".
+- [x] Scenario: Successful trigger
   Given I confirm
   Then `POST .../dispatches` is called; a 204 response means *accepted*,
   not *started* — GitHub's dispatch response carries no run ID, so the
@@ -391,9 +415,11 @@ So that I can kick off a run from my phone
   identity immediately (a real difference from Jenkins' `Location`-header
   queue-item tracking, `US-PIPE-01` — GitHub's dispatch endpoint gives
   nothing to track by)
-- [ ] Scenario: Confirmation before triggering
+  Evidence: `test/presentation/features/github/github_run_actions_test.dart` "sends ref and inputs, toasts, and refreshes the runs list"; `test/presentation/features/github/github_run_flow_test.dart` "refreshes the runs list again about 3 s after a trigger".
+- [x] Scenario: Confirmation before triggering
   Given the real side effects of triggering a live workflow
   Then a confirmation step is required, same rationale as `US-JOB-02`
+  Evidence: `test/presentation/features/github/github_trigger_sheet_test.dart` "defaults the branch to the repo default and confirms before triggering", "declining the confirmation sends nothing".
 
 **Security & Privacy Notes**
 - Untyped input values are user-supplied text sent as JSON object values
@@ -420,16 +446,18 @@ I want its status to update automatically
 So that I don't have to manually refresh to know when it finishes
 
 **Acceptance Criteria**
-- [ ] Scenario: Polling while not completed
+- [x] Scenario: Polling while not completed
   Given a run's `status` isn't `completed`
   Then the app polls `GET .../runs/{run_id}` every 5s (same cadence as
   `US-JOB-04`, no documented reason GitHub needs a different interval)
   until `status` becomes `completed`
-- [ ] Scenario: Polling stops on completion or screen exit
+  Evidence: `test/presentation/features/github/github_run_actions_test.dart` "polls every ~5s while the run is active"; `test/data/repositories/github_repository_impl_test.dart` "fetchRun GETs one run".
+- [x] Scenario: Polling stops on completion or screen exit
   Given the run completes, or the user navigates away
   Then polling stops — same notifier-owned-timer/`ref.onDispose` discipline
   as `BuildStatusPollingNotifier`
-- [ ] Scenario: Rate-limit awareness
+  Evidence: `test/presentation/features/github/github_run_actions_test.dart` "stops once the run completes", "disposing cancels the timer".
+- [x] Scenario: Rate-limit awareness
   Given GitHub's REST API has a real hourly rate limit (5,000 req/hr for
   an authenticated PAT) that Jenkins (self-hosted, no such limit) doesn't
   have
@@ -437,6 +465,7 @@ So that I don't have to manually refresh to know when it finishes
   message rather than retrying into a worse rate-limit state — **flagged
   as a real constraint this client must respect that has no Jenkins
   equivalent**
+  Evidence: `test/presentation/features/github/github_run_actions_test.dart` "a rate limit mid-poll stops polling"; `test/presentation/features/github/github_run_detail_screen_test.dart` "a rate limit mid-poll keeps the last state and says why"; `test/presentation/features/github/github_run_flow_test.dart` "a network error mid-poll keeps polling, unlike a rate limit".
 
 **Security & Privacy Notes**
 - None beyond existing auth handling.
@@ -460,7 +489,7 @@ I want to cancel it
 So that I don't have to wait for it to finish or find a laptop
 
 **Acceptance Criteria**
-- [ ] Scenario: Successful cancel
+- [x] Scenario: Successful cancel
   Given a run is in progress
   When I tap Cancel and confirm
   Then `POST .../runs/{run_id}/cancel` is called (202 Accepted — GitHub's
@@ -469,13 +498,16 @@ So that I don't have to wait for it to finish or find a laptop
   `cancelled` flip like Jenkins' `US-JOB-05`, since GitHub's cancel is
   genuinely slower/eventual) until the next poll confirms the real
   `conclusion`
-- [ ] Scenario: Confirmation required
+  Evidence: `test/data/repositories/github_repository_impl_test.dart` "cancelRun POSTs to .../cancel and accepts 202"; `test/presentation/features/github/github_run_actions_test.dart` "success marks the cancel requested without faking a conclusion"; `test/presentation/features/github/github_run_detail_screen_test.dart` "cancel asks first, then shows Cancelling… until the poll reports the real conclusion".
+- [x] Scenario: Confirmation required
   Given the same real-side-effect rationale as `US-JOB-05`
   Then a confirmation step is required
-- [ ] Scenario: Cancel request fails
+  Evidence: `test/presentation/features/github/github_run_detail_screen_test.dart` "cancel asks first…", "keeping the run running sends no cancel".
+- [x] Scenario: Cancel request fails
   Given the cancel call itself fails (network/auth)
   Then an `AppFailure`-mapped message is shown; no state is optimistically
   changed since GitHub's own response doesn't warrant it here
+  Evidence: `test/presentation/features/github/github_run_actions_test.dart` "a failure changes nothing and shows an error toast"; `test/data/repositories/github_repository_impl_failures_test.dart` "a run that already finished (409) is reported".
 
 **Security & Privacy Notes**
 - Same destructive-action safeguards as US-JOB-05.
@@ -500,7 +532,7 @@ I want to see each job's steps and their outcome
 So that I can tell what failed without downloading the full log
 
 **Acceptance Criteria**
-- [ ] Scenario: Steps load
+- [x] Scenario: Steps load
   Given a run has one or more jobs
   Then `GET .../runs/{run_id}/jobs` is called, and each job's `steps[]`
   (each with its own `status`/`conclusion`/`name`) renders as a chip row —
@@ -508,10 +540,12 @@ So that I can tell what failed without downloading the full log
   pipelines** (`US-PIPE-04`'s `_StageChipRow`), since the data shape
   (ordered list, each with status+conclusion+name) is structurally the
   same
-- [ ] Scenario: Multiple jobs in one run
+  Evidence: `test/data/repositories/github_repository_impl_test.dart` "parses jobs with their steps, keeping status and conclusion"; `test/presentation/features/github/github_run_detail_screen_test.dart` "shows each job as a group with its steps".
+- [x] Scenario: Multiple jobs in one run
   Given a run has more than one job (a build matrix, or parallel jobs)
   Then each job's step list is shown as its own group, labeled with the
   job's `name`
+  Evidence: `test/presentation/features/github/github_run_detail_screen_test.dart` "shows each job as a group with its steps", "a run with no jobs yet says so".
 
 **Security & Privacy Notes**
 - None beyond existing auth handling.
@@ -539,13 +573,14 @@ I want to read its log
 So that I can see what happened without a laptop
 
 **Acceptance Criteria**
-- [ ] Scenario: Completed job
+- [x] Scenario: Completed job
   Given a job has `status: completed`
   Then `GET .../jobs/{job_id}/logs` is called, following the 302 redirect
   to fetch the plain-text log body, rendered in the same virtualized
   `ListView.builder` console viewer as `US-LOG-01` (reused as-is — the
   *rendering* is identical, only the *fetch mechanism* differs)
-- [ ] Scenario: Job still in progress — no live tail
+  Evidence: `test/presentation/features/github/github_job_log_screen_test.dart` "a completed job shows its log"; `test/presentation/features/github/github_job_log_notifier_test.dart` "keeps the raw text and decodes ANSI into lines"; `test/data/repositories/github_repository_impl_test.dart` "follows the 302 by hand…".
+- [x] Scenario: Job still in progress — no live tail
   Given a job's `status` isn't `completed`
   Then the screen shows an explicit "log available once this job
   finishes" state rather than attempting to poll a partial log — GitHub's
@@ -554,15 +589,18 @@ So that I can see what happened without a laptop
   "check now" refresh action is offered instead of automatic polling, so
   the user isn't left with silently-stale expectations
   set by `US-LOG-01`'s live-while-building behavior
-- [ ] Scenario: Redirect link expiry
+  Evidence: `test/presentation/features/github/github_job_log_screen_test.dart` "a running job never fetches a log; Check now refreshes the job and switches to the log".
+- [x] Scenario: Redirect link expiry
   Given the redirect URL is time-limited (expires ~1 minute per GitHub's
   docs)
   Then the fetch-and-follow happens as one atomic repository-layer
   operation, never surfacing the intermediate redirect URL to the UI or
   caching it for later reuse
-- [ ] Scenario: Load failure
+  Evidence: `test/data/repositories/github_repository_impl_test.dart` "follows the 302 by hand and never sends the token to the storage host", "an expired signed URL (storage 403/404) is a failure, not text", "a redirect with no Location is an unexpected response".
+- [x] Scenario: Load failure
   Given the log fetch fails
   Then the same `AppFailure`+retry pattern as `US-LOG-01` applies
+  Evidence: `test/presentation/features/github/github_job_log_screen_test.dart` "a fetch failure shows the error with a working retry"; `test/presentation/features/github/github_job_log_notifier_test.dart` "refresh() fetches again; failures surface as the AppFailure".
 
 **Security & Privacy Notes**
 - Same inherent risk as `US-LOG-01`: console output is whatever the
@@ -596,6 +634,7 @@ So that I can send it to a teammate or paste it elsewhere
   Then the same Copy-to-clipboard and Share-via-`share_plus` actions as
   `US-LOG-03` are available, operating on the full downloaded log text
   (never partial, since `US-GH-LOG-01` has no progressive/partial state)
+  Open: partly: copy is proven (`test/presentation/features/github/github_job_log_screen_test.dart` "copy puts the whole log on the clipboard", "copy and share are disabled until a log has loaded"), but no test checks that Share hands the log to `share_plus`.
 
 **Security & Privacy Notes**
 - Same first-share secret-exposure notice as `US-LOG-03`.
@@ -622,12 +661,13 @@ I want a dedicated history view of a workflow's past runs
 So that I can review trends without re-opening the workflow detail screen
 
 **Acceptance Criteria**
-- [ ] Scenario: History loads
+- [x] Scenario: History loads
   Given I open a workflow's history
   Then the same `GET .../workflows/{workflow_id}/runs` call as
   `US-GH-RUN-01` (paginated, most-recent-first — this *is* effectively
   the same data, so this screen is a fuller-page presentation of it, not
   a separate fetch with different parameters) renders as a scrollable list
+  Evidence: `test/presentation/features/github/github_run_history_test.dart` "a full first page means there may be more", "loadMore appends the next page, then stops on a short one", "scrolling near the end loads the next page", "a first-page failure shows the error with retry".
 
 **Security & Privacy Notes**
 - None beyond existing auth handling.
@@ -652,7 +692,7 @@ I want a single global feed of recent runs across all of them
 So that I don't have to check each repo individually
 
 **Acceptance Criteria**
-- [ ] Scenario: Feasibility gap, flagged rather than silently built differently
+- [x] Scenario: Feasibility gap, flagged rather than silently built differently
   Given GitHub's REST API has **no single endpoint** for "recent runs
   across every repo a token can access" (unlike Jenkins' `US-HIST-01`,
   which derives this for free from the already-fetched job tree)
@@ -661,12 +701,14 @@ So that I don't have to check each repo individually
   **explicitly scoped as `Could`, not `Must`**, because on an account
   with many repos this is O(n) requests against GitHub's 5,000/hr rate
   limit for one screen, a real cost Jenkins' equivalent doesn't have
-  - [ ] Scenario: Rate-limit-aware fallback
-    Given the repo count is large enough that fanning out risks the rate
-    limit
-    Then the feed caps how many repos it fans out to (e.g. the N most
-    recently updated, from `US-GH-REPO-01`'s already-sorted list) rather
-    than exhausting the rate limit on one screen
+  Evidence: `test/presentation/features/github/github_global_history_test.dart` "merges runs from several repos newest first", "one repo failing does not hide the others", "every repo failing is an error, not an empty feed"; `test/data/repositories/github_repository_impl_test.dart` "GETs a repo's runs across workflows with a small page".
+- [x] Scenario: Rate-limit-aware fallback
+  Given the repo count is large enough that fanning out risks the rate
+  limit
+  Then the feed caps how many repos it fans out to (e.g. the N most
+  recently updated, from `US-GH-REPO-01`'s already-sorted list) rather
+  than exhausting the rate limit on one screen
+  Evidence: `test/presentation/features/github/github_global_history_test.dart` "asks at most the capped number of repos and reports the rest", "prefixes each run with its repo and explains coverage".
 
 **Security & Privacy Notes**
 - None beyond existing auth handling.

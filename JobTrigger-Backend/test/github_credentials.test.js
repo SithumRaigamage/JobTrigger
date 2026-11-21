@@ -57,6 +57,37 @@ describe('GitHub Credentials API', function() {
     expect(updateRes.body.label).to.equal('Work Org');
   });
 
+  // US-GH-CRED-02: the backend side of "blank means keep": an edit without
+  // a token keeps the stored one, and a blank token is refused, never
+  // stored. (The app's edit sheet sends the existing token when its field
+  // is left blank.)
+  it('keeps the stored token when an edit leaves it out, refuses a blank one', async function() {
+    const addRes = await api()
+      .post('/api/github-credentials')
+      .set('x-auth-token', token)
+      .send({ label: 'Keep', token: 'ghp_kept_secret', isDefault: false });
+    const id = addRes.body._id;
+
+    const blank = await api()
+      .put(`/api/github-credentials/${id}`)
+      .set('x-auth-token', token)
+      .send({ label: 'Keep 2', token: '', isDefault: false });
+    expect(blank.status).to.equal(400);
+
+    const omitted = await api()
+      .put(`/api/github-credentials/${id}`)
+      .set('x-auth-token', token)
+      .send({ label: 'Keep 3', isDefault: false });
+    expect(omitted.status).to.equal(200);
+    expect(omitted.body.label).to.equal('Keep 3');
+
+    const secret = await api()
+      .get(`/api/github-credentials/${id}/secret`)
+      .set('x-auth-token', token);
+    expect(secret.status).to.equal(200);
+    expect(secret.body.token).to.equal('ghp_kept_secret');
+  });
+
   it('should delete a credential', async function() {
     const addRes = await api()
       .post('/api/github-credentials')
