@@ -1,9 +1,10 @@
-# Phase 28 — Team plan (US-SUB-11), release 1.1
+# Phase 28 — Team plan (US-SUB-11), release 1.0.1
 
 Source: owner decision 2026-11-20 (pre-release follow-up). Story and
 criteria: `docs/user-stories/billing/18-subscriptions.md` US-SUB-11; design:
-`docs/design/US-SUB-11-team-plan.md`. Ships in **1.1**, after the `v1.0.0`
-tag; off unless `TEAM_PLAN_ENABLED=true`.
+`docs/design/US-SUB-11-team-plan.md`. Ships in **1.0.1** (owner decision
+2026-11-21, was 1.1). The code is in `v1.0.0` but switched off there
+(`TEAM_PLAN_ENABLED=false` in `render.yaml`); 1.0.1 sets it to `true`.
 
 - [x] P28-01 Backend: flag, Team model, service, routes, entitlements,
       Paddle per-seat checkout, seat change and webhook branch, invite mail,

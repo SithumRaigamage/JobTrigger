@@ -54,7 +54,7 @@ const servers = [
 describe("TeamView (AC12)", () => {
   it("says teams aren't available when the backend has them off", () => {
     render(<TeamView state={{ available: false }} servers={[]} />);
-    expect(screen.getByTestId("team-unavailable")).toHaveTextContent("coming in JobTrigger 1.1");
+    expect(screen.getByTestId("team-unavailable")).toHaveTextContent("coming in JobTrigger 1.0.1");
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 

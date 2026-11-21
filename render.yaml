@@ -94,6 +94,9 @@ services:
         sync: false
       - key: STUDENT_RENEWAL_ENABLED
         value: "false"
+      # US-SUB-11: the team plan is in the 1.0.0 code but off; 1.0.1 sets "true".
+      - key: TEAM_PLAN_ENABLED
+        value: "false"
       # Deliberately absent: SANDBOX_BILLING (the server refuses to start
       # with it in production), HOST (the default 0.0.0.0 is right on
       # Render) and STUDENT_JOBS_ENABLED (on by default; only the tests

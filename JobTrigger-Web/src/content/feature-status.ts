@@ -119,10 +119,10 @@ export const features = {
   "team-plan": {
     label: "Team plan (Pro per seat, shared Jenkins servers)",
     status: "soon",
-    // US-SUB-11, owner decision 2026-11-20: built on its own branch for
-    // release 1.1; the backend keeps it off (TEAM_PLAN_ENABLED) until then.
-    // Flipped to live with the 1.1 release; no changelog line before that.
-    source: "US-SUB-11 / Phase 28 — release 1.1",
+    // US-SUB-11, owner decision 2026-11-21: release 1.0.1. The code is in
+    // 1.0.0 but the backend keeps it off there (TEAM_PLAN_ENABLED=false).
+    // Flipped to live with the 1.0.1 release; no changelog line before that.
+    source: "US-SUB-11 / Phase 28 — release 1.0.1",
   },
   "gitlab-ci": {
     label: "GitLab CI",

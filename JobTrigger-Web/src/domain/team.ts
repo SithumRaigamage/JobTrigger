@@ -1,5 +1,5 @@
 /*
- * US-SUB-11 (release 1.1): the team plan, as the website shows it.
+ * US-SUB-11 (release 1.0.1): the team plan, as the website shows it.
  * docs/user-stories/billing/18-subscriptions.md, AC12–AC15.
  */
 

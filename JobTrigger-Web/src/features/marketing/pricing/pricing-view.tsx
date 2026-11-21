@@ -85,7 +85,7 @@ export function PricingView() {
                 </Card>
               </li>
             ))}
-            {/* US-SUB-11 AC15: only once the team plan ships (release 1.1). */}
+            {/* US-SUB-11 AC15: only once the team plan ships (release 1.0.1). */}
             {teamPlan && (
               <li data-testid="team-plan-card">
                 <Card className="flex h-full flex-col gap-4 p-7">

@@ -64,3 +64,28 @@ describe('production configuration guard', function() {
     expect(invalidConfig({ ...mail, MAIL_FROM: 'no-reply@jobtrigger.app' })).to.equal(null);
   });
 });
+
+/**
+ * Owner decision 2026-11-21: the team plan (US-SUB-11) is in the 1.0.0 code
+ * but switched off; release 1.0.1 turns it on. The production blueprint must
+ * say so explicitly, not rely on the variable being unset.
+ */
+describe('1.0.0 production blueprint: team plan off', function() {
+  const fs = require('fs');
+  const path = require('path');
+  const { teamPlanEnabled } = require('../config/env');
+
+  function blueprintValue(key) {
+    const yaml = fs.readFileSync(path.join(__dirname, '..', '..', 'render.yaml'), 'utf8');
+    const match = yaml.match(new RegExp(`- key: ${key}\\n\\s+value: "?([^"\\n]*)"?`));
+    return match ? match[1] : undefined;
+  }
+
+  it('sets TEAM_PLAN_ENABLED to "false" in render.yaml', function() {
+    expect(blueprintValue('TEAM_PLAN_ENABLED')).to.equal('false');
+  });
+
+  it('that value keeps every team route off', function() {
+    expect(teamPlanEnabled({ TEAM_PLAN_ENABLED: blueprintValue('TEAM_PLAN_ENABLED') })).to.equal(false);
+  });
+});
