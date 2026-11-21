@@ -48,5 +48,6 @@
 
 - [ ] **M-01 Physical iPhone Relaunch**: Kill and relaunch on physical iPhone.
 - [ ] **M-07 Crash Reporting**: Confirm test crash reporting to GlitchTip over production DSN.
+- [ ] **Release config check**: `scripts/build-release.sh --check all` passes with the real `config/sentry.json` and `config/billing.json` (copied from `config/*.example.json`). On 2026-11-21 it failed: the files on this Mac supply none of `SENTRY_DSN`, `REVENUECAT_IOS_KEY`, `REVENUECAT_ANDROID_KEY` (M-07, M-15).
 - [ ] **M-08 & M-09 Store Accounts**: Active Apple Developer ($99/yr) & Google Play Console ($25).
 - [ ] **M-12 Final Review Sign-off**: Review notes and test credentials supplied to App Store Review.

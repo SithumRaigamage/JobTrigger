@@ -1,0 +1,100 @@
+# Render blueprint for the JobTrigger backend (RD-03).
+#
+# Everything here is infrastructure **shape**: no secret values, ever. Every
+# secret is `sync: false`, which makes Render ask for it in the dashboard (or
+# keep the value already set there) and keeps it out of git. The values are
+# listed in docs/deployment-render.md.
+#
+# Deploys come from `main` only, after the branch's checks pass: `develop`
+# moves daily and must never deploy itself.
+services:
+  - type: web
+    name: jobtrigger-api
+    runtime: docker
+    plan: starter
+    region: singapore
+    branch: main
+    autoDeployTrigger: checksPass
+    dockerfilePath: ./JobTrigger-Backend/Dockerfile
+    dockerContext: ./JobTrigger-Backend
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "5001"
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CREDENTIALS_ENCRYPTION_KEY
+        sync: false
+      - key: CREDENTIALS_ENCRYPTION_KEY_ID
+        value: k1
+      - key: TRUST_PROXY
+        value: "1"
+      - key: SITE_URL
+        value: https://jobtrigger.app
+      - key: RESET_PASSWORD_URL
+        value: https://jobtrigger.app/reset-password
+      - key: CORS_ORIGINS
+        value: ""
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_SECURE
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: SUPPORT_EMAIL
+        sync: false
+      # US-PROF-03: blank blocks no app version.
+      - key: MIN_SUPPORTED_APP_VERSION
+        sync: false
+      - key: STUDENT_ADMIN_EMAIL
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: SENTRY_ENVIRONMENT
+        value: production
+      - key: BILLING_ENABLED
+        value: "true"
+      - key: REVENUECAT_SECRET_API_KEY
+        sync: false
+      - key: REVENUECAT_WEBHOOK_AUTH
+        sync: false
+      - key: PADDLE_API_KEY
+        sync: false
+      - key: PADDLE_WEBHOOK_SECRET
+        sync: false
+      - key: PADDLE_PRICE_MONTHLY
+        sync: false
+      - key: PADDLE_PRICE_YEARLY
+        sync: false
+      - key: PADDLE_ENV
+        value: production
+      - key: SENTRY_RELEASE
+        value: backend@1.0.0
+      - key: LOG_LEVEL
+        value: info
+      # Optional, blank until set up: old encryption keys during a key
+      # rotation, push (M-16), analytics, and student-plan renewal mails.
+      - key: CREDENTIALS_ENCRYPTION_PREVIOUS_KEYS
+        sync: false
+      - key: FCM_SERVICE_ACCOUNT
+        sync: false
+      - key: UMAMI_URL
+        sync: false
+      - key: UMAMI_WEBSITE_ID
+        sync: false
+      - key: STUDENT_RENEWAL_ENABLED
+        value: "false"
+      # Deliberately absent: SANDBOX_BILLING (the server refuses to start
+      # with it in production), HOST (the default 0.0.0.0 is right on
+      # Render) and STUDENT_JOBS_ENABLED (on by default; only the tests
+      # turn it off).
