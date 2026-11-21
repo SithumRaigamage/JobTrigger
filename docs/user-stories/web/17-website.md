@@ -762,22 +762,33 @@ I want to check that the details work before saving
 So that I don't discover a typo later on my phone
 
 **Acceptance Criteria**
-- Scenario: Before the backend endpoint exists (the state at launch)
-  Given the `test-connection` feature in US-WEB-22 is `soon`
-  Then the "Test connection" button is shown disabled with a "Coming soon"
-  badge and the helper text "You can test from the app after saving", and
-  saving works without it
-- Scenario: Success
-  Given I press "Test connection"
-  Then I see "Connected as <username>" from the tool
-- Scenario: Failure
-  Then I see the same copy the app's test connection uses for
-  `AuthFailure`, `NetworkFailure`, `NotFoundFailure`, and
-  `ServerFailure(statusCode)`
-- Scenario: Private network
-  Given the server is only reachable from my office network or VPN
-  Then I see "We can't reach this server from the internet. Save it anyway
-  and test from the app on your network", and Save stays available
+
+> **Owner decision 2026-11-20: option (c) for 1.0** — the website explains
+> that the phone tests the connection; the SSRF-guarded backend endpoint
+> (option (b)) is reconsidered in 1.1 only if support tickets show the need.
+> Design note: [`docs/design/US-WEB-19-test-connection.md`](../../design/US-WEB-19-test-connection.md).
+
+- [x] Scenario: The phone tests the connection (1.0)
+  Given I am adding a Jenkins server, GitHub account or SonarQube server
+  Then next to "Save server" I see "Your phone tests the connection. After
+  saving, open JobTrigger on the same network as this server, tap the
+  server in Settings and tap Test connection." — no disabled button, no
+  "Coming soon" badge, and saving works as before
+  Evidence: `JobTrigger-Web/src/features/servers/add-server-view.tsx`;
+  e2e `tests/e2e/add-server.spec.ts` "the website says the phone tests the
+  connection (US-WEB-19)"; saving: `add-server.spec.ts` save tests.
+- [x] Scenario: Nothing promises a website test
+  Given the `web-test-connection` feature in US-WEB-22
+  Then it is `planned` (not `soon`), so no page lists "Test connection from
+  the website" as coming next
+  Evidence: `src/content/feature-status.ts` (`planned`), pinned in
+  `feature-status.test.ts`; `changelog.test.ts` "lists the remaining soon
+  features as next".
+- [ ] Scenario: Success, failure, private network (website test) — **won't
+  do in 1.0** (option (b), reconsidered in 1.1). Kept for the record:
+  "Connected as <username>"; the app's copy for `AuthFailure`,
+  `NetworkFailure`, `NotFoundFailure`, `ServerFailure(statusCode)`; and
+  "We can't reach this server from the internet…" for private networks
 
 **Security & Privacy Notes**
 - **Flagged backend-track risk (NFR-SEC-05).** A browser can't call Jenkins
