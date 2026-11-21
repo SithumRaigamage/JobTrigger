@@ -172,11 +172,12 @@ So that repo/workflow browsing reflects the account I'm currently working as
 **Acceptance Criteria**
 - [ ] Scenario: Switch succeeds
   Given I tap a non-active credential in the list
-  Then it becomes active immediately (client-side, matching
-  `ActiveServerNotifier`'s existing pattern — no backend "switch" call
-  needed, same as Jenkins' `SettingsScreen._setActiveServer`), and a
-  confirmation toast shows
-  Open: partly: switching is client-side and immediate (`test/data/credentials/active_tools_independent_test.dart`, 2026-11-21), but no test covers the confirmation toast from Settings.
+  Then it becomes active immediately (client-side), a confirmation toast
+  shows, and the backend default follows through
+  `POST /api/github-credentials/switch/:id`, kept on the phone and retried
+  if that call fails — the same rule as Jenkins' US-CRED-05 (owner
+  decision 2026-11-21, replacing "no backend switch call needed")
+  Open: partly: switching is immediate and now reaches the backend (`test/data/credentials/default_choice_sync_test.dart` "GitHub and SonarQube switches also reach the backend", built 2026-11-21), but no test covers the confirmation toast from Settings.
 - [x] Scenario: Active GitHub credential is independent of active Jenkins server
   Given both an active Jenkins server and an active GitHub credential exist
   Then switching one never affects the other — they're two independent

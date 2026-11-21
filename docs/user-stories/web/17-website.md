@@ -271,10 +271,13 @@ So that I don't install an app that can't help me
 - [x] Scenario: Planned tools
   Then GitLab CI and CircleCI are listed as "Planned", with no promised date
   Evidence: `JobTrigger-Web/src/features/marketing/integrations/integrations-view.test.tsx` "lists planned tools and links the request to support email".
-- [ ] Scenario: Request a tool
+- [x] Scenario: Request a tool
   Then a "Request a tool" link goes to the same destination as the app's
-  tool-selection "request a tool" link, so requests land in one place
-  Open: diverged on purpose: since P25-05 the app's "Need another tool?" opens an in-app Support ticket, while the website still links the support email (`JobTrigger-Web/src/features/marketing/integrations/integrations-view.test.tsx` "lists planned tools and links the request to support email"), so requests no longer land in one place. Owner decision: point the website at the ticket flow, or reword.
+  tool-selection "request a tool" link, so requests land in one place:
+  signed in, it opens a Support form that files a "Tool request" ticket
+  (as the app does since P25-05); signed out, it falls back to the support
+  email (owner decision 2026-11-21)
+  Evidence: built 2026-11-21 (owner decision): `JobTrigger-Web/tests/e2e/request-tool.spec.ts` "signed out, Request a tool is the support email", "signed in, Request a tool files a Tool request ticket", "an empty request says what is missing and sends nothing"; `JobTrigger-Web/src/features/support/actions.test.ts`; `JobTrigger-Web/src/features/marketing/integrations/integrations-view.test.tsx` "signed in, the request opens the Support ticket form instead".
 
 **Security & Privacy Notes**
 - None beyond the baselines.
@@ -750,12 +753,13 @@ So that I can start using it without restarting the app
   Then I see "Saved. Open JobTrigger on your phone, your server is ready",
   with "Add another" and "Back to my servers" actions
   Evidence: `JobTrigger-Web/tests/e2e/add-server.spec.ts` "add a Jenkins server, see it saved, and find it masked in the list"; `JobTrigger-Web/tests/e2e/journey.spec.ts` "home → sign up → add a server → saved → in my servers".
-- [ ] Scenario: App picks it up on return (app change)
+- [x] Scenario: App picks it up on return (app change)
   Given the app is open in the background, signed in to the same account
   When I switch back to it
-  Then it reloads the credential lists for every tool on resume, and the
-  new server appears without a restart or pull-to-refresh
-  Open: not built in the app: on resume the app re-checks Jenkins reachability (`reachability_watcher.dart`) and entitlements, but does not reload the credential lists, so a server added on the web appears after a pull-to-refresh or restart.
+  Then it reloads the credential lists for every tool on resume (at most
+  once every 30 seconds — owner decision 2026-11-21), and the new server
+  appears without a restart or pull-to-refresh
+  Evidence: built 2026-11-21 (owner decision): `test/presentation/features/auth/credentials_resume_reloader_test.dart` "resuming reloads Jenkins, GitHub and SonarQube credentials", "a second resume within 30 seconds does nothing; after, it reloads", "signed out, resuming reloads nothing" (app; watched from `main.dart`).
 - [ ] Scenario: App not installed
   Then the confirmation also shows the store links / QR from US-WEB-02
   Open: not proven: no test of store links or a QR on the saved screen.
@@ -795,10 +799,11 @@ So that the app opens on the right one
   Then the Next.js server calls `POST /api/<type>/switch/:id`, and the list
   shows the new active server
   Evidence: `JobTrigger-Web/tests/e2e/servers.spec.ts` "Make active moves the tool's default (US-WEB-18)"; `JobTrigger-Web/src/server/credentials-api.test.ts` "switch the default with the tool's switch endpoint".
-- [ ] Scenario: App follows
+- [x] Scenario: App follows
   Then the app uses the new active server after its next reload
-  (US-WEB-17)
-  Open: the app keeps its own active choice per device (`active_server_id` in shared preferences wins on rehydration; US-CRED-05), so a default changed on the web is only picked up on a device that has no saved choice. Owner decision with US-CRED-05.
+  (US-WEB-17): the backend default wins on a reload unless the phone has a
+  switch of its own still waiting to reach the backend (US-CRED-05)
+  Evidence: built 2026-11-21 (owner decision): `test/data/credentials/default_choice_sync_test.dart` "with nothing pending, a default chosen elsewhere is followed", "a failed switch keeps the choice and is retried on reload" (pending wins); the reload happens on resume (US-WEB-17).
 
 **Security & Privacy Notes**
 - CSRF-protected, as in US-WEB-10.

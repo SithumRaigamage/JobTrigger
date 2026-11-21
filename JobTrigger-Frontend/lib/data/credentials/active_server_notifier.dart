@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/error/app_failure.dart';
+import 'default_choice_sync.dart';
 import '../../core/error/result.dart';
 import '../cache/job_tree_cache.dart';
 import '../repositories/credentials_repository_impl.dart';
@@ -50,6 +53,9 @@ class ActiveServerNotifier extends _$ActiveServerNotifier {
       }
       final match = _findById(fresh, current.id);
       if (match != null && match != current) state = match;
+      // Owner decision 2026-11-21: retry a pending default, else follow
+      // the backend's (e.g. one chosen on the website, US-WEB-18).
+      if (_rehydrated && next is AsyncData) unawaited(_reconcile(fresh));
     }, weak: true);
     return null;
   }
@@ -86,18 +92,55 @@ class ActiveServerNotifier extends _$ActiveServerNotifier {
     final prefs = await SharedPreferences.getInstance();
     final persistedId = prefs.getString(_activeServerIdKey);
 
-    final resolved =
-        _findById(servers, persistedId) ??
-        _findDefault(servers) ??
-        servers.first;
+    final resolved = pickActive(
+      servers,
+      idOf: (item) => item.id,
+      isDefault: (item) => item.isDefault,
+      pendingId: await _sync.pending(),
+      savedId: persistedId,
+    )!;
     state = resolved;
     await prefs.setString(_activeServerIdKey, resolved.id);
+    // No default on the backend, or one still waiting: push this one.
+    if (!resolved.isDefault) unawaited(_push(resolved.id));
   }
 
   Future<void> setActiveServer(JenkinsServer server) async {
     state = server;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_activeServerIdKey, server.id);
+    // Owner decision 2026-11-21: the backend default follows; if that
+    // fails the choice stays on the phone and is retried.
+    unawaited(_push(server.id));
+  }
+
+  static const _sync = DefaultChoiceSync('active_server_pending_default');
+
+  Future<void> _push(String id) async {
+    final ok = await _sync.push(
+      id,
+      ref.read(credentialsRepositoryProvider).switchActive,
+    );
+    // The list's default flags changed; reload it so every screen agrees.
+    if (ok && ref.mounted) ref.invalidate(credentialsNotifierProvider);
+  }
+
+  Future<void> _reconcile(List<JenkinsServer> fresh) async {
+    final pendingId = await _sync.pending();
+    if (!ref.mounted) return;
+    if (pendingId != null) {
+      if (_findById(fresh, pendingId) == null) {
+        await _sync.drop();
+      } else {
+        await _push(pendingId);
+      }
+      return;
+    }
+    final backendDefault = _findDefault(fresh);
+    if (backendDefault == null || backendDefault.id == state?.id) return;
+    state = backendDefault;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_activeServerIdKey, backendDefault.id);
   }
 
   Future<void> clear() async {

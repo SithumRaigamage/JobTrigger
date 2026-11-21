@@ -79,7 +79,7 @@ void main() {
       routes: [
         GoRoute(
           path: AppRoutes.toolSelection,
-          builder: (_, _) => const ToolSelectionScreen(),
+          builder: (_, _) => const ToolSelectionScreen(choosing: true),
         ),
         GoRoute(
           path: AppRoutes.home,

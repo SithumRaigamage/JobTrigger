@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../subscription/plan_gate.dart';
 import 'ci_tool.dart';
 
 part 'active_tool_notifier.g.dart';
+
+/// The `shared_preferences` key of the last chosen tool (US-TOOL-01).
+const activeToolKey = 'active_tool';
 
 /// Which CI/CD tool the session is using: it picks what the Home and
 /// History tabs show and which credentials Settings and Profile manage.
@@ -26,7 +32,21 @@ class ActiveToolNotifier extends _$ActiveToolNotifier {
   /// Ignores a tool this build doesn't offer (not released, or no code), so
   /// nothing can select one however it asks.
   void setActiveTool(CiTool tool) {
-    if (tool.isAvailable) state = tool;
+    if (!tool.isAvailable) return;
+    state = tool;
+    // US-TOOL-01 (owner decision 2026-11-21): remembered so a returning
+    // user skips tool selection; user-scoped, cleared on logout.
+    unawaited(_remember(tool));
+  }
+
+  /// Best effort: an unavailable store only means the picker shows again.
+  static Future<void> _remember(CiTool tool) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(activeToolKey, tool.name);
+    } on Object {
+      // Nothing to do.
+    }
   }
 
   /// P20-25: the paywall reason when [tool] needs Pro for this user (they

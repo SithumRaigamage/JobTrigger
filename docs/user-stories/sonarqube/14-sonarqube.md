@@ -177,8 +177,10 @@ So that I can check a different server or organization
   Given I tap a non-active credential's radio indicator in the SonarQube
   section of Settings
   Then it becomes active and the project list (`US-SQ-PROJ-01`) refetches
-  against it
-  Evidence: `test/presentation/features/sonarqube/sonarqube_overview_test.dart` "the credential chip drops down the saved credentials and switches in place"; Fixed 2026-11-21: the first credential saved now becomes active (`test/data/credentials/first_credential_active_test.dart`).
+  against it; the backend default follows, kept on the phone and retried
+  if that call fails, as for Jenkins (US-CRED-05, owner decision
+  2026-11-21)
+  Evidence: `test/presentation/features/sonarqube/sonarqube_overview_test.dart` "the credential chip drops down the saved credentials and switches in place"; backend default (built 2026-11-21): `test/data/credentials/default_choice_sync_test.dart` "GitHub and SonarQube switches also reach the backend".
 - [x] Scenario: Independent from every other tool's active state
   Given Jenkins/GitHub/GitLab credentials are also configured
   Then switching the active SonarQube credential does not touch any of

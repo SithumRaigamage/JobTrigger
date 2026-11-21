@@ -52,7 +52,7 @@ void main() {
   final screens = <String, Widget Function()>{
     'login': () => const LoginScreen(),
     'signup': () => const SignupScreen(),
-    'tool selection': () => const ToolSelectionScreen(),
+    'tool selection': () => const ToolSelectionScreen(choosing: true),
     'status marks': () => const _StatusMarks(),
   };
 
@@ -98,7 +98,7 @@ void main() {
             ).copyWith(textScaler: const TextScaler.linear(2)),
             child: child!,
           ),
-          home: const ToolSelectionScreen(),
+          home: const ToolSelectionScreen(choosing: true),
         ),
       ),
     );

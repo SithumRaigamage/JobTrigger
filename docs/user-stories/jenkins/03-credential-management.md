@@ -136,12 +136,13 @@ re-adding the server
   When I save a new secret or URL (with or without "Set as default")
   Then the very next Jenkins request uses the new values, without a restart
   Evidence: `test/presentation/features/settings/server_form_notifier_test.dart` "editing the active server applies the new secret and URL".
-- [ ] Scenario: Password field starts empty, not pre-filled
+- [x] Scenario: Password field starts empty, not pre-filled
   Given I open the edit form
   Then the password field is blank (never pre-populated with the existing
   secret, even masked) — leaving it blank on save means "keep existing
-  password unchanged," entering a new value means "replace it"
-  Open: contradicts the current design: the edit sheet fills the API token field with the stored secret, obscured with a show toggle (`server_edit_bottom_sheet.dart`, E4: secrets come from `GET /:id/secret`), and a blank secret on edit is sent as blank (the backend refuses it). Owner decision to retire or rebuild.
+  password unchanged," entering a new value means "replace it"; the field
+  says "Leave blank to keep current." (owner decision 2026-11-21)
+  Evidence: built 2026-11-21 (owner decision): `test/presentation/features/settings/jenkins_secret_edit_test.dart` "the token field starts empty and says blank keeps it", "saving with it blank keeps the stored secret", "a new token replaces the stored one".
 - [x] Scenario: Edit failure
   Given the update request fails
   Then an `AppFailure`-mapped message is shown and no partial/inconsistent
@@ -224,7 +225,7 @@ So that the job tree, build actions, and logs I see are scoped to the
 server I actually mean to use right now
 
 **Acceptance Criteria**
-- [ ] Scenario: Switch succeeds
+- [x] Scenario: Switch succeeds
   Given I select a different saved server as active
   When the switch completes
   Then `POST /api/credentials/switch/:id` flips the backend's `isDefault`
@@ -232,18 +233,21 @@ server I actually mean to use right now
   (not waiting on a refetch), and the Jenkins Dio client is rebuilt with
   the new server's Basic Auth credentials before any subsequent Jenkins
   call is made
-  Open: partly: the switch is instant and on this device (`ActiveServerNotifier.setActiveServer`, saved as `active_server_id`; `test/presentation/features/home/server_switcher_test.dart` "choosing a server switches to it without leaving Home"), and `jenkinsClientProvider` rebuilds from it, but `POST /api/credentials/switch/:id` is never called (`switchActive` exists in the repository, unused), so the backend's `isDefault` does not follow. Owner decision.
+  Evidence: built 2026-11-21 (owner decision): `test/data/credentials/default_choice_sync_test.dart` "switching applies at once and makes it the backend default"; the Jenkins client follows the active server (`test/presentation/features/home/server_switcher_test.dart` "choosing a server switches to it without leaving Home").
 - [x] Scenario: Job tree reflects the new server
   Given I switch servers while viewing the job tree
   Then the job list refreshes against the newly active server rather than
   showing stale data from the previous one
   Evidence: `server_switcher_test.dart` "choosing a server switches to it without leaving Home" (the tree shows the new server's jobs, not the old).
-- [ ] Scenario: Switch request fails
-  Given the backend switch call fails
-  Then the previously active server remains active (no client-side
-  optimistic flip that later has to be silently reverted) and an
-  `AppFailure`-mapped error is shown
-  Open: not applicable as built: no backend call is made on a switch (see above), so there is no failure path to show.
+- [x] Scenario: Switch request fails
+  Given the backend switch call fails (owner decision 2026-11-21, replacing
+  "the previously active server remains active")
+  Then the phone keeps the new choice and remembers that the backend has
+  not taken it yet; the switch is retried on the next credential reload
+  (a pull-to-refresh, or the app returning to the foreground) until the
+  backend accepts it. While a retry is pending, a different default on the
+  backend never overrides the phone's choice
+  Evidence: built 2026-11-21 (owner decision): `test/data/credentials/default_choice_sync_test.dart` "a failed switch keeps the choice and is retried on reload"; retried on resume too (`test/presentation/features/auth/credentials_resume_reloader_test.dart`).
 - [x] Scenario: Active server's Jenkins auth is invalid
   Given the active server's saved credentials are rejected by Jenkins
   (401/403)

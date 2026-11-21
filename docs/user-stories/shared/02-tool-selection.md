@@ -27,13 +27,14 @@ So that the app knows which integration to use for the rest of my session
   credential setup if no server is saved yet, or straight to the job tree
   if one exists)
   Open: partly superseded: the choice is recorded and Continue goes Home (`test/presentation/features/tool_selection/tool_selection_screen_test.dart` "Jenkins is chosen to start with, and nothing is committed until Continue", "choosing GitHub Actions and continuing commits it and goes home"), but the accent no longer changes per tool (P14 decision 4: one accent, `app_theme.dart`), and with no server Home shows "No Jenkins Server" rather than opening the add-server form (see the third criterion). Needs the owner to reword or approve a change.
-- [ ] Scenario: Returning user skips re-selection
+- [x] Scenario: Returning user skips re-selection
   Given I previously selected Jenkins and have at least one saved server
+  (of any tool — owner decision 2026-11-21)
   When I log in again
   Then I am not forced back through tool selection — it is shown only when
   no tool/server context exists yet, or when explicitly reached via
   settings/switch-tool navigation
-  Open: contradicts a deliberate design: the active tool is in memory only and a signed-in user always passes tool selection after a cold launch (`active_tool_notifier.dart` doc comment; `app_router.dart` sends a just-signed-in user to `/tools`). Owner decision: persist the tool, or retire this criterion.
+  Evidence: built 2026-11-21 (owner decision): `test/presentation/features/tool_selection/returning_tool_test.dart` "a returning user goes straight Home with their tool", "a first-time user sees the picker", "opened from Profile it always shows the picker", and the `returningTool` group (last tool, first tool with a server, none, offline, plan-locked).
 - [ ] Scenario: No saved servers yet
   Given I select Jenkins for the first time
   When there is no saved Jenkins server

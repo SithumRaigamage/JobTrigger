@@ -327,7 +327,11 @@ GoRouter appRouter(Ref ref) {
       ),
       GoRoute(
         path: AppRoutes.toolSelection,
-        builder: (context, state) => const ToolSelectionScreen(),
+        // US-TOOL-01: `?choose=1` (Profile → CI tool) always shows the
+        // picker; otherwise a returning user goes straight Home.
+        builder: (context, state) => ToolSelectionScreen(
+          choosing: state.uri.queryParameters['choose'] == '1',
+        ),
       ),
       // Drill-down detail routes: pinned to the root navigator so they
       // always render full-screen over MainScaffold's tab bar, regardless

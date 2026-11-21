@@ -131,7 +131,14 @@ function StatusCell({ feature }: { feature: Cell }) {
 }
 
 /** Integrations page (designs 03 / 20; US-WEB-04). */
-export function IntegrationsView({ supportEmail }: { supportEmail: string | null }) {
+export function IntegrationsView({
+  supportEmail,
+  signedIn = false,
+}: {
+  supportEmail: string | null;
+  /** US-WEB-04: signed in, the request is a Support ticket. */
+  signedIn?: boolean;
+}) {
   const planned = (["gitlab-ci", "circleci"] as const)
     .filter((id) => statusOf(id) === "planned")
     .map((id) => features[id].label);
@@ -249,7 +256,13 @@ export function IntegrationsView({ supportEmail }: { supportEmail: string | null
               </p>
             </div>
             <a
-              href={supportEmail ? toolRequestHref(supportEmail) : routes.support}
+              href={
+                signedIn
+                  ? routes.requestToolForm
+                  : supportEmail
+                    ? toolRequestHref(supportEmail)
+                    : routes.support
+              }
               className="flex h-13 items-center rounded-full bg-on-accent px-6 font-bold text-accent-hover no-underline hover:text-accent-hover"
             >
               Request a tool →

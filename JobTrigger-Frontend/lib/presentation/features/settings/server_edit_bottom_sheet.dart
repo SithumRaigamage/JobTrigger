@@ -70,9 +70,9 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
   late final _usernameController = TextEditingController(
     text: widget.existing?.username ?? widget.prefillUsername,
   );
-  late final _passwordController = TextEditingController(
-    text: widget.existing?.secret,
-  );
+  // Owner decision 2026-11-21 (US-CRED-03): never pre-filled; blank keeps
+  // the stored secret (see [_secret]).
+  late final _passwordController = TextEditingController();
   late final _paramTokenController = TextEditingController(
     text: widget.existing?.paramToken,
   );
@@ -170,9 +170,10 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
         ],
         LabeledField(
           label: 'API token',
-          helper:
-              'Use a Jenkins API token, not your password. '
-              'It’s stored encrypted.',
+          helper: _isEditing && !_needsReentry
+              ? 'Leave blank to keep current.'
+              : 'Use a Jenkins API token, not your password. '
+                    'It’s stored encrypted.',
           child: SecretTextField(
             controller: _passwordController,
             noun: 'token',
@@ -217,8 +218,17 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
         .test(
           jenkinsURL: _jenkinsURLController.text.trim(),
           username: _usernameController.text.trim(),
-          password: _passwordController.text,
+          password: _secret,
         );
+  }
+
+  /// What was typed, or — editing, with the field left blank — the stored
+  /// secret (the backend refuses a blank one). An unreadable stored secret
+  /// (AUD-63) has nothing to keep, so it stays blank and the save refuses.
+  String get _secret {
+    final typed = _passwordController.text;
+    if (typed.isNotEmpty || _needsReentry) return typed;
+    return widget.existing?.secret ?? '';
   }
 
   void _save() {
@@ -230,7 +240,7 @@ class _ServerEditBottomSheetState extends ConsumerState<ServerEditBottomSheet> {
           serverName: _serverNameController.text.trim(),
           jenkinsURL: _jenkinsURLController.text.trim(),
           username: _usernameController.text.trim(),
-          secret: _passwordController.text,
+          secret: _secret,
           paramToken: paramToken.isEmpty ? null : paramToken,
           isDefault: _isDefault,
           // AUD-63: the stored secret couldn't be decrypted, so there is

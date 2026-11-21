@@ -94,7 +94,7 @@ void main() {
         'and choosing one opens the paywall for multiTool', (tester) async {
       final container = await pump(
         tester,
-        const ToolSelectionScreen(),
+        const ToolSelectionScreen(choosing: true),
         overrides: [
           gateOverride(freeGate),
           ...savedCredentials(jenkins: [jenkinsServerNamed('a')]),
@@ -117,7 +117,7 @@ void main() {
     testWidgets('Free: the tool in use continues to Home', (tester) async {
       final container = await pump(
         tester,
-        const ToolSelectionScreen(),
+        const ToolSelectionScreen(choosing: true),
         overrides: [
           gateOverride(freeGate),
           ...savedCredentials(jenkins: [jenkinsServerNamed('a')]),
@@ -132,7 +132,7 @@ void main() {
         'opens the paywall for "locked", once', (tester) async {
       final container = await pump(
         tester,
-        const ToolSelectionScreen(),
+        const ToolSelectionScreen(choosing: true),
         overrides: [
           gateOverride(freeGate),
           ...savedCredentials(jenkins: [jenkinsServerNamed('a')]),
@@ -151,7 +151,7 @@ void main() {
       testWidgets('$name: no marks, any tool continues', (tester) async {
         final container = await pump(
           tester,
-          const ToolSelectionScreen(),
+          const ToolSelectionScreen(choosing: true),
           overrides: [
             gateOverride(gate),
             ...savedCredentials(jenkins: [jenkinsServerNamed('a')]),
