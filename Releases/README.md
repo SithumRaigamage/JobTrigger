@@ -9,6 +9,7 @@ This directory is the single source of truth for release lifecycle management, G
 | Version | Release Date | Target Branch | Status | Shipped Tools | Reference |
 |---|---|---|---|---|---|
 | **v1.0.0** | TBD (was 2026-11-17) | `main` (not cut) | **Development-complete — deployment and store steps pending** | Jenkins, SonarQube, GitHub Actions | [`v1.0.0/workplan.md`](./v1.0.0/workplan.md) · [`release-notes`](./v1.0.0/release-notes.md) |
+| *v1.0.1* | Planned | `main` | Draft: turns on the team plan | Jenkins, SonarQube, GitHub Actions | [`v1.0.1/release-notes.md`](./v1.0.1/release-notes.md) |
 | *v1.1.0* | Planned | `main` | Draft | Jenkins, SonarQube, GitHub Actions | — |
 | *v1.3.0* | Planned | `main` | Future | + GitLab CI, CircleCI | — |
 
@@ -31,6 +32,9 @@ This directory is the single source of truth for release lifecycle management, G
    # Copy and fill template files:
    cp Releases/TEMPLATE.md Releases/vX.Y.Z/
    # (or populate release-notes.md, pre-release-checklist.md, deployment-log.md, post-release.md)
+   # Add the release checklist page (same HTML for every release):
+   cp tools/release-checklist/release-checklist.html Releases/vX.Y.Z/
+   # then write Releases/vX.Y.Z/checklist-data.js for this release
    ```
 
 3. **Verify Tool Manifest Sync**:
@@ -70,5 +74,19 @@ Releases/vX.Y.Z/
 ├── deployment-instructions.md  # Sequential execution instructions across GitHub, Backend, Web, and Android
 ├── pre-release-checklist.md    # Automated tests, manifest sync, store screenshots & privacy sign-offs
 ├── deployment-log.md           # Exact build commands, environment configs, and deploy records
-└── post-release.md             # Smoke test records, error/GlitchTip monitoring, and hotfixes
+├── post-release.md             # Smoke test records, error/GlitchTip monitoring, and hotfixes
+├── release-checklist.html      # The checklist page: an unchanged copy of tools/release-checklist/release-checklist.html
+└── checklist-data.js           # This release's tasks for that page (the only file that differs per release)
 ```
+
+### Release checklist page
+
+Every release folder gets `release-checklist.html` and `checklist-data.js`.
+Open the HTML by double-clicking it (no build, no internet). How it works and
+the data format: [`tools/release-checklist/README.md`](../tools/release-checklist/README.md).
+
+**Keep it in sync:** whenever a task moves (done, newly needed, or no longer
+needed), update `checklist-data.js` in the same change: set `done: true`
+rather than deleting a finished task, and never reuse a task id. Ticks made in
+the browser live only in that browser; use **Export ticks** and give the JSON
+to Claude to record them in the data file.
