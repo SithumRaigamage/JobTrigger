@@ -233,3 +233,45 @@ test("refuses an http:// or LAN backend in the base config", (t) => {
   assert.match(result.stderr, /BACKEND_BASE_URL/);
   assert.equal(result.stderr.includes("WEBSITE_BASE_URL"), false);
 });
+
+// Release prep (2026-11-21): config/*.example.json are templates; copied
+// unchanged they must fail the check, and so must a key in the wrong shape.
+test("refuses the example templates as they are, naming every key", (t) => {
+  const fx = fixture(t);
+  const examples = resolve("JobTrigger-Frontend/config");
+  for (const name of ["sentry", "billing"]) {
+    writeFileSync(
+      join(fx.config, `${name}.json`),
+      readFileSync(join(examples, `${name}.example.json`), "utf8"),
+    );
+  }
+
+  const result = run(fx, ["--check", "all"]);
+
+  assert.equal(result.status, 1);
+  assert.match(
+    result.stderr,
+    /Not a usable value: SENTRY_DSN REVENUECAT_IOS_KEY REVENUECAT_ANDROID_KEY/,
+  );
+  assert.equal(result.stdout.includes("REPLACE_WITH"), false);
+  assert.equal(result.stderr.includes("REPLACE_WITH"), false);
+});
+
+test("refuses a store key for the wrong store and a DSN without a project", (t) => {
+  const fx = fixture(t);
+
+  const wrongStore = run(fx, ["--check", "ipa"], {
+    SENTRY_DSN: sentinels.envDsn,
+    REVENUECAT_IOS_KEY: sentinels.androidKey,
+  });
+  assert.equal(wrongStore.status, 1);
+  assert.match(wrongStore.stderr, /Not a usable value: REVENUECAT_IOS_KEY/);
+  assert.equal(wrongStore.stderr.includes(sentinels.androidKey), false);
+
+  const noProject = run(fx, ["--check", "ipa"], {
+    SENTRY_DSN: "https://key@secret.invalid/",
+    REVENUECAT_IOS_KEY: sentinels.iosKey,
+  });
+  assert.equal(noProject.status, 1);
+  assert.match(noProject.stderr, /Not a usable value: SENTRY_DSN/);
+});

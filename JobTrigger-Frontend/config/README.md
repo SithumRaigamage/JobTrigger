@@ -11,6 +11,15 @@ typed config object by `core/config/app_config.dart` (Phase 1).
 | `device.json` | Generated local device config | **Git-ignored, not committed.** Written by `scripts/run-flutter.sh` or the iPhone-specific `scripts/run-on-iphone.sh` with a reachable Mac LAN/Tailscale address. |
 | `sentry.json` | Release secret | **Git-ignored, not committed.** `SENTRY_DSN` for crash reports; merged by `scripts/build-release.sh`. |
 | `billing.json` | Release secret | **Git-ignored, not committed.** `REVENUECAT_IOS_KEY` / `REVENUECAT_ANDROID_KEY`; merged by `scripts/build-release.sh`. |
+| `sentry.example.json` | Template | Committed. Copy to `sentry.json` and replace every `REPLACE_WITH_…`. |
+| `billing.example.json` | Template | Committed. Copy to `billing.json` and replace every `REPLACE_WITH_…`. |
+
+Before a release build, check the real files from the repository root:
+`scripts/build-release.sh --check all`. It prints key names only, never a
+value, and fails when a key is missing, still the template, in the wrong
+shape (`SENTRY_DSN` is `https://<key>@<host>/<project id>`;
+`REVENUECAT_IOS_KEY` starts `appl_`, `REVENUECAT_ANDROID_KEY` `goog_`), or
+pointing at a development address.
 
 ## `WEBSITE_BASE_URL`
 
