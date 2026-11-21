@@ -47,7 +47,7 @@ export function TeamView({ state, servers }: { state: TeamState; servers: Sharea
         </h1>
         {!state.available && (
           <p data-testid="team-unavailable">
-            Team plans aren&apos;t available yet. They&apos;re coming in JobTrigger 1.1.
+            Team plans aren&apos;t available yet. They&apos;re coming in JobTrigger 1.0.1.
           </p>
         )}
         {state.available && state.team === null && <NoTeam />}

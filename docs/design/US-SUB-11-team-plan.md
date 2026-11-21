@@ -1,8 +1,10 @@
-# Design note — US-SUB-11 Team plan (release 1.1)
+# Design note — US-SUB-11 Team plan (release 1.0.1)
 
 Story and acceptance criteria: `docs/user-stories/billing/18-subscriptions.md`
-(US-SUB-11). Owner decisions, 2026-11-20: release 1.1, Paddle on the website
+(US-SUB-11). Owner decisions, 2026-11-20: Paddle on the website
 only, $6.99 per seat per month ($69.90 per seat per year), 2–100 seats.
+Owner decision 2026-11-21: release **1.0.1** (was 1.1); 1.0.0 ships with
+`TEAM_PLAN_ENABLED=false`.
 
 ## Backend
 
@@ -46,7 +48,7 @@ only, $6.99 per seat per month ($69.90 per seat per year), 2–100 seats.
 - `/account/team/join`: reads `token`, requires sign-in (redirect back after), posts
   `POST /api/team/join`, shows each refusal.
 - Pricing: Team card when `statusOf("team-plan") === "live"` (feature status
-  `soon` until 1.1 ships).
+  `soon` until 1.0.1 ships).
 
 ## App
 

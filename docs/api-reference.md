@@ -229,7 +229,7 @@ rewrite in the repository layer, once, not ad hoc at each call site.
 - Any other non-2xx → `ServerFailure(statusCode)` → generic message with
   the status code visible for debugging.
 
-## Team plan — `/api/team` (US-SUB-11, release 1.1)
+## Team plan — `/api/team` (US-SUB-11, release 1.0.1)
 
 All routes need `x-auth-token` and answer **404** unless `TEAM_PLAN_ENABLED=true`.
 Errors are `{ code, message }`. Design: `docs/design/US-SUB-11-team-plan.md`.

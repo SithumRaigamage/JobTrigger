@@ -1,4 +1,4 @@
-# M-23 — Team plan: Paddle prices and a sandbox purchase (US-SUB-11, 1.1)
+# M-23 — Team plan: Paddle prices and a sandbox purchase (US-SUB-11, 1.0.1)
 
 > Added 2026-11-20 with Phase 28. Back to the [index](README.md).
 

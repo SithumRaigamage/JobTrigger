@@ -88,7 +88,7 @@ function billingEnabled(env = process.env) {
  * in production, whatever the flag says.
  */
 /**
- * US-SUB-11 (release 1.1): the team plan. Off unless TEAM_PLAN_ENABLED=true;
+ * US-SUB-11 (release 1.0.1; off in 1.0.0): the team plan. Off unless TEAM_PLAN_ENABLED=true;
  * every /api/team route is then a plain 404.
  */
 function teamPlanEnabled(env = process.env) {

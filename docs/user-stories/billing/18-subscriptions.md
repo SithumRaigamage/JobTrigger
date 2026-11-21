@@ -258,12 +258,13 @@ Paddle on `/account/billing` only); go-live is the owner's Paddle setup
 
 ### US-SUB-11 — Team plan
 
-> **Status: built 2026-11-20 for release 1.1, all 17 criteria ticked against code and tests** (owner decision 2026-11-20:
-> build now on its own branch, ship after the `v1.0.0` tag; billed per seat on
+> **Status: built 2026-11-20 for release 1.0.1, all 18 criteria ticked against code and tests** (owner decision 2026-11-20:
+> build now on its own branch; owner decision 2026-11-21: merged before the `v1.0.0` tag,
+> shipped switched off in 1.0.0 (`TEAM_PLAN_ENABLED=false`) and turned on in **1.0.1**; billed per seat on
 > the website through Paddle only; **$6.99 per seat per month**). Off unless
 > `TEAM_PLAN_ENABLED=true`. Design note: [`docs/design/US-SUB-11-team-plan.md`](../../design/US-SUB-11-team-plan.md).
 
-**Priority:** Could · **Release:** 1.1 · **Task:** P28-01 (`tasks/phase-28-team-plan.md`)
+**Priority:** Could · **Release:** 1.0.1 · **Task:** P28-01 (`tasks/phase-28-team-plan.md`)
 
 As the person who looks after CI for a small team
 I want to buy JobTrigger Pro for my team and share our Jenkins servers once
@@ -341,8 +342,22 @@ So that everyone gets Pro and the same servers without passing tokens around
       kept in secure storage like the user's own). Team servers can't be
       edited or deleted in the app; one that stops being shared disappears
       and the active server falls back to the user's own.
+- [x] AC18 Off in 1.0.0, on in 1.0.1 (owner decision 2026-11-21). The
+      production blueprint sets `TEAM_PLAN_ENABLED` to `"false"` for 1.0.0,
+      so every `/api/team` route is a 404; the website's team page says
+      "coming in JobTrigger 1.0.1". An active team server stays active when
+      the user's own list reloads, and choosing one never moves the
+      backend default of their own servers.
+      Evidence: `render.yaml`; `JobTrigger-Backend/test/production_config.test.js`
+      "1.0.0 production blueprint: team plan off";
+      `JobTrigger-Web/src/features/team/team.test.tsx` (team-unavailable copy);
+      `JobTrigger-Frontend/test/presentation/features/team/team_plan_app_test.dart`
+      "stays on a team server when the own list reloads", "choosing a team
+      server does not move the backend default".
 
 **Layer impact:** backend, website and app — all three (see the criteria).
+1.0.1 move: backend (blueprint flag + test), website (copy), app (not
+needed: it shows team features only when the backend reports a team).
 
 **Tests needed**
 - Backend: flag off → 404; create/one-team rule; invite seat limit, expiry,
