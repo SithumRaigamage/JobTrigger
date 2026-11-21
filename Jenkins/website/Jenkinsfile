@@ -264,7 +264,8 @@ def flutter(String script) {
         export GRADLE_USER_HOME="\$HOME/.gradle"
         mkdir -p "\$GRADLE_USER_HOME"
         printf '%s\\n' \\
-          'org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError' \\
+          'org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=768m -XX:+HeapDumpOnOutOfMemoryError' \\
+          'kotlin.daemon.jvmargs=-Xmx1g' \\
           'org.gradle.vfs.watch=false' > "\$GRADLE_USER_HOME/gradle.properties"
         cd JobTrigger-Frontend
         ${script}
