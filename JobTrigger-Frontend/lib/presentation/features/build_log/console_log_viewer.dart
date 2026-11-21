@@ -135,10 +135,21 @@ class ConsoleLogViewerState extends State<ConsoleLogViewer> {
     }
   }
 
-  void _scrollToEnd() {
-    if (_scrollController.hasClients) {
-      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-    }
+  /// US-LOG-02: with wrapped lines the list only estimates its length, so
+  /// one jump can land short of the end once the rows there are laid out.
+  /// Jump again on the next frames until the end is reached (a few tries
+  /// at most), unless the user scrolled away meanwhile.
+  void _scrollToEnd([int tries = 5]) {
+    if (!_scrollController.hasClients) return;
+    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    if (tries <= 1) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_autoScroll || !_scrollController.hasClients) return;
+      final position = _scrollController.position;
+      if (position.pixels < position.maxScrollExtent - 1) {
+        _scrollToEnd(tries - 1);
+      }
+    });
   }
 
   /// Scrolls so [line] (an index into `lines`) is on screen. A line inside

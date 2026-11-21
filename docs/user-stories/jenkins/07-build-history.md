@@ -20,24 +20,28 @@ So that I can see at a glance what's been happening without opening each
 job individually
 
 **Acceptance Criteria**
-- [ ] Scenario: History renders from existing tree data
+- [x] Scenario: History renders from existing tree data
   Given the job tree has already been fetched
   Then the history screen derives its top-50 most-recent-builds timeline
   from that data (no duplicate network fetch), each entry showing job name,
   build number, result/status, and relative time
-- [ ] Scenario: Tapping a history entry
+  Evidence: `test/presentation/features/history/global_history_notifier_test.dart` "derives the cross-job timeline from the job tree, newest first" (no fetch of its own); 50 cap: `test/domain/jenkins/history_entry_test.dart` "caps at the given limit"; each row shows job, number, result and duration under TODAY/YESTERDAY day sections (`test/presentation/features/history/global_history_screen_test.dart` "builds are grouped under the day they started").
+- [x] Scenario: Tapping a history entry
   Given I tap an entry
   Then I navigate to that build's detail/log, consistent with reaching it
   via the job tree directly
-- [ ] Scenario: Fewer than 50 builds exist
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/history/history_navigation_test.dart` "a global history entry opens that build" (the same build detail as from the tree).
+- [x] Scenario: Fewer than 50 builds exist
   Given the active server has fewer than 50 total recent builds
   Then the list simply shows what's available, with no placeholder/padding
   entries
-- [ ] Scenario: Underlying tree fetch failed
+  Evidence: `test/domain/jenkins/history_entry_test.dart` (only real builds, newest first); `test/presentation/features/history/global_history_notifier_test.dart` "a job tree with no builds yields an empty timeline".
+- [x] Scenario: Underlying tree fetch failed
   Given the job tree itself failed to load
   Then the history screen reflects the same `AppFailure`-mapped error
   (since it depends on that data) rather than showing a misleadingly empty
   history
+  Evidence: `test/presentation/features/history/global_history_notifier_test.dart` "a job tree fetch failure surfaces as an AsyncError with the AppFailure"; Fixed 2026-11-21: test added: `test/presentation/features/history/history_navigation_test.dart` "a failed job tree shows the error, not an empty history".
 
 **Security & Privacy Notes**
 - None beyond the existing per-server auth handling already covering the
@@ -64,18 +68,21 @@ So that I can spot patterns (e.g. flaky failures) without the noise of
 every other job's builds
 
 **Acceptance Criteria**
-- [ ] Scenario: Per-job history renders
+- [x] Scenario: Per-job history renders
   Given I'm viewing a job's detail screen
   Then its recent builds (`builds[]`) list shows result/status, build
   number, and relative time, most recent first
-- [ ] Scenario: Tapping a past build
+  Evidence: `test/presentation/features/history/job_history_notifier_test.dart` "fetches and exposes the build history for the given job on success"; `test/presentation/features/history/job_history_pages_notifier_test.dart` "loads page after page…" (newest first) and "filter chips narrow the list"; each row shows number, result and "started <relative time>" (`history_tile.dart`).
+- [x] Scenario: Tapping a past build
   Given I tap an older (non-latest) build in the list
   Then I can view that specific build's log (US-LOG-01), not only the
   latest build's
-- [ ] Scenario: Job with a single build
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/history/history_navigation_test.dart` "a job with one build lists it and opens it" (opens that build's detail, which has its log).
+- [x] Scenario: Job with a single build
   Given the job has exactly one build in its history
   Then the list still renders correctly (no off-by-one or "history" section
   that looks broken for a list of one)
+  Evidence: Fixed 2026-11-21: the footer read "End of history · 1 builds"; now "1 build". Test `test/presentation/features/history/history_navigation_test.dart` "a job with one build lists it and opens it".
 
 **Security & Privacy Notes**
 - None specific.

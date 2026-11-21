@@ -195,9 +195,7 @@ void main() {
       name: 'deploy',
       url: _jobUrl,
       description: 'Ships the API',
-      healthReport: [
-        HealthReport(description: 'Build stability', score: 80),
-      ],
+      healthReport: [HealthReport(description: 'Build stability', score: 80)],
       lastBuild: JenkinsBuild(
         number: 41,
         url: '${_jobUrl}41/',

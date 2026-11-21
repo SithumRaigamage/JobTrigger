@@ -20,29 +20,34 @@ So that I can watch progress and diagnose issues in real time, the same as
 tailing Jenkins' console output on a laptop
 
 **Acceptance Criteria**
-- [ ] Scenario: Log streams while build is running
+- [x] Scenario: Log streams while build is running
   Given I open the log screen for a currently-building build
   Then the log accumulates via progressive fetches roughly every second,
   appending new text as `X-Text-Size` advances, until `X-More-Data`
   indicates the stream is complete
-- [ ] Scenario: Viewing a finished build's log
+  Evidence: `test/presentation/features/build_log/build_log_notifier_test.dart` "streams chunks, carrying a line split across them" (next start = the returned offset, stops when there is no more data).
+- [x] Scenario: Viewing a finished build's log
   Given the build has already completed
   Then the full existing log loads once (no ongoing polling needed once
   `X-More-Data` is false from the first response)
-- [ ] Scenario: Leaving the screen stops polling
+  Evidence: `test/presentation/features/build_log/build_log_notifier_test.dart` "a small log is read from offset 0 and stops when complete".
+- [x] Scenario: Leaving the screen stops polling
   Given I navigate away while a log is still streaming
   Then the polling timer is cancelled by the owning notifier's disposal —
   it does not keep fetching in the background
-- [ ] Scenario: Log fetch failure mid-stream
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/build_log/build_log_notifier_test.dart` "leaving the log stops its polling".
+- [x] Scenario: Log fetch failure mid-stream
   Given a progressive fetch fails partway through
   Then previously accumulated log text remains visible (not cleared), with
   a non-blocking `AppFailure`-mapped indicator and automatic retry on the
   next interval
-- [ ] Scenario: Very large log
+  Evidence: `test/presentation/features/build_log/build_log_notifier_test.dart` "a failed poll keeps the log and retries with backoff (AUD-13)"; the screen shows "Connection lost — retrying…" above the kept log (`build_log_screen.dart`).
+- [x] Scenario: Very large log
   Given the log is many thousands of lines long
   Then the console view remains scrollable and responsive (virtualized
   rendering — only visible lines are laid out), per the still-open Android
   performance check carried into US-DESIGN-04
+  Evidence: `test/presentation/features/build_log/console_log_viewer_50k_test.dart` "decodes and virtualizes a 50,000-line ANSI log", `test/presentation/features/build_log/console_log_viewer_test.dart` "virtualizes a 5,000-line log". The on-device Android check stays open under US-DESIGN-04 (M-02).
 
 **Security & Privacy Notes**
 - Console output is whatever the Jenkins job itself printed — it may
@@ -75,22 +80,26 @@ So that I can review earlier output without the view constantly yanking
 back to the bottom
 
 **Acceptance Criteria**
-- [ ] Scenario: Default auto-scroll
+- [x] Scenario: Default auto-scroll
   Given a log is streaming and I haven't manually scrolled
   Then the view auto-scrolls to keep the latest line visible as new text
   arrives
-- [ ] Scenario: Manual scroll disables auto-scroll
+  Evidence: Fixed 2026-11-21: with wrapped lines one jump to the estimated end landed short of the newest line; `console_log_viewer.dart` now jumps again until it reaches the end. Test `test/presentation/features/build_log/console_follow_test.dart` "new output keeps the latest line in view by default" (failed before the fix).
+- [x] Scenario: Manual scroll disables auto-scroll
   Given I scroll up while streaming
   Then auto-scroll stops immediately — new incoming text no longer yanks my
   view back down
-- [ ] Scenario: Resuming auto-scroll
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/build_log/console_follow_test.dart` "scrolling up stops following; new output stays put".
+- [x] Scenario: Resuming auto-scroll
   Given auto-scroll is currently disabled
   When I tap a visible "scroll to bottom" affordance
   Then the view jumps to the latest line and auto-scroll resumes
-- [ ] Scenario: Reaching the bottom naturally
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/build_log/console_follow_test.dart` "Follow jumps to the latest line and follows again" (the screen's Follow button calls `follow()`).
+- [x] Scenario: Reaching the bottom naturally
   Given I manually scroll back down to the very bottom myself
   Then auto-scroll resumes automatically, without requiring the explicit
   button tap
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/build_log/console_follow_test.dart` "scrolling back to the bottom resumes following by itself".
 
 **Security & Privacy Notes**
 - None specific.
@@ -117,20 +126,23 @@ So that I can send it to a teammate or paste it into a ticket/chat when
 diagnosing a failure
 
 **Acceptance Criteria**
-- [ ] Scenario: Copy to clipboard
+- [x] Scenario: Copy to clipboard
   Given I'm viewing a log
   When I choose "Copy log"
   Then the currently loaded log text is copied to the system clipboard,
   with confirmation feedback
-- [ ] Scenario: Share via system share sheet
+  Evidence: `test/presentation/features/build_log/build_log_screen_test.dart` "copy puts the plain log on the clipboard" (and shows "Log copied to clipboard").
+- [x] Scenario: Share via system share sheet
   Given I choose "Share log"
   Then the OS share sheet opens (via `share_plus`, per `CLAUDE.md`'s locked
   stack) with the log text, letting me pick a destination app
+  Evidence: Fixed 2026-11-21: test added: `test/presentation/features/build_log/build_log_screen_test.dart` "share opens the share sheet with the log text" (`share_plus` gets the loaded log).
 - [ ] Scenario: Sharing a still-streaming log
   Given the build hasn't finished yet
   When I share
   Then it shares the log content accumulated so far, clearly (not silently)
   — the action doesn't imply it will include content that arrives later
+  Open: sharing mid-stream sends what is loaded so far, but nothing says so (`build_log_screen.dart` `_MenuAction.share`). Jenkins is frozen: owner decision.
 - [ ] Scenario: Secret-exposure warning
   Given this is the first time I share/copy a log in a session (or the
   first time ever, whichever is simpler to implement well)
@@ -138,6 +150,7 @@ diagnosing a failure
   can contain secrets the job itself printed, and that sharing is my
   responsibility to review before sending — this does not block the action,
   it informs it
+  Open: not built: copy and share show no notice that console output can contain secrets. Jenkins is frozen: owner decision.
 
 **Security & Privacy Notes**
 - This is the primary mitigation for the risk noted in US-LOG-01: since the
