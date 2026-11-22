@@ -10,7 +10,7 @@ const SonarQubeCredential = require('./SonarQubeCredential');
  * collection unencrypted.
  */
 module.exports = [
-  { tool: 'jenkins', Model: JenkinsCredential, fields: ['password', 'paramToken'] },
+  { tool: 'jenkins', Model: JenkinsCredential, fields: ['password', 'paramToken', 'jenkinsURL', 'username'] },
   { tool: 'github', Model: GitHubCredential, fields: ['token'] },
-  { tool: 'sonarqube', Model: SonarQubeCredential, fields: ['token'] },
+  { tool: 'sonarqube', Model: SonarQubeCredential, fields: ['token', 'baseUrl'] },
 ];

@@ -22,8 +22,6 @@ const STATUSES = ['pending', 'approved', 'rejected', 'expired'];
 const MAX_REASON_LENGTH = 500;
 const PAGE = 50;
 
-const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
 function view(v, user) {
   return {
     id: String(v._id),
@@ -54,7 +52,11 @@ async function withUsers(records) {
   return records.map((r) => view(r, byId.get(String(r.userId))));
 }
 
-/** `?status=pending` (default) | approved | rejected | expired | all; `?q=` account email or name. */
+/**
+ * `?status=pending` (default) | approved | rejected | expired | all; `?q=`
+ * an exact account email (NFR-SEC-08: names and emails are
+ * encrypted, so there is no partial or name search).
+ */
 exports.list = async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
@@ -66,12 +68,10 @@ exports.list = async (req, res, next) => {
     const filter = { method: 'document' };
     if (status !== 'all') filter.status = status;
     if (q) {
-      const pattern = new RegExp(escapeRegex(q), 'i');
-      const matchedUsers = await User.find({ email: mongoose.trusted({ $regex: pattern }) }).select('_id').limit(200).lean();
-      filter.$or = [
-        { userId: mongoose.trusted({ $in: matchedUsers.map((u) => u._id) }) },
-        { fullName: mongoose.trusted({ $regex: pattern }) },
-      ];
+      // The review list holds document claims, which have no university
+      // email, so the account email is the one to match.
+      const matchedUsers = await User.find({ email: q }).select('_id').limit(200).lean();
+      filter.userId = mongoose.trusted({ $in: matchedUsers.map((u) => u._id) });
     }
     const records = await StudentVerification.find(mongoose.trusted(filter)).sort({ createdAt: 1 }).limit(PAGE).lean();
     res.json({ items: await withUsers(records) });

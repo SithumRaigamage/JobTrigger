@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const StudentClaim = require('../models/StudentClaim');
+const { blindIndex } = require('../security/blindIndex');
 const { writeSource } = require('../billing/combine');
 
 const GRANT_DAYS = 365;
@@ -15,8 +16,15 @@ const DOMAINS_FILE = path.join(__dirname, '..', 'config', 'studentDomains.json')
 
 const sha256 = (value) => crypto.createHash('sha256').update(value).digest('hex');
 
-/** The hash kept for [email] (trimmed, lowercased). */
-const emailHash = (email) => sha256(`student-email:${String(email).trim().toLowerCase()}`);
+/**
+ * The hash kept for [email] (trimmed, lowercased). NFR-SEC-08 AC5: keyed
+ * (security/blindIndex.js), so a leaked claim can't be reversed by hashing
+ * guessed emails. `legacyEmailHash` is the old plain form, kept only for
+ * the backfill that converts existing claims.
+ */
+const normalizeStudentEmail = (email) => String(email).trim().toLowerCase();
+const emailHash = (email) => blindIndex('student-email', normalizeStudentEmail(email));
+const legacyEmailHash = (email) => sha256(`student-email:${normalizeStudentEmail(email)}`);
 
 /** The hash kept for the document's raw [bytes]. */
 const documentHash = (bytes) => sha256(bytes);
@@ -76,6 +84,7 @@ async function grantStudentYear(userId, now = new Date()) {
 }
 
 module.exports = {
+  legacyEmailHash,
   GRANT_DAYS,
   DAY_MS,
   allowedDomains,

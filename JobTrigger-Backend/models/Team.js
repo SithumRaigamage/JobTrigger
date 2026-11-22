@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const encryptedFields = require('./plugins/encryptedFields');
 
 /**
  * US-SUB-11: a team that buys Pro per seat on the website. The owner is a
@@ -11,7 +12,8 @@ const memberSchema = new mongoose.Schema({
 }, { _id: false });
 
 const inviteSchema = new mongoose.Schema({
-  email: { type: String, required: true, lowercase: true, trim: true },
+  // NFR-SEC-08: encrypted at rest (Team plugin below trims/lower-cases it).
+  email: { type: String, required: true },
   tokenHash: { type: String, required: true },
   expiresAt: { type: Date, required: true },
   invitedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -53,5 +55,11 @@ const teamSchema = new mongoose.Schema({
 teamSchema.index({ 'members.userId': 1 }, { unique: true, sparse: true });
 teamSchema.index({ 'invites.tokenHash': 1 });
 teamSchema.index({ 'billing.paddleSubscriptionId': 1 });
+
+teamSchema.plugin(encryptedFields, {
+  fields: [{ path: 'invites.email', normalize: (v) => v.trim().toLowerCase(), maxLength: 254 }],
+  flagUnreadable: false,
+  logEvent: 'pii.decrypt_failed',
+});
 
 module.exports = mongoose.model('Team', teamSchema);

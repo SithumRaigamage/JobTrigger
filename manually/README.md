@@ -42,6 +42,7 @@ changes; `IPHONE.md` covers both.
 | [M-21](M-21-discord-community.md) | Discord community server | audit 2026-11-20 | optional for 1.0 |
 | [M-22](M-22-replay-with-edits-live.md) | Replay with edits on your real Jenkins | P11-29, US-JX-16 | no |
 | [M-23](M-23-team-plan-paddle.md) | Team plan: Paddle per-seat prices + sandbox purchase | P28-04, US-SUB-11 | release 1.0.1 |
+| [M-24](M-24-promo-voucher-codes.md) | Promo codes, checkout discounts and expiry reminders | PV-50, PV-65, PV-79 | no |
 
 ## Resolved
 

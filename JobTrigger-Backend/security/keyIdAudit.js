@@ -11,6 +11,17 @@ const { configuredKeyIds, keyIdOf, PREFIX } = require('./secretCipher');
  * how many rows each one holds.
  */
 
+/**
+ * The values at [path] in the raw document [raw]: one for a plain field,
+ * one per item for a field inside a subdocument array (`invites.email`).
+ */
+function valuesAt(raw, path) {
+  const [head, ...rest] = path.split('.');
+  if (rest.length === 0) return raw?.[head] === undefined ? [] : [raw[head]];
+  const leaf = rest.join('.');
+  return (Array.isArray(raw?.[head]) ? raw[head] : []).map((item) => item?.[leaf]);
+}
+
 /** How many stored secrets use each key id, across every target. */
 async function countKeyIds(targets) {
   const counts = new Map();
@@ -23,9 +34,11 @@ async function countKeyIds(targets) {
         { projection: { [field]: 1 } },
       );
       for await (const raw of cursor) {
-        const keyId = keyIdOf(raw[field]);
-        if (!keyId) continue;
-        counts.set(keyId, (counts.get(keyId) ?? 0) + 1);
+        for (const value of valuesAt(raw, field)) {
+          const keyId = keyIdOf(value);
+          if (!keyId) continue;
+          counts.set(keyId, (counts.get(keyId) ?? 0) + 1);
+        }
       }
     }
   }
@@ -49,4 +62,4 @@ async function auditKeyIds(targets, { ring } = {}) {
   return { missing, counts: Object.fromEntries(counts) };
 }
 
-module.exports = { auditKeyIds, countKeyIds };
+module.exports = { auditKeyIds, countKeyIds, valuesAt };

@@ -91,14 +91,14 @@ export function SubscriptionsView({
       >
         <input type="hidden" name="plan" value={plan} />
         <label htmlFor="subscription-search" className="sr-only">
-          Search by account email
+          Search by exact account email
         </label>
         <input
           id="subscription-search"
           type="search"
           name="q"
           defaultValue={q}
-          placeholder="Account email"
+          placeholder="Exact account email"
           className="h-11 min-w-0 flex-[1_1_260px] rounded-control border border-line-strong bg-card px-3.5"
         />
         <button

@@ -18,7 +18,9 @@ const requestLogger = require('./middleware/requestLogger');
 const { logger } = require('./lib/logger');
 const { connectDatabase, connectionHint } = require('./lib/database');
 const { auditKeyIds } = require('./security/keyIdAudit');
-const CREDENTIAL_TARGETS = require('./models/credentialTargets');
+// NFR-SEC-08: every encrypted field, personal data included.
+const ENCRYPTED_TARGETS = require('./models/encryptedTargets');
+const User = require('./models/User');
 const studentJobs = require('./lib/studentJobs');
 
 // AUD-04: defence in depth. Query filters built from request data treat
@@ -105,12 +107,30 @@ app.use(errorHandler);
  */
 async function auditCredentialKeyIds() {
   try {
-    const { missing } = await auditKeyIds(CREDENTIAL_TARGETS);
+    const { missing } = await auditKeyIds(ENCRYPTED_TARGETS);
     if (missing.length > 0) {
       logger.error('credential.key_ids_missing', { missing });
     }
   } catch (err) {
     logger.error('credential.key_id_audit_failed', { error: err.message });
+  }
+}
+
+/**
+ * NFR-SEC-08 AC10: accounts the backfill hasn't reached can't sign in
+ * (lookups go through `emailHash`). Say so loudly with a count.
+ */
+async function auditPiiMigration() {
+  try {
+    const pending = await User.collection.countDocuments({ emailHash: { $exists: false } });
+    if (pending > 0) {
+      logger.error('pii.migration_pending', {
+        users: pending,
+        fix: 'npm run encrypt-credentials (docs/deployment.md)',
+      });
+    }
+  } catch (err) {
+    logger.error('pii.migration_audit_failed', { error: err.message });
   }
 }
 
@@ -131,6 +151,7 @@ async function startServer() {
     await connectDatabase();
     logger.info('server.mongo_connected');
     await auditCredentialKeyIds();
+    await auditPiiMigration();
     studentJobs.start();
     const PORT = process.env.PORT || 5001;
     const HOST = process.env.HOST || '0.0.0.0';
@@ -157,4 +178,4 @@ if (require.main === module) {
   startServer();
 }
 
-module.exports = { app, startServer, auditCredentialKeyIds };
+module.exports = { app, startServer, auditCredentialKeyIds, auditPiiMigration };

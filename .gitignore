@@ -161,3 +161,6 @@ crash-outbox/
 # Local AI-tool folders (cached attachments, Freebuff project id); never committed
 .cloud-attachments/
 .freebuff/
+
+# NFR-SEC-08: encrypted database backups written by encrypt-credentials.js
+JobTrigger-Backend/backups/

@@ -27,8 +27,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // AUD-55: compared against when the email has no account, so "no such
 // account" costs the same bcrypt work as "wrong password" and response
-// time doesn't reveal which emails are registered. Same cost as User's.
-const DUMMY_HASH = bcrypt.hashSync('no account has this password', 10);
+// time doesn't reveal which emails are registered. Same cost as User's
+// (NFR-SEC-08 AC7).
+const DUMMY_HASH = bcrypt.hashSync('no account has this password', User.BCRYPT_COST);
 
 /**
  * AUD-04: `email` and `password` must be non-empty strings. Anything else
@@ -143,6 +144,12 @@ exports.login = async (req, res, next) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
+    }
+    // NFR-SEC-08 AC7: a hash made at an older, cheaper cost is replaced
+    // now that we hold the right password. Same password, no sign-out.
+    if (user.needsRehash()) {
+      user.password = password;
+      await user.save();
     }
     // Release 1.0.0: an owner account that existed before the grant rule
     // picks up permanent Pro the next time it signs in.
