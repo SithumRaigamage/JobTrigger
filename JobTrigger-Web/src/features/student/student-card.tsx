@@ -71,6 +71,8 @@ function Body({
       <p role="status">You have JobTrigger Pro as a student{ends ? `, free until ${ends}` : ""}.</p>
     );
   }
+  // US-STU-01: a verified university email waits for review like a document.
+  const byEmail = application.method === "email";
   if (application.status === "pending") {
     return (
       <>
@@ -78,8 +80,9 @@ function Body({
           Pending review
         </p>
         <p className="text-sm text-muted">
-          We&apos;ve received your student document. We review them by hand, so it can take a few
-          days. The result shows here and in the app.
+          {byEmail
+            ? "Your university email is verified. We review every application by hand, so it can take a few days. The result shows here and in the app."
+            : "We've received your student document. We review them by hand, so it can take a few days. The result shows here and in the app."}
         </p>
       </>
     );
@@ -88,7 +91,7 @@ function Body({
     return (
       <>
         <Notice tone="error">
-          We couldn&apos;t approve your document.{" "}
+          {byEmail ? "We couldn't approve your application." : "We couldn't approve your document."}{" "}
           {application.rejectionReason ?? "Try again with a clearer photo or a different document."}
         </Notice>
         <button type="button" onClick={onTryAgain} className={secondary}>

@@ -64,6 +64,9 @@ import '../features/tool_selection/ci_tool.dart';
 import '../features/tool_selection/tool_selection_screen.dart';
 import 'app_routes.dart';
 import '../features/student/student_verification_screen.dart';
+import '../features/admin_review/admin_access_provider.dart';
+import '../features/admin_review/admin_application_screen.dart';
+import '../features/admin_review/admin_applications_screen.dart';
 import '../features/subscription/billing_availability.dart';
 import '../features/subscription/paywall_screen.dart';
 import '../features/subscription/subscription_screen.dart';
@@ -83,6 +86,12 @@ class _AuthRefreshListenable extends ChangeNotifier {
 
 const _authRoutes = {AppRoutes.login, AppRoutes.signup};
 
+/// US-STU-02: the super admin's student review.
+const _adminRoutes = {
+  AppRoutes.adminStudentApplications,
+  AppRoutes.adminStudentApplication,
+};
+
 const _billingRoutes = {
   AppRoutes.subscription,
   AppRoutes.paywall,
@@ -98,6 +107,7 @@ final Map<String, bool Function(Object? extra)> _extraRoutes = {
   AppRoutes.jobDetail: (extra) => extra is JenkinsJob,
   AppRoutes.jobHistory: (extra) => extra is JenkinsJob,
   AppRoutes.buildLog: (extra) => extra is JenkinsBuild,
+  AppRoutes.adminStudentApplication: (extra) => extra is String,
   AppRoutes.buildDetail: (extra) => extra is JenkinsBuild,
   AppRoutes.replayEdit: (extra) => extra is (JenkinsJob, JenkinsBuild),
   AppRoutes.githubWorkflows: (extra) => extra is GitHubRepo,
@@ -293,6 +303,12 @@ GoRouter appRouter(Ref ref) {
           !ref.read(billingAvailableProvider)) {
         return AppRoutes.home;
       }
+      // US-STU-02: only once the backend said this account is a super
+      // admin (the backend checks again on every call).
+      if (_adminRoutes.contains(state.matchedLocation) &&
+          ref.read(adminAccessProvider).value != true) {
+        return AppRoutes.home;
+      }
       // US-SQ-LINK-02: `jobtrigger://app/sonarqube/project?key=KEY` has no
       // in-app `extra`; a valid key goes to the screen that looks the
       // project up on the user's own credential. An invalid one falls
@@ -480,6 +496,17 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.studentVerification,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const StudentVerificationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminStudentApplications,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AdminApplicationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminStudentApplication,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            AdminApplicationScreen(id: state.extra! as String),
       ),
       GoRoute(
         path: AppRoutes.paywall,

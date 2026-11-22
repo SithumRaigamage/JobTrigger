@@ -163,4 +163,5 @@ crash-outbox/
 .freebuff/
 
 # NFR-SEC-08: encrypted database backups written by encrypt-credentials.js
+# Local encrypted PII exports (scripts/ backup runs); never committed
 JobTrigger-Backend/backups/

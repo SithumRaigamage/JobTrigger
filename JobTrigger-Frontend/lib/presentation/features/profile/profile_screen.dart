@@ -23,6 +23,7 @@ import '../tool_selection/ci_tool.dart';
 import '../app_lock/app_lock_settings_section.dart';
 import 'crash_reports_settings_section.dart';
 import 'account_dialogs.dart';
+import '../admin_review/admin_access_provider.dart';
 import '../subscription/billing_availability.dart';
 import '../subscription/entitlements_notifier.dart';
 import '../subscription/store_links.dart';
@@ -155,6 +156,18 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ),
                       onTap: () => context.push(AppRoutes.subscription),
+                    ),
+                  // US-STU-02: only for a super admin, as the backend
+                  // says; independent of billing.
+                  if (ref.watch(adminAccessProvider).value == true)
+                    ListTile(
+                      key: const Key('profile_admin_students'),
+                      leading: const Icon(Icons.how_to_reg_outlined),
+                      title: const Text('Student applications'),
+                      subtitle: const Text('Review and decide'),
+                      trailing: const _Chevron(),
+                      onTap: () =>
+                          context.push(AppRoutes.adminStudentApplications),
                     ),
                   ListTile(
                     leading: const Icon(Icons.key_outlined),

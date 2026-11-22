@@ -29,7 +29,7 @@ function studentCodeEmail({ code, minutes }) {
 function studentApplicationEmail({ accountEmail, fullName, universityEmail, method, submittedAt, status, link }) {
   const methodLabel = method === 'email' ? 'University email code' : 'Student ID / enrolment letter';
   const subject = method === 'email'
-    ? 'Student plan: verified by university email'
+    ? 'Student plan: university email verified, to review'
     : 'Student plan: new document to review';
   const lines = [
     ['Account', accountEmail],
@@ -42,6 +42,7 @@ function studentApplicationEmail({ accountEmail, fullName, universityEmail, meth
   const text = [
     ...lines.map(([k, v]) => `${k}: ${v}`),
     '',
+    'Every application needs your approval in the app or on the admin page.',
     `Open in the admin page: ${link}`,
     '',
     'The document is not attached. View it on the admin page.',

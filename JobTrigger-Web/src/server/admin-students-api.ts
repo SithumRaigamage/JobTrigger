@@ -24,7 +24,10 @@ const item = z.object({
   fullName: z.string().nullable(),
   universityEmail: z.string().nullable(),
   submittedAt: z.string(),
+  // US-STU-01/03: optional so an older backend still parses.
+  emailVerifiedAt: z.string().nullable().optional().default(null),
   reviewedAt: z.string().nullable(),
+  reviewedByEmail: z.string().nullable().optional().default(null),
   approvedAt: z.string().nullable(),
   expiresAt: z.string().nullable(),
   rejectionReason: z.string().nullable(),

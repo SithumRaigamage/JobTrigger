@@ -24,12 +24,24 @@ const statusText: Record<AdminStudent["status"], string> = {
   expired: "Ended",
 };
 
+const methodText: Record<AdminStudent["method"], string> = {
+  email: "University email",
+  document: "Student ID / letter",
+};
+
+/** "decided <date> by <reviewer>", or null while undecided (US-STU-03). */
+export function decisionText(item: AdminStudent): string | null {
+  if (!item.reviewedAt) return null;
+  const by = item.reviewedByEmail ?? "(account deleted)";
+  return `decided ${studentDate(item.reviewedAt) ?? "?"} by ${by}`;
+}
+
 const NOTICES: Record<string, string> = {
   approved: "Approved. The student has Pro for 365 days.",
   rejected: "Rejected. The student can see the reason and apply again.",
 };
 
-/** /admin/students: the review queue (SP-51). */
+/** /admin/students: the review queue and history, both methods, newest first (SP-51, US-STU-03). */
 export function StudentsView({
   items,
   failure,
@@ -48,8 +60,8 @@ export function StudentsView({
       <header className="flex flex-col gap-2">
         <h1 className="text-[1.625rem] font-extrabold tracking-[-0.02em]">Student applications</h1>
         <p className="text-sm text-muted">
-          Documents are shown only here, never in an email. Each is deleted 30 days after the
-          decision.
+          Every application, by university email or document, needs your approval. Documents are
+          shown only here, never in an email. Each is deleted 30 days after the decision.
         </p>
       </header>
       {notice && NOTICES[notice] && (
@@ -102,24 +114,33 @@ export function StudentsView({
         <p>No applications here.</p>
       ) : (
         <ul className="flex flex-col gap-3">
-          {items.map((item) => (
-            <li key={item.id}>
-              <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
-                <div className="flex min-w-0 flex-col gap-1">
-                  <span className="truncate font-semibold">
-                    {item.fullName ?? "(name deleted)"}
-                  </span>
-                  <span className="truncate font-mono text-sm text-fg-secondary">
-                    {item.accountEmail ?? "(account deleted)"}
-                  </span>
-                  <span className="text-sm text-muted">
-                    {statusText[item.status]} · submitted {studentDate(item.submittedAt) ?? "?"}
-                  </span>
-                </div>
-                <Link href={`/admin/students/${item.id}`}>Review</Link>
-              </Card>
-            </li>
-          ))}
+          {items.map((item) => {
+            const decided = decisionText(item);
+            return (
+              <li key={item.id}>
+                <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <span className="truncate font-semibold">
+                      {item.method === "email"
+                        ? (item.universityEmail ?? "(email deleted)")
+                        : (item.fullName ?? "(name deleted)")}
+                    </span>
+                    <span className="truncate font-mono text-sm text-fg-secondary">
+                      {item.accountEmail ?? "(account deleted)"}
+                    </span>
+                    <span className="text-sm text-muted">
+                      {methodText[item.method]} · {statusText[item.status]} · submitted{" "}
+                      {studentDate(item.submittedAt) ?? "?"}
+                      {decided ? ` · ${decided}` : ""}
+                    </span>
+                  </div>
+                  <Link href={`/admin/students/${item.id}`}>
+                    {item.status === "pending" ? "Review" : "Open"}
+                  </Link>
+                </Card>
+              </li>
+            );
+          })}
         </ul>
       )}
     </>
@@ -128,13 +149,24 @@ export function StudentsView({
 
 /** One application: its details, the document and the decision (SP-51). */
 export function StudentDetailView({ item }: { item: AdminStudent }) {
+  const byEmail = item.method === "email";
   const rows: [string, string][] = [
     ["Status", statusText[item.status]],
-    ["Full name on ID", item.fullName ?? "(deleted)"],
+    ["Method", methodText[item.method]],
+    ...(byEmail ? [] : ([["Full name on ID", item.fullName ?? "(deleted)"]] as [string, string][])),
     ["Account email", item.accountEmail ?? "(account deleted)"],
+    ...(item.universityEmail
+      ? ([["University email", item.universityEmail]] as [string, string][])
+      : []),
     ["Submitted", studentDate(item.submittedAt) ?? "?"],
+    ...(item.emailVerifiedAt
+      ? ([["Email verified", studentDate(item.emailVerifiedAt) ?? "?"]] as [string, string][])
+      : []),
     ...(item.reviewedAt
-      ? ([["Decided", studentDate(item.reviewedAt) ?? "?"]] as [string, string][])
+      ? ([
+          ["Decided", studentDate(item.reviewedAt) ?? "?"],
+          ["Decided by", item.reviewedByEmail ?? "(account deleted)"],
+        ] as [string, string][])
       : []),
     ...(item.expiresAt
       ? ([["Pro until", studentDate(item.expiresAt) ?? "?"]] as [string, string][])
@@ -165,31 +197,33 @@ export function StudentDetailView({ item }: { item: AdminStudent }) {
           ))}
         </dl>
       </Card>
-      <Card className="flex flex-col gap-3 p-6">
-        <h2 className="text-lg font-extrabold">Document</h2>
-        {item.documentDeleted ? (
-          <p>Deleted 30 days after the decision. Only a fingerprint is kept.</p>
-        ) : !item.hasDocument ? (
-          <p>No document.</p>
-        ) : isImage ? (
-          // The route sends no-store and nosniff; the image is only ever
-          // loaded from our own origin (CSP img-src 'self').
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={documentHref}
-            alt="The student's uploaded document"
-            className="max-h-[70vh] max-w-full self-start rounded-control border border-line object-contain"
-          />
-        ) : (
-          <p>
-            <a href={documentHref} download>
-              Download the PDF
-            </a>{" "}
-            to read it. It is not kept in your browser&apos;s cache.
-          </p>
-        )}
-      </Card>
-      {item.status === "pending" && item.method === "document" && <ReviewForms id={item.id} />}
+      {!byEmail && (
+        <Card className="flex flex-col gap-3 p-6">
+          <h2 className="text-lg font-extrabold">Document</h2>
+          {item.documentDeleted ? (
+            <p>Deleted 30 days after the decision. Only a fingerprint is kept.</p>
+          ) : !item.hasDocument ? (
+            <p>No document.</p>
+          ) : isImage ? (
+            // The route sends no-store and nosniff; the image is only ever
+            // loaded from our own origin (CSP img-src 'self').
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={documentHref}
+              alt="The student's uploaded document"
+              className="max-h-[70vh] max-w-full self-start rounded-control border border-line object-contain"
+            />
+          ) : (
+            <p>
+              <a href={documentHref} download>
+                Download the PDF
+              </a>{" "}
+              to read it. It is not kept in your browser&apos;s cache.
+            </p>
+          )}
+        </Card>
+      )}
+      {item.status === "pending" && <ReviewForms id={item.id} />}
     </>
   );
 }

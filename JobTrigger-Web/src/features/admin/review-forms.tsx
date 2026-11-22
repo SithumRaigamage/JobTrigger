@@ -6,7 +6,7 @@ import { Notice, SubmitButton } from "@/components/form";
 
 import { approveStudentAction, rejectStudentAction, type ReviewState } from "./actions";
 
-/** Approve and reject, for one pending document application. */
+/** Approve and reject, for one pending application of either method (US-STU-01). */
 export function ReviewForms({ id }: { id: string }) {
   const [approveState, approve, approving] = useActionState(
     approveStudentAction,

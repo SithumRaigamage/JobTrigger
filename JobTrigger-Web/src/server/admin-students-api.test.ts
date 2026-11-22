@@ -35,7 +35,9 @@ const row = {
   fullName: "Kasun Perera",
   universityEmail: null,
   submittedAt: "2026-11-16T00:00:00.000Z",
+  emailVerifiedAt: null,
   reviewedAt: null,
+  reviewedByEmail: null,
   approvedAt: null,
   expiresAt: null,
   rejectionReason: null,
@@ -56,6 +58,38 @@ describe("listStudents", () => {
       "http://backend.test/api/admin/students?status=pending&q=kasun+%26+co",
     );
     expect((init!.headers as Record<string, string>)["x-auth-token"]).toBe("tok");
+  });
+
+  it("parses both methods with the review fields, and an older backend without them (US-STU-03)", async () => {
+    const older: Record<string, unknown> = { ...row };
+    delete older.emailVerifiedAt;
+    delete older.reviewedByEmail;
+    fetchMock.mockResolvedValue(
+      json({
+        items: [
+          {
+            ...row,
+            method: "email",
+            universityEmail: "k@uom.ac.lk",
+            emailVerifiedAt: "2026-11-16T00:05:00.000Z",
+            status: "approved",
+            reviewedAt: "2026-11-17T00:00:00.000Z",
+            reviewedBy: "admin1",
+            reviewedByEmail: "developer@jobtrigger.app",
+          },
+          older,
+        ],
+      }),
+    );
+    const result = await listStudents("tok", { status: "all", q: "" });
+    expect(result.ok).toBe(true);
+    const [email, doc] = result.ok ? result.value : [];
+    expect(email).toMatchObject({
+      method: "email",
+      emailVerifiedAt: "2026-11-16T00:05:00.000Z",
+      reviewedByEmail: "developer@jobtrigger.app",
+    });
+    expect(doc).toMatchObject({ emailVerifiedAt: null, reviewedByEmail: null });
   });
 
   it("leaves q out when empty", async () => {

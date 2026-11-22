@@ -19,7 +19,9 @@ const base: AdminStudent = {
   fullName: "Kasun Perera",
   universityEmail: null,
   submittedAt: "2026-11-16T10:00:00.000Z",
+  emailVerifiedAt: null,
   reviewedAt: null,
+  reviewedByEmail: null,
   approvedAt: null,
   expiresAt: null,
   rejectionReason: null,
@@ -144,19 +146,90 @@ describe("StudentDetailView", () => {
     expect(screen.getByText("(deleted)")).toBeVisible();
   });
 
-  it("an email-verified application has no document and no forms", () => {
+  // Changed on purpose (US-STU-01): an email application has no Document
+  // card at all, and a decided one has no forms.
+  it("a decided email application has no document card and no forms", () => {
     render(
       <StudentDetailView
         item={{
-          ...base,
-          method: "email",
+          ...email,
           status: "approved",
-          hasDocument: false,
-          documentMime: null,
+          reviewedAt: "2026-11-18T10:00:00.000Z",
+          reviewedByEmail: "developer@jobtrigger.app",
         }}
       />,
     );
-    expect(screen.getByText("No document.")).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Document" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
+    expect(screen.getByText("developer@jobtrigger.app")).toBeVisible();
+  });
+
+  it("a pending email application shows the university email and the decision forms", () => {
+    render(<StudentDetailView item={email} />);
+    expect(screen.getByText("University email", { selector: "dt" })).toBeVisible();
+    expect(screen.getByText("kasun@uom.ac.lk")).toBeVisible();
+    expect(screen.getByText("Email verified")).toBeVisible();
+    expect(screen.queryByText("Full name on ID")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Approve" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Reject" })).toBeVisible();
+    expect(screen.getByLabelText("Reason (the student sees this)")).toBeRequired();
+  });
+});
+
+const email: AdminStudent = {
+  ...base,
+  id: "64b0000000000000000000bb",
+  method: "email",
+  fullName: null,
+  universityEmail: "kasun@uom.ac.lk",
+  emailVerifiedAt: "2026-11-16T10:05:00.000Z",
+  documentMime: null,
+  documentSize: null,
+  hasDocument: false,
+};
+
+describe("StudentsView history (US-STU-03)", () => {
+  it("lists both methods with the method, status and submitted date", () => {
+    render(<StudentsView items={[email, base]} failure={null} status="pending" q="" />);
+    expect(screen.getByText("kasun@uom.ac.lk")).toBeVisible();
+    expect(screen.getByText("Kasun Perera")).toBeVisible();
+    expect(screen.getByText(/University email · Pending · submitted/)).toBeVisible();
+    expect(screen.getByText(/Student ID \/ letter · Pending · submitted/)).toBeVisible();
+    expect(screen.getAllByRole("link", { name: "Review" })).toHaveLength(2);
+  });
+
+  it("a decided row says when and by whom, and opens instead of reviewing", () => {
+    render(
+      <StudentsView
+        items={[
+          {
+            ...email,
+            status: "rejected",
+            reviewedAt: "2026-11-18T10:00:00.000Z",
+            reviewedByEmail: "developer@jobtrigger.app",
+          },
+          { ...base, status: "approved", reviewedAt: "2026-11-18T10:00:00.000Z" },
+        ]}
+        failure={null}
+        status="all"
+        q=""
+      />,
+    );
+    expect(
+      screen.getByText(
+        /Rejected · submitted .* · decided November 18, 2026 by developer@jobtrigger.app/,
+      ),
+    ).toBeVisible();
+    expect(screen.getByText(/decided November 18, 2026 by \(account deleted\)/)).toBeVisible();
+    expect(screen.getAllByRole("link", { name: "Open" })).toHaveLength(2);
+  });
+
+  it("offers all five filters", () => {
+    render(<StudentsView items={[]} failure={null} status="all" q="" />);
+    const nav = screen.getByRole("navigation", { name: "Status" });
+    for (const name of ["Pending", "Approved", "Rejected", "Ended", "All"]) {
+      expect(within(nav).getByRole("link", { name })).toBeVisible();
+    }
+    expect(within(nav).getByRole("link", { name: "All" })).toHaveAttribute("aria-current", "page");
   });
 });

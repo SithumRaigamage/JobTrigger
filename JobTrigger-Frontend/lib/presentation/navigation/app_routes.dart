@@ -77,4 +77,11 @@ abstract class AppRoutes {
 
   /// Phase 21: also billing-only; opened from the Subscription screen.
   static const studentVerification = '/profile/subscription/student';
+
+  /// US-STU-02/03: super admin only (`adminAccessProvider`); otherwise Home.
+  /// Not tied to billing.
+  static const adminStudentApplications = '/profile/student-applications';
+
+  /// extra: the application id (`String`).
+  static const adminStudentApplication = '/profile/student-applications/detail';
 }
