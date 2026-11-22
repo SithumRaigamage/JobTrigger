@@ -106,11 +106,14 @@ class _Notifications implements NotificationService {
   }) async {}
 
   @override
-  Future<void> showSubscriptionAlert({
+  Future<bool> areNotificationsAllowed() async => true;
+
+  @override
+  Future<bool> showSubscriptionAlert({
     required int id,
     required String title,
     required String body,
-  }) async {}
+  }) async => true;
 
   @override
   Future<void> show(BuildNotification notification) async {}

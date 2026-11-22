@@ -1,6 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:job_trigger/core/error/result.dart';
+import 'package:job_trigger/core/theme/app_theme.dart';
 import 'package:job_trigger/core/platform/notification_service.dart';
 import 'package:job_trigger/data/billing/revenuecat_billing_client.dart';
 import 'package:job_trigger/data/demo/demo_mode_notifier.dart';
@@ -11,7 +14,9 @@ import 'package:job_trigger/domain/jenkins/build_watch.dart';
 import 'package:job_trigger/domain/subscription/subscription_status.dart';
 import 'package:job_trigger/presentation/features/auth/auth_notifier.dart';
 import 'package:job_trigger/presentation/features/subscription/entitlements_notifier.dart';
+import 'package:job_trigger/presentation/features/subscription/promo_expiry_notice.dart';
 import 'package:job_trigger/presentation/features/subscription/promo_expiry_reminder.dart';
+import 'package:job_trigger/presentation/navigation/app_routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../support/fake_subscription.dart';
@@ -22,8 +27,12 @@ class _Auth extends AuthNotifier {
       const Authenticated(User(id: 'u1', email: 'a@b.dev'));
 }
 
-/// Records what the reminder asked the platform to show.
+/// Records what the reminder asked the platform to show. With [allowed]
+/// false it behaves like a phone where notifications were never turned on.
 class _Notifications implements NotificationService {
+  _Notifications({this.allowed = true});
+
+  final bool allowed;
   final shown = <({int id, String title, String body})>[];
 
   @override
@@ -33,7 +42,10 @@ class _Notifications implements NotificationService {
   Future<void> initialize() async {}
 
   @override
-  Future<bool> requestPermission() async => true;
+  Future<bool> requestPermission() async => allowed;
+
+  @override
+  Future<bool> areNotificationsAllowed() async => allowed;
 
   @override
   Future<void> showAlert({
@@ -43,20 +55,24 @@ class _Notifications implements NotificationService {
   }) async {}
 
   @override
-  Future<void> showSubscriptionAlert({
+  Future<bool> showSubscriptionAlert({
     required int id,
     required String title,
     required String body,
-  }) async => shown.add((id: id, title: title, body: body));
+  }) async {
+    if (!allowed) return false;
+    shown.add((id: id, title: title, body: body));
+    return true;
+  }
 
   @override
   Future<void> show(BuildNotification notification) async {}
 }
 
-/// The OS refusing the notification: the app must carry on regardless.
+/// The platform refusing the call: the app must carry on regardless.
 class _ThrowingNotifications extends _Notifications {
   @override
-  Future<void> showSubscriptionAlert({
+  Future<bool> showSubscriptionAlert({
     required int id,
     required String title,
     required String body,
@@ -208,6 +224,36 @@ void main() {
         completes,
       );
     });
+
+    test('marks the period only when the OS took the notification, so a '
+        'refused one is announced once it is allowed', () async {
+      final snapshot = promoProSnapshot(end: now.add(const Duration(days: 2)));
+      final refused = _Notifications(allowed: false);
+
+      await remindPromoEndingSoon(snapshot, refused, now: now);
+
+      expect(refused.shown, isEmpty);
+      expect(
+        (await SharedPreferences.getInstance()).getString(promoReminderPrefKey),
+        isNull,
+        reason: 'nothing was shown, so nothing is remembered',
+      );
+
+      final allowed = _Notifications();
+      await remindPromoEndingSoon(snapshot, allowed, now: now);
+      expect(allowed.shown, hasLength(1));
+    });
+
+    test('a refused platform call is not remembered either', () async {
+      final snapshot = promoProSnapshot(end: now.add(const Duration(days: 2)));
+
+      await remindPromoEndingSoon(snapshot, _ThrowingNotifications(), now: now);
+
+      expect(
+        (await SharedPreferences.getInstance()).getString(promoReminderPrefKey),
+        isNull,
+      );
+    });
   });
 
   group('the plan arriving (US-PROMO-06)', () {
@@ -256,6 +302,21 @@ void main() {
       expect(notifications.shown, hasLength(1));
     });
 
+    test('a phone that never allowed notifications is said it in-app: '
+        'nothing is marked, nothing is posted', () async {
+      final notifications = _Notifications(allowed: false);
+      await container(
+        promoProSnapshot(end: DateTime.now().add(const Duration(days: 2))),
+        notifications,
+      );
+
+      expect(notifications.shown, isEmpty);
+      expect(
+        (await SharedPreferences.getInstance()).getString(promoReminderPrefKey),
+        isNull,
+      );
+    });
+
     test('a promo months from its end sends nothing', () async {
       final notifications = _Notifications();
       await container(
@@ -274,6 +335,97 @@ void main() {
       );
 
       expect(notifications.shown, isEmpty);
+    });
+  });
+
+  group('PromoExpiryBanner (US-PROMO-06)', () {
+    Future<void> pump(
+      WidgetTester tester,
+      SubscriptionSnapshot snapshot,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const Scaffold(body: PromoExpiryBanner()),
+          ),
+          GoRoute(
+            path: AppRoutes.subscription,
+            builder: (_, _) =>
+                const Scaffold(body: Text('subscription screen')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            subscriptionRepositoryProvider.overrideWithValue(
+              FakeSubscriptionRepository(loadResult: Ok(snapshot)),
+            ),
+            notificationServiceProvider.overrideWithValue(_Notifications()),
+            billingClientProvider.overrideWithValue(
+              FakeBillingClient(configured: false),
+            ),
+            demoModeInitialProvider.overrideWithValue(false),
+            authNotifierProvider.overrideWith(_Auth.new),
+          ],
+          child: MaterialApp.router(
+            theme: AppTheme.dark(),
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'says the end date in the last three days — the reminder for a phone '
+      'with no notifications — and opens the Subscription screen',
+      (tester) async {
+        final end = DateTime.now().add(const Duration(days: 2));
+        await pump(tester, promoProSnapshot(end: end));
+
+        expect(find.byKey(const Key('promo_expiry_banner')), findsOneWidget);
+        expect(find.text('Your Pro from a code ends soon'), findsOneWidget);
+        expect(
+          find.textContaining('ends on ${formatPromoDate(end.toLocal())}'),
+          findsOneWidget,
+        );
+        expect(find.textContaining("you're on the Free plan"), findsOneWidget);
+
+        await tester.tap(find.byKey(const Key('promo_expiry_banner')));
+        await tester.pumpAndSettle();
+        expect(find.text('subscription screen'), findsOneWidget);
+      },
+    );
+
+    testWidgets('is hidden with more than three days left', (tester) async {
+      await pump(
+        tester,
+        promoProSnapshot(end: DateTime.now().add(const Duration(days: 7))),
+      );
+      expect(find.byKey(const Key('promo_expiry_banner')), findsNothing);
+    });
+
+    testWidgets('is hidden for a store plan, and once the period is over', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        storeProSnapshot(end: DateTime.now().add(const Duration(days: 2))),
+      );
+      expect(find.byKey(const Key('promo_expiry_banner')), findsNothing);
+
+      await pump(
+        tester,
+        promoProSnapshot(
+          end: DateTime.now().subtract(const Duration(hours: 1)),
+        ),
+      );
+      expect(find.byKey(const Key('promo_expiry_banner')), findsNothing);
     });
   });
 }

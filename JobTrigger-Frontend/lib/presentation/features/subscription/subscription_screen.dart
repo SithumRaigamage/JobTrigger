@@ -15,6 +15,7 @@ import 'billing_availability.dart';
 import 'entitlements_notifier.dart';
 import 'paywall_notifier.dart';
 import 'promo_code_dialog.dart';
+import 'promo_expiry_notice.dart';
 import 'store_links.dart';
 
 /// P20-24 / US-SUB-01: Profile → Subscription. The plan, when it renews or
@@ -66,6 +67,7 @@ class SubscriptionScreen extends ConsumerWidget {
                             ),
                           ),
                           const StudentExpiryBanner(),
+                          const PromoExpiryBanner(),
                           const SizedBox(height: 16),
                           GroupedCard(
                             children: [
