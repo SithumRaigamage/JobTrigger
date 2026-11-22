@@ -256,14 +256,18 @@ describe('Student plan: admin review (SP-31)', function() {
     expect(res.body.items.some((i) => i.accountEmail === s.email)).to.equal(false);
   });
 
-  it('searches by account email or name, and filters by status', async function() {
+  // NFR-SEC-08 AC4 (changed on purpose, owner decision 2026-11-22): names
+  // and emails are encrypted, so the search is an exact account email only.
+  it('searches by exact account email only, and filters by status', async function() {
     const boss = await makeAdmin();
     const s = await signup();
     const sub = await upload(s, unique(PNG), 'Zanele Findable');
     const byEmail = await admin('get', `?q=${encodeURIComponent(s.email.toUpperCase())}`, boss);
     expect(byEmail.body.items.map((i) => i.id)).to.include(sub.body.id);
     const byName = await admin('get', '?q=findable', boss);
-    expect(byName.body.items.map((i) => i.id)).to.include(sub.body.id);
+    expect(byName.body.items.map((i) => i.id)).to.not.include(sub.body.id);
+    const partial = await admin('get', `?q=${encodeURIComponent(s.email.slice(0, 5))}`, boss);
+    expect(partial.body.items.map((i) => i.id)).to.not.include(sub.body.id);
     const none = await admin('get', '?q=.*', boss); // treated literally, not a regex
     expect(none.body.items).to.have.length(0);
     const approvedOnly = await admin('get', '?status=approved', boss);

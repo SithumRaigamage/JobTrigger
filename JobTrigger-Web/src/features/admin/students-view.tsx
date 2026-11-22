@@ -77,14 +77,14 @@ export function StudentsView({
       <form action="/admin/students" method="get" role="search" className="flex flex-wrap gap-2">
         <input type="hidden" name="status" value={status} />
         <label htmlFor="student-search" className="sr-only">
-          Search by account email or name
+          Search by exact account email
         </label>
         <input
           id="student-search"
           type="search"
           name="q"
           defaultValue={q}
-          placeholder="Account email or name"
+          placeholder="Exact account email"
           className="h-11 min-w-0 flex-[1_1_260px] rounded-control border border-line-strong bg-card px-3.5"
         />
         <button

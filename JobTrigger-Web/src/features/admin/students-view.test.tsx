@@ -55,7 +55,7 @@ describe("StudentsView", () => {
       "href",
       "/admin/students?status=pending&q=kasun",
     );
-    expect(screen.getByRole("searchbox", { name: /Search by account email or name/ })).toHaveValue(
+    expect(screen.getByRole("searchbox", { name: /Search by exact account email/ })).toHaveValue(
       "kasun",
     );
     expect(screen.getByText("No applications here.")).toBeVisible();

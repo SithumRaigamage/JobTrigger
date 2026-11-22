@@ -12,14 +12,16 @@ const jwt = require('jsonwebtoken');
  * deploy doesn't sign anyone out and they still expire on schedule.
  */
 const ACCESS_TTL = '15m';
+// NFR-SEC-08 AC8: one algorithm, on both sides.
+const ALGORITHM = 'HS256';
 const REFRESH_TTL = '30d';
 
 function issueTokens(user) {
   const claims = { id: user._id.toString(), tv: user.tokenVersion ?? 0 };
   const secret = process.env.JWT_SECRET;
   return {
-    token: jwt.sign({ ...claims, typ: 'access' }, secret, { expiresIn: ACCESS_TTL }),
-    refreshToken: jwt.sign({ ...claims, typ: 'refresh' }, secret, { expiresIn: REFRESH_TTL }),
+    token: jwt.sign({ ...claims, typ: 'access' }, secret, { algorithm: ALGORITHM, expiresIn: ACCESS_TTL }),
+    refreshToken: jwt.sign({ ...claims, typ: 'refresh' }, secret, { algorithm: ALGORITHM, expiresIn: REFRESH_TTL }),
   };
 }
 
@@ -30,7 +32,7 @@ function issueTokens(user) {
 function verifyToken(token, typ) {
   if (typeof token !== 'string' || !token) return null;
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: [ALGORITHM] });
     const actualTyp = payload.typ ?? 'access'; // Pre-AUD-26 tokens.
     return actualTyp === typ ? payload : null;
   } catch {

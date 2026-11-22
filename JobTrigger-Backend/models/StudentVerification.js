@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const encryptedFields = require('./plugins/encryptedFields');
 
 /**
  * Phase 21 (SP-12): one student application. `method` says how it is being
@@ -24,7 +25,10 @@ const studentVerificationSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'rejected', 'expired'],
     default: 'pending',
   },
-  universityEmail: { type: String, default: null, lowercase: true, trim: true },
+  // NFR-SEC-08: encrypted at rest, trimmed and lower-cased by the plugin
+  // below; exact lookups go through universityEmailHash.
+  universityEmail: { type: String, default: null },
+  universityEmailHash: { type: String },
   /** Document method: the name as printed on the ID. Deleted with the document. */
   fullName: { type: String, default: null },
 
@@ -58,6 +62,7 @@ studentVerificationSchema.index({ userId: 1, createdAt: -1 });
 studentVerificationSchema.index({ status: 1, method: 1, createdAt: 1 });
 studentVerificationSchema.index({ status: 1, expiresAt: 1 });
 studentVerificationSchema.index({ documentDeleteAt: 1 }, { sparse: true });
+studentVerificationSchema.index({ universityEmailHash: 1 }, { sparse: true });
 
 studentVerificationSchema.set('toJSON', {
   transform: (doc, ret) => {
@@ -67,6 +72,17 @@ studentVerificationSchema.set('toJSON', {
     delete ret.__v;
     return ret;
   },
+});
+
+// NFR-SEC-08: personal data encrypted at rest. Added after the toJSON
+// transform above, which the plugin keeps and runs first.
+studentVerificationSchema.plugin(encryptedFields, {
+  fields: [
+    'fullName',
+    { path: 'universityEmail', hash: 'universityEmailHash', normalize: (v) => v.trim().toLowerCase(), maxLength: 254 },
+  ],
+  flagUnreadable: false,
+  logEvent: 'pii.decrypt_failed',
 });
 
 module.exports = mongoose.model('StudentVerification', studentVerificationSchema);

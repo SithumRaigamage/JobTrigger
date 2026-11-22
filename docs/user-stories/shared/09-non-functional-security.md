@@ -84,6 +84,62 @@ refreshes on almost every run. The refresh limit is counted per user, so
 users sharing one network address can't exhaust each other's (AUD-47).
 **Applies to:** US-AUTH-03, US-AUTH-05, US-JX-10.
 
+### NFR-SEC-08 — Personal data is encrypted at rest
+Owner brief (2026-11-22): "make the security of the database tight: it
+holds secrets, tokens and personal information." Tool secrets were already
+encrypted (AUD-03); this covers the personal data that was still stored as
+plain text, plus password and token hardening. Design:
+`docs/design/NFR-SEC-08-pii-at-rest.md`.
+
+As the owner, I want every piece of personal data in MongoDB stored
+encrypted, so that a leaked database or backup exposes no user's email,
+name, messages or server addresses.
+
+**Acceptance criteria**
+- [x] AC1 — These fields are stored AES-256-GCM encrypted (the AUD-03
+  cipher, field name bound in): `User.email`; `StudentVerification.fullName`,
+  `.universityEmail`; `SupportTicket.subject`, `.message`, `.replyEmail`,
+  `.serverHost`; `Team.invites[].email`; `JenkinsCredential.jenkinsURL`,
+  `.username`; `SonarQubeCredential.baseUrl`.
+- [x] AC2 — Every API response is unchanged: hydrated documents, `.lean()`
+  queries and `populate` all hand back plaintext.
+- [x] AC3 — Exact-match lookups keep working through a keyed hash (HMAC-SHA256
+  blind index) stored next to the field: `User.emailHash` (unique) and
+  `StudentVerification.universityEmailHash`. Sign-up, login, password reset,
+  team invites, the student flow and the scripts find users by exact email,
+  case-insensitively. A query on an encrypted field that is not an exact match
+  is refused, never silently wrong.
+- [x] AC4 — The website admin search (subscriptions, students) matches an
+  exact account email only (case-insensitive); partial and name search are
+  gone on purpose. The search box says so.
+- [x] AC5 — Student email claims use the keyed hash instead of plain SHA-256,
+  so a leaked claim can't be reversed by guessing emails.
+- [x] AC6 — Length limits on encrypted fields still apply to the plaintext.
+- [x] AC7 — Passwords are hashed with bcrypt cost 12; a user on an older cost
+  is re-hashed on their next successful login, with no sign-out. The AUD-55
+  dummy hash uses the same cost.
+- [x] AC8 — Tokens are signed and verified with HS256 only.
+- [x] AC9 — `npm run encrypt-credentials` (dry run with `--dry-run`) backs up
+  every affected collection to an encrypted file first, encrypts existing
+  plain values, fills the hash fields, converts student claims, and is a no-op
+  when run again. `--restore <file>` puts a backup back.
+- [x] AC10 — The startup audit covers every encrypted field, and the server
+  logs `pii.migration_pending` while users without an email hash remain.
+- [x] AC11 — No new secret is required: the hash key is derived from the
+  existing encryption key unless `PII_INDEX_KEY` is set.
+
+**Impact**
+- Backend: all of the above.
+- Website: AC4 copy only (the API contract is unchanged).
+- App: not needed — the backend returns the same JSON.
+
+**Verified 2026-11-22:** backend `npm test` 480 passing, website `vitest` 516 passing; backfill run on the Atlas dev cluster (7 documents, re-run 0, old `email_1` index dropped).
+**Tests**: `test/pii_at_rest.test.js` (AC1–AC3, AC5, AC6, AC10, AC11),
+`test/password_hardening.test.js` (AC7, AC8), the backfill cases in
+`test/encryption.test.js` (AC9), updated admin search tests (AC4), and the
+whole existing suite unchanged otherwise.
+**Applies to:** US-AUTH-01/02/08, US-SUB-11, Phase 21, Phase 25.
+
 ## Testing (TEST)
 
 ### NFR-TEST-01 — Unit/widget coverage for repositories and notifiers

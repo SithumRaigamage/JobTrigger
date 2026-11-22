@@ -167,7 +167,9 @@ a placeholder domain.
 
 ## Backend secrets at rest (P12-26, AUD-03)
 
-Tool credentials are stored AES-256-GCM encrypted. Each environment needs:
+Tool credentials and personal data (account and student emails, names,
+support messages, server addresses: NFR-SEC-08) are stored AES-256-GCM
+encrypted. Each environment needs:
 
 - `CREDENTIALS_ENCRYPTION_KEY`: base64 of 32 random bytes, in the secret
   manager next to `JWT_SECRET`. The server refuses to start without a
@@ -175,9 +177,19 @@ Tool credentials are stored AES-256-GCM encrypted. Each environment needs:
 - `CREDENTIALS_ENCRYPTION_KEY_ID` (optional, default `k1`): stored with
   every value, which is what makes rotation possible.
 
-**First deploy:** set the key, deploy, then run
-`npm run encrypt-credentials` (see `database-migrations.md`). Rows stay
-readable during the gap.
+**First deploy, and the first deploy after NFR-SEC-08:** set the key,
+deploy, then run `npm run encrypt-credentials` (see
+`database-migrations.md`). It writes an encrypted backup to
+`JobTrigger-Backend/backups/` first (`--dry-run` only counts), and
+`--restore <file>` puts one back. Until it has run, accounts without an
+email hash can't sign in, and the server logs `pii.migration_pending` with
+a count.
+
+**Email lookup hash:** login and other exact lookups use an HMAC of the
+email. Its key is derived from key `k1`, so nothing new is needed; to set it
+explicitly use `PII_INDEX_KEY` (base64 of 32 bytes). It must never change
+for the life of the data: when rotating, keep `k1` in
+`CREDENTIALS_ENCRYPTION_PREVIOUS_KEYS`, or set `PII_INDEX_KEY` first.
 
 **Rotation:** generate a new key and give it a new id, e.g. `k2`. Move the
 old pair into `CREDENTIALS_ENCRYPTION_PREVIOUS_KEYS=k1:<old base64>`,

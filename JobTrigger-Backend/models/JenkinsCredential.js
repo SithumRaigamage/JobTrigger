@@ -36,8 +36,9 @@ const jenkinsCredentialSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// AUD-03: secrets are encrypted at rest.
-jenkinsCredentialSchema.plugin(encryptedFields, { fields: ['password', 'paramToken'] });
+// AUD-03: secrets are encrypted at rest. NFR-SEC-08: so are the server
+// address and the username, which map a user's internal infrastructure.
+jenkinsCredentialSchema.plugin(encryptedFields, { fields: ['password', 'paramToken', 'jenkinsURL', 'username'] });
 
 // AUD-13: every credential list filters by `userId`, and the "which one is
 // the default?" query filters by `userId` + `isDefault`. Without these

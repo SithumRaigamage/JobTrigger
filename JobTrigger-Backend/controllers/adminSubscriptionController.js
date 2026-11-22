@@ -19,7 +19,6 @@ const PAGE = 50;
 const MAX_DAYS = 3650;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const validId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 function sourceView(source) {
@@ -57,7 +56,10 @@ function view(user, subscription, now = new Date()) {
   };
 }
 
-/** `?q=` an account email; `?plan=all|pro|free` (default all). Newest first. */
+/**
+ * `?q=` an exact account email (NFR-SEC-08: emails are encrypted, so there
+ * is no partial match); `?plan=all|pro|free` (default all). Newest first.
+ */
 exports.list = async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
@@ -66,9 +68,8 @@ exports.list = async (req, res, next) => {
     if (!['all', 'pro', 'free'].includes(requested)) {
       return res.status(400).json({ message: 'Unknown plan filter' });
     }
-    const filter = q
-      ? { email: mongoose.trusted({ $regex: new RegExp(escapeRegex(q), 'i') }) }
-      : {};
+    // The plugin turns `email` into its keyed hash (case-insensitive).
+    const filter = q ? { email: q } : {};
     const users = await User.find(filter)
       .sort({ createdAt: -1 })
       .limit(200)

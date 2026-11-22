@@ -146,6 +146,8 @@ Backend endpoints the providers call:
 | `SENTRY_RELEASE` | backend package version | Label on events |
 | `CREDENTIALS_ENCRYPTION_KEY_ID` | `k1` | Stored with each encrypted value |
 | `CREDENTIALS_ENCRYPTION_PREVIOUS_KEYS` | unset | `k1:<old key>,k2:<older key>` during rotation |
+| `PII_INDEX_KEY` | unset = derived from key `k1` | NFR-SEC-08 email lookup hash key, base64 of 32 bytes. Never change it once data exists |
+| `PII_INDEX_SOURCE_KEY_ID` | `k1` (else the current key) | Which encryption key the lookup hash key is derived from |
 
 ### Backend template
 

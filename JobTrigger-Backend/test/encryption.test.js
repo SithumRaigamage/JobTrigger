@@ -128,3 +128,87 @@ describe('Credentials at rest (AUD-03)', function() {
     expect(await encryptExistingCredentials({ log: quiet })).to.equal(0); // Re-run: no-op.
   });
 });
+
+// NFR-SEC-08 AC9: the backfill covers personal data, backs up first, and
+// can put a backup back.
+describe('Personal data backfill (NFR-SEC-08)', function() {
+  const fs = require('fs');
+  const os = require('os');
+  const path = require('path');
+  const bcrypt = require('bcrypt');
+  const { migrate, restoreBackup } = require('../scripts/encrypt-credentials');
+  const User = require('../models/User');
+  const StudentVerification = require('../models/StudentVerification');
+  const StudentClaim = require('../models/StudentClaim');
+  const SupportTicket = require('../models/SupportTicket');
+  const student = require('../lib/student');
+  const { blindIndex } = require('../security/blindIndex');
+  const quiet = () => {};
+  let dir;
+
+  before(function() {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pii-backup-'));
+  });
+  after(function() {
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('encrypts legacy rows, fills hashes, converts claims, and is a no-op the second time', async function() {
+    const email = `legacy${Date.now()}@example.com`;
+    const uni = `legacy${Date.now()}@uom.ac.lk`;
+    const user = await User.collection.insertOne({
+      email, password: await bcrypt.hash('password', 10), role: 'user', tokenVersion: 0, createdAt: new Date(),
+    });
+    const verification = await StudentVerification.collection.insertOne({
+      userId: user.insertedId, method: 'email', status: 'approved', universityEmail: uni, fullName: 'Legacy Name',
+    });
+    await StudentClaim.collection.insertOne({ kind: 'email', hash: student.legacyEmailHash(uni), createdAt: new Date() });
+    const ticket = await SupportTicket.collection.insertOne({
+      userId: user.insertedId, category: 'bug', subject: 'Old', message: 'Old message', replyEmail: email, status: 'open',
+    });
+
+    // Dry run: counts, writes nothing, no backup.
+    expect(await migrate({ dryRun: true, log: quiet, backupDir: dir })).to.equal(null);
+    expect((await User.collection.findOne({ _id: user.insertedId })).email).to.equal(email);
+    expect(fs.readdirSync(dir)).to.have.length(0);
+
+    const backup = await migrate({ log: quiet, backupDir: dir });
+    expect(fs.statSync(backup).mode & 0o777).to.equal(0o600);
+    const backupText = fs.readFileSync(backup, 'utf8');
+    expect(backupText).to.match(/^enc:v1:/);
+    expect(backupText).to.not.include(email);
+
+    const rawUser = await User.collection.findOne({ _id: user.insertedId });
+    expect(rawUser.email).to.match(/^enc:v1:/);
+    expect(rawUser.emailHash).to.equal(blindIndex('email', email));
+    const rawVerification = await StudentVerification.collection.findOne({ _id: verification.insertedId });
+    expect(rawVerification.universityEmail).to.match(/^enc:v1:/);
+    expect(rawVerification.fullName).to.match(/^enc:v1:/);
+    expect(rawVerification.universityEmailHash).to.equal(blindIndex('universityEmail', uni));
+    expect((await SupportTicket.collection.findOne({ _id: ticket.insertedId })).message).to.match(/^enc:v1:/);
+    expect(await StudentClaim.collection.findOne({ kind: 'email', hash: student.emailHash(uni) })).to.not.equal(null);
+    expect(await StudentClaim.collection.findOne({ kind: 'email', hash: student.legacyEmailHash(uni) })).to.equal(null);
+    expect((await User.collection.indexes()).some((i) => i.name === 'email_1')).to.equal(false);
+
+    // The legacy account signs in after the backfill.
+    const login = await api().post('/api/auth/login').send({ email, password: 'password' });
+    expect(login.status).to.equal(200);
+    expect(login.body.user.email).to.equal(email);
+
+    const second = [];
+    await migrate({ log: (line) => second.push(line), backupDir: dir });
+    expect(second.filter((line) => / [1-9][0-9]* (document|email claim)/.test(line))).to.deep.equal([]);
+  });
+
+  it('puts a backup back with --restore', async function() {
+    const ticket = await SupportTicket.collection.insertOne({
+      userId: new mongoose.Types.ObjectId(), category: 'bug', subject: 'Keep', message: 'Keep me', replyEmail: 'k@e.ep', status: 'open',
+    });
+    const backup = await migrate({ log: quiet, backupDir: dir });
+    await SupportTicket.collection.deleteOne({ _id: ticket.insertedId });
+    await restoreBackup(backup, { log: quiet });
+    const back = await SupportTicket.findById(ticket.insertedId);
+    expect(back.message).to.equal('Keep me');
+  });
+});
+

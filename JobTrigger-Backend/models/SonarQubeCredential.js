@@ -34,7 +34,8 @@ const sonarQubeCredentialSchema = new mongoose.Schema({
 });
 
 // AUD-03: secrets are encrypted at rest.
-sonarQubeCredentialSchema.plugin(encryptedFields, { fields: ['token'] });
+// NFR-SEC-08: the server address too.
+sonarQubeCredentialSchema.plugin(encryptedFields, { fields: ['token', 'baseUrl'] });
 
 // AUD-13: every credential list filters by `userId`, and the "which one is
 // the default?" query filters by `userId` + `isDefault`. Without these
