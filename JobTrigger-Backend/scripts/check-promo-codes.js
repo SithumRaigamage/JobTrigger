@@ -29,6 +29,11 @@ function check(raw) {
 }
 
 function main() {
+  if (process.env.PROMO_CODES === undefined) {
+    try {
+      require('dotenv').config();
+    } catch {}
+  }
   const result = check(process.env.PROMO_CODES);
   if (!result.ok) {
     console.error(`PROMO_CODES is not usable, so the server would refuse to start: ${result.problem}`);
