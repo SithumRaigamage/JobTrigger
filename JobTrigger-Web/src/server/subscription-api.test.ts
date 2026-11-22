@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { failureFor } from "./backend-client";
-import { getSubscription } from "./subscription-api";
+import { getSubscription, redeemPromoCode } from "./subscription-api";
 
 vi.mock("./config", () => ({
   getConfig: () => ({ backendUrl: "http://backend.test", sessionSecret: "x", siteUrl: "" }),
@@ -27,6 +27,8 @@ const pro = {
   periodEnd: "2027-03-03T00:00:00.000Z",
   willRenew: false,
   manageOnWeb: false,
+  // US-PROMO-01: added on purpose; the field is optional for older backends.
+  promoAvailable: true,
   limits: { maxCredentialsTotal: null, maxCredentialsPerTool: 25, maxPinnedJobs: null },
   features: { multiTool: true, backgroundWatch: true, homeWidget: true, insights: true },
   primaryCredentialId: null,
@@ -48,6 +50,7 @@ describe("getSubscription", () => {
         periodEnd: "2027-03-03T00:00:00.000Z",
         willRenew: false,
         manageOnWeb: false,
+        promoAvailable: true,
         limits: { maxCredentialsTotal: null, maxCredentialsPerTool: 25, maxPinnedJobs: null },
         features: { multiTool: true, backgroundWatch: true, homeWidget: true, insights: true },
       },
@@ -90,6 +93,52 @@ describe("getSubscription", () => {
   it("fails as unexpected on a body of the wrong shape", async () => {
     fetchMock.mockResolvedValue(json({ plan: "pro" }));
     expect(await getSubscription("t")).toEqual({ ok: false, failure: { kind: "unexpected" } });
+  });
+});
+
+describe("redeemPromoCode (US-PROMO-01)", () => {
+  const promo = {
+    ...pro,
+    status: "active",
+    source: "promo",
+    productId: "LAUNCH30",
+    willRenew: false,
+    periodEnd: "2027-01-15T00:00:00.000Z",
+  };
+
+  it("posts the code and returns the plan it granted", async () => {
+    fetchMock.mockResolvedValue(json(promo));
+
+    const result = await redeemPromoCode("access-1", "LAUNCH30");
+
+    expect(result.ok && result.value).toMatchObject({
+      plan: "pro",
+      state: "active",
+      source: "promo",
+      periodEnd: "2027-01-15T00:00:00.000Z",
+      willRenew: false,
+    });
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(String(url)).toBe("http://backend.test/api/subscription/promo");
+    expect(init!.method).toBe("POST");
+    expect(JSON.parse(String(init!.body))).toEqual({ code: "LAUNCH30" });
+    expect((init!.headers as Record<string, string>)["x-auth-token"]).toBe("access-1");
+  });
+
+  it("keeps the backend's own sentence for a refused code", async () => {
+    fetchMock.mockResolvedValue(
+      json({ code: "already_redeemed", message: "You've already used that code." }, 409),
+    );
+
+    expect(await redeemPromoCode("access-1", "LAUNCH30")).toEqual({
+      ok: false,
+      failure: {
+        kind: "explained",
+        status: 409,
+        message: "You've already used that code.",
+        code: "already_redeemed",
+      },
+    });
   });
 });
 

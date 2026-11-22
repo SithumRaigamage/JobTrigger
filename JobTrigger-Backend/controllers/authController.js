@@ -8,6 +8,7 @@ const { onAccountDeletion, TeamError } = require('../lib/team');
 const Subscription = require('../models/Subscription');
 const StudentVerification = require('../models/StudentVerification');
 const SupportTicket = require('../models/SupportTicket');
+const PromoRedemption = require('../models/PromoRedemption');
 const revenueCat = require('../billing/revenuecatClient');
 const paddle = require('../billing/paddleClient');
 const { activePaidSource } = require('../billing/entitlements');
@@ -272,7 +273,7 @@ exports.deleteAccount = async (req, res, next) => {
     }
 
     await Promise.all(
-      [JenkinsCredential, GitHubCredential, SonarQubeCredential, PasswordResetToken, Subscription, StudentVerification, SupportTicket].map((Model) =>
+      [JenkinsCredential, GitHubCredential, SonarQubeCredential, PasswordResetToken, Subscription, StudentVerification, SupportTicket, PromoRedemption].map((Model) =>
         Model.deleteMany({ userId: user._id }),
       ),
     );

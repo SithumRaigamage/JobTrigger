@@ -180,6 +180,86 @@ function studentRenewalEnabled(env = process.env) {
   return env.STUDENT_RENEWAL_ENABLED === 'true';
 }
 
+/**
+ * US-PROMO-01: one `PROMO_CODES` entry as the server uses it, or a sentence
+ * saying what is wrong with it. `code` is normalized (trimmed, upper case);
+ * a date-only `expiresAt` is usable through the end of that UTC day.
+ */
+const PROMO_CODE_PATTERN = /^[A-Za-z0-9_-]{3,64}$/;
+const PROMO_MAX_DAYS = 3650;
+
+function readPromoEntry(entry, index) {
+  const at = `entry ${index + 1}`;
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+    return `${at} must be an object like { "code": "LAUNCH30", "days": 30 }`;
+  }
+  const code = typeof entry.code === 'string' ? entry.code.trim() : '';
+  if (!PROMO_CODE_PATTERN.test(code)) {
+    return `${at} needs a code of 3-64 letters, digits, "_" or "-"`;
+  }
+  if (!Number.isInteger(entry.days) || entry.days < 1 || entry.days > PROMO_MAX_DAYS) {
+    return `${at} needs days as a whole number from 1 to ${PROMO_MAX_DAYS}`;
+  }
+  let maxRedemptions = null;
+  if (entry.maxRedemptions !== undefined && entry.maxRedemptions !== null) {
+    if (!Number.isInteger(entry.maxRedemptions) || entry.maxRedemptions < 1) {
+      return `${at} has a maxRedemptions that is not a positive whole number`;
+    }
+    maxRedemptions = entry.maxRedemptions;
+  }
+  let expiresAt = null;
+  if (entry.expiresAt !== undefined && entry.expiresAt !== null && entry.expiresAt !== '') {
+    const raw = String(entry.expiresAt).trim();
+    const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(raw);
+    const parsed = new Date(dateOnly ? `${raw}T23:59:59.999Z` : raw);
+    if (Number.isNaN(parsed.getTime())) return `${at} has an expiresAt that is not a date`;
+    expiresAt = parsed;
+  }
+  return { code: code.toUpperCase(), days: entry.days, maxRedemptions, expiresAt };
+}
+
+/** Why `PROMO_CODES` can't be used, or null. Names only, never a value. */
+function promoCodeProblems(env = process.env) {
+  if (blank(env.PROMO_CODES)) return null;
+  let parsed;
+  try {
+    parsed = JSON.parse(env.PROMO_CODES);
+  } catch {
+    return 'PROMO_CODES must be JSON: a list of { "code", "days", "maxRedemptions", "expiresAt" }';
+  }
+  if (!Array.isArray(parsed)) {
+    return 'PROMO_CODES must be JSON: a list of { "code", "days", "maxRedemptions", "expiresAt" }';
+  }
+  const seen = new Set();
+  for (const [index, entry] of parsed.entries()) {
+    const read = readPromoEntry(entry, index);
+    if (typeof read === 'string') return `PROMO_CODES: ${read}`;
+    if (seen.has(read.code)) return `PROMO_CODES lists ${read.code} twice`;
+    seen.add(read.code);
+  }
+  return null;
+}
+
+/**
+ * US-PROMO-01: the promo / voucher codes from `PROMO_CODES`, normalized. Empty
+ * when unset (the feature is off) or unusable (the server refuses to start
+ * through `invalidConfig`, so this never runs in a live deployment). Cached on
+ * the raw value, so tests that change it get a fresh answer.
+ */
+let promoCache = { raw: null, codes: [] };
+
+function promoCodes(env = process.env) {
+  const raw = String(env.PROMO_CODES ?? '').trim();
+  if (raw === promoCache.raw) return promoCache.codes;
+  if (promoCodeProblems(env)) {
+    promoCache = { raw, codes: [] };
+    return promoCache.codes;
+  }
+  const codes = raw ? JSON.parse(raw).map((entry, index) => readPromoEntry(entry, index)) : [];
+  promoCache = { raw, codes };
+  return codes;
+}
+
 const DEV_RESET_PASSWORD_URL = 'http://localhost:3000/reset-password';
 const DEV_SITE_URL = 'http://localhost:3000';
 
@@ -300,6 +380,11 @@ function invalidConfig(env = process.env) {
   if (!blank(env.STUDENT_ADMIN_EMAIL) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.STUDENT_ADMIN_EMAIL.trim())) {
     return 'STUDENT_ADMIN_EMAIL must be an email address';
   }
+  const promo = promoCodeProblems(env);
+  if (promo) return promo;
+  if (!blank(env.PROMO_REDEEM_RATE_LIMIT) && !/^[1-9][0-9]{0,3}$/.test(env.PROMO_REDEEM_RATE_LIMIT.trim())) {
+    return 'PROMO_REDEEM_RATE_LIMIT must be a whole number of requests';
+  }
   if (!blank(env.MIN_SUPPORTED_APP_VERSION) && !/^\d+\.\d+\.\d+$/.test(env.MIN_SUPPORTED_APP_VERSION.trim())) {
     return 'MIN_SUPPORTED_APP_VERSION must look like 1.0.1';
   }
@@ -365,6 +450,7 @@ module.exports = {
   siteUrl,
   studentAdminEmail,
   studentRenewalEnabled,
+  promoCodes,
   billingEnabled,
   sandboxBillingEnabled,
   teamPlanEnabled,

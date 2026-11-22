@@ -47,6 +47,8 @@ const dto = z.object({
   periodEnd: z.string().nullable().optional().default(null),
   willRenew: z.boolean().optional().default(false),
   manageOnWeb: z.boolean().optional().default(false),
+  // US-PROMO-01: optional, so an older backend still parses.
+  promoAvailable: z.boolean().optional().default(false),
   limits: z.object({
     maxCredentialsTotal: limit,
     maxCredentialsPerTool: limit,
@@ -62,6 +64,27 @@ const dto = z.object({
 
 export async function getSubscription(accessToken: string): Promise<Result<Subscription>> {
   const result = await callBackend({ path: "/api/subscription", accessToken }, dto);
+  if (!result.ok) return result;
+  const { status, ...rest } = result.value;
+  return ok({ ...rest, state: status });
+}
+
+/**
+ * US-PROMO-01: `POST /api/subscription/promo` `{ code }`.
+ *
+ * The code is checked and Pro is granted on the backend: this site only
+ * forwards it. `explain` keeps the backend's own sentence for a refused code
+ * ("That code isn't valid", "You've already used that code", "already Pro"),
+ * which the form shows as-is.
+ */
+export async function redeemPromoCode(
+  accessToken: string,
+  code: string,
+): Promise<Result<Subscription>> {
+  const result = await callBackend(
+    { method: "POST", path: "/api/subscription/promo", body: { code }, accessToken, explain: true },
+    dto,
+  );
   if (!result.ok) return result;
   const { status, ...rest } = result.value;
   return ok({ ...rest, state: status });

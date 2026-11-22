@@ -52,6 +52,8 @@ function view(user, subscription, now = new Date()) {
       web: sourceView(subscription?.web),
       grant: sourceView(subscription?.grant),
       student: sourceView(subscription?.student),
+      // US-PROMO-01: a redeemed code (productId holds the code).
+      promo: sourceView(subscription?.promo),
     },
     createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : null,
   };

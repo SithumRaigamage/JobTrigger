@@ -16,7 +16,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SubscriptionDto {
 
- String get plan; bool get billingEnabled; String get status; PlanLimitsDto get limits; PlanFeaturesDto get features; String? get source; String? get productId; String? get periodEnd; bool get willRenew; bool get manageOnWeb; String? get primaryCredentialId; TeamMembershipDto? get team;
+ String get plan; bool get billingEnabled; String get status; PlanLimitsDto get limits; PlanFeaturesDto get features; String? get source; String? get productId; String? get periodEnd; bool get willRenew; bool get manageOnWeb;/// US-PROMO-01: the backend has codes to redeem. Absent = false.
+ bool get promoAvailable; String? get primaryCredentialId; TeamMembershipDto? get team;
 /// Create a copy of SubscriptionDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +31,20 @@ $SubscriptionDtoCopyWith<SubscriptionDto> get copyWith => _$SubscriptionDtoCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as SubscriptionDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SubscriptionDto&&(identical(other.plan, _this.plan) || other.plan == _this.plan)&&(identical(other.billingEnabled, _this.billingEnabled) || other.billingEnabled == _this.billingEnabled)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.limits, _this.limits) || other.limits == _this.limits)&&(identical(other.features, _this.features) || other.features == _this.features)&&(identical(other.source, _this.source) || other.source == _this.source)&&(identical(other.productId, _this.productId) || other.productId == _this.productId)&&(identical(other.periodEnd, _this.periodEnd) || other.periodEnd == _this.periodEnd)&&(identical(other.willRenew, _this.willRenew) || other.willRenew == _this.willRenew)&&(identical(other.manageOnWeb, _this.manageOnWeb) || other.manageOnWeb == _this.manageOnWeb)&&(identical(other.primaryCredentialId, _this.primaryCredentialId) || other.primaryCredentialId == _this.primaryCredentialId)&&(identical(other.team, _this.team) || other.team == _this.team));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SubscriptionDto&&(identical(other.plan, _this.plan) || other.plan == _this.plan)&&(identical(other.billingEnabled, _this.billingEnabled) || other.billingEnabled == _this.billingEnabled)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.limits, _this.limits) || other.limits == _this.limits)&&(identical(other.features, _this.features) || other.features == _this.features)&&(identical(other.source, _this.source) || other.source == _this.source)&&(identical(other.productId, _this.productId) || other.productId == _this.productId)&&(identical(other.periodEnd, _this.periodEnd) || other.periodEnd == _this.periodEnd)&&(identical(other.willRenew, _this.willRenew) || other.willRenew == _this.willRenew)&&(identical(other.manageOnWeb, _this.manageOnWeb) || other.manageOnWeb == _this.manageOnWeb)&&(identical(other.promoAvailable, _this.promoAvailable) || other.promoAvailable == _this.promoAvailable)&&(identical(other.primaryCredentialId, _this.primaryCredentialId) || other.primaryCredentialId == _this.primaryCredentialId)&&(identical(other.team, _this.team) || other.team == _this.team));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as SubscriptionDto;
-  return Object.hash(runtimeType,_this.plan,_this.billingEnabled,_this.status,_this.limits,_this.features,_this.source,_this.productId,_this.periodEnd,_this.willRenew,_this.manageOnWeb,_this.primaryCredentialId,_this.team);
+  return Object.hash(runtimeType,_this.plan,_this.billingEnabled,_this.status,_this.limits,_this.features,_this.source,_this.productId,_this.periodEnd,_this.willRenew,_this.manageOnWeb,_this.promoAvailable,_this.primaryCredentialId,_this.team);
 }
 
 @override
 String toString() {
   final _this = this as SubscriptionDto;
-  return 'SubscriptionDto(plan: ${_this.plan}, billingEnabled: ${_this.billingEnabled}, status: ${_this.status}, limits: ${_this.limits}, features: ${_this.features}, source: ${_this.source}, productId: ${_this.productId}, periodEnd: ${_this.periodEnd}, willRenew: ${_this.willRenew}, manageOnWeb: ${_this.manageOnWeb}, primaryCredentialId: ${_this.primaryCredentialId}, team: ${_this.team})';
+  return 'SubscriptionDto(plan: ${_this.plan}, billingEnabled: ${_this.billingEnabled}, status: ${_this.status}, limits: ${_this.limits}, features: ${_this.features}, source: ${_this.source}, productId: ${_this.productId}, periodEnd: ${_this.periodEnd}, willRenew: ${_this.willRenew}, manageOnWeb: ${_this.manageOnWeb}, promoAvailable: ${_this.promoAvailable}, primaryCredentialId: ${_this.primaryCredentialId}, team: ${_this.team})';
 }
 
 
@@ -54,7 +55,7 @@ abstract mixin class $SubscriptionDtoCopyWith<$Res>  {
   factory $SubscriptionDtoCopyWith(SubscriptionDto value, $Res Function(SubscriptionDto) _then) = _$SubscriptionDtoCopyWithImpl;
 @useResult
 $Res call({
- String plan, bool billingEnabled, String status, PlanLimitsDto limits, PlanFeaturesDto features, String? source, String? productId, String? periodEnd, bool willRenew, bool manageOnWeb, String? primaryCredentialId, TeamMembershipDto? team
+ String plan, bool billingEnabled, String status, PlanLimitsDto limits, PlanFeaturesDto features, String? source, String? productId, String? periodEnd, bool willRenew, bool manageOnWeb, bool promoAvailable, String? primaryCredentialId, TeamMembershipDto? team
 });
 
 
@@ -71,7 +72,7 @@ class _$SubscriptionDtoCopyWithImpl<$Res>
 
 /// Create a copy of SubscriptionDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? plan = null,Object? billingEnabled = null,Object? status = null,Object? limits = null,Object? features = null,Object? source = freezed,Object? productId = freezed,Object? periodEnd = freezed,Object? willRenew = null,Object? manageOnWeb = null,Object? primaryCredentialId = freezed,Object? team = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? plan = null,Object? billingEnabled = null,Object? status = null,Object? limits = null,Object? features = null,Object? source = freezed,Object? productId = freezed,Object? periodEnd = freezed,Object? willRenew = null,Object? manageOnWeb = null,Object? promoAvailable = null,Object? primaryCredentialId = freezed,Object? team = freezed,}) {
   return _then(SubscriptionDto(
 plan: null == plan ? _self.plan : plan // ignore: cast_nullable_to_non_nullable
 as String,billingEnabled: null == billingEnabled ? _self.billingEnabled : billingEnabled // ignore: cast_nullable_to_non_nullable
@@ -83,6 +84,7 @@ as String?,productId: freezed == productId ? _self.productId : productId // igno
 as String?,periodEnd: freezed == periodEnd ? _self.periodEnd : periodEnd // ignore: cast_nullable_to_non_nullable
 as String?,willRenew: null == willRenew ? _self.willRenew : willRenew // ignore: cast_nullable_to_non_nullable
 as bool,manageOnWeb: null == manageOnWeb ? _self.manageOnWeb : manageOnWeb // ignore: cast_nullable_to_non_nullable
+as bool,promoAvailable: null == promoAvailable ? _self.promoAvailable : promoAvailable // ignore: cast_nullable_to_non_nullable
 as bool,primaryCredentialId: freezed == primaryCredentialId ? _self.primaryCredentialId : primaryCredentialId // ignore: cast_nullable_to_non_nullable
 as String?,team: freezed == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamMembershipDto?,
@@ -200,10 +202,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String plan,  bool billingEnabled,  String status,  PlanLimitsDto limits,  PlanFeaturesDto features,  String? source,  String? productId,  String? periodEnd,  bool willRenew,  bool manageOnWeb,  String? primaryCredentialId,  TeamMembershipDto? team)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String plan,  bool billingEnabled,  String status,  PlanLimitsDto limits,  PlanFeaturesDto features,  String? source,  String? productId,  String? periodEnd,  bool willRenew,  bool manageOnWeb,  bool promoAvailable,  String? primaryCredentialId,  TeamMembershipDto? team)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SubscriptionDto() when $default != null:
-return $default(_that.plan,_that.billingEnabled,_that.status,_that.limits,_that.features,_that.source,_that.productId,_that.periodEnd,_that.willRenew,_that.manageOnWeb,_that.primaryCredentialId,_that.team);case _:
+return $default(_that.plan,_that.billingEnabled,_that.status,_that.limits,_that.features,_that.source,_that.productId,_that.periodEnd,_that.willRenew,_that.manageOnWeb,_that.promoAvailable,_that.primaryCredentialId,_that.team);case _:
   return orElse();
 
 }
@@ -221,10 +223,10 @@ return $default(_that.plan,_that.billingEnabled,_that.status,_that.limits,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String plan,  bool billingEnabled,  String status,  PlanLimitsDto limits,  PlanFeaturesDto features,  String? source,  String? productId,  String? periodEnd,  bool willRenew,  bool manageOnWeb,  String? primaryCredentialId,  TeamMembershipDto? team)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String plan,  bool billingEnabled,  String status,  PlanLimitsDto limits,  PlanFeaturesDto features,  String? source,  String? productId,  String? periodEnd,  bool willRenew,  bool manageOnWeb,  bool promoAvailable,  String? primaryCredentialId,  TeamMembershipDto? team)  $default,) {final _that = this;
 switch (_that) {
 case _SubscriptionDto():
-return $default(_that.plan,_that.billingEnabled,_that.status,_that.limits,_that.features,_that.source,_that.productId,_that.periodEnd,_that.willRenew,_that.manageOnWeb,_that.primaryCredentialId,_that.team);case _:
+return $default(_that.plan,_that.billingEnabled,_that.status,_that.limits,_that.features,_that.source,_that.productId,_that.periodEnd,_that.willRenew,_that.manageOnWeb,_that.promoAvailable,_that.primaryCredentialId,_that.team);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -241,10 +243,10 @@ return $default(_that.plan,_that.billingEnabled,_that.status,_that.limits,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String plan,  bool billingEnabled,  String status,  PlanLimitsDto limits,  PlanFeaturesDto features,  String? source,  String? productId,  String? periodEnd,  bool willRenew,  bool manageOnWeb,  String? primaryCredentialId,  TeamMembershipDto? team)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String plan,  bool billingEnabled,  String status,  PlanLimitsDto limits,  PlanFeaturesDto features,  String? source,  String? productId,  String? periodEnd,  bool willRenew,  bool manageOnWeb,  bool promoAvailable,  String? primaryCredentialId,  TeamMembershipDto? team)?  $default,) {final _that = this;
 switch (_that) {
 case _SubscriptionDto() when $default != null:
-return $default(_that.plan,_that.billingEnabled,_that.status,_that.limits,_that.features,_that.source,_that.productId,_that.periodEnd,_that.willRenew,_that.manageOnWeb,_that.primaryCredentialId,_that.team);case _:
+return $default(_that.plan,_that.billingEnabled,_that.status,_that.limits,_that.features,_that.source,_that.productId,_that.periodEnd,_that.willRenew,_that.manageOnWeb,_that.promoAvailable,_that.primaryCredentialId,_that.team);case _:
   return null;
 
 }
@@ -256,7 +258,7 @@ return $default(_that.plan,_that.billingEnabled,_that.status,_that.limits,_that.
 @JsonSerializable()
 
 class _SubscriptionDto implements SubscriptionDto {
-  const _SubscriptionDto({required this.plan, required this.billingEnabled, required this.status, required this.limits, required this.features, this.source, this.productId, this.periodEnd, this.willRenew = false, this.manageOnWeb = false, this.primaryCredentialId, this.team});
+  const _SubscriptionDto({required this.plan, required this.billingEnabled, required this.status, required this.limits, required this.features, this.source, this.productId, this.periodEnd, this.willRenew = false, this.manageOnWeb = false, this.promoAvailable = false, this.primaryCredentialId, this.team});
   factory _SubscriptionDto.fromJson(Map<String, dynamic> json) => _$SubscriptionDtoFromJson(json);
 
 @override final  String plan;
@@ -269,6 +271,8 @@ class _SubscriptionDto implements SubscriptionDto {
 @override final  String? periodEnd;
 @override@JsonKey() final  bool willRenew;
 @override@JsonKey() final  bool manageOnWeb;
+/// US-PROMO-01: the backend has codes to redeem. Absent = false.
+@override@JsonKey() final  bool promoAvailable;
 @override final  String? primaryCredentialId;
 @override final  TeamMembershipDto? team;
 
@@ -285,18 +289,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SubscriptionDto&&(identical(other.plan, plan) || other.plan == plan)&&(identical(other.billingEnabled, billingEnabled) || other.billingEnabled == billingEnabled)&&(identical(other.status, status) || other.status == status)&&(identical(other.limits, limits) || other.limits == limits)&&(identical(other.features, features) || other.features == features)&&(identical(other.source, source) || other.source == source)&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&(identical(other.willRenew, willRenew) || other.willRenew == willRenew)&&(identical(other.manageOnWeb, manageOnWeb) || other.manageOnWeb == manageOnWeb)&&(identical(other.primaryCredentialId, primaryCredentialId) || other.primaryCredentialId == primaryCredentialId)&&(identical(other.team, team) || other.team == team));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SubscriptionDto&&(identical(other.plan, plan) || other.plan == plan)&&(identical(other.billingEnabled, billingEnabled) || other.billingEnabled == billingEnabled)&&(identical(other.status, status) || other.status == status)&&(identical(other.limits, limits) || other.limits == limits)&&(identical(other.features, features) || other.features == features)&&(identical(other.source, source) || other.source == source)&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&(identical(other.willRenew, willRenew) || other.willRenew == willRenew)&&(identical(other.manageOnWeb, manageOnWeb) || other.manageOnWeb == manageOnWeb)&&(identical(other.promoAvailable, promoAvailable) || other.promoAvailable == promoAvailable)&&(identical(other.primaryCredentialId, primaryCredentialId) || other.primaryCredentialId == primaryCredentialId)&&(identical(other.team, team) || other.team == team));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,plan,billingEnabled,status,limits,features,source,productId,periodEnd,willRenew,manageOnWeb,primaryCredentialId,team);
+    return Object.hash(runtimeType,plan,billingEnabled,status,limits,features,source,productId,periodEnd,willRenew,manageOnWeb,promoAvailable,primaryCredentialId,team);
 }
 
 @override
 String toString() {
-    return 'SubscriptionDto(plan: $plan, billingEnabled: $billingEnabled, status: $status, limits: $limits, features: $features, source: $source, productId: $productId, periodEnd: $periodEnd, willRenew: $willRenew, manageOnWeb: $manageOnWeb, primaryCredentialId: $primaryCredentialId, team: $team)';
+    return 'SubscriptionDto(plan: $plan, billingEnabled: $billingEnabled, status: $status, limits: $limits, features: $features, source: $source, productId: $productId, periodEnd: $periodEnd, willRenew: $willRenew, manageOnWeb: $manageOnWeb, promoAvailable: $promoAvailable, primaryCredentialId: $primaryCredentialId, team: $team)';
 }
 
 
@@ -307,7 +311,7 @@ abstract mixin class _$SubscriptionDtoCopyWith<$Res> implements $SubscriptionDto
   factory _$SubscriptionDtoCopyWith(_SubscriptionDto value, $Res Function(_SubscriptionDto) _then) = __$SubscriptionDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String plan, bool billingEnabled, String status, PlanLimitsDto limits, PlanFeaturesDto features, String? source, String? productId, String? periodEnd, bool willRenew, bool manageOnWeb, String? primaryCredentialId, TeamMembershipDto? team
+ String plan, bool billingEnabled, String status, PlanLimitsDto limits, PlanFeaturesDto features, String? source, String? productId, String? periodEnd, bool willRenew, bool manageOnWeb, bool promoAvailable, String? primaryCredentialId, TeamMembershipDto? team
 });
 
 
@@ -324,7 +328,7 @@ class __$SubscriptionDtoCopyWithImpl<$Res>
 
 /// Create a copy of SubscriptionDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? plan = null,Object? billingEnabled = null,Object? status = null,Object? limits = null,Object? features = null,Object? source = freezed,Object? productId = freezed,Object? periodEnd = freezed,Object? willRenew = null,Object? manageOnWeb = null,Object? primaryCredentialId = freezed,Object? team = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? plan = null,Object? billingEnabled = null,Object? status = null,Object? limits = null,Object? features = null,Object? source = freezed,Object? productId = freezed,Object? periodEnd = freezed,Object? willRenew = null,Object? manageOnWeb = null,Object? promoAvailable = null,Object? primaryCredentialId = freezed,Object? team = freezed,}) {
   return _then(_SubscriptionDto(
 plan: null == plan ? _self.plan : plan // ignore: cast_nullable_to_non_nullable
 as String,billingEnabled: null == billingEnabled ? _self.billingEnabled : billingEnabled // ignore: cast_nullable_to_non_nullable
@@ -336,6 +340,7 @@ as String?,productId: freezed == productId ? _self.productId : productId // igno
 as String?,periodEnd: freezed == periodEnd ? _self.periodEnd : periodEnd // ignore: cast_nullable_to_non_nullable
 as String?,willRenew: null == willRenew ? _self.willRenew : willRenew // ignore: cast_nullable_to_non_nullable
 as bool,manageOnWeb: null == manageOnWeb ? _self.manageOnWeb : manageOnWeb // ignore: cast_nullable_to_non_nullable
+as bool,promoAvailable: null == promoAvailable ? _self.promoAvailable : promoAvailable // ignore: cast_nullable_to_non_nullable
 as bool,primaryCredentialId: freezed == primaryCredentialId ? _self.primaryCredentialId : primaryCredentialId // ignore: cast_nullable_to_non_nullable
 as String?,team: freezed == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamMembershipDto?,

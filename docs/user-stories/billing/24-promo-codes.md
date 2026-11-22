@@ -1,0 +1,198 @@
+# Epic: PROMO — promo and voucher codes
+
+A promo code gives a Free account a stretch of JobTrigger Pro at no charge:
+the owner mails or posts a code, the user redeems it in the app or on the
+website, and the account is Pro until the code's days run out.
+
+**Owner decisions, 2026-11-22:**
+
+1. **Codes live in the backend's environment** (`PROMO_CODES`), not in the
+   database and not in either client. Adding or retiring a code is an edit to
+   the deployment's variables and a redeploy — no app release, no website
+   release, no admin screen to build.
+2. **A code is free Pro time.** One code = one period of Pro (7 days, a month,
+   a year — whatever the code says), from the moment it is redeemed. Discounts
+   on a checkout (a lower price paid through Paddle or the stores) are **not**
+   in this story: those prices are created in Paddle/App Store Connect, and
+   adding them is a separate story against the checkout code.
+3. **One redemption per account per code**, and a code may cap its total
+   redemptions and its own last day.
+4. Redeeming is a Pro source of its own (`promo`), so it can never overwrite a
+   store or website subscription, and a paid plan always outranks it.
+
+Design: [`docs/design/US-PROMO-redeem-codes.md`](../../design/US-PROMO-redeem-codes.md).
+Tasks: `tasks/phase-29-promo-codes.md`.
+
+---
+
+### US-PROMO-01 — Redeem a promo code for Pro
+
+**Priority:** Must · **Source:** owner decision 2026-11-22 · **Dependencies:** P20-10, P20-11
+
+As a Free user with a promo code
+I want to enter it in the app or on the website
+So that I get JobTrigger Pro for the period the code gives
+
+**Acceptance Criteria**
+
+- [x] Scenario: a valid code — Given billing is on and `PROMO_CODES` lists
+  `LAUNCH30` for 30 days, When I redeem it as a Free account, Then
+  `POST /api/subscription/promo` answers 200 with the `GET /api/subscription`
+  body, `plan: "pro"`, `source: "promo"`, `willRenew: false` and `periodEnd`
+  30 days from now; the account is Pro on the next read.
+- [x] Scenario: the code is forgiving — leading/trailing spaces and lower case
+  are accepted (`  launch30 ` is `LAUNCH30`); an empty or 1000-character value
+  is `400` without a lookup error.
+- [x] Scenario: one per account — When the same account redeems the same code
+  again, Then **409** `already_redeemed` and nothing changes; the plan and its
+  end date are exactly as after the first redemption.
+- [x] Scenario: a cap on the code — Given a code with `maxRedemptions: 2`, Then
+  the first two accounts succeed and the third gets the same **400**
+  `invalid_code` as an unknown code (it never says the code exists but is used
+  up).
+- [x] Scenario: a last day — Given a code whose `expiresAt` has passed, Then
+  **400** `invalid_code` and nothing is written.
+- [x] Scenario: an unknown code — Then **400** `invalid_code` with one sentence
+  that never distinguishes unknown, expired and used-up, and nothing is
+  written (no enumeration).
+- [x] Scenario: already Pro — Given the account is Pro now (store, website,
+  grant, student or an earlier code), Then **409** `already_pro` with a
+  sentence saying the code would add nothing.
+- [x] Scenario: billed plans win — Given a promo period is running, When the
+  account later buys on the store or the website, Then the paid plan is the one
+  shown (`GET /api/subscription`, `source` is the store/web), and when the paid
+  plan ends the promo period it did not consume comes back into effect.
+- [x] Scenario: it ends by date, not by a job — When `periodEnd` passes, Then
+  `GET /api/subscription` is `free` with `source: "promo"` and `state:
+  "expired"`, with no background job having run.
+- [x] Scenario: off unless set up — Given `BILLING_ENABLED` is off, or
+  `PROMO_CODES` is empty, Then redeeming is **503** `not_available`, and
+  `GET /api/subscription` says `promoAvailable: false` so neither client offers
+  the action.
+- [x] Scenario: abuse — Then the route is limited per account (10 per 15
+  minutes, `PROMO_REDEEM_RATE_LIMIT`), needs a session, and logs the redemption
+  with the account id and code only (never the session token).
+- [x] Scenario: a bad configuration does not start — Given `PROMO_CODES` is not
+  JSON, an entry has no `days`, a `days` outside 1–3650, a `maxRedemptions`
+  that is not a positive whole number, an `expiresAt` that is not a date, a
+  code with characters other than letters, digits, `_` and `-`, or the same code
+  twice, Then the server refuses to start and names `PROMO_CODES` (never the
+  value).
+- [x] Scenario: the owner sees it — Then `/admin/subscriptions` shows the
+  account's `promo` source next to the others, with its end date, and the code
+  it was redeemed with.
+
+**Security & Privacy Notes** — the codes are a server-side secret list: they
+are never sent to a client, listed, or logged in full beyond the one that was
+used. A redemption row keeps the account id, the code and the end date so a
+code's cap can be counted. Deleting the account deletes its redemption rows
+(the global cap still bounds abuse), exactly as the student plan's data is
+deleted with the account.
+
+**Impact** — Backend: yes (config, model, route, entitlements, admin view).
+App: yes (US-PROMO-02). Web: yes (US-PROMO-03).
+
+---
+
+### US-PROMO-02 — Redeem a code in the app
+
+**Priority:** Must · **Source:** owner decision 2026-11-22 · **Dependencies:** US-PROMO-01
+
+As a Free user on my phone
+I want to redeem a code from the Subscription screen
+So that I don't need a laptop to use one
+
+**Acceptance Criteria**
+
+- [x] Scenario: the entry — Given `promoAvailable` is true and I am not Pro,
+  Then Profile → Subscription shows "Redeem a code"; while I am Pro, or when
+  the backend has no codes, the row is absent.
+- [x] Scenario: redeem — When I tap it, Then a dialog asks for the code
+  ("Redeem" is disabled while the field is empty), and on success it closes,
+  a toast confirms Pro, and the screen immediately shows JobTrigger Pro with
+  "Ends on <date>".
+- [x] Scenario: a refused code — When the backend refuses, Then its sentence is
+  shown in the dialog (already used, already Pro, not valid) and I can correct
+  the code; a network failure shows "Try again" and sends nothing twice.
+- [x] Scenario: the plan's source — Then the Subscription screen's note under
+  the plan says "Redeemed with a code." for a promo Pro, and no website link or
+  store link is shown.
+- [x] Scenario: demo mode — Then no request is made and the row is absent.
+
+**Impact** — App: yes. Backend: yes (US-PROMO-01). Web: no (separate story).
+
+---
+
+### US-PROMO-03 — Redeem a code on the website
+
+**Priority:** Should · **Source:** owner decision 2026-11-22 · **Dependencies:** US-PROMO-01
+
+As a Free user signed in on the website
+I want to redeem a code on `/account/billing`
+So that I can use one without the app
+
+**Acceptance Criteria**
+
+- [x] Scenario: the form — Given `promoAvailable` is true and the account is
+  not Pro, Then the billing page shows a "Redeem a code" form; when the backend
+  has no codes the form is absent, and the page's existing Paddle copy is
+  unchanged.
+- [x] Scenario: success — When I submit a valid code, Then the page shows Pro
+  with its end date, and says it was redeemed with a code (not bought).
+- [x] Scenario: refusal — Then the backend's sentence is shown in the form
+  (used, already Pro, not valid) and the form stays usable.
+- [x] Scenario: no session — Then the action redirects to sign-in like the
+  other account actions, and no call is made without a session.
+
+**Impact** — Web: yes. Backend: yes (US-PROMO-01). App: no.
+
+---
+
+## Tests needed
+
+| Criterion | Test |
+|---|---|
+| US-PROMO-01 (redeem, caps, expiry, duplicates, already Pro, billing off, rate limit, config validation) | `JobTrigger-Backend/test/promo_codes.test.js` |
+| US-PROMO-01 (paid wins over promo) | `JobTrigger-Backend/test/promo_codes.test.js` "a paid plan outranks the promo period" |
+| US-PROMO-01 (owner console) | `JobTrigger-Backend/test/promo_codes.test.js` admin list; `JobTrigger-Web/src/server/admin-subscriptions-api.test.ts` |
+| US-PROMO-02 | `JobTrigger-Frontend/test/presentation/features/subscription/promo_redeem_test.dart`, `test/data/repositories/subscription_repository_impl_test.dart` |
+| US-PROMO-03 | `JobTrigger-Web/src/features/billing/promo-code-form.test.tsx`, `src/server/subscription-api.test.ts` |
+
+## Verification (2026-11-22)
+
+Every criterion above was checked against the built code, with these tests:
+
+| Criterion | Evidence |
+|---|---|
+| valid code → Pro for its days | `promo_codes.test.js` "redeems a valid code for Pro for its days, and shows it on the next read" |
+| forgiving input, empty and huge values | "forgives case and surrounding spaces, and refuses an empty or huge value" |
+| one per account | "counts one redemption per account per code, and changes nothing the second time" |
+| the cap | "stops a code at its total cap, saying the same thing as an unknown code" |
+| last day | "refuses a code past its last day and writes nothing" |
+| already Pro | "tells a Pro account the code would add nothing" |
+| paid plans win, the promo comes back | "a paid plan outranks the promo period, which comes back when the paid one ends" |
+| ends by date | "ends by date, not by a job" |
+| off unless set up | "is unavailable when billing is off, and says so to both clients", "is unavailable when no codes are configured" |
+| abuse | "needs a session", "limits attempts per account, so a code list cannot be walked", "keeps the promo out of the entitlements of a different account" |
+| bad configuration | "refuses to start with a broken code list, naming only the variable" |
+| the owner sees it | "shows the redemption to the owner console"; `JobTrigger-Web` admin sources parser |
+| account deletion | "removes the redemption with the account" |
+| app: row, dialog, success, refusal, network, demo, double tap | `promo_redeem_test.dart` (9 widget/unit tests); `subscription_repository_impl_test.dart` "redeemPromoCode posts the code…", "a refused code keeps the backend's own sentence and code" |
+| website: form, refusal, refresh | `promo-code-form.test.tsx`, `subscription-api.test.ts` "redeemPromoCode (US-PROMO-01)", `billing.test.tsx` "offers Redeem a code on Free…", "says a promo plan was redeemed with a code" |
+
+Checks run on 2026-11-22: `npm test` (backend, 476 passing), `flutter analyze` (clean)
+and `flutter test` (1925 passing) in the app, `format:check`, `lint`, `typecheck` and
+`npm test` (524 passing) in the website. **Not verified:** the iPhone pass
+(`tasks/phase-29-promo-codes.md` PV-50) — a real code redeemed in the app on a
+device.
+
+## Not in this story
+
+- **A percentage off a checkout.** That price lives in Paddle (discount ids) or
+  the stores (offers), so it is a checkout story, not a code story.
+- **Codes that grant a specific product** (a yearly plan rather than days).
+  Every code grants Pro for a number of days; that is all a voucher needs
+  today.
+- **An owner screen to create or revoke codes.** They are one line in the
+  deployment's variables, and the redemption log is visible on
+  `/admin/subscriptions`.

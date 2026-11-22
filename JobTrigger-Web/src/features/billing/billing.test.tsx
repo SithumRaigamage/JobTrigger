@@ -15,6 +15,11 @@ vi.mock("./billing-actions", () => ({
   ManageButton: () => <button type="button">Manage subscription</button>,
 }));
 
+// US-PROMO-01: the redeem form itself is covered in promo-code-form.test.tsx.
+vi.mock("./promo-code-form", () => ({
+  PromoCodeForm: () => <div data-testid="promo-form" />,
+}));
+
 const paddle: PaddleConfig = { clientToken: "test_0123456789abcdefghij", environment: "sandbox" };
 
 const free: Subscription = {
@@ -53,6 +58,25 @@ describe("billingMode", () => {
 });
 
 describe("BillingView", () => {
+  it("offers Redeem a code on Free when the backend has codes (US-PROMO-01)", () => {
+    render(<BillingView subscription={{ ...free, promoAvailable: true }} paddle={paddle} />);
+    expect(screen.getByTestId("promo-form")).toBeVisible();
+  });
+
+  it("hides Redeem a code on Pro, and when the backend has no codes", () => {
+    const { unmount } = render(<BillingView subscription={pro("appStore")} paddle={paddle} />);
+    expect(screen.queryByTestId("promo-form")).not.toBeInTheDocument();
+    unmount();
+
+    render(<BillingView subscription={free} paddle={paddle} />);
+    expect(screen.queryByTestId("promo-form")).not.toBeInTheDocument();
+  });
+
+  it("says a promo plan was redeemed with a code", () => {
+    render(<BillingView subscription={{ ...pro("promo"), willRenew: false }} paddle={paddle} />);
+    expect(screen.getByText("Redeemed with a promo code.")).toBeVisible();
+  });
+
   it("offers the upgrade with Paddle named as the seller", () => {
     render(<BillingView subscription={free} paddle={paddle} />);
 

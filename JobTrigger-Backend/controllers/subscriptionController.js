@@ -1,13 +1,14 @@
 /**
  * P20-13/14: the signed-in user's plan (US-SUB-01), a re-sync after a
- * purchase (US-SUB-02/03), and choosing the one server kept on Free
- * (US-SUB-05).
+ * purchase (US-SUB-02/03), choosing the one server kept on Free (US-SUB-05),
+ * and redeeming a promo code (US-PROMO-01).
  */
 const mongoose = require('mongoose');
 const Subscription = require('../models/Subscription');
 const { entitlementsFor } = require('../billing/entitlements');
 const { allCredentials, sendPlanLimit } = require('../billing/limits');
 const { syncSubscription } = require('../billing/syncSubscription');
+const { redeemPromo } = require('../billing/promo');
 const { billingEnabled, revenueCatConfig } = require('../config/env');
 const { logger } = require('../lib/logger');
 
@@ -45,6 +46,31 @@ exports.refresh = async (req, res, next) => {
       }
     }
     res.set('Cache-Control', 'no-store');
+    res.json(body(await entitlementsFor(req.user.id)));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * US-PROMO-01: `POST /api/subscription/promo` `{ code }`. The decision (valid,
+ * unused, not Pro yet) is in billing/promo.js; the answer is the same body as
+ * `GET /api/subscription`, so a client always sees the plan it just changed.
+ */
+exports.redeemPromo = async (req, res, next) => {
+  try {
+    res.set('Cache-Control', 'no-store');
+    const raw = typeof req.body?.code === 'string' ? req.body.code : '';
+    const outcome = await redeemPromo(req.user.id, raw);
+    if (!outcome.ok) {
+      return res.status(outcome.status).json({ code: outcome.code, message: outcome.message });
+    }
+    logger.info('billing.promo_redeemed', {
+      requestId: req.requestId,
+      userId: req.user.id,
+      code: outcome.entry.code,
+      days: outcome.entry.days,
+    });
     res.json(body(await entitlementsFor(req.user.id)));
   } catch (err) {
     next(err);

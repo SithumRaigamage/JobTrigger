@@ -134,6 +134,16 @@ export function SubscriptionsView({
                   {item.sources.store && " · Store subscription (manage there)"}
                   {item.sources.web && " · Website subscription (manage there)"}
                   {item.sources.student && " · Student year"}
+                  {/* US-PROMO-01: a redeemed code, and until when. */}
+                  {item.sources.promo && (
+                    <>
+                      {" · Promo code"}
+                      {item.sources.promo.productId ? ` ${item.sources.promo.productId}` : ""}
+                      {item.sources.promo.periodEnd
+                        ? ` until ${planDate(item.sources.promo.periodEnd)}`
+                        : ""}
+                    </>
+                  )}
                 </p>
                 <PlanAdminForms userId={item.userId} />
               </Card>

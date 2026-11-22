@@ -5,7 +5,7 @@
  */
 const Subscription = require('../models/Subscription');
 const { PLANS } = require('./plans');
-const { billingEnabled, teamPlanEnabled } = require('../config/env');
+const { billingEnabled, teamPlanEnabled, promoCodes } = require('../config/env');
 
 /** Statuses that keep Pro until `periodEnd` (or forever when it is null). */
 const PRO_STATUSES = new Set(['trialing', 'active', 'grace', 'billing_issue', 'cancelled']);
@@ -20,10 +20,16 @@ function isPro(sub, now = new Date()) {
 function describe(sub, { enabled, now = new Date() }) {
   const pro = !enabled || isPro(sub, now);
   const plan = PLANS[pro ? 'pro' : 'free'];
+  // A source with an end date and no webhook to close it (a manual grant, a
+  // promo code) has run out once the date passes: report it as ended, so the
+  // plan never reads "active" while it is free. Expiry is still computed on
+  // every read, never by a job.
+  const ended =
+    !pro && PRO_STATUSES.has(sub?.status) && Boolean(sub?.periodEnd) && new Date(sub.periodEnd) <= now;
   return {
     plan: pro ? 'pro' : 'free',
     billingEnabled: enabled,
-    status: sub?.status ?? 'none',
+    status: ended ? 'expired' : sub?.status ?? 'none',
     source: sub?.source ?? null,
     productId: sub?.productId ?? null,
     periodEnd: sub?.periodEnd ? new Date(sub.periodEnd).toISOString() : null,
@@ -32,6 +38,9 @@ function describe(sub, { enabled, now = new Date() }) {
     // open Paddle's portal (change card, cancel). Store subscriptions are
     // managed in the App Store / Google Play instead.
     manageOnWeb: Boolean(sub?.web?.paddleCustomerId),
+    // US-PROMO-01: whether a promo code can be redeemed at all. Says nothing
+    // about how many codes there are or which.
+    promoAvailable: enabled && promoCodes().length > 0,
     limits: { ...plan.limits },
     features: { ...plan.features },
   };

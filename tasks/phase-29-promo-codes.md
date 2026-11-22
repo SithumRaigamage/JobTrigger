@@ -1,0 +1,70 @@
+# Phase 29 — Promo and voucher codes (epic PROMO)
+
+**Approved by the owner, November 2026** (decision of 2026-11-22 in the
+request): a code gives a Free account a stretch of Pro; the codes are a list in
+the backend's environment (`PROMO_CODES`), so adding one is an edit and a
+redeploy. Story: `docs/user-stories/billing/24-promo-codes.md`. Design:
+`docs/design/US-PROMO-redeem-codes.md`. Follow `CLAUDE.md`: plan before code,
+logic in notifiers, analyze clean, no new dependencies, Jenkins frozen (§11).
+
+## Decisions (owner)
+
+- A code is **free Pro time** (`days`), not a lower price at checkout.
+  Percent-off checkouts are a later story against Paddle/the stores.
+- Codes live in `PROMO_CODES` only: no database of codes, no admin screen to
+  create them. Parameters per code: `days`, optional `maxRedemptions`, optional
+  `expiresAt`.
+- **One redemption per account per code**; a code may cap its total redemptions
+  and its last day.
+- A pro account cannot redeem ("nothing to add"); a paid or granted plan always
+  outranks the promo source.
+- Expiry is computed from `periodEnd` on every read — no job.
+
+## Tasks
+
+### PV-1 Backend
+- [x] PV-10 `PROMO_CODES` parsing and startup validation in `config/env.js`,
+      with `PROMO_CODES` in `docs/configuration.md`.
+- [x] PV-11 `Subscription.promo` source and `PromoRedemption` model (unique
+      `{ code, userId }`, counted per code, deleted with the account).
+- [x] PV-12 `billing/promo.js`: normalization, lookup with cap and last day,
+      and the redeem decision.
+- [x] PV-13 `POST /api/subscription/promo` behind `auth` and a per-account rate
+      limit; `promoAvailable` in `GET /api/subscription`.
+- [x] PV-14 `promo` in `combine.js` (ranked with the student year) and in the
+      owner's `/admin/subscriptions` view.
+- [x] PV-15 `test/promo_codes.test.js`: every criterion in US-PROMO-01.
+
+### PV-2 App
+- [x] PV-20 `SubscriptionSnapshot.promoAvailable`, `redeemPromoCode` on the
+      repository and its implementation.
+- [x] PV-21 `PromoRedeemNotifier` with its outcomes and a busy guard.
+- [x] PV-22 Subscription screen: the row, the dialog, the success toast, the
+      refreshed plan, and the "Redeemed with a code." note.
+- [x] PV-23 Tests: repository, notifier, widget (row, dialog, success, refusal,
+      demo mode).
+
+### PV-3 Website
+- [x] PV-30 `promoAvailable` in the domain type and the API parser.
+- [x] PV-31 `redeemPromoCode` in `server/subscription-api.ts` and the server
+      action.
+- [x] PV-32 "Redeem a code" form on `/account/billing`.
+- [x] PV-33 Tests: the form and the parser.
+
+### PV-4 Docs
+- [x] PV-40 Story and design note (done first, this phase).
+- [x] PV-41 `docs/api-reference.md` (the route, `promoAvailable`, the admin
+      `promo` source), `docs/data-models.md`, `docs/configuration.md`, the
+      user-story index and the `tasks/README.md` row.
+
+### PV-5 Manual
+- [ ] PV-50 MANUAL (owner): put the real codes in the deployment's
+      `PROMO_CODES` and redeploy, then redeem one on the iPhone
+      (Profile → Subscription → Redeem a code) and check the plan shows Pro
+      with its end date.
+
+## Done when
+- `npm test` in `JobTrigger-Backend/`, `flutter analyze` and `flutter test` in
+  `JobTrigger-Frontend/`, and `npm run check` in `JobTrigger-Web/` are clean.
+- The owner has a code in `PROMO_CODES` and has redeemed it on the iPhone
+  (MANUAL, PV-50).

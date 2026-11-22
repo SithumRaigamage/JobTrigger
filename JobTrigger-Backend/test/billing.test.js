@@ -246,8 +246,9 @@ describe('GET /api/subscription and refresh (P20-14, US-SUB-01)', function() {
     expect(res.body).to.include({ plan: 'pro', billingEnabled: false });
     expect(res.body).to.have.keys(
       // Changed on purpose (web checkout): `manageOnWeb` added.
+      // Changed on purpose (US-PROMO-01): `promoAvailable` added.
       'plan', 'billingEnabled', 'status', 'source', 'productId', 'periodEnd', 'willRenew',
-      'manageOnWeb', 'limits', 'features', 'primaryCredentialId',
+      'manageOnWeb', 'promoAvailable', 'limits', 'features', 'primaryCredentialId',
     );
   });
 

@@ -12,6 +12,8 @@ export type AdminBillingSource = {
   plan: "free" | "pro";
   state: SubscriptionState;
   source: SubscriptionSource | null;
+  /** US-PROMO-01: the redeemed code, for a promo source. */
+  productId?: string | null;
   periodEnd: string | null;
   willRenew: boolean;
 };
@@ -30,6 +32,8 @@ export type AdminSubscription = {
     web: AdminBillingSource | null;
     grant: AdminBillingSource | null;
     student: AdminBillingSource | null;
+    /** US-PROMO-01: a redeemed promo or voucher code. */
+    promo?: AdminBillingSource | null;
   };
   createdAt: string | null;
 };

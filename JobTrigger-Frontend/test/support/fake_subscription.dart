@@ -70,6 +70,19 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
   int restores = 0;
   int refreshes = 0;
 
+  /// US-PROMO-01: what `POST /api/subscription/promo` answers, and the codes
+  /// it was asked about.
+  Result<SubscriptionSnapshot, AppFailure>? promoResult;
+  final redeemedCodes = <String>[];
+
+  @override
+  Future<Result<SubscriptionSnapshot, AppFailure>> redeemPromoCode(
+    String code,
+  ) async {
+    redeemedCodes.add(code);
+    return promoResult ?? const Err(NetworkFailure());
+  }
+
   @override
   Future<SubscriptionSnapshot?> cached() async => cachedValue;
 
@@ -139,6 +152,26 @@ class FakeBillingClient implements BillingClient {
     calls.add('restore');
   }
 }
+
+/// US-PROMO-01: a Free account whose backend has promo codes to redeem.
+final freeWithCodesSnapshot = SubscriptionSnapshot(
+  entitlements: freeSnapshot.entitlements,
+  status: freeSnapshot.status,
+  promoAvailable: true,
+);
+
+/// US-PROMO-01: Pro granted by a redeemed code, ending on [end].
+SubscriptionSnapshot promoProSnapshot({DateTime? end}) => SubscriptionSnapshot(
+  entitlements: proSnapshot.entitlements,
+  status: SubscriptionStatus(
+    state: SubscriptionState.active,
+    source: SubscriptionSource.promo,
+    productId: 'LAUNCH30',
+    willRenew: false,
+    periodEnd: end ?? DateTime.utc(2027, 1, 15, 12),
+  ),
+  promoAvailable: true,
+);
 
 /// Pro bought in a store (App Store), renewing on [end].
 SubscriptionSnapshot storeProSnapshot({DateTime? end}) => SubscriptionSnapshot(

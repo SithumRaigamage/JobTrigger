@@ -15,6 +15,11 @@ abstract class SubscriptionRepository {
   /// purchase or restore.
   Future<Result<SubscriptionSnapshot, AppFailure>> refresh();
 
+  /// `POST /api/subscription/promo`: redeems a promo or voucher code
+  /// (US-PROMO-01) and returns the plan it granted. A refused code keeps the
+  /// backend's own sentence (`StudentRequestFailure`).
+  Future<Result<SubscriptionSnapshot, AppFailure>> redeemPromoCode(String code);
+
   /// What the store sells right now. Empty when billing isn't configured in
   /// this build.
   Future<Result<List<BillingOffer>, AppFailure>> offerings();

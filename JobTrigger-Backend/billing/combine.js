@@ -8,6 +8,10 @@
  * paid or granted Pro always outranks it, so a student who subscribes sees
  * (and is managed as) a paid user, and the student year is not what the
  * account shows while something else is active.
+ *
+ * US-PROMO-01: a promo or voucher code is the same kind of free Pro, ranked
+ * with the student year and below anything paid or granted, so redeeming a
+ * code can never hide a subscription the user pays for.
  */
 const Subscription = require('../models/Subscription');
 const { isPro } = require('./entitlements');
@@ -22,8 +26,8 @@ const pick = (s) => Object.fromEntries(PLAN_FIELDS.map((f) => [f, s[f] ?? NONE[f
 function derive(doc, now = new Date()) {
   // Before sources existed, grant-plan.js wrote an admin grant at the top.
   const legacyGrant = !doc?.grant && doc?.source === 'admin' ? doc : null;
-  const sources = [doc?.store, doc?.web, doc?.grant ?? legacyGrant, doc?.student].filter(Boolean);
-  const rank = (s) => (s.source === 'student' ? 1 : 0);
+  const sources = [doc?.store, doc?.web, doc?.grant ?? legacyGrant, doc?.student, doc?.promo].filter(Boolean);
+  const rank = (s) => (s.source === 'student' || s.source === 'promo' ? 1 : 0);
   const pro = sources.filter((s) => isPro(s, now)).sort((a, b) => rank(a) - rank(b) || endOf(b) - endOf(a));
   if (pro.length > 0) return pick(pro[0]);
   const ended = sources

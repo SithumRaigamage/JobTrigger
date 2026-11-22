@@ -43,6 +43,8 @@ const billingSource = z
     plan: z.enum(["free", "pro"]).catch("free"),
     status: state,
     source,
+    // US-PROMO-01: the code, when the source is a redeemed one.
+    productId: z.string().nullable().catch(null),
     periodEnd: z.string().nullable().catch(null),
     willRenew: z.boolean().catch(false),
   })
@@ -55,6 +57,7 @@ const billingSource = z
           plan: value.plan,
           state: value.status,
           source: value.source,
+          productId: value.productId ?? null,
           periodEnd: value.periodEnd,
           willRenew: value.willRenew,
         },
@@ -75,8 +78,9 @@ const item = z
         web: billingSource,
         grant: billingSource,
         student: billingSource,
+        promo: billingSource,
       })
-      .catch({ store: null, web: null, grant: null, student: null }),
+      .catch({ store: null, web: null, grant: null, student: null, promo: null }),
     createdAt: z.string().nullable().catch(null),
   })
   .transform((value): AdminSubscription => ({
