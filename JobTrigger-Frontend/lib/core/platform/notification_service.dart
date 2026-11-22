@@ -39,6 +39,17 @@ class NotificationService {
     visibility: NotificationVisibility.private,
   );
 
+  /// US-PROMO-06: billing is its own channel too, so a user who silences
+  /// build results still hears that their Pro is about to end.
+  static const _billingChannel = AndroidNotificationDetails(
+    'subscription',
+    'Subscription',
+    channelDescription: 'When Pro from a promo code is about to end',
+    importance: Importance.defaultImportance,
+    priority: Priority.defaultPriority,
+    visibility: NotificationVisibility.private,
+  );
+
   /// Payloads of tapped notifications, for the app to open: an in-app
   /// `jobtrigger://app/open?…` link, or a bare job URL from a notification
   /// posted before AUD-45.
@@ -104,6 +115,32 @@ class NotificationService {
       notificationDetails: const NotificationDetails(
         android: _gateChannel,
         iOS: DarwinNotificationDetails(),
+      ),
+    );
+  }
+
+  /// US-PROMO-06: a billing reminder. Unlike build results it is shown while
+  /// the app is open (iOS hides a foreground notification otherwise), because
+  /// that is where it is read; no payload, since Profile → Subscription is a
+  /// tap away. Nothing prompts for permission: with notifications not allowed,
+  /// the OS simply shows nothing.
+  Future<void> showSubscriptionAlert({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    await initialize();
+    await _plugin.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: const NotificationDetails(
+        android: _billingChannel,
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBanner: true,
+          presentSound: false,
+        ),
       ),
     );
   }

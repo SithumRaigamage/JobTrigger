@@ -248,6 +248,45 @@ yes (the codes card). App: no.
 
 ---
 
+### US-PROMO-06 — A reminder before a code's Pro runs out
+
+**Priority:** Should · **Source:** owner request 2026-11-22 · **Dependencies:** US-PROMO-02, US-JX-10
+
+As a user whose Pro came from a promo code
+I want to be told three days before it ends
+So that I don't lose Pro without noticing
+
+**Acceptance Criteria**
+
+- [x] Scenario: three days out — Given Pro from a redeemed code ends within
+  three days, When the plan reaches the app (launch, a resume refresh, a
+  redemption or a purchase), Then one local notification says "Your Pro from a
+  code ends soon", with the day it ends and that Free follows, on a channel of
+  its own so someone who silenced build results still hears it.
+- [x] Scenario: once per period — Then reloading the same plan sends nothing
+  more: the end date it announced is kept in `shared_preferences` (removed on
+  logout), and a *new* period — another code redeemed — is reminded about
+  again.
+- [x] Scenario: not for anything else — Given an App Store, Play, website or
+  student plan, or Free, or more than three days left, or a period already
+  over, Then no notification.
+- [x] Scenario: it never prompts — Then no notification permission is asked for
+  on its account: with notifications not allowed the OS shows nothing, and a
+  refused or failing platform call is swallowed so the app carries on.
+- [x] Scenario: where it is read — Then it also appears while the app is open
+  (iOS hides a foreground notification otherwise), carries no payload, and
+  never names the code.
+- [x] Scenario: no request of its own — Then it is computed from the plan the
+  app already has: no new endpoint and no extra call.
+
+**Security & Privacy Notes** — the reminder names no code, no account and no
+amount, and a local notification leaves nothing the device.
+
+**Impact** — App: yes. Backend: no (`periodEnd` and `source: "promo"` were
+already in `GET /api/subscription`). Web: no.
+
+---
+
 ## Tests needed
 
 | Criterion | Test |
@@ -259,6 +298,7 @@ yes (the codes card). App: no.
 | US-PROMO-03 | `JobTrigger-Web/src/features/billing/promo-code-form.test.tsx`, `src/server/subscription-api.test.ts` |
 | US-PROMO-04 (the wire body: `discount_id` present with a code, absent without) | `JobTrigger-Backend/test/paddle_client.test.js` |
 | US-PROMO-05 (counts and caps, the event, the pre-deploy check) | `JobTrigger-Backend/test/promo_codes.test.js` "counts each code and what is left of its cap…", "records the redemption for analytics without the code"; `test/check_promo_codes.test.js`; `JobTrigger-Web/src/features/admin/subscriptions-view.test.tsx`, `src/server/admin-subscriptions-api.test.ts` |
+| US-PROMO-06 (three days before the end, once per period, nothing for other plans) | `JobTrigger-Frontend/test/presentation/features/subscription/promo_expiry_reminder_test.dart` |
 | US-PROMO-04 (the checkout discount, refusals, one kind per entry) | `JobTrigger-Backend/test/paddle.test.js` "applies a discount code to the transaction…", `test/promo_codes.test.js` "keeps a discount code out of the Pro-time redeem action" and the config test; `JobTrigger-Web/src/features/billing/billing-actions.test.tsx`, `src/features/billing/actions.test.ts`, `src/server/billing-api.test.ts` |
 
 ## Verification (2026-11-22)
@@ -285,11 +325,12 @@ Every criterion above was checked against the built code, with these tests:
 | website: form, refusal, refresh | `promo-code-form.test.tsx`, `subscription-api.test.ts` "redeemPromoCode (US-PROMO-01)", `billing.test.tsx` "offers Redeem a code on Free…", "says a promo plan was redeemed with a code" |
 | US-PROMO-04: the checkout discount, refusals, one kind per entry | `paddle.test.js` "applies a discount code to the transaction, and refuses a bad one before Paddle (US-PROMO-04)"; `promo_codes.test.js` "keeps a discount code out of the Pro-time redeem action (US-PROMO-04)" and the broken-list test; `billing-actions.test.tsx` (field, trim, refusal), `actions.test.ts` (forwarded, too long), `billing-api.test.ts` (body) |
 | US-PROMO-05: counts/caps, no PII, the event, the pre-deploy check | `promo_codes.test.js` "counts each code…" (2 of 2 used, 0 left, third refused), "records the redemption for analytics without the code"; `check_promo_codes.test.js` (usable, typo, unset, same rules); `subscriptions-view.test.tsx` (lines, checkout, retired, no card, per-account note); `admin-subscriptions-api.test.ts` |
+| US-PROMO-06: the reminder | `promo_expiry_reminder_test.dart` (12 tests): `promoEndingSoon` inside three days and outside it (earlier, at the end, after it, another source, Free); one notification with the end date and a fixed id; no repeat for the same period across three loads; a new period reminds again; nothing for a store plan or a plan months out; a throwing platform call still completes; and the notifier wiring — one reminder from a plan loaded as promo Pro ending in two days, none from a reload, a store plan or a distant end |
 | US-PROMO-01: only a promo source ends by date on a read | `billing.test.js` "ends a promo period by date, and leaves every other source to its writer" |
 
 Checks run on 2026-11-22: `npm test` (backend, 487 passing), `flutter analyze`
-(clean) and `flutter test` (1925 passing) in the app, `format:check`, `lint`,
-`typecheck` and `npm test` (537 passing) in the website. **Not verified:** the
+(clean) and `flutter test` (1937 passing, 12 of them US-PROMO-06) in the app,
+`format:check`, `lint`, `typecheck` and `npm test` (537 passing) in the website. **Not verified:** the
 iPhone pass (`tasks/phase-29-promo-codes.md` PV-50) — a real code redeemed in
 the app on a device — and the Paddle discount purchase (PV-65), which needs a
 discount created in Paddle and a real checkout.

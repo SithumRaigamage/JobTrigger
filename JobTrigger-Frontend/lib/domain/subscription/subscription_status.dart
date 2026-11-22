@@ -141,6 +141,27 @@ class SubscriptionSnapshot {
         : end;
   }
 
+  /// US-PROMO-06: the end of the Pro period a redeemed code gave, when that
+  /// period is running and ends within [within]; null otherwise. Read from
+  /// the plan the app already has, so the reminder needs no extra request —
+  /// the same shape as [studentYearEndingSoon].
+  DateTime? promoEndingSoon(
+    DateTime now, {
+    Duration within = const Duration(days: 3),
+  }) {
+    final end = status.periodEnd;
+    if (!entitlements.billingEnabled ||
+        !entitlements.isPro ||
+        !status.isPromo ||
+        end == null) {
+      return null;
+    }
+    final left = end.difference(now);
+    return left.isNegative || left == Duration.zero || left > within
+        ? null
+        : end;
+  }
+
   /// Pro that came from the website (P20-84): shown as Pro like any other,
   /// with no store purchase offered.
   bool get isWebPro =>

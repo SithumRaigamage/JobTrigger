@@ -22,6 +22,7 @@ const userScopedPrefKeys = {
   'server_safety', // ServerSafetyStore (PI-01/02, read-only + protected jobs)
   'sonarqube_watches', // SonarQubeWatchStore (US-SQ-WATCH-01)
   'subscription_cache', // SubscriptionRepositoryImpl (P20-22)
+  'promo_expiry_reminded', // promo expiry reminder (US-PROMO-06)
 };
 
 /// Per-server entries, keyed `<prefix><serverId>`.

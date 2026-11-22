@@ -96,6 +96,24 @@ logic in notifiers, analyze clean, no new dependencies, Jenkins frozen (§11).
 - [x] PV-74 Tests: backend console counts (and that the count matches the rule)
       and the event; the script (usable, typo, unset); web parser and card.
 
+### PV-8 A reminder before the Pro ends (US-PROMO-06)
+- [x] PV-75 `SubscriptionSnapshot.promoEndingSoon`: the end of a promo Pro
+      period inside the last three days, and null for every other source,
+      Free, an ended period or a later date.
+- [x] PV-76 `presentation/features/subscription/promo_expiry_reminder.dart`:
+      one local notification with the end date, once per period (the end is
+      the marker, in `shared_preferences` under `promo_expiry_reminded`, which
+      logout clears); best effort throughout.
+- [x] PV-77 `NotificationService.showSubscriptionAlert`: its own `subscription`
+      channel and `presentBanner` on iOS, so it is seen while the app is open;
+      no permission prompt added.
+- [x] PV-78 Wired where the plan arrives (cache, load, refresh, apply) in
+      `EntitlementsNotifier` — no request of its own; tests in
+      `test/presentation/features/subscription/promo_expiry_reminder_test.dart`.
+- [ ] PV-79 MANUAL (owner): on the iPhone, redeem a short code (e.g. 4 days),
+      background the app, reopen it on day two, and check the reminder arrives
+      once and mentions the right end date.
+
 ### PV-5 Manual
 - [ ] PV-50 MANUAL (owner): put the real codes in the deployment's
       `PROMO_CODES` and redeploy, then redeem one on the iPhone
