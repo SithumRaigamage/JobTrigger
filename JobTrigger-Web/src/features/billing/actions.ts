@@ -6,6 +6,7 @@ import { failureMessage } from "@/domain/app-failure";
 import { authed } from "@/server/authed";
 import { createCheckout, createPortalLink } from "@/server/billing-api";
 import { requireSession } from "@/server/guard";
+import { redeemPromoCode } from "@/server/subscription-api";
 
 /*
  * The two billing actions (P20-83). Both check the session themselves (the
@@ -18,15 +19,43 @@ export type CheckoutState =
 
 const interval = z.enum(["monthly", "yearly"]);
 
-/** Creates the transaction the browser then opens with Paddle.js. */
-export async function startCheckoutAction(chosen: string): Promise<CheckoutState> {
+/**
+ * Creates the transaction the browser then opens with Paddle.js.
+ * US-PROMO-04: an optional discount code is checked here for shape only; the
+ * backend decides whether it is a real, usable discount.
+ */
+export async function startCheckoutAction(chosen: string, code?: string): Promise<CheckoutState> {
   const session = await requireSession();
   const parsed = interval.safeParse(chosen);
   if (!parsed.success) return { error: "Choose monthly or yearly." };
+  const discount = typeof code === "string" ? code.trim() : "";
+  if (discount.length > 64) return { error: "That code is too long." };
 
-  const result = await authed(session, (token) => createCheckout(token, parsed.data));
+  const result = await authed(session, (token) =>
+    createCheckout(token, parsed.data, discount || undefined),
+  );
   if (!result.ok) return { error: failureMessage(result.failure) };
   return result.value;
+}
+
+export type PromoState = { error: string } | { ok: true };
+
+/**
+ * US-PROMO-01: redeems a promo or voucher code. The code is decided on the
+ * backend; a refusal comes back as its own sentence to show in the form.
+ */
+export async function redeemPromoCodeAction(
+  _previous: PromoState | null,
+  form: FormData,
+): Promise<PromoState> {
+  const session = await requireSession();
+  const code = String(form.get("code") ?? "").trim();
+  if (!code) return { error: "Enter a code." };
+  if (code.length > 64) return { error: "That code is too long." };
+
+  const result = await authed(session, (token) => redeemPromoCode(token, code));
+  if (!result.ok) return { error: failureMessage(result.failure) };
+  return { ok: true };
 }
 
 export type PortalState = { error: string } | { url: string };

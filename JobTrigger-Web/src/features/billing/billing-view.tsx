@@ -10,6 +10,7 @@ import { routes } from "../marketing/site-links";
 
 import { billingMode } from "./billing-mode";
 import { ManageButton, TeamCheckout, UpgradeButtons } from "./billing-actions";
+import { PromoCodeForm } from "./promo-code-form";
 
 /**
  * Billing (P20-83): upgrade with Paddle, or manage a web subscription in
@@ -45,6 +46,11 @@ export function BillingView({
         </h1>
 
         {subscription && mode !== "unavailable" && <p>{planSummary(subscription)}</p>}
+
+        {/* US-PROMO-01: where the current plan came from, in words. */}
+        {subscription?.plan === "pro" && subscription.source === "promo" && (
+          <p className="text-sm text-muted">Redeemed with a promo code.</p>
+        )}
 
         {mode === "unavailable" && (
           <p>
@@ -87,6 +93,8 @@ export function BillingView({
 
         {mode === "other" && <p className="text-fg-secondary">There is nothing to manage here.</p>}
       </Card>
+      {/* US-PROMO-01: only while Free, and only when the backend has codes. */}
+      {subscription?.plan === "free" && subscription.promoAvailable && <PromoCodeForm />}
       {team && team.role === "owner" && <TeamBilling team={team} paddle={paddle} />}
     </>
   );

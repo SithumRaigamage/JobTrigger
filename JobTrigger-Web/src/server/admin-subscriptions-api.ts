@@ -5,7 +5,9 @@ import { z } from "zod";
 import type {
   AdminPlanFilter,
   AdminSubscription,
+  AdminSubscriptionsPage,
   AdminBillingSource,
+  AdminPromoCode,
 } from "@/domain/admin-subscription";
 import type { Result } from "@/domain/result";
 
@@ -43,6 +45,8 @@ const billingSource = z
     plan: z.enum(["free", "pro"]).catch("free"),
     status: state,
     source,
+    // US-PROMO-01: the code, when the source is a redeemed one.
+    productId: z.string().nullable().catch(null),
     periodEnd: z.string().nullable().catch(null),
     willRenew: z.boolean().catch(false),
   })
@@ -55,6 +59,7 @@ const billingSource = z
           plan: value.plan,
           state: value.status,
           source: value.source,
+          productId: value.productId ?? null,
           periodEnd: value.periodEnd,
           willRenew: value.willRenew,
         },
@@ -75,8 +80,9 @@ const item = z
         web: billingSource,
         grant: billingSource,
         student: billingSource,
+        promo: billingSource,
       })
-      .catch({ store: null, web: null, grant: null, student: null }),
+      .catch({ store: null, web: null, grant: null, student: null, promo: null }),
     createdAt: z.string().nullable().catch(null),
   })
   .transform((value): AdminSubscription => ({
@@ -91,19 +97,43 @@ const item = z
     createdAt: value.createdAt,
   }));
 
-const list = z.object({ items: z.array(item) });
+/**
+ * US-PROMO-05: a configured code with its usage. Missing or odd fields fall
+ * back to "no numbers" rather than dropping the row: the console should still
+ * show that the code exists.
+ */
+const promoCode = z
+  .object({
+    code: z.string(),
+    kind: z.enum(["pro", "checkout"]).catch("pro"),
+    days: z.number().nullable().catch(null),
+    redemptions: z.number().nullable().catch(null),
+    maxRedemptions: z.number().nullable().catch(null),
+    remaining: z.number().nullable().catch(null),
+    expiresAt: z.string().nullable().catch(null),
+    expired: z.boolean().catch(false),
+  })
+  .transform((value): AdminPromoCode => value);
+
+const list = z.object({
+  items: z.array(item),
+  // An older backend sends none: the console simply shows no code card.
+  codes: z.array(promoCode).catch([]),
+});
 
 export async function listAdminSubscriptions(
   accessToken: string,
   { plan, q }: { plan: AdminPlanFilter; q: string },
-): Promise<Result<AdminSubscription[]>> {
+): Promise<Result<AdminSubscriptionsPage>> {
   const query = new URLSearchParams({ plan });
   if (q) query.set("q", q);
   const result = await callBackend(
     { path: `/api/admin/subscriptions?${query.toString()}`, accessToken },
     list,
   );
-  return result.ok ? { ok: true, value: result.value.items } : result;
+  return result.ok
+    ? { ok: true, value: { items: result.value.items, codes: result.value.codes } }
+    : result;
 }
 
 const OBJECT_ID = /^[a-f0-9]{24}$/i;

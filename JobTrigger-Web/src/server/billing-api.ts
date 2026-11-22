@@ -22,13 +22,23 @@ const checkoutDto = z.object({
 
 export type Checkout = z.infer<typeof checkoutDto>;
 
-/** Creates a Paddle transaction for the signed-in user. 409 when already Pro. */
+/**
+ * Creates a Paddle transaction for the signed-in user. 409 when already Pro.
+ * US-PROMO-04: `code` is a discount code (optional); the backend resolves it
+ * to its Paddle discount, so no price or discount id is ever sent from here.
+ */
 export async function createCheckout(
   accessToken: string,
   interval: CheckoutInterval,
+  code?: string,
 ): Promise<Result<Checkout>> {
   return callBackend(
-    { method: "POST", path: "/api/billing/paddle/checkout", body: { interval }, accessToken },
+    {
+      method: "POST",
+      path: "/api/billing/paddle/checkout",
+      body: code ? { interval, code } : { interval },
+      accessToken,
+    },
     checkoutDto,
   );
 }

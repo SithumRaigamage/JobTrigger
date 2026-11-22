@@ -19,6 +19,7 @@ class _Adapter implements HttpClientAdapter {
   final int status;
   final Object body;
   final paths = <String>[];
+  final bodies = <Object?>[];
 
   @override
   Future<ResponseBody> fetch(
@@ -27,6 +28,7 @@ class _Adapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     paths.add('${options.method} ${options.path}');
+    bodies.add(options.data);
     return ResponseBody.fromString(
       jsonEncode(body),
       status,
@@ -141,6 +143,45 @@ void main() {
     billing.purchaseError = null;
     expect(await repo.purchase(offer), isA<Ok<void, AppFailure>>());
     expect(billing.calls, [r'purchase:$rc_annual']);
+  });
+
+  test('redeemPromoCode posts the code and returns the granted plan', () async {
+    final adapter = _Adapter(200, {
+      ..._proBody,
+      'source': 'promo',
+      'willRenew': false,
+      'periodEnd': '2027-01-15T12:00:00.000Z',
+      'promoAvailable': true,
+    });
+    final result = await _repo(
+      adapter,
+      FakeBillingClient(),
+    ).redeemPromoCode('LAUNCH30');
+
+    expect(adapter.paths, ['POST /api/subscription/promo']);
+    expect(adapter.bodies, [
+      {'code': 'LAUNCH30'},
+    ]);
+    final snapshot = (result as Ok).value;
+    expect(snapshot.entitlements.isPro, isTrue);
+    expect(snapshot.status.isPromo, isTrue);
+    expect(snapshot.status.periodEnd, DateTime.utc(2027, 1, 15, 12));
+    expect(snapshot.promoAvailable, isTrue);
+  });
+
+  test('a refused code keeps the backend\'s own sentence and code', () async {
+    final result = await _repo(
+      _Adapter(409, {
+        'code': 'already_redeemed',
+        'message': "You've already used that code.",
+      }),
+      FakeBillingClient(),
+    ).redeemPromoCode('LAUNCH30');
+
+    final failure = (result as Err).error;
+    expect(failure, isA<StudentRequestFailure>());
+    expect(failure.message, "You've already used that code.");
+    expect((failure as StudentRequestFailure).code, 'already_redeemed');
   });
 
   test('a build with no billing offers nothing and cannot purchase', () async {

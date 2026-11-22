@@ -5,7 +5,7 @@
  */
 const Subscription = require('../models/Subscription');
 const { PLANS } = require('./plans');
-const { billingEnabled, teamPlanEnabled } = require('../config/env');
+const { billingEnabled, teamPlanEnabled, promoCodes } = require('../config/env');
 
 /** Statuses that keep Pro until `periodEnd` (or forever when it is null). */
 const PRO_STATUSES = new Set(['trialing', 'active', 'grace', 'billing_issue', 'cancelled']);
@@ -20,10 +20,23 @@ function isPro(sub, now = new Date()) {
 function describe(sub, { enabled, now = new Date() }) {
   const pro = !enabled || isPro(sub, now);
   const plan = PLANS[pro ? 'pro' : 'free'];
+  // US-PROMO-01: a promo period has no webhook or job to close it, so once its
+  // end date passes it reads as ended rather than "active" while the plan is
+  // Free; expiry is still computed on every read, never by a job. Scoped to
+  // the promo source on purpose: a grant, a student year and a store or web
+  // subscription are closed by the code that writes them (grant-plan.js,
+  // studentJobs.js, syncSubscription.js, the Paddle webhook), so changing what
+  // they report on a read would change those plans too.
+  const ended =
+    !pro &&
+    sub?.source === 'promo' &&
+    PRO_STATUSES.has(sub?.status) &&
+    Boolean(sub?.periodEnd) &&
+    new Date(sub.periodEnd) <= now;
   return {
     plan: pro ? 'pro' : 'free',
     billingEnabled: enabled,
-    status: sub?.status ?? 'none',
+    status: ended ? 'expired' : sub?.status ?? 'none',
     source: sub?.source ?? null,
     productId: sub?.productId ?? null,
     periodEnd: sub?.periodEnd ? new Date(sub.periodEnd).toISOString() : null,
@@ -32,6 +45,10 @@ function describe(sub, { enabled, now = new Date() }) {
     // open Paddle's portal (change card, cancel). Store subscriptions are
     // managed in the App Store / Google Play instead.
     manageOnWeb: Boolean(sub?.web?.paddleCustomerId),
+    // US-PROMO-01: whether a code can be redeemed for Pro time at all. Says
+    // nothing about how many codes there are or which. US-PROMO-04: a code
+    // that only discounts a checkout does not turn the redeem form on.
+    promoAvailable: enabled && promoCodes().some((entry) => entry.days),
     limits: { ...plan.limits },
     features: { ...plan.features },
   };

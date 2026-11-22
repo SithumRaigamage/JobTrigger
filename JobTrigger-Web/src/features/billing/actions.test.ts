@@ -31,7 +31,27 @@ describe("startCheckoutAction", () => {
       transactionId: "txn_1",
       environment: "sandbox",
     });
-    expect(createCheckout).toHaveBeenCalledWith("access-1", "monthly");
+    expect(createCheckout).toHaveBeenCalledWith("access-1", "monthly", undefined);
+  });
+
+  it("trims a discount code and sends it with the interval (US-PROMO-04)", async () => {
+    createCheckout.mockResolvedValue({
+      ok: true,
+      value: { transactionId: "txn_2", environment: "sandbox" },
+    });
+
+    expect(await startCheckoutAction("yearly", "  save20 ")).toEqual({
+      transactionId: "txn_2",
+      environment: "sandbox",
+    });
+    expect(createCheckout).toHaveBeenCalledWith("access-1", "yearly", "save20");
+  });
+
+  it("refuses an over-long code without calling the backend", async () => {
+    expect(await startCheckoutAction("monthly", "x".repeat(65))).toEqual({
+      error: "That code is too long.",
+    });
+    expect(createCheckout).not.toHaveBeenCalled();
   });
 
   it("refuses anything else without calling the backend", async () => {

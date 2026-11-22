@@ -81,6 +81,10 @@ class SubscriptionStatus {
   /// Phase 21: the free year for verified students.
   bool get isStudent => source == SubscriptionSource.student;
 
+  /// US-PROMO-01: Pro from a redeemed promo or voucher code. A store's own
+  /// promotional entitlement arrives as a store source, so [isStore] wins.
+  bool get isPromo => source == SubscriptionSource.promo && !isStore;
+
   /// Bought in the App Store or Google Play.
   bool get isStore =>
       source == SubscriptionSource.appStore ||
@@ -92,10 +96,15 @@ class SubscriptionSnapshot {
   const SubscriptionSnapshot({
     required this.entitlements,
     required this.status,
+    this.promoAvailable = false,
   });
 
   final Entitlements entitlements;
   final SubscriptionStatus status;
+
+  /// US-PROMO-01: the backend has promo codes configured, so "Redeem a code"
+  /// is worth offering. False on an older backend, which has none.
+  final bool promoAvailable;
 
   /// A store subscription that will bill again: deleting the account does
   /// not cancel it, so the delete dialog says so (US-SUB-07).
@@ -123,6 +132,27 @@ class SubscriptionSnapshot {
     if (!entitlements.billingEnabled ||
         !entitlements.isPro ||
         !status.isStudent ||
+        end == null) {
+      return null;
+    }
+    final left = end.difference(now);
+    return left.isNegative || left == Duration.zero || left > within
+        ? null
+        : end;
+  }
+
+  /// US-PROMO-06: the end of the Pro period a redeemed code gave, when that
+  /// period is running and ends within [within]; null otherwise. Read from
+  /// the plan the app already has, so the reminder needs no extra request —
+  /// the same shape as [studentYearEndingSoon].
+  DateTime? promoEndingSoon(
+    DateTime now, {
+    Duration within = const Duration(days: 3),
+  }) {
+    final end = status.periodEnd;
+    if (!entitlements.billingEnabled ||
+        !entitlements.isPro ||
+        !status.isPromo ||
         end == null) {
       return null;
     }

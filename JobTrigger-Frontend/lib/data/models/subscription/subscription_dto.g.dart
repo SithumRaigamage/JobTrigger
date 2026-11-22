@@ -20,6 +20,7 @@ _SubscriptionDto _$SubscriptionDtoFromJson(Map<String, dynamic> json) =>
       periodEnd: json['periodEnd'] as String?,
       willRenew: json['willRenew'] as bool? ?? false,
       manageOnWeb: json['manageOnWeb'] as bool? ?? false,
+      promoAvailable: json['promoAvailable'] as bool? ?? false,
       primaryCredentialId: json['primaryCredentialId'] as String?,
       team: json['team'] == null
           ? null
@@ -38,6 +39,7 @@ Map<String, dynamic> _$SubscriptionDtoToJson(_SubscriptionDto instance) =>
       'periodEnd': instance.periodEnd,
       'willRenew': instance.willRenew,
       'manageOnWeb': instance.manageOnWeb,
+      'promoAvailable': instance.promoAvailable,
       'primaryCredentialId': instance.primaryCredentialId,
       'team': instance.team,
     };

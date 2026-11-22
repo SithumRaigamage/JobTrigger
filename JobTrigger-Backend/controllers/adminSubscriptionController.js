@@ -11,8 +11,10 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
+const PromoRedemption = require('../models/PromoRedemption');
 const { clearSource, derive, writeSource } = require('../billing/combine');
 const { isPro } = require('../billing/entitlements');
+const { promoCodes } = require('../config/env');
 const { logger } = require('../lib/logger');
 
 const PAGE = 50;
@@ -51,9 +53,38 @@ function view(user, subscription, now = new Date()) {
       web: sourceView(subscription?.web),
       grant: sourceView(subscription?.grant),
       student: sourceView(subscription?.student),
+      // US-PROMO-01: a redeemed code (productId holds the code).
+      promo: sourceView(subscription?.promo),
     },
     createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : null,
   };
+}
+
+/**
+ * US-PROMO-05: every configured code, with how many accounts hold it and
+ * what is left of its cap. The count is the redemption rows — the same count
+ * the redeem rule enforces (billing/promo.js `isUsable`) — so a code deleted
+ * with its account frees a slot here exactly as it does there. A checkout
+ * discount has no local rows: Paddle counts its own redemptions. Codes are
+ * only shown to a super admin, and only the numbers, never who holds one.
+ */
+function promoCodeViews(counts, now = new Date()) {
+  return promoCodes().map((entry) => {
+    const redemptions = entry.days ? counts.get(entry.code) ?? 0 : null;
+    return {
+      code: entry.code,
+      kind: entry.days ? 'pro' : 'checkout',
+      days: entry.days ?? null,
+      redemptions,
+      maxRedemptions: entry.maxRedemptions ?? null,
+      remaining:
+        entry.maxRedemptions === null || redemptions === null
+          ? null
+          : Math.max(0, entry.maxRedemptions - redemptions),
+      expiresAt: entry.expiresAt ? new Date(entry.expiresAt).toISOString() : null,
+      expired: Boolean(entry.expiresAt && entry.expiresAt <= now),
+    };
+  });
 }
 
 /**
@@ -84,7 +115,14 @@ exports.list = async (req, res, next) => {
       .map((u) => view(u, byUser.get(String(u._id)), now))
       .filter((item) => requested === 'all' || item.plan === requested)
       .slice(0, PAGE);
-    res.json({ items });
+    // Counted over every account, not the page: a cap is global.
+    const counts = await PromoRedemption.aggregate([
+      { $group: { _id: '$code', count: { $sum: 1 } } },
+    ]);
+    res.json({
+      items,
+      codes: promoCodeViews(new Map(counts.map((c) => [c._id, c.count])), now),
+    });
   } catch (err) {
     next(err);
   }
@@ -151,4 +189,5 @@ exports.revoke = async (req, res, next) => {
 };
 
 exports.view = view;
+exports.promoCodeViews = promoCodeViews;
 exports.MAX_DAYS = MAX_DAYS;

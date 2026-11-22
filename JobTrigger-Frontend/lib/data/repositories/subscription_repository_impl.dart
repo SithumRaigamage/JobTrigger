@@ -51,9 +51,25 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
     () => _dio.post<Map<String, dynamic>>('/api/subscription/refresh'),
   );
 
+  @override
+  Future<Result<SubscriptionSnapshot, AppFailure>> redeemPromoCode(
+    String code,
+  ) => _snapshot(
+    () => _dio.post<Map<String, dynamic>>(
+      '/api/subscription/promo',
+      data: {'code': code},
+    ),
+    // US-PROMO-01: a refused code carries the backend's own sentence ("That
+    // code isn't valid", "You've already used that code", "already Pro"),
+    // like the student-plan calls.
+    mapDioException: AppFailure.fromStudentException,
+  );
+
   Future<Result<SubscriptionSnapshot, AppFailure>> _snapshot(
-    Future<Response<Map<String, dynamic>>> Function() call,
-  ) => guardRequest(() async {
+    Future<Response<Map<String, dynamic>>> Function() call, {
+    AppFailure Function(DioException exception) mapDioException =
+        AppFailure.fromDioException,
+  }) => guardRequest(() async {
     final body = (await call()).data!;
     final snapshot = SubscriptionDto.fromJson(body).toDomain();
     try {
@@ -63,7 +79,7 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       // Best effort: the answer is still good without a cache.
     }
     return snapshot;
-  });
+  }, mapDioException: mapDioException);
 
   @override
   Future<Result<List<BillingOffer>, AppFailure>> offerings() =>

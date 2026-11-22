@@ -162,6 +162,17 @@ const supportTicketLimiter = authLimiter({
   keyGenerator: perUser,
 });
 
+/**
+ * US-PROMO-01: a person redeems a code once. The limit is per account (never
+ * per IP: an office behind one NAT address shares an IP) and counts every
+ * attempt, so a code list can't be walked.
+ */
+const promoRedeemLimiter = authLimiter({
+  windowMs: 15 * MINUTE,
+  limit: fromEnv('PROMO_REDEEM_RATE_LIMIT', 10),
+  keyGenerator: perUser,
+});
+
 module.exports = {
   adminLimiter,
   studentDocumentLimiter,
@@ -174,6 +185,7 @@ module.exports = {
   passwordResetConfirmLimiter,
   passwordResetEmailLimiter,
   passwordResetLimiter,
+  promoRedeemLimiter,
   loginEmailKey,
   loginEmailLimiter,
   loginLimiter,

@@ -71,6 +71,20 @@ describe('Plans and entitlements (P20-10)', function() {
     expect(body.features.multiTool).to.equal(true);
   });
 
+  it('ends a promo period by date, and leaves every other source to its writer', function() {
+    const earlier = new Date(Date.now() - DAY);
+    // US-PROMO-01: a promo period has no job to close it, so a read past its
+    // last day reports it as ended.
+    expect(describePlan({ plan: 'pro', status: 'active', source: 'promo', periodEnd: earlier }, { enabled: true }))
+      .to.include({ plan: 'free', status: 'expired', source: 'promo' });
+    // A grant, a student year and a paid document are closed by the code that
+    // writes them, so this story changes nothing about what they report.
+    for (const source of ['admin', 'student', 'app_store']) {
+      expect(describePlan({ plan: 'pro', status: 'active', source, periodEnd: earlier }, { enabled: true }))
+        .to.include({ plan: 'free', status: 'active' });
+    }
+  });
+
   it('describes Free with its limits when billing is on', function() {
     const body = describePlan(null, { enabled: true });
     expect(body).to.deep.include({ plan: 'free', status: 'none' });
@@ -246,8 +260,9 @@ describe('GET /api/subscription and refresh (P20-14, US-SUB-01)', function() {
     expect(res.body).to.include({ plan: 'pro', billingEnabled: false });
     expect(res.body).to.have.keys(
       // Changed on purpose (web checkout): `manageOnWeb` added.
+      // Changed on purpose (US-PROMO-01): `promoAvailable` added.
       'plan', 'billingEnabled', 'status', 'source', 'productId', 'periodEnd', 'willRenew',
-      'manageOnWeb', 'limits', 'features', 'primaryCredentialId',
+      'manageOnWeb', 'promoAvailable', 'limits', 'features', 'primaryCredentialId',
     );
   });
 

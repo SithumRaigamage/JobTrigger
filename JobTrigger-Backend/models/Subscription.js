@@ -29,7 +29,7 @@ const sourceSchema = new mongoose.Schema({
  * billing code (RevenueCat sync, Paddle webhook) and scripts/grant-plan.js.
  * Clients never write it.
  *
- * `store`, `web`, `grant` and `student` are the sources; the top-level plan fields
+ * `store`, `web`, `grant`, `student` and `promo` are the sources; the top-level plan fields
  * are derived from them by billing/combine.js (the best one wins) and are
  * what entitlements read.
  */
@@ -39,6 +39,8 @@ const subscriptionSchema = new mongoose.Schema({
   grant: { type: sourceSchema, default: null },
   /** Phase 21: the free year for verified students. */
   student: { type: sourceSchema, default: null },
+  /** US-PROMO-01: Pro granted by a promo or voucher code (periodEnd is when it ends). */
+  promo: { type: sourceSchema, default: null },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   plan: { type: String, enum: ['free', 'pro'], default: 'free' },
   status: {

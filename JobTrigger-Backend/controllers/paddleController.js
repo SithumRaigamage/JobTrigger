@@ -20,6 +20,7 @@ const User = require('../models/User');
 const Team = require('../models/Team');
 const paddle = require('../billing/paddleClient');
 const { verifySignature, fromPaddleSubscription } = require('../billing/paddle');
+const { checkoutDiscount } = require('../billing/promo');
 const { writeSource } = require('../billing/combine');
 const { entitlementsFor } = require('../billing/entitlements');
 const { billingEnabled, paddleConfig, paddleTeamPrices } = require('../config/env');
@@ -33,7 +34,7 @@ exports.checkout = async (req, res, next) => {
   try {
     const config = paddleConfig();
     if (!billingEnabled() || !config) return unavailable(res);
-    const { interval } = req.body ?? {};
+    const { interval, code } = req.body ?? {};
     if (interval !== 'monthly' && interval !== 'yearly') {
       return res.status(400).json({ message: 'Choose monthly or yearly' });
     }
@@ -46,10 +47,19 @@ exports.checkout = async (req, res, next) => {
         code: 'ALREADY_SUBSCRIBED',
       });
     }
-    const { transactionId } = await paddle.createTransaction({
-      priceId: config.prices[interval],
-      userId: req.user.id,
-    });
+    // US-PROMO-04: an optional discount code, resolved here, never in the
+    // browser: the browser only ever names the code, and Paddle gets the id.
+    let discountId;
+    if (typeof code === 'string' && code.trim()) {
+      const applied = await checkoutDiscount(code);
+      if (!applied.ok) {
+        return res.status(applied.status).json({ code: applied.code, message: applied.message });
+      }
+      discountId = applied.discountId;
+    }
+    const transaction = { priceId: config.prices[interval], userId: req.user.id };
+    if (discountId) transaction.discountId = discountId;
+    const { transactionId } = await paddle.createTransaction(transaction);
     res.set('Cache-Control', 'no-store');
     res.json({ transactionId, environment: config.environment });
   } catch (err) {

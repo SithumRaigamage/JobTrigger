@@ -39,6 +39,17 @@ class NotificationService {
     visibility: NotificationVisibility.private,
   );
 
+  /// US-PROMO-06: billing is its own channel too, so a user who silences
+  /// build results still hears that their Pro is about to end.
+  static const _billingChannel = AndroidNotificationDetails(
+    'subscription',
+    'Subscription',
+    channelDescription: 'When Pro from a promo code is about to end',
+    importance: Importance.defaultImportance,
+    priority: Priority.defaultPriority,
+    visibility: NotificationVisibility.private,
+  );
+
   /// Payloads of tapped notifications, for the app to open: an in-app
   /// `jobtrigger://app/open?…` link, or a bare job URL from a notification
   /// posted before AUD-45.
@@ -106,6 +117,68 @@ class NotificationService {
         iOS: DarwinNotificationDetails(),
       ),
     );
+  }
+
+  /// US-PROMO-06: whether the OS will actually show a notification right
+  /// now — someone who never allowed them, or turned them off since, has not
+  /// been reminded. Never prompts; false when the answer cannot be read (a
+  /// platform with no such question, or a failed channel call).
+  Future<bool> areNotificationsAllowed() async {
+    await initialize();
+    try {
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      if (android != null) {
+        return await android.areNotificationsEnabled() ?? false;
+      }
+      final ios = _plugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
+      if (ios != null) {
+        return (await ios.checkPermissions())?.isEnabled ?? false;
+      }
+    } on Object {
+      // Unknown counts as not allowed: a reminder is never marked as shown.
+    }
+    return false;
+  }
+
+  /// US-PROMO-06: a billing reminder. Unlike build results it is shown while
+  /// the app is open (iOS hides a foreground notification otherwise), because
+  /// that is where it is read; no payload, since Profile → Subscription is a
+  /// tap away. Nothing prompts for permission.
+  ///
+  /// Returns true only when the OS took it. False when notifications are not
+  /// allowed, or the platform call failed — so the caller can leave the user
+  /// un-reminded and say it in the app instead.
+  Future<bool> showSubscriptionAlert({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    await initialize();
+    try {
+      if (!await areNotificationsAllowed()) return false;
+      await _plugin.show(
+        id: id,
+        title: title,
+        body: body,
+        notificationDetails: const NotificationDetails(
+          android: _billingChannel,
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBanner: true,
+            presentSound: false,
+          ),
+        ),
+      );
+      return true;
+    } on Object {
+      return false;
+    }
   }
 
   Future<void> show(BuildNotification notification) async {

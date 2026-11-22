@@ -14,6 +14,8 @@ import '../student/student_expiry_notice.dart';
 import 'billing_availability.dart';
 import 'entitlements_notifier.dart';
 import 'paywall_notifier.dart';
+import 'promo_code_dialog.dart';
+import 'promo_expiry_notice.dart';
 import 'store_links.dart';
 
 /// P20-24 / US-SUB-01: Profile → Subscription. The plan, when it renews or
@@ -65,6 +67,7 @@ class SubscriptionScreen extends ConsumerWidget {
                             ),
                           ),
                           const StudentExpiryBanner(),
+                          const PromoExpiryBanner(),
                           const SizedBox(height: 16),
                           GroupedCard(
                             children: [
@@ -185,6 +188,30 @@ class SubscriptionScreen extends ConsumerWidget {
                               ],
                             ),
                           ],
+                          // US-PROMO-01: only when the backend has codes, and
+                          // only while Free (a code adds nothing to Pro).
+                          if (snapshot.promoAvailable &&
+                              !snapshot.entitlements.isPro) ...[
+                            const SizedBox(height: 16),
+                            GroupedCard(
+                              children: [
+                                ListTile(
+                                  key: const Key('promo_entry'),
+                                  leading: const Icon(
+                                    Icons.confirmation_number_outlined,
+                                  ),
+                                  title: const Text('Redeem a code'),
+                                  subtitle: const Text(
+                                    'Have a promo or voucher code?',
+                                  ),
+                                  trailing: const Icon(
+                                    Icons.chevron_right_rounded,
+                                  ),
+                                  onTap: () => _redeemCode(context, ref),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
               ),
@@ -238,6 +265,9 @@ class SubscriptionScreen extends ConsumerWidget {
     }
     if (status.isStudent) {
       return 'Free for one year as a verified student.';
+    }
+    if (status.isPromo) {
+      return 'Redeemed with a code.';
     }
     // US-SUB-11 AC16: no purchase, and no link to the website checkout.
     if (status.isTeam) {
@@ -305,6 +335,26 @@ class SubscriptionScreen extends ConsumerWidget {
     }
     // Web, promo and admin Pro: nothing to buy and nothing to link to.
     return const [];
+  }
+
+  /// US-PROMO-01: asks for a code, then shows the plan the backend granted.
+  /// A refusal never closes the dialog (see [PromoCodeDialog]).
+  Future<void> _redeemCode(BuildContext context, WidgetRef ref) async {
+    final toast = ref.read(toastControllerProvider);
+    final redeemed = await showDialog<bool>(
+      context: context,
+      builder: (context) => const PromoCodeDialog(),
+    );
+    if (redeemed != true) return;
+    final end = ref.read(entitlementsNotifierProvider).value?.status.periodEnd;
+    toast.show(
+      type: ToastType.success,
+      title: 'Pro is active',
+      message: end == null
+          ? 'Your code was accepted.'
+          : 'Your code was accepted. Pro ends on '
+                '${_formatDate(end.toLocal())}.',
+    );
   }
 
   /// Runs one sandbox store action, then re-reads the plan from the

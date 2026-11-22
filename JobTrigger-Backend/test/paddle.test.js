@@ -220,6 +220,35 @@ describe('Paddle checkout and portal', function() {
     expect(created).to.deep.equal([{ priceId: 'pri_yearly', userId: me.id }]);
   });
 
+  it('applies a discount code to the transaction, and refuses a bad one before Paddle (US-PROMO-04)', async function() {
+    process.env.PROMO_CODES = JSON.stringify([
+      { code: 'SAVE20', discountId: 'dsc_0123456789abcdef' },
+      { code: 'OLD20', discountId: 'dsc_abcdef0123456789', expiresAt: '2020-01-01' },
+      { code: 'LAUNCH30', days: 30 },
+    ]);
+    try {
+      const me = await signup();
+      const ok = await authed('post', '/api/billing/paddle/checkout', me.token)
+        .send({ interval: 'yearly', code: '  save20 ' });
+      expect(ok.status).to.equal(200);
+      expect(created).to.have.length(1);
+      expect(created[0].discountId).to.equal('dsc_0123456789abcdef');
+
+      // Expired, unknown, and a Pro-time code: one neutral sentence, no
+      // transaction, so nothing is charged at a price the buyer didn't see.
+      for (const code of ['OLD20', 'NOPE', 'LAUNCH30']) {
+        const res = await authed('post', '/api/billing/paddle/checkout', me.token)
+          .send({ interval: 'yearly', code });
+        expect(res.status).to.equal(400);
+        expect(res.body.code).to.equal('invalid_code');
+        expect(res.body.message).to.equal("That code isn't valid, or it has expired.");
+      }
+      expect(created).to.have.length(1);
+    } finally {
+      process.env.PROMO_CODES = '';
+    }
+  });
+
   it('refuses a second subscription, whichever store the first is from', async function() {
     const me = await signup();
     await Subscription.create({ userId: me.id, plan: 'pro', status: 'active', source: 'app_store' });

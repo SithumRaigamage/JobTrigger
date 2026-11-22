@@ -1,8 +1,8 @@
 # M-24 — Promo codes, checkout discounts and expiry reminders (US-PROMO-01..06)
 
-> Added 2026-11-22 with Phase 29. Back to the [index](README.md).
+> Added 2026-11-22 with Phase 30. Back to the [index](README.md).
 
-**Source:** PV-50, PV-65, PV-79 (`tasks/phase-29-promo-codes.md`).
+**Source:** PV-50, PV-65, PV-79 (`tasks/phase-30-promo-codes.md`).
 **Why only you:** production/staging deployment variables, the Paddle account/dashboard, and physical iPhone hardware testing in your hands.
 
 ---

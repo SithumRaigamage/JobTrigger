@@ -22,6 +22,11 @@ export type Subscription = {
   willRenew: boolean;
   /** True when Paddle's portal can manage it (a web subscription). */
   manageOnWeb: boolean;
+  /**
+   * US-PROMO-01: the backend has promo codes, so "Redeem a code" is worth
+   * offering. Optional: an older backend sends nothing.
+   */
+  promoAvailable?: boolean;
   limits: {
     maxCredentialsTotal: number | null;
     maxCredentialsPerTool: number | null;

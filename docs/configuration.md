@@ -99,6 +99,7 @@ without `SMTP_HOST` is refused at startup.
 | `STUDENT_DOCUMENT_RATE_LIMIT` | 5 | 60 min |
 | `ADMIN_RATE_LIMIT` | 120 | 1 min |
 | `SUPPORT_TICKET_RATE_LIMIT` | 5 | 60 min |
+| `PROMO_REDEEM_RATE_LIMIT` | 10 | 15 min, per user (US-PROMO-01) |
 
 ### Billing
 
@@ -113,6 +114,7 @@ without `SMTP_HOST` is refused at startup.
 | `PADDLE_PRICE_MONTHLY` | unset | not needed | Paddle `pri_…` for $9.99/month |
 | `PADDLE_PRICE_YEARLY` | unset | not needed | Paddle `pri_…` for $29.99/year |
 | `PADDLE_ENV` | `sandbox` | not needed | `sandbox` or `production`; must match the API key |
+| `PROMO_CODES` | unset (off) | `[{"code":"LAUNCH30","days":30},{"code":"SAVE20","discountId":"dsc_01h..."}]` | the codes: free Pro time, or a percentage off the website checkout. Edit and redeploy to add or retire one (US-PROMO-01, US-PROMO-04). See below |
 
 Rules enforced at startup (`config/env.js`):
 
@@ -123,6 +125,23 @@ Rules enforced at startup (`config/env.js`):
 - `SANDBOX_BILLING=true` with `NODE_ENV=production` stops the server. The
   routes also answer 404 unless the flag is on.
 - `BILLING_ENABLED` and `SANDBOX_BILLING` accept only `true`/`false`.
+- `PROMO_CODES` must be a JSON list where each entry is one kind:
+  `{ "code", "days" }` (free Pro time) or `{ "code", "discountId" }` (a Paddle
+  discount taken off a website checkout). `code` is 3–64 letters/digits/`_`/`-`;
+  `days` is 1–3650; `discountId` is a Paddle `dsc_…` id whose percentage,
+  recurrence and cap are set on the discount in Paddle. Both kinds take an
+  optional `expiresAt` (`YYYY-MM-DD`, usable through that UTC day, or a full ISO
+  date-time); a `days` code also takes `maxRedemptions` (a positive whole
+  number), which a `discountId` code may not (Paddle counts its own). Giving
+  both `days` and `discountId`, neither, or a duplicate code is refused. A
+  broken value stops the server and the message names the variable, never the
+  list.
+
+  Because a broken value stops the whole backend from starting, check it
+  before pasting it into a deployment: `PROMO_CODES='<the list>' npm run
+  check-promo-codes` in `JobTrigger-Backend/` exits 0 for a usable list (and
+  prints how many codes of each kind), or 1 with the sentence the server would
+  refuse to start on (US-PROMO-05). It never prints a code.
 
 Backend endpoints the providers call:
 

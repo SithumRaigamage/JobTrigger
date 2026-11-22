@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
+import '../../../core/platform/notification_service.dart';
 import '../../../data/demo/demo_mode_notifier.dart';
 import '../../../data/repositories/subscription_repository_impl.dart';
 import '../../../domain/auth/auth_state.dart';
@@ -11,6 +12,7 @@ import '../../../domain/subscription/entitlements.dart';
 import '../../../domain/subscription/subscription_status.dart';
 import '../auth/auth_notifier.dart';
 import 'billing_session.dart';
+import 'promo_expiry_reminder.dart';
 
 part 'entitlements_notifier.g.dart';
 
@@ -46,14 +48,17 @@ class EntitlementsNotifier extends _$EntitlementsNotifier {
     final repository = ref.read(subscriptionRepositoryProvider);
     final cached = await repository.cached();
     if (cached != null) {
+      _remindPromoEnd(cached);
       // Show the cached plan now and freshen it in the background.
       unawaited(Future.microtask(refresh));
       return cached;
     }
-    return switch (await repository.load()) {
-      Ok(:final value) => value,
-      Err() => _unrestricted,
-    };
+    final loaded = await repository.load();
+    if (loaded case Ok(:final value)) {
+      _remindPromoEnd(value);
+      return value;
+    }
+    return _unrestricted;
   }
 
   /// Re-reads the plan from the backend. A failure keeps what is shown.
@@ -61,12 +66,28 @@ class EntitlementsNotifier extends _$EntitlementsNotifier {
     if (!ref.mounted) return;
     final result = await ref.read(subscriptionRepositoryProvider).load();
     if (!ref.mounted) return;
-    if (result case Ok(:final value)) state = AsyncData(value);
+    if (result case Ok(:final value)) {
+      state = AsyncData(value);
+      _remindPromoEnd(value);
+    }
   }
 
   /// Takes a fresh answer, e.g. from `POST /api/subscription/refresh` after
   /// a purchase or restore.
-  void apply(SubscriptionSnapshot snapshot) => state = AsyncData(snapshot);
+  void apply(SubscriptionSnapshot snapshot) {
+    state = AsyncData(snapshot);
+    _remindPromoEnd(snapshot);
+  }
+
+  /// US-PROMO-06: a local notification three days before Pro from a redeemed
+  /// code ends. Once per period (the reminder keeps the end it announced in
+  /// preferences), and only from a plan that already arrived — launch, a
+  /// resume refresh, a redemption or a purchase — so it costs no request.
+  void _remindPromoEnd(SubscriptionSnapshot snapshot) {
+    unawaited(
+      remindPromoEndingSoon(snapshot, ref.read(notificationServiceProvider)),
+    );
+  }
 }
 
 /// The entitlements alone, for gates. [Entitlements.unrestricted] until the

@@ -11,4 +11,7 @@ module.exports = Object.freeze([
   'subscription_renewed',
   'subscription_expired',
   'refund',
+  // US-PROMO-05: a code was redeemed. The code itself is a secret and is
+  // never sent; only the number of days granted.
+  'promo_redeemed',
 ]);

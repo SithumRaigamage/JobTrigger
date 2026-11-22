@@ -12,6 +12,8 @@ export type AdminBillingSource = {
   plan: "free" | "pro";
   state: SubscriptionState;
   source: SubscriptionSource | null;
+  /** US-PROMO-01: the redeemed code, for a promo source. */
+  productId?: string | null;
   periodEnd: string | null;
   willRenew: boolean;
 };
@@ -30,8 +32,31 @@ export type AdminSubscription = {
     web: AdminBillingSource | null;
     grant: AdminBillingSource | null;
     student: AdminBillingSource | null;
+    /** US-PROMO-01: a redeemed promo or voucher code. */
+    promo?: AdminBillingSource | null;
   };
   createdAt: string | null;
+};
+
+/**
+ * US-PROMO-05: one configured code and how much of it is used. `redemptions`
+ * is null for a checkout discount, whose redemptions Paddle counts.
+ */
+export type AdminPromoCode = {
+  code: string;
+  kind: "pro" | "checkout";
+  days: number | null;
+  redemptions: number | null;
+  maxRedemptions: number | null;
+  remaining: number | null;
+  expiresAt: string | null;
+  expired: boolean;
+};
+
+/** One page of the console: the accounts, and every code configured. */
+export type AdminSubscriptionsPage = {
+  items: AdminSubscription[];
+  codes: AdminPromoCode[];
 };
 
 /** The console's plan filter. */
