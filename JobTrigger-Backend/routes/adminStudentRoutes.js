@@ -10,6 +10,8 @@ const admin = require('../controllers/adminStudentController');
 router.use(auth, adminLimiter, requireSuperAdmin);
 
 router.get('/', admin.list);
+// US-STU-02: before `/:id`, so "access" is never read as an id.
+router.get('/access', admin.access);
 router.get('/:id', admin.get);
 router.get('/:id/document', admin.document);
 router.post('/:id/approve', admin.approve);

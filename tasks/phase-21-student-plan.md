@@ -14,10 +14,14 @@ Jenkins frozen (§11).
 - **One student grant per person, ever.** Block reuse of the same university
   email or the same document.
 - Verification: **university email one-time code first**; fallback **student ID
-  or enrolment letter upload**, approved manually.
+  or enrolment letter upload**, approved manually. *Superseded 2026-11-22:*
+  every application is approved manually; the code only verifies the email
+  (US-STU-01, SP-7).
 - **No third-party verification service** (SheerID etc.) in this phase.
-- **Admin approval page on the website only**, behind a super-admin role.
-  Nothing admin-related ships in the mobile app.
+- ~~**Admin approval page on the website only**, behind a super-admin role.
+  Nothing admin-related ships in the mobile app.~~ *Replaced by the owner,
+  2026-11-22:* the super admin also reviews in the Flutter app (iOS and
+  Android), visible only to role `superAdmin` (US-STU-02, SP-7).
 - Uploads are stored **in MongoDB** (no blob storage, no new tool), max **5 MB**,
   **JPG, PNG or PDF** only.
 - Every new application **emails the owner** (details and a link to the admin
@@ -123,6 +127,37 @@ These fit inside the decisions above; they are how to build them safely.
 - [x] SP-61 On expiry: status `expired`, plan back to Free, the locked
       active-credential guard applies as for a lapsed paid plan.
 - [x] SP-62 Tests for the reminder and the downgrade.
+
+### SP-7 Manual review of every application (owner decisions 2026-11-22)
+Stories: `docs/user-stories/billing/23-student-plan.md` (US-STU-01…03).
+Design: `docs/design/US-STU-manual-review.md`.
+- [x] SP-70 Backend: the right code sets `emailVerifiedAt` and keeps the
+      application `pending`; no grant; owner notice on verification.
+- [x] SP-71 Backend: a code request is `none` on `GET /api/student`; a
+      verified email blocks with `under_review`; an email verified and
+      waiting on another account is `email_used`.
+- [x] SP-72 Backend: approve and reject for both methods (email claimed on
+      approval, reviewer stored, `not_verified` 409, 30-day deletion only for
+      documents).
+- [x] SP-73 App + web: email wording for pending review and rejection.
+- [x] SP-74 Backend: `GET /api/admin/students/access` for the app.
+- [x] SP-75 Backend: the list has both methods, newest first, with
+      `emailVerifiedAt`, `reviewedBy`, `reviewedByEmail`; search by
+      university email.
+- [x] SP-76 App: `admin_review` feature (domain, data, Riverpod notifiers),
+      Profile row for a super admin only, guarded routes, demo mode off.
+- [ ] SP-77 App: detail with the document in memory only (image, PDF drawn
+      by PDFKit / `PdfRenderer` over `memfd`), approve and reject with
+      confirmation. Built and tested except the real PDF drawing, which
+      compiles for iOS and Android but is unchecked on a device (SP-7M).
+- [x] SP-78 App: tests for every criterion (repository, notifiers, screens,
+      Profile row, routes).
+- [x] SP-79 History filters and reviewer in the app and on `/admin/students`
+      (web detail page: method, university email, reviewer, decision forms
+      for email applications).
+- [ ] SP-7M MANUAL (owner): on the iPhone, as `developer@jobtrigger.app`,
+      approve an email application and reject a document one, and open a
+      PDF document.
 
 ## Done when
 - All checks green in CI, `flutter analyze` clean, backend, web and widget tests pass.

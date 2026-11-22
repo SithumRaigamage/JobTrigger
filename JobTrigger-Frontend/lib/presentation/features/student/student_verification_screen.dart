@@ -106,12 +106,15 @@ class _StudentVerificationScreenState
   }
 
   Widget _pending(StudentApplication application) {
-    return const _Message(
+    // US-STU-01: a verified university email waits for review too.
+    return _Message(
       icon: Icons.hourglass_top_rounded,
       title: 'Pending review',
-      body:
-          "We've received your student document. We review them by hand, so "
-          "it can take a few days. You'll see the result here.",
+      body: application.method == StudentMethod.email
+          ? 'Your university email is verified. We review every application '
+                "by hand, so it can take a few days. You'll see the result here."
+          : "We've received your student document. We review them by hand, so "
+                "it can take a few days. You'll see the result here.",
     );
   }
 
@@ -140,7 +143,9 @@ class _StudentVerificationScreenState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         InlineAlert(
-          title: "We couldn't approve your document",
+          title: application.method == StudentMethod.email
+              ? "We couldn't approve your application"
+              : "We couldn't approve your document",
           message: reason == null || reason.isEmpty
               ? 'Try again with a clearer photo or a different document.'
               : reason,

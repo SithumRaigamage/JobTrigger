@@ -5,9 +5,12 @@ const mongoose = require('mongoose');
  * proved: a one-time code sent to a university email, or an uploaded
  * student ID / enrolment letter reviewed by hand.
  *
- * - An email application stays `pending` (with a code) until the right
- *   code is confirmed, then is `approved` at once.
- * - A document application is `pending` until the owner decides.
+ * - An email application is `pending` with a code until the right code is
+ *   confirmed, which sets `emailVerifiedAt`. It stays `pending` until a
+ *   super admin decides (owner decision 2026-11-22, US-STU-01). A pending
+ *   email row without `emailVerifiedAt` is only a code request, not an
+ *   application: it is never listed for review.
+ * - A document application is `pending` until a super admin decides.
  * - `expired` is set by the daily job once the year is over. Whether the
  *   grant still gives Pro is decided by the date, not by this field
  *   (billing/combine.js), so a missed run never extends anyone's Pro.
@@ -33,6 +36,8 @@ const studentVerificationSchema = new mongoose.Schema({
   codeHash: { type: String, default: null, select: false },
   codeExpiresAt: { type: Date, default: null },
   codeAttempts: { type: Number, default: 0 },
+  /** US-STU-01: when the right code was entered. Review is still needed. */
+  emailVerifiedAt: { type: Date, default: null },
 
   // Document method. `documentData` is the encrypted base64 of the file.
   documentData: { type: String, default: null, select: false },

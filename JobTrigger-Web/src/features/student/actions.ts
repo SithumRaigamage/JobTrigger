@@ -66,7 +66,7 @@ export async function resendStudentCodeAction(email: string): Promise<StudentAct
   return startFor(email.trim());
 }
 
-/** The right code grants the student year at once. */
+/** The right code verifies the email; the application then waits for review (US-STU-01). */
 export async function confirmStudentCodeAction(
   _previous: StudentActionState,
   form: FormData,

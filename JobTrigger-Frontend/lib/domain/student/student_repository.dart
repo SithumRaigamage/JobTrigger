@@ -14,8 +14,9 @@ abstract class StudentRepository {
   /// not on the list is a failure with `isDomainNotListed`.
   Future<Result<void, AppFailure>> startEmail(String universityEmail);
 
-  /// `POST /api/student/email/confirm`: the right code grants the year at
-  /// once and returns the approved application.
+  /// `POST /api/student/email/confirm`: the right code verifies the email
+  /// and returns the application, now pending review (US-STU-01); only a
+  /// super admin's approval grants the year.
   Future<Result<StudentApplication, AppFailure>> confirmEmail(String code);
 
   /// `POST /api/student/document`: a student ID or enrolment letter for

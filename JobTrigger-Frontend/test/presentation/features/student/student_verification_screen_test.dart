@@ -101,6 +101,70 @@ void main() {
     expect(find.textContaining('16 Nov 2027'), findsOneWidget);
   });
 
+  testWidgets('US-STU-01: the right code leads to Pending review, not Pro', (
+    tester,
+  ) async {
+    final repo = FakeStudentRepository()
+      ..confirmResult = const Ok(
+        StudentApplication(
+          status: StudentStatus.pending,
+          method: StudentMethod.email,
+          universityEmail: 'kasun@uom.ac.lk',
+        ),
+      );
+    await _pump(tester, repo: repo);
+    await tester.enterText(
+      find.byKey(const Key('student_email_field')),
+      'kasun@uom.ac.lk',
+    );
+    await tester.tap(find.text('Send code'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('student_code_field')),
+      '123456',
+    );
+    await tester.tap(find.text('Verify'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pending review'), findsOneWidget);
+    expect(
+      find.textContaining('Your university email is verified'),
+      findsOneWidget,
+    );
+    expect(find.text('You have JobTrigger Pro as a student'), findsNothing);
+  });
+
+  testWidgets('US-STU-01: a rejected email application shows the reason and '
+      'Try again', (tester) async {
+    await _pump(
+      tester,
+      initial: const StudentApplication(
+        status: StudentStatus.rejected,
+        method: StudentMethod.email,
+        rejectionReason: 'Not a student address',
+      ),
+    );
+    expect(find.text("We couldn't approve your application"), findsOneWidget);
+    expect(find.text('Not a student address'), findsOneWidget);
+    await tester.tap(find.text('Try again'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('student_email_field')), findsOneWidget);
+  });
+
+  testWidgets('a pending document keeps the document wording', (tester) async {
+    await _pump(
+      tester,
+      initial: const StudentApplication(
+        status: StudentStatus.pending,
+        method: StudentMethod.document,
+      ),
+    );
+    expect(
+      find.textContaining('received your student document'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets(
     'a wrong code shows the backend reason and stays on the code step',
     (tester) async {

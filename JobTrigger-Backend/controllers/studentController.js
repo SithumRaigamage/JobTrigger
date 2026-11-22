@@ -1,7 +1,9 @@
 /**
  * Phase 21 (SP-2): the student plan's email path. A signed-in user gives a
  * university email on the allowed list, gets a 6-digit code there, and the
- * right code grants a year of Pro at once (no review).
+ * right code marks the email as verified. The application then waits for
+ * a super admin like a document does (owner decision 2026-11-22,
+ * US-STU-01): only an approval grants the year (adminStudentController).
  *
  * - The code lives 10 minutes, is stored only as a salted hash, and allows
  *   5 wrong tries; a new code starts a fresh count (the start route is
@@ -22,12 +24,8 @@ const { logger } = require('../lib/logger');
 const { siteUrl, studentAdminEmail, studentRenewalEnabled } = require('../config/env');
 const { studentCodeEmail, studentApplicationEmail } = require('../emails/student');
 const {
-  DAY_MS,
-  GRANT_DAYS,
-  claim,
   documentHash,
   emailHash,
-  grantStudentYear,
   isClaimed,
   isListedUniversityEmail,
   sha256,
@@ -54,6 +52,9 @@ async function applicationBlock(userId) {
   const records = await StudentVerification.find({ userId }).lean();
   if (records.some((r) => r.status === 'pending' && r.method === 'document')) {
     return { status: 409, code: 'under_review', message: 'Your student document is already waiting for review.' };
+  }
+  if (records.some((r) => r.status === 'pending' && r.method === 'email' && r.emailVerifiedAt)) {
+    return { status: 409, code: 'under_review', message: 'Your student application is already waiting for review.' };
   }
   const granted = records.find((r) => r.status === 'approved' || r.status === 'expired');
   if (granted) {
@@ -94,23 +95,31 @@ async function notifyOwner(verification, user) {
   }
 }
 
+/** A pending email row whose code was never confirmed (not an application). */
+const isCodeRequest = (v) => v.method === 'email' && v.status === 'pending' && !v.emailVerifiedAt;
+
 const publicView = (v) => ({
   id: String(v._id),
   method: v.method,
   status: v.status,
   universityEmail: v.universityEmail ?? null,
+  emailVerified: Boolean(v.emailVerifiedAt),
   rejectionReason: v.rejectionReason ?? null,
   submittedAt: v.createdAt,
   approvedAt: v.approvedAt ?? null,
   expiresAt: v.expiresAt ?? null,
 });
 
-/** The signed-in user's latest application, or `{ status: 'none' }`. */
+/**
+ * The signed-in user's latest application, or `{ status: 'none' }`. A code
+ * request that was never confirmed is not an application yet (US-STU-01):
+ * the user just starts again, so it reads as `none`.
+ */
 exports.status = async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
     const latest = await StudentVerification.findOne({ userId: req.user.id }).sort({ createdAt: -1 }).lean();
-    res.json(latest ? publicView(latest) : { status: 'none' });
+    res.json(latest && !isCodeRequest(latest) ? publicView(latest) : { status: 'none' });
   } catch (err) {
     next(err);
   }
@@ -185,6 +194,14 @@ exports.emailStart = async (req, res, next) => {
  * renewal on, the same person may use their own earlier email again.
  */
 async function emailTakenByAnother(userId, universityEmail) {
+  // Verified and waiting for review on another account holds it too.
+  const waitingElsewhere = await StudentVerification.exists({
+    universityEmail,
+    userId: mongoose.trusted({ $ne: userId }),
+    status: 'pending',
+    emailVerifiedAt: mongoose.trusted({ $ne: null }),
+  });
+  if (waitingElsewhere) return true;
   if (!(await isClaimed('email', emailHash(universityEmail)))) return false;
   if (!studentRenewalEnabled()) return true;
   const own = await StudentVerification.exists({ userId, universityEmail, status: mongoose.trusted({ $in: ['approved', 'expired'] }) });
@@ -227,39 +244,31 @@ exports.emailConfirm = async (req, res, next) => {
       });
     }
 
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + GRANT_DAYS * DAY_MS);
-    // Atomic: two confirms with the right code can't both approve.
-    const approved = await StudentVerification.findOneAndUpdate(
-      { _id: record._id, status: 'pending' },
-      {
-        $set: { status: 'approved', approvedAt: now, expiresAt, reviewedAt: now, codeExpiresAt: null },
-        $unset: { codeHash: '', codeSalt: '' },
-      },
-      { returnDocument: 'after' },
-    );
-    if (!approved) return res.status(400).json({ code: 'no_code', message: 'Ask for a new code first.' });
-
-    const hash = emailHash(approved.universityEmail);
-    const ownPrior = await StudentVerification.exists({
-      userId: req.user.id, universityEmail: approved.universityEmail, status: mongoose.trusted({ $in: ['approved', 'expired'] }), _id: mongoose.trusted({ $ne: approved._id }),
-    });
-    if (!(await claim('email', hash)) && !(studentRenewalEnabled() && ownPrior)) {
-      await StudentVerification.updateOne(
-        { _id: approved._id },
-        { $set: { status: 'rejected', rejectionReason: 'This university email was already used.' }, $unset: { approvedAt: '', expiresAt: '' } },
-      );
+    // The email must still be free: someone may have taken it since the
+    // code was sent (US-STU-01). Claiming waits for the approval.
+    if (await emailTakenByAnother(req.user.id, record.universityEmail)) {
       return res.status(409).json({
         code: 'email_used',
         message: 'That university email has already been used for a student plan.',
       });
     }
 
-    await grantStudentYear(req.user.id, now);
+    const now = new Date();
+    // Atomic: two confirms with the right code can't both verify.
+    const verified = await StudentVerification.findOneAndUpdate(
+      { _id: record._id, status: 'pending', emailVerifiedAt: null },
+      {
+        $set: { emailVerifiedAt: now, codeExpiresAt: null },
+        $unset: { codeHash: '', codeSalt: '' },
+      },
+      { returnDocument: 'after' },
+    );
+    if (!verified) return res.status(400).json({ code: 'no_code', message: 'Ask for a new code first.' });
+
     const user = await User.findById(req.user.id).lean();
-    await notifyOwner(approved, user);
-    logger.info('student.approved', { requestId: req.requestId, userId: req.user.id, method: 'email' });
-    res.json(publicView(approved));
+    await notifyOwner(verified, user);
+    logger.info('student.email_verified', { requestId: req.requestId, userId: req.user.id });
+    res.json(publicView(verified));
   } catch (err) {
     next(err);
   }
@@ -319,6 +328,7 @@ exports.documentUpload = async (req, res, next) => {
 
 exports.DOCUMENT_FIELD = DOCUMENT_FIELD;
 exports.applicationBlock = applicationBlock;
+exports.emailTakenByAnother = emailTakenByAnother;
 exports.notifyOwner = notifyOwner;
 exports.publicView = publicView;
 exports.CODE_MINUTES = CODE_MINUTES;

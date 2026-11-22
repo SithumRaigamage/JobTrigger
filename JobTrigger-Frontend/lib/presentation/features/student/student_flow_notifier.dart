@@ -145,7 +145,7 @@ class StudentFlowNotifier extends _$StudentFlowNotifier {
       case Ok(:final value):
         if (!ref.mounted) return;
         ref.read(studentStatusNotifierProvider.notifier).apply(value);
-        // The plan changed on the server: pick it up now.
+        // Pick up the plan now (an approval may already have landed).
         await ref.read(entitlementsNotifierProvider.notifier).refresh();
         if (ref.mounted) state = const StudentFlowDone();
       case Err(error: final failure):

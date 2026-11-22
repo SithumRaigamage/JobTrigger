@@ -103,7 +103,11 @@ export type AdminStudent = {
   fullName: string | null;
   universityEmail: string | null;
   submittedAt: string;
+  /** US-STU-01: when the university email's code was confirmed. */
+  emailVerifiedAt: string | null;
   reviewedAt: string | null;
+  /** US-STU-03: who decided it; null when undecided or the account is gone. */
+  reviewedByEmail: string | null;
   approvedAt: string | null;
   expiresAt: string | null;
   rejectionReason: string | null;

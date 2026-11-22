@@ -161,3 +161,6 @@ crash-outbox/
 # Local AI-tool folders (cached attachments, Freebuff project id); never committed
 .cloud-attachments/
 .freebuff/
+
+# Local encrypted PII exports (scripts/ backup runs); never committed
+JobTrigger-Backend/backups/

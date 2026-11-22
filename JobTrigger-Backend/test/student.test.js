@@ -23,6 +23,13 @@ async function signup() {
 const authed = (method, path, token) => api()[method](path).set('x-auth-token', token);
 const start = (me, universityEmail) => authed('post', '/api/student/email/start', me.token).send({ universityEmail });
 const confirm = (me, code) => authed('post', '/api/student/email/confirm', me.token).send({ code });
+async function makeAdmin() {
+  const me = await signup();
+  await User.updateOne({ _id: me.id }, { $set: { role: 'superAdmin' } });
+  return me;
+}
+/** US-STU-01: a verified email only gets the year once a super admin approves it. */
+const approve = (boss, id) => authed('post', `/api/admin/students/${id}/approve`, boss.token);
 
 function fakeTransport() {
   const sent = [];
@@ -235,20 +242,24 @@ describe('Student plan: email code flow (SP-2)', function() {
     expect(res.status).to.equal(503);
   });
 
-  it('approves on the right code, grants 365 days at once, and tells the owner', async function() {
+  // Changed on purpose (owner decision 2026-11-22, US-STU-01): the right
+  // code no longer grants the year; it waits for a super admin.
+  it('verifies on the right code, leaves it pending with no Pro, and tells the owner', async function() {
     const me = await signup();
     await start(me, 'ok@uom.ac.lk');
     const code = codeFrom(transport.sent[0]);
 
     const res = await confirm(me, code);
     expect(res.status).to.equal(200);
-    expect(res.body.status).to.equal('approved');
-    expect(new Date(res.body.expiresAt).getTime() - new Date(res.body.approvedAt).getTime()).to.equal(365 * DAY);
+    expect(res.body.status).to.equal('pending');
+    expect(res.body.emailVerified).to.equal(true);
+    expect(res.body.approvedAt).to.equal(null);
+    expect(res.body.expiresAt).to.equal(null);
 
     process.env.BILLING_ENABLED = 'true';
-    const ent = await entitlementsFor(me.id);
-    expect(ent.plan).to.equal('pro');
-    expect(ent.source).to.equal('student');
+    expect((await entitlementsFor(me.id)).source).to.not.equal('student');
+    expect((await Subscription.findOne({ userId: me.id }).lean())?.student ?? null).to.equal(null);
+    expect(await StudentClaim.countDocuments({ hash: student.emailHash('ok@uom.ac.lk') })).to.equal(0);
 
     // Owner email: details and a link, never a document.
     const notice = transport.sent.find((m) => m.to === 'owner@example.com');
@@ -263,7 +274,7 @@ describe('Student plan: email code flow (SP-2)', function() {
     const again = await confirm(me, code);
     expect(again.status).to.equal(400);
     const status = await authed('get', '/api/student', me.token);
-    expect(status.body.status).to.equal('approved');
+    expect(status.body).to.include({ status: 'pending', method: 'email', emailVerified: true });
   });
 
   it('works without an owner address (logged, nothing sent to the owner)', async function() {
@@ -283,7 +294,8 @@ describe('Student plan: email code flow (SP-2)', function() {
     expect(res.status).to.equal(400);
     expect(res.body.code).to.equal('wrong_code');
     expect(res.body.message).to.include('4 tries left');
-    expect((await authed('get', '/api/student', me.token)).body.status).to.equal('pending');
+    // Changed on purpose (US-STU-01): a code request is not an application.
+    expect((await authed('get', '/api/student', me.token)).body.status).to.equal('none');
   });
 
   it('locks the code after 5 wrong tries, even for the right code', async function() {
@@ -336,7 +348,13 @@ describe('Student plan: email code flow (SP-2)', function() {
   it('allows one grant per person: a second application is refused', async function() {
     const me = await signup();
     await start(me, 'once@uom.ac.lk');
-    await confirm(me, codeFrom(transport.sent[0]));
+    const verified = await confirm(me, codeFrom(transport.sent[0]));
+    // Waiting for review (US-STU-01).
+    const waiting = await start(me, 'other@uom.ac.lk');
+    expect(waiting.status).to.equal(409);
+    expect(waiting.body.code).to.equal('under_review');
+
+    expect((await approve(await makeAdmin(), verified.body.id)).status).to.equal(200);
     const res = await start(me, 'other@uom.ac.lk');
     expect(res.status).to.equal(409);
     expect(res.body.code).to.equal('already_used');
@@ -385,7 +403,9 @@ describe('Student plan: email code flow (SP-2)', function() {
   it('still blocks the email after the account is deleted and recreated', async function() {
     const first = await signup();
     await start(first, 'gone@uom.ac.lk');
-    await confirm(first, codeFrom(transport.sent[0]));
+    const verified = await confirm(first, codeFrom(transport.sent[0]));
+    // The email is claimed when the application is approved (US-STU-01).
+    expect((await approve(await makeAdmin(), verified.body.id)).status).to.equal(200);
 
     const del = await authed('delete', '/api/auth/account', first.token).send({ password: 'password' });
     expect(del.status).to.equal(200);

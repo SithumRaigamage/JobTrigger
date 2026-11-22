@@ -51,6 +51,29 @@ describe("StudentCard", () => {
     expect(screen.queryByLabelText("University email")).not.toBeInTheDocument();
   });
 
+  it("pending review of a verified university email says so (US-STU-01)", () => {
+    render(<StudentCard application={as({ status: "pending", method: "email" })} />);
+    expect(screen.getByText("Pending review")).toBeVisible();
+    expect(screen.getByText(/Your university email is verified/)).toBeVisible();
+    expect(screen.queryByText(/student document/)).not.toBeInTheDocument();
+  });
+
+  it("a rejected email application shows the reason with Try again (US-STU-01)", () => {
+    render(
+      <StudentCard
+        application={as({
+          status: "rejected",
+          method: "email",
+          rejectionReason: "Not a student address",
+        })}
+      />,
+    );
+    expect(screen.getByText(/We couldn't approve your application/)).toBeVisible();
+    expect(screen.getByText(/Not a student address/)).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(screen.getByLabelText("University email")).toBeVisible();
+  });
+
   it("approved shows the end date", () => {
     render(
       <StudentCard
