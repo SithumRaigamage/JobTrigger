@@ -33,6 +33,16 @@ describe("createCheckout", () => {
     expect((init!.headers as Record<string, string>)["x-auth-token"]).toBe("access-1");
   });
 
+  it("sends a discount code with the interval, and nothing else (US-PROMO-04)", async () => {
+    fetchMock.mockResolvedValue(json({ transactionId: "txn_2", environment: "sandbox" }));
+
+    await createCheckout("access-1", "yearly", "SAVE20");
+
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(String(url)).toBe("http://backend.test/api/billing/paddle/checkout");
+    expect(JSON.parse(String(init!.body))).toEqual({ interval: "yearly", code: "SAVE20" });
+  });
+
   it("reports Pro-already and unavailable billing as their own failures", async () => {
     fetchMock.mockResolvedValueOnce(json({ code: "ALREADY_SUBSCRIBED", message: "x" }, 409));
     expect(await createCheckout("t", "monthly")).toEqual({

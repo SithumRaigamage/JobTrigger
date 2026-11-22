@@ -121,6 +121,33 @@ describe('Promo and voucher codes (US-PROMO-01)', function() {
     expect(ok.status).to.equal(200);
   });
 
+  it('keeps a discount code out of the Pro-time redeem action (US-PROMO-04)', async function() {
+    const me = await signup();
+    process.env.PROMO_CODES = JSON.stringify([
+      ...CODES,
+      { code: 'SAVE20', discountId: 'dsc_0123456789abcdef' },
+    ]);
+    try {
+      // A checkout discount is not Pro time, and writes nothing.
+      const res = await redeem(me, 'save20');
+      expect(res.status).to.equal(400);
+      expect(res.body.code).to.equal('invalid_code');
+      expect(await PromoRedemption.countDocuments({ code: 'SAVE20' })).to.equal(0);
+      expect((await plan(me.token)).plan).to.equal('free');
+    } finally {
+      process.env.PROMO_CODES = JSON.stringify(CODES);
+    }
+
+    // With nothing but discount codes there is nothing to redeem for Pro
+    // time, so neither client offers the form.
+    process.env.PROMO_CODES = JSON.stringify([{ code: 'SAVE20', discountId: 'dsc_0123456789abcdef' }]);
+    try {
+      expect((await plan(me.token)).promoAvailable).to.equal(false);
+    } finally {
+      process.env.PROMO_CODES = JSON.stringify(CODES);
+    }
+  });
+
   it('tells a Pro account the code would add nothing', async function() {
     const me = await signup();
     await writeSource(me.id, 'grant', {
@@ -254,6 +281,11 @@ describe('Promo and voucher codes (US-PROMO-01)', function() {
     expect(withCodes('[{"code":"OK","days":3,"expiresAt":"soon"}]')).to.include('PROMO_CODES');
     expect(withCodes('[{"code":"BAD CODE","days":3}]')).to.include('PROMO_CODES');
     expect(withCodes('[{"code":"OK","days":3},{"code":"ok","days":3}]')).to.include('PROMO_CODES');
+    // US-PROMO-04: a discount code is the other kind of entry.
+    expect(withCodes('[{"code":"SAVE20","discountId":"dsc_abc123"}]')).to.equal(null);
+    expect(withCodes('[{"code":"SAVE20","discountId":"pri_abc123"}]')).to.include('PROMO_CODES');
+    expect(withCodes('[{"code":"SAVE20","days":3,"discountId":"dsc_abc123"}]')).to.include('PROMO_CODES');
+    expect(withCodes('[{"code":"SAVE20","discountId":"dsc_abc123","maxRedemptions":5}]')).to.include('PROMO_CODES');
     // The message never echoes a value from the list.
     expect(withCodes('[{"code":"SECRET1","days":0}]')).to.not.include('SECRET1');
 

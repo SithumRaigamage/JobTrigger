@@ -36,7 +36,12 @@ const secondary =
 
 const loadError = "The checkout couldn't load. Check your connection and try again.";
 
-/** Upgrade: monthly or yearly, then Paddle's checkout overlay. */
+/**
+ * Upgrade: monthly or yearly, then Paddle's checkout overlay. US-PROMO-04: an
+ * optional discount code is sent with the interval and applied by the backend
+ * when it creates the Paddle transaction, so the price shown is the price
+ * charged.
+ */
 export function UpgradeButtons({
   clientToken,
   environment,
@@ -46,6 +51,7 @@ export function UpgradeButtons({
 }) {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [code, setCode] = useState("");
   const [pending, startTransition] = useTransition();
 
   const start = (interval: "monthly" | "yearly") =>
@@ -56,7 +62,7 @@ export function UpgradeButtons({
         setError(loadError);
         return;
       }
-      const result = await startCheckoutAction(interval);
+      const result = await startCheckoutAction(interval, code.trim() || undefined);
       if ("error" in result) {
         setError(result.error);
         return;
@@ -78,6 +84,19 @@ export function UpgradeButtons({
         }}
         onError={() => setError(loadError)}
       />
+      <label className="flex w-full max-w-sm flex-col gap-2 text-[0.8125rem] font-semibold text-fg-secondary">
+        Discount code (optional)
+        <input
+          type="text"
+          value={code}
+          onChange={(event) => setCode(event.target.value)}
+          maxLength={64}
+          autoComplete="off"
+          spellCheck={false}
+          placeholder="SAVE20"
+          className="h-11 rounded-[12px] border border-line-strong bg-card px-3 font-mono text-base text-fg"
+        />
+      </label>
       {error && <Notice tone="error">{error}</Notice>}
       <div className="flex flex-wrap gap-3">
         <button

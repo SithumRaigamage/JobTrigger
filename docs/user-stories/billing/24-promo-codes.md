@@ -10,11 +10,13 @@ website, and the account is Pro until the code's days run out.
    database and not in either client. Adding or retiring a code is an edit to
    the deployment's variables and a redeploy — no app release, no website
    release, no admin screen to build.
-2. **A code is free Pro time.** One code = one period of Pro (7 days, a month,
-   a year — whatever the code says), from the moment it is redeemed. Discounts
-   on a checkout (a lower price paid through Paddle or the stores) are **not**
-   in this story: those prices are created in Paddle/App Store Connect, and
-   adding them is a separate story against the checkout code.
+2. **A code is free Pro time, or a Paddle discount for the website checkout**
+   (US-PROMO-04). One code = one period of Pro (7 days, a month, a year —
+   whatever the code says), from the moment it is redeemed; or, with a
+   `discountId`, a percentage taken off a website checkout by Paddle. A
+   percentage off in the App Store or Google Play is **not** in this story:
+   those prices are offers in App Store Connect and the Play Console, and
+   adding them is a separate story.
 3. **One redemption per account per code**, and a code may cap its total
    redemptions and its own last day.
 4. Redeeming is a Pro source of its own (`promo`), so it can never overwrite a
@@ -148,6 +150,52 @@ So that I can use one without the app
 
 ---
 
+### US-PROMO-04 — A percentage off the website checkout
+
+**Priority:** Should · **Source:** owner decision 2026-11-22 · **Dependencies:** US-PROMO-01, P20-83
+
+As a Free user with a discount code
+I want it taken off the price when I buy on the website
+So that I pay less without the owner editing prices
+
+**Acceptance Criteria**
+
+- [x] Scenario: the checkout applies it — Given `PROMO_CODES` lists `SAVE20`
+  with the id of a 20% Paddle discount, When I start a yearly or monthly
+  checkout with that code (any case, surrounding spaces forgiven), Then the
+  Paddle transaction is created with `discount_id` set by the server, and the
+  overlay shows the discounted total — the browser never sends a price or a
+  discount id.
+- [x] Scenario: a bad code stops before Paddle — Given an unknown code, one
+  past its `expiresAt`, or a Pro-time code, Then **400** `invalid_code` with
+  the same one sentence as the redeem form, and no transaction is created, so
+  nothing is charged at a price the buyer did not see.
+- [x] Scenario: it is not Pro time — When that code is posted to
+  `/api/subscription/promo`, Then **400** `invalid_code` and nothing is
+  written; with only discount codes configured, `promoAvailable` is false and
+  neither client shows "Redeem a code".
+- [x] Scenario: one kind per entry — Given an entry with both `days` and
+  `discountId`, with neither, with a `discountId` that is not `dsc_…`, or with
+  `maxRedemptions` on a discount code, Then the server refuses to start and
+  names `PROMO_CODES` (never the value).
+- [x] Scenario: where the limits live — Then the percentage, whether it recurs,
+  how many payments it covers and its redemption cap are set on the Paddle
+  discount (Paddle counts its own redemptions); our `expiresAt` on the code is
+  still checked before a transaction is made.
+- [x] Scenario: without a code nothing changes — Then the checkout body omits
+  it, no `discount_id` is sent, and the existing checkout, portal and webhook
+  behaviour is unchanged.
+
+**Security & Privacy Notes** — the discount id never leaves the server: the
+browser names a code, the backend resolves it. A refused code reads exactly
+like a refused redemption (unknown, expired and wrong-kind are one sentence).
+
+**Impact** — Backend: yes (config, `billing/promo.js`, checkout controller,
+Paddle client). Web: yes (a field on the upgrade buttons). App: no — buying in
+the app goes through the stores' own offers, which is a separate story.
+
+---
+
 ## Tests needed
 
 | Criterion | Test |
@@ -157,6 +205,7 @@ So that I can use one without the app
 | US-PROMO-01 (owner console) | `JobTrigger-Backend/test/promo_codes.test.js` admin list; `JobTrigger-Web/src/server/admin-subscriptions-api.test.ts` |
 | US-PROMO-02 | `JobTrigger-Frontend/test/presentation/features/subscription/promo_redeem_test.dart`, `test/data/repositories/subscription_repository_impl_test.dart` |
 | US-PROMO-03 | `JobTrigger-Web/src/features/billing/promo-code-form.test.tsx`, `src/server/subscription-api.test.ts` |
+| US-PROMO-04 (the checkout discount, refusals, one kind per entry) | `JobTrigger-Backend/test/paddle.test.js` "applies a discount code to the transaction…", `test/promo_codes.test.js` "keeps a discount code out of the Pro-time redeem action" and the config test; `JobTrigger-Web/src/features/billing/billing-actions.test.tsx`, `src/features/billing/actions.test.ts`, `src/server/billing-api.test.ts` |
 
 ## Verification (2026-11-22)
 
@@ -179,17 +228,23 @@ Every criterion above was checked against the built code, with these tests:
 | account deletion | "removes the redemption with the account" |
 | app: row, dialog, success, refusal, network, demo, double tap | `promo_redeem_test.dart` (9 widget/unit tests); `subscription_repository_impl_test.dart` "redeemPromoCode posts the code…", "a refused code keeps the backend's own sentence and code" |
 | website: form, refusal, refresh | `promo-code-form.test.tsx`, `subscription-api.test.ts` "redeemPromoCode (US-PROMO-01)", `billing.test.tsx` "offers Redeem a code on Free…", "says a promo plan was redeemed with a code" |
+| US-PROMO-04: the checkout discount, refusals, one kind per entry | `paddle.test.js` "applies a discount code to the transaction, and refuses a bad one before Paddle (US-PROMO-04)"; `promo_codes.test.js` "keeps a discount code out of the Pro-time redeem action (US-PROMO-04)" and the broken-list test; `billing-actions.test.tsx` (field, trim, refusal), `actions.test.ts` (forwarded, too long), `billing-api.test.ts` (body) |
+| US-PROMO-01: only a promo source ends by date on a read | `billing.test.js` "ends a promo period by date, and leaves every other source to its writer" |
 
-Checks run on 2026-11-22: `npm test` (backend, 476 passing), `flutter analyze` (clean)
-and `flutter test` (1925 passing) in the app, `format:check`, `lint`, `typecheck` and
-`npm test` (524 passing) in the website. **Not verified:** the iPhone pass
-(`tasks/phase-29-promo-codes.md` PV-50) — a real code redeemed in the app on a
-device.
+Checks run on 2026-11-22: `npm test` (backend, 479 passing), `flutter analyze`
+(clean) and `flutter test` (1925 passing) in the app, `format:check`, `lint`,
+`typecheck` and `npm test` (529 passing) in the website. **Not verified:** the
+iPhone pass (`tasks/phase-29-promo-codes.md` PV-50) — a real code redeemed in
+the app on a device — and the Paddle discount purchase (PV-65), which needs a
+discount created in Paddle and a real checkout.
 
 ## Not in this story
 
-- **A percentage off a checkout.** That price lives in Paddle (discount ids) or
-  the stores (offers), so it is a checkout story, not a code story.
+- **A percentage off in the app stores.** Those prices are offers in App Store
+  Connect and the Play Console (bought through RevenueCat), so they are their
+  own story; the website's percentage discount is US-PROMO-04.
+- **A code that does both.** An entry is either Pro time or a checkout
+  discount, so there is never a question of which applies first.
 - **Codes that grant a specific product** (a yearly plan rather than days).
   Every code grants Pro for a number of days; that is all a voucher needs
   today.

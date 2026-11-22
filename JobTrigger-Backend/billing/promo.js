@@ -8,6 +8,11 @@
  * a store or website subscription, and a paid plan always outranks it
  * (billing/combine.js). Expiry is the source's `periodEnd` compared with the
  * clock on every read — no job (billing/entitlements.js `isPro`).
+ *
+ * US-PROMO-04: an entry may instead carry a `discountId` — a Paddle discount
+ * (a percentage, a period and a cap created in Paddle). That code takes money
+ * off a website checkout and adds no Pro time, so it is resolved here at
+ * checkout and never written as a source: Paddle applies and counts it.
  */
 const PromoRedemption = require('../models/PromoRedemption');
 const { billingEnabled, promoCodes } = require('../config/env');
@@ -21,9 +26,13 @@ const MAX_CODE_LENGTH = 64;
 const normalizeCode = (raw) =>
   String(raw ?? '').trim().toUpperCase().slice(0, MAX_CODE_LENGTH);
 
-/** Whether either the app or the website should offer the action. */
+/**
+ * Whether either the app or the website should offer "Redeem a code": a
+ * Pro-time code exists. A code that only discounts a checkout (US-PROMO-04)
+ * has nothing to redeem, so it does not turn the form on.
+ */
 function promoAvailable() {
-  return billingEnabled() && promoCodes().length > 0;
+  return billingEnabled() && promoCodes().some((entry) => entry.days);
 }
 
 /** The configured entry for an already-normalized [code], or null. */
@@ -45,6 +54,27 @@ async function isUsable(entry, now = new Date()) {
 }
 
 /**
+ * US-PROMO-04: the Paddle discount [raw] stands for, or a refusal. The
+ * checkout passes the id to Paddle on the transaction, server-side, so the
+ * browser can only use a code the server knows. Paddle owns the percentage,
+ * the recurring periods and the redemption cap of its own discount; the code's
+ * `expiresAt` is still checked here, and the cap is Paddle's (config refuses
+ * `maxRedemptions` on a discount code). Redeeming is not recorded locally:
+ * Paddle's discount is the record.
+ */
+async function checkoutDiscount(raw, { now = new Date() } = {}) {
+  const entry = promoEntry(normalizeCode(raw));
+  if (!entry?.discountId || !(await isUsable(entry, now))) {
+    return {
+      status: 400,
+      code: 'invalid_code',
+      message: "That code isn't valid, or it has expired.",
+    };
+  }
+  return { ok: true, entry, discountId: entry.discountId };
+}
+
+/**
  * Redeems [raw] for [userId]. Returns `{ ok: true, entry, periodEnd }` or a
  * refusal `{ status, code, message }` for the controller to send as-is.
  *
@@ -62,7 +92,10 @@ async function redeemPromo(userId, raw, { now = new Date() } = {}) {
     };
   }
   const entry = promoEntry(normalizeCode(raw));
-  if (!entry) {
+  // A checkout discount is not Pro time: it is taken off the price by Paddle,
+  // so redeeming it here would otherwise grant a zero-day period. The same
+  // neutral sentence is used, so a guessed code still cannot be classified.
+  if (!entry || !entry.days) {
     return {
       status: 400,
       code: 'invalid_code',
@@ -138,5 +171,6 @@ module.exports = {
   promoAvailable,
   promoEntry,
   isUsable,
+  checkoutDiscount,
   redeemPromo,
 };

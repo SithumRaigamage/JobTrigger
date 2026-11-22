@@ -29,10 +29,13 @@ const realClient = {
    * A checkout transaction for one Pro price. `custom_data.userId` is set
    * here, on the server, so a browser can't attach a purchase to another
    * account; Paddle copies it to the subscription the checkout creates.
+   * US-PROMO-04: `discountId` is a Paddle discount the server resolved from a
+   * promo code, so the price shown (and charged) already has it applied.
    */
-  async createTransaction({ priceId, userId, quantity = 1, customData }) {
+  async createTransaction({ priceId, userId, discountId = null, quantity = 1, customData }) {
     const { data } = await call('POST', '/transactions', {
       items: [{ price_id: priceId, quantity }],
+      ...(discountId ? { discount_id: discountId } : {}),
       custom_data: customData ?? { userId: String(userId) },
     });
     return { transactionId: data.id };

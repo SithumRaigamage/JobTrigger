@@ -32,15 +32,20 @@ PROMO_CODES=[{"code":"LAUNCH30","days":30},
 | Field | Required | Meaning |
 |---|---|---|
 | `code` | yes | 3–64 characters, letters/digits/`_`/`-`; compared trimmed and upper-cased |
-| `days` | yes | whole number 1–3650 of Pro from the moment of redemption |
-| `maxRedemptions` | no | total redemptions across all accounts |
+| `days` | one of the two | whole number 1–3650 of Pro from the moment of redemption |
+| `discountId` | one of the two | a Paddle `dsc_…` discount applied to a website checkout (US-PROMO-04) |
+| `maxRedemptions` | no | total redemptions across all accounts; a `days` code only |
 | `expiresAt` | no | `YYYY-MM-DD` (usable through that UTC day) or a full ISO date-time |
 
-`config/env.js` parses it once per call into a normalized list. Anything
-malformed (bad JSON, a missing `days`, out-of-range values, a bad character, a
+`config/env.js` parses it once per call into a normalized list. An entry is
+exactly one kind: `days` (free Pro time) or `discountId` (a discount off the
+website checkout) — both or neither is refused, so there is never a rule about
+which applies first. Anything malformed (bad JSON, a bad character, a
+`discountId` that is not `dsc_…`, `maxRedemptions` on a discount code, a
 duplicate code) is a startup refusal through `invalidConfig`, naming
 `PROMO_CODES` and never echoing the value. Unset or `[]` means the feature is
-off, and both clients hide the action.
+off; with only discount codes, `promoAvailable` is false too, so both clients
+hide "Redeem a code" (there is no Pro time to redeem).
 
 Shipped through the deploy's variables: edit, redeploy, done — no database
 write, no app or website release.
@@ -112,11 +117,63 @@ granted Pro; `clearSource` needs no change.
   `useActionState`, mounted on `/account/billing` when `promoAvailable && plan
   is free`; on success the page re-reads the plan (`router.refresh()`).
 
+## US-PROMO-04: a percentage off the website checkout
+
+A percentage is not something this server can apply: Paddle is the seller, it
+prices the transaction, and only Paddle can take an amount off it. So the code
+is a pointer to a **Paddle discount**, and Paddle keeps the money rules.
+
+**Owner setup (once per discount).** In Paddle → Catalog → Discounts create a
+discount: percentage, whether it recurs (`recur`) and for how many payments
+(`maximum_recurring_intervals`), its own redemption cap and expiry. Copy its
+`dsc_…` id into `PROMO_CODES`:
+
+```
+PROMO_CODES=[{"code":"SAVE20","discountId":"dsc_01h...","expiresAt":"2027-01-31"}]
+```
+
+**Backend.** `billing/promo.js` gains `checkoutDiscount(raw, now)`: the code is
+normalized exactly like a redemption, must be an entry with a `discountId`, and
+must not be past its `expiresAt`; otherwise it returns the same
+`400 invalid_code` sentence as the redeem form (unknown, expired and
+wrong-kind are indistinguishable). Nothing is written and no redemption counter
+runs here — Paddle's discount is the record and its own cap. `POST
+/api/billing/paddle/checkout` accepts an optional `code`, resolves it, and
+passes `discountId` into `paddle.createTransaction`, which adds `discount_id`
+to the transaction body. The browser never sends a price or a discount id, so a
+buyer cannot apply a discount they do not have a code for.
+
+**Redeeming is not a checkout.** A `discountId` entry is refused by `POST
+/api/subscription/promo` (a discount is not Pro time), and `promoAvailable`
+only counts `days` entries, so a discount-only deployment shows no redeem form
+anywhere.
+
+**Website.** `UpgradeButtons` gains a "Discount code (optional)" field; its
+value is trimmed and sent with the interval through `startCheckoutAction` →
+`createCheckout` → the backend. A refusal arrives as the ordinary error notice
+beside the buttons and the checkout does not open.
+
+**App.** Nothing: buying in the app is an App Store / Google Play purchase, and
+a percentage there is an offer in App Store Connect or the Play Console (a
+separate story).
+
 ## Tests
 
 Backend `test/promo_codes.test.js` walks every criterion over HTTP with the
 test database: valid, normalization, duplicate, cap, expiry, unknown, already
 Pro, paid-wins, expiry by date, billing off, no codes, rate limit, config
-parsing, admin list. App: a repository test and a widget test for the row,
-dialog, success, refusal and demo mode. Web: a form test and the API parser
-test. See the story's table.
+parsing, admin list, and a discount code refused as Pro time. `test/paddle.test.js`
+checks the checkout discount (applied, and refused before Paddle). App: a
+repository test and a widget test for the row, dialog, success, refusal and
+demo mode. Web: a form test, the API parser test and the upgrade field. See the
+story's table.
+
+## Expiry on a read is scoped to `promo`
+
+`describe()` reports `status: "expired"` when the shown source is `promo` and
+its `periodEnd` has passed. That is deliberately narrow: a grant, a student
+year and a store or web subscription are closed by the code that writes them
+(`grant-plan.js`, `studentJobs.js`, `syncSubscription.js`, the Paddle webhook),
+and changing what those report on a read would change those plans as a
+side effect of this story. `billing.test.js` "ends a promo period by date, and
+leaves every other source to its writer" pins both halves.

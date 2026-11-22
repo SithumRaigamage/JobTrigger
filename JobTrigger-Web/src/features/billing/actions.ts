@@ -19,13 +19,21 @@ export type CheckoutState =
 
 const interval = z.enum(["monthly", "yearly"]);
 
-/** Creates the transaction the browser then opens with Paddle.js. */
-export async function startCheckoutAction(chosen: string): Promise<CheckoutState> {
+/**
+ * Creates the transaction the browser then opens with Paddle.js.
+ * US-PROMO-04: an optional discount code is checked here for shape only; the
+ * backend decides whether it is a real, usable discount.
+ */
+export async function startCheckoutAction(chosen: string, code?: string): Promise<CheckoutState> {
   const session = await requireSession();
   const parsed = interval.safeParse(chosen);
   if (!parsed.success) return { error: "Choose monthly or yearly." };
+  const discount = typeof code === "string" ? code.trim() : "";
+  if (discount.length > 64) return { error: "That code is too long." };
 
-  const result = await authed(session, (token) => createCheckout(token, parsed.data));
+  const result = await authed(session, (token) =>
+    createCheckout(token, parsed.data, discount || undefined),
+  );
   if (!result.ok) return { error: failureMessage(result.failure) };
   return result.value;
 }

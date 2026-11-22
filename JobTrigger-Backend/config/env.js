@@ -184,24 +184,53 @@ function studentRenewalEnabled(env = process.env) {
  * US-PROMO-01: one `PROMO_CODES` entry as the server uses it, or a sentence
  * saying what is wrong with it. `code` is normalized (trimmed, upper case);
  * a date-only `expiresAt` is usable through the end of that UTC day.
+ *
+ * US-PROMO-04: an entry is one kind of offer — `days` for free Pro time, or
+ * `discountId` for a Paddle discount taken off a website checkout.
  */
 const PROMO_CODE_PATTERN = /^[A-Za-z0-9_-]{3,64}$/;
+const PROMO_DISCOUNT_PATTERN = /^dsc_[A-Za-z0-9]{4,64}$/;
 const PROMO_MAX_DAYS = 3650;
 
 function readPromoEntry(entry, index) {
   const at = `entry ${index + 1}`;
   if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-    return `${at} must be an object like { "code": "LAUNCH30", "days": 30 }`;
+    return `${at} must be an object like { "code": "LAUNCH30", "days": 30 } or { "code": "SAVE20", "discountId": "dsc_..." }`;
   }
   const code = typeof entry.code === 'string' ? entry.code.trim() : '';
   if (!PROMO_CODE_PATTERN.test(code)) {
     return `${at} needs a code of 3-64 letters, digits, "_" or "-"`;
   }
-  if (!Number.isInteger(entry.days) || entry.days < 1 || entry.days > PROMO_MAX_DAYS) {
-    return `${at} needs days as a whole number from 1 to ${PROMO_MAX_DAYS}`;
+  // One kind or the other: `days` adds Pro time, `discountId` takes a
+  // percentage off a checkout. A code that did both would need a rule for
+  // which happens when, so it is refused instead.
+  const hasDays = entry.days !== undefined && entry.days !== null;
+  const hasDiscount = entry.discountId !== undefined && entry.discountId !== null && entry.discountId !== '';
+  if (hasDays === hasDiscount) {
+    return `${at} needs either days (Pro time) or discountId (a Paddle discount), not both`;
+  }
+  let days = null;
+  if (hasDays) {
+    if (!Number.isInteger(entry.days) || entry.days < 1 || entry.days > PROMO_MAX_DAYS) {
+      return `${at} needs days as a whole number from 1 to ${PROMO_MAX_DAYS}`;
+    }
+    days = entry.days;
+  }
+  let discountId = null;
+  if (hasDiscount) {
+    const raw = String(entry.discountId).trim();
+    if (!PROMO_DISCOUNT_PATTERN.test(raw)) {
+      return `${at} has a discountId that is not a Paddle discount id (dsc_...)`;
+    }
+    discountId = raw;
   }
   let maxRedemptions = null;
   if (entry.maxRedemptions !== undefined && entry.maxRedemptions !== null) {
+    // Paddle counts the redemptions of its own discount; a second counter here
+    // would only disagree with it, so a cap on a discount code is refused.
+    if (discountId) {
+      return `${at} sets maxRedemptions on a discount code; set the cap on the Paddle discount instead`;
+    }
     if (!Number.isInteger(entry.maxRedemptions) || entry.maxRedemptions < 1) {
       return `${at} has a maxRedemptions that is not a positive whole number`;
     }
@@ -215,7 +244,7 @@ function readPromoEntry(entry, index) {
     if (Number.isNaN(parsed.getTime())) return `${at} has an expiresAt that is not a date`;
     expiresAt = parsed;
   }
-  return { code: code.toUpperCase(), days: entry.days, maxRedemptions, expiresAt };
+  return { code: code.toUpperCase(), days, discountId, maxRedemptions, expiresAt };
 }
 
 /** Why `PROMO_CODES` can't be used, or null. Names only, never a value. */
@@ -225,10 +254,10 @@ function promoCodeProblems(env = process.env) {
   try {
     parsed = JSON.parse(env.PROMO_CODES);
   } catch {
-    return 'PROMO_CODES must be JSON: a list of { "code", "days", "maxRedemptions", "expiresAt" }';
+    return 'PROMO_CODES must be JSON: a list of { "code", "days" } or { "code", "discountId" }';
   }
   if (!Array.isArray(parsed)) {
-    return 'PROMO_CODES must be JSON: a list of { "code", "days", "maxRedemptions", "expiresAt" }';
+    return 'PROMO_CODES must be JSON: a list of { "code", "days" } or { "code", "discountId" }';
   }
   const seen = new Set();
   for (const [index, entry] of parsed.entries()) {

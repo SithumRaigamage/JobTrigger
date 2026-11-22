@@ -20,12 +20,19 @@ function isPro(sub, now = new Date()) {
 function describe(sub, { enabled, now = new Date() }) {
   const pro = !enabled || isPro(sub, now);
   const plan = PLANS[pro ? 'pro' : 'free'];
-  // A source with an end date and no webhook to close it (a manual grant, a
-  // promo code) has run out once the date passes: report it as ended, so the
-  // plan never reads "active" while it is free. Expiry is still computed on
-  // every read, never by a job.
+  // US-PROMO-01: a promo period has no webhook or job to close it, so once its
+  // end date passes it reads as ended rather than "active" while the plan is
+  // Free; expiry is still computed on every read, never by a job. Scoped to
+  // the promo source on purpose: a grant, a student year and a store or web
+  // subscription are closed by the code that writes them (grant-plan.js,
+  // studentJobs.js, syncSubscription.js, the Paddle webhook), so changing what
+  // they report on a read would change those plans too.
   const ended =
-    !pro && PRO_STATUSES.has(sub?.status) && Boolean(sub?.periodEnd) && new Date(sub.periodEnd) <= now;
+    !pro &&
+    sub?.source === 'promo' &&
+    PRO_STATUSES.has(sub?.status) &&
+    Boolean(sub?.periodEnd) &&
+    new Date(sub.periodEnd) <= now;
   return {
     plan: pro ? 'pro' : 'free',
     billingEnabled: enabled,
@@ -38,9 +45,10 @@ function describe(sub, { enabled, now = new Date() }) {
     // open Paddle's portal (change card, cancel). Store subscriptions are
     // managed in the App Store / Google Play instead.
     manageOnWeb: Boolean(sub?.web?.paddleCustomerId),
-    // US-PROMO-01: whether a promo code can be redeemed at all. Says nothing
-    // about how many codes there are or which.
-    promoAvailable: enabled && promoCodes().length > 0,
+    // US-PROMO-01: whether a code can be redeemed for Pro time at all. Says
+    // nothing about how many codes there are or which. US-PROMO-04: a code
+    // that only discounts a checkout does not turn the redeem form on.
+    promoAvailable: enabled && promoCodes().some((entry) => entry.days),
     limits: { ...plan.limits },
     features: { ...plan.features },
   };
