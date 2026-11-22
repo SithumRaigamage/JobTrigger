@@ -148,10 +148,16 @@ buyer cannot apply a discount they do not have a code for.
 only counts `days` entries, so a discount-only deployment shows no redeem form
 anywhere.
 
-**Website.** `UpgradeButtons` gains a "Discount code (optional)" field; its
-value is trimmed and sent with the interval through `startCheckoutAction` →
-`createCheckout` → the backend. A refusal arrives as the ordinary error notice
-beside the buttons and the checkout does not open.
+**Website.** `UpgradeButtons` gains a field labelled "Discount code (money off
+this purchase)", with a hint that it takes a percentage off the checkout only
+and adds no Pro time — a Free user sees this beside the "Redeem a code for free
+Pro time" form, which says in turn that a money-off code belongs at the
+checkout. Its value is trimmed and sent with the interval through
+`startCheckoutAction` → `createCheckout` → the backend. A refusal arrives as
+the ordinary error notice beside the buttons and the checkout does not open.
+`test/paddle_client.test.js` runs the real client with fetch stubbed and
+asserts the transaction body carries `discount_id` (and omits it without a
+code).
 
 **App.** Nothing: buying in the app is an App Store / Google Play purchase, and
 a percentage there is an offer in App Store Connect or the Play Console (a

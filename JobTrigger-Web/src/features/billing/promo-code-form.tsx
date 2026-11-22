@@ -16,6 +16,9 @@ const submit =
  * A refused code (used, already Pro, not valid) shows the backend's own
  * sentence and the form stays usable. On success the page is re-read, so the
  * plan above shows Pro with its end date.
+ *
+ * US-PROMO-04: the page also has a discount field at the checkout; the
+ * heading and copy here say this one gives Pro days, not money off.
  */
 export function PromoCodeForm() {
   const router = useRouter();
@@ -32,10 +35,11 @@ export function PromoCodeForm() {
   return (
     <Card role="region" aria-labelledby="promo-title" className="flex max-w-2xl flex-col gap-3 p-6">
       <h2 id="promo-title" className="text-xl font-extrabold">
-        Redeem a code
+        Redeem a code for free Pro time
       </h2>
       <p className="text-sm text-muted">
-        Have a promo or voucher code? It adds JobTrigger Pro from the moment you redeem it.
+        Adds Pro days to your account at no charge. A code that takes money off a purchase is not
+        redeemed here — it goes in the discount box at the checkout.
       </p>
       <form action={formAction} className="flex flex-col gap-3">
         <label htmlFor="promo-code" className="text-sm font-semibold">

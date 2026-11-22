@@ -33,13 +33,21 @@ beforeEach(() => {
 });
 
 // US-PROMO-04: a percentage-off code is taken off by Paddle, so the field is
-// part of the checkout rather than the "Redeem a code" form.
+// part of the checkout rather than the "Redeem a code for free Pro time" form.
 describe("UpgradeButtons", () => {
+  it("names the field for money off, so it is not mistaken for a Pro code", () => {
+    render(<UpgradeButtons clientToken="test_0123456789abcdefghij" environment="sandbox" />);
+
+    expect(screen.getByLabelText("Discount code (money off this purchase)")).toBeVisible();
+    expect(screen.getByText(/Takes a percentage off this checkout only/)).toBeVisible();
+    expect(screen.getByText(/does not add Pro time/)).toBeVisible();
+  });
+
   it("sends the trimmed discount code with the chosen interval, then opens the checkout", async () => {
     startCheckoutAction.mockResolvedValue({ transactionId: "txn_1", environment: "sandbox" });
     render(<UpgradeButtons clientToken="test_0123456789abcdefghij" environment="sandbox" />);
 
-    fireEvent.change(screen.getByLabelText("Discount code (optional)"), {
+    fireEvent.change(screen.getByLabelText("Discount code (money off this purchase)"), {
       target: { value: "  save20 " },
     });
     const yearly = screen.getByRole("button", { name: "Upgrade, yearly" });

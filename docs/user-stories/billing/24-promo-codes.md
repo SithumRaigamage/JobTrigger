@@ -136,9 +136,9 @@ So that I can use one without the app
 **Acceptance Criteria**
 
 - [x] Scenario: the form — Given `promoAvailable` is true and the account is
-  not Pro, Then the billing page shows a "Redeem a code" form; when the backend
-  has no codes the form is absent, and the page's existing Paddle copy is
-  unchanged.
+  not Pro, Then the billing page shows a "Redeem a code for free Pro time"
+  form; when the backend has no codes the form is absent, and the page's
+  existing Paddle copy is unchanged.
 - [x] Scenario: success — When I submit a valid code, Then the page shows Pro
   with its end date, and says it was redeemed with a code (not bought).
 - [x] Scenario: refusal — Then the backend's sentence is shown in the form
@@ -185,6 +185,14 @@ So that I pay less without the owner editing prices
 - [x] Scenario: without a code nothing changes — Then the checkout body omits
   it, no `discount_id` is sent, and the existing checkout, portal and webhook
   behaviour is unchanged.
+- [x] Scenario: the two boxes say which is which — Given a Free user sees both
+  actions, Then the checkout field is labelled "Discount code (money off this
+  purchase)" with a hint that it does not add Pro time, and the form is headed
+  "Redeem a code for free Pro time" with a line saying a money-off code is
+  entered at the checkout instead.
+- [x] Scenario: the id really goes to Paddle — Then the real Paddle client's
+  transaction body carries `discount_id` for a discount code and no such field
+  without one (fetch stubbed, nothing leaves the process).
 
 **Security & Privacy Notes** — the discount id never leaves the server: the
 browser names a code, the backend resolves it. A refused code reads exactly
@@ -205,6 +213,7 @@ the app goes through the stores' own offers, which is a separate story.
 | US-PROMO-01 (owner console) | `JobTrigger-Backend/test/promo_codes.test.js` admin list; `JobTrigger-Web/src/server/admin-subscriptions-api.test.ts` |
 | US-PROMO-02 | `JobTrigger-Frontend/test/presentation/features/subscription/promo_redeem_test.dart`, `test/data/repositories/subscription_repository_impl_test.dart` |
 | US-PROMO-03 | `JobTrigger-Web/src/features/billing/promo-code-form.test.tsx`, `src/server/subscription-api.test.ts` |
+| US-PROMO-04 (the wire body: `discount_id` present with a code, absent without) | `JobTrigger-Backend/test/paddle_client.test.js` |
 | US-PROMO-04 (the checkout discount, refusals, one kind per entry) | `JobTrigger-Backend/test/paddle.test.js` "applies a discount code to the transaction…", `test/promo_codes.test.js` "keeps a discount code out of the Pro-time redeem action" and the config test; `JobTrigger-Web/src/features/billing/billing-actions.test.tsx`, `src/features/billing/actions.test.ts`, `src/server/billing-api.test.ts` |
 
 ## Verification (2026-11-22)
@@ -227,6 +236,7 @@ Every criterion above was checked against the built code, with these tests:
 | the owner sees it | "shows the redemption to the owner console"; `JobTrigger-Web` admin sources parser |
 | account deletion | "removes the redemption with the account" |
 | app: row, dialog, success, refusal, network, demo, double tap | `promo_redeem_test.dart` (9 widget/unit tests); `subscription_repository_impl_test.dart` "redeemPromoCode posts the code…", "a refused code keeps the backend's own sentence and code" |
+| US-PROMO-04: the two boxes are told apart | `promo-code-form.test.tsx` "says it gives Pro days, not money off (US-PROMO-04)"; `billing-actions.test.tsx` "names the field for money off…" |
 | website: form, refusal, refresh | `promo-code-form.test.tsx`, `subscription-api.test.ts` "redeemPromoCode (US-PROMO-01)", `billing.test.tsx` "offers Redeem a code on Free…", "says a promo plan was redeemed with a code" |
 | US-PROMO-04: the checkout discount, refusals, one kind per entry | `paddle.test.js` "applies a discount code to the transaction, and refuses a bad one before Paddle (US-PROMO-04)"; `promo_codes.test.js` "keeps a discount code out of the Pro-time redeem action (US-PROMO-04)" and the broken-list test; `billing-actions.test.tsx` (field, trim, refusal), `actions.test.ts` (forwarded, too long), `billing-api.test.ts` (body) |
 | US-PROMO-01: only a promo source ends by date on a read | `billing.test.js` "ends a promo period by date, and leaves every other source to its writer" |

@@ -84,9 +84,15 @@ export function UpgradeButtons({
         }}
         onError={() => setError(loadError)}
       />
-      <label className="flex w-full max-w-sm flex-col gap-2 text-[0.8125rem] font-semibold text-fg-secondary">
-        Discount code (optional)
+      {/* US-PROMO-04: named for what it does, because the billing page also
+          has the "Redeem a code for free Pro time" form below. */}
+      <div className="flex w-full max-w-sm flex-col gap-2">
+        <label htmlFor="discount-code" className="text-[0.8125rem] font-semibold text-fg-secondary">
+          Discount code (money off this purchase)
+        </label>
         <input
+          id="discount-code"
+          aria-describedby="discount-code-hint"
           type="text"
           value={code}
           onChange={(event) => setCode(event.target.value)}
@@ -96,7 +102,11 @@ export function UpgradeButtons({
           placeholder="SAVE20"
           className="h-11 rounded-[12px] border border-line-strong bg-card px-3 font-mono text-base text-fg"
         />
-      </label>
+        <p id="discount-code-hint" className="text-xs text-muted">
+          Takes a percentage off this checkout only. It does not add Pro time — a code for free Pro
+          days is redeemed in the section below, not here.
+        </p>
+      </div>
       {error && <Notice tone="error">{error}</Notice>}
       <div className="flex flex-wrap gap-3">
         <button

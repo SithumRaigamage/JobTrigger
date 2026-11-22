@@ -73,6 +73,11 @@ logic in notifiers, analyze clean, no new dependencies, Jenkins frozen (§11).
       and `billing-api.test.ts`.
 - [x] PV-64 Docs: story US-PROMO-04, design note, `docs/configuration.md`,
       `docs/api-reference.md`.
+- [x] PV-66 Copy and the wire: the checkout field is "Discount code (money off
+      this purchase)" with a hint that it adds no Pro time, the form is
+      "Redeem a code for free Pro time" and points money-off codes at the
+      checkout, and `test/paddle_client.test.js` proves the real client sends
+      `discount_id`.
 - [ ] PV-65 MANUAL (owner): create the percentage discount in Paddle, put its
       `dsc_…` id on a `PROMO_CODES` entry, redeploy, then buy with the code and
       check the checkout shows the lower total.

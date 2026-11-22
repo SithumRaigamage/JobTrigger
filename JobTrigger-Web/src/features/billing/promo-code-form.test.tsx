@@ -24,6 +24,15 @@ function submit(code: string) {
 }
 
 describe("PromoCodeForm (US-PROMO-01)", () => {
+  it("says it gives Pro days, not money off (US-PROMO-04)", () => {
+    render(<PromoCodeForm />);
+
+    expect(screen.getByRole("heading", { name: "Redeem a code for free Pro time" })).toBeVisible();
+    expect(
+      screen.getByText(/A code that takes money off a purchase is not redeemed here/),
+    ).toBeVisible();
+  });
+
   it("sends the code and re-reads the plan when it is accepted", async () => {
     redeemPromoCodeAction.mockResolvedValue({ ok: true });
     submit("LAUNCH30");
