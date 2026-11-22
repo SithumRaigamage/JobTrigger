@@ -6,6 +6,7 @@ const User = require('../models/User');
 const { writeSource, clearSource } = require('../billing/combine');
 const { entitlementsFor } = require('../billing/entitlements');
 const { invalidConfig } = require('../config/env');
+const { setSenderForTests } = require('../lib/analytics');
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -254,6 +255,63 @@ describe('Promo and voucher codes (US-PROMO-01)', function() {
     const item = res.body.items.find((i) => i.userId === String(me.id));
     expect(item.source).to.equal('promo');
     expect(item.sources.promo).to.include({ plan: 'pro', source: 'promo', productId: 'LAUNCH30' });
+  });
+
+  it('counts each code and what is left of its cap, for the owner console (US-PROMO-05)', async function() {
+    process.env.PROMO_CODES = JSON.stringify([
+      { code: 'CAP50', days: 14, maxRedemptions: 50 },
+      { code: 'CAP2', days: 7, maxRedemptions: 2 },
+      { code: 'OPEN', days: 3 },
+      { code: 'SAVE20', discountId: 'dsc_0123456789abcdef' },
+    ]);
+    try {
+      const [a, b, c, d, e] = [await signup(), await signup(), await signup(), await signup(), await signup()];
+      expect((await redeem(a, 'CAP50')).status).to.equal(200);
+      expect((await redeem(b, 'OPEN')).status).to.equal(200);
+      expect((await redeem(c, 'CAP2')).status).to.equal(200);
+      expect((await redeem(d, 'CAP2')).status).to.equal(200);
+      // The third account is refused, so the console's "0 left" is the truth
+      // the redeem rule enforces, not a separate count.
+      expect((await redeem(e, 'CAP2')).body.code).to.equal('invalid_code');
+
+      await User.updateOne({ _id: a.id }, { $set: { role: 'superAdmin' } });
+      const res = await authed('get', '/api/admin/subscriptions', a.token);
+      expect(res.status).to.equal(200);
+      const byCode = Object.fromEntries(res.body.codes.map((code) => [code.code, code]));
+
+      expect(byCode.CAP50).to.include({
+        kind: 'pro', days: 14, redemptions: 1, maxRedemptions: 50, remaining: 49,
+      });
+      expect(byCode.CAP2).to.include({
+        kind: 'pro', redemptions: 2, maxRedemptions: 2, remaining: 0,
+      });
+      expect(byCode.OPEN).to.include({ kind: 'pro', redemptions: 1, maxRedemptions: null, remaining: null });
+      // A checkout discount's redemptions are Paddle's, not ours.
+      expect(byCode.SAVE20).to.include({
+        kind: 'checkout', days: null, redemptions: null, remaining: null,
+      });
+      // Counts only: the console never says who holds a code.
+      expect(JSON.stringify(res.body.codes)).to.not.include('@example.com');
+    } finally {
+      process.env.PROMO_CODES = JSON.stringify(CODES);
+    }
+  });
+
+  it('records the redemption for analytics without the code (US-PROMO-05)', async function() {
+    const sent = [];
+    setSenderForTests(async (url, body) => { sent.push(body); });
+    try {
+      const me = await signup();
+      expect((await redeem(me, 'LAUNCH30')).status).to.equal(200);
+      await new Promise((resolve) => setImmediate(resolve));
+
+      const event = sent.find((body) => body.payload.name === 'promo_redeemed');
+      expect(event, 'promo_redeemed was sent').to.be.an('object');
+      expect(event.payload.data).to.deep.equal({ days: 30 });
+      expect(JSON.stringify(sent)).to.not.include('LAUNCH30');
+    } finally {
+      setSenderForTests(null);
+    }
   });
 
   it('removes the redemption with the account', async function() {

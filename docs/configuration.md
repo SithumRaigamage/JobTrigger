@@ -137,6 +137,12 @@ Rules enforced at startup (`config/env.js`):
   broken value stops the server and the message names the variable, never the
   list.
 
+  Because a broken value stops the whole backend from starting, check it
+  before pasting it into a deployment: `PROMO_CODES='<the list>' npm run
+  check-promo-codes` in `JobTrigger-Backend/` exits 0 for a usable list (and
+  prints how many codes of each kind), or 1 with the sentence the server would
+  refuse to start on (US-PROMO-05). It never prints a code.
+
 Backend endpoints the providers call:
 
 | Provider | URL | Auth |

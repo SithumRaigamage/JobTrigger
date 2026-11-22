@@ -479,6 +479,7 @@ module.exports = {
   siteUrl,
   studentAdminEmail,
   studentRenewalEnabled,
+  promoCodeProblems,
   promoCodes,
   billingEnabled,
   sandboxBillingEnabled,

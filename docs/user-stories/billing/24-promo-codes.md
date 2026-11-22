@@ -204,6 +204,50 @@ the app goes through the stores' own offers, which is a separate story.
 
 ---
 
+---
+
+### US-PROMO-05 — Run codes with numbers, and ship them safely
+
+**Priority:** Should · **Source:** owner request 2026-11-22 · **Dependencies:** US-PROMO-01, US-PROMO-04
+
+As the owner
+I want to see how much of each code is used, and to check the list before a deploy
+So that I can run a campaign, spot a leaked code, and never take the API down with a typo
+
+**Acceptance Criteria**
+
+- [x] Scenario: the console shows each code — Given `PROMO_CODES` lists
+  `LAUNCH30` (30 days, `maxRedemptions: 50`), `OPEN7` (7 days, no cap) and
+  `SAVE20` (a checkout discount), Then `/admin/subscriptions` shows a "Promo
+  codes" card with all three: "Pro for 30 days · 3 redeemed of 50, 47 left",
+  "Pro for 7 days · 4 redeemed", and Paddle counting the checkout discount.
+- [x] Scenario: the count is the rule — Given a code with `maxRedemptions: 2`
+  and two accounts holding it, Then the console says "2 redeemed of 2, 0
+  left" and a third account is still refused with `invalid_code`: the number
+  shown is the redemption rows the redeem rule counts, not a second tally.
+- [x] Scenario: retiring a code shows — Then a code past its `expiresAt` reads
+  "past its last day" rather than looking usable.
+- [x] Scenario: counts, never people — Then the card carries no account id,
+  email or who redeemed what; the per-account rows stay as they were.
+- [x] Scenario: one event, no code — When a code is redeemed, Then Umami
+  receives `promo_redeemed` with `{ days }` and nothing else; the code appears
+  in neither the event name nor its data (the log keeps it, the third-party
+  analytics never does).
+- [x] Scenario: a typo is caught before the deploy — When I run
+  `PROMO_CODES='…' npm run check-promo-codes`, Then a usable list exits 0 and
+  prints how many codes and of which kind, a malformed one exits 1 with the
+  sentence the server would refuse to start on, and unset exits 0 saying the
+  feature is off — never printing a code or the raw value.
+
+**Security & Privacy Notes** — the codes stay server-side: the console shows
+counts to a super admin only, analytics gets the days and never the code, and
+the pre-deploy check prints kinds and counts, not values.
+
+**Impact** — Backend: yes (console response, analytics event, a script). Web:
+yes (the codes card). App: no.
+
+---
+
 ## Tests needed
 
 | Criterion | Test |
@@ -214,6 +258,7 @@ the app goes through the stores' own offers, which is a separate story.
 | US-PROMO-02 | `JobTrigger-Frontend/test/presentation/features/subscription/promo_redeem_test.dart`, `test/data/repositories/subscription_repository_impl_test.dart` |
 | US-PROMO-03 | `JobTrigger-Web/src/features/billing/promo-code-form.test.tsx`, `src/server/subscription-api.test.ts` |
 | US-PROMO-04 (the wire body: `discount_id` present with a code, absent without) | `JobTrigger-Backend/test/paddle_client.test.js` |
+| US-PROMO-05 (counts and caps, the event, the pre-deploy check) | `JobTrigger-Backend/test/promo_codes.test.js` "counts each code and what is left of its cap…", "records the redemption for analytics without the code"; `test/check_promo_codes.test.js`; `JobTrigger-Web/src/features/admin/subscriptions-view.test.tsx`, `src/server/admin-subscriptions-api.test.ts` |
 | US-PROMO-04 (the checkout discount, refusals, one kind per entry) | `JobTrigger-Backend/test/paddle.test.js` "applies a discount code to the transaction…", `test/promo_codes.test.js` "keeps a discount code out of the Pro-time redeem action" and the config test; `JobTrigger-Web/src/features/billing/billing-actions.test.tsx`, `src/features/billing/actions.test.ts`, `src/server/billing-api.test.ts` |
 
 ## Verification (2026-11-22)
@@ -239,11 +284,12 @@ Every criterion above was checked against the built code, with these tests:
 | US-PROMO-04: the two boxes are told apart | `promo-code-form.test.tsx` "says it gives Pro days, not money off (US-PROMO-04)"; `billing-actions.test.tsx` "names the field for money off…" |
 | website: form, refusal, refresh | `promo-code-form.test.tsx`, `subscription-api.test.ts` "redeemPromoCode (US-PROMO-01)", `billing.test.tsx` "offers Redeem a code on Free…", "says a promo plan was redeemed with a code" |
 | US-PROMO-04: the checkout discount, refusals, one kind per entry | `paddle.test.js` "applies a discount code to the transaction, and refuses a bad one before Paddle (US-PROMO-04)"; `promo_codes.test.js` "keeps a discount code out of the Pro-time redeem action (US-PROMO-04)" and the broken-list test; `billing-actions.test.tsx` (field, trim, refusal), `actions.test.ts` (forwarded, too long), `billing-api.test.ts` (body) |
+| US-PROMO-05: counts/caps, no PII, the event, the pre-deploy check | `promo_codes.test.js` "counts each code…" (2 of 2 used, 0 left, third refused), "records the redemption for analytics without the code"; `check_promo_codes.test.js` (usable, typo, unset, same rules); `subscriptions-view.test.tsx` (lines, checkout, retired, no card, per-account note); `admin-subscriptions-api.test.ts` |
 | US-PROMO-01: only a promo source ends by date on a read | `billing.test.js` "ends a promo period by date, and leaves every other source to its writer" |
 
-Checks run on 2026-11-22: `npm test` (backend, 479 passing), `flutter analyze`
+Checks run on 2026-11-22: `npm test` (backend, 487 passing), `flutter analyze`
 (clean) and `flutter test` (1925 passing) in the app, `format:check`, `lint`,
-`typecheck` and `npm test` (529 passing) in the website. **Not verified:** the
+`typecheck` and `npm test` (537 passing) in the website. **Not verified:** the
 iPhone pass (`tasks/phase-29-promo-codes.md` PV-50) — a real code redeemed in
 the app on a device — and the Paddle discount purchase (PV-65), which needs a
 discount created in Paddle and a real checkout.

@@ -10,6 +10,7 @@ const { allCredentials, sendPlanLimit } = require('../billing/limits');
 const { syncSubscription } = require('../billing/syncSubscription');
 const { redeemPromo } = require('../billing/promo');
 const { billingEnabled, revenueCatConfig } = require('../config/env');
+const { track } = require('../lib/analytics');
 const { logger } = require('../lib/logger');
 
 const PRIMARY_COOLDOWN_MS = 24 * 60 * 60 * 1000;
@@ -71,6 +72,9 @@ exports.redeemPromo = async (req, res, next) => {
       code: outcome.entry.code,
       days: outcome.entry.days,
     });
+    // US-PROMO-05: the days only. The code list is a secret and analytics is
+    // a third-party service, so the code never leaves the server through it.
+    track('promo_redeemed', { days: outcome.entry.days });
     res.json(body(await entitlementsFor(req.user.id)));
   } catch (err) {
     next(err);

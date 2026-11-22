@@ -38,5 +38,26 @@ export type AdminSubscription = {
   createdAt: string | null;
 };
 
+/**
+ * US-PROMO-05: one configured code and how much of it is used. `redemptions`
+ * is null for a checkout discount, whose redemptions Paddle counts.
+ */
+export type AdminPromoCode = {
+  code: string;
+  kind: "pro" | "checkout";
+  days: number | null;
+  redemptions: number | null;
+  maxRedemptions: number | null;
+  remaining: number | null;
+  expiresAt: string | null;
+  expired: boolean;
+};
+
+/** One page of the console: the accounts, and every code configured. */
+export type AdminSubscriptionsPage = {
+  items: AdminSubscription[];
+  codes: AdminPromoCode[];
+};
+
 /** The console's plan filter. */
 export type AdminPlanFilter = "all" | "pro" | "free";

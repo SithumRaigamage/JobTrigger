@@ -33,7 +33,8 @@ export default async function AdminSubscriptionsPage({
     <>
       <AdminTabs current="subscriptions" />
       <SubscriptionsView
-        items={result.ok ? result.value : []}
+        items={result.ok ? result.value.items : []}
+        codes={result.ok ? result.value.codes : []}
         failure={result.ok ? null : result.failure}
         plan={plan}
         q={q}

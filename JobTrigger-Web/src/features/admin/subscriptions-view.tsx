@@ -1,7 +1,11 @@
 import Link from "next/link";
 
 import { Card } from "@/components/layout";
-import type { AdminPlanFilter, AdminSubscription } from "@/domain/admin-subscription";
+import type {
+  AdminPlanFilter,
+  AdminPromoCode,
+  AdminSubscription,
+} from "@/domain/admin-subscription";
 import type { AppFailure } from "@/domain/app-failure";
 import { failureMessage } from "@/domain/app-failure";
 import { planDate } from "@/features/account/plan-section";
@@ -29,6 +33,28 @@ const NOTICES: Record<string, string> = {
   revoked: "Grant revoked. A paid store or web plan, if any, is untouched.",
 };
 
+/**
+ * US-PROMO-05: one code's numbers in words. A checkout discount has no local
+ * count — Paddle counts its own redemptions on the discount itself.
+ */
+export function promoCodeLine(code: AdminPromoCode): string {
+  const parts: string[] = [];
+  if (code.kind === "checkout") {
+    parts.push("money off the website checkout (Paddle counts its redemptions)");
+  } else {
+    parts.push(`Pro for ${code.days} ${code.days === 1 ? "day" : "days"}`);
+    const used = `${code.redemptions ?? 0} redeemed`;
+    parts.push(
+      code.maxRedemptions === null
+        ? used
+        : `${used} of ${code.maxRedemptions}, ${code.remaining ?? 0} left`,
+    );
+  }
+  if (code.expired) parts.push("past its last day");
+  else if (code.expiresAt) parts.push(`usable until ${planDate(code.expiresAt)}`);
+  return parts.join(" · ");
+}
+
 /** "Pro until March 3, 2027", or where it renews. */
 function planLine(item: AdminSubscription): string {
   const date = planDate(item.periodEnd);
@@ -40,12 +66,15 @@ function planLine(item: AdminSubscription): string {
 /** /admin/subscriptions: every account's plan, and the tester grant controls. */
 export function SubscriptionsView({
   items,
+  codes = [],
   failure,
   plan,
   q,
   notice,
 }: {
   items: AdminSubscription[];
+  /** US-PROMO-05: every code configured, with its usage. */
+  codes?: AdminPromoCode[];
   failure: AppFailure | null;
   plan: AdminPlanFilter;
   q: string;
@@ -68,6 +97,25 @@ export function SubscriptionsView({
         >
           {NOTICES[notice]}
         </p>
+      )}
+      {codes.length > 0 && (
+        <Card role="region" aria-labelledby="promo-codes-title" className="flex flex-col gap-3 p-5">
+          <h2 id="promo-codes-title" className="text-xl font-extrabold">
+            Promo codes
+          </h2>
+          <p className="text-sm text-muted">
+            Every code in the deployment&apos;s promotion list, and how much of each is used. A code
+            removed with its account frees a slot again.
+          </p>
+          <ul className="flex flex-col gap-2 text-sm">
+            {codes.map((code) => (
+              <li key={code.code} className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <span className="font-mono font-semibold">{code.code}</span>
+                <span className="text-muted">{promoCodeLine(code)}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
       )}
       <nav aria-label="Plan" className="flex flex-wrap gap-2">
         {PLAN_FILTERS.map((filter) => (

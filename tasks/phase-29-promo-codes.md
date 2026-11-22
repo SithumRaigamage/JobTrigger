@@ -82,6 +82,20 @@ logic in notifiers, analyze clean, no new dependencies, Jenkins frozen (§11).
       `dsc_…` id on a `PROMO_CODES` entry, redeploy, then buy with the code and
       check the checkout shows the lower total.
 
+### PV-7 Running codes: numbers and a safe deploy (US-PROMO-05)
+- [x] PV-70 `GET /api/admin/subscriptions` gains `codes`: every configured
+      code with its redemptions (the rows the cap counts), `maxRedemptions`
+      and `remaining`; a checkout discount reports no local numbers.
+- [x] PV-71 `/admin/subscriptions` shows the codes card (counts, cap left,
+      retired codes) without listing who holds one.
+- [x] PV-72 `promo_redeemed` in the analytics catalogue, sent with `{ days }`
+      only — never the code.
+- [x] PV-73 `scripts/check-promo-codes.js` + `npm run check-promo-codes`: the
+      same `PROMO_CODES` rules as startup, exit 1 on a typo, counts by kind,
+      no value printed; documented in `docs/configuration.md`.
+- [x] PV-74 Tests: backend console counts (and that the count matches the rule)
+      and the event; the script (usable, typo, unset); web parser and card.
+
 ### PV-5 Manual
 - [ ] PV-50 MANUAL (owner): put the real codes in the deployment's
       `PROMO_CODES` and redeploy, then redeem one on the iPhone
