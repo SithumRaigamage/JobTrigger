@@ -33,7 +33,7 @@ describe('Phase 32: fictional student review demo data (US-DEMO-01…03)', funct
     expect(remoteDatabaseProblem('mongodb://localhost:27017', {
       env: { NODE_ENV: 'production' }, argv: [],
     })).to.match(/production/);
-    expect(remoteDatabaseProblem('mongodb://user:pwd@localhost:27017/jobtrigger-prod', {
+    expect(remoteDatabaseProblem('mongodb://user:<password>@localhost:27017/jobtrigger-prod', {
       env: {}, argv: ['--allow-remote'],
     })).to.match(/production/);
     const remote = remoteDatabaseProblem('mongodb+srv://dev.example.com/jobtrigger', {
