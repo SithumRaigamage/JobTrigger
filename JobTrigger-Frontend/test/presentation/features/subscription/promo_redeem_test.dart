@@ -53,10 +53,7 @@ Future<void> _pump(
         billingClientProvider.overrideWithValue(FakeBillingClient()),
         authNotifierProvider.overrideWith(_Auth.new),
       ],
-      child: MaterialApp.router(
-        theme: AppTheme.dark(),
-        routerConfig: router,
-      ),
+      child: MaterialApp.router(theme: AppTheme.dark(), routerConfig: router),
     ),
   );
   await tester.pumpAndSettle();
@@ -72,11 +69,7 @@ void main() {
   testWidgets('US-PROMO-01: the row shows for a Free account with codes', (
     tester,
   ) async {
-    await _pump(
-      tester,
-      FakeSubscriptionRepository(),
-      freeWithCodesSnapshot,
-    );
+    await _pump(tester, FakeSubscriptionRepository(), freeWithCodesSnapshot);
     expect(find.text('Redeem a code'), findsOneWidget);
   });
 
@@ -105,11 +98,7 @@ void main() {
   testWidgets('US-PROMO-01: Redeem stays disabled until a code is typed', (
     tester,
   ) async {
-    await _pump(
-      tester,
-      FakeSubscriptionRepository(),
-      freeWithCodesSnapshot,
-    );
+    await _pump(tester, FakeSubscriptionRepository(), freeWithCodesSnapshot);
     await _openDialog(tester);
 
     final button = find.byKey(const Key('promo_redeem_submit'));
@@ -119,7 +108,10 @@ void main() {
     await tester.pump();
     expect(tester.widget<FilledButton>(button).onPressed, isNull);
 
-    await tester.enterText(find.byKey(const Key('promo_code_field')), 'LAUNCH30');
+    await tester.enterText(
+      find.byKey(const Key('promo_code_field')),
+      'LAUNCH30',
+    );
     await tester.pump();
     expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
   });
@@ -198,9 +190,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text(
-        "Can't reach the server. Check your connection and try again.",
-      ),
+      find.text("Can't reach the server. Check your connection and try again."),
       findsOneWidget,
     );
     expect(repo.redeemedCodes, hasLength(1));
@@ -216,15 +206,16 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    final outcome = await container.read(promoRedeemProvider.notifier).redeem(
-      'LAUNCH30',
-    );
+    final outcome = await container
+        .read(promoRedeemProvider.notifier)
+        .redeem('LAUNCH30');
     expect(outcome, isA<PromoRedeemRefused>());
     expect(repo.redeemedCodes, isEmpty);
   });
 
   test('US-PROMO-01: a double tap sends one request', () async {
-    final repo = FakeSubscriptionRepository()..promoResult = Ok(promoProSnapshot());
+    final repo = FakeSubscriptionRepository()
+      ..promoResult = Ok(promoProSnapshot());
     final container = ProviderContainer(
       overrides: [subscriptionRepositoryProvider.overrideWithValue(repo)],
     );
@@ -239,15 +230,16 @@ void main() {
   });
 
   test('US-PROMO-01: the granted snapshot is the plan the code gave', () async {
-    final repo = FakeSubscriptionRepository()..promoResult = Ok(promoProSnapshot());
+    final repo = FakeSubscriptionRepository()
+      ..promoResult = Ok(promoProSnapshot());
     final container = ProviderContainer(
       overrides: [subscriptionRepositoryProvider.overrideWithValue(repo)],
     );
     addTearDown(container.dispose);
 
-    final outcome = await container.read(promoRedeemProvider.notifier).redeem(
-      'LAUNCH30',
-    );
+    final outcome = await container
+        .read(promoRedeemProvider.notifier)
+        .redeem('LAUNCH30');
     expect(outcome, isA<PromoRedeemed>());
     final snapshot = (outcome as PromoRedeemed).snapshot;
     expect(snapshot.entitlements.isPro, isTrue);

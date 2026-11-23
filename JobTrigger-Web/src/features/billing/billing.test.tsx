@@ -20,7 +20,7 @@ vi.mock("./promo-code-form", () => ({
   PromoCodeForm: () => <div data-testid="promo-form" />,
 }));
 
-const paddle: PaddleConfig = { clientToken: "test_0123456789abcdefghij", environment: "sandbox" };
+const paddle: PaddleConfig = { clientToken: "test_0123456789abcdefghij", environment: "sandbox" }; // gitleaks:allow — fake Paddle sandbox token
 
 const free: Subscription = {
   plan: "free",

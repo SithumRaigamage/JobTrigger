@@ -8,7 +8,7 @@ window.CHECKLIST = {
   project: "JobTrigger",
   version: "1.0.0",
   targetDate: "not set",
-  updated: "2026-11-22",
+  updated: "2026-11-23",
   intro: "Everything still between the code on `develop` and JobTrigger 1.0.0 in both stores. 1.0.0 ships Jenkins, SonarQube and GitHub Actions; the team plan waits for 1.0.1.",
   people: { me: "Me", claude: "Claude", both: "Me, then Claude" },
   sections: [
@@ -520,11 +520,13 @@ window.CHECKLIST = {
           title: "Check every \"coming soon\" note on the site is right for 1.0",
           who: "claude",
           must: true,
+          done: true,
           steps: [
             "Run `npm run check` and `npm run e2e` in `JobTrigger-Web` on the release branch.",
             "Check GitLab CI, CircleCI and the team plan say coming later, and no page promises push notifications.",
             "Check Paddle's script loads only on `/account/billing`."
-          ]
+          ],
+          note: "Done 2026-11-23 on `develop`: 544 unit tests, 208 browser tests, feature-status.ts is the single source of truth (GitLab/CircleCI planned, team plan soon for 1.0.1), no push-notification promise, Paddle.js and its CSP scoped to `/account/billing`. Re-run the two suites on `release/v1.0.0` after the freeze."
         },
         {
           id: "store-links",

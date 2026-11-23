@@ -20,6 +20,7 @@ abstract class SubscriptionDto with _$SubscriptionDto {
     String? periodEnd,
     @Default(false) bool willRenew,
     @Default(false) bool manageOnWeb,
+
     /// US-PROMO-01: the backend has codes to redeem. Absent = false.
     @Default(false) bool promoAvailable,
     String? primaryCredentialId,

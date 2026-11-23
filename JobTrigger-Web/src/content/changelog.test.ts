@@ -21,6 +21,10 @@ describe("upcoming changelog entries", () => {
       { tag: "Ships", text: "GitHub Actions runs, logs and history" },
       { tag: "Ships", text: "SonarQube projects, quality gates, measures and issues" },
       { tag: "Ships", text: "Set up servers from your laptop on this website" },
+      {
+        tag: "Ships",
+        text: "JobTrigger Pro: monthly and yearly plans, with a trial on the yearly plan",
+      },
     ]);
   });
 

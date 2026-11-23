@@ -12,15 +12,18 @@
   - `release/tools.json` verified (`release: "1.0"`, Jenkins 1.0, SonarQube 1.0, GitHub Actions 1.0).
   - Run check: `node scripts/sync-tools.mjs --check` passes cleanly across Frontend, Web, and Backend.
 - [x] **Frontend Unit & Widget Tests**:
-  - All 1,733 Flutter tests passing, 29 skipped (`JobTrigger-Frontend/test/`,
-    re-run 2026-11-19; includes the billing sandbox, startup watchdog and
-    P24-05 shared-header suites).
+  - All 1,992 Flutter tests passing, 29 skipped (`JobTrigger-Frontend/test/`,
+    re-run 2026-11-23 on merged `develop`; includes the billing sandbox,
+    startup watchdog, P24-05 shared-header, promo and student-review suites).
 - [x] **Backend Tests**:
-  - Node test suite passing, 429 tests (`npm test` in `JobTrigger-Backend`).
+  - Node test suite passing, 525 tests (`npm test` in `JobTrigger-Backend`,
+    re-run 2026-11-23; runtime `npm audit --omit=dev` reports 0 vulnerabilities).
 - [x] **Web Tests**:
-  - Vitest test suite passing (65 test files, 481 tests in `JobTrigger-Web`).
+  - Vitest test suite passing (73 test files, 544 tests in `JobTrigger-Web`,
+    re-run 2026-11-23 as part of `npm run check`).
 - [x] **Website Browser Tests**:
-  - Playwright suite passing (202 desktop, mobile and release-manifest tests).
+  - Playwright suite passing (208 desktop, mobile and release-manifest tests,
+    re-run 2026-11-23).
 - [x] **Security Workflows**:
   - `security.yml` dependency and secret scanning verified (`gitleaks`, OSV advisories).
 

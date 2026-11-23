@@ -128,9 +128,7 @@ class _PromoCodeDialogState extends ConsumerState<PromoCodeDialog> {
             Expanded(
               child: FilledButton(
                 key: const Key('promo_redeem_submit'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(64, 48),
-                ),
+                style: FilledButton.styleFrom(minimumSize: const Size(64, 48)),
                 onPressed: _canSubmit ? _submit : null,
                 child: _busy
                     ? const SizedBox(
