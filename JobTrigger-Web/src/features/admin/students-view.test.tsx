@@ -233,3 +233,36 @@ describe("StudentsView history (US-STU-03)", () => {
     expect(within(nav).getByRole("link", { name: "All" })).toHaveAttribute("aria-current", "page");
   });
 });
+
+describe("Student review demo profiles (US-DEMO-01/02)", () => {
+  const demoNimali: AdminStudent = {
+    ...email,
+    id: "64c0000000000000000000d1",
+    accountEmail: "demo-nimali@jobtrigger.app",
+    universityEmail: "nimali.silva@student.mtu.ac.lk",
+  };
+
+  it("marks a seeded row as a demo in the queue", () => {
+    render(<StudentsView items={[demoNimali, email]} failure={null} status="pending" q="" />);
+    expect(screen.getAllByText("Demo")).toHaveLength(1);
+  });
+
+  it("shows the fictional study profile and per-profile ideas on detail", () => {
+    render(<StudentDetailView item={demoNimali} />);
+    expect(screen.getByRole("heading", { name: "Demo profile" })).toBeVisible();
+    expect(screen.getByText(/Fictional local demo data/)).toBeVisible();
+    expect(screen.getByText("BSc Computer Science, Year 3")).toBeVisible();
+    expect(screen.getByText("University of Moratuwa")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Possible developments" })).toBeVisible();
+    expect(screen.getByText(/Preview the 365-day end date before approving/)).toBeVisible();
+    // The real review forms are still there for this pending application.
+    expect(screen.getByRole("button", { name: "Approve" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Reject" })).toBeVisible();
+  });
+
+  it("never shows the demo panel for a real account", () => {
+    render(<StudentDetailView item={email} />);
+    expect(screen.queryByRole("heading", { name: "Demo profile" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Demo")).not.toBeInTheDocument();
+  });
+});

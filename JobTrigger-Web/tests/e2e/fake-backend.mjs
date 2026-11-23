@@ -120,13 +120,123 @@ const adminApp = (a) => ({
   userId: a.userId,
   accountEmail: [...users.values()].find((u) => u.id === a.userId)?.email ?? null,
   fullName: a.fullName ?? null,
+  emailVerifiedAt: a.emailVerifiedAt ?? null,
   reviewedAt: a.reviewedAt ?? null,
-  documentMime: a.method === "document" ? a.mime : null,
+  reviewedByEmail: a.reviewedByEmail ?? null,
+  documentMime: a.method === "document" ? (a.mime ?? null) : null,
   documentSize: a.method === "document" ? (documents.get(a.id)?.length ?? null) : null,
-  hasDocument: a.method === "document",
+  hasDocument: a.method === "document" && documents.has(a.id),
   documentDeleted: false,
-  documentDeleteAt: null,
+  documentDeleteAt: a.documentDeleteAt ?? null,
 });
+
+// Phase 32: the same five fictional applicants as the backend's local seed
+// script. They make the admin queue realistic and let the e2e specs approve
+// and reject without signing up a student first. Test-only reset below.
+const DEMO_PASSWORD = "DemoPass123!";
+const DEMO_ID_BYTES = Buffer.concat([
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+  Buffer.from("fictional demo student id"),
+]);
+const DEMO_PEOPLE = [
+  {
+    key: "d1",
+    email: "demo-nimali@jobtrigger.app",
+    method: "email",
+    universityEmail: "nimali.silva@student.mtu.ac.lk",
+    status: "pending",
+    submittedDaysAgo: 2,
+    verifiedDaysAgo: 2,
+  },
+  {
+    key: "d2",
+    email: "demo-kasun@jobtrigger.app",
+    method: "document",
+    fullName: "Kasun Perera",
+    status: "pending",
+    submittedDaysAgo: 5,
+    document: true,
+  },
+  {
+    key: "d3",
+    email: "demo-anushka@jobtrigger.app",
+    method: "email",
+    universityEmail: "anushka.fernando@student.pdn.ac.lk",
+    status: "approved",
+    submittedDaysAgo: 50,
+    verifiedDaysAgo: 50,
+    approvedDaysAgo: 45,
+  },
+  {
+    key: "d4",
+    email: "demo-tharindu@jobtrigger.app",
+    method: "document",
+    fullName: "Tharindu Wickramasinghe",
+    status: "rejected",
+    submittedDaysAgo: 6,
+    reviewedDaysAgo: 3,
+    rejectionReason: "The photo is too blurry to read. Upload a clearer student ID.",
+    document: true,
+  },
+  {
+    key: "d5",
+    email: "demo-maya@jobtrigger.app",
+    method: "email",
+    universityEmail: "maya.chandrasekaran@student.ruh.ac.lk",
+    status: "expired",
+    submittedDaysAgo: 400,
+    verifiedDaysAgo: 400,
+    approvedDaysAgo: 400,
+  },
+];
+
+function seedDemoStudents() {
+  const now = Date.now();
+  const ago = (days) => new Date(now - days * 24 * 60 * 60 * 1000).toISOString();
+  for (const person of DEMO_PEOPLE) {
+    const suffix = person.key.padStart(21, "0");
+    const id = `64c${suffix}`;
+    const userId = `64d${suffix}`;
+    users.delete(person.email);
+    applications.delete(id);
+    documents.delete(id);
+    const reviewedAt =
+      person.approvedDaysAgo != null
+        ? ago(person.approvedDaysAgo)
+        : person.reviewedDaysAgo != null
+          ? ago(person.reviewedDaysAgo)
+          : null;
+    const approvedAt = person.approvedDaysAgo == null ? null : ago(person.approvedDaysAgo);
+    const app = {
+      id,
+      userId,
+      method: person.method,
+      status: person.status,
+      fullName: person.fullName ?? null,
+      universityEmail: person.universityEmail ?? null,
+      emailVerifiedAt: person.verifiedDaysAgo == null ? null : ago(person.verifiedDaysAgo),
+      createdAt: ago(person.submittedDaysAgo),
+      reviewedAt,
+      reviewedByEmail: reviewedAt ? "student-admin@example.com" : null,
+      approvedAt,
+      expiresAt: approvedAt
+        ? new Date(new Date(approvedAt).getTime() + YEAR_MS).toISOString()
+        : null,
+      rejectionReason: person.rejectionReason ?? null,
+      mime: person.document ? "image/png" : null,
+      documentDeleteAt:
+        person.document && reviewedAt
+          ? new Date(new Date(reviewedAt).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          : null,
+    };
+    applications.set(id, app);
+    if (person.document) documents.set(id, DEMO_ID_BYTES);
+    const user = { id: userId, email: person.email, password: DEMO_PASSWORD, tokenVersion: 0 };
+    users.set(person.email, user);
+    if (app.status === "approved") user.student = app;
+  }
+}
+seedDemoStudents();
 
 function student(url, req, body, user, reply) {
   const mine = () => [...applications.values()].filter((a) => a.userId === user.id).at(-1);
@@ -273,7 +383,6 @@ function admin(url, req, body, user, reply, res) {
     const status = url.searchParams.get("status") ?? "pending";
     const q = (url.searchParams.get("q") ?? "").toLowerCase();
     const items = [...applications.values()]
-      .filter((a) => a.method === "document")
       .filter((a) => status === "all" || a.status === status)
       .map(adminApp)
       .filter(
@@ -285,9 +394,10 @@ function admin(url, req, body, user, reply, res) {
     return reply(200, { items });
   }
   const app = applications.get(id);
-  if (!app || app.method !== "document") return reply(404, { message: "Not found" });
+  if (!app) return reply(404, { message: "Not found" });
   if (!action && req.method === "GET") return reply(200, adminApp(app));
   if (action === "document" && req.method === "GET") {
+    if (app.method !== "document") return reply(404, { message: "Not found" });
     res.writeHead(200, { "content-type": app.mime, "x-request-id": "e2e" });
     return res.end(documents.get(app.id));
   }
@@ -331,6 +441,11 @@ const server = createServer(async (req, res) => {
       toolRequests: toolRequests.get(url.searchParams.get("email") ?? "") ?? 0,
       tickets: tickets.get(url.searchParams.get("email") ?? "") ?? [],
     });
+  // Test-only: restore the five Phase 32 demo applications between specs.
+  if (url.pathname === "/__reset-demo-students" && req.method === "POST") {
+    seedDemoStudents();
+    return reply(200, { status: "ok" });
+  }
   if (url.pathname === "/api/appinfo")
     return reply(200, { supportEmail: "support@jobtrigger.test", appVersion: "1.0.0" });
 

@@ -7,6 +7,7 @@ import type { AdminStudent } from "@/domain/student";
 import type { AdminStatusFilter } from "@/server/admin-students-api";
 import { studentDate } from "@/features/student/student-text";
 
+import { demoProfileFor } from "./demo-profiles";
 import { ReviewForms } from "./review-forms";
 
 export const STATUS_FILTERS: readonly { id: AdminStatusFilter; label: string }[] = [
@@ -116,6 +117,7 @@ export function StudentsView({
         <ul className="flex flex-col gap-3">
           {items.map((item) => {
             const decided = decisionText(item);
+            const demo = demoProfileFor(item.accountEmail);
             return (
               <li key={item.id}>
                 <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
@@ -128,6 +130,11 @@ export function StudentsView({
                     <span className="truncate font-mono text-sm text-fg-secondary">
                       {item.accountEmail ?? "(account deleted)"}
                     </span>
+                    {demo && (
+                      <span className="w-fit rounded-full border border-line-strong px-2 py-0.5 text-xs font-semibold text-muted">
+                        Demo
+                      </span>
+                    )}
                     <span className="text-sm text-muted">
                       {methodText[item.method]} · {statusText[item.status]} · submitted{" "}
                       {studentDate(item.submittedAt) ?? "?"}
@@ -150,6 +157,7 @@ export function StudentsView({
 /** One application: its details, the document and the decision (SP-51). */
 export function StudentDetailView({ item }: { item: AdminStudent }) {
   const byEmail = item.method === "email";
+  const demo = demoProfileFor(item.accountEmail);
   const rows: [string, string][] = [
     ["Status", statusText[item.status]],
     ["Method", methodText[item.method]],
@@ -197,6 +205,28 @@ export function StudentDetailView({ item }: { item: AdminStudent }) {
           ))}
         </dl>
       </Card>
+      {demo && (
+        <Card className="flex flex-col gap-3 p-6">
+          <h2 className="text-lg font-extrabold">Demo profile</h2>
+          <p className="text-sm text-muted">
+            Fictional local demo data — not a real student or a shipped feature.
+          </p>
+          <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2">
+            <dt className="text-sm font-semibold text-fg-secondary">Name</dt>
+            <dd>{demo.name}</dd>
+            <dt className="text-sm font-semibold text-fg-secondary">Course</dt>
+            <dd>{demo.course}</dd>
+            <dt className="text-sm font-semibold text-fg-secondary">University</dt>
+            <dd>{demo.university}</dd>
+          </dl>
+          <h3 className="font-bold">Possible developments</h3>
+          <ul className="list-disc pl-5 text-sm text-fg-secondary">
+            {demo.ideas.map((idea) => (
+              <li key={idea}>{idea}</li>
+            ))}
+          </ul>
+        </Card>
+      )}
       {!byEmail && (
         <Card className="flex flex-col gap-3 p-6">
           <h2 className="text-lg font-extrabold">Document</h2>
