@@ -37,24 +37,78 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: SingleChildScrollView(child: WhatsNewSheet(release: release)),
+          // US-PROF-05: the body has a scrolling area, so it needs a bounded
+          // height here, just as it does in the modal sheet.
+          body: SizedBox(height: 600, child: WhatsNewSheet(release: release)),
         ),
       ),
     );
 
     expect(find.text("What's new"), findsOneWidget);
+    expect(find.byTooltip('Close'), findsOneWidget);
     expect(find.text('Version 1.0'), findsOneWidget);
     for (final item in release.items) {
       expect(find.text(item), findsOneWidget);
     }
   });
 
+  testWidgets('long notes scroll while the action stays on screen', (
+    tester,
+  ) async {
+    final release = WhatsNewRelease(
+      version: '1.0',
+      items: [for (var i = 1; i <= 40; i++) 'Release note $i'],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(height: 360, child: WhatsNewSheet(release: release)),
+        ),
+      ),
+    );
+
+    expect(tester.getRect(find.text('Got it')).bottom, lessThanOrEqualTo(360));
+    await tester.scrollUntilVisible(find.text('Release note 40'), 100);
+    expect(find.text('Release note 40'), findsOneWidget);
+  });
+
+  testWidgets('the modal sheet leaves a strip of the app visible', (
+    tester,
+  ) async {
+    await _pumpGate(tester, '1.0.0');
+
+    final screenHeight =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is ConstrainedBox &&
+            (w.constraints.maxHeight - screenHeight * 0.85).abs() < 1,
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('the gate shows the notes once per version', (tester) async {
     await _pumpGate(tester, '1.0.0');
 
     expect(find.text("What's new"), findsOneWidget);
-    await tester.ensureVisible(find.text('Got it'));
+    // No ensureVisible: the primary action must already be on screen.
     await tester.tap(find.text('Got it'));
+    await tester.pumpAndSettle();
+    expect(find.text("What's new"), findsNothing);
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString(whatsNewSeenVersionKey), '1.0.0');
+  });
+
+  testWidgets('the close button dismisses and records the version', (
+    tester,
+  ) async {
+    await _pumpGate(tester, '1.0.0');
+
+    expect(find.text("What's new"), findsOneWidget);
+    await tester.tap(find.byTooltip('Close'));
     await tester.pumpAndSettle();
     expect(find.text("What's new"), findsNothing);
 

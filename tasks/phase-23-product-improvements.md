@@ -107,3 +107,16 @@ Implemented in five batches, with a full verification and commit after each.
       logout). Add a released v1.0 entry to the web changelog
       (`src/content/changelog.ts`) and its tests; the app sheet highlights the
       three tools shipped in 1.0.
+- [x] PI-10-FIX **What's new sheet fills the phone and cannot be closed**
+      (owner report 2026-11-23; US-PROF-05). With `isScrollControlled` and no
+      max height the sheet grows to the whole screen, so there is no tap-out
+      area and the only button sits below a long scroll. Cap the modal at 85%
+      of the screen, add a labelled Close icon in the header, keep the bullet
+      list in a `Flexible` scroll area and pin "Got it" in the footer. Tests:
+      the sheet leaves a strip of app above it, long notes scroll, Close and
+      "Got it" work without scrolling, and every dismissal records the seen
+      version. Flutter only; web/backend unaffected.
+      Done 2026-11-23: `flutter analyze` clean, `dart format --check` clean,
+      full `flutter test` 1,995 passed / 29 skipped (7 What's-new tests,
+      including the 3 new ones). `US-PROF-05` criteria ticked. iPhone pass
+      (drag handle, scrim, real small-screen layout) still with the owner.

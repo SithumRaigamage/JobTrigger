@@ -188,3 +188,61 @@ hunting for scattered icon buttons per screen
 
 **Non-Functional Notes**
 - NFR-PERF-01, NFR-A11Y-02
+
+---
+
+### US-PROF-05 — Read "What's new" without getting stuck
+
+**Priority:** Must (1.0.0 bug fix)
+**Source:** owner report 2026-11-23; `tasks/phase-23-product-improvements.md` (PI-10-FIX)
+**Dependencies:** US-PROF-01, US-PROF-03
+
+As a user
+I want the "What's new" sheet to leave part of the app visible and always give
+me a way out
+So that I can read every note and dismiss the sheet on a small phone
+
+**Acceptance Criteria**
+- [x] Scenario: The sheet does not take over the phone
+  Given I open "What's new" from Profile, or it appears after an update
+  Then a strip of the app behind it stays visible above the sheet, and the
+  sheet never grows taller than 85% of the screen
+  Evidence: `whats_new_sheet.dart` caps the modal at `0.85 * screen height`;
+  `whats_new_test.dart` "the modal sheet leaves a strip of the app visible".
+- [x] Scenario: Every note is reachable
+  Given the release notes are longer than the sheet
+  Then the notes scroll inside the sheet and every line can be read
+  Evidence: `whats_new_test.dart` "long notes scroll while the action stays
+  on screen" (40 notes in a 360px sheet, last note scrolled into view).
+- [x] Scenario: I can always get out
+  Given the sheet is open
+  Then a labelled Close action and the "Got it" button are both visible
+  without scrolling, and tapping either one dismisses the sheet
+  Evidence: `whats_new_test.dart` "the sheet lists the release notes" (Close
+  tooltip), "the gate shows the notes once per version" (taps Got it with no
+  `ensureVisible`), "the close button dismisses and records the version".
+- [x] Scenario: A dismissed sheet is not shown again for this version
+  Given I dismiss the sheet by Close, "Got it", the drag handle or the area
+  outside it
+  Then the installed version is recorded as seen and the sheet does not
+  reappear on the next launch
+  Evidence: `whats_new_gate.dart` saves the version after any return from
+  `showWhatsNewSheet`; "the close button dismisses and records the version",
+  "the gate shows the notes once per version", "the gate stays quiet once
+  this version has been seen". Drag/scrim use the default modal behaviour;
+  the physical iPhone pass is still to do.
+
+**Security & Privacy Notes**
+- None specific. The sheet shows public release notes; it holds no account
+  data or credentials.
+
+**UI / Design Notes**
+- Presentation layer only: `whats_new_sheet.dart` keeps the modal bottom sheet
+  but caps its height, gives the notes a `Flexible` scroll area and pins the
+  primary action in a footer. The close icon follows
+  `stage_detail_sheet.dart`; the height cap follows `edit_sheet.dart`.
+  `whats_new_gate.dart` needs no change: every dismissal returns from
+  `showWhatsNewSheet`, after which the version is saved.
+
+**Non-Functional Notes**
+- NFR-A11Y-02 (labelled close action), NFR-PERF-01 (no new work while idle)
