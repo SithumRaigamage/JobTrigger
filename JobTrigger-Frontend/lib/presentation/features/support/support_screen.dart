@@ -8,8 +8,11 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../data/credentials/active_server_notifier.dart';
 import '../../../data/credentials/active_sonarqube_credential_notifier.dart';
 import '../../../domain/auth/auth_state.dart';
+import '../../../domain/support/support_area.dart';
 import '../../../domain/support/support_category.dart';
 import '../../../domain/support/support_diagnostics.dart';
+import '../../../domain/support/support_impact.dart';
+import '../../../domain/support/support_screenshot.dart';
 import '../../../domain/support/support_ticket.dart';
 import '../../common_widgets/external_link.dart';
 import '../../common_widgets/grouped_card.dart';
@@ -23,6 +26,7 @@ import '../tool_selection/active_tool_notifier.dart';
 import '../tool_selection/ci_tool.dart';
 import 'my_support_tickets_notifier.dart';
 import 'support_form_notifier.dart';
+import 'support_screenshots.dart';
 
 /// P25-05: one place to report a bug, ask a question, suggest a feature or
 /// request a tool. A report is stored on the backend and the owner is emailed
@@ -44,9 +48,12 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
   late final TextEditingController _message;
   late final TextEditingController _email;
   late SupportCategory _category;
+  final Set<SupportArea> _areas = {};
+  SupportImpact _impact = SupportImpact.minor;
   bool _attachDiagnostics = true;
   bool _emailTouched = false;
   String? _formError;
+  String? _screenshotError;
 
   @override
   void initState() {
@@ -85,6 +92,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
     final textTheme = Theme.of(context).textTheme;
     final t = AppTokens.of(context);
     final supportEmail = ref.watch(appInfoNotifierProvider).value?.supportEmail;
+    final screenshots = ref.watch(supportScreenshotsProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -145,6 +153,9 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                                 .read(supportFormNotifierProvider.notifier)
                                 .reset();
                             setState(() => _formError = null);
+                            ref
+                                .read(supportScreenshotsProvider.notifier)
+                                .clear();
                           },
                         )
                       else ...[
@@ -202,6 +213,120 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                             helperText: 'Where we answer this report',
                           ),
                         ),
+                        const SizedBox(height: 16),
+                        const SectionLabel('Affected areas (optional)'),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final area in SupportArea.values)
+                              ChoiceChip(
+                                label: Text(area.label),
+                                selected: _areas.contains(area),
+                                onSelected: sending
+                                    ? null
+                                    : (selected) => setState(() {
+                                        if (selected) {
+                                          _areas.add(area);
+                                        } else {
+                                          _areas.remove(area);
+                                        }
+                                      }),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<SupportImpact>(
+                          initialValue: _impact,
+                          decoration: const InputDecoration(
+                            labelText: 'Impact',
+                          ),
+                          items: [
+                            for (final impact in SupportImpact.values)
+                              DropdownMenuItem(
+                                value: impact,
+                                child: Text(impact.label),
+                              ),
+                          ],
+                          onChanged: sending
+                              ? null
+                              : (value) {
+                                  if (value != null) {
+                                    setState(() => _impact = value);
+                                  }
+                                },
+                        ),
+                        const SizedBox(height: 16),
+                        const SectionLabel('Screenshots (optional)'),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Blur tokens, passwords and personal data before '
+                          'sending. JPG or PNG, up to 3 files of 5 MB each.',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: t.textMuted,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (var i = 0; i < screenshots.length; i++)
+                              SizedBox(
+                                width: 88,
+                                height: 88,
+                                child: Stack(
+                                  fit: StackFit.expand,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.memory(
+                                        screenshots[i].bytes,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 0,
+                                      right: 0,
+                                      child: IconButton(
+                                        tooltip:
+                                            'Remove ${screenshots[i].name}',
+                                        icon: const Icon(Icons.close_rounded),
+                                        color: Colors.white,
+                                        onPressed: sending
+                                            ? null
+                                            : () => ref
+                                                  .read(
+                                                    supportScreenshotsProvider
+                                                        .notifier,
+                                                  )
+                                                  .remove(i),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (screenshots.length < maxSupportScreenshots)
+                              OutlinedButton.icon(
+                                onPressed: sending ? null : _addScreenshot,
+                                icon: const Icon(
+                                  Icons.add_photo_alternate_outlined,
+                                ),
+                                label: const Text('Add screenshot'),
+                              ),
+                          ],
+                        ),
+                        if (_screenshotError case final error?)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              error,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                            ),
+                          ),
                         const SizedBox(height: 8),
                         SwitchListTile(
                           contentPadding: EdgeInsets.zero,
@@ -278,6 +403,11 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
     );
   }
 
+  Future<void> _addScreenshot() async {
+    final error = await ref.read(supportScreenshotsProvider.notifier).add();
+    if (mounted) setState(() => _screenshotError = error);
+  }
+
   Future<void> _submit() async {
     final subject = _subject.text.trim();
     final message = _message.text.trim();
@@ -299,10 +429,14 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
           message: message,
           replyEmail: _email.text.trim(),
           diagnostics: _attachDiagnostics ? _diagnostics() : null,
+          areas: _areas.toList(),
+          impact: _impact,
+          screenshots: ref.read(supportScreenshotsProvider),
         );
     if (!mounted || ticket == null) return;
     _subject.clear();
     _message.clear();
+    ref.read(supportScreenshotsProvider.notifier).clear();
   }
 
   SupportDiagnostics _diagnostics() {

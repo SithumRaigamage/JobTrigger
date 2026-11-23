@@ -89,7 +89,7 @@ export function explainedFailureFor(
 }
 
 export type BackendCall = {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   path: `/api/${string}`;
   body?: unknown;
   /** The JobTrigger access token, for authenticated endpoints. */

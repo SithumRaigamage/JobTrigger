@@ -1,6 +1,7 @@
 import { cn } from "@/components/cn";
 import { Card, Container, Kicker, Section } from "@/components/layout";
 import { statusOf } from "@/content/feature-status";
+import { SupportForm } from "@/features/support/support-form";
 
 const topics = [
   {
@@ -65,8 +66,20 @@ function faqs() {
   ];
 }
 
-/** Support page (design 06; US-WEB-06). The FAQ is native <details>: no JS. */
-export function SupportView({ supportEmail }: { supportEmail: string | null }) {
+/**
+ * Support page (design 06; US-WEB-06). The FAQ is native <details>: no JS.
+ * US-SUP-05/06 adds the rich form for signed-in visitors only; signed-out
+ * visitors keep the FAQ and email fallback unchanged.
+ */
+export function SupportView({
+  supportEmail,
+  signedIn = false,
+  replyEmail = null,
+}: {
+  supportEmail: string | null;
+  signedIn?: boolean;
+  replyEmail?: string | null;
+}) {
   return (
     <main id="content" tabIndex={-1} className="flex flex-1 flex-col">
       <Section surface="dark" dotGrid>
@@ -129,6 +142,15 @@ export function SupportView({ supportEmail }: { supportEmail: string | null }) {
             </details>
           ))}
         </Card>
+
+        {signedIn && replyEmail && (
+          <section aria-labelledby="send-report-heading" className="scroll-mt-24">
+            <h2 id="send-report-heading" className="sr-only">
+              Send a report
+            </h2>
+            <SupportForm replyEmail={replyEmail} />
+          </section>
+        )}
 
         <section
           aria-labelledby="stuck-heading"

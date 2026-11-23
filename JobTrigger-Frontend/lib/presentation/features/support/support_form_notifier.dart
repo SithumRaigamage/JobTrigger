@@ -4,8 +4,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/result.dart';
 import '../../../data/repositories/support_repository_impl.dart';
+import '../../../domain/support/support_area.dart';
 import '../../../domain/support/support_category.dart';
 import '../../../domain/support/support_diagnostics.dart';
+import '../../../domain/support/support_impact.dart';
+import '../../../domain/support/support_screenshot.dart';
 import '../../../domain/support/support_ticket.dart';
 import 'my_support_tickets_notifier.dart';
 
@@ -24,6 +27,9 @@ class SupportFormNotifier extends _$SupportFormNotifier {
     required String message,
     String? replyEmail,
     SupportDiagnostics? diagnostics,
+    List<SupportArea> areas = const [],
+    SupportImpact impact = SupportImpact.minor,
+    List<SupportScreenshot> screenshots = const [],
   }) async {
     state = const AsyncValue.loading();
     final result = await ref
@@ -34,6 +40,9 @@ class SupportFormNotifier extends _$SupportFormNotifier {
           message: message,
           replyEmail: replyEmail,
           diagnostics: diagnostics,
+          areas: areas,
+          impact: impact,
+          screenshots: screenshots,
         );
     switch (result) {
       case Ok(:final value):

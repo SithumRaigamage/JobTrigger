@@ -122,9 +122,11 @@ Contact support, and the tool-selection "Need another tool?" link).
 
 | Path | Method | Auth | Body | Response | Notes |
 |---|---|---|---|---|---|
-| `/api/support/tickets` | POST | `x-auth-token` | `{ category, subject, message, replyEmail?, appVersion?, buildNumber?, tool?, platform?, serverHost? }` | 201 `{ ticket }` | `category`: `bug` \| `feature` \| `question` \| `tool_request`. Subject ≤120, message ≤4000; empty or over-long is **400**. A missing `replyEmail` falls back to the account's address. 5 per **user** per hour (`SUPPORT_TICKET_RATE_LIMIT`), then **429** |
-| `/api/support/tickets` | GET | `x-auth-token` | — | `{ tickets: [...] }` | Only the caller's own, newest first, at most 20. Each: `{ id, category, subject, message, status, createdAt, updatedAt }` |
-| `/api/admin/support/tickets` | GET | `x-auth-token` + `superAdmin` | — | `{ tickets: [...] }` | Every ticket, newest first (100). Adds `replyEmail`, `userEmail`, diagnostics. Optional `?status=open\|triaged\|closed`. A normal account gets **404**, like a route that doesn't exist |
+| `/api/support/tickets` | POST | `x-auth-token` | `{ category, subject, message, replyEmail?, areas?, impact?, screenshots?, appVersion?, buildNumber?, tool?, platform?, serverHost? }` | 201 `{ ticket }` | `category`: `bug` \| `feature` \| `question` \| `tool_request` \| `account` \| `billing` \| `other`; `areas`: any of `jenkins` \| `github` \| `sonarqube` \| `website` \| `phone` \| `account`; `impact`: `blocked` \| `major` \| `minor` (default `minor`). `screenshots`: at most 3 `{ name, data }` objects, `data` = base64 JPG or PNG, ≤5 MB each; magic bytes are checked, wrong type **415**, too large **413**, too many **400**. Subject ≤120, message ≤4000; empty or over-long is **400**. A missing `replyEmail` falls back to the account's address. 5 per **user** per hour (`SUPPORT_TICKET_RATE_LIMIT`), then **429** |
+| `/api/support/tickets` | GET | `x-auth-token` | — | `{ tickets: [...] }` | Only the caller's own, newest first, at most 20. Each: `{ id, category, subject, message, areas, impact, screenshotCount, status, createdAt, updatedAt }`. **Image bytes are never returned here** |
+| `/api/admin/support/tickets` | GET | `x-auth-token` + `superAdmin` | — | `{ tickets: [...] }` | Every ticket, newest first (100). Adds `replyEmail`, `userEmail`, diagnostics and `screenshotCount`. Optional `?status=open\|triaged\|closed`. A normal account gets **404**, like a route that doesn't exist |
+| `/api/admin/support/tickets/:id` | GET | `x-auth-token` + `superAdmin` | — | `{ ticket }` | Full ticket including `replyEmail`, diagnostics, `areas`, `impact` and screenshot metadata (`index`, `mime`, `size`, `createdAt`); never the bytes. Unknown id **404** |
+| `/api/admin/support/tickets/:id/screenshots/:index` | GET | `x-auth-token` + `superAdmin` | — | raw image bytes | `Content-Type: image/jpeg` or `image/png`, `Cache-Control: no-store`; out-of-range index or unknown ticket **404**. A normal account gets **404** |
 | `/api/admin/support/tickets/:id` | PATCH | `x-auth-token` + `superAdmin` | `{ status }` | `{ ticket }` | `open` \| `triaged` \| `closed`; anything else **400**; unknown id **404** |
 
 **No credential is ever stored in a ticket.** `subject` and `message` pass the
@@ -134,6 +136,15 @@ token, `password=…` pair, `Basic`/`Bearer` value or a MongoDB URI is stored as
 the URL and keeps **scheme + host + port only** — no path, query, fragment or
 `user:pass@`. The owner is emailed through nodemailer (best effort: a mail
 failure is logged and the ticket is still created).
+
+**Screenshots (Phase 31)** are encrypted at rest with the same secret cipher
+as student documents, are `select: false` in Mongoose, and are decrypted only
+by the super-admin screenshot route. The daily job
+(`lib/studentJobs.js`/`scripts/run-student-jobs.js`) clears the bytes and sets
+`deletedAt` 30 days after the ticket was created; metadata (mime, size, hash)
+stays. The owner email names the count and links to `/admin/support/:id` — it
+never carries image data. The text scrubber cannot inspect images, so both
+forms warn the user to blur tokens and personal data before sending.
 
 ## 2. Jenkins API (direct, per-server Basic Auth)
 

@@ -40,6 +40,21 @@
 * **Credential context**: Each tool screen shows its active server/account
   and lets you switch without losing your place.
 
+### 8. Promo codes and student review
+* **Promo and voucher codes**: redeem a configured code in the app or on the
+  website for Pro time, or use a checkout discount on the website. A local
+  reminder warns three days before a promo grant ends (US-PROMO-01…06).
+* **Student applications are approved by hand**: confirming a university
+  code verifies the email but no longer grants Pro by itself. A super admin
+  approves or rejects each application in the app or on the website
+  (US-STU-01…03).
+
+### 9. Privacy
+* **Personal data is encrypted at rest** (NFR-SEC-08): emails, names, URLs
+  and credentials are encrypted with keyed hashes for exact lookups. Admin
+  account search is therefore exact-email only, with no partial or name
+  search. Existing data is backfilled with the first production deploy.
+
 ---
 
 ## Known Limitations & Exclusions

@@ -4,7 +4,13 @@ const encryptedFields = require('./plugins/encryptedFields');
 // Phase 25 (P25-01): one support/feedback report. Content is already
 // scrubbed by the controller before it gets here (`lib/errorReporting/
 // scrub.js`), so no credential shape is ever stored.
-const CATEGORIES = ['bug', 'feature', 'question', 'tool_request'];
+// Phase 31: areas, impact and encrypted screenshots add triage context. The
+// image bytes are encrypted with security/secretCipher.js in the controller
+// (the encryptedFields plugin only handles strings with fixed AAD names), and
+// are `select: false` so a normal read never carries them.
+const CATEGORIES = ['bug', 'feature', 'question', 'tool_request', 'account', 'billing', 'other'];
+const AREAS = ['jenkins', 'github', 'sonarqube', 'website', 'phone', 'account'];
+const IMPACTS = ['blocked', 'major', 'minor'];
 const STATUSES = ['open', 'triaged', 'closed'];
 
 const supportTicketSchema = new mongoose.Schema(
@@ -28,6 +34,26 @@ const supportTicketSchema = new mongoose.Schema(
     tool: { type: String, maxlength: 40 },
     platform: { type: String, maxlength: 40 },
     serverHost: { type: String },
+    // P31-01/P31-02: optional multi-select areas, required-ish impact
+    // (defaulted by the controller) and up to three screenshots.
+    areas: { type: [String], enum: AREAS, default: [] },
+    impact: { type: String, enum: IMPACTS, default: 'minor' },
+    screenshots: {
+      type: [
+        new mongoose.Schema(
+          {
+            data: { type: String, select: false },
+            mime: { type: String, required: true },
+            size: { type: Number, required: true },
+            hash: { type: String, required: true },
+            deleteAt: { type: Date, default: null },
+            deletedAt: { type: Date, default: null },
+          },
+          { timestamps: true }
+        ),
+      ],
+      default: [],
+    },
     status: { type: String, enum: STATUSES, default: 'open', index: true },
   },
   { timestamps: true }
@@ -44,8 +70,12 @@ supportTicketSchema.plugin(encryptedFields, {
   logEvent: 'pii.decrypt_failed',
 });
 
+supportTicketSchema.index({ 'screenshots.deleteAt': 1 }, { sparse: true });
+
 const SupportTicket = mongoose.model('SupportTicket', supportTicketSchema);
 
 module.exports = SupportTicket;
 module.exports.CATEGORIES = CATEGORIES;
+module.exports.AREAS = AREAS;
+module.exports.IMPACTS = IMPACTS;
 module.exports.STATUSES = STATUSES;

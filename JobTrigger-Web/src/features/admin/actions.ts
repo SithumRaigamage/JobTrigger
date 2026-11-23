@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { failureMessage } from "@/domain/app-failure";
+import { SUPPORT_STATUSES, type SupportStatus } from "@/domain/support";
 import { authed } from "@/server/authed";
 import { approveStudent, isStudentId, rejectStudent } from "@/server/admin-students-api";
 import { requireSession } from "@/server/guard";
+import { isTicketId, updateSupportStatus } from "@/server/support-api";
 
 /*
  * Phase 21 (SP-51): approve or reject a student document. The backend checks
@@ -50,4 +52,27 @@ export async function rejectStudentAction(
   if (!result.ok) return { error: failureMessage(result.failure) };
   revalidatePath("/admin/students");
   redirect("/admin/students?notice=rejected");
+}
+
+export type SupportStatusState = { error?: string; notice?: string };
+
+/** US-SUP-07: triage a support ticket from its detail page. */
+export async function updateSupportStatusAction(
+  _previous: SupportStatusState,
+  form: FormData,
+): Promise<SupportStatusState> {
+  const session = await requireSession();
+  const id = String(form.get("id") ?? "");
+  const status = String(form.get("status") ?? "");
+  if (!isTicketId(id)) return { error: "That report couldn't be found." };
+  if (!(SUPPORT_STATUSES as readonly string[]).includes(status)) {
+    return { error: "Choose a known status." };
+  }
+  const result = await authed(session, (token) =>
+    updateSupportStatus(token, id, status as SupportStatus),
+  );
+  if (!result.ok) return { error: failureMessage(result.failure) };
+  revalidatePath("/admin/support");
+  revalidatePath(`/admin/support/${id}`);
+  return { notice: `Marked ${status}.` };
 }

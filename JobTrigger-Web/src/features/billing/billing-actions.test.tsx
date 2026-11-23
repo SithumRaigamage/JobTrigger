@@ -36,7 +36,7 @@ beforeEach(() => {
 // part of the checkout rather than the "Redeem a code for free Pro time" form.
 describe("UpgradeButtons", () => {
   it("names the field for money off, so it is not mistaken for a Pro code", () => {
-    render(<UpgradeButtons clientToken="test_0123456789abcdefghij" environment="sandbox" />);
+    render(<UpgradeButtons clientToken="test_0123456789abcdefghij" environment="sandbox" />); // gitleaks:allow — fake Paddle sandbox token
 
     expect(screen.getByLabelText("Discount code (money off this purchase)")).toBeVisible();
     expect(screen.getByText(/Takes a percentage off this checkout only/)).toBeVisible();
@@ -45,7 +45,7 @@ describe("UpgradeButtons", () => {
 
   it("sends the trimmed discount code with the chosen interval, then opens the checkout", async () => {
     startCheckoutAction.mockResolvedValue({ transactionId: "txn_1", environment: "sandbox" });
-    render(<UpgradeButtons clientToken="test_0123456789abcdefghij" environment="sandbox" />);
+    render(<UpgradeButtons clientToken="test_0123456789abcdefghij" environment="sandbox" />); // gitleaks:allow — fake Paddle sandbox token
 
     fireEvent.change(screen.getByLabelText("Discount code (money off this purchase)"), {
       target: { value: "  save20 " },
@@ -62,7 +62,7 @@ describe("UpgradeButtons", () => {
     startCheckoutAction.mockResolvedValue({
       error: "That code isn't valid, or it has expired.",
     });
-    render(<UpgradeButtons clientToken="test_0123456789abcdefghij" environment="sandbox" />);
+    render(<UpgradeButtons clientToken="test_0123456789abcdefghij" environment="sandbox" />); // gitleaks:allow — fake Paddle sandbox token
 
     const monthly = screen.getByRole("button", { name: "Upgrade, monthly" });
     await waitFor(() => expect(monthly).toBeEnabled());

@@ -115,6 +115,7 @@ export const features = {
     // keys are configured. The Pro CTA is actionable in this release.
     source:
       "Phase 20 built; billing enabled in 1.0.0 with the store listings and backend deployment",
+    changelog: ["JobTrigger Pro: monthly and yearly plans, with a trial on the yearly plan"],
   },
   "team-plan": {
     label: "Team plan (Pro per seat, shared Jenkins servers)",

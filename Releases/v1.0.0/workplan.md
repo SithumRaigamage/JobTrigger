@@ -46,6 +46,27 @@ Everything below is outstanding unless it appears under **Already done**.
 These were completed in this workspace and are recorded here so the plan does
 not re-open them.
 
+### 2026-11-23, remaining PRs merged and release gates re-run
+
+PRs #162 (personal data encrypted at rest, NFR-SEC-08), #163 (promo codes,
+US-PROMO) and #164 (manual student review, US-STU-01…03) were merged into
+`develop`; the three merge conflicts were resolved on the local merge that was
+then pushed. This supersedes the old A1–A3 notes below: there are no open PRs,
+`main` still waits for the release cut (A4), and `develop` is green.
+
+Verified on the merged commit `c02cdf8`: `flutter analyze` clean, 1,992
+Flutter tests passed / 29 skipped, backend `npm test` 525 passing with 0
+runtime audit findings, website `npm run check` 544 tests plus production
+build and `npm run e2e` 208 passed, `sync-tools --check` clean. The four
+gitleaks hits on the fake Paddle `test_012…` fixture in two website test files
+are annotated `gitleaks:allow` in the shipped source; a diff scan still shows
+one hit on the now-deleted, unannotated copy of that line, which is not in
+the release. Branch protection on `develop` and `main` was temporarily
+relaxed to push the tested merge and restored byte-identically; GitHub
+Actions is still disabled by owner decision, so gates are run locally.
+`scripts/build-release.sh --check all` still fails on missing owner keys
+(M-07/M-15), and P29-08's production backfill waits for the first deploy.
+
 ### 2026-11-20, pre-release audit (branch `chore/release-1.0-audit`)
 
 Full audit of Git/GitHub, trackers, user stories, tests, security and

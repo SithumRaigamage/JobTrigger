@@ -170,3 +170,88 @@ test("/pricing shows the student offer while billing is on", async ({ page }) =>
   // Release 1.0.0 enables billing, so Pro is on sale and the student offer is real.
   await expect(page.getByText(/Students get Pro free/)).toHaveCount(1);
 });
+
+/*
+ * Phase 32 (WEB-DEMO): five fictional applications seeded in the fake
+ * backend, so the admin queue and the approve/reject journey can be shown
+ * and tested without signing up a student first. The fake backend exposes a
+ * test-only reset so these specs do not depend on each other's decisions.
+ */
+const FAKE_BACKEND = "http://127.0.0.1:5999";
+
+async function adminForDemo(page: Page) {
+  await page.request.post(`${FAKE_BACKEND}/__reset-demo-students`);
+  await signUp(page, uniqueEmail("student-admin"));
+}
+
+const demoRow = (page: Page, email: string) =>
+  page.getByRole("listitem").filter({ hasText: email });
+
+test("the seeded demo applications fill every status filter", async ({ page }) => {
+  await adminForDemo(page);
+  // Search by the fixed account email: other specs run in parallel and add
+  // their own applications to the same fake backend.
+  const cases: [string, string, string][] = [
+    ["pending", "demo-nimali@jobtrigger.app", "nimali.silva@student.mtu.ac.lk"],
+    ["pending", "demo-kasun@jobtrigger.app", "Kasun Perera"],
+    ["approved", "demo-anushka@jobtrigger.app", "anushka.fernando@student.pdn.ac.lk"],
+    ["rejected", "demo-tharindu@jobtrigger.app", "Tharindu Wickramasinghe"],
+    ["expired", "demo-maya@jobtrigger.app", "maya.chandrasekaran@student.ruh.ac.lk"],
+    ["all", "demo-nimali@jobtrigger.app", "nimali.silva@student.mtu.ac.lk"],
+  ];
+  for (const [status, email, text] of cases) {
+    await page.goto(`/admin/students?status=${status}&q=${encodeURIComponent(email)}`);
+    await expect(page.getByText(text)).toBeVisible();
+    await expect(demoRow(page, email).getByText("Demo", { exact: true })).toBeVisible();
+  }
+});
+
+test("a seeded application shows its fictional study profile and development ideas", async ({
+  page,
+}) => {
+  await adminForDemo(page);
+  const email = "demo-nimali@jobtrigger.app";
+  await page.goto(`/admin/students?status=pending&q=${encodeURIComponent(email)}`);
+  await demoRow(page, "nimali.silva@student.mtu.ac.lk")
+    .getByRole("link", { name: "Review" })
+    .click();
+
+  await expect(page.getByRole("heading", { name: "Demo profile" })).toBeVisible();
+  await expect(page.getByText("BSc Computer Science, Year 3")).toBeVisible();
+  await expect(page.getByText("University of Moratuwa")).toBeVisible();
+  await expect(page.getByText(/Preview the 365-day end date before approving/)).toBeVisible();
+  await expect(page.getByText(/not a real student or a shipped feature/)).toBeVisible();
+});
+
+test("a super admin can approve a seeded pending email application for real", async ({ page }) => {
+  await adminForDemo(page);
+  const email = "demo-nimali@jobtrigger.app";
+  await page.goto(`/admin/students?status=pending&q=${encodeURIComponent(email)}`);
+  await demoRow(page, "nimali.silva@student.mtu.ac.lk")
+    .getByRole("link", { name: "Review" })
+    .click();
+  await page.getByRole("button", { name: "Approve" }).click();
+  await expect(page.getByRole("status")).toContainText("Approved. The student has Pro");
+
+  await page.goto(`/admin/students?status=approved&q=${encodeURIComponent(email)}`);
+  await expect(page.getByText("nimali.silva@student.mtu.ac.lk")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Approve" })).toHaveCount(0);
+});
+
+test("a super admin can reject a seeded pending document application for real", async ({
+  page,
+}) => {
+  await adminForDemo(page);
+  const email = "demo-kasun@jobtrigger.app";
+  await page.goto(`/admin/students?status=pending&q=${encodeURIComponent(email)}`);
+  await demoRow(page, "Kasun Perera").getByRole("link", { name: "Review" }).click();
+  await page.getByLabel(/Reason/).fill("The ID is too dark to read.");
+  await page.getByRole("button", { name: "Reject" }).click();
+  await expect(page.getByRole("status")).toContainText("Rejected.");
+
+  await page.goto(`/admin/students?status=rejected&q=${encodeURIComponent(email)}`);
+  await expect(page.getByText("Kasun Perera")).toBeVisible();
+  await demoRow(page, "Kasun Perera").getByRole("link", { name: "Open" }).click();
+  await expect(page.getByText("The ID is too dark to read.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Approve" })).toHaveCount(0);
+});

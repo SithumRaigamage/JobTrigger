@@ -13,12 +13,19 @@ import 'package:job_trigger/domain/app_info/app_info_repository.dart';
 import 'package:job_trigger/domain/auth/auth_state.dart';
 import 'package:job_trigger/domain/auth/user.dart';
 import 'package:job_trigger/domain/credential/jenkins_server.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:job_trigger/domain/support/support_area.dart';
 import 'package:job_trigger/domain/support/support_category.dart';
 import 'package:job_trigger/domain/support/support_diagnostics.dart';
+import 'package:job_trigger/domain/support/support_impact.dart';
 import 'package:job_trigger/domain/support/support_repository.dart';
+import 'package:job_trigger/domain/support/support_screenshot.dart';
 import 'package:job_trigger/domain/support/support_ticket.dart';
 import 'package:job_trigger/presentation/features/auth/auth_notifier.dart';
 import 'package:job_trigger/presentation/features/support/support_screen.dart';
+import 'package:job_trigger/presentation/features/support/support_screenshots.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class _Auth extends AuthNotifier {
@@ -60,6 +67,9 @@ class _Support implements SupportRepository {
   String? message;
   String? replyEmail;
   SupportDiagnostics? diagnostics;
+  List<SupportArea> areas = const [];
+  SupportImpact impact = SupportImpact.minor;
+  List<SupportScreenshot> screenshots = const [];
 
   @override
   Future<Result<SupportTicket, AppFailure>> submit({
@@ -68,12 +78,18 @@ class _Support implements SupportRepository {
     required String message,
     String? replyEmail,
     SupportDiagnostics? diagnostics,
+    List<SupportArea> areas = const [],
+    SupportImpact impact = SupportImpact.minor,
+    List<SupportScreenshot> screenshots = const [],
   }) async {
     this.category = category;
     this.subject = subject;
     this.message = message;
     this.replyEmail = replyEmail;
     this.diagnostics = diagnostics;
+    this.areas = areas;
+    this.impact = impact;
+    this.screenshots = screenshots;
     return result ??
         const Ok(
           SupportTicket(
@@ -93,11 +109,17 @@ class _Support implements SupportRepository {
   }
 }
 
-Future<void> _pump(WidgetTester tester, _Support support) async {
+Future<void> _pump(
+  WidgetTester tester,
+  _Support support, {
+  SupportScreenshotPicker? picker,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         supportRepositoryProvider.overrideWithValue(support),
+        if (picker != null)
+          supportScreenshotPickerProvider.overrideWithValue(picker),
         appInfoRepositoryProvider.overrideWithValue(_AppInfo()),
         authNotifierProvider.overrideWith(_Auth.new),
         activeServerNotifierProvider.overrideWith(_Server.new),
@@ -116,6 +138,12 @@ Future<void> _pump(WidgetTester tester, _Support support) async {
   await tester.pumpAndSettle();
 }
 
+/// The extra P31 fields sit below the reply email; move them into view.
+Future<void> _scrollBy(WidgetTester tester, double dy) async {
+  await tester.drag(find.byType(Scrollable).first, Offset(0, dy));
+  await tester.pumpAndSettle();
+}
+
 Future<void> _send(WidgetTester tester) async {
   final button = find.text('Send report');
   // The form scrolls; the button is below the fold and only built once
@@ -128,6 +156,27 @@ Future<void> _send(WidgetTester tester) async {
   await tester.tap(button);
   await tester.pumpAndSettle();
 }
+
+class _Picked implements PickedSupportScreenshot {
+  const _Picked(this.bytes);
+
+  final Uint8List bytes;
+
+  @override
+  String get name => 'shot.png';
+
+  @override
+  int get sizeBytes => bytes.length;
+
+  @override
+  Future<Uint8List> Function() get read =>
+      () async => bytes;
+}
+
+// A real 1×1 PNG: the preview must decode, not just pass the magic-byte check.
+final _png = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==',
+);
 
 void main() {
   testWidgets('sends a report with only host-level diagnostics', (
@@ -156,18 +205,42 @@ void main() {
     expect(find.text('Ticket t1'), findsOneWidget);
   });
 
-  // US-SUP-01: the four kinds, the token warning, and app details on by
-  // default with exactly what they attach.
-  testWidgets('the form offers four kinds and warns about tokens', (
+  // US-SUP-01/05: seven kinds, optional areas, impact, and the token warning.
+  testWidgets('the form offers the report options and warns about tokens', (
     tester,
   ) async {
     await _pump(tester, _Support());
 
-    for (final kind in ['Bug', 'Feature idea', 'Question', 'Tool request']) {
+    for (final kind in [
+      'Bug',
+      'Feature idea',
+      'Question',
+      'Tool request',
+      'Account & sign-in',
+      'Billing & subscription',
+      'Something else',
+    ]) {
       expect(find.widgetWithText(ChoiceChip, kind), findsOneWidget);
     }
     expect(
       find.textContaining('Do not paste tokens or passwords.'),
+      findsOneWidget,
+    );
+    await _scrollBy(tester, -550);
+    for (final area in [
+      'Jenkins',
+      'GitHub Actions',
+      'SonarQube',
+      'Website',
+      'Phone/app',
+      'Account',
+    ]) {
+      expect(find.widgetWithText(ChoiceChip, area), findsOneWidget);
+    }
+    expect(find.text('Impact'), findsOneWidget);
+    await _scrollBy(tester, -450);
+    expect(
+      find.textContaining('Blur tokens, passwords and personal data'),
       findsOneWidget,
     );
     final attach = find.widgetWithText(SwitchListTile, 'Attach app details');
@@ -326,5 +399,65 @@ void main() {
 
     expect(find.text('Console stays blank'), findsOneWidget);
     expect(find.text('Closed · 2026-11-20'), findsOneWidget);
+  });
+
+  // US-SUP-05/06: the selections and previewed screenshot reach the fake
+  // repository, and the draft is cleared after a successful send.
+  testWidgets('sends areas, impact and a screenshot', (tester) async {
+    final support = _Support();
+    await _pump(tester, support, picker: () async => _Picked(_png));
+
+    await tester.enterText(find.byType(TextField).at(0), 'Actions log blank');
+    await tester.enterText(find.byType(TextField).at(1), 'No output shown.');
+    await _scrollBy(tester, -550);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'GitHub Actions'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Minor'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Blocked').last);
+    await tester.pumpAndSettle();
+    await _scrollBy(tester, -450);
+
+    await tester.tap(find.text('Add screenshot'));
+    await tester.pumpAndSettle();
+    expect(find.byType(Image), findsOneWidget);
+
+    await _send(tester);
+
+    expect(support.areas, [SupportArea.github]);
+    expect(support.impact, SupportImpact.blocked);
+    expect(support.screenshots, hasLength(1));
+    expect(support.screenshots.single.bytes, _png);
+    expect(find.text('Report sent'), findsOneWidget);
+  });
+
+  testWidgets('a bad screenshot is refused and a good one can be removed', (
+    tester,
+  ) async {
+    var calls = 0;
+    await _pump(
+      tester,
+      _Support(),
+      picker: () async {
+        calls += 1;
+        if (calls == 1) {
+          return _Picked(Uint8List.fromList([1, 2, 3]));
+        }
+        return _Picked(_png);
+      },
+    );
+    await _scrollBy(tester, -1000);
+    await tester.tap(find.text('Add screenshot'));
+    await tester.pumpAndSettle();
+    expect(find.text('Screenshots must be JPG or PNG images.'), findsOneWidget);
+    expect(find.byType(Image), findsNothing);
+
+    await tester.tap(find.text('Add screenshot'));
+    await tester.pumpAndSettle();
+    expect(find.byType(Image), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.close_rounded));
+    await tester.pumpAndSettle();
+    expect(find.byType(Image), findsNothing);
   });
 }

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const approveStudent = vi.fn();
 const rejectStudent = vi.fn();
+const updateSupportStatus = vi.fn();
 const redirect = vi.fn((url: string) => {
   throw new Error(`REDIRECT ${url}`);
 });
@@ -18,8 +19,12 @@ vi.mock("@/server/admin-students-api", async (importOriginal) => ({
   approveStudent: (...args: unknown[]) => approveStudent(...args),
   rejectStudent: (...args: unknown[]) => rejectStudent(...args),
 }));
+vi.mock("@/server/support-api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/support-api")>()),
+  updateSupportStatus: (...args: unknown[]) => updateSupportStatus(...args),
+}));
 
-import { approveStudentAction, rejectStudentAction } from "./actions";
+import { approveStudentAction, rejectStudentAction, updateSupportStatusAction } from "./actions";
 
 const ID = "64b0000000000000000000aa";
 const form = (values: Record<string, string>) => {
@@ -31,6 +36,7 @@ const form = (values: Record<string, string>) => {
 beforeEach(() => {
   approveStudent.mockReset();
   rejectStudent.mockReset();
+  updateSupportStatus.mockReset();
   redirect.mockClear();
 });
 
@@ -89,5 +95,31 @@ describe("rejectStudentAction", () => {
     expect((await rejectStudentAction({}, form({ id: "nope", reason: "r" }))).error).toBe(
       "That application couldn't be found.",
     );
+  });
+});
+
+// US-SUP-07: the same triage control, now on a support ticket.
+describe("updateSupportStatusAction", () => {
+  it("refuses a bad id or an unknown status before calling the backend", async () => {
+    expect((await updateSupportStatusAction({}, form({ id: "../x", status: "open" }))).error).toBe(
+      "That report couldn't be found.",
+    );
+    expect((await updateSupportStatusAction({}, form({ id: ID, status: "evil" }))).error).toBe(
+      "Choose a known status.",
+    );
+    expect(updateSupportStatus).not.toHaveBeenCalled();
+  });
+
+  it("moves the ticket and reports the new status", async () => {
+    updateSupportStatus.mockResolvedValue({ ok: true, value: {} });
+    const state = await updateSupportStatusAction({}, form({ id: ID, status: "closed" }));
+    expect(updateSupportStatus).toHaveBeenCalledWith("access-1", ID, "closed");
+    expect(state).toEqual({ notice: "Marked closed." });
+  });
+
+  it("shows the backend's failure", async () => {
+    updateSupportStatus.mockResolvedValue({ ok: false, failure: { kind: "network" } });
+    const state = await updateSupportStatusAction({}, form({ id: ID, status: "triaged" }));
+    expect(state.error).toMatch(/Can't reach the server/);
   });
 });

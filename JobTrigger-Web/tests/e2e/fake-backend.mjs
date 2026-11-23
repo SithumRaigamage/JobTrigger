@@ -69,7 +69,10 @@ const secretFetches = new Map();
 const toolRequests = new Map();
 // US-WEB-04: Support tickets filed per account (the website's tool request).
 const tickets = new Map();
-let ticketSeq = 0;
+// Phase 31: the same tickets in one global list for the owner's review queue.
+const allTickets = new Map();
+// Phase 31: screenshot bytes keyed by `${ticketId}:${index}` (never in a list).
+const supportShots = new Map();
 
 function send(res, status, body, requestId) {
   res.writeHead(status, { "content-type": "application/json", "x-request-id": requestId });
@@ -117,13 +120,123 @@ const adminApp = (a) => ({
   userId: a.userId,
   accountEmail: [...users.values()].find((u) => u.id === a.userId)?.email ?? null,
   fullName: a.fullName ?? null,
+  emailVerifiedAt: a.emailVerifiedAt ?? null,
   reviewedAt: a.reviewedAt ?? null,
-  documentMime: a.method === "document" ? a.mime : null,
+  reviewedByEmail: a.reviewedByEmail ?? null,
+  documentMime: a.method === "document" ? (a.mime ?? null) : null,
   documentSize: a.method === "document" ? (documents.get(a.id)?.length ?? null) : null,
-  hasDocument: a.method === "document",
+  hasDocument: a.method === "document" && documents.has(a.id),
   documentDeleted: false,
-  documentDeleteAt: null,
+  documentDeleteAt: a.documentDeleteAt ?? null,
 });
+
+// Phase 32: the same five fictional applicants as the backend's local seed
+// script. They make the admin queue realistic and let the e2e specs approve
+// and reject without signing up a student first. Test-only reset below.
+const DEMO_PASSWORD = "DemoPass123!";
+const DEMO_ID_BYTES = Buffer.concat([
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+  Buffer.from("fictional demo student id"),
+]);
+const DEMO_PEOPLE = [
+  {
+    key: "d1",
+    email: "demo-nimali@jobtrigger.app",
+    method: "email",
+    universityEmail: "nimali.silva@student.mtu.ac.lk",
+    status: "pending",
+    submittedDaysAgo: 2,
+    verifiedDaysAgo: 2,
+  },
+  {
+    key: "d2",
+    email: "demo-kasun@jobtrigger.app",
+    method: "document",
+    fullName: "Kasun Perera",
+    status: "pending",
+    submittedDaysAgo: 5,
+    document: true,
+  },
+  {
+    key: "d3",
+    email: "demo-anushka@jobtrigger.app",
+    method: "email",
+    universityEmail: "anushka.fernando@student.pdn.ac.lk",
+    status: "approved",
+    submittedDaysAgo: 50,
+    verifiedDaysAgo: 50,
+    approvedDaysAgo: 45,
+  },
+  {
+    key: "d4",
+    email: "demo-tharindu@jobtrigger.app",
+    method: "document",
+    fullName: "Tharindu Wickramasinghe",
+    status: "rejected",
+    submittedDaysAgo: 6,
+    reviewedDaysAgo: 3,
+    rejectionReason: "The photo is too blurry to read. Upload a clearer student ID.",
+    document: true,
+  },
+  {
+    key: "d5",
+    email: "demo-maya@jobtrigger.app",
+    method: "email",
+    universityEmail: "maya.chandrasekaran@student.ruh.ac.lk",
+    status: "expired",
+    submittedDaysAgo: 400,
+    verifiedDaysAgo: 400,
+    approvedDaysAgo: 400,
+  },
+];
+
+function seedDemoStudents() {
+  const now = Date.now();
+  const ago = (days) => new Date(now - days * 24 * 60 * 60 * 1000).toISOString();
+  for (const person of DEMO_PEOPLE) {
+    const suffix = person.key.padStart(21, "0");
+    const id = `64c${suffix}`;
+    const userId = `64d${suffix}`;
+    users.delete(person.email);
+    applications.delete(id);
+    documents.delete(id);
+    const reviewedAt =
+      person.approvedDaysAgo != null
+        ? ago(person.approvedDaysAgo)
+        : person.reviewedDaysAgo != null
+          ? ago(person.reviewedDaysAgo)
+          : null;
+    const approvedAt = person.approvedDaysAgo == null ? null : ago(person.approvedDaysAgo);
+    const app = {
+      id,
+      userId,
+      method: person.method,
+      status: person.status,
+      fullName: person.fullName ?? null,
+      universityEmail: person.universityEmail ?? null,
+      emailVerifiedAt: person.verifiedDaysAgo == null ? null : ago(person.verifiedDaysAgo),
+      createdAt: ago(person.submittedDaysAgo),
+      reviewedAt,
+      reviewedByEmail: reviewedAt ? "student-admin@example.com" : null,
+      approvedAt,
+      expiresAt: approvedAt
+        ? new Date(new Date(approvedAt).getTime() + YEAR_MS).toISOString()
+        : null,
+      rejectionReason: person.rejectionReason ?? null,
+      mime: person.document ? "image/png" : null,
+      documentDeleteAt:
+        person.document && reviewedAt
+          ? new Date(new Date(reviewedAt).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          : null,
+    };
+    applications.set(id, app);
+    if (person.document) documents.set(id, DEMO_ID_BYTES);
+    const user = { id: userId, email: person.email, password: DEMO_PASSWORD, tokenVersion: 0 };
+    users.set(person.email, user);
+    if (app.status === "approved") user.student = app;
+  }
+}
+seedDemoStudents();
 
 function student(url, req, body, user, reply) {
   const mine = () => [...applications.values()].filter((a) => a.userId === user.id).at(-1);
@@ -195,17 +308,81 @@ function student(url, req, body, user, reply) {
   return reply(404, { message: "Not found" });
 }
 
+// Phase 31: an admin's view of one support ticket. The queue includes the
+// screenshot count and triage fields but never bytes; detail adds only metadata.
+function supportView(t, detail) {
+  const view = {
+    id: t.id,
+    category: t.category,
+    subject: t.subject,
+    message: t.message,
+    areas: t.areas,
+    impact: t.impact,
+    screenshotCount: t.screenshots.length,
+    status: t.status,
+    createdAt: t.createdAt,
+    updatedAt: t.updatedAt,
+    replyEmail: t.replyEmail ?? null,
+    userEmail: t.userEmail ?? null,
+    appVersion: null,
+    buildNumber: null,
+    tool: null,
+    platform: null,
+    serverHost: null,
+  };
+  if (detail) view.screenshots = t.screenshots;
+  return view;
+}
+
+function adminSupport(url, req, body, user, reply, res) {
+  // api admin support tickets [id] screenshots [index]
+  const parts = url.pathname.split("/").filter(Boolean);
+  if (parts[3] !== "tickets") return reply(404, { message: "Not found" });
+  const id = parts[4];
+  const action = parts[5];
+
+  if (!id && req.method === "GET") {
+    const status = url.searchParams.get("status") ?? "open";
+    const tickets = [...allTickets.values()]
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .filter((t) => status === "all" || t.status === status)
+      .map((t) => supportView(t, false));
+    return reply(200, { tickets });
+  }
+
+  const ticket = allTickets.get(id);
+  if (!ticket) return reply(404, { message: "Not found" });
+
+  if (!action && req.method === "GET") return reply(200, { ticket: supportView(ticket, true) });
+
+  if (!action && req.method === "PATCH") {
+    if (!["open", "triaged", "closed"].includes(body.status))
+      return reply(400, { message: "Choose a known status." });
+    ticket.status = body.status;
+    ticket.updatedAt = new Date().toISOString();
+    return reply(200, { ticket: supportView(ticket, true) });
+  }
+
+  if (action === "screenshots" && req.method === "GET") {
+    const shot = supportShots.get(`${id}:${parts[6]}`);
+    if (!shot) return reply(404, { message: "Not found" });
+    res.writeHead(200, { "content-type": shot.mime, "x-request-id": "e2e" });
+    return res.end(shot.bytes);
+  }
+  return reply(404, { message: "Not found" });
+}
+
 function admin(url, req, body, user, reply, res) {
   // Everyone else gets the same 404 as an unknown route.
   if (!isAdmin(user)) return reply(404, { message: "Not found" });
-  const parts = url.pathname.split("/").filter(Boolean); // api admin students [id] [action]
+  const parts = url.pathname.split("/").filter(Boolean); // api admin [support|students] ...
+  if (parts[2] === "support") return adminSupport(url, req, body, user, reply, res);
   if (parts[2] !== "students") return reply(404, { message: "Not found" });
   const [, , , id, action] = parts;
   if (!id && req.method === "GET") {
     const status = url.searchParams.get("status") ?? "pending";
     const q = (url.searchParams.get("q") ?? "").toLowerCase();
     const items = [...applications.values()]
-      .filter((a) => a.method === "document")
       .filter((a) => status === "all" || a.status === status)
       .map(adminApp)
       .filter(
@@ -217,9 +394,10 @@ function admin(url, req, body, user, reply, res) {
     return reply(200, { items });
   }
   const app = applications.get(id);
-  if (!app || app.method !== "document") return reply(404, { message: "Not found" });
+  if (!app) return reply(404, { message: "Not found" });
   if (!action && req.method === "GET") return reply(200, adminApp(app));
   if (action === "document" && req.method === "GET") {
+    if (app.method !== "document") return reply(404, { message: "Not found" });
     res.writeHead(200, { "content-type": app.mime, "x-request-id": "e2e" });
     return res.end(documents.get(app.id));
   }
@@ -263,6 +441,11 @@ const server = createServer(async (req, res) => {
       toolRequests: toolRequests.get(url.searchParams.get("email") ?? "") ?? 0,
       tickets: tickets.get(url.searchParams.get("email") ?? "") ?? [],
     });
+  // Test-only: restore the five Phase 32 demo applications between specs.
+  if (url.pathname === "/__reset-demo-students" && req.method === "POST") {
+    seedDemoStudents();
+    return reply(200, { status: "ok" });
+  }
   if (url.pathname === "/api/appinfo")
     return reply(200, { supportEmail: "support@jobtrigger.test", appVersion: "1.0.0" });
 
@@ -351,17 +534,64 @@ const server = createServer(async (req, res) => {
       return reply(400, { message: "Choose monthly or yearly" });
     return reply(200, { transactionId: "txn_e2e_fake", environment: "sandbox" });
   }
-  // US-SUP-01 / US-WEB-04, with the backend's own copy.
+  // US-SUP-01/05/06 / US-WEB-04, with the backend's own copy.
   if (url.pathname === "/api/support/tickets" && req.method === "POST") {
-    if (!["bug", "feature", "question", "tool_request"].includes(body.category))
+    const categories = [
+      "bug",
+      "feature",
+      "question",
+      "tool_request",
+      "account",
+      "billing",
+      "other",
+    ];
+    if (!categories.includes(body.category))
       return reply(400, { message: "Choose what kind of report this is." });
     if (!String(body.subject ?? "").trim())
       return reply(400, { message: "A subject is required." });
     if (!String(body.message ?? "").trim())
       return reply(400, { message: "Describe the issue or request." });
-    const ticket = { id: `t${++ticketSeq}`, category: body.category, subject: body.subject };
-    tickets.set(user.email, [...(tickets.get(user.email) ?? []), ticket]);
-    return reply(201, { ticket: { ...ticket, message: body.message, status: "open" } });
+    const areas = Array.isArray(body.areas)
+      ? body.areas.filter((area) => typeof area === "string")
+      : [];
+    const impact = ["blocked", "major", "minor"].includes(body.impact) ? body.impact : "minor";
+    const shots = Array.isArray(body.screenshots) ? body.screenshots : [];
+    if (shots.length > 3) return reply(413, { message: "Attach at most 3 screenshots." });
+    const now = new Date().toISOString();
+    const id = randomUUID().replaceAll("-", "").slice(0, 24);
+    const screenshots = shots.map((shot, index) => {
+      const bytes = Buffer.from(String(shot?.data ?? ""), "base64");
+      const mime = mimeOf(bytes) ?? "image/png";
+      supportShots.set(`${id}:${index}`, { bytes, mime });
+      return {
+        index,
+        mime,
+        size: bytes.length,
+        hash: `e2e-${index}`,
+        createdAt: now,
+        deletedAt: null,
+      };
+    });
+    const full = {
+      id,
+      category: body.category,
+      subject: String(body.subject).trim(),
+      message: String(body.message).trim(),
+      areas,
+      impact,
+      replyEmail: body.replyEmail ?? user.email,
+      userEmail: user.email,
+      screenshots,
+      status: "open",
+      createdAt: now,
+      updatedAt: now,
+    };
+    allTickets.set(id, full);
+    tickets.set(user.email, [
+      ...(tickets.get(user.email) ?? []),
+      { id, category: full.category, subject: full.subject },
+    ]);
+    return reply(201, { ticket: { id } });
   }
   if (url.pathname === "/api/billing/paddle/portal" && req.method === "POST") {
     return reply(404, { message: "No web subscription" });

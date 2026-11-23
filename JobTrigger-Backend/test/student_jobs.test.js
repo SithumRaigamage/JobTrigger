@@ -217,8 +217,9 @@ describe('Student plan: expiry and the downgrade (SP-61)', function() {
     expect(res.body.code).to.equal('already_used');
   });
 
-  it('runAll runs all three steps and reports them', async function() {
+  // P31-03: the daily job now also purges expired support screenshots.
+  it('runAll runs all four steps and reports them', async function() {
     const summary = await jobs.runAll();
-    expect(summary).to.have.all.keys('documentsDeleted', 'remindersSent', 'yearsExpired');
+    expect(summary).to.have.all.keys('documentsDeleted', 'supportScreenshotsDeleted', 'remindersSent', 'yearsExpired');
   });
 });

@@ -9,6 +9,7 @@
  */
 const mongoose = require('mongoose');
 const StudentVerification = require('../models/StudentVerification');
+const SupportTicket = require('../models/SupportTicket');
 const User = require('../models/User');
 const { writeSource } = require('../billing/combine');
 const { sendMail } = require('./mailer');
@@ -40,6 +41,34 @@ async function purgeDecidedDocuments(now = new Date()) {
     { $set: { documentData: null, fullName: null, documentDeletedAt: now, documentDeleteAt: null } },
   );
   return result.modifiedCount;
+}
+
+/**
+ * P31-03: clears support screenshot bytes 30 days after the ticket was
+ * created. Metadata (mime, size, hash, deletion date) stays, so the owner can
+ * still tell a screenshot existed. Safe to repeat.
+ */
+async function purgeSupportScreenshots(now = new Date()) {
+  const due = await SupportTicket.find({
+    'screenshots.deleteAt': mongoose.trusted({ $lte: now }),
+    'screenshots.deletedAt': null,
+  }).select('screenshots').lean();
+  let cleared = 0;
+  for (const ticket of due) {
+    const set = {};
+    (ticket.screenshots ?? []).forEach((shot, index) => {
+      if (shot.deleteAt && shot.deleteAt <= now && !shot.deletedAt) {
+        set[`screenshots.${index}.data`] = null;
+        set[`screenshots.${index}.deletedAt`] = now;
+        set[`screenshots.${index}.deleteAt`] = null;
+        cleared += 1;
+      }
+    });
+    if (Object.keys(set).length > 0) {
+      await SupportTicket.updateOne({ _id: ticket._id }, { $set: set });
+    }
+  }
+  return cleared;
 }
 
 /**
@@ -118,6 +147,7 @@ async function runAll(now = new Date()) {
   const summary = {};
   const steps = [
     ['documentsDeleted', 'purge_documents', purgeDecidedDocuments],
+    ['supportScreenshotsDeleted', 'purge_support_screenshots', purgeSupportScreenshots],
     ['remindersSent', 'send_reminders', sendExpiryReminders],
     ['yearsExpired', 'expire_years', expireEndedYears],
   ];
@@ -151,6 +181,7 @@ module.exports = {
   REMINDER_DAYS,
   expireEndedYears,
   purgeDecidedDocuments,
+  purgeSupportScreenshots,
   runAll,
   sendExpiryReminders,
   start,
