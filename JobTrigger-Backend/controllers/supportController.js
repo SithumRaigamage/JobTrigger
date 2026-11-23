@@ -10,12 +10,18 @@
  *   path, no query, no credentials.
  * - The notification email is best effort: a mail failure is logged and the
  *   ticket is still created (201).
+ * - Phase 31 adds triage options and up to three screenshots. Image bytes are
+ *   checked by magic number (never the file name), encrypted at rest and
+ *   decrypted only by the super-admin screenshot route.
  */
+const crypto = require('crypto');
 const SupportTicket = require('../models/SupportTicket');
 const AppInfo = require('../models/AppInfo');
 const User = require('../models/User');
-const { CATEGORIES, STATUSES } = require('../models/SupportTicket');
+const { CATEGORIES, AREAS, IMPACTS, STATUSES } = require('../models/SupportTicket');
 const { scrubString } = require('../lib/errorReporting/scrub');
+const { inspectDocument } = require('../lib/studentDocument');
+const { encrypt, decrypt } = require('../security/secretCipher');
 const { sendMail } = require('../lib/mailer');
 const { supportTicketEmail } = require('../emails/supportTicket');
 const { logger } = require('../lib/logger');
@@ -26,6 +32,9 @@ const MAX_SHORT = 40;
 const MAX_EMAIL = 254;
 const LIST_LIMIT = 20;
 const ADMIN_LIMIT = 100;
+const MAX_SCREENSHOTS = 3;
+const SCREENSHOT_KEEP_DAYS = 30;
+const SCREENSHOT_FIELD = 'supportScreenshot';
 
 /** Trimmed, scrubbed text with control characters replaced by spaces. */
 function cleanText(value, max) {
@@ -65,15 +74,90 @@ function hostOnly(value) {
   }
 }
 
+/** Optional multi-select areas; `null` means the caller sent something invalid. */
+function parseAreas(value) {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value) || value.length > AREAS.length) return null;
+  const unique = [...new Set(value)];
+  if (unique.some((area) => !AREAS.includes(area))) return null;
+  return unique;
+}
+
+/** Screenshots arrive as base64 in JSON, like student documents (SP-30). */
+function parseScreenshots(value) {
+  if (value === undefined || value === null) return { files: [], error: null };
+  if (!Array.isArray(value)) {
+    return { files: [], error: { status: 400, message: 'Screenshots must be a list.' } };
+  }
+  if (value.length > MAX_SCREENSHOTS) {
+    return { files: [], error: { status: 400, message: `Attach at most ${MAX_SCREENSHOTS} screenshots.` } };
+  }
+  const files = [];
+  for (let index = 0; index < value.length; index += 1) {
+    const item = value[index];
+    const checked = inspectDocument(item?.data);
+    if (checked.error) {
+      const message = checked.error.status === 415
+        ? 'Screenshots must be JPG or PNG images.'
+        : checked.error.message;
+      return { files: [], error: { status: checked.error.status, message } };
+    }
+    if (checked.mime === 'application/pdf') {
+      return { files: [], error: { status: 415, message: 'Screenshots must be JPG or PNG images.' } };
+    }
+    files.push({
+      data: encrypt(checked.bytes.toString('base64'), SCREENSHOT_FIELD),
+      mime: checked.mime,
+      size: checked.bytes.length,
+      hash: crypto.createHash('sha256').update(checked.bytes).digest('hex'),
+      deleteAt: new Date(Date.now() + SCREENSHOT_KEEP_DAYS * 24 * 60 * 60 * 1000),
+    });
+  }
+  return { files, error: null };
+}
+
+function screenshotCount(ticket) {
+  if (Array.isArray(ticket.screenshots)) return ticket.screenshots.length;
+  return 0;
+}
+
 function publicTicket(ticket) {
   return {
     id: String(ticket._id ?? ticket.id),
     category: ticket.category,
     subject: ticket.subject,
     message: ticket.message,
+    areas: ticket.areas ?? [],
+    impact: ticket.impact ?? 'minor',
+    screenshotCount: screenshotCount(ticket),
     status: ticket.status,
     createdAt: ticket.createdAt,
     updatedAt: ticket.updatedAt,
+  };
+}
+
+function adminTicket(ticket, detail = false) {
+  const base = {
+    ...publicTicket(ticket),
+    replyEmail: ticket.replyEmail,
+    userEmail: ticket.userId?.email ?? null,
+    appVersion: ticket.appVersion ?? null,
+    buildNumber: ticket.buildNumber ?? null,
+    tool: ticket.tool ?? null,
+    platform: ticket.platform ?? null,
+    serverHost: ticket.serverHost ?? null,
+  };
+  if (!detail) return base;
+  return {
+    ...base,
+    screenshots: (ticket.screenshots ?? []).map((shot, index) => ({
+      index,
+      mime: shot.mime,
+      size: shot.size,
+      hash: shot.hash,
+      createdAt: shot.createdAt ?? null,
+      deletedAt: shot.deletedAt ?? null,
+    })),
   };
 }
 
@@ -81,7 +165,17 @@ async function notifyOwner(ticket, replyEmail, requestId) {
   try {
     const info = await AppInfo.findOne().select('supportEmail').lean();
     if (!info?.supportEmail) return;
-    const message = supportTicketEmail({ ticket, replyEmail });
+    const message = supportTicketEmail({
+      ticket: {
+        ...publicTicket(ticket),
+        appVersion: ticket.appVersion,
+        buildNumber: ticket.buildNumber,
+        tool: ticket.tool,
+        platform: ticket.platform,
+        serverHost: ticket.serverHost,
+      },
+      replyEmail,
+    });
     await sendMail({ to: info.supportEmail, ...message, kind: 'support_ticket' });
   } catch (err) {
     // The ticket is stored; the email is the secondary path.
@@ -112,6 +206,19 @@ exports.createTicket = async (req, res, next) => {
       return res.status(400).json({ message: `Keep the message under ${MAX_MESSAGE} characters.` });
     }
 
+    const areas = parseAreas(body.areas);
+    if (areas === null) {
+      return res.status(400).json({ message: 'Choose only known affected areas.' });
+    }
+    const impact = body.impact ?? 'minor';
+    if (!IMPACTS.includes(impact)) {
+      return res.status(400).json({ message: 'Choose a known impact.' });
+    }
+    const screenshots = parseScreenshots(body.screenshots);
+    if (screenshots.error) {
+      return res.status(screenshots.error.status).json({ message: screenshots.error.message });
+    }
+
     const account = await User.findById(req.user.id).select('email').lean();
     const replyEmail = cleanText(body.replyEmail, MAX_EMAIL).toLowerCase() || account?.email;
     if (!replyEmail || !replyEmail.includes('@')) {
@@ -129,9 +236,16 @@ exports.createTicket = async (req, res, next) => {
       tool: short(body.tool),
       platform: short(body.platform),
       serverHost: hostOnly(body.serverHost) ?? undefined,
+      areas,
+      impact,
+      screenshots: screenshots.files,
     });
 
-    logger.info('support.ticket_created', { requestId: req.requestId, ticketId: String(ticket.id) });
+    logger.info('support.ticket_created', {
+      requestId: req.requestId,
+      ticketId: String(ticket.id),
+      screenshots: screenshots.files.length,
+    });
     await notifyOwner(ticket, replyEmail, req.requestId);
 
     return res.status(201).json({ ticket: publicTicket(ticket) });
@@ -167,19 +281,47 @@ exports.listAllTickets = async (req, res, next) => {
       .limit(ADMIN_LIMIT)
       .populate('userId', 'email')
       .lean();
-    return res.json({
-      tickets: tickets.map((ticket) => ({
-        ...publicTicket(ticket),
-        replyEmail: ticket.replyEmail,
-        userEmail: ticket.userId?.email ?? null,
-        appVersion: ticket.appVersion ?? null,
-        buildNumber: ticket.buildNumber ?? null,
-        tool: ticket.tool ?? null,
-        platform: ticket.platform ?? null,
-        serverHost: ticket.serverHost ?? null,
-      })),
-    });
+    return res.json({ tickets: tickets.map((ticket) => adminTicket(ticket)) });
   } catch (err) {
+    return next(err);
+  }
+};
+
+// @desc    One ticket with screenshot metadata (super admin only)
+// @route   GET /api/admin/support/tickets/:id
+// @access  Private (superAdmin)
+exports.getTicket = async (req, res, next) => {
+  try {
+    const ticket = await SupportTicket.findById(req.params.id)
+      .populate('userId', 'email')
+      .lean();
+    if (!ticket) return res.status(404).json({ message: 'Not found' });
+    return res.json({ ticket: adminTicket(ticket, true) });
+  } catch (err) {
+    if (err.name === 'CastError') return res.status(404).json({ message: 'Not found' });
+    return next(err);
+  }
+};
+
+// @desc    One screenshot's raw bytes, decrypted on demand (super admin only)
+// @route   GET /api/admin/support/tickets/:id/screenshots/:index
+// @access  Private (superAdmin)
+exports.getScreenshot = async (req, res, next) => {
+  try {
+    const index = Number(req.params.index);
+    if (!Number.isInteger(index) || index < 0) {
+      return res.status(404).json({ message: 'Not found' });
+    }
+    const ticket = await SupportTicket.findById(req.params.id).select('+screenshots.data');
+    const shot = ticket?.screenshots?.[index];
+    if (!shot?.data || shot.deletedAt) return res.status(404).json({ message: 'Not found' });
+    const bytes = Buffer.from(decrypt(shot.data, SCREENSHOT_FIELD), 'base64');
+    return res
+      .set('Content-Type', shot.mime)
+      .set('Cache-Control', 'no-store')
+      .send(bytes);
+  } catch (err) {
+    if (err.name === 'CastError') return res.status(404).json({ message: 'Not found' });
     return next(err);
   }
 };

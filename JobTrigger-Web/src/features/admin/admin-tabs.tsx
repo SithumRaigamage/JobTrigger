@@ -1,10 +1,11 @@
 import Link from "next/link";
 
-/** The owner console's two pages. Reachable only once the backend lets an admin in. */
-export function AdminTabs({ current }: { current: "students" | "subscriptions" }) {
+/** The owner console's pages. Reachable only once the backend lets an admin in. */
+export function AdminTabs({ current }: { current: "students" | "subscriptions" | "support" }) {
   const tabs = [
     { id: "students", href: "/admin/students", label: "Student applications" },
     { id: "subscriptions", href: "/admin/subscriptions", label: "Subscriptions" },
+    { id: "support", href: "/admin/support", label: "Support reports" },
   ] as const;
 
   return (

@@ -55,7 +55,112 @@ Acceptance:
   carries the same content. A normal account sees a 404, not the admin API.
   Evidence: backend `test/support_tickets.test.js` "lets a super admin list every ticket and move it to triaged" (closed asserted too, 2026-11-21), "keeps triage to the owner: a normal account gets a 404", "sends the owner a notification carrying the report".
 
+## US-SUP-05 — Tell us more about the problem
+
+Approved 2026-11-23 for **1.1** (`tasks/phase-31-support-extended.md`). The
+four chips are fine for classifying a ticket, but they do not say which tool
+was involved or how badly it is broken.
+
+As someone filing a report, I want to select the affected areas and the impact
+without writing a paragraph, so that the owner can triage it at a glance.
+
+Acceptance:
+- [x] The app's Support form and the website's signed-in form offer seven
+  primary categories: Bug, Feature idea, Question, Tool request, Account &
+  sign-in, Billing & subscription, Something else. The four existing wire
+  values stay unchanged, so old tickets and the tool-request link still read.
+  Evidence: app `support_screen_test.dart` "seven category chips …" (1,998
+  passing); website `domain/support.test.ts` "the seven categories …" and
+  `support-form.test.tsx` "offers seven kinds …"; `npm run check` + e2e clean.
+- [x] A multi-select "Affected area" offers Jenkins, GitHub Actions,
+  SonarQube, Website, Phone/app and Account; none is required.
+  Evidence: app `support_screen_test.dart` area selection; website
+  `support-form.test.tsx` "submits the held files with the text and options"
+  (two areas in the payload); e2e `support-report.spec.ts` checks two.
+- [x] A single "Impact" select offers Blocked, Major and Minor.
+  Evidence: app `support_screen_test.dart`; website `support-form.test.tsx`
+  "offers seven kinds, the areas, the impact …"; backend
+  `test/support_extended.test.js` rejects an unknown impact.
+- [x] Subject, details, reply email and the diagnostics toggle behave exactly
+  as in US-SUP-01; the form never asks for a token or password.
+  Evidence: app `support_screen_test.dart` "a failed send keeps the form …"
+  and the unchanged diagnostics tests (all passing); the form keeps
+  "Do not paste tokens or passwords."; website `actions.test.ts` shows the
+  reply address from the session and no token field.
+- [x] The new fields are stored on the ticket, shown in the owner's ticket
+  detail and included in the notification email.
+  Evidence: backend `test/support_extended.test.js` (storage + email body),
+  `emails/supportTicket.js` ("Areas: …", "Impact: …"); website
+  `server/support-api.test.ts` (detail parses areas/impact) and
+  `features/admin/support-view.test.tsx` (detail renders them).
+
+## US-SUP-06 — Attach screenshots
+
+As someone whose build log looks wrong, I want to attach a screenshot, so that
+the owner sees what I see instead of asking me to describe it.
+
+Acceptance:
+- [x] The app picks JPG or PNG files with the already-approved `file_picker`
+  (no camera package); up to 3 files, 5 MB each. The website accepts the same
+  limits in its signed-in form.
+  Evidence: app `support_screenshots.dart` uses `file_picker` only, with the
+  limits in `test/presentation/features/support/support_screen_test.dart`;
+  website `domain/support.ts` limits and `features/support/actions.ts`
+  "refuses too many or oversized files before anything travels" (unit + e2e).
+- [x] Each file shows a preview with a remove control before sending, and the
+  form warns to blur tokens, passwords and personal data first.
+  Evidence: app `support_screen.dart` preview/remove plus the blur copy in
+  `support_screen_test.dart`; website `support-form.test.tsx` "previews a
+  picked image and lets it be removed …" and the blur-warning assertion; e2e
+  "Remove shot.png" before send.
+- [x] The backend checks the file's leading bytes, not its name, and rejects
+  wrong types with **415** and oversized files with **413**. At most 3 files
+  are stored per ticket.
+  Evidence: `test/support_extended.test.js` magic-byte, 413 and 415 cases and
+  the 3-file cap (529 backend tests passing).
+- [x] Screenshot bytes are encrypted at rest with the same secret cipher used
+  for student documents, are never returned to the account on
+  `GET /api/support/tickets`, and are deleted 30 days after the ticket is
+  created by the daily job.
+  Evidence: `test/support_extended.test.js` encryption-at-rest, "no bytes in
+  the caller's own list" and the 30-day cleanup cases; `lib/studentJobs.js`
+  daily job; AAD `supportScreenshot` in the controller.
+- [x] The owner email names the number of screenshots and links to the
+  super-admin detail page; images are not sent as email attachments.
+  Evidence: `emails/supportTicket.js` "N screenshots … review at /admin/support/:id"
+  and `test/support_extended.test.js` email-content assertion.
+
+## US-SUP-07 — Owner reviews a report with its screenshots
+
+As the owner, I want one super-admin page with the report, its options and its
+screenshots, so that I can triage without asking the reporter to resend.
+
+Acceptance:
+- [x] `/admin/support` lists tickets (newest first, status filter) with their
+  category, areas, impact, reporter and screenshot count.
+  Evidence: `features/admin/support-view.tsx` queue + status filters, covered
+  by `support-view.test.tsx` and `app/(portal)/admin/support/admin-support.test.ts`
+  ("defaults to open and ignores an unknown status"); e2e "reaches the owner
+  console" asserts the row's category/areas/impact/count.
+- [x] `/admin/support/:id` shows full details, screenshot thumbnails and the
+  existing status control; each thumbnail opens the full image.
+  Evidence: `SupportDetailView` + `SupportStatusForm`, tests in
+  `support-view.test.tsx` (thumbnail links to `/screenshots/0`) and e2e
+  (status change to closed shows "Marked closed.").
+- [x] `GET /api/admin/support/tickets/:id` and the screenshot route require a
+  super-admin session; a normal account gets **404**, as in US-SUP-04.
+  Evidence: backend `test/support_extended.test.js` role checks; website
+  `admin-support.test.ts` "non-admin gets a plain 404" and e2e "a normal
+  account gets a plain 404 for the owner's support pages".
+- [x] The screenshot route sets `Cache-Control: no-store` and never exposes a
+  path, a token or another account's data.
+  Evidence: `app/(portal)/admin/support/[id]/screenshots/[index]/route.ts`
+  uses the session's own token server-side, allows only image/jpeg|png, sets
+  `no-store`/`nosniff`/CSP; `admin-support.test.ts` "streams one image with
+  no-store, nosniff and no token" and e2e header assertions.
+
 ## Out of scope
 
-Attaching a crash-report event id, an in-app FAQ, a store rating prompt, and a
-reply thread inside the app (that needs ticket messages and notifications).
+Attaching a crash-report event id, an in-app FAQ, a store rating prompt, a
+reply thread inside the app (that needs ticket messages and notifications),
+and in-app camera capture (would need a new `image_picker` dependency).

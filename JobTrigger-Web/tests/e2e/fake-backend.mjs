@@ -69,7 +69,10 @@ const secretFetches = new Map();
 const toolRequests = new Map();
 // US-WEB-04: Support tickets filed per account (the website's tool request).
 const tickets = new Map();
-let ticketSeq = 0;
+// Phase 31: the same tickets in one global list for the owner's review queue.
+const allTickets = new Map();
+// Phase 31: screenshot bytes keyed by `${ticketId}:${index}` (never in a list).
+const supportShots = new Map();
 
 function send(res, status, body, requestId) {
   res.writeHead(status, { "content-type": "application/json", "x-request-id": requestId });
@@ -195,10 +198,75 @@ function student(url, req, body, user, reply) {
   return reply(404, { message: "Not found" });
 }
 
+// Phase 31: an admin's view of one support ticket. The queue includes the
+// screenshot count and triage fields but never bytes; detail adds only metadata.
+function supportView(t, detail) {
+  const view = {
+    id: t.id,
+    category: t.category,
+    subject: t.subject,
+    message: t.message,
+    areas: t.areas,
+    impact: t.impact,
+    screenshotCount: t.screenshots.length,
+    status: t.status,
+    createdAt: t.createdAt,
+    updatedAt: t.updatedAt,
+    replyEmail: t.replyEmail ?? null,
+    userEmail: t.userEmail ?? null,
+    appVersion: null,
+    buildNumber: null,
+    tool: null,
+    platform: null,
+    serverHost: null,
+  };
+  if (detail) view.screenshots = t.screenshots;
+  return view;
+}
+
+function adminSupport(url, req, body, user, reply, res) {
+  // api admin support tickets [id] screenshots [index]
+  const parts = url.pathname.split("/").filter(Boolean);
+  if (parts[3] !== "tickets") return reply(404, { message: "Not found" });
+  const id = parts[4];
+  const action = parts[5];
+
+  if (!id && req.method === "GET") {
+    const status = url.searchParams.get("status") ?? "open";
+    const tickets = [...allTickets.values()]
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .filter((t) => status === "all" || t.status === status)
+      .map((t) => supportView(t, false));
+    return reply(200, { tickets });
+  }
+
+  const ticket = allTickets.get(id);
+  if (!ticket) return reply(404, { message: "Not found" });
+
+  if (!action && req.method === "GET") return reply(200, { ticket: supportView(ticket, true) });
+
+  if (!action && req.method === "PATCH") {
+    if (!["open", "triaged", "closed"].includes(body.status))
+      return reply(400, { message: "Choose a known status." });
+    ticket.status = body.status;
+    ticket.updatedAt = new Date().toISOString();
+    return reply(200, { ticket: supportView(ticket, true) });
+  }
+
+  if (action === "screenshots" && req.method === "GET") {
+    const shot = supportShots.get(`${id}:${parts[6]}`);
+    if (!shot) return reply(404, { message: "Not found" });
+    res.writeHead(200, { "content-type": shot.mime, "x-request-id": "e2e" });
+    return res.end(shot.bytes);
+  }
+  return reply(404, { message: "Not found" });
+}
+
 function admin(url, req, body, user, reply, res) {
   // Everyone else gets the same 404 as an unknown route.
   if (!isAdmin(user)) return reply(404, { message: "Not found" });
-  const parts = url.pathname.split("/").filter(Boolean); // api admin students [id] [action]
+  const parts = url.pathname.split("/").filter(Boolean); // api admin [support|students] ...
+  if (parts[2] === "support") return adminSupport(url, req, body, user, reply, res);
   if (parts[2] !== "students") return reply(404, { message: "Not found" });
   const [, , , id, action] = parts;
   if (!id && req.method === "GET") {
@@ -351,17 +419,64 @@ const server = createServer(async (req, res) => {
       return reply(400, { message: "Choose monthly or yearly" });
     return reply(200, { transactionId: "txn_e2e_fake", environment: "sandbox" });
   }
-  // US-SUP-01 / US-WEB-04, with the backend's own copy.
+  // US-SUP-01/05/06 / US-WEB-04, with the backend's own copy.
   if (url.pathname === "/api/support/tickets" && req.method === "POST") {
-    if (!["bug", "feature", "question", "tool_request"].includes(body.category))
+    const categories = [
+      "bug",
+      "feature",
+      "question",
+      "tool_request",
+      "account",
+      "billing",
+      "other",
+    ];
+    if (!categories.includes(body.category))
       return reply(400, { message: "Choose what kind of report this is." });
     if (!String(body.subject ?? "").trim())
       return reply(400, { message: "A subject is required." });
     if (!String(body.message ?? "").trim())
       return reply(400, { message: "Describe the issue or request." });
-    const ticket = { id: `t${++ticketSeq}`, category: body.category, subject: body.subject };
-    tickets.set(user.email, [...(tickets.get(user.email) ?? []), ticket]);
-    return reply(201, { ticket: { ...ticket, message: body.message, status: "open" } });
+    const areas = Array.isArray(body.areas)
+      ? body.areas.filter((area) => typeof area === "string")
+      : [];
+    const impact = ["blocked", "major", "minor"].includes(body.impact) ? body.impact : "minor";
+    const shots = Array.isArray(body.screenshots) ? body.screenshots : [];
+    if (shots.length > 3) return reply(413, { message: "Attach at most 3 screenshots." });
+    const now = new Date().toISOString();
+    const id = randomUUID().replaceAll("-", "").slice(0, 24);
+    const screenshots = shots.map((shot, index) => {
+      const bytes = Buffer.from(String(shot?.data ?? ""), "base64");
+      const mime = mimeOf(bytes) ?? "image/png";
+      supportShots.set(`${id}:${index}`, { bytes, mime });
+      return {
+        index,
+        mime,
+        size: bytes.length,
+        hash: `e2e-${index}`,
+        createdAt: now,
+        deletedAt: null,
+      };
+    });
+    const full = {
+      id,
+      category: body.category,
+      subject: String(body.subject).trim(),
+      message: String(body.message).trim(),
+      areas,
+      impact,
+      replyEmail: body.replyEmail ?? user.email,
+      userEmail: user.email,
+      screenshots,
+      status: "open",
+      createdAt: now,
+      updatedAt: now,
+    };
+    allTickets.set(id, full);
+    tickets.set(user.email, [
+      ...(tickets.get(user.email) ?? []),
+      { id, category: full.category, subject: full.subject },
+    ]);
+    return reply(201, { ticket: { id } });
   }
   if (url.pathname === "/api/billing/paddle/portal" && req.method === "POST") {
     return reply(404, { message: "No web subscription" });
